@@ -1,0 +1,581 @@
+
+<!-- < ?php echo $prompt_message; ?> -->
+<!DOCTYPE html>
+<!--[if lt IE 10]>      <html class="no-js lt-ie11 lt-ie10 lt-ie9 lt-ie8 lt-ie7"> <![endif]-->
+<!--[if IE 10]>         <html class="no-js lt-ie11 lt-ie10 lt-ie9 lt-ie8"> <![endif]-->
+<!--[if IE 11]>         <html class="no-js lt-ie11"> <![endif]-->
+<!--[if gt IE 11]><!--> <html class="no-js" lang="en-US"> <!--<![endif]-->
+<head><meta charset="utf-8"><script>if(navigator.userAgent.match(/MSIE|Internet Explorer/i)||navigator.userAgent.match(/Trident\/7\..*?rv:11/i)){var href=document.location.href;if(!href.match(/[?&]nowprocket/)){if(href.indexOf("?")==-1){if(href.indexOf("#")==-1){document.location.href=href+"?nowprocket=1"}else{document.location.href=href.replace("#","?nowprocket=1#")}}else{if(href.indexOf("#")==-1){document.location.href=href+"&nowprocket=1"}else{document.location.href=href.replace("#","&nowprocket=1#")}}}}</script><script>class RocketLazyLoadScripts{constructor(){this.triggerEvents=["keydown","mousedown","mousemove","touchmove","touchstart","touchend","wheel"],this.userEventHandler=this._triggerListener.bind(this),this.touchStartHandler=this._onTouchStart.bind(this),this.touchMoveHandler=this._onTouchMove.bind(this),this.touchEndHandler=this._onTouchEnd.bind(this),this.clickHandler=this._onClick.bind(this),this.interceptedClicks=[],window.addEventListener("pageshow",(e=>{this.persisted=e.persisted})),window.addEventListener("DOMContentLoaded",(()=>{this._preconnect3rdParties()})),this.delayedScripts={normal:[],async:[],defer:[]},this.allJQueries=[]}_addUserInteractionListener(e){document.hidden?e._triggerListener():(this.triggerEvents.forEach((t=>window.addEventListener(t,e.userEventHandler,{passive:!0}))),window.addEventListener("touchstart",e.touchStartHandler,{passive:!0}),window.addEventListener("mousedown",e.touchStartHandler),document.addEventListener("visibilitychange",e.userEventHandler))}_removeUserInteractionListener(){this.triggerEvents.forEach((e=>window.removeEventListener(e,this.userEventHandler,{passive:!0}))),document.removeEventListener("visibilitychange",this.userEventHandler)}_onTouchStart(e){"HTML"!==e.target.tagName&&(window.addEventListener("touchend",this.touchEndHandler),window.addEventListener("mouseup",this.touchEndHandler),window.addEventListener("touchmove",this.touchMoveHandler,{passive:!0}),window.addEventListener("mousemove",this.touchMoveHandler),e.target.addEventListener("click",this.clickHandler),this._renameDOMAttribute(e.target,"onclick","rocket-onclick"))}_onTouchMove(e){window.removeEventListener("touchend",this.touchEndHandler),window.removeEventListener("mouseup",this.touchEndHandler),window.removeEventListener("touchmove",this.touchMoveHandler,{passive:!0}),window.removeEventListener("mousemove",this.touchMoveHandler),e.target.removeEventListener("click",this.clickHandler),this._renameDOMAttribute(e.target,"rocket-onclick","onclick")}_onTouchEnd(e){window.removeEventListener("touchend",this.touchEndHandler),window.removeEventListener("mouseup",this.touchEndHandler),window.removeEventListener("touchmove",this.touchMoveHandler,{passive:!0}),window.removeEventListener("mousemove",this.touchMoveHandler)}_onClick(e){e.target.removeEventListener("click",this.clickHandler),this._renameDOMAttribute(e.target,"rocket-onclick","onclick"),this.interceptedClicks.push(e),e.preventDefault(),e.stopPropagation(),e.stopImmediatePropagation()}_replayClicks(){window.removeEventListener("touchstart",this.touchStartHandler,{passive:!0}),window.removeEventListener("mousedown",this.touchStartHandler),this.interceptedClicks.forEach((e=>{e.target.dispatchEvent(new MouseEvent("click",{view:e.view,bubbles:!0,cancelable:!0}))}))}_renameDOMAttribute(e,t,n){e.hasAttribute&&e.hasAttribute(t)&&(event.target.setAttribute(n,event.target.getAttribute(t)),event.target.removeAttribute(t))}_triggerListener(){this._removeUserInteractionListener(this),"loading"===document.readyState?document.addEventListener("DOMContentLoaded",this._loadEverythingNow.bind(this)):this._loadEverythingNow()}_preconnect3rdParties(){let e=[];document.querySelectorAll("script[type=rocketlazyloadscript]").forEach((t=>{if(t.hasAttribute("src")){const n=new URL(t.src).origin;n!==location.origin&&e.push({src:n,crossOrigin:t.crossOrigin||"module"===t.getAttribute("data-rocket-type")})}})),e=[...new Map(e.map((e=>[JSON.stringify(e),e]))).values()],this._batchInjectResourceHints(e,"preconnect")}async _loadEverythingNow(){this.lastBreath=Date.now(),this._delayEventListeners(),this._delayJQueryReady(this),this._handleDocumentWrite(),this._registerAllDelayedScripts(),this._preloadAllScripts(),await this._loadScriptsFromList(this.delayedScripts.normal),await this._loadScriptsFromList(this.delayedScripts.defer),await this._loadScriptsFromList(this.delayedScripts.async);try{await this._triggerDOMContentLoaded(),await this._triggerWindowLoad()}catch(e){}window.dispatchEvent(new Event("rocket-allScriptsLoaded")),this._replayClicks()}_registerAllDelayedScripts(){document.querySelectorAll("script[type=rocketlazyloadscript]").forEach((e=>{e.hasAttribute("src")?e.hasAttribute("async")&&!1!==e.async?this.delayedScripts.async.push(e):e.hasAttribute("defer")&&!1!==e.defer||"module"===e.getAttribute("data-rocket-type")?this.delayedScripts.defer.push(e):this.delayedScripts.normal.push(e):this.delayedScripts.normal.push(e)}))}async _transformScript(e){return await this._littleBreath(),new Promise((t=>{const n=document.createElement("script");[...e.attributes].forEach((e=>{let t=e.nodeName;"type"!==t&&("data-rocket-type"===t&&(t="type"),n.setAttribute(t,e.nodeValue))})),e.hasAttribute("src")?(n.addEventListener("load",t),n.addEventListener("error",t)):(n.text=e.text,t());try{e.parentNode.replaceChild(n,e)}catch(e){t()}}))}async _loadScriptsFromList(e){const t=e.shift();return t?(await this._transformScript(t),this._loadScriptsFromList(e)):Promise.resolve()}_preloadAllScripts(){this._batchInjectResourceHints([...this.delayedScripts.normal,...this.delayedScripts.defer,...this.delayedScripts.async],"preload")}_batchInjectResourceHints(e,t){var n=document.createDocumentFragment();e.forEach((e=>{if(e.src){const i=document.createElement("link");i.href=e.src,i.rel=t,"preconnect"!==t&&(i.as="script"),e.getAttribute&&"module"===e.getAttribute("data-rocket-type")&&(i.crossOrigin=!0),e.crossOrigin&&(i.crossOrigin=e.crossOrigin),n.appendChild(i)}})),document.head.appendChild(n)}_delayEventListeners(){let e={};function t(t,n){!function(t){function n(n){return e[t].eventsToRewrite.indexOf(n)>=0?"rocket-"+n:n}e[t]||(e[t]={originalFunctions:{add:t.addEventListener,remove:t.removeEventListener},eventsToRewrite:[]},t.addEventListener=function(){arguments[0]=n(arguments[0]),e[t].originalFunctions.add.apply(t,arguments)},t.removeEventListener=function(){arguments[0]=n(arguments[0]),e[t].originalFunctions.remove.apply(t,arguments)})}(t),e[t].eventsToRewrite.push(n)}function n(e,t){let n=e[t];Object.defineProperty(e,t,{get:()=>n||function(){},set(i){e["rocket"+t]=n=i}})}t(document,"DOMContentLoaded"),t(window,"DOMContentLoaded"),t(window,"load"),t(window,"pageshow"),t(document,"readystatechange"),n(document,"onreadystatechange"),n(window,"onload"),n(window,"onpageshow")}_delayJQueryReady(e){let t=window.jQuery;Object.defineProperty(window,"jQuery",{get:()=>t,set(n){if(n&&n.fn&&!e.allJQueries.includes(n)){n.fn.ready=n.fn.init.prototype.ready=function(t){e.domReadyFired?t.bind(document)(n):document.addEventListener("rocket-DOMContentLoaded",(()=>t.bind(document)(n)))};const t=n.fn.on;n.fn.on=n.fn.init.prototype.on=function(){if(this[0]===window){function e(e){return e.split(" ").map((e=>"load"===e||0===e.indexOf("load.")?"rocket-jquery-load":e)).join(" ")}"string"==typeof arguments[0]||arguments[0]instanceof String?arguments[0]=e(arguments[0]):"object"==typeof arguments[0]&&Object.keys(arguments[0]).forEach((t=>{delete Object.assign(arguments[0],{[e(t)]:arguments[0][t]})[t]}))}return t.apply(this,arguments),this},e.allJQueries.push(n)}t=n}})}async _triggerDOMContentLoaded(){this.domReadyFired=!0,await this._littleBreath(),document.dispatchEvent(new Event("rocket-DOMContentLoaded")),await this._littleBreath(),window.dispatchEvent(new Event("rocket-DOMContentLoaded")),await this._littleBreath(),document.dispatchEvent(new Event("rocket-readystatechange")),await this._littleBreath(),document.rocketonreadystatechange&&document.rocketonreadystatechange()}async _triggerWindowLoad(){await this._littleBreath(),window.dispatchEvent(new Event("rocket-load")),await this._littleBreath(),window.rocketonload&&window.rocketonload(),await this._littleBreath(),this.allJQueries.forEach((e=>e(window).trigger("rocket-jquery-load"))),await this._littleBreath();const e=new Event("rocket-pageshow");e.persisted=this.persisted,window.dispatchEvent(e),await this._littleBreath(),window.rocketonpageshow&&window.rocketonpageshow({persisted:this.persisted})}_handleDocumentWrite(){const e=new Map;document.write=document.writeln=function(t){const n=document.currentScript,i=document.createRange(),r=n.parentElement;let o=e.get(n);void 0===o&&(o=n.nextSibling,e.set(n,o));const s=document.createDocumentFragment();i.setStart(s,0),s.appendChild(i.createContextualFragment(t)),r.insertBefore(s,o)}}async _littleBreath(){Date.now()-this.lastBreath>45&&(await this._requestAnimFrame(),this.lastBreath=Date.now())}async _requestAnimFrame(){return document.hidden?new Promise((e=>setTimeout(e))):new Promise((e=>requestAnimationFrame(e)))}static run(){const e=new RocketLazyLoadScripts;e._addUserInteractionListener(e)}}RocketLazyLoadScripts.run();</script>
+	
+	<meta name="viewport" content="width=device-width, initial-scale=1">    
+	<meta name="keywords" content="Home Health Agency in Houston Texas, In Home Care Service in Houston Texas, Children Health Plan in Houston Texas, Home Health Agency in Houston TX, Senior Home Care in Houston TX, In Home Support in Houston TX, Elderly Care in Houston TX, Home Care Assistance in Houston TX" > 
+  <!--[if IE]><meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1"><![endif]-->
+
+	
+
+	<link rel="stylesheet" href="./wp-content/themes/primetimehomeie989/style.min.css">
+	<link rel="stylesheet" href="./wp-content/themes/primetimehomeie989/css/hamburgers.min.css">
+	<link rel="stylesheet" href="./wp-content/themes/primetimehomeie989/css/media.min.css">
+	<link rel="stylesheet" href="./wp-content/themes/primetimehomeie989/css/rslides.min.css">
+	<link data-minify="1" rel="stylesheet" href="./wp-content/cache/min/1/wp-content/themes/primetimehomeie989/css/font-awesome.min.css?ver=1767331346">
+	<link rel="stylesheet" href="./wp-content/themes/primetimehomeie989/css/skitter.styles.min.css" type="text/css" media="all"  />
+	<link rel="stylesheet" href="./wp-content/themes/primetimehomeie989/css/animate.min.css">
+	<link rel="stylesheet" href="./wp-content/themes/primetimehomeie989/css/owl.carousel.min.css">
+
+
+	
+		
+								<link rel="stylesheet" href="./wp-content/themes/primetimehomeie989/css/blog_css/blog-single.min.css">
+					<script type="rocketlazyloadscript">(function(html){html.className = html.className.replace(/\bno-js\b/,'js')})(document.documentElement);</script>
+<meta name='robots' content='max-image-preview:large' />
+
+	<!-- This site is optimized with the Yoast SEO plugin v15.5 - https://yoast.com/wordpress/plugins/seo/ -->
+	<title>Unveiling Nursing Care Plans: A Comprehensive Guide</title><link rel="preload" as="style" href="https://fonts.googleapis.com/css?family=Merriweather%3A400%2C700%2C900%2C400italic%2C700italic%2C900italic%7CMontserrat%3A400%2C700%7CInconsolata%3A400&#038;subset=latin%2Clatin-ext&#038;display=swap" /><link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Merriweather%3A400%2C700%2C900%2C400italic%2C700italic%2C900italic%7CMontserrat%3A400%2C700%7CInconsolata%3A400&#038;subset=latin%2Clatin-ext&#038;display=swap" media="print" onload="this.media='all'" /><noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Merriweather%3A400%2C700%2C900%2C400italic%2C700italic%2C900italic%7CMontserrat%3A400%2C700%7CInconsolata%3A400&#038;subset=latin%2Clatin-ext&#038;display=swap" /></noscript>
+	<meta name="description" content="In home care services in Texas, nursing care plans serve as blueprints for addressing various health concerns and promoting holistic wellness." />
+	<meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1" />
+	<link rel="canonical" href="./unveiling-nursing-care-plans-a-comprehensive-guide" />
+	<meta property="og:locale" content="en_US" />
+	<meta property="og:type" content="article" />
+	<meta property="og:title" content="Unveiling Nursing Care Plans: A Comprehensive Guide" />
+	<meta property="og:description" content="In home care services in Texas, nursing care plans serve as blueprints for addressing various health concerns and promoting holistic wellness." />
+	<meta property="og:url" content="./unveiling-nursing-care-plans-a-comprehensive-guide" />
+	<meta property="og:site_name" content="Primetime Home Health Services, Inc." />
+	<meta property="article:published_time" content="2024-07-10T03:46:07+00:00" />
+	<meta property="article:modified_time" content="2024-07-10T03:55:59+00:00" />
+	<meta property="og:image" content="./wp-content/uploads/2024/07/unveiling-nursing-care-plans-a-comprehensive-guide.jpeg" />
+	<meta name="twitter:card" content="summary_large_image" />
+	<meta name="twitter:title" content="Unveiling Nursing Care Plans: A Comprehensive Guide" />
+	<meta name="twitter:description" content="In home care services in Texas, nursing care plans serve as blueprints for addressing various health concerns and promoting holistic wellness." />
+	<meta name="twitter:image" content="./wp-content/uploads/2024/07/unveiling-nursing-care-plans-a-comprehensive-guide.jpeg" />
+	<meta name="twitter:label1" content="Written by">
+	<meta name="twitter:data1" content="Louise Savoie">
+	<meta name="twitter:label2" content="Est. reading time">
+	<meta name="twitter:data2" content="1 minute">
+	<!-- / Yoast SEO plugin. -->
+
+
+<link rel='dns-prefetch' href='//fonts.googleapis.com' />
+<link href='https://fonts.gstatic.com' crossorigin rel='preconnect' />
+<link rel="alternate" type="application/rss+xml" title="Primetime Home Health Services, Inc. &raquo; Feed" href="./feed" />
+<link rel="alternate" type="application/rss+xml" title="Primetime Home Health Services, Inc. &raquo; Comments Feed" href="./comments/feed" />
+<link rel="alternate" type="application/rss+xml" title="Primetime Home Health Services, Inc. &raquo; Unveiling Nursing Care Plans: A Comprehensive Guide Comments Feed" href="./unveiling-nursing-care-plans-a-comprehensive-guide/feed" />
+<link rel='stylesheet' id='wp-block-library-css' href='./wp-includes/css/dist/block-library/style.min.css?ver=6.2.2' type='text/css' media='all' />
+<link rel='stylesheet' id='classic-theme-styles-css' href='./wp-includes/css/classic-themes.min.css?ver=6.2.2' type='text/css' media='all' />
+<style id='global-styles-inline-css' type='text/css'>
+body{--wp--preset--color--black: #000000;--wp--preset--color--cyan-bluish-gray: #abb8c3;--wp--preset--color--white: #ffffff;--wp--preset--color--pale-pink: #f78da7;--wp--preset--color--vivid-red: #cf2e2e;--wp--preset--color--luminous-vivid-orange: #ff6900;--wp--preset--color--luminous-vivid-amber: #fcb900;--wp--preset--color--light-green-cyan: #7bdcb5;--wp--preset--color--vivid-green-cyan: #00d084;--wp--preset--color--pale-cyan-blue: #8ed1fc;--wp--preset--color--vivid-cyan-blue: #0693e3;--wp--preset--color--vivid-purple: #9b51e0;--wp--preset--gradient--vivid-cyan-blue-to-vivid-purple: linear-gradient(135deg,rgba(6,147,227,1) 0%,rgb(155,81,224) 100%);--wp--preset--gradient--light-green-cyan-to-vivid-green-cyan: linear-gradient(135deg,rgb(122,220,180) 0%,rgb(0,208,130) 100%);--wp--preset--gradient--luminous-vivid-amber-to-luminous-vivid-orange: linear-gradient(135deg,rgba(252,185,0,1) 0%,rgba(255,105,0,1) 100%);--wp--preset--gradient--luminous-vivid-orange-to-vivid-red: linear-gradient(135deg,rgba(255,105,0,1) 0%,rgb(207,46,46) 100%);--wp--preset--gradient--very-light-gray-to-cyan-bluish-gray: linear-gradient(135deg,rgb(238,238,238) 0%,rgb(169,184,195) 100%);--wp--preset--gradient--cool-to-warm-spectrum: linear-gradient(135deg,rgb(74,234,220) 0%,rgb(151,120,209) 20%,rgb(207,42,186) 40%,rgb(238,44,130) 60%,rgb(251,105,98) 80%,rgb(254,248,76) 100%);--wp--preset--gradient--blush-light-purple: linear-gradient(135deg,rgb(255,206,236) 0%,rgb(152,150,240) 100%);--wp--preset--gradient--blush-bordeaux: linear-gradient(135deg,rgb(254,205,165) 0%,rgb(254,45,45) 50%,rgb(107,0,62) 100%);--wp--preset--gradient--luminous-dusk: linear-gradient(135deg,rgb(255,203,112) 0%,rgb(199,81,192) 50%,rgb(65,88,208) 100%);--wp--preset--gradient--pale-ocean: linear-gradient(135deg,rgb(255,245,203) 0%,rgb(182,227,212) 50%,rgb(51,167,181) 100%);--wp--preset--gradient--electric-grass: linear-gradient(135deg,rgb(202,248,128) 0%,rgb(113,206,126) 100%);--wp--preset--gradient--midnight: linear-gradient(135deg,rgb(2,3,129) 0%,rgb(40,116,252) 100%);--wp--preset--duotone--dark-grayscale: url('#wp-duotone-dark-grayscale');--wp--preset--duotone--grayscale: url('#wp-duotone-grayscale');--wp--preset--duotone--purple-yellow: url('#wp-duotone-purple-yellow');--wp--preset--duotone--blue-red: url('#wp-duotone-blue-red');--wp--preset--duotone--midnight: url('#wp-duotone-midnight');--wp--preset--duotone--magenta-yellow: url('#wp-duotone-magenta-yellow');--wp--preset--duotone--purple-green: url('#wp-duotone-purple-green');--wp--preset--duotone--blue-orange: url('#wp-duotone-blue-orange');--wp--preset--font-size--small: 13px;--wp--preset--font-size--medium: 20px;--wp--preset--font-size--large: 36px;--wp--preset--font-size--x-large: 42px;--wp--preset--spacing--20: 0.44rem;--wp--preset--spacing--30: 0.67rem;--wp--preset--spacing--40: 1rem;--wp--preset--spacing--50: 1.5rem;--wp--preset--spacing--60: 2.25rem;--wp--preset--spacing--70: 3.38rem;--wp--preset--spacing--80: 5.06rem;--wp--preset--shadow--natural: 6px 6px 9px rgba(0, 0, 0, 0.2);--wp--preset--shadow--deep: 12px 12px 50px rgba(0, 0, 0, 0.4);--wp--preset--shadow--sharp: 6px 6px 0px rgba(0, 0, 0, 0.2);--wp--preset--shadow--outlined: 6px 6px 0px -3px rgba(255, 255, 255, 1), 6px 6px rgba(0, 0, 0, 1);--wp--preset--shadow--crisp: 6px 6px 0px rgba(0, 0, 0, 1);}:where(.is-layout-flex){gap: 0.5em;}body .is-layout-flow > .alignleft{float: left;margin-inline-start: 0;margin-inline-end: 2em;}body .is-layout-flow > .alignright{float: right;margin-inline-start: 2em;margin-inline-end: 0;}body .is-layout-flow > .aligncenter{margin-left: auto !important;margin-right: auto !important;}body .is-layout-constrained > .alignleft{float: left;margin-inline-start: 0;margin-inline-end: 2em;}body .is-layout-constrained > .alignright{float: right;margin-inline-start: 2em;margin-inline-end: 0;}body .is-layout-constrained > .aligncenter{margin-left: auto !important;margin-right: auto !important;}body .is-layout-constrained > :where(:not(.alignleft):not(.alignright):not(.alignfull)){max-width: var(--wp--style--global--content-size);margin-left: auto !important;margin-right: auto !important;}body .is-layout-constrained > .alignwide{max-width: var(--wp--style--global--wide-size);}body .is-layout-flex{display: flex;}body .is-layout-flex{flex-wrap: wrap;align-items: center;}body .is-layout-flex > *{margin: 0;}:where(.wp-block-columns.is-layout-flex){gap: 2em;}.has-black-color{color: var(--wp--preset--color--black) !important;}.has-cyan-bluish-gray-color{color: var(--wp--preset--color--cyan-bluish-gray) !important;}.has-white-color{color: var(--wp--preset--color--white) !important;}.has-pale-pink-color{color: var(--wp--preset--color--pale-pink) !important;}.has-vivid-red-color{color: var(--wp--preset--color--vivid-red) !important;}.has-luminous-vivid-orange-color{color: var(--wp--preset--color--luminous-vivid-orange) !important;}.has-luminous-vivid-amber-color{color: var(--wp--preset--color--luminous-vivid-amber) !important;}.has-light-green-cyan-color{color: var(--wp--preset--color--light-green-cyan) !important;}.has-vivid-green-cyan-color{color: var(--wp--preset--color--vivid-green-cyan) !important;}.has-pale-cyan-blue-color{color: var(--wp--preset--color--pale-cyan-blue) !important;}.has-vivid-cyan-blue-color{color: var(--wp--preset--color--vivid-cyan-blue) !important;}.has-vivid-purple-color{color: var(--wp--preset--color--vivid-purple) !important;}.has-black-background-color{background-color: var(--wp--preset--color--black) !important;}.has-cyan-bluish-gray-background-color{background-color: var(--wp--preset--color--cyan-bluish-gray) !important;}.has-white-background-color{background-color: var(--wp--preset--color--white) !important;}.has-pale-pink-background-color{background-color: var(--wp--preset--color--pale-pink) !important;}.has-vivid-red-background-color{background-color: var(--wp--preset--color--vivid-red) !important;}.has-luminous-vivid-orange-background-color{background-color: var(--wp--preset--color--luminous-vivid-orange) !important;}.has-luminous-vivid-amber-background-color{background-color: var(--wp--preset--color--luminous-vivid-amber) !important;}.has-light-green-cyan-background-color{background-color: var(--wp--preset--color--light-green-cyan) !important;}.has-vivid-green-cyan-background-color{background-color: var(--wp--preset--color--vivid-green-cyan) !important;}.has-pale-cyan-blue-background-color{background-color: var(--wp--preset--color--pale-cyan-blue) !important;}.has-vivid-cyan-blue-background-color{background-color: var(--wp--preset--color--vivid-cyan-blue) !important;}.has-vivid-purple-background-color{background-color: var(--wp--preset--color--vivid-purple) !important;}.has-black-border-color{border-color: var(--wp--preset--color--black) !important;}.has-cyan-bluish-gray-border-color{border-color: var(--wp--preset--color--cyan-bluish-gray) !important;}.has-white-border-color{border-color: var(--wp--preset--color--white) !important;}.has-pale-pink-border-color{border-color: var(--wp--preset--color--pale-pink) !important;}.has-vivid-red-border-color{border-color: var(--wp--preset--color--vivid-red) !important;}.has-luminous-vivid-orange-border-color{border-color: var(--wp--preset--color--luminous-vivid-orange) !important;}.has-luminous-vivid-amber-border-color{border-color: var(--wp--preset--color--luminous-vivid-amber) !important;}.has-light-green-cyan-border-color{border-color: var(--wp--preset--color--light-green-cyan) !important;}.has-vivid-green-cyan-border-color{border-color: var(--wp--preset--color--vivid-green-cyan) !important;}.has-pale-cyan-blue-border-color{border-color: var(--wp--preset--color--pale-cyan-blue) !important;}.has-vivid-cyan-blue-border-color{border-color: var(--wp--preset--color--vivid-cyan-blue) !important;}.has-vivid-purple-border-color{border-color: var(--wp--preset--color--vivid-purple) !important;}.has-vivid-cyan-blue-to-vivid-purple-gradient-background{background: var(--wp--preset--gradient--vivid-cyan-blue-to-vivid-purple) !important;}.has-light-green-cyan-to-vivid-green-cyan-gradient-background{background: var(--wp--preset--gradient--light-green-cyan-to-vivid-green-cyan) !important;}.has-luminous-vivid-amber-to-luminous-vivid-orange-gradient-background{background: var(--wp--preset--gradient--luminous-vivid-amber-to-luminous-vivid-orange) !important;}.has-luminous-vivid-orange-to-vivid-red-gradient-background{background: var(--wp--preset--gradient--luminous-vivid-orange-to-vivid-red) !important;}.has-very-light-gray-to-cyan-bluish-gray-gradient-background{background: var(--wp--preset--gradient--very-light-gray-to-cyan-bluish-gray) !important;}.has-cool-to-warm-spectrum-gradient-background{background: var(--wp--preset--gradient--cool-to-warm-spectrum) !important;}.has-blush-light-purple-gradient-background{background: var(--wp--preset--gradient--blush-light-purple) !important;}.has-blush-bordeaux-gradient-background{background: var(--wp--preset--gradient--blush-bordeaux) !important;}.has-luminous-dusk-gradient-background{background: var(--wp--preset--gradient--luminous-dusk) !important;}.has-pale-ocean-gradient-background{background: var(--wp--preset--gradient--pale-ocean) !important;}.has-electric-grass-gradient-background{background: var(--wp--preset--gradient--electric-grass) !important;}.has-midnight-gradient-background{background: var(--wp--preset--gradient--midnight) !important;}.has-small-font-size{font-size: var(--wp--preset--font-size--small) !important;}.has-medium-font-size{font-size: var(--wp--preset--font-size--medium) !important;}.has-large-font-size{font-size: var(--wp--preset--font-size--large) !important;}.has-x-large-font-size{font-size: var(--wp--preset--font-size--x-large) !important;}
+.wp-block-navigation a:where(:not(.wp-element-button)){color: inherit;}
+:where(.wp-block-columns.is-layout-flex){gap: 2em;}
+.wp-block-pullquote{font-size: 1.5em;line-height: 1.6;}
+</style>
+
+<script type='text/javascript' id='cookie-law-info-js-extra'>
+/* <![CDATA[ */
+var _ckyConfig = {"_ipData":[],"_assetsURL":"https:\/\/www.pthhs.net\/wp-content\/plugins\/cookie-law-info\/lite\/frontend\/images\/","_publicURL":"https:\/\/www.pthhs.net","_expiry":"365","_categories":[{"name":"Necessary","slug":"necessary","isNecessary":true,"ccpaDoNotSell":true,"cookies":[],"active":true,"defaultConsent":{"gdpr":true,"ccpa":true}},{"name":"Functional","slug":"functional","isNecessary":false,"ccpaDoNotSell":true,"cookies":[],"active":true,"defaultConsent":{"gdpr":false,"ccpa":false}},{"name":"Analytics","slug":"analytics","isNecessary":false,"ccpaDoNotSell":true,"cookies":[],"active":true,"defaultConsent":{"gdpr":false,"ccpa":false}},{"name":"Performance","slug":"performance","isNecessary":false,"ccpaDoNotSell":true,"cookies":[],"active":true,"defaultConsent":{"gdpr":false,"ccpa":false}},{"name":"Advertisement","slug":"advertisement","isNecessary":false,"ccpaDoNotSell":true,"cookies":[],"active":true,"defaultConsent":{"gdpr":false,"ccpa":false}}],"_activeLaw":"gdpr","_rootDomain":"","_block":"1","_showBanner":"1","_bannerConfig":{"settings":{"type":"box","preferenceCenterType":"popup","position":"bottom-right","applicableLaw":"gdpr"},"behaviours":{"reloadBannerOnAccept":false,"loadAnalyticsByDefault":false,"animations":{"onLoad":"animate","onHide":"sticky"}},"config":{"revisitConsent":{"status":true,"tag":"revisit-consent","position":"bottom-right","meta":{"url":"#"},"styles":{"background-color":"#0056A7"},"elements":{"title":{"type":"text","tag":"revisit-consent-title","status":true,"styles":{"color":"#0056a7"}}}},"preferenceCenter":{"toggle":{"status":true,"tag":"detail-category-toggle","type":"toggle","states":{"active":{"styles":{"background-color":"#1863DC"}},"inactive":{"styles":{"background-color":"#D0D5D2"}}}}},"categoryPreview":{"status":false,"toggle":{"status":true,"tag":"detail-category-preview-toggle","type":"toggle","states":{"active":{"styles":{"background-color":"#1863DC"}},"inactive":{"styles":{"background-color":"#D0D5D2"}}}}},"videoPlaceholder":{"status":true,"styles":{"background-color":"#000000","border-color":"#000000","color":"#ffffff"}},"readMore":{"status":false,"tag":"readmore-button","type":"link","meta":{"noFollow":true,"newTab":true},"styles":{"color":"#1863DC","background-color":"transparent","border-color":"transparent"}},"auditTable":{"status":true},"optOption":{"status":true,"toggle":{"status":true,"tag":"optout-option-toggle","type":"toggle","states":{"active":{"styles":{"background-color":"#1863dc"}},"inactive":{"styles":{"background-color":"#FFFFFF"}}}}}}},"_version":"3.2.4","_logConsent":"1","_tags":[{"tag":"accept-button","styles":{"color":"#FFFFFF","background-color":"#1863DC","border-color":"#1863DC"}},{"tag":"reject-button","styles":{"color":"#1863DC","background-color":"transparent","border-color":"#1863DC"}},{"tag":"settings-button","styles":{"color":"#1863DC","background-color":"transparent","border-color":"#1863DC"}},{"tag":"readmore-button","styles":{"color":"#1863DC","background-color":"transparent","border-color":"transparent"}},{"tag":"donotsell-button","styles":{"color":"#1863DC","background-color":"transparent","border-color":"transparent"}},{"tag":"accept-button","styles":{"color":"#FFFFFF","background-color":"#1863DC","border-color":"#1863DC"}},{"tag":"revisit-consent","styles":{"background-color":"#0056A7"}}],"_shortCodes":[{"key":"cky_readmore","content":"<a href=\"#\" class=\"cky-policy\" aria-label=\"Cookie Policy\" target=\"_blank\" rel=\"noopener\" data-cky-tag=\"readmore-button\">Cookie Policy<\/a>","tag":"readmore-button","status":false,"attributes":{"rel":"nofollow","target":"_blank"}},{"key":"cky_show_desc","content":"<button class=\"cky-show-desc-btn\" data-cky-tag=\"show-desc-button\" aria-label=\"Show more\">Show more<\/button>","tag":"show-desc-button","status":true,"attributes":[]},{"key":"cky_hide_desc","content":"<button class=\"cky-show-desc-btn\" data-cky-tag=\"hide-desc-button\" aria-label=\"Show less\">Show less<\/button>","tag":"hide-desc-button","status":true,"attributes":[]},{"key":"cky_category_toggle_label","content":"[cky_{{status}}_category_label] [cky_preference_{{category_slug}}_title]","tag":"","status":true,"attributes":[]},{"key":"cky_enable_category_label","content":"Enable","tag":"","status":true,"attributes":[]},{"key":"cky_disable_category_label","content":"Disable","tag":"","status":true,"attributes":[]},{"key":"cky_video_placeholder","content":"<div class=\"video-placeholder-normal\" data-cky-tag=\"video-placeholder\" id=\"[UNIQUEID]\"><p class=\"video-placeholder-text-normal\" data-cky-tag=\"placeholder-title\">Please accept cookies to access this content<\/p><\/div>","tag":"","status":true,"attributes":[]},{"key":"cky_enable_optout_label","content":"Enable","tag":"","status":true,"attributes":[]},{"key":"cky_disable_optout_label","content":"Disable","tag":"","status":true,"attributes":[]},{"key":"cky_optout_toggle_label","content":"[cky_{{status}}_optout_label] [cky_optout_option_title]","tag":"","status":true,"attributes":[]},{"key":"cky_optout_option_title","content":"Do Not Sell or Share My Personal Information","tag":"","status":true,"attributes":[]},{"key":"cky_optout_close_label","content":"Close","tag":"","status":true,"attributes":[]}],"_rtl":"","_providersToBlock":[]};
+var _ckyStyles = {"css":".cky-overlay{background: #000000; opacity: 0.4; position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 99999999;}.cky-hide{display: none;}.cky-btn-revisit-wrapper{display: flex; align-items: center; justify-content: center; background: #0056a7; width: 45px; height: 45px; border-radius: 50%; position: fixed; z-index: 999999; cursor: pointer;}.cky-revisit-bottom-left{bottom: 15px; left: 15px;}.cky-revisit-bottom-right{bottom: 15px; right: 15px;}.cky-btn-revisit-wrapper .cky-btn-revisit{display: flex; align-items: center; justify-content: center; background: none; border: none; cursor: pointer; position: relative; margin: 0; padding: 0;}.cky-btn-revisit-wrapper .cky-btn-revisit img{max-width: fit-content; margin: 0; height: 30px; width: 30px;}.cky-revisit-bottom-left:hover::before{content: attr(data-tooltip); position: absolute; background: #4e4b66; color: #ffffff; left: calc(100% + 7px); font-size: 12px; line-height: 16px; width: max-content; padding: 4px 8px; border-radius: 4px;}.cky-revisit-bottom-left:hover::after{position: absolute; content: \"\"; border: 5px solid transparent; left: calc(100% + 2px); border-left-width: 0; border-right-color: #4e4b66;}.cky-revisit-bottom-right:hover::before{content: attr(data-tooltip); position: absolute; background: #4e4b66; color: #ffffff; right: calc(100% + 7px); font-size: 12px; line-height: 16px; width: max-content; padding: 4px 8px; border-radius: 4px;}.cky-revisit-bottom-right:hover::after{position: absolute; content: \"\"; border: 5px solid transparent; right: calc(100% + 2px); border-right-width: 0; border-left-color: #4e4b66;}.cky-revisit-hide{display: none;}.cky-consent-container{position: fixed; width: 440px; box-sizing: border-box; z-index: 9999999; border-radius: 6px;}.cky-consent-container .cky-consent-bar{background: #ffffff; border: 1px solid; padding: 20px 26px; box-shadow: 0 -1px 10px 0 #acabab4d; border-radius: 6px;}.cky-box-bottom-left{bottom: 40px; left: 40px;}.cky-box-bottom-right{bottom: 40px; right: 40px;}.cky-box-top-left{top: 40px; left: 40px;}.cky-box-top-right{top: 40px; right: 40px;}.cky-custom-brand-logo-wrapper .cky-custom-brand-logo{width: 100px; height: auto; margin: 0 0 12px 0;}.cky-notice .cky-title{color: #212121; font-weight: 700; font-size: 18px; line-height: 24px; margin: 0 0 12px 0;}.cky-notice-des *,.cky-preference-content-wrapper *,.cky-accordion-header-des *,.cky-gpc-wrapper .cky-gpc-desc *{font-size: 14px;}.cky-notice-des{color: #212121; font-size: 14px; line-height: 24px; font-weight: 400;}.cky-notice-des img{height: 25px; width: 25px;}.cky-consent-bar .cky-notice-des p,.cky-gpc-wrapper .cky-gpc-desc p,.cky-preference-body-wrapper .cky-preference-content-wrapper p,.cky-accordion-header-wrapper .cky-accordion-header-des p,.cky-cookie-des-table li div:last-child p{color: inherit; margin-top: 0; overflow-wrap: break-word;}.cky-notice-des P:last-child,.cky-preference-content-wrapper p:last-child,.cky-cookie-des-table li div:last-child p:last-child,.cky-gpc-wrapper .cky-gpc-desc p:last-child{margin-bottom: 0;}.cky-notice-des a.cky-policy,.cky-notice-des button.cky-policy{font-size: 14px; color: #1863dc; white-space: nowrap; cursor: pointer; background: transparent; border: 1px solid; text-decoration: underline;}.cky-notice-des button.cky-policy{padding: 0;}.cky-notice-des a.cky-policy:focus-visible,.cky-notice-des button.cky-policy:focus-visible,.cky-preference-content-wrapper .cky-show-desc-btn:focus-visible,.cky-accordion-header .cky-accordion-btn:focus-visible,.cky-preference-header .cky-btn-close:focus-visible,.cky-switch input[type=\"checkbox\"]:focus-visible,.cky-footer-wrapper a:focus-visible,.cky-btn:focus-visible{outline: 2px solid #1863dc; outline-offset: 2px;}.cky-btn:focus:not(:focus-visible),.cky-accordion-header .cky-accordion-btn:focus:not(:focus-visible),.cky-preference-content-wrapper .cky-show-desc-btn:focus:not(:focus-visible),.cky-btn-revisit-wrapper .cky-btn-revisit:focus:not(:focus-visible),.cky-preference-header .cky-btn-close:focus:not(:focus-visible),.cky-consent-bar .cky-banner-btn-close:focus:not(:focus-visible){outline: 0;}button.cky-show-desc-btn:not(:hover):not(:active){color: #1863dc; background: transparent;}button.cky-accordion-btn:not(:hover):not(:active),button.cky-banner-btn-close:not(:hover):not(:active),button.cky-btn-revisit:not(:hover):not(:active),button.cky-btn-close:not(:hover):not(:active){background: transparent;}.cky-consent-bar button:hover,.cky-modal.cky-modal-open button:hover,.cky-consent-bar button:focus,.cky-modal.cky-modal-open button:focus{text-decoration: none;}.cky-notice-btn-wrapper{display: flex; justify-content: flex-start; align-items: center; flex-wrap: wrap; margin-top: 16px;}.cky-notice-btn-wrapper .cky-btn{text-shadow: none; box-shadow: none;}.cky-btn{flex: auto; max-width: 100%; font-size: 14px; font-family: inherit; line-height: 24px; padding: 8px; font-weight: 500; margin: 0 8px 0 0; border-radius: 2px; cursor: pointer; text-align: center; text-transform: none; min-height: 0;}.cky-btn:hover{opacity: 0.8;}.cky-btn-customize{color: #1863dc; background: transparent; border: 2px solid #1863dc;}.cky-btn-reject{color: #1863dc; background: transparent; border: 2px solid #1863dc;}.cky-btn-accept{background: #1863dc; color: #ffffff; border: 2px solid #1863dc;}.cky-btn:last-child{margin-right: 0;}@media (max-width: 576px){.cky-box-bottom-left{bottom: 0; left: 0;}.cky-box-bottom-right{bottom: 0; right: 0;}.cky-box-top-left{top: 0; left: 0;}.cky-box-top-right{top: 0; right: 0;}}@media (max-width: 440px){.cky-box-bottom-left, .cky-box-bottom-right, .cky-box-top-left, .cky-box-top-right{width: 100%; max-width: 100%;}.cky-consent-container .cky-consent-bar{padding: 20px 0;}.cky-custom-brand-logo-wrapper, .cky-notice .cky-title, .cky-notice-des, .cky-notice-btn-wrapper{padding: 0 24px;}.cky-notice-des{max-height: 40vh; overflow-y: scroll;}.cky-notice-btn-wrapper{flex-direction: column; margin-top: 0;}.cky-btn{width: 100%; margin: 10px 0 0 0;}.cky-notice-btn-wrapper .cky-btn-customize{order: 2;}.cky-notice-btn-wrapper .cky-btn-reject{order: 3;}.cky-notice-btn-wrapper .cky-btn-accept{order: 1; margin-top: 16px;}}@media (max-width: 352px){.cky-notice .cky-title{font-size: 16px;}.cky-notice-des *{font-size: 12px;}.cky-notice-des, .cky-btn{font-size: 12px;}}.cky-modal.cky-modal-open{display: flex; visibility: visible; -webkit-transform: translate(-50%, -50%); -moz-transform: translate(-50%, -50%); -ms-transform: translate(-50%, -50%); -o-transform: translate(-50%, -50%); transform: translate(-50%, -50%); top: 50%; left: 50%; transition: all 1s ease;}.cky-modal{box-shadow: 0 32px 68px rgba(0, 0, 0, 0.3); margin: 0 auto; position: fixed; max-width: 100%; background: #ffffff; top: 50%; box-sizing: border-box; border-radius: 6px; z-index: 999999999; color: #212121; -webkit-transform: translate(-50%, 100%); -moz-transform: translate(-50%, 100%); -ms-transform: translate(-50%, 100%); -o-transform: translate(-50%, 100%); transform: translate(-50%, 100%); visibility: hidden; transition: all 0s ease;}.cky-preference-center{max-height: 79vh; overflow: hidden; width: 845px; overflow: hidden; flex: 1 1 0; display: flex; flex-direction: column; border-radius: 6px;}.cky-preference-header{display: flex; align-items: center; justify-content: space-between; padding: 22px 24px; border-bottom: 1px solid;}.cky-preference-header .cky-preference-title{font-size: 18px; font-weight: 700; line-height: 24px;}.cky-preference-header .cky-btn-close{margin: 0; cursor: pointer; vertical-align: middle; padding: 0; background: none; border: none; width: auto; height: auto; min-height: 0; line-height: 0; text-shadow: none; box-shadow: none;}.cky-preference-header .cky-btn-close img{margin: 0; height: 10px; width: 10px;}.cky-preference-body-wrapper{padding: 0 24px; flex: 1; overflow: auto; box-sizing: border-box;}.cky-preference-content-wrapper,.cky-gpc-wrapper .cky-gpc-desc{font-size: 14px; line-height: 24px; font-weight: 400; padding: 12px 0;}.cky-preference-content-wrapper{border-bottom: 1px solid;}.cky-preference-content-wrapper img{height: 25px; width: 25px;}.cky-preference-content-wrapper .cky-show-desc-btn{font-size: 14px; font-family: inherit; color: #1863dc; text-decoration: none; line-height: 24px; padding: 0; margin: 0; white-space: nowrap; cursor: pointer; background: transparent; border-color: transparent; text-transform: none; min-height: 0; text-shadow: none; box-shadow: none;}.cky-accordion-wrapper{margin-bottom: 10px;}.cky-accordion{border-bottom: 1px solid;}.cky-accordion:last-child{border-bottom: none;}.cky-accordion .cky-accordion-item{display: flex; margin-top: 10px;}.cky-accordion .cky-accordion-body{display: none;}.cky-accordion.cky-accordion-active .cky-accordion-body{display: block; padding: 0 22px; margin-bottom: 16px;}.cky-accordion-header-wrapper{cursor: pointer; width: 100%;}.cky-accordion-item .cky-accordion-header{display: flex; justify-content: space-between; align-items: center;}.cky-accordion-header .cky-accordion-btn{font-size: 16px; font-family: inherit; color: #212121; line-height: 24px; background: none; border: none; font-weight: 700; padding: 0; margin: 0; cursor: pointer; text-transform: none; min-height: 0; text-shadow: none; box-shadow: none;}.cky-accordion-header .cky-always-active{color: #008000; font-weight: 600; line-height: 24px; font-size: 14px;}.cky-accordion-header-des{font-size: 14px; line-height: 24px; margin: 10px 0 16px 0;}.cky-accordion-chevron{margin-right: 22px; position: relative; cursor: pointer;}.cky-accordion-chevron-hide{display: none;}.cky-accordion .cky-accordion-chevron i::before{content: \"\"; position: absolute; border-right: 1.4px solid; border-bottom: 1.4px solid; border-color: inherit; height: 6px; width: 6px; -webkit-transform: rotate(-45deg); -moz-transform: rotate(-45deg); -ms-transform: rotate(-45deg); -o-transform: rotate(-45deg); transform: rotate(-45deg); transition: all 0.2s ease-in-out; top: 8px;}.cky-accordion.cky-accordion-active .cky-accordion-chevron i::before{-webkit-transform: rotate(45deg); -moz-transform: rotate(45deg); -ms-transform: rotate(45deg); -o-transform: rotate(45deg); transform: rotate(45deg);}.cky-audit-table{background: #f4f4f4; border-radius: 6px;}.cky-audit-table .cky-empty-cookies-text{color: inherit; font-size: 12px; line-height: 24px; margin: 0; padding: 10px;}.cky-audit-table .cky-cookie-des-table{font-size: 12px; line-height: 24px; font-weight: normal; padding: 15px 10px; border-bottom: 1px solid; border-bottom-color: inherit; margin: 0;}.cky-audit-table .cky-cookie-des-table:last-child{border-bottom: none;}.cky-audit-table .cky-cookie-des-table li{list-style-type: none; display: flex; padding: 3px 0;}.cky-audit-table .cky-cookie-des-table li:first-child{padding-top: 0;}.cky-cookie-des-table li div:first-child{width: 100px; font-weight: 600; word-break: break-word; word-wrap: break-word;}.cky-cookie-des-table li div:last-child{flex: 1; word-break: break-word; word-wrap: break-word; margin-left: 8px;}.cky-footer-shadow{display: block; width: 100%; height: 40px; background: linear-gradient(180deg, rgba(255, 255, 255, 0) 0%, #ffffff 100%); position: absolute; bottom: calc(100% - 1px);}.cky-footer-wrapper{position: relative;}.cky-prefrence-btn-wrapper{display: flex; flex-wrap: wrap; align-items: center; justify-content: center; padding: 22px 24px; border-top: 1px solid;}.cky-prefrence-btn-wrapper .cky-btn{flex: auto; max-width: 100%; text-shadow: none; box-shadow: none;}.cky-btn-preferences{color: #1863dc; background: transparent; border: 2px solid #1863dc;}.cky-preference-header,.cky-preference-body-wrapper,.cky-preference-content-wrapper,.cky-accordion-wrapper,.cky-accordion,.cky-accordion-wrapper,.cky-footer-wrapper,.cky-prefrence-btn-wrapper{border-color: inherit;}@media (max-width: 845px){.cky-modal{max-width: calc(100% - 16px);}}@media (max-width: 576px){.cky-modal{max-width: 100%;}.cky-preference-center{max-height: 100vh;}.cky-prefrence-btn-wrapper{flex-direction: column;}.cky-accordion.cky-accordion-active .cky-accordion-body{padding-right: 0;}.cky-prefrence-btn-wrapper .cky-btn{width: 100%; margin: 10px 0 0 0;}.cky-prefrence-btn-wrapper .cky-btn-reject{order: 3;}.cky-prefrence-btn-wrapper .cky-btn-accept{order: 1; margin-top: 0;}.cky-prefrence-btn-wrapper .cky-btn-preferences{order: 2;}}@media (max-width: 425px){.cky-accordion-chevron{margin-right: 15px;}.cky-notice-btn-wrapper{margin-top: 0;}.cky-accordion.cky-accordion-active .cky-accordion-body{padding: 0 15px;}}@media (max-width: 352px){.cky-preference-header .cky-preference-title{font-size: 16px;}.cky-preference-header{padding: 16px 24px;}.cky-preference-content-wrapper *, .cky-accordion-header-des *{font-size: 12px;}.cky-preference-content-wrapper, .cky-preference-content-wrapper .cky-show-more, .cky-accordion-header .cky-always-active, .cky-accordion-header-des, .cky-preference-content-wrapper .cky-show-desc-btn, .cky-notice-des a.cky-policy{font-size: 12px;}.cky-accordion-header .cky-accordion-btn{font-size: 14px;}}.cky-switch{display: flex;}.cky-switch input[type=\"checkbox\"]{position: relative; width: 44px; height: 24px; margin: 0; background: #d0d5d2; -webkit-appearance: none; border-radius: 50px; cursor: pointer; outline: 0; border: none; top: 0;}.cky-switch input[type=\"checkbox\"]:checked{background: #1863dc;}.cky-switch input[type=\"checkbox\"]:before{position: absolute; content: \"\"; height: 20px; width: 20px; left: 2px; bottom: 2px; border-radius: 50%; background-color: white; -webkit-transition: 0.4s; transition: 0.4s; margin: 0;}.cky-switch input[type=\"checkbox\"]:after{display: none;}.cky-switch input[type=\"checkbox\"]:checked:before{-webkit-transform: translateX(20px); -ms-transform: translateX(20px); transform: translateX(20px);}@media (max-width: 425px){.cky-switch input[type=\"checkbox\"]{width: 38px; height: 21px;}.cky-switch input[type=\"checkbox\"]:before{height: 17px; width: 17px;}.cky-switch input[type=\"checkbox\"]:checked:before{-webkit-transform: translateX(17px); -ms-transform: translateX(17px); transform: translateX(17px);}}.cky-consent-bar .cky-banner-btn-close{position: absolute; right: 9px; top: 5px; background: none; border: none; cursor: pointer; padding: 0; margin: 0; min-height: 0; line-height: 0; height: auto; width: auto; text-shadow: none; box-shadow: none;}.cky-consent-bar .cky-banner-btn-close img{height: 9px; width: 9px; margin: 0;}.cky-notice-group{font-size: 14px; line-height: 24px; font-weight: 400; color: #212121;}.cky-notice-btn-wrapper .cky-btn-do-not-sell{font-size: 14px; line-height: 24px; padding: 6px 0; margin: 0; font-weight: 500; background: none; border-radius: 2px; border: none; cursor: pointer; text-align: left; color: #1863dc; background: transparent; border-color: transparent; box-shadow: none; text-shadow: none;}.cky-consent-bar .cky-banner-btn-close:focus-visible,.cky-notice-btn-wrapper .cky-btn-do-not-sell:focus-visible,.cky-opt-out-btn-wrapper .cky-btn:focus-visible,.cky-opt-out-checkbox-wrapper input[type=\"checkbox\"].cky-opt-out-checkbox:focus-visible{outline: 2px solid #1863dc; outline-offset: 2px;}@media (max-width: 440px){.cky-consent-container{width: 100%;}}@media (max-width: 352px){.cky-notice-des a.cky-policy, .cky-notice-btn-wrapper .cky-btn-do-not-sell{font-size: 12px;}}.cky-opt-out-wrapper{padding: 12px 0;}.cky-opt-out-wrapper .cky-opt-out-checkbox-wrapper{display: flex; align-items: center;}.cky-opt-out-checkbox-wrapper .cky-opt-out-checkbox-label{font-size: 16px; font-weight: 700; line-height: 24px; margin: 0 0 0 12px; cursor: pointer;}.cky-opt-out-checkbox-wrapper input[type=\"checkbox\"].cky-opt-out-checkbox{background-color: #ffffff; border: 1px solid black; width: 20px; height: 18.5px; margin: 0; -webkit-appearance: none; position: relative; display: flex; align-items: center; justify-content: center; border-radius: 2px; cursor: pointer;}.cky-opt-out-checkbox-wrapper input[type=\"checkbox\"].cky-opt-out-checkbox:checked{background-color: #1863dc; border: none;}.cky-opt-out-checkbox-wrapper input[type=\"checkbox\"].cky-opt-out-checkbox:checked::after{left: 6px; bottom: 4px; width: 7px; height: 13px; border: solid #ffffff; border-width: 0 3px 3px 0; border-radius: 2px; -webkit-transform: rotate(45deg); -ms-transform: rotate(45deg); transform: rotate(45deg); content: \"\"; position: absolute; box-sizing: border-box;}.cky-opt-out-checkbox-wrapper.cky-disabled .cky-opt-out-checkbox-label,.cky-opt-out-checkbox-wrapper.cky-disabled input[type=\"checkbox\"].cky-opt-out-checkbox{cursor: no-drop;}.cky-gpc-wrapper{margin: 0 0 0 32px;}.cky-footer-wrapper .cky-opt-out-btn-wrapper{display: flex; flex-wrap: wrap; align-items: center; justify-content: center; padding: 22px 24px;}.cky-opt-out-btn-wrapper .cky-btn{flex: auto; max-width: 100%; text-shadow: none; box-shadow: none;}.cky-opt-out-btn-wrapper .cky-btn-cancel{border: 1px solid #dedfe0; background: transparent; color: #858585;}.cky-opt-out-btn-wrapper .cky-btn-confirm{background: #1863dc; color: #ffffff; border: 1px solid #1863dc;}@media (max-width: 352px){.cky-opt-out-checkbox-wrapper .cky-opt-out-checkbox-label{font-size: 14px;}.cky-gpc-wrapper .cky-gpc-desc, .cky-gpc-wrapper .cky-gpc-desc *{font-size: 12px;}.cky-opt-out-checkbox-wrapper input[type=\"checkbox\"].cky-opt-out-checkbox{width: 16px; height: 16px;}.cky-opt-out-checkbox-wrapper input[type=\"checkbox\"].cky-opt-out-checkbox:checked::after{left: 5px; bottom: 4px; width: 3px; height: 9px;}.cky-gpc-wrapper{margin: 0 0 0 28px;}}.video-placeholder-youtube{background-size: 100% 100%; background-position: center; background-repeat: no-repeat; background-color: #b2b0b059; position: relative; display: flex; align-items: center; justify-content: center; max-width: 100%;}.video-placeholder-text-youtube{text-align: center; align-items: center; padding: 10px 16px; background-color: #000000cc; color: #ffffff; border: 1px solid; border-radius: 2px; cursor: pointer;}.video-placeholder-normal{background-image: url(\"\/wp-content\/plugins\/cookie-law-info\/lite\/frontend\/images\/placeholder.svg\"); background-size: 80px; background-position: center; background-repeat: no-repeat; background-color: #b2b0b059; position: relative; display: flex; align-items: flex-end; justify-content: center; max-width: 100%;}.video-placeholder-text-normal{align-items: center; padding: 10px 16px; text-align: center; border: 1px solid; border-radius: 2px; cursor: pointer;}.cky-rtl{direction: rtl; text-align: right;}.cky-rtl .cky-banner-btn-close{left: 9px; right: auto;}.cky-rtl .cky-notice-btn-wrapper .cky-btn:last-child{margin-right: 8px;}.cky-rtl .cky-notice-btn-wrapper .cky-btn:first-child{margin-right: 0;}.cky-rtl .cky-notice-btn-wrapper{margin-left: 0; margin-right: 15px;}.cky-rtl .cky-prefrence-btn-wrapper .cky-btn{margin-right: 8px;}.cky-rtl .cky-prefrence-btn-wrapper .cky-btn:first-child{margin-right: 0;}.cky-rtl .cky-accordion .cky-accordion-chevron i::before{border: none; border-left: 1.4px solid; border-top: 1.4px solid; left: 12px;}.cky-rtl .cky-accordion.cky-accordion-active .cky-accordion-chevron i::before{-webkit-transform: rotate(-135deg); -moz-transform: rotate(-135deg); -ms-transform: rotate(-135deg); -o-transform: rotate(-135deg); transform: rotate(-135deg);}@media (max-width: 768px){.cky-rtl .cky-notice-btn-wrapper{margin-right: 0;}}@media (max-width: 576px){.cky-rtl .cky-notice-btn-wrapper .cky-btn:last-child{margin-right: 0;}.cky-rtl .cky-prefrence-btn-wrapper .cky-btn{margin-right: 0;}.cky-rtl .cky-accordion.cky-accordion-active .cky-accordion-body{padding: 0 22px 0 0;}}@media (max-width: 425px){.cky-rtl .cky-accordion.cky-accordion-active .cky-accordion-body{padding: 0 15px 0 0;}}.cky-rtl .cky-opt-out-btn-wrapper .cky-btn{margin-right: 12px;}.cky-rtl .cky-opt-out-btn-wrapper .cky-btn:first-child{margin-right: 0;}.cky-rtl .cky-opt-out-checkbox-wrapper .cky-opt-out-checkbox-label{margin: 0 12px 0 0;}"};
+/* ]]> */
+</script>
+<script type="rocketlazyloadscript" data-rocket-type='text/javascript' src='./wp-content/plugins/cookie-law-info/lite/frontend/js/script.min.js?ver=3.2.4' id='cookie-law-info-js' defer></script>
+<script type='text/javascript' id='wp-statistics-tracker-js-extra'>
+/* <![CDATA[ */
+var WP_Statistics_Tracker_Object = {"hitRequestUrl":"https:\/\/www.pthhs.net\/wp-json\/wp-statistics\/v2\/hit?wp_statistics_hit_rest=yes&track_all=1&current_page_type=post&current_page_id=267&search_query&page_uri=L3VudmVpbGluZy1udXJzaW5nLWNhcmUtcGxhbnMtYS1jb21wcmVoZW5zaXZlLWd1aWRl","keepOnlineRequestUrl":"https:\/\/www.pthhs.net\/wp-json\/wp-statistics\/v2\/online?wp_statistics_hit_rest=yes&track_all=1&current_page_type=post&current_page_id=267&search_query&page_uri=L3VudmVpbGluZy1udXJzaW5nLWNhcmUtcGxhbnMtYS1jb21wcmVoZW5zaXZlLWd1aWRl","option":{"dntEnabled":"1","cacheCompatibility":"1"}};
+/* ]]> */
+</script>
+<script type="rocketlazyloadscript" data-rocket-type='text/javascript' src='./wp-content/plugins/wp-statistics/assets/js/tracker.js?ver=6.2.2' id='wp-statistics-tracker-js' defer></script>
+<!--[if lt IE 9]>
+<script type='text/javascript' src='./wp-content/themes/primetimehomeie989/js/html5.js?ver=3.7.3' id='twentysixteen-html5-js'></script>
+<![endif]-->
+<link rel="https://api.w.org/" href="./wp-json/" /><link rel="alternate" type="application/json" href="./wp-json/wp/v2/posts/267" /><link rel="EditURI" type="application/rsd+xml" title="RSD" href="./xmlrpc.php?rsd" />
+<link rel="wlwmanifest" type="application/wlwmanifest+xml" href="./wp-includes/wlwmanifest.xml" />
+<link rel='shortlink' href='./?p=267' />
+<link rel="alternate" type="application/json+oembed" href="./wp-json/oembed/1.0/embed?url=https%3A%2F%2Fwww.pthhs.net%2Funveiling-nursing-care-plans-a-comprehensive-guide" />
+<link rel="alternate" type="text/xml+oembed" href="./wp-json/oembed/1.0/embed?url=https%3A%2F%2Fwww.pthhs.net%2Funveiling-nursing-care-plans-a-comprehensive-guide&#038;format=xml" />
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"NewsArticle","mainEntityOfPage":{"@type":"WebPage","@id":"./unveiling-nursing-care-plans-a-comprehensive-guide"},"headline":"Unveiling Nursing Care Plans: A Comprehensive Guide","image":["./wp-content/uploads/2024/07/unveiling-nursing-care-plans-a-comprehensive-guide.jpeg","./wp-content/uploads/2024/07/unveiling-nursing-care-plans-a-comprehensive-guide-300x200.jpeg","./wp-content/uploads/2024/07/unveiling-nursing-care-plans-a-comprehensive-guide-150x150.jpeg"],"datePublished":"July 10, 2024","dateModified":"July 10, 2024","author":{"@type":"Person","name":"Louise Savoie"},"publisher":{"@type":"Organization","name":"Primetime Home Health Services, Inc.","logo":{"@type":"ImageObject","url":"./wp-content/uploads/2024/07/cropped-main-logo.png"}},"description":"In home care services in Texas, nursing care plans serve as blueprints for addressing various health concerns and promoting holistic wellness."}</script><style id="cky-style-inline">[data-cky-tag]{visibility:hidden;}</style><!-- Analytics by WP Statistics v14.2 - https://wp-statistics.com/ -->
+<link rel="icon" href="./wp-content/uploads/2024/02/fav-icon.png" sizes="32x32" />
+<link rel="icon" href="./wp-content/uploads/2024/02/fav-icon.png" sizes="192x192" />
+<link rel="apple-touch-icon" href="./wp-content/uploads/2024/02/fav-icon.png" />
+<meta name="msapplication-TileImage" content="./wp-content/uploads/2024/02/fav-icon.png" />
+<style>.animated {animation-name: none!important; transform: none!important; opacity: 1!important;}
+#main_area{background:#fff;}
+#banner::before,#banner::after,#main_area::before,#main_area::after{display:none;}
+.bnr_con::after { display: none; }
+main{color:#191919;float:none;max-width:100%;width:100%;text-align:left;display:block !important;padding:0;}
+.bnr_con{padding:0;}
+.main_con{padding:40px 10px;display:block; min-height:500px;}
+main h2{font-weight:bold;font-size:1.35rem;margin:25px 0 10px; color:var(--bodyColor);line-height:100%}
+main h3{font-weight:bold;margin:10px 0 5px; color:var(--bodyColor);}
+main p{margin-bottom:25px}
+#banner { padding-bottom: 0; pointer-events: auto ;}
+.page_nav ul ul {    left: 50%; width: 295px; transform: translateX(-50%); min-height: auto; padding: 0; text-align: center;border-radius: 0; }
+@media only screen and (min-width:1000px){
+ .header_con::after { content: ''; width: 710px; height: 220px; position: absolute; right: -420px; top: 0; background: #1A69BC; z-index: -1; }
+.page_nav ul { width: 100%; min-height: auto; padding: 10px; position: static; display: flex; justify-content: space-between; }
+.page_nav ul li { display: inline; }
+.page_nav { background: #2173c8; }
+.page_nav ul li a { display: inline; }
+  
+.page_nav ul ul li a { width: 100%; display: block; }
+}
+
+@media only screen and (max-width : 1200px) {
+ .header_con::after { right: -468px; }
+}
+
+@media only screen and (max-width:1000px){
+.main_con{padding:0;}
+}
+.entry-content a {
+  display: unset;
+}</style><style>.entry-content mark {font-weight: unset; color: unset;}
+main a { display: inline; }</style><noscript><style id="rocket-lazyload-nojs-css">.rll-youtube-player, [data-lazy-src]{display:none !important;}</style></noscript>	<!-- Google tag (gtag.js) -->
+<script type="rocketlazyloadscript" async src="https://www.googletagmanager.com/gtag/js?id=G-1VPNDXNDCJ"></script>
+<script type="rocketlazyloadscript">
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-1VPNDXNDCJ');
+</script>
+<script type="rocketlazyloadscript" src="./wp-content/themes/primetimehomeie989/js/jquery-3.6.1.min.js" defer></script>
+<script type="rocketlazyloadscript" src="./wp-content/themes/primetimehomeie989/js/jquery.skitter.min.js" defer></script>
+<script type="rocketlazyloadscript" src="./wp-content/themes/primetimehomeie989/js/responsiveslides.min.js" defer></script>
+<script type="rocketlazyloadscript" src="./wp-content/themes/primetimehomeie989/js/plugins.min.js" defer></script>
+</head>
+	<body>
+		<div class="protect-me">
+		<div class="clearfix">
+			
+
+
+
+<!-- Header -->
+<header>
+	<div class="wrapper">
+		<div class="header_con">
+			<div class="main_logo">
+			  <a href="./index.html"><figure><img width="388" height="106" src="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20388%20106'%3E%3C/svg%3E" alt="Primetime Home Health Services, Inc." data-lazy-src="./wp-content/themes/primetimehomeie989/images/main-logo.png"/><noscript><img width="388" height="106" src="./wp-content/themes/primetimehomeie989/images/main-logo.png" alt="Primetime Home Health Services, Inc."/></noscript></figure></a>
+			</div>
+
+			<div class="head_info">
+				<div class="header_info">
+					<ul>
+						<li>
+							<figure class="hdr_info_img"><img width="79" height="79" src="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2079%2079'%3E%3C/svg%3E" alt="Text messaging and phone" data-lazy-src="./wp-content/themes/primetimehomeie989/images/header-icon1.png"><noscript><img width="79" height="79" src="./wp-content/themes/primetimehomeie989/images/header-icon1.png" alt="Text messaging and phone"></noscript></figure>
+							<div class="widget_text widget-container widget_custom_html"><div class="textwidget custom-html-widget"><span>Have a Question? Call Us Now!</span> <a href="tel:713-977-7721" class="tele"><mark>713-977-7721</mark></a></div></div>						</li>
+						<li class="cta_holder"><div class="widget_text widget-container widget_custom_html"><div class="textwidget custom-html-widget"><span>Help!</span><a href="tel:7139777721" class="CTA"></a></div></div></li>
+					</ul>
+				</div>
+				<div class="social_media">
+					<h3><span>Serving the </span> <span>Greater Houston</span> <span>area with Home</span> <span> Care since 1999</span></h3>
+					<!-- < ?php dynamic_sidebar('social_media'); ?> -->
+				
+				</div>
+			</div>
+		</div>
+	  <div class="clearfix"></div>
+	</div>
+</header>
+<!-- End Header --><!-- Navigation -->
+<div id="nav_area">
+	<div class="nav_toggle_button">
+		<div class="logo_wrap"></div>
+		<div class="main_logo">
+			<a href="./index.html"><figure><img width="388" height="106" src="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20388%20106'%3E%3C/svg%3E" alt="Primetime Home Health Services, Inc." data-lazy-src="./wp-content/themes/primetimehomeie989/images/main-logo.png"/><noscript><img width="388" height="106" src="./wp-content/themes/primetimehomeie989/images/main-logo.png" alt="Primetime Home Health Services, Inc."/></noscript></figure></a>
+		</div>
+		<div class="toggle_holder">
+			<div class="hamburger hamburger--spin-r">
+			  <div class="hamburger-box">
+				<div class="hamburger-inner"></div>
+			  </div>
+			</div>
+			<small>Menu</small>
+		</div>
+	<div class="clearfix"></div>
+	</div>
+
+	<div class="toggle_right_nav">
+	  <nav class="page_nav wow slideInLeft" data-wow-duration='3000ms'>
+			<div class="menu_slide_right">
+				<a href="./index.html" class="logo_slide_right"><figure><img src="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E" alt="Primetime Home Health Services, Inc." data-lazy-src="./wp-content/themes/primetimehomeie989/images/main-logo.png"/><noscript><img src="./wp-content/themes/primetimehomeie989/images/main-logo.png" alt="Primetime Home Health Services, Inc."/></noscript></figure></a>
+				<div class="toggle_holder">
+					<div class="hamburger hamburger--spin-r">
+					  <div class="hamburger-box">
+						<div class="hamburger-inner"></div>
+					  </div>
+					</div>
+					<small>Close</small>
+				</div>
+				<div class="clearfix"></div>
+			</div>
+
+			<div class="wrapper">
+				<div class="nav-menu"><ul id="menu-main-menu" class="menu"><li id="menu-item-26" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-home menu-item-26"><a href="./">Home</a><span><i class="fa fa-2x">&nbsp;&nbsp;&nbsp;&nbsp;</i></span></li>
+<li id="menu-item-20" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-has-children menu-item-20"><a href="./home-health-agency-in-houston-texas">About Us</a><span><i class="fa fa-2x">&nbsp;&nbsp;&nbsp;&nbsp;</i></span>
+<ul class="sub-menu">
+	<li id="menu-item-318" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-318"><a href="./home-care-meet-our-staff">Meet Our Staff</a><span><i class="fa fa-2x">&nbsp;&nbsp;&nbsp;&nbsp;</i></span></li>
+</ul>
+</li>
+<li id="menu-item-21" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-has-children menu-item-21"><a href="./home-care-services">Services</a><span><i class="fa fa-2x">&nbsp;&nbsp;&nbsp;&nbsp;</i></span>
+<ul class="sub-menu">
+	<li id="menu-item-509" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-509"><a href="./home-care-services/attendant-care-services">Attendant Care Services</a><span><i class="fa fa-2x">&nbsp;&nbsp;&nbsp;&nbsp;</i></span></li>
+	<li id="menu-item-508" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-508"><a href="./home-care-services/respite-care">Respite Care</a><span><i class="fa fa-2x">&nbsp;&nbsp;&nbsp;&nbsp;</i></span></li>
+	<li id="menu-item-499" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-499"><a href="./home-care-services/attendant-care-services#protective_supervision">Protective Supervision</a><span><i class="fa fa-2x">&nbsp;&nbsp;&nbsp;&nbsp;</i></span></li>
+</ul>
+</li>
+<li id="menu-item-530" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-530"><a target="_blank" rel="noopener" href="https://rideprimetime.net/">Need Transportation?</a><span><i class="fa fa-2x">&nbsp;&nbsp;&nbsp;&nbsp;</i></span></li>
+<li id="menu-item-22" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-22"><a href="./home-care-careers">Careers</a><span><i class="fa fa-2x">&nbsp;&nbsp;&nbsp;&nbsp;</i></span></li>
+<li id="menu-item-23" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-23"><a href="./home-care-resources">Resources</a><span><i class="fa fa-2x">&nbsp;&nbsp;&nbsp;&nbsp;</i></span></li>
+<li id="menu-item-24" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-24"><a href="./home-care-insurance">Insurance</a><span><i class="fa fa-2x">&nbsp;&nbsp;&nbsp;&nbsp;</i></span></li>
+<li id="menu-item-196" class="menu-item menu-item-type-post_type menu-item-object-page current_page_parent menu-item-196"><a href="./home-care-blog">Blog</a><span><i class="fa fa-2x">&nbsp;&nbsp;&nbsp;&nbsp;</i></span></li>
+<li id="menu-item-25" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-has-children menu-item-25"><a href="./home-care-contact-us">Contact Us</a><span><i class="fa fa-2x">&nbsp;&nbsp;&nbsp;&nbsp;</i></span>
+<ul class="sub-menu">
+	<li id="menu-item-494" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-494"><a href="./home-care-areas-we-serve">Areas We Serve</a><span><i class="fa fa-2x">&nbsp;&nbsp;&nbsp;&nbsp;</i></span></li>
+</ul>
+</li>
+</ul></div>				
+			</div>
+	  </nav>
+		<div class="toggle_nav_close"></div>
+	</div>
+</div>
+<!-- End Navigation --><!-- Banner -->
+<div id="banner">
+	<div class="wrapper">
+		<div class="bnr_con">
+							<div class="non_ban">
+				<div class="non_ban_img">
+										<img width="1920" height="600" src="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201920%20600'%3E%3C/svg%3E" alt="aide and elderly woman smiling at each other" data-lazy-src="./wp-content/themes/primetimehomeie989/images/slider/nh-banner.webp"><noscript><img width="1920" height="600" src="./wp-content/themes/primetimehomeie989/images/slider/nh-banner.webp" alt="aide and elderly woman smiling at each other"></noscript>
+									</div>
+
+				<div class="page_title">
+											<h2 class="h1_title">Blog</h2>
+									</div>
+				</div>
+			 
+		</div>
+	</div>
+</div>
+<!-- End Banner -->
+
+<!-- Main -->
+<div id="main_area">
+	
+	<div class="wrapper">
+		<div class="main_con">
+							<p id="breadcrumbs"><span><span><a href="./">Home</a> » <span class="breadcrumb_last" aria-current="page">Unveiling Nursing Care Plans: A Comprehensive Guide</span></span></span></p>						<main>
+
+
+					
+				<div id="post-267" class="post-267 post type-post status-publish format-standard hentry category-nursing-care-guide tag-foster-independence tag-grooming-assistance tag-personalized-care">
+					<h1 class="entry-title">Unveiling Nursing Care Plans: A Comprehensive Guide</h1>
+
+					<div class="entry-meta">
+						<span class="meta-prep meta-prep-author">Posted on</span> <a href="./unveiling-nursing-care-plans-a-comprehensive-guide" title="3:46 am" rel="bookmark"><span class="entry-date">July 10, 2024</span></a> <span class="meta-sep">by</span> <span class="author vcard"><a class="url fn n" href="./author/louise" title="View all posts by Louise Savoie">Louise Savoie</a></span>					</div><!-- .entry-meta -->
+
+					<div class="entry-content">
+												
+<div style="float:right; margin: 15px 0 10px 10px;"><figure class="wp-block-image size-full"><img decoding="async" width="658" height="438" src="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20658%20438'%3E%3C/svg%3E" alt="unveiling-nursing-care-plans-a-comprehensive-guide" class="wp-image-276" data-lazy-srcset="./wp-content/uploads/2024/07/unveiling-nursing-care-plans-a-comprehensive-guide.jpeg 658w, ./wp-content/uploads/2024/07/unveiling-nursing-care-plans-a-comprehensive-guide-300x200.jpeg 300w" data-lazy-sizes="(max-width: 709px) 85vw, (max-width: 909px) 67vw, (max-width: 984px) 61vw, (max-width: 1362px) 45vw, 600px" data-lazy-src="/wp-content/uploads/2024/07/unveiling-nursing-care-plans-a-comprehensive-guide.jpeg" /><noscript><img decoding="async" width="658" height="438" src="/wp-content/uploads/2024/07/unveiling-nursing-care-plans-a-comprehensive-guide.jpeg" alt="unveiling-nursing-care-plans-a-comprehensive-guide" class="wp-image-276" srcset="./wp-content/uploads/2024/07/unveiling-nursing-care-plans-a-comprehensive-guide.jpeg 658w, ./wp-content/uploads/2024/07/unveiling-nursing-care-plans-a-comprehensive-guide-300x200.jpeg 300w" sizes="(max-width: 709px) 85vw, (max-width: 909px) 67vw, (max-width: 984px) 61vw, (max-width: 1362px) 45vw, 600px" /></noscript></figure></div>
+
+
+
+<p>Nursing care plans play a pivotal role in ensuring the well-being and recovery of individuals receiving care at home. At Primetime Home Health Services, Inc., a leading <a href="/home-health-agency-in-houston-texas" target="_blank" rel="noreferrer noopener">home health agency in Houston, Texas</a>, we understand the significance of personalized care plans tailored to meet the unique needs of each patient. These plans serve as roadmaps for our dedicated team of professionals, guiding them in delivering compassionate and effective care.<br><br><span class="blogmeta-desc">In <a href="/home-care-services" target="_blank" rel="noreferrer noopener">home care services in Texas</a>, nursing care plans serve as blueprints for addressing various health concerns and promoting holistic wellness.</span> These plans are meticulously crafted by our skilled nurses in collaboration with patients, their families, and other healthcare providers. They encompass a range of elements, including assessments, interventions, goals, and evaluations, all aimed at optimizing the patient&#8217;s quality of life and fostering independence.<br><br>When it comes to <a href="/" target="_blank" rel="noreferrer noopener">home nursing care in Texas</a>, our emphasis is on delivering comprehensive and personalized services that prioritize the comfort and dignity of our clients. Nursing care plans form the cornerstone of our approach, allowing us to address not only the medical needs of individuals but also their emotional, social, and spiritual well-being. By tailoring care plans to align with each patient&#8217;s preferences and goals, we empower them to participate in their own care journey actively.<br><br>In addition to nursing care, our team at <span class="comp">Primetime Home Health Services, Inc.</span> also provides essential <a href="/home-care-meet-our-staff" target="_blank" rel="noreferrer noopener">personal assistance services (PAS)</a><strong> </strong>to support individuals with activities of daily living. Whether it&#8217;s assistance with grooming, meal preparation, or medication management, our caregivers are trained to offer compassionate support while upholding the highest standards of professionalism and respect.<br><br>For those seeking expert home health care, we stand ready to provide exceptional care tailored to your needs. <a href="/home-care-contact-us" target="_blank" rel="noreferrer noopener">Contact us</a> today to learn more about our services and discover how we can assist you or your loved ones in achieving optimal health and well-being. Your journey to improved health begins with us.</p>
+
+											</div><!-- .entry-content -->
+
+
+					<div class="entry-utility">
+						This entry was posted in <a href="./category/nursing-care-guide" rel="category tag">Nursing Care Guide</a> and tagged <a href="./tag/foster-independence" rel="tag">Foster Independence</a>, <a href="./tag/grooming-assistance" rel="tag">Grooming Assistance</a>, <a href="./tag/personalized-care" rel="tag">Personalized Care</a>. Bookmark the <a href="./unveiling-nursing-care-plans-a-comprehensive-guide" title="Permalink to Unveiling Nursing Care Plans: A Comprehensive Guide" rel="bookmark">permalink</a>.											</div><!-- .entry-utility -->
+				</div><!-- #post-## -->
+
+				<div id="nav-below" class="navigation">
+					<div class="nav-previous"><a href="./tips-for-choosing-the-right-home-care-provider" rel="prev"><span class="meta-nav">&larr;</span> Tips for Choosing the Right Home Care Provider</a></div>
+					<div class="nav-next"><a href="./medication-management-tips-for-home-health-aides" rel="next">Medication Management: Tips for Home Health Aides <span class="meta-nav">&rarr;</span></a></div>
+				</div><!-- #nav-below -->
+
+				
+<!-- You can start editing here. -->
+
+
+			<!-- If comments are open, but there are no comments. -->
+
+	 
+	<div id="respond" class="comment-respond">
+		<h3 id="reply-title" class="comment-reply-title">Leave a Reply <small><a rel="nofollow" id="cancel-comment-reply-link" href="unveiling-nursing-care-plans-a-comprehensive-guide.html#respond" style="display:none;">Cancel reply</a></small></h3>			<!-- TODO: Firebase migration -->
+    <!-- TODO: Firebase migration - form requires backend integration -->
+			<form action="./wp-systcon/wp-comments-post.php" method="post" id="commentform" class="comment-form">
+				<p class="comment-notes"><span id="email-notes">Your email address will not be published.</span> Required fields are marked <span class="required">*</span></p><p class="comment-form-author"><label for="author">Name <span class="required">*</span></label> <input id="author" name="author" type="text" value="" size="30" maxlength="245" required='required' /></p>
+<p class="comment-form-email"><label for="email">Email <span class="required">*</span></label> <input id="email" name="email" type="email" value="" size="30" maxlength="100" aria-describedby="email-notes" required='required' /></p><input id="wp-comment-cookies-consent" name="wp-comment-cookies-consent" type="checkbox" value="yes" hidden checked />
+<script type="rocketlazyloadscript" data-minify="1" src="./wp-content/cache/min/1/jquery-3.3.1.min.js?ver=1767336796" defer></script>
+							<script type="rocketlazyloadscript">window.addEventListener('DOMContentLoaded', function() {$(document).ready(function(){ $(".g-recaptcha").css({ "transform":"scale(0.85)", "-webkit-transform":"scale(0.85)", "transform-origin":"0 0", "-webkit-transform-origin":"0 0"})
+							$("#submit").click(function(){ if(grecaptcha.getResponse() == "") {var $recaptcha = document.querySelector("#g-recaptcha-response"); $recaptcha.setAttribute("required", "required");	$(".g-recaptcha iframe").css({ "border":"1px solid #f25252", "box-shadow":"2px 0px 10px #ff5454"});	}});});	});</script><p class="comment-form-comment"><label for="comment">Comment <span style="color:red;">*</span></label> <textarea id="comment" name="comment" cols="45" rows="8" maxlength="65525" required="required"></textarea></p><script type="rocketlazyloadscript" src="https://www.google.com/recaptcha/api.js"></script><div class="g-recaptcha" data-sitekey="6LeokIUpAAAAAIFOaj9nEGex0-aGML7tQxtgt9Xb"></div><p class="form-submit"><input name="submit" type="submit" id="submit" class="submit" value="Post Comment" onclick="rme"/> <input type='hidden' name='comment_post_ID' value='267' id='comment_post_ID' />
+<input type='hidden' name='comment_parent' id='comment_parent' value='0' />
+</p>			</form>
+			</div><!-- #respond -->
+	
+			
+			
+			</main>
+
+			
+		</div>
+
+	<div class="clearfix"></div>
+	</div>
+</div>
+<!-- End Main -->
+
+<!--Footer -->
+<footer id="footer">
+<div class="footer_top">
+	<div class="wrapper">
+		<div class="footer_top_con">
+
+			<div class="logo_rights">
+				<div class="footer_logo">
+					<a href="./index.html"><figure><img loading="lazy" width="410" height="203" src="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20410%20203'%3E%3C/svg%3E" alt="Primetime Home Health Services, Inc." data-lazy-src="./wp-content/themes/primetimehomeie989/images/footer-logo.png"><noscript><img loading="lazy" width="410" height="203" src="./wp-content/themes/primetimehomeie989/images/footer-logo.png" alt="Primetime Home Health Services, Inc."></noscript></figure></a>
+				</div>
+
+				<div class="sac">
+				<div class="widget_text widget-container widget_custom_html"><div class="textwidget custom-html-widget"><p>Service Areas Covered: Greater Houston Area </p></div></div>				
+				</div>
+			</div>
+
+			<div class="contact_info">
+				<div class="widget_text widget-container widget_custom_html"><div class="textwidget custom-html-widget"><small>Get in Touch</small>
+
+<ul class="ftr_socmed">
+	<li><a href="https://www.facebook.com/primetimehomehealth/" target="_blank" rel="noopener"><figure><img src="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E" alt="facebook" data-lazy-src="./wp-content/themes/primetimehomeie989/images/fb-icon.png"/><noscript><img src="./wp-content/themes/primetimehomeie989/images/fb-icon.png" alt="facebook"/></noscript></figure></a></li>
+    <li><a href="https://www.instagram.com/primetimehomehealthservices/" target="_blank" rel="noopener"><figure><img src="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E" alt="instagram" data-lazy-src="./wp-content/themes/primetimehomeie989/images/insta-icon.png"/><noscript><img src="./wp-content/themes/primetimehomeie989/images/insta-icon.png" alt="instagram"/></noscript></figure></a></li>
+</ul>
+
+<h2>Contact Details </h2>
+
+<ul>
+	<li>
+		<span>Phone Number: <a href="tel:7139777721"><mark>713-977-7721</mark></a></span> <span>Fax: <mark>713-977-7728</mark></span>
+		<span>After Hour: <a href="tel:3465992755"><mark>346-599-2755</mark></a></span>
+	</li>
+	<li>
+		<span>Email Address:</span> <a href="mailto:pas@pthhs.net" class="ftr_email">pas@pthhs.net</a>
+	</li>
+	<li>
+		Location:<address>11602 Burdine Street, Suite A<q>,</q> Houston, Texas 77035</address> 
+	</li>
+</ul>
+</div></div>				
+			</div>
+			
+		</div>
+	</div>
+</div>
+
+<div class="footer_btm">
+  <div class="wrapper">
+			<div class="footer_btm_con">
+				<div class="footer_nav">
+					<div class="menu-footer-menu-container"><ul id="menu-footer-menu" class="menu"><li id="menu-item-33" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-home menu-item-33"><a href="./">Home</a></li>
+<li id="menu-item-27" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-27"><a href="./home-health-agency-in-houston-texas">About Us</a></li>
+<li id="menu-item-28" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-28"><a href="./home-care-services">Services</a></li>
+<li id="menu-item-29" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-29"><a href="./home-care-careers">Careers</a></li>
+<li id="menu-item-30" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-30"><a href="./home-care-resources">Resources</a></li>
+<li id="menu-item-31" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-31"><a href="./home-care-insurance">Insurance</a></li>
+<li id="menu-item-195" class="menu-item menu-item-type-post_type menu-item-object-page current_page_parent menu-item-195"><a href="./home-care-blog">Blog</a></li>
+<li id="menu-item-32" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-32"><a href="./home-care-contact-us">Contact Us</a></li>
+</ul></div>					
+				</div>
+
+				<div class="copyright">
+				  &copy; Copyright
+						2024 - 2026				  <span class="footer_comp"><a href="privacy-notice" class="privacy">Privacy Notice</a></span>
+				  <span class="designed_by"> <a class="copyrigh_text">Designed by</a> Proweaver </span>
+				  <span class="dont_sell"> <a href="/primetime-home-health-services-inc-do-not-sell-or-share-my-personal-information">Do Not Sell/Share My Personal Information</a></span>
+				</div>
+			</div>
+		</div>
+</div>
+</footer>
+
+	<span class="back_top"></span>
+
+  </div> <!-- End Clearfix -->
+  </div> <!-- End Protect Me -->
+
+  <!--?php get_includes('ie');?-->
+
+  <script type="rocketlazyloadscript" defer>(function(d){var s = d.createElement("script");s.setAttribute("data-account", "m1Y1yHo0MY");s.setAttribute("src", "https://cdn.userway.org/widget.js");(d.body || d.head).appendChild(s);})(document)</script><noscript>Please ensure Javascript is enabled for purposes of <a href="https://userway.org">website accessibility</a></noscript>
+
+  <!--
+  Solved HTML5 & CSS IE Issues
+  -->
+  <script type="rocketlazyloadscript" defer src="./wp-content/themes/primetimehomeie989/js/modernizr-custom-v2.7.1.min.js"></script>
+  <script type="rocketlazyloadscript" defer src="./wp-content/themes/primetimehomeie989/js/jquery-migrate-1.4.1.min.js"></script>
+
+  
+
+  <!--
+  Solved Psuedo Elements IE Issues
+  -->
+  <script type="rocketlazyloadscript" defer src="./wp-content/themes/primetimehomeie989/js/calcheight.min.js"></script>
+  <script type="rocketlazyloadscript" defer src="./wp-content/themes/primetimehomeie989/js/jquery.easing.1.3.js"></script>
+  <script type="rocketlazyloadscript" defer src="./wp-content/themes/primetimehomeie989/js/wow.min.js"></script>
+  <script type="rocketlazyloadscript" defer src="./wp-content/themes/primetimehomeie989/js/owl.carousel.min.js"></script>
+  <script type="rocketlazyloadscript" async src='https://www.google.com/recaptcha/api.js'></script>
+
+  <script type="rocketlazyloadscript">window.addEventListener('DOMContentLoaded', function() {
+	$(document).ready(function(){
+		setTimeout(function(){
+			$('#wait_approval').fadeOut();
+		}, 3000)
+	})
+	});</script>
+
+	<script type="rocketlazyloadscript" data-rocket-type="text/javascript">window.addEventListener('DOMContentLoaded', function() {
+	$(function(){
+	$(".hometestimonial").each(function(i){
+		len=$(this).text().length;
+		if(len>200)
+		{
+		$(this).text($(this).text().substr(0,200)+'…');
+		}
+	});
+	});
+});</script>
+
+ 
+	<!-- Modal Script -->
+	<script type="rocketlazyloadscript" data-rocket-type="text/javascript">window.addEventListener('DOMContentLoaded', function() {
+	 
+			$(document).ready(function(){
+			setTimeout(function(){
+				$("#myModal").css("display","block");
+				$(".modal-close").click(function(){
+					$("#myModal").css("display","none");
+				});
+		
+			}, 10000);
+			});
+	 
+	});</script>
+ 
+
+<script type="rocketlazyloadscript" data-rocket-type='text/javascript' src='https://platform-api.sharethis.com/js/sharethis.js#property=65e7d3caedf602001934d8e3&product=sticky-share-buttons' async='async'></script>
+
+<script type="application/ld+json">
+		{
+		"@context":"http://schema.org",
+		"@type":"LocalBusiness",
+		"image": [
+			"./wp-content/themes/primetimehomeie989/images/main-logo.png",
+			"./wp-content/themes/primetimehomeie989/images/main-logo1x1.png",
+			"./wp-content/themes/primetimehomeie989/images/main-logo2x2.png"
+		],
+		"@id":"./",
+		"name":"Primetime Home Health Services, Inc.",
+		"address":{
+			"@type":"PostalAddress",
+			"streetAddress":"11602 Burdine St a",
+			"addressLocality":"Houston",
+			"addressRegion":"TX ",
+			"postalCode":"77035",
+			"addressCountry":"United States"
+		},
+		"geo":{
+			"@type":"GeoCoordinates",
+			"latitude":29.6537471,
+			"longitude":-95.4836885
+		},
+		"telephone":"+1-713-977-7721",
+		"priceRange" : "-"
+		}
+	</script>
+
+  <script id="ckyBannerTemplate" type="text/template">
+<div class="cky-overlay cky-hide"></div>
+<div class="cky-btn-revisit-wrapper cky-revisit-hide" data-cky-tag="revisit-consent" data-tooltip="Consent Preferences" style="background-color:#0056a7"> <button class="cky-btn-revisit" aria-label="Consent Preferences"> <img src="./wp-content/plugins/cookie-law-info/lite/frontend/images/revisit.svg" alt="Revisit consent button"> </button>
+</div>
+<div class="cky-consent-container cky-hide" tabindex="0"> <div class="cky-consent-bar" data-cky-tag="notice" style="background-color:#FFFFFF;border-color:#f4f4f4;color:#212121">  <div class="cky-notice"> <p class="cky-title" role="heading" aria-level="1" data-cky-tag="title" style="color:#212121">We value your privacy</p>
+<div class="cky-notice-group"> <div class="cky-notice-des" data-cky-tag="description" style="color:#212121"> <p>We use cookies to enhance your browsing experience, serve personalized ads or content, and analyze our traffic. By clicking "Accept All", you consent to our use of cookies.</p> </div>
+<div class="cky-notice-btn-wrapper" data-cky-tag="notice-buttons"> <button class="cky-btn cky-btn-customize" aria-label="Customize" data-cky-tag="settings-button" style="color:#1863dc;background-color:transparent;border-color:#1863dc">Customize</button> <button class="cky-btn cky-btn-reject" aria-label="Reject All" data-cky-tag="reject-button" style="color:#1863dc;background-color:transparent;border-color:#1863dc">Reject All</button> <button class="cky-btn cky-btn-accept" aria-label="Accept All" data-cky-tag="accept-button" style="color:#FFFFFF;background-color:#1863dc;border-color:#1863dc">Accept All</button>  </div>
+</div>
+</div>
+</div>
+</div>
+<div class="cky-modal" tabindex="0"> <div class="cky-preference-center" data-cky-tag="detail" style="color:#212121;background-color:#FFFFFF;border-color:#F4F4F4"> <div class="cky-preference-header"> <span class="cky-preference-title" role="heading" aria-level="1" data-cky-tag="detail-title" style="color:#212121">Customize Consent Preferences</span> <button class="cky-btn-close" aria-label="[cky_preference_close_label]" data-cky-tag="detail-close"> <img src="./wp-content/plugins/cookie-law-info/lite/frontend/images/close.svg" alt="Close"> </button> </div>
+<div class="cky-preference-body-wrapper"> <div class="cky-preference-content-wrapper" data-cky-tag="detail-description" style="color:#212121"> <p>We use cookies to help you navigate efficiently and perform certain functions. You will find detailed information about all cookies under each consent category below.</p>
+<p>The cookies that are categorized as "Necessary" are stored on your browser as they are essential for enabling the basic functionalities of the site. </p>
+<p>We also use third-party cookies that help us analyze how you use this website, store your preferences, and provide the content and advertisements that are relevant to you. These cookies will only be stored in your browser with your prior consent.</p>
+<p>You can choose to enable or disable some or all of these cookies but disabling some of them may affect your browsing experience.</p> </div>
+<div class="cky-accordion-wrapper" data-cky-tag="detail-categories"> <div class="cky-accordion" id="ckyDetailCategorynecessary"> <div class="cky-accordion-item"> <div class="cky-accordion-chevron"><i class="cky-chevron-right"></i></div> <div class="cky-accordion-header-wrapper"> <div class="cky-accordion-header">
+<button class="cky-accordion-btn" aria-label="Necessary" data-cky-tag="detail-category-title" style="color:#212121">Necessary</button><span class="cky-always-active">Always Active</span> <div class="cky-switch" data-cky-tag="detail-category-toggle"><input type="checkbox" id="ckySwitchnecessary"></div> </div> <div class="cky-accordion-header-des" data-cky-tag="detail-category-description" style="color:#212121"> <p>Necessary cookies are required to enable the basic features of this site, such as providing secure log-in or adjusting your consent preferences. These cookies do not store any personally identifiable data.</p>
+</div> </div> </div> <div class="cky-accordion-body"> <div class="cky-audit-table" data-cky-tag="audit-table" style="color:#212121;background-color:#f4f4f4;border-color:#ebebeb"><p class="cky-empty-cookies-text">No cookies to display.</p></div> </div> </div>
+<div class="cky-accordion" id="ckyDetailCategoryfunctional"> <div class="cky-accordion-item"> <div class="cky-accordion-chevron"><i class="cky-chevron-right"></i></div> <div class="cky-accordion-header-wrapper"> <div class="cky-accordion-header">
+<button class="cky-accordion-btn" aria-label="Functional" data-cky-tag="detail-category-title" style="color:#212121">Functional</button><span class="cky-always-active">Always Active</span> <div class="cky-switch" data-cky-tag="detail-category-toggle"><input type="checkbox" id="ckySwitchfunctional"></div> </div> <div class="cky-accordion-header-des" data-cky-tag="detail-category-description" style="color:#212121"> <p>Functional cookies help perform certain functionalities like sharing the content of the website on social media platforms, collecting feedback, and other third-party features.</p>
+</div> </div> </div> <div class="cky-accordion-body"> <div class="cky-audit-table" data-cky-tag="audit-table" style="color:#212121;background-color:#f4f4f4;border-color:#ebebeb"><p class="cky-empty-cookies-text">No cookies to display.</p></div> </div> </div>
+<div class="cky-accordion" id="ckyDetailCategoryanalytics"> <div class="cky-accordion-item"> <div class="cky-accordion-chevron"><i class="cky-chevron-right"></i></div> <div class="cky-accordion-header-wrapper"> <div class="cky-accordion-header">
+<button class="cky-accordion-btn" aria-label="Analytics" data-cky-tag="detail-category-title" style="color:#212121">Analytics</button><span class="cky-always-active">Always Active</span> <div class="cky-switch" data-cky-tag="detail-category-toggle"><input type="checkbox" id="ckySwitchanalytics"></div> </div> <div class="cky-accordion-header-des" data-cky-tag="detail-category-description" style="color:#212121"> <p>Analytical cookies are used to understand how visitors interact with the website. These cookies help provide information on metrics such as the number of visitors, bounce rate, traffic source, etc.</p>
+</div> </div> </div> <div class="cky-accordion-body"> <div class="cky-audit-table" data-cky-tag="audit-table" style="color:#212121;background-color:#f4f4f4;border-color:#ebebeb"><p class="cky-empty-cookies-text">No cookies to display.</p></div> </div> </div>
+<div class="cky-accordion" id="ckyDetailCategoryperformance"> <div class="cky-accordion-item"> <div class="cky-accordion-chevron"><i class="cky-chevron-right"></i></div> <div class="cky-accordion-header-wrapper"> <div class="cky-accordion-header">
+<button class="cky-accordion-btn" aria-label="Performance" data-cky-tag="detail-category-title" style="color:#212121">Performance</button><span class="cky-always-active">Always Active</span> <div class="cky-switch" data-cky-tag="detail-category-toggle"><input type="checkbox" id="ckySwitchperformance"></div> </div> <div class="cky-accordion-header-des" data-cky-tag="detail-category-description" style="color:#212121"> <p>Performance cookies are used to understand and analyze the key performance indexes of the website which helps in delivering a better user experience for the visitors.</p>
+</div> </div> </div> <div class="cky-accordion-body"> <div class="cky-audit-table" data-cky-tag="audit-table" style="color:#212121;background-color:#f4f4f4;border-color:#ebebeb"><p class="cky-empty-cookies-text">No cookies to display.</p></div> </div> </div>
+<div class="cky-accordion" id="ckyDetailCategoryadvertisement"> <div class="cky-accordion-item"> <div class="cky-accordion-chevron"><i class="cky-chevron-right"></i></div> <div class="cky-accordion-header-wrapper"> <div class="cky-accordion-header">
+<button class="cky-accordion-btn" aria-label="Advertisement" data-cky-tag="detail-category-title" style="color:#212121">Advertisement</button><span class="cky-always-active">Always Active</span> <div class="cky-switch" data-cky-tag="detail-category-toggle"><input type="checkbox" id="ckySwitchadvertisement"></div> </div> <div class="cky-accordion-header-des" data-cky-tag="detail-category-description" style="color:#212121"> <p>Advertisement cookies are used to provide visitors with customized advertisements based on the pages you visited previously and to analyze the effectiveness of the ad campaigns.</p>
+</div> </div> </div> <div class="cky-accordion-body"> <div class="cky-audit-table" data-cky-tag="audit-table" style="color:#212121;background-color:#f4f4f4;border-color:#ebebeb"><p class="cky-empty-cookies-text">No cookies to display.</p></div> </div> </div> </div>
+</div>
+<div class="cky-footer-wrapper"> <span class="cky-footer-shadow"></span> <div class="cky-prefrence-btn-wrapper" data-cky-tag="detail-buttons"> <button class="cky-btn cky-btn-reject" aria-label="Reject All" data-cky-tag="detail-reject-button" style="color:#1863dc;background-color:transparent;border-color:#1863dc"> Reject All </button> <button class="cky-btn cky-btn-preferences" aria-label="Save My Preferences" data-cky-tag="detail-save-button" style="color:#1863dc;background-color:transparent;border-color:#1863dc"> Save My Preferences </button> <button class="cky-btn cky-btn-accept" aria-label="Accept All" data-cky-tag="detail-accept-button" style="color:#ffffff;background-color:#1863dc;border-color:#1863dc"> Accept All </button> </div>
+</div>
+</div>
+</div>
+</script><script type="rocketlazyloadscript" data-rocket-type='text/javascript' id='rocket-browser-checker-js-after'>
+"use strict";var _createClass=function(){function defineProperties(target,props){for(var i=0;i<props.length;i++){var descriptor=props[i];descriptor.enumerable=descriptor.enumerable||!1,descriptor.configurable=!0,"value"in descriptor&&(descriptor.writable=!0),Object.defineProperty(target,descriptor.key,descriptor)}}return function(Constructor,protoProps,staticProps){return protoProps&&defineProperties(Constructor.prototype,protoProps),staticProps&&defineProperties(Constructor,staticProps),Constructor}}();function _classCallCheck(instance,Constructor){if(!(instance instanceof Constructor))throw new TypeError("Cannot call a class as a function")}var RocketBrowserCompatibilityChecker=function(){function RocketBrowserCompatibilityChecker(options){_classCallCheck(this,RocketBrowserCompatibilityChecker),this.passiveSupported=!1,this._checkPassiveOption(this),this.options=!!this.passiveSupported&&options}return _createClass(RocketBrowserCompatibilityChecker,[{key:"_checkPassiveOption",value:function(self){try{var options={get passive(){return!(self.passiveSupported=!0)}};window.addEventListener("test",null,options),window.removeEventListener("test",null,options)}catch(err){self.passiveSupported=!1}}},{key:"initRequestIdleCallback",value:function(){!1 in window&&(window.requestIdleCallback=function(cb){var start=Date.now();return setTimeout(function(){cb({didTimeout:!1,timeRemaining:function(){return Math.max(0,50-(Date.now()-start))}})},1)}),!1 in window&&(window.cancelIdleCallback=function(id){return clearTimeout(id)})}},{key:"isDataSaverModeOn",value:function(){return"connection"in navigator&&!0===navigator.connection.saveData}},{key:"supportsLinkPrefetch",value:function(){var elem=document.createElement("link");return elem.relList&&elem.relList.supports&&elem.relList.supports("prefetch")&&window.IntersectionObserver&&"isIntersecting"in IntersectionObserverEntry.prototype}},{key:"isSlowConnection",value:function(){return"connection"in navigator&&"effectiveType"in navigator.connection&&("2g"===navigator.connection.effectiveType||"slow-2g"===navigator.connection.effectiveType)}}]),RocketBrowserCompatibilityChecker}();
+</script>
+<script type='text/javascript' id='rocket-preload-links-js-extra'>
+/* <![CDATA[ */
+var RocketPreloadLinksConfig = {"excludeUris":"\/onlineforms\/|\/(?:.+\/)?feed(?:\/(?:.+\/?)?)?$|\/(?:.+\/)?embed\/|\/(index\\.php\/)?wp\\-json(\/.*|$)|\/refer\/|\/go\/|\/recommend\/|\/recommends\/","usesTrailingSlash":"","imageExt":"jpg|jpeg|gif|png|tiff|bmp|webp|avif|pdf|doc|docx|xls|xlsx|php","fileExt":"jpg|jpeg|gif|png|tiff|bmp|webp|avif|pdf|doc|docx|xls|xlsx|php|html|htm","siteUrl":"https:\/\/www.pthhs.net","onHoverDelay":"100","rateThrottle":"3"};
+/* ]]> */
+</script>
+<script type="rocketlazyloadscript" data-rocket-type='text/javascript' id='rocket-preload-links-js-after'>
+(function() {
+"use strict";var r="function"==typeof Symbol&&"symbol"==typeof Symbol.iterator?function(e){return typeof e}:function(e){return e&&"function"==typeof Symbol&&e.constructor===Symbol&&e!==Symbol.prototype?"symbol":typeof e},e=function(){function i(e,t){for(var n=0;n<t.length;n++){var i=t[n];i.enumerable=i.enumerable||!1,i.configurable=!0,"value"in i&&(i.writable=!0),Object.defineProperty(e,i.key,i)}}return function(e,t,n){return t&&i(e.prototype,t),n&&i(e,n),e}}();function i(e,t){if(!(e instanceof t))throw new TypeError("Cannot call a class as a function")}var t=function(){function n(e,t){i(this,n),this.browser=e,this.config=t,this.options=this.browser.options,this.prefetched=new Set,this.eventTime=null,this.threshold=1111,this.numOnHover=0}return e(n,[{key:"init",value:function(){!this.browser.supportsLinkPrefetch()||this.browser.isDataSaverModeOn()||this.browser.isSlowConnection()||(this.regex={excludeUris:RegExp(this.config.excludeUris,"i"),images:RegExp(".("+this.config.imageExt+")$","i"),fileExt:RegExp(".("+this.config.fileExt+")$","i")},this._initListeners(this))}},{key:"_initListeners",value:function(e){-1<this.config.onHoverDelay&&document.addEventListener("mouseover",e.listener.bind(e),e.listenerOptions),document.addEventListener("mousedown",e.listener.bind(e),e.listenerOptions),document.addEventListener("touchstart",e.listener.bind(e),e.listenerOptions)}},{key:"listener",value:function(e){var t=e.target.closest("a"),n=this._prepareUrl(t);if(null!==n)switch(e.type){case"mousedown":case"touchstart":this._addPrefetchLink(n);break;case"mouseover":this._earlyPrefetch(t,n,"mouseout")}}},{key:"_earlyPrefetch",value:function(t,e,n){var i=this,r=setTimeout(function(){if(r=null,0===i.numOnHover)setTimeout(function(){return i.numOnHover=0},1e3);else if(i.numOnHover>i.config.rateThrottle)return;i.numOnHover++,i._addPrefetchLink(e)},this.config.onHoverDelay);t.addEventListener(n,function e(){t.removeEventListener(n,e,{passive:!0}),null!==r&&(clearTimeout(r),r=null)},{passive:!0})}},{key:"_addPrefetchLink",value:function(i){return this.prefetched.add(i.href),new Promise(function(e,t){var n=document.createElement("link");n.rel="prefetch",n.href=i.href,n.onload=e,n.onerror=t,document.head.appendChild(n)}).catch(function(){})}},{key:"_prepareUrl",value:function(e){if(null===e||"object"!==(void 0===e?"undefined":r(e))||!1 in e||-1===["http:","https:"].indexOf(e.protocol))return null;var t=e.href.substring(0,this.config.siteUrl.length),n=this._getPathname(e.href,t),i={original:e.href,protocol:e.protocol,origin:t,pathname:n,href:t+n};return this._isLinkOk(i)?i:null}},{key:"_getPathname",value:function(e,t){var n=t?e.substring(this.config.siteUrl.length):e;return n.startsWith("/")||(n="/"+n),this._shouldAddTrailingSlash(n)?n+"/":n}},{key:"_shouldAddTrailingSlash",value:function(e){return this.config.usesTrailingSlash&&!e.endsWith("/")&&!this.regex.fileExt.test(e)}},{key:"_isLinkOk",value:function(e){return null!==e&&"object"===(void 0===e?"undefined":r(e))&&(!this.prefetched.has(e.href)&&e.origin===this.config.siteUrl&&-1===e.href.indexOf("?")&&-1===e.href.indexOf("#")&&!this.regex.excludeUris.test(e.href)&&!this.regex.images.test(e.href))}}],[{key:"run",value:function(){"undefined"!=typeof RocketPreloadLinksConfig&&new n(new RocketBrowserCompatibilityChecker({capture:!0,passive:!0}),RocketPreloadLinksConfig).init()}}]),n}();t.run();
+}());
+</script>
+<script type="rocketlazyloadscript" data-rocket-type='text/javascript' src='./wp-includes/js/comment-reply.min.js?ver=6.2.2' id='comment-reply-js' defer></script>
+<script type="rocketlazyloadscript" data-rocket-type='text/javascript' id='wpb_missed_scheduled_posts_publisher-js-after'>
+	(function( request ){
+		if ( ! window.fetch ) {
+			return;
+		}
+		request.args.body = new URLSearchParams( request.args.body );
+		fetch( request.url, request.args );
+	}( {"url":"https:\/\/www.pthhs.net\/wp-admin\/admin-ajax.php?action=wpb_missed_scheduled_posts_publisher","args":{"method":"POST","body":"wpb_missed_scheduled_posts_publisher_nonce=81ff3e2b7c"}} ));
+	
+</script>
+<script>window.lazyLoadOptions=[{elements_selector:"img[data-lazy-src],.rocket-lazyload",data_src:"lazy-src",data_srcset:"lazy-srcset",data_sizes:"lazy-sizes",class_loading:"lazyloading",class_loaded:"lazyloaded",threshold:300,callback_loaded:function(element){if(element.tagName==="IFRAME"&&element.dataset.rocketLazyload=="fitvidscompatible"){if(element.classList.contains("lazyloaded")){if(typeof window.jQuery!="undefined"){if(jQuery.fn.fitVids){jQuery(element).parent().fitVids()}}}}}},{elements_selector:".rocket-lazyload",data_src:"lazy-src",data_srcset:"lazy-srcset",data_sizes:"lazy-sizes",class_loading:"lazyloading",class_loaded:"lazyloaded",threshold:300,}];window.addEventListener('LazyLoad::Initialized',function(e){var lazyLoadInstance=e.detail.instance;if(window.MutationObserver){var observer=new MutationObserver(function(mutations){var image_count=0;var iframe_count=0;var rocketlazy_count=0;mutations.forEach(function(mutation){for(var i=0;i<mutation.addedNodes.length;i++){if(typeof mutation.addedNodes[i].getElementsByTagName!=='function'){continue}
+if(typeof mutation.addedNodes[i].getElementsByClassName!=='function'){continue}
+images=mutation.addedNodes[i].getElementsByTagName('img');is_image=mutation.addedNodes[i].tagName=="IMG";iframes=mutation.addedNodes[i].getElementsByTagName('iframe');is_iframe=mutation.addedNodes[i].tagName=="IFRAME";rocket_lazy=mutation.addedNodes[i].getElementsByClassName('rocket-lazyload');image_count+=images.length;iframe_count+=iframes.length;rocketlazy_count+=rocket_lazy.length;if(is_image){image_count+=1}
+if(is_iframe){iframe_count+=1}}});if(image_count>0||iframe_count>0||rocketlazy_count>0){lazyLoadInstance.update()}});var b=document.getElementsByTagName("body")[0];var config={childList:!0,subtree:!0};observer.observe(b,config)}},!1)</script><script data-no-minify="1" async src="./wp-content/plugins/wp-rocket/assets/js/lazyload/17.5/lazyload.min.js"></script></body>
+</html>
+<!-- End Footer -->
+<script type="rocketlazyloadscript">window.addEventListener('DOMContentLoaded', function() {
+		$(document).ready(function(){
+			$("#commentform").click(function(){
+			if ($('#author').val() == '') {
+			$('#author').addClass( "testimonialreq" );
+			} else {
+			$('#author').removeClass( "testimonialreq" );
+			}
+
+			if ($('#email').val() == '') {
+			$('#email').addClass( "testimonialreq" );
+			} else {
+			$('#email').removeClass( "testimonialreq" );
+			}
+
+			if ($('#comment').val() == '') {
+			$('#comment').addClass( "testimonialreq" );
+			} else {
+			$('#comment').removeClass( "testimonialreq" );
+			}
+
+			});
+		});
+		});</script>
+<!-- This website is like a Rocket, isn't it? Performance optimized by WP Rocket. Learn more: https://wp-rocket.me - Debug: cached@1767478649 -->
