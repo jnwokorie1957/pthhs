@@ -1,0 +1,33 @@
+=== PTHHS Crawl Starting ===
+Crawling: home-health-agency-in-houston-texas
+  ✓ Downloaded: home-health-agency-in-houston-texas.html (106099 bytes)
+Crawling: home-care-meet-our-staff
+  ✓ Downloaded: home-care-meet-our-staff.html (101351 bytes)
+Crawling: home-care-services
+  ✓ Downloaded: home-care-services.html (110189 bytes)
+Crawling: home-care-services/attendant-care-services
+  ✓ Downloaded: home-care-services-attendant-care-services.html (101339 bytes)
+Crawling: home-care-services/respite-care
+  ✓ Downloaded: home-care-services-respite-care.html (98813 bytes)
+Crawling: home-care-careers
+  ✓ Downloaded: home-care-careers.html (93605 bytes)
+Crawling: home-care-resources
+  ✓ Downloaded: home-care-resources.html (95580 bytes)
+Crawling: home-care-insurance
+  ✓ Downloaded: home-care-insurance.html (95920 bytes)
+Crawling: home-care-blog
+  ✓ Downloaded: home-care-blog.html (102197 bytes)
+Crawling: home-care-contact-us
+  ✓ Downloaded: home-care-contact-us.html (94196 bytes)
+Crawling: home-care-areas-we-serve
+  ✓ Downloaded: home-care-areas-we-serve.html (92908 bytes)
+Crawling: home-care-about-us
+  ✓ Downloaded: home-care-about-us.html (106099 bytes)
+Crawling: home-care-client-reviews
+  ✓ Downloaded: home-care-client-reviews.html (161667 bytes)
+Crawling: home-care-set-an-appointment
+  ✓ Downloaded: home-care-set-an-appointment.html (93801 bytes)
+=== Crawl Complete ===
+Success: 14 pages
+Failed: 0 pages
+Report: /root/.openclaw/workspace/pthhs/extracted/www.pthhs.net/crawl-report.json

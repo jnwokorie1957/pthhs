@@ -1,0 +1,38 @@
+{
+  "crawl_summary": {
+    "started": "2026-07-10T21:27:41Z",
+    "completed": "2026-07-10T21:35:00Z",
+    "target_pages_requested": 14,
+    "pages_successfully_fetched": 14,
+    "pages_failed": 0
+  },
+  "target_pages": [
+    {"requested": "home-health-agency-in-houston-texas", "file": "home-health-agency-in-houston-texas.html", "size_bytes": 106099},
+    {"requested": "home-care-meet-our-staff", "file": "home-care-meet-our-staff.html", "size_bytes": 101351},
+    {"requested": "home-care-services", "file": "home-care-services.html", "size_bytes": 110189},
+    {"requested": "home-care-services/attendant-care-services", "file": "home-care-services-attendant-care-services.html", "size_bytes": 101339},
+    {"requested": "home-care-services/respite-care", "file": "home-care-services-respite-care.html", "size_bytes": 98813},
+    {"requested": "home-care-careers", "file": "home-care-careers.html", "size_bytes": 93605},
+    {"requested": "home-care-resources", "file": "home-care-resources.html", "size_bytes": 95580},
+    {"requested": "home-care-insurance", "file": "home-care-insurance.html", "size_bytes": 95920},
+    {"requested": "home-care-blog", "file": "home-care-blog.html", "size_bytes": 102197},
+    {"requested": "home-care-contact-us", "file": "home-care-contact-us.html", "size_bytes": 94196},
+    {"requested": "home-care-areas-we-serve", "file": "home-care-areas-we-serve.html", "size_bytes": 92908},
+    {"requested": "home-care-about-us", "file": "home-care-about-us.html", "size_bytes": 106099},
+    {"requested": "home-care-client-reviews", "file": "home-care-client-reviews.html", "size_bytes": 161667},
+    {"requested": "home-care-set-an-appointment", "file": "home-care-set-an-appointment.html", "size_bytes": 93801}
+  ],
+  "assets": {
+    "wp_content_files": 96,
+    "wp_includes_files": 2,
+    "local_asset_paths": "wp-content/, wp-includes/"
+  },
+  "transformations": {
+    "internal_navigation_links": "rewritten to relative .html paths",
+    "forms_marked": 29,
+    "form_todo_comment": "<!-- TODO: Firebase migration - form requires backend integration -->",
+    "external_domains_not_inlined": ["fonts.googleapis.com", "fonts.gstatic.com"]
+  },
+  "output_directory": "/root/.openclaw/workspace/pthhs/extracted/www.pthhs.net/",
+  "index_file": "index.html"
+}
