@@ -1,0 +1,300 @@
+<!-- BASE TEMPLATE: Extracted from index.html for consistent styling across all pages -->
+<!-- Usage: Copy this structure, replace {{PAGE_TITLE}}, {{META_DESC}}, {{CANONICAL}}, {{PAGE_CONTENT}}, {{BREADCRUMB}} as needed -->
+<!-- DO NOT EDIT DIRECTLY - Update index.html first if structural changes are required, then propagate -->
+
+<!-- <?php echo $prompt_message; ?> -->
+<!DOCTYPE html>
+<!--[if lt IE 10]>      <html class="no-js lt-ie11 lt-ie10 lt-ie9 lt-ie8 lt-ie7"> <![endif]-->
+<!--[if IE 10]>         <html class="no-js lt-ie11 lt-ie10 lt-ie9 lt-ie8"> <![endif]-->
+<!--[if IE 11]>         <html class="no-js lt-ie11"> <![endif]-->
+<!--[if gt IE 11]><!--> <html class="no-js" lang="en-US"> <!--<![endif]-->
+<head>
+<meta charset="utf-8">
+<script>if(navigator.userAgent.match(/MSIE|Internet Explorer/i)||navigator.userAgent.match(/Trident\/7\..*?rv:11/i)){var href=document.location.href;if(!href.match(/[?&]nowprocket/)){if(href.indexOf("?")==-1){if(href.indexOf("#")==-1){document.location.href=href+"?nowprocket=1"}else{document.location.href=href.replace("#","?nowprocket=1#")}}else{if(href.indexOf("#")==-1){document.location.href=href+"&nowprocket=1"}else{document.location.href=href.replace("#","&nowprocket=1#")}}}}</script>
+<script>class RocketLazyLoadScripts{constructor(){this.triggerEvents=["keydown","mousedown","mousemove","touchmove","touchstart","touchend","wheel"],this.userEventHandler=this._triggerListener.bind(this),this.touchStartHandler=this._onTouchStart.bind(this),this.touchMoveHandler=this._onTouchMove.bind(this),this.touchEndHandler=this._onTouchEnd.bind(this),this.clickHandler=this._onClick.bind(this),this.interceptedClicks=[],window.addEventListener("pageshow",(e=>{this.persisted=e.persisted})),window.addEventListener("DOMContentLoaded",(()=>{this._preconnect3rdParties()})),this.delayedScripts={normal:[],async:[],defer:[]},this.allJQueries=[]}_addUserInteractionListener(e){document.hidden?e._triggerListener():(this.triggerEvents.forEach((t=>window.addEventListener(t,e.userEventHandler,{passive:!0}))),window.addEventListener("touchstart",e.touchStartHandler,{passive:!0}),window.addEventListener("mousedown",e.touchStartHandler),document.addEventListener("visibilitychange",e.userEventHandler))}_removeUserInteractionListener(){this.triggerEvents.forEach((e=>window.removeEventListener(e,this.userEventHandler,{passive:!0}))),document.removeEventListener("visibilitychange",this.userEventHandler)}_onTouchStart(e){"HTML"!==e.target.tagName&&(window.addEventListener("touchend",this.touchEndHandler),window.addEventListener("mouseup",this.touchEndHandler),window.addEventListener("touchmove",this.touchMoveHandler,{passive:!0}),window.addEventListener("mousemove",this.touchMoveHandler),e.target.addEventListener("click",this.clickHandler),this._renameDOMAttribute(e.target,"onclick","rocket-onclick"))}_onTouchMove(e){window.removeEventListener("touchend",this.touchEndHandler),window.removeEventListener("mouseup",this.touchEndHandler),window.removeEventListener("touchmove",this.touchMoveHandler,{passive:!0}),window.removeEventListener("mousemove",this.touchMoveHandler),e.target.removeEventListener("click",this.clickHandler),this._renameDOMAttribute(e.target,"rocket-onclick","onclick")}_onTouchEnd(e){window.removeEventListener("touchend",this.touchEndHandler),window.removeEventListener("mouseup",this.touchEndHandler),window.removeEventListener("touchmove",this.touchMoveHandler,{passive:!0}),window.removeEventListener("mousemove",this.touchMoveHandler)}_onClick(e){e.target.removeEventListener("click",this.clickHandler),this._renameDOMAttribute(e.target,"rocket-onclick","onclick"),this.interceptedClicks.push(e),e.preventDefault(),e.stopPropagation(),e.stopImmediatePropagation()}_replayClicks(){window.removeEventListener("touchstart",this.touchStartHandler,{passive:!0}),window.removeEventListener("mousedown",this.touchStartHandler),this.interceptedClicks.forEach((e=>{e.target.dispatchEvent(new MouseEvent("click",{view:e.view,bubbles:!0,cancelable:!0}))}))}_renameDOMAttribute(e,t,n){e.hasAttribute&&e.hasAttribute(t)&&(event.target.setAttribute(n,event.target.getAttribute(t)),event.target.removeAttribute(t))}_triggerListener(){this._removeUserInteractionListener(this),"loading"===document.readyState?document.addEventListener("DOMContentLoaded",this._loadEverythingNow.bind(this)):this._loadEverythingNow()}_preconnect3rdParties(){let e=[];document.querySelectorAll("script[type=rocketlazyloadscript]").forEach((t=>{if(t.hasAttribute("src")){const n=new URL(t.src).origin;n!==location.origin&&e.push({src:n,crossOrigin:t.crossOrigin||"module"===t.getAttribute("data-rocket-type")})}})),e=[...new Map(e.map((e=>[JSON.stringify(e),e]))).values()],this._batchInjectResourceHints(e,"preconnect")}async _loadEverythingNow(){this.lastBreath=Date.now(),this._delayEventListeners(),this._delayJQueryReady(this),this._handleDocumentWrite(),this._registerAllDelayedScripts(),this._preloadAllScripts(),await this._loadScriptsFromList(this.delayedScripts.normal),await this._loadScriptsFromList(this.delayedScripts.defer),await this._loadScriptsFromList(this.delayedScripts.async);try{await this._triggerDOMContentLoaded(),await this._triggerWindowLoad()}catch(e){}window.dispatchEvent(new Event("rocket-allScriptsLoaded")),this._replayClicks()}_registerAllDelayedScripts(){document.querySelectorAll("script[type=rocketlazyloadscript]").forEach((e=>{e.hasAttribute("src")?e.hasAttribute("async")&&!1!==e.async?this.delayedScripts.async.push(e):e.hasAttribute("defer")&&!1!==e.defer||"module"===e.getAttribute("data-rocket-type")?this.delayedScripts.defer.push(e):this.delayedScripts.normal.push(e):this.delayedScripts.normal.push(e)}))}async _transformScript(e){return await this._littleBreath(),new Promise((t=>{const n=document.createElement("script");[...e.attributes].forEach((e=>{let t=e.nodeName;"type"!==t&&("data-rocket-type"===t&&(t="type"),n.setAttribute(t,e.nodeValue))})),e.hasAttribute("src")?(n.addEventListener("load",t),n.addEventListener("error",t)):(n.text=e.text,t());try{e.parentNode.replaceChild(n,e)}catch(e){t()}}))}async _loadScriptsFromList(e){const t=e.shift();return t?(await this._transformScript(t),this._loadScriptsFromList(e)):Promise.resolve()}_preloadAllScripts(){this._batchInjectResourceHints([...this.delayedScripts.normal,...this.delayedScripts.defer,...this.delayedScripts.async],"preload")}_batchInjectResourceHints(e,t){var n=document.createDocumentFragment();e.forEach((e=>{if(e.src){const i=document.createElement("link");i.href=e.src;i.rel=t,"preconnect"!==t&&(i.as="script"),e.getAttribute&&"module"===e.getAttribute("data-rocket-type")&&(i.crossOrigin=!0),e.crossOrigin&&(i.crossOrigin=e.crossOrigin),n.appendChild(i)}})),document.head.appendChild(n)}_delayEventListeners(){let e={};function t(t,n){!function(t){function n(n){return e[t].eventsToRewrite.indexOf(n)>=0?"rocket-"+n:n}e[t]||(e[t]={originalFunctions:{add:t.addEventListener,remove:t.removeEventListener},eventsToRewrite:[]},t.addEventListener=function(){arguments[0]=n(arguments[0]),e[t].originalFunctions.add.apply(t,arguments)},t.removeEventListener=function(){arguments[0]=n(arguments[0]),e[t].originalFunctions.remove.apply(t,arguments)})}(t),e[t].eventsToRewrite.push(n)}function n(e,t){let n=e[t];Object.defineProperty(e,t,{get:()=>n||function(){},set(i){e["rocket"+t]=n=i}})}t(document,"DOMContentLoaded"),t(window,"DOMContentLoaded"),t(window,"load"),t(window,"pageshow"),t(document,"readystatechange"),n(document,"onreadystatechange"),n(window,"onload"),n(window,"onpageshow")}_delayJQueryReady(e){let t=window.jQuery;Object.defineProperty(window,"jQuery",{get:()=>t,set(n){if(n&&n.fn&&!e.allJQueries.includes(n)){n.fn.ready=n.fn.init.prototype.ready=function(t){e.domReadyFired?t.bind(document)(n):document.addEventListener("rocket-DOMContentLoaded",(()=>t.bind(document)(n)))};const t=n.fn.on;n.fn.on=n.fn.init.prototype.on=function(){if(this[0]===window){function e(e){return e.split(" ").map((e=>"load"===e||0===e.indexOf("load.")?"rocket-jquery-load":e)).join(" ")}"string"==typeof arguments[0]||arguments[0]instanceof String?arguments[0]=e(arguments[0]):"object"==typeof arguments[0]&&Object.keys(arguments[0]).forEach((t=>{delete Object.assign(arguments[0],{[e(t)]:arguments[0][t]})[t]}))}return t.apply(this,arguments),this},e.allJQueries.push(n)}t=n}})}async _triggerDOMContentLoaded(){this.domReadyFired=!0,await this._littleBreath(),document.dispatchEvent(new Event("rocket-DOMContentLoaded")),await this._littleBreath(),window.dispatchEvent(new Event("rocket-DOMContentLoaded")),await this._littleBreath(),document.dispatchEvent(new Event("rocket-readystatechange")),await this._littleBreath(),document.rocketonreadystatechange&&document.rocketonreadystatechange()}async _triggerWindowLoad(){await this._littleBreath(),window.dispatchEvent(new Event("rocket-load")),await this._littleBreath(),window.rocketonload&&window.rocketonload(),await this._littleBreath(),this.allJQueries.forEach((e=>e(window).trigger("rocket-jquery-load"))),await this._littleBreath();const e=new Event("rocket-pageshow");e.persisted=this.persisted,window.dispatchEvent(e),await this._littleBreath(),window.rocketonpageshow&&window.rocketonpageshow({persisted:this.persisted})}_handleDocumentWrite(){const e=new Map;document.write=document.writeln=function(t){const n=document.currentScript,i=document.createRange(),r=n.parentElement;let o=e.get(n);void 0===o&&(o=n.nextSibling,e.set(n,o));const s=document.createDocumentFragment();i.setStart(s,0),s.appendChild(i.createContextualFragment(t)),r.insertBefore(s,o)}}async _littleBreath(){Date.now()-this.lastBreath>45&&(await this._requestAnimFrame(),this.lastBreath=Date.now())}async _requestAnimFrame(){return document.hidden?new Promise((e=>setTimeout(e))):new Promise((e=>requestAnimationFrame(e)))}static run(){const e=new RocketLazyLoadScripts;e._addUserInteractionListener(e)}}RocketLazyLoadScripts.run();</script>
+
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="keywords" content="Home Health Agency in Houston Texas, In Home Care Service in Houston Texas, Children Health Plan in Houston Texas, Home Health Agency in Houston TX, Senior Home Care in Houston TX, In Home Support in Houston TX, Elderly Care in Houston TX, Home Care Assistance in Houston TX">
+<!--[if IE]><meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1"><![endif]-->
+
+<link rel="stylesheet" href="./wp-content/themes/primetimehomeie989/style.min.css">
+<link rel="stylesheet" href="./wp-content/themes/primetimehomeie989/css/hamburgers.min.css">
+<link rel="stylesheet" href="./wp-content/themes/primetimehomeie989/css/media.min.css">
+<link rel="stylesheet" href="./wp-content/themes/primetimehomeie989/css/rslides.min.css">
+<link data-minify="1" rel="stylesheet" href="./wp-content/cache/min/1/wp-content/themes/primetimehomeie989/css/font-awesome.min.css?ver=1767331346">
+<link rel="stylesheet" href="./wp-content/themes/primetimehomeie989/css/skitter.styles.min.css" type="text/css" media="all">
+<link rel="stylesheet" href="./wp-content/themes/primetimehomeie989/css/animate.min.css">
+<link rel="stylesheet" href="./wp-content/themes/primetimehomeie989/css/owl.carousel.min.css">
+
+<script type="rocketlazyloadscript">(function(html){html.className = html.className.replace(/\bno-js\b/,'js')})(document.documentElement);</script>
+<meta name='robots' content='max-image-preview:large' />
+
+<!-- This site is optimized with the Yoast SEO plugin v15.5 -->
+<title>{{PAGE_TITLE}}</title>
+<link rel="preload" as="style" href="https://fonts.googleapis.com/css?family=Merriweather%3A400%2C700%2C900%2C400italic%2C700italic%2C900italic%7CMontserrat%3A400%2C700%7CInconsolata%3A400&subset=latin%2Clatin-ext&display=swap" />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Merriweather%3A400%2C700%2C900%2C400italic%2C700italic%2C900italic%7CMontserrat%3A400%2C700%7CInconsolata%3A400&subset=latin%2Clatin-ext&display=swap" media="print" onload="this.media='all'" />
+<noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Merriweather%3A400%2C700%2C900%2C400italic%2C700italic%2C900italic%7CMontserrat%3A400%2C700%7CInconsolata%3A400&subset=latin%2Clatin-ext&display=swap" /></noscript>
+<meta name="description" content="{{META_DESC}}" />
+<meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1" />
+<link rel="canonical" href="{{CANONICAL}}" />
+<meta property="og:locale" content="en_US" />
+<meta property="og:type" content="website" />
+<meta property="og:title" content="{{OG_TITLE}}" />
+<meta property="og:description" content="{{META_DESC}}" />
+<meta property="og:url" content="{{CANONICAL}}" />
+<meta property="og:site_name" content="Primetime Home Health Services, Inc." />
+<meta property="article:modified_time" content="2025-03-24T08:46:46+00:00" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="{{OG_TITLE}}" />
+<meta name="twitter:label1" content="Est. reading time">
+<meta name="twitter:data1" content="0 minutes">
+<script type="application/ld+json" class="yoast-schema-graph">{{SCHEMA_JSON}}</script>
+<!-- / Yoast SEO plugin -->
+
+<link rel='dns-prefetch' href='//fonts.googleapis.com' />
+<link href='https://fonts.gstatic.com' crossorigin rel='preconnect' />
+<link rel="alternate" type="application/rss+xml" title="Primetime Home Health Services, Inc. &raquo; Feed" href="./feed" />
+<link rel="alternate" type="application/rss+xml" title="Primetime Home Health Services, Inc. &raquo; Comments Feed" href="./comments/feed" />
+<link rel='stylesheet' id='wp-block-library-css' href='./wp-includes/css/dist/block-library/style.min.css?ver=6.2.2' type='text/css' media='all' />
+<link rel='stylesheet' id='classic-theme-styles-css' href='./wp-includes/css/classic-themes.min.css?ver=6.2.2' type='text/css' media='all' />
+<link rel="icon" href="./wp-content/uploads/2024/02/fav-icon.png" sizes="32x32" />
+<link rel="icon" href="./wp-content/uploads/2024/02/fav-icon.png" sizes="192x192" />
+<link rel="apple-touch-icon" href="./wp-content/uploads/2024/02/fav-icon.png" />
+<meta name="msapplication-TileImage" content="./wp-content/uploads/2024/02/fav-icon.png" />
+<noscript><style id="rocket-lazyload-nojs-css">.rll-youtube-player, [data-lazy-src]{display:none !important;}</style></noscript>
+
+<!-- Google tag (gtag.js) -->
+<script type="rocketlazyloadscript" async src="https://www.googletagmanager.com/gtag/js?id=G-1VPNDXNDCJ"></script>
+<script type="rocketlazyloadscript">
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-1VPNDXNDCJ');
+</script>
+<script type="rocketlazyloadscript" src="./wp-content/themes/primetimehomeie989/js/jquery-3.6.1.min.js" defer></script>
+<script type="rocketlazyloadscript" src="./wp-content/themes/primetimehomeie989/js/jquery.skitter.min.js" defer></script>
+<script type="rocketlazyloadscript" src="./wp-content/themes/primetimehomeie989/js/responsiveslides.min.js" defer></script>
+<script type="rocketlazyloadscript" src="./wp-content/themes/primetimehomeie989/js/plugins.min.js" defer></script>
+</head>
+<body>
+<div class="protect-me">
+<div class="clearfix">
+
+<!-- The Modal -->
+<div id="myModal" class="modal">
+<div class="modal-content">
+  <div class="modal-header">
+    <span class="modal-close">×</span>
+  </div>
+  <div class="modal-body">
+    <h2>Experience Exceptional Home Care: Sign Up Now!</h2>
+    <p>Are you or a loved one in need of compassionate and personalized home care services? Look no further! Primetime Home Health Services, Inc. is here to provide exceptional care tailored to your unique needs.</p>
+    <!-- TODO: Firebase migration - form requires backend integration -->
+    <form action="" method="post" id="submit_formmessagePopUp">
+      <div id="invalid-msg"></div>
+      <input type="text" name="Robot" placeholder="Spam" value="" style="display:none;">
+      <input type="text" name="Full_Name" class="popUpform_fullname" value="" placeholder="Full Name*">
+      <input type="text" name="Email_Address" class="popUpform_email" value="" placeholder="Email Address*">
+      <input type="text" name="Phone_Number" class="popUpform_phonenumber" value="" placeholder="Phone Number*">
+      <div class="disclaimer">
+        <p><input type="checkbox" class="popUpform_chkbox form_chkbox" name="Privacy_Notice" style="-webkit-appearance:checkbox" required />
+          <b>
+            I consent to the collection, use, storage, and processing of my personal and, where applicable, health-related information, including any data I submit on behalf of others, for the purpose of evaluating or fulfilling my request made through this form. I understand this will be handled in accordance with the <a href="/privacy-notice" target="_blank">Privacy Notice</a>.
+          </b>
+        </p>
+      </div>
+      <div class="captcha_btn">
+        <div class="captcha-box"><div class="g-recaptcha" data-sitekey="6LeokIUpAAAAAIFOaj9nEGex0-aGML7tQxtgt9Xb"></div></div>
+        <button type="submit" name="submit_info_popUp" class="modal_btn">Submit</button>
+      </div>
+    </form>
+  </div>
+</div>
+</div>
+
+<!-- Header -->
+<header>
+<div class="wrapper">
+  <div class="header_con">
+    <div class="main_logo">
+      <a href="./index.html"><figure><img width="388" height="106" src="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20388%20106'%3E%3C/svg%3E" alt="Primetime Home Health Services, Inc." data-lazy-src="./wp-content/themes/primetimehomeie989/images/main-logo.png"/><noscript><img width="388" height="106" src="./wp-content/themes/primetimehomeie989/images/main-logo.png" alt="Primetime Home Health Services, Inc."/></noscript></figure></a>
+    </div>
+    <div class="head_info">
+      <div class="header_info">
+        <ul>
+          <li>
+            <figure class="hdr_info_img"><img width="79" height="79" src="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2079%2079'%3E%3C/svg%3E" alt="Text messaging and phone" data-lazy-src="./wp-content/themes/primetimehomeie989/images/header-icon1.png"><noscript><img width="79" height="79" src="./wp-content/themes/primetimehomeie989/images/header-icon1.png" alt="Text messaging and phone"></noscript></figure>
+            <div class="widget_text widget-container widget_custom_html"><div class="textwidget custom-html-widget"><span>Have a Question? Call Us Now!</span> <a href="tel:713-977-7721" class="tele"><mark>713-977-7721</mark></a></div></div>
+          </li>
+          <li class="cta_holder"><div class="widget_text widget-container widget_custom_html"><div class="textwidget custom-html-widget"><span>Help!</span><a href="tel:7139777721" class="CTA"></a></div></div></li>
+        </ul>
+      </div>
+      <div class="social_media">
+        <h3><span>Serving the </span> <span>Greater Houston</span> <span>area with Home</span> <span> Care since 1999</span></h3>
+      </div>
+    </div>
+  </div>
+</div>
+</header>
+<!-- End Header -->
+
+<!-- Navigation -->
+<div id="nav_area">
+<div class="nav_toggle_button">
+  <div class="logo_wrap"></div>
+  <div class="main_logo">
+    <a href="./index.html"><figure><img width="388" height="106" src="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20388%20106'%3E%3C/svg%3E" alt="Primetime Home Health Services, Inc." data-lazy-src="./wp-content/themes/primetimehomeie989/images/main-logo.png"/><noscript><img width="388" height="106" src="./wp-content/themes/primetimehomeie989/images/main-logo.png" alt="Primetime Home Health Services, Inc."/></noscript></figure></a>
+  </div>
+  <div class="toggle_holder">
+    <div class="hamburger hamburger--spin-r">
+      <div class="hamburger-box">
+        <div class="hamburger-inner"></div>
+      </div>
+    </div>
+    <small>Menu</small>
+  </div>
+  <div class="clearfix"></div>
+</div>
+
+<div class="toggle_right_nav">
+  <nav class="page_nav wow slideInLeft" data-wow-duration='3000ms'>
+    <div class="menu_slide_right">
+      <a href="./index.html" class="logo_slide_right"><figure><img src="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E" alt="Primetime Home Health Services, Inc." data-lazy-src="./wp-content/themes/primetimehomeie989/images/main-logo.png"/><noscript><img src="./wp-content/themes/primetimehomeie989/images/main-logo.png" alt="Primetime Home Health Services, Inc."/></noscript></figure></a>
+      <div class="toggle_holder">
+        <div class="hamburger hamburger--spin-r">
+          <div class="hamburger-box">
+            <div class="hamburger-inner"></div>
+          </div>
+        </div>
+        <small>Close</small>
+      </div>
+      <div class="clearfix"></div>
+    </div>
+    <div class="wrapper">
+      <div class="nav-menu"><ul id="menu-main-menu" class="menu"><li class="menu-item menu-item-type-post_type menu-item-object-page menu-item-home"><a href="./">Home</a><span><i class="fa fa-2x">&nbsp;&nbsp;&nbsp;&nbsp;</i></span></li>
+<li class="menu-item menu-item-type-post_type menu-item-object-page menu-item-has-children"><a href="./home-health-agency-in-houston-texas">About Us</a><span><i class="fa fa-2x">&nbsp;&nbsp;&nbsp;&nbsp;</i></span>
+<ul class="sub-menu">
+  <li class="menu-item menu-item-type-post_type menu-item-object-page"><a href="./home-care-meet-our-staff">Meet Our Staff</a><span><i class="fa fa-2x">&nbsp;&nbsp;&nbsp;&nbsp;</i></span></li>
+</ul>
+</li>
+<li class="menu-item menu-item-type-post_type menu-item-object-page menu-item-has-children"><a href="./home-care-services">Services</a><span><i class="fa fa-2x">&nbsp;&nbsp;&nbsp;&nbsp;</i></span>
+<ul class="sub-menu">
+  <li class="menu-item menu-item-type-post_type menu-item-object-page"><a href="./home-care-services/attendant-care-services">Attendant Care Services</a><span><i class="fa fa-2x">&nbsp;&nbsp;&nbsp;&nbsp;</i></span></li>
+  <li class="menu-item menu-item-type-post_type menu-item-object-page"><a href="./home-care-services/respite-care">Respite Care</a><span><i class="fa fa-2x">&nbsp;&nbsp;&nbsp;&nbsp;</i></span></li>
+  <li class="menu-item menu-item-type-custom menu-item-object-custom"><a href="./home-care-services/attendant-care-services#protective_supervision">Protective Supervision</a><span><i class="fa fa-2x">&nbsp;&nbsp;&nbsp;&nbsp;</i></span></li>
+</ul>
+</li>
+<li class="menu-item menu-item-type-custom menu-item-object-custom"><a target="_blank" rel="noopener" href="https://rideprimetime.net/">Need Transportation?</a><span><i class="fa fa-2x">&nbsp;&nbsp;&nbsp;&nbsp;</i></span></li>
+<li class="menu-item menu-item-type-post_type menu-item-object-page"><a href="./home-care-careers">Careers</a><span><i class="fa fa-2x">&nbsp;&nbsp;&nbsp;&nbsp;</i></span></li>
+<li class="menu-item menu-item-type-post_type menu-item-object-page"><a href="./home-care-resources">Resources</a><span><i class="fa fa-2x">&nbsp;&nbsp;&nbsp;&nbsp;</i></span></li>
+<li class="menu-item menu-item-type-post_type menu-item-object-page"><a href="./home-care-insurance">Insurance</a><span><i class="fa fa-2x">&nbsp;&nbsp;&nbsp;&nbsp;</i></span></li>
+<li class="menu-item menu-item-type-post_type menu-item-object-page"><a href="./home-care-blog">Blog</a><span><i class="fa fa-2x">&nbsp;&nbsp;&nbsp;&nbsp;</i></span></li>
+<li class="menu-item menu-item-type-post_type menu-item-object-page menu-item-has-children"><a href="./home-care-contact-us">Contact Us</a><span><i class="fa fa-2x">&nbsp;&nbsp;&nbsp;&nbsp;</i></span>
+<ul class="sub-menu">
+  <li class="menu-item menu-item-type-post_type menu-item-object-page"><a href="./home-care-areas-we-serve">Areas We Serve</a><span><i class="fa fa-2x">&nbsp;&nbsp;&nbsp;&nbsp;</i></span></li>
+</ul>
+</li>
+</ul></div>
+    </div>
+  </nav>
+  <div class="toggle_nav_close"></div>
+</div>
+</div>
+<!-- End Navigation -->
+
+<!-- PAGE SPECIFIC BANNER / HERO (override per page or omit) -->
+<!-- {{BANNER_SECTION}} -->
+
+<!-- MAIN CONTENT -->
+<div class="main_content_area">
+<div class="wrapper">
+{{PAGE_CONTENT}}
+</div>
+</div>
+
+<!-- FOOTER -->
+<footer id="footer">
+<div class="ftr_top">
+<div class="wrapper">
+  <div class="ftr_con">
+    <div class="ftr_logo"><a href="./index.html"><figure><img src="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E" alt="Primetime Home Health Services, Inc." data-lazy-src="./wp-content/themes/primetimehomeie989/images/ftr-logo.png"/><noscript><img src="./wp-content/themes/primetimehomeie989/images/ftr-logo.png" alt="Primetime Home Health Services, Inc."/></noscript></figure></a></div>
+    <div class="ftr_menu">
+      <div class="menu-footer-menu-container"><ul id="menu-footer-menu" class="menu"><li class="menu-item menu-item-type-post_type menu-item-object-page menu-item-home"><a href="./">Home</a></li>
+<li class="menu-item menu-item-type-post_type menu-item-object-page"><a href="./home-health-agency-in-houston-texas">About Us</a></li>
+<li class="menu-item menu-item-type-post_type menu-item-object-page"><a href="./home-care-services">Services</a></li>
+<li class="menu-item menu-item-type-post_type menu-item-object-page"><a href="./home-care-careers">Careers</a></li>
+<li class="menu-item menu-item-type-post_type menu-item-object-page"><a href="./home-care-resources">Resources</a></li>
+<li class="menu-item menu-item-type-post_type menu-item-object-page"><a href="./home-care-insurance">Insurance</a></li>
+<li class="menu-item menu-item-type-post_type menu-item-object-page"><a href="./home-care-blog">Blog</a></li>
+<li class="menu-item menu-item-type-post_type menu-item-object-page"><a href="./home-care-contact-us">Contact Us</a></li>
+</ul></div>
+    </div>
+    <div class="ftr_contact">
+      <h2>Contact Details</h2>
+      <ul>
+        <li><span>Phone Number: <a href="tel:7139777721"><mark>713-977-7721</mark></a></span> <span>Fax: <mark>713-977-7728</mark></span> <span>After Hour: <a href="tel:3465992755"><mark>346-599-2755</mark></a></span></li>
+        <li><span>Email Address:</span> <a href="mailto:pas@pthhs.net" class="ftr_email">pas@pthhs.net</a></li>
+        <li>Location:<address>11602 Burdine Street, Suite A, Houston, Texas 77035</address></li>
+      </ul>
+    </div>
+  </div>
+</div>
+</div>
+
+<div class="footer_btm">
+<div class="wrapper">
+  <div class="footer_btm_con">
+    <div class="footer_nav">
+      <div class="menu-footer-menu-container"><ul id="menu-footer-menu" class="menu"><li class="menu-item menu-item-type-post_type menu-item-object-page menu-item-home current-menu-item"><a href="./" aria-current="page">Home</a></li>
+<li class="menu-item menu-item-type-post_type menu-item-object-page"><a href="./home-health-agency-in-houston-texas">About Us</a></li>
+<li class="menu-item menu-item-type-post_type menu-item-object-page"><a href="./home-care-services">Services</a></li>
+<li class="menu-item menu-item-type-post_type menu-item-object-page"><a href="./home-care-careers">Careers</a></li>
+<li class="menu-item menu-item-type-post_type menu-item-object-page"><a href="./home-care-resources">Resources</a></li>
+<li class="menu-item menu-item-type-post_type menu-item-object-page"><a href="./home-care-insurance">Insurance</a></li>
+<li class="menu-item menu-item-type-post_type menu-item-object-page"><a href="./home-care-blog">Blog</a></li>
+<li class="menu-item menu-item-type-post_type menu-item-object-page"><a href="./home-care-contact-us">Contact Us</a></li>
+</ul></div>
+    </div>
+    <div class="copyright">
+      &copy; Copyright 2024 - 2026 <span class="footer_comp"><a href="privacy-notice" class="privacy">Privacy Notice</a></span>
+      <span class="designed_by"> <a class="copyrigh_text">Designed by</a> Proweaver </span>
+      <span class="dont_sell"> <a href="/primetime-home-health-services-inc-do-not-sell-or-share-my-personal-information">Do Not Sell/Share My Personal Information</a></span>
+    </div>
+  </div>
+</div>
+</div>
+</footer>
+
+<span class="back_top"></span>
+
+</div> <!-- End Clearfix -->
+</div> <!-- End Protect Me -->
+
+<!-- Accessibility & Supporting Scripts -->
+<script type="rocketlazyloadscript" defer>(function(d){var s = d.createElement("script");s.setAttribute("data-account", "m1Y1yHo0MY");s.setAttribute("src", "https://cdn.userway.org/widget.js");(d.body || d.head).appendChild(s);})(document)</script>
+<noscript>Please ensure Javascript is enabled for purposes of <a href="https://userway.org">website accessibility</a></noscript>
+
+<script type="rocketlazyloadscript" defer src="./wp-content/themes/primetimehomeie989/js/modernizr-custom-v2.7.1.min.js"></script>
+<script type="rocketlazyloadscript" defer src="./wp-content/themes/primetimehomeie989/js/jquery-migrate-1.4.1.min.js"></script>
+<script type="rocketlazyloadscript" defer src="./wp-content/themes/primetimehomeie989/js/calcheight.min.js"></script>
+<script type="rocketlazyloadscript" defer src="./wp-content/themes/primetimehomeie989/js/jquery.easing.1.3.js"></script>
+<script type="rocketlazyloadscript" defer src="./wp-content/themes/primetimehomeie989/js/wow.min.js"></script>
+<script type="rocketlazyloadscript" defer src="./wp-content/themes/primetimehomeie989/js/owl.carousel.min.js"></script>
+<script type="rocketlazyloadscript" async src='https://www.google.com/recaptcha/api.js'></script>
+
+<script type="rocketlazyloadscript">window.addEventListener('DOMContentLoaded', function() { $(document).ready(function(){ setTimeout(function(){ $('#wait_approval').fadeOut(); }, 3000) }) });</script>
+
+<script type="rocketlazyloadscript" data-rocket-type="text/javascript">window.addEventListener('DOMContentLoaded', function() { $(function(){ $(".hometestimonial").each(function(i){ len=$(this).text().length; if(len>200) { $(this).text($(this).text().substr(0,200)+'…'); } }); }); });</script>
+
+<!-- Modal Script -->
+<script type="rocketlazyloadscript" data-rocket-type="text/javascript">window.addEventListener('DOMContentLoaded', function() {
+  var modal = document.getElementById("myModal");
+  var cta = document.querySelectorAll(".CTA");
+  cta.forEach(function(el){ el.onclick = function(){ modal.style.display = "block"; } });
+  var span = document.getElementsByClassName("modal-close")[0];
+  span.onclick = function(){ modal.style.display = "none"; }
+  window.onclick = function(event){ if(event.target == modal){ modal.style.display = "none"; } }
+});</script>
+
+</body>
+</html>
