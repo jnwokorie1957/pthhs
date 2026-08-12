@@ -1,9 +1,13 @@
 {
   "hosting": {
     "public": "public",
+    "cleanUrls": true,
+    "trailingSlash": false,
     "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
     "redirects": [
-      {"source":"/home-care-services/:page/wp-content/:asset*","destination":"/wp-content/:asset","type":302}
+      {"source":"/home-care-services/:page/wp-content/:asset*","destination":"/wp-content/:asset","type":302},
+      {"source":"/areas-we-serve","destination":"/home-care-areas-we-serve","type":301},
+      {"source":"/locations","destination":"/home-care-areas-we-serve","type":301}
     ],
     "rewrites": [{"source":"**","destination":"/index.html"}],
     "headers": [
