@@ -7,6 +7,7 @@ on:
     paths:
       - .github/workflows/repair-image-assets.yml
       - scripts/repair_image_assets.py
+      - scripts/cleanup_stale_image_refs.py
   workflow_dispatch:
 
 permissions:
@@ -27,6 +28,9 @@ jobs:
         with:
           python-version: '3.12'
 
+      - name: Clean stale legacy references
+        run: python scripts/cleanup_stale_image_refs.py
+
       - name: Repair references and recover missing images
         run: |
           python scripts/repair_image_assets.py \
@@ -34,9 +38,13 @@ jobs:
             --origin https://w13335.proweaversite13.com \
             --allow-invalid-tls
 
-      - name: Audit any references still missing at the old origin
+      - name: Verify known dead legacy references are gone
         run: |
-          grep -RInE 'hqdefault\.jpg|owl\.video\.play\.png|bnr-overlay\.png|ftr-logo\.png|sprite-round\.png' public || true
+          if grep -RInE 'owl\.video\.play\.png|bnr-overlay\.png|ftr-logo\.png|sprite-round\.png' public; then
+            echo "Dead legacy image references remain."
+            exit 1
+          fi
+          echo "No known dead legacy image references remain."
 
       - name: Commit recovered assets and repaired references
         run: |
@@ -47,5 +55,5 @@ jobs:
             echo "No image repairs were needed."
             exit 0
           fi
-          git commit -m "Repair broken image references and restore missing assets"
+          git commit -m "Finish broken image reference cleanup"
           git push origin HEAD:main
