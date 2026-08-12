@@ -52,7 +52,6 @@ def web_path_for(source: Path, public_dir: Path) -> str:
 
 
 def split_suffix(raw: str) -> tuple[str, str]:
-    # Preserve query/fragment so cache-busting URLs keep their semantics.
     parsed = urllib.parse.urlsplit(raw)
     suffix = ""
     if parsed.query:
@@ -80,8 +79,6 @@ def canonicalize(raw: str, source: Path, public_dir: Path) -> tuple[str | None, 
 
     path = urllib.parse.unquote(path)
 
-    # WordPress assets are site-root resources. This also repairs bad nested-page
-    # references such as ./wp-content/... that otherwise resolve below the page.
     for marker in ("wp-content/", "wp-includes/"):
         idx = path.find(marker)
         if idx >= 0:
@@ -140,9 +137,8 @@ def fetch_asset(
     )
     context = ssl.create_default_context()
     if allow_invalid_tls:
-        # This is deliberately scoped to the exact legacy origin passed on the
-        # command line. The Proweaver preview host has an incomplete/invalid
-        # certificate chain, but the public files still need to be recovered.
+        # Scoped to the explicitly supplied legacy preview origin. Its certificate
+        # chain is invalid, but it still hosts the public files being recovered.
         context = ssl._create_unverified_context()
 
     try:
@@ -160,7 +156,7 @@ def fetch_asset(
         return False, f"HTTP {exc.code}"
     except urllib.error.URLError as exc:
         return False, f"URL error: {exc.reason}"
-    except Exception as exc:  # noqa: BLE001 - report and continue through all assets.
+    except Exception as exc:  # noqa: BLE001
         return False, f"{type(exc).__name__}: {exc}"
 
 
@@ -199,6 +195,16 @@ def main() -> int:
         def replace_match(match: re.Match[str]) -> str:
             nonlocal changed
             raw = match.group("url")
+
+            # Owl Carousel builds YouTube thumbnails dynamically by concatenating
+            # the video ID into //img.youtube.com/vi/<id>/hqdefault.jpg. The URL
+            # regex sees only the final quoted fragment (/hqdefault.jpg), so do
+            # not mistake that external dynamic template for a missing local file.
+            if source.suffix.lower() == ".js" and raw.lower().endswith("/hqdefault.jpg"):
+                context = text[max(0, match.start() - 180): min(len(text), match.end() + 40)]
+                if "img.youtube.com/vi/" in context:
+                    return raw
+
             canonical, suffix = canonicalize(raw, source, public_dir)
             if canonical is None:
                 return raw
@@ -207,8 +213,6 @@ def main() -> int:
             final_canonical = canonical
 
             if not target.is_file():
-                # If a migration moved the same uniquely-named image elsewhere,
-                # prefer the existing local file instead of duplicating it.
                 candidates = by_basename.get(target.name.lower(), [])
                 if len(candidates) == 1:
                     target = candidates[0]
@@ -232,12 +236,9 @@ def main() -> int:
                             unresolved[canonical] = detail
                             print(f"UNRESOLVED {canonical}: {detail}")
                     if not target.is_file():
-                        # Do not make a bad reference look fixed if recovery failed.
                         return raw
 
             replacement = final_canonical + suffix
-            # HTML entity escaping is unnecessary in quoted modern HTML URLs; keep
-            # the root-relative URL straightforward and Firebase-safe.
             if replacement != html.unescape(raw).replace("\\/", "/"):
                 changed = True
             return replacement
