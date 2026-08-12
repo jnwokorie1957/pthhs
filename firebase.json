@@ -7,13 +7,18 @@
     "redirects": [
       {"source":"/home-care-services/:page/wp-content/:asset*","destination":"/wp-content/:asset","type":302},
       {"source":"/areas-we-serve","destination":"/home-care-areas-we-serve","type":301},
-      {"source":"/locations","destination":"/home-care-areas-we-serve","type":301}
+      {"source":"/locations","destination":"/home-care-areas-we-serve","type":301},
+      {"source":"/home-care-services-attendant-care-services","destination":"/home-care-services/attendant-care-services","type":301},
+      {"source":"/home-care-services-respite-care","destination":"/home-care-services/respite-care","type":301}
     ],
-    "rewrites": [{"source":"**","destination":"/index.html"}],
     "headers": [
       {"source":"**/*.@(eot|otf|ttf|ttc|woff|woff2|font.css)","headers":[{"key":"Access-Control-Allow-Origin","value":"*"}]},
-      {"source":"**/*.@(jpg|jpeg|gif|png|svg|webp|ico)","headers":[{"key":"Cache-Control","value":"max-age=31536000"}]},
-      {"source":"**/*.@(css|js)","headers":[{"key":"Cache-Control","value":"max-age=31536000"}]}
+      {"source":"**/*.@(jpg|jpeg|gif|png|svg|webp|ico)","headers":[{"key":"Cache-Control","value":"public,max-age=31536000,immutable"}]},
+      {"source":"**/*.@(css|js)","headers":[{"key":"Cache-Control","value":"public,max-age=604800"}]},
+      {"source":"/legacy-index-wordpress.html","headers":[{"key":"X-Robots-Tag","value":"noindex, nofollow"}]},
+      {"source":"/CRAWL-REPORT.md","headers":[{"key":"X-Robots-Tag","value":"noindex, nofollow"}]},
+      {"source":"/crawl-report.json","headers":[{"key":"X-Robots-Tag","value":"noindex, nofollow"}]},
+      {"source":"/crawl.log","headers":[{"key":"X-Robots-Tag","value":"noindex, nofollow"}]}
     ]
   }
 }
