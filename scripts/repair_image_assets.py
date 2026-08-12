@@ -12,8 +12,6 @@ from __future__ import annotations
 import argparse
 import html
 import json
-import mimetypes
-import os
 import posixpath
 import re
 import ssl
@@ -40,6 +38,11 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
     parser.add_argument("--public", default="public", help="Firebase public directory")
     parser.add_argument("--origin", required=True, help="Old site origin, e.g. https://host.example.com")
+    parser.add_argument(
+        "--allow-invalid-tls",
+        action="store_true",
+        help="Allow the explicitly supplied legacy origin to be read despite an invalid TLS certificate chain",
+    )
     return parser.parse_args()
 
 
@@ -120,7 +123,12 @@ def looks_like_image(data: bytes, content_type: str, suffix: str) -> bool:
     return any(data.startswith(sig) for sig in signatures)
 
 
-def fetch_asset(origin: str, canonical: str, target: Path) -> tuple[bool, str]:
+def fetch_asset(
+    origin: str,
+    canonical: str,
+    target: Path,
+    allow_invalid_tls: bool = False,
+) -> tuple[bool, str]:
     encoded_path = urllib.parse.quote(canonical, safe="/%:@+~!$&'()*;=-._")
     url = origin.rstrip("/") + encoded_path
     req = urllib.request.Request(
@@ -130,8 +138,15 @@ def fetch_asset(origin: str, canonical: str, target: Path) -> tuple[bool, str]:
             "Accept": "image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8",
         },
     )
+    context = ssl.create_default_context()
+    if allow_invalid_tls:
+        # This is deliberately scoped to the exact legacy origin passed on the
+        # command line. The Proweaver preview host has an incomplete/invalid
+        # certificate chain, but the public files still need to be recovered.
+        context = ssl._create_unverified_context()
+
     try:
-        with urllib.request.urlopen(req, timeout=30, context=ssl.create_default_context()) as resp:
+        with urllib.request.urlopen(req, timeout=30, context=context) as resp:
             data = resp.read()
             content_type = resp.headers.get("Content-Type", "")
             if not data:
@@ -203,7 +218,12 @@ def main() -> int:
                     key = canonical
                     if key not in seen_fetches:
                         seen_fetches.add(key)
-                        ok, detail = fetch_asset(origin, canonical, target)
+                        ok, detail = fetch_asset(
+                            origin,
+                            canonical,
+                            target,
+                            allow_invalid_tls=args.allow_invalid_tls,
+                        )
                         if ok:
                             by_basename[target.name.lower()].append(target)
                             recovered.append({"path": canonical, "detail": detail})
@@ -229,6 +249,7 @@ def main() -> int:
 
     report = {
         "origin": origin,
+        "allow_invalid_tls": args.allow_invalid_tls,
         "text_files_scanned": len(text_files),
         "image_files_present_before_scan": len(image_files),
         "files_rewritten": sorted(rewritten_files),
