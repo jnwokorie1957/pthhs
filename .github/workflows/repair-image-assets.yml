@@ -34,6 +34,10 @@ jobs:
             --origin https://w13335.proweaversite13.com \
             --allow-invalid-tls
 
+      - name: Audit any references still missing at the old origin
+        run: |
+          grep -RInE 'hqdefault\.jpg|owl\.video\.play\.png|bnr-overlay\.png|ftr-logo\.png|sprite-round\.png' public || true
+
       - name: Commit recovered assets and repaired references
         run: |
           git config user.name "github-actions[bot]"
