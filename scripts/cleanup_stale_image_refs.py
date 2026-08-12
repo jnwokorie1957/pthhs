@@ -1,5 +1,8 @@
 #!/usr/bin/env python3
-"""Clean up legacy image references that are 404 even on the old WordPress origin."""
+"""Clean up legacy image references that are 404 even on the old WordPress origin.
+
+Kept as a repeatable safeguard for future static-site migration audits.
+"""
 
 from __future__ import annotations
 
