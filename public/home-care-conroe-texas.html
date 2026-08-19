@@ -7,7 +7,7 @@
 <head><meta charset="utf-8"><script>if(navigator.userAgent.match(/MSIE|Internet Explorer/i)||navigator.userAgent.match(/Trident\/7\..*?rv:11/i)){var href=document.location.href;if(!href.match(/[?&]nowprocket/)){if(href.indexOf("?")==-1){if(href.indexOf("#")==-1){document.location.href=href+"?nowprocket=1"}else{document.location.href=href.replace("#","?nowprocket=1")}}else{if(href.indexOf("#")==-1){document.location.href=href+"&nowprocket=1"}else{document.location.href=href.replace("#","&nowprocket=1#")}}}}</script><script>class RocketLazyLoadScripts{constructor(){this.triggerEvents=["keydown","mousedown","mousemove","touchmove","touchstart","touchend","wheel"],this.userEventHandler=this._triggerListener.bind(this),this.touchStartHandler=this._onTouchStart.bind(this),this.touchMoveHandler=this._onTouchMove.bind(this),this.touchEndHandler=this._onTouchEnd.bind(this),this.clickHandler=this._onClick.bind(this),this.interceptedClicks=[],window.addEventListener("pageshow",(e=>{this.persisted=e.persisted})),window.addEventListener("DOMContentLoaded",(()=>{this._preconnect3rdParties()})),this.delayedScripts={normal:[],async:[],defer:[]},this.allJQueries=[]}_addUserInteractionListener(e){document.hidden?e._triggerListener():(this.triggerEvents.forEach((t=>window.addEventListener(t,e.userEventHandler,{passive:!0}))),window.addEventListener("touchstart",e.touchStartHandler,{passive:!0}),window.addEventListener("mousedown",e.touchStartHandler),document.addEventListener("visibilitychange",e.userEventHandler))}_removeUserInteractionListener(){this.triggerEvents.forEach((e=>window.removeEventListener(e,this.userEventHandler,{passive:!0}))),document.removeEventListener("visibilitychange",this.userEventHandler)}_onTouchStart(e){"HTML"!==e.target.tagName&&(window.addEventListener("touchend",this.touchEndHandler),window.addEventListener("mouseup",this.touchEndHandler),window.addEventListener("touchmove",this.touchMoveHandler,{passive:!0}),window.addEventListener("mousemove",this.touchMoveHandler),e.target.addEventListener("click",this.clickHandler),this._renameDOMAttribute(e.target,"onclick","rocket-onclick"))}_onTouchMove(e){window.removeEventListener("touchend",this.touchEndHandler),window.removeEventListener("mouseup",this.touchEndHandler),window.removeEventListener("touchmove",this.touchMoveHandler,{passive:!0}),window.removeEventListener("mousemove",this.touchMoveHandler),e.target.removeEventListener("click",this.clickHandler),this._renameDOMAttribute(e.target,"rocket-onclick","onclick")}_onTouchEnd(e){window.removeEventListener("touchend",this.touchEndHandler),window.removeEventListener("mouseup",this.touchEndHandler),window.removeEventListener("touchmove",this.touchMoveHandler,{passive:!0}),window.removeEventListener("mousemove",this.touchMoveHandler)}_onClick(e){e.target.removeEventListener("click",this.clickHandler),this._renameDOMAttribute(e.target,"rocket-onclick","onclick"),this.interceptedClicks.push(e),e.preventDefault(),e.stopPropagation(),e.stopImmediatePropagation()}_replayClicks(){window.removeEventListener("touchstart",this.touchStartHandler,{passive:!0}),window.removeEventListener("mousedown",this.touchStartHandler),this.interceptedClicks.forEach((e=>{e.target.dispatchEvent(new MouseEvent("click",{view:e.view,bubbles:!0,cancelable:!0}))}))}_renameDOMAttribute(e,t,n){e.hasAttribute&&e.hasAttribute(t)&&(event.target.setAttribute(n,event.target.getAttribute(t)),event.target.removeAttribute(t))}_triggerListener(){this._removeUserInteractionListener(this),"loading"===document.readyState?document.addEventListener("DOMContentLoaded",this._loadEverythingNow.bind(this)):this._loadEverythingNow()}_preconnect3rdParties(){let e=[];document.querySelectorAll("script[type=rocketlazyloadscript]").forEach((t=>{if(t.hasAttribute("src")){const n=newURL(t.src).origin;n!==location.origin&&e.push({src:n,crossOrigin:t.crossOrigin||"module"===t.getAttribute("data-rocket-type")})}})),e=[...new Map(e.map((e=>[JSON.stringify(e),e]))).values()],this._batchInjectResourceHints(e,"preconnect")}async _loadEverythingNow(){this.lastBreath=Date.now(),this._delayEventListeners(),this._delayJQueryReady(this),this._handleDocumentWrite(),this._registerAllDelayedScripts(),this._preloadAllScripts(),await this._loadScriptsFromList(this.delayedScripts.normal),await this._loadScriptsFromList(this.delayedScripts.defer),await this._loadScriptsFromList(this.delayedScripts.async);try{await this._triggerDOMContentLoaded(),await this._triggerWindowLoad()}catch(e){}window.dispatchEvent(new Event("rocket-allScriptsLoaded")),this._replayClicks()}_registerAllDelayedScripts(){document.querySelectorAll("script[type=rocketlazyloadscript]").forEach((e=>{e.hasAttribute("src")?e.hasAttribute("async")&&!1!==e.async?this.delayedScripts.async.push(e):e.hasAttribute("defer")&&!1!==e.defer||"module"===e.getAttribute("data-rocket-type")?this.delayedScripts.defer.push(e):this.delayedScripts.normal.push(e):this.delayedScripts.normal.push(e)}))}async _transformScript(e){return await this._littleBreath(),new Promise((t=>{const n=document.createElement("script");[...e.attributes].forEach((e=>{let t=e.nodeName;"type"!==t&&("data-rocket-type"===t&&(t="type"),n.setAttribute(t,e.nodeValue))})),e.hasAttribute("src")?(n.addEventListener("load",t),n.addEventListener("error",t)):(n.text=e.text,t());try{e.parentNode.replaceChild(n,e)}catch(e){t()}}))}async _loadScriptsFromList(e){const t=e.shift();return t?(await this._transformScript(t),this._loadScriptsFromList(e)):Promise.resolve()}_preloadAllScripts(){this._batchInjectResourceHints([...this.delayedScripts.normal,...this.delayedScripts.defer,...this.delayedScripts.async],"preload")}_batchInjectResourceHints(e,t){var n=document.createDocumentFragment();e.forEach((e=>{if(e.src){const i=document.createElement("link");i.href=e.src;i.rel=t,"preconnect"!==t&&(i.as="script"),e.getAttribute&&"module"===e.getAttribute("data-rocket-type")&&(i.crossOrigin=!0),e.crossOrigin&&(i.crossOrigin=e.crossOrigin),n.appendChild(i)}})),document.head.appendChild(n)}_delayEventListeners(){let e={};function t(t,n){!function(t){function n(n){return e[t].eventsToRewrite.indexOf(n)>=0?"rocket-"+n:n}e[t]||(e[t]={originalFunctions:{add:t.addEventListener,remove:t.removeEventListener},eventsToRewrite:[]},t.addEventListener=function(){arguments[0]=n(arguments[0]),e[t].originalFunctions.add.apply(t,arguments)},t.removeEventListener=function(){arguments[0]=n(arguments[0]),e[t].originalFunctions.remove.apply(t,arguments)})}(t),e[t].eventsToRewrite.push(n)}function n(e,t){let n=e[t];Object.defineProperty(e,t,{get:()=>n||function(){},set(i){e["rocket"+t]=n=i}})}t(document,"DOMContentLoaded"),t(window,"DOMContentLoaded"),t(window,"load"),t(window,"pageshow"),t(document,"readystatechange"),n(document,"onreadystatechange"),n(window,"onload"),n(window,"onpageshow")}_delayJQueryReady(e){let t=window.jQuery;Object.defineProperty(window,"jQuery",{get:()=>t,set(n){if(n&&n.fn&&!e.allJQueries.includes(n)){n.fn.ready=n.fn.init.prototype.ready=function(t){e.domReadyFired?t.bind(document)(n):document.addEventListener("rocket-DOMContentLoaded",(()=>t.bind(document)(n)))};const t=n.fn.on;n.fn.on=n.fn.init.prototype.on=function(){if(this[0]===window){function e(e){return e.split(" ").map((e=>"load"===e||0===e.indexOf("load.")?"rocket-jquery-load":e)).join(" ")}"string"==typeof arguments[0]||arguments[0]instanceof String?arguments[0]=e(arguments[0]):"object"==typeof arguments[0]&&Object.keys(arguments[0]).forEach((t=>{delete Object.assign(arguments[0],{[e(t)]:arguments[0][t]})[t]}))}return t.apply(this,arguments),this},e.allJQueries.push(n)}t=n}})}async _triggerDOMContentLoaded(){this.domReadyFired=!0,await this._littleBreath(),document.dispatchEvent(new Event("rocket-DOMContentLoaded")),await this._littleBreath(),window.dispatchEvent(new Event("rocket-DOMContentLoaded")),await this._littleBreath(),document.dispatchEvent(new Event("rocket-readystatechange")),await this._littleBreath(),document.rocketonreadystatechange&&document.rocketonreadystatechange()}async _triggerWindowLoad(){await this._littleBreath(),window.dispatchEvent(new Event("rocket-load")),await this._littleBreath(),window.rocketonload&&window.rocketonload(),await this._littleBreath(),this.allJQueries.forEach((e=>e(window).trigger("rocket-jquery-load"))),await this._littleBreath();const e=new Event("rocket-pageshow");e.persisted=this.persisted,window.dispatchEvent(e),await this._littleBreath(),window.rocketonpageshow&&window.rocketonpageshow({persisted:this.persisted})}_handleDocumentWrite(){const e=new Map;document.write=document.writeln=function(t){const n=document.currentScript,i=document.createRange(),r=n.parentElement;let o=e.get(n);void 0===o&&(o=n.nextSibling,e.set(n,o));const s=document.createDocumentFragment();i.setStart(s,0),s.appendChild(i.createContextualFragment(t)),r.insertBefore(s,o)}}async _littleBreath(){Date.now()-this.lastBreath>45&&(await this._requestAnimFrame(),this.lastBreath=Date.now())}async _requestAnimFrame(){return document.hidden?new Promise((e=>setTimeout(e))):new Promise((e=>requestAnimationFrame(e)))}static run(){const e=new RocketLazyLoadScripts;e._addUserInteractionListener(e)}}RocketLazyLoadScripts.run();</script>
 	
 	<meta name="viewport" content="width=device-width, initial-scale=1">    
-	<meta name="keywords" content="Home Health Agency in Sugar Land Texas, In Home Care Service in Sugar Land Texas, Home Health Agency in Sugar Land TX, Senior Home Care in Sugar Land TX, In Home Support in Sugar Land TX, Elderly Care in Sugar Land TX, Home Care Assistance in Sugar Land TX, Personal Attendant Services Sugar Land TX" > 
+	<meta name="keywords" content="Home Health Agency in Conroe Texas, In Home Care Service in Conroe Texas, Home Health Agency in Conroe TX, Senior Home Care in Conroe TX, In Home Support in Conroe TX, Elderly Care in Conroe TX, Home Care Assistance in Conroe TX" > 
   <!--[if IE]><meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1"><![endif]-->
 
 	
@@ -28,15 +28,15 @@
 <meta name='robots' content='max-image-preview:large' />
 
 	<!-- This site is optimized with the Yoast SEO plugin v15.5 - https://yoast.com/wordpress/plugins/seo/ -->
-	<title>Home Care Sugar Land TX | Primetime Home Health Services</title><link rel="preload" as="style" href="https://fonts.googleapis.com/css?family=Merriweather%3A400%2C700%2C900%2C400italic%2C700italic%2C900italic%7CMontserrat%3A400%2C700%7CInconsolata%3A400&subset=latin%2Clatin-ext&display=swap" /><link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Merriweather%3A400%2C700%2C900%2C400italic%2C700italic%2C900italic%7CMontserrat%3A400%2C700%7CInconsolata%3A400&subset=latin%2Clatin-ext&display=swap" media="print" onload="this.media='all'" /><noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Merriweather%3A400%2C700%2C900%2C400italic%2C700italic%2C900italic%7CMontserrat%3A400%2C700%7CInconsolata%3A400&subset=latin%2Clatin-ext&display=swap" /></noscript>
-	<meta name="description" content="Sugar Land home care since 1999. Compassionate personal assistance, respite care, and attendant support for eligible Houston families. Medicaid plans accepted. Call 713-977-7721." />
+	<title>Home Care Conroe TX | Primetime Home Health Services</title><link rel="preload" as="style" href="https://fonts.googleapis.com/css?family=Merriweather%3A400%2C700%2C900%2C400italic%2C700italic%2C900italic%7CMontserrat%3A400%2C700%7CInconsolata%3A400&subset=latin%2Clatin-ext&display=swap" /><link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Merriweather%3A400%2C700%2C900%2C400italic%2C700italic%2C900italic%7CMontserrat%3A400%2C700%7CInconsolata%3A400&subset=latin%2Clatin-ext&display=swap" media="print" onload="this.media='all'" /><noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Merriweather%3A400%2C700%2C900%2C400italic%2C700italic%2C900italic%7CMontserrat%3A400%2C700%7CInconsolata%3A400&subset=latin%2Clatin-ext&display=swap" /></noscript>
+	<meta name="description" content="Conroe home care since 1999. Compassionate personal assistance, respite care, and attendant support for eligible Houston families. Medicaid plans accepted. Call 713-977-7721." />
 	<meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1" />
-	<link rel="canonical" href="home-care-sugar-land-texas.html" />
+	<link rel="canonical" href="home-care-conroe-texas.html" />
 	<meta property="og:locale" content="en_US" />
 	<meta property="og:type" content="article" />
-	<meta property="og:title" content="Home Care Sugar Land TX | Primetime Home Health Services" />
-	<meta property="og:description" content="Sugar Land home care since 1999. Compassionate personal assistance, respite care, and attendant support for eligible Houston families. Medicaid plans accepted. Call 713-977-7721." />
-	<meta property="og:url" content="home-care-sugar-land-texas.html" />
+	<meta property="og:title" content="Home Care Conroe TX | Primetime Home Health Services" />
+	<meta property="og:description" content="Conroe home care since 1999. Compassionate personal assistance, respite care, and attendant support for eligible Houston families. Medicaid plans accepted. Call 713-977-7721." />
+	<meta property="og:url" content="home-care-conroe-texas.html" />
 	<meta property="og:site_name" content="Primetime Home Health Services, Inc." />
 	<meta name="twitter:card" content="summary_large_image" />
 	<!-- PTHHS Organization + Location + FAQ Schema -->
@@ -58,41 +58,41 @@
 					"postalCode": "77035",
 					"addressCountry": "US"
 				},
-				"areaServed": ["Houston", "Sugar Land", "Missouri City", "Stafford", "Richmond", "Rosenberg", "Fort Bend County"],
+				"areaServed": ["Houston", "Conroe", "The Woodlands", "Spring", "Montgomery County"],
 				"sameAs": ["https://www.facebook.com/primetimehomehealth", "https://www.instagram.com/primetimehomehealthservices/"],
 				"hasMap": "https://www.google.com/maps/place/11602+Burdine+St,+Houston,+TX+77035"
 			},
 			{
 				"@type": "LocalBusiness",
-				"@id": "https://www.pthhs.net/home-care-sugar-land-texas#localbusiness",
-				"name": "Primetime Home Health Services, Inc. - Sugar Land",
+				"@id": "https://www.pthhs.net/home-care-conroe-texas#localbusiness",
+				"name": "Primetime Home Health Services, Inc. - Conroe",
 				"address": {
 					"@type": "PostalAddress",
-					"addressLocality": "Sugar Land",
+					"addressLocality": "Conroe",
 					"addressRegion": "TX"
 				},
-				"areaServed": "Sugar Land and surrounding Fort Bend County communities",
+				"areaServed": "Conroe and surrounding Montgomery County communities",
 				"parentOrganization": {
 					"@id": "https://www.pthhs.net/#organization"
 				},
 				"telephone": "713-977-7721",
-				"url": "https://www.pthhs.net/home-care-sugar-land-texas"
+				"url": "https://www.pthhs.net/home-care-conroe-texas"
 			},
 			{
 				"@type": "FAQPage",
-				"@id": "https://www.pthhs.net/home-care-sugar-land-texas#faq",
+				"@id": "https://www.pthhs.net/home-care-conroe-texas#faq",
 				"mainEntity": [
 					{
 						"@type": "Question",
-						"name": "Does Primetime serve Sugar Land, Texas?",
+						"name": "Does Primetime serve Conroe, Texas?",
 						"acceptedAnswer": {
 							"@type": "Answer",
-							"text": "Yes. Primetime Home Health Services provides personal attendant care, respite care, and in-home support throughout Sugar Land and surrounding Fort Bend County communities."
+							"text": "Yes. Primetime Home Health Services provides personal attendant care, respite care, and in-home support throughout Conroe and surrounding Montgomery County communities."
 						}
 					},
 					{
 						"@type": "Question",
-						"name": "What insurance plans does Primetime accept in Sugar Land?",
+						"name": "What insurance plans does Primetime accept in Conroe?",
 						"acceptedAnswer": {
 							"@type": "Answer",
 							"text": "Primetime participates in multiple Texas Medicaid programs including PHC, FC, CAS, and other HHSC-linked plans. We also work with private insurance where applicable."
@@ -100,10 +100,10 @@
 					},
 					{
 						"@type": "Question",
-						"name": "How do I get started with home care in Sugar Land?",
+						"name": "How do I get started with home care in Conroe?",
 						"acceptedAnswer": {
 							"@type": "Answer",
-							"text": "Call 713-977-7721 or use the contact form on this page. We offer free consultations to discuss eligibility, services, and scheduling for Sugar Land families."
+							"text": "Call 713-977-7721 or use the contact form on this page. We offer free consultations to discuss eligibility, services, and scheduling for Conroe families."
 						}
 					}
 				]
@@ -116,7 +116,7 @@
 	<link rel="apple-touch-icon" href="./wp-content/uploads/2020/09/primetime-home-health-logo-300x300.png" />
 	<meta name="msapplication-TileImage" content="./wp-content/uploads/2020/09/primetime-home-health-logo-300x300.png" />
 </head>
-<body class="page-template-default page page-id-home-care-sugar-land-texas">
+<body class="page-template-default page page-id-home-care-conroe-texas">
 <div id="page" class="site">
 	<header id="masthead" class="site-header">
 		<div class="top-bar">
@@ -170,8 +170,8 @@
 		<div class="container">
 			<div class="row">
 				<div class="col-md-8">
-					<h1>Home Care in Sugar Land, TX</h1>
-					<p class="lead">Compassionate in-home support for eligible Sugar Land families since 1999. Personal attendant care, respite, and daily living assistance—delivered by a local Houston team you know and trust.</p>
+					<h1>Home Care in Conroe, TX</h1>
+					<p class="lead">Compassionate in-home support for eligible Conroe families since 1999. Personal attendant care, respite, and daily living assistance—delivered by a local Houston team you know and trust.</p>
 					<div class="hero-ctas">
 						<a href="home-care-contact-us.html" class="btn btn-primary btn-lg">Get Started with Care</a>
 						<a href="tel:7139777721" class="btn btn-outline-light btn-lg"><i class="fa fa-phone"></i> Call 713-977-7721</a>
@@ -194,8 +194,8 @@
 
 	<section class="services-overview">
 		<div class="container">
-			<h2>Sugar Land Home Care Services Built Around Everyday Needs</h2>
-			<p class="section-intro">From personal routines to caregiver relief, our services help eligible Sugar Land clients remain supported in the familiar comfort of home.</p>
+			<h2>Conroe Home Care Services Built Around Everyday Needs</h2>
+			<p class="section-intro">From personal routines to caregiver relief, our services help eligible Conroe clients remain supported in the familiar comfort of home.</p>
 			<div class="row">
 				<div class="col-md-4">
 					<div class="service-card">
@@ -247,23 +247,23 @@
 
 	<section class="location-coverage">
 		<div class="container">
-			<h2>Sugar Land & Fort Bend County Communities We Serve</h2>
-			<p>Primetime provides home care services throughout Sugar Land and surrounding areas including Missouri City, Stafford, Richmond, Rosenberg, and greater Fort Bend County.</p>
+			<h2>Conroe & Montgomery County Communities We Serve</h2>
+			<p>Primetime provides home care services throughout Conroe and surrounding areas including The Woodlands, Spring, and greater Montgomery County.</p>
 			<div class="row">
 				<div class="col-md-6">
 					<ul class="location-list">
-						<li>Sugar Land</li>
-						<li>Missouri City</li>
-						<li>Stafford</li>
-						<li>Richmond</li>
+						<li>Conroe</li>
+						<li>The Woodlands</li>
+						<li>Spring</li>
+						<li>Montgomery County</li>
 					</ul>
 				</div>
 				<div class="col-md-6">
 					<ul class="location-list">
-						<li>Rosenberg</li>
-						<li>Fort Bend County</li>
-						<li>First Colony</li>
-						<li>Surrounding Southwest Houston</li>
+						<li>Shenandoah</li>
+						<li>Oak Ridge North</li>
+						<li>Panorama Village</li>
+						<li>Surrounding North Houston</li>
 					</ul>
 				</div>
 			</div>
@@ -272,7 +272,7 @@
 
 	<section class="cta-section">
 		<div class="container text-center">
-			<h2>Ready to Get Started with Home Care in Sugar Land?</h2>
+			<h2>Ready to Get Started with Home Care in Conroe?</h2>
 			<p>Call 713-977-7721 or request a free consultation. We’ll walk you through eligibility, services, and scheduling—no obligation.</p>
 			<a href="home-care-contact-us.html" class="btn btn-primary btn-lg">Request a Consultation</a>
 			<a href="tel:7139777721" class="btn btn-outline-light btn-lg">Call Now</a>
