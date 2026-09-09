@@ -19,8 +19,10 @@ jobs:
       - name: Build site metadata and interaction polish
         run: |
           npm install --no-save --no-package-lock sharp
+          node scripts/patch-site-polish.mjs
           node scripts/site-polish.mjs
           node scripts/site-polish-finalize.mjs
+          node scripts/verify-site-output.mjs
 
       - name: Install Firebase CLI
         run: npm install -g firebase-tools
