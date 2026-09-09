@@ -23,6 +23,15 @@ a.address-link::after{content:' ↗';font-size:.82em}
 .site-footer .social-icon:hover{transform:translateY(-2px);background:#fff;color:#0d4f8f;border-color:#fff;text-decoration:none}
 .site-footer .social-icon:focus-visible{outline:3px solid #f5a623;outline-offset:3px}
 
+/* Mobile hamburger navigation is created by site-enhancements.js. */
+.nav-wrap{position:relative}
+.menu-toggle{display:none;width:48px;height:48px;flex:0 0 48px;border:1px solid #cddfee;border-radius:14px;background:#fff;align-items:center;justify-content:center;flex-direction:column;gap:5px;cursor:pointer;color:#172033;box-shadow:0 5px 18px rgba(14,64,110,.08);-webkit-tap-highlight-color:transparent}
+.menu-toggle span{display:block;width:22px;height:2px;border-radius:999px;background:currentColor;transition:transform .25s ease,opacity .2s ease}
+.menu-toggle:focus-visible{outline:3px solid rgba(23,104,181,.35);outline-offset:3px}
+.menu-toggle[aria-expanded="true"] span:nth-child(1){transform:translateY(7px) rotate(45deg)}
+.menu-toggle[aria-expanded="true"] span:nth-child(2){opacity:0}
+.menu-toggle[aria-expanded="true"] span:nth-child(3){transform:translateY(-7px) rotate(-45deg)}
+
 /* County hub cards stay aligned; long ZIP lists animate/scroll inside the card instead of stretching it. */
 .county-hub-grid{align-items:stretch}
 .county-hub-grid .location-card{height:360px;min-height:360px;display:flex;flex-direction:column}
@@ -40,10 +49,36 @@ a.address-link::after{content:' ↗';font-size:.82em}
 .faq summary:focus-visible{outline:3px solid rgba(23,104,181,.35);outline-offset:5px;border-radius:4px}
 
 @media(max-width:900px){
+  html.mobile-nav-open,html.mobile-nav-open body{overflow:hidden}
+  .nav-wrap{min-height:76px;gap:14px}
+  .brand{min-width:0;display:flex;align-items:center}
+  .brand img{max-width:min(230px,calc(100vw - 100px));max-height:58px}
+  .menu-toggle{display:inline-flex;margin-left:auto}
+  .site-nav[data-mobile-enhanced="true"]{display:flex!important;position:absolute;z-index:90;top:calc(100% - 1px);left:0;right:0;flex-direction:column;align-items:stretch;gap:4px;background:#fff;border:1px solid #dfe8f1;border-top:0;border-radius:0 0 20px 20px;box-shadow:0 22px 42px rgba(14,64,110,.18);padding:0 12px;max-height:0;overflow:hidden;opacity:0;visibility:hidden;pointer-events:none;transform:translateY(-8px);transition:max-height .32s cubic-bezier(.2,.7,.2,1),opacity .22s ease,transform .32s cubic-bezier(.2,.7,.2,1),padding .32s cubic-bezier(.2,.7,.2,1),visibility 0s linear .32s}
+  .site-nav[data-mobile-enhanced="true"].is-open{max-height:calc(100dvh - 76px);overflow-y:auto;overscroll-behavior:contain;opacity:1;visibility:visible;pointer-events:auto;transform:translateY(0);padding:12px;transition:max-height .32s cubic-bezier(.2,.7,.2,1),opacity .22s ease,transform .32s cubic-bezier(.2,.7,.2,1),padding .32s cubic-bezier(.2,.7,.2,1),visibility 0s}
+  .site-nav[data-mobile-enhanced="true"] a{display:flex;align-items:center;min-height:48px;padding:10px 14px;border-radius:12px;font-size:16px;color:#172033;text-decoration:none}
+  .site-nav[data-mobile-enhanced="true"] a:not(.nav-cta):hover,.site-nav[data-mobile-enhanced="true"] a:not(.nav-cta):focus-visible{background:#edf6ff;color:#0d4f8f}
+  .site-nav[data-mobile-enhanced="true"] .nav-cta{justify-content:center;margin-top:4px;background:#f5a623;color:#172033!important}
   .county-hub-grid .location-card{height:340px;min-height:340px}
+  .page-hero{padding-top:54px}
+  .final-cta{padding:58px 0}
+  .footer-grid{gap:32px}
+}
+
+@media(max-width:560px){
+  .nav-wrap{min-height:70px}
+  .brand img{width:auto;max-width:min(205px,calc(100vw - 92px))}
+  .menu-toggle{width:46px;height:46px;flex-basis:46px;border-radius:13px}
+  .site-nav[data-mobile-enhanced="true"].is-open{max-height:calc(100dvh - 70px)}
+  .page-hero h1,.home-hero h1{font-size:clamp(38px,11vw,44px)!important}
+  .page-hero p,.home-hero .hero-copy{font-size:17px!important}
+  .section{padding:56px 0}
+  .card{border-radius:20px}
+  .final-cta h2{font-size:clamp(36px,10vw,46px)}
+  .contact-card{padding:24px}
 }
 
 @media(prefers-reduced-motion:reduce){
-  .site-footer .social-icon{transition:none}
+  .site-footer .social-icon,.menu-toggle span,.site-nav[data-mobile-enhanced="true"]{transition:none!important}
   .county-hub-grid .location-card>p{overflow-y:auto;scrollbar-width:thin;mask-image:none!important}
 }
