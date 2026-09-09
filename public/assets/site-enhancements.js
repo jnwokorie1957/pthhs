@@ -19,6 +19,62 @@
     });
   }
 
+  function setupMobileNavigation() {
+    document.querySelectorAll('.site-header .nav-wrap').forEach((navWrap, index) => {
+      const nav = navWrap.querySelector(':scope > .site-nav');
+      if (!nav || nav.dataset.mobileEnhanced === 'true') return;
+      nav.dataset.mobileEnhanced = 'true';
+
+      const navId = nav.id || `primary-mobile-nav-${index + 1}`;
+      nav.id = navId;
+
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'menu-toggle';
+      button.setAttribute('aria-controls', navId);
+      button.setAttribute('aria-expanded', 'false');
+      button.setAttribute('aria-label', 'Open navigation menu');
+      button.innerHTML = '<span></span><span></span><span></span>';
+      navWrap.insertBefore(button, nav);
+
+      const mobileQuery = window.matchMedia('(max-width: 900px)');
+
+      const setOpen = (open, { returnFocus = false } = {}) => {
+        button.setAttribute('aria-expanded', String(open));
+        button.setAttribute('aria-label', open ? 'Close navigation menu' : 'Open navigation menu');
+        nav.classList.toggle('is-open', open);
+        navWrap.classList.toggle('menu-open', open);
+        document.documentElement.classList.toggle('mobile-nav-open', open && mobileQuery.matches);
+        if (!open && returnFocus) button.focus();
+      };
+
+      button.addEventListener('click', () => {
+        setOpen(button.getAttribute('aria-expanded') !== 'true');
+      });
+
+      nav.addEventListener('click', (event) => {
+        if (event.target.closest('a') && mobileQuery.matches) setOpen(false);
+      });
+
+      document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape' && button.getAttribute('aria-expanded') === 'true') {
+          setOpen(false, { returnFocus: true });
+        }
+      });
+
+      document.addEventListener('pointerdown', (event) => {
+        if (!mobileQuery.matches || button.getAttribute('aria-expanded') !== 'true') return;
+        if (!navWrap.contains(event.target)) setOpen(false);
+      });
+
+      const handleViewportChange = () => {
+        if (!mobileQuery.matches) setOpen(false);
+      };
+      if (mobileQuery.addEventListener) mobileQuery.addEventListener('change', handleViewportChange);
+      else mobileQuery.addListener(handleViewportChange);
+    });
+  }
+
   function animateFaqs() {
     document.querySelectorAll('.faq details').forEach((details) => {
       const summary = details.querySelector(':scope > summary');
@@ -141,6 +197,7 @@
 
   function initialize() {
     setPlatformMapLinks();
+    setupMobileNavigation();
     animateFaqs();
     setupCountyCardOverflow();
   }
