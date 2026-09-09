@@ -1,0 +1,49 @@
+/* Site-wide accessibility and interaction polish. Loaded after page styles. */
+
+/* Keep brand orange while using a dark foreground that passes contrast on orange CTAs. */
+.nav-cta,.btn-primary{color:#172033!important}
+.mobile-care-bar a:last-child{color:#172033!important}
+
+/* The final CTA has a white contact card nested inside a blue section; override inherited pale text. */
+.final-cta .contact-card p,.final-cta .contact-card .small-note{color:#465467!important}
+.final-cta .contact-card li{color:#172033}
+
+/* Actionable contact details. */
+a.phone-link:not(.btn-primary):not(.btn-secondary):not(.nav-cta){display:inline-flex;align-items:center;gap:.38em;font-weight:800;text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:3px}
+a.phone-link:not(.btn-primary):not(.btn-secondary):not(.nav-cta)::before{content:'☎';font-size:.9em;text-decoration:none}
+a.address-link{font-weight:700;text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:3px}
+a.address-link::after{content:' ↗';font-size:.82em}
+.site-footer a.address-link,.site-footer a.phone-link{color:#eef7ff}
+.site-footer a.address-link:hover,.site-footer a.phone-link:hover{color:#fff}
+
+/* Social links render as compact accessible icons rather than text labels. */
+.social-links{display:flex;align-items:center;gap:10px;margin-top:18px}
+.site-footer .social-icon{width:42px;height:42px;display:inline-grid;place-items:center;border:1px solid rgba(255,255,255,.32);border-radius:50%;color:#fff;background:rgba(255,255,255,.07);transition:transform .2s ease,background-color .2s ease,border-color .2s ease;text-decoration:none}
+.site-footer .social-icon svg{width:21px;height:21px;fill:currentColor}
+.site-footer .social-icon:hover{transform:translateY(-2px);background:#fff;color:#0d4f8f;border-color:#fff;text-decoration:none}
+.site-footer .social-icon:focus-visible{outline:3px solid #f5a623;outline-offset:3px}
+
+/* County hub cards stay aligned; long ZIP lists animate/scroll inside the card instead of stretching it. */
+.county-hub-grid{align-items:stretch}
+.county-hub-grid .location-card{height:360px;min-height:360px;display:flex;flex-direction:column}
+.county-hub-grid .location-card>h3{flex:0 0 auto}
+.county-hub-grid .location-card>p{position:relative;z-index:2;flex:1 1 auto;min-height:0;overflow:hidden;padding-right:8px;margin-bottom:42px;line-height:1.62;scroll-behavior:auto;overscroll-behavior:contain}
+.county-hub-grid .location-card.is-scrollable>p{mask-image:linear-gradient(to bottom,#000 0,#000 86%,transparent 100%)}
+.county-hub-grid .location-card>a{z-index:1}
+.county-hub-grid .location-card:after{z-index:3}
+.county-hub-grid .location-card:hover{border-color:#c9dced}
+
+/* FAQ answer wrapper is created by site-enhancements.js; 333ms animation is driven with Web Animations. */
+.faq details{overflow:clip}
+.faq .faq-answer{overflow:hidden;will-change:height,opacity}
+.faq .faq-answer>p:first-child{margin-top:12px}
+.faq summary:focus-visible{outline:3px solid rgba(23,104,181,.35);outline-offset:5px;border-radius:4px}
+
+@media(max-width:900px){
+  .county-hub-grid .location-card{height:340px;min-height:340px}
+}
+
+@media(prefers-reduced-motion:reduce){
+  .site-footer .social-icon{transition:none}
+  .county-hub-grid .location-card>p{overflow-y:auto;scrollbar-width:thin;mask-image:none!important}
+}
