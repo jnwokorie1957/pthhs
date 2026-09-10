@@ -4,13 +4,13 @@
 <!--[if IE 10]>         <html class="no-js lt-ie11 lt-ie10 lt-ie9 lt-ie8"> <![endif]-->
 <!--[if IE 11]>         <html class="no-js lt-ie11"> <![endif]-->
 <!--[if gt IE 11]><!--> <html class="no-js" lang="en-US"> <!--<![endif]-->
-<head><meta charset="utf-8"><script>if(navigator.userAgent.match(/MSIE|Internet Explorer/i)||navigator.userAgent.match(/Trident\/7\..*?rv:11/i)){var href=document.location.href;if(!href.match(/[?&]nowprocket/)){if(href.indexOf("?")==-1){if(href.indexOf("#")==-1){document.location.href=href+"?nowprocket=1"}else{document.location.href=href.replace("#","?nowprocket=1")}}else{if(href.indexOf("#")==-1){document.location.href=href+"&nowprocket=1"}else{document.location.href=href.replace("#","&nowprocket=1#")}}}}</script><script>class RocketLazyLoadScripts{constructor(){this.triggerEvents=["keydown","mousedown","mousemove","touchmove","touchstart","touchend","wheel"],this.userEventHandler=this._triggerListener.bind(this),this.touchStartHandler=this._onTouchStart.bind(this),this.touchMoveHandler=this._onTouchMove.bind(this),this.touchEndHandler=this._onTouchEnd.bind(this),this.clickHandler=this._onClick.bind(this),this.interceptedClicks=[],window.addEventListener("pageshow",(e=>{this.persisted=e.persisted})),window.addEventListener("DOMContentLoaded",(()=>{this._preconnect3rdParties()})),this.delayedScripts={normal:[],async:[],defer:[]},this.allJQueries=[]}_addUserInteractionListener(e){document.hidden?e._triggerListener():(this.triggerEvents.forEach((t=>window.addEventListener(t,e.userEventHandler,{passive:!0}))),window.addEventListener("touchstart",e.touchStartHandler,{passive:!0}),window.addEventListener("mousedown",e.touchStartHandler),document.addEventListener("visibilitychange",e.userEventHandler))}_removeUserInteractionListener(){this.triggerEvents.forEach((e=>window.removeEventListener(e,this.userEventHandler,{passive:!0}))),document.removeEventListener("visibilitychange",this.userEventHandler)}_onTouchStart(e){"HTML"!==e.target.tagName&&(window.addEventListener("touchend",this.touchEndHandler),window.addEventListener("mouseup",this.touchEndHandler),window.addEventListener("touchmove",this.touchMoveHandler,{passive:!0}),window.addEventListener("mousemove",this.touchMoveHandler),e.target.addEventListener("click",this.clickHandler),this._renameDOMAttribute(e.target,"onclick","rocket-onclick"))}_onTouchMove(e){window.removeEventListener("touchend",this.touchEndHandler),window.removeEventListener("mouseup",this.touchEndHandler),window.removeEventListener("touchmove",this.touchMoveHandler,{passive:!0}),window.removeEventListener("mousemove",this.touchMoveHandler),e.target.removeEventListener("click",this.clickHandler),this._renameDOMAttribute(e.target,"rocket-onclick","onclick")}_onTouchEnd(e){window.removeEventListener("touchend",this.touchEndHandler),window.removeEventListener("mouseup",this.touchEndHandler),window.removeEventListener("touchmove",this.touchMoveHandler,{passive:!0}),window.removeEventListener("mousemove",this.touchMoveHandler)}_onClick(e){e.target.removeEventListener("click",this.clickHandler),this._renameDOMAttribute(e.target,"rocket-onclick","onclick"),this.interceptedClicks.push(e),e.preventDefault(),e.stopPropagation(),e.stopImmediatePropagation()}_replayClicks(){window.removeEventListener("touchstart",this.touchStartHandler,{passive:!0}),window.removeEventListener("mousedown",this.touchStartHandler),this.interceptedClicks.forEach((e=>{e.target.dispatchEvent(new MouseEvent("click",{view:e.view,bubbles:!0,cancelable:!0}))}))}_renameDOMAttribute(e,t,n){e.hasAttribute&&e.hasAttribute(t)&&(event.target.setAttribute(n,event.target.getAttribute(t)),event.target.removeAttribute(t))}_triggerListener(){this._removeUserInteractionListener(this),"loading"===document.readyState?document.addEventListener("DOMContentLoaded",this._loadEverythingNow.bind(this)):this._loadEverythingNow()}_preconnect3rdParties(){let e=[];document.querySelectorAll("script[type=rocketlazyloadscript]").forEach((t=>{if(t.hasAttribute("src")){const n=newURL(t.src).origin;n!==location.origin&&e.push({src:n,crossOrigin:t.crossOrigin||"module"===t.getAttribute("data-rocket-type")})}})),e=[...new Map(e.map((e=>[JSON.stringify(e),e]))).values()],this._batchInjectResourceHints(e,"preconnect")}async _loadEverythingNow(){this.lastBreath=Date.now(),this._delayEventListeners(),this._delayJQueryReady(this),this._handleDocumentWrite(),this._registerAllDelayedScripts(),this._preloadAllScripts(),await this._loadScriptsFromList(this.delayedScripts.normal),await this._loadScriptsFromList(this.delayedScripts.defer),await this._loadScriptsFromList(this.delayedScripts.async);try{await this._triggerDOMContentLoaded(),await this._triggerWindowLoad()}catch(e){}window.dispatchEvent(new Event("rocket-allScriptsLoaded")),this._replayClicks()}_registerAllDelayedScripts(){document.querySelectorAll("script[type=rocketlazyloadscript]").forEach((e=>{e.hasAttribute("src")?e.hasAttribute("async")&&!1!==e.async?this.delayedScripts.async.push(e):e.hasAttribute("defer")&&!1!==e.defer||"module"===e.getAttribute("data-rocket-type")?this.delayedScripts.defer.push(e):this.delayedScripts.normal.push(e):this.delayedScripts.normal.push(e)}))}async _transformScript(e){return await this._littleBreath(),new Promise((t=>{const n=document.createElement("script");[...e.attributes].forEach((e=>{let t=e.nodeName;"type"!==t&&("data-rocket-type"===t&&(t="type"),n.setAttribute(t,e.nodeValue))})),e.hasAttribute("src")?(n.addEventListener("load",t),n.addEventListener("error",t)):(n.text=e.text,t());try{e.parentNode.replaceChild(n,e)}catch(e){t()}}))}async _loadScriptsFromList(e){const t=e.shift();return t?(await this._transformScript(t),this._loadScriptsFromList(e)):Promise.resolve()}_preloadAllScripts(){this._batchInjectResourceHints([...this.delayedScripts.normal,...this.delayedScripts.defer,...this.delayedScripts.async],"preload")}_batchInjectResourceHints(e,t){var n=document.createDocumentFragment();e.forEach((e=>{if(e.src){const i=document.createElement("link");i.href=e.src;i.rel=t,"preconnect"!==t&&(i.as="script"),e.getAttribute&&"module"===e.getAttribute("data-rocket-type")&&(i.crossOrigin=!0),e.crossOrigin&&(i.crossOrigin=e.crossOrigin),n.appendChild(i)}})),document.head.appendChild(n)}_delayEventListeners(){let e={};function t(t,n){!function(t){function n(n){return e[t].eventsToRewrite.indexOf(n)>=0?"rocket-"+n:n}e[t]||(e[t]={originalFunctions:{add:t.addEventListener,remove:t.removeEventListener},eventsToRewrite:[]},t.addEventListener=function(){arguments[0]=n(arguments[0]),e[t].originalFunctions.add.apply(t,arguments)},t.removeEventListener=function(){arguments[0]=n(arguments[0]),e[t].originalFunctions.remove.apply(t,arguments)})}(t),e[t].eventsToRewrite.push(n)}function n(e,t){let n=e[t];Object.defineProperty(e,t,{get:()=>n||function(){},set(i){e["rocket"+t]=n=i}})}t(document,"DOMContentLoaded"),t(window,"DOMContentLoaded"),t(window,"load"),t(window,"pageshow"),t(document,"readystatechange"),n(document,"onreadystatechange"),n(window,"onload"),n(window,"onpageshow")}_delayJQueryReady(e){let t=window.jQuery;Object.defineProperty(window,"jQuery",{get:()=>t,set(n){if(n&&n.fn&&!e.allJQueries.includes(n)){n.fn.ready=n.fn.init.prototype.ready=function(t){e.domReadyFired?t.bind(document)(n):document.addEventListener("rocket-DOMContentLoaded",(()=>t.bind(document)(n)))};const t=n.fn.on;n.fn.on=n.fn.init.prototype.on=function(){if(this[0]===window){function e(e){return e.split(" ").map((e=>"load"===e||0===e.indexOf("load.")?"rocket-jquery-load":e)).join(" ")}"string"==typeof arguments[0]||arguments[0]instanceof String?arguments[0]=e(arguments[0]):"object"==typeof arguments[0]&&Object.keys(arguments[0]).forEach((t=>{delete Object.assign(arguments[0],{[e(t)]:arguments[0][t]})[t]}))}return t.apply(this,arguments),this},e.allJQueries.push(n)}t=n}})}async _triggerDOMContentLoaded(){this.domReadyFired=!0,await this._littleBreath(),document.dispatchEvent(new Event("rocket-DOMContentLoaded")),await this._littleBreath(),window.dispatchEvent(new Event("rocket-DOMContentLoaded")),await this._littleBreath(),document.dispatchEvent(new Event("rocket-readystatechange")),await this._littleBreath(),document.rocketonreadystatechange&&document.rocketonreadystatechange()}async _triggerWindowLoad(){await this._littleBreath(),window.dispatchEvent(new Event("rocket-load")),await this._littleBreath(),window.rocketonload&&window.rocketonload(),await this._littleBreath(),this.allJQueries.forEach((e=>e(window).trigger("rocket-jquery-load"))),await this._littleBreath();const e=new Event("rocket-pageshow");e.persisted=this.persisted,window.dispatchEvent(e),await this._littleBreath(),window.rocketonpageshow&&window.rocketonpageshow({persisted:this.persisted})}_handleDocumentWrite(){const e=new Map;document.write=document.writeln=function(t){const n=document.currentScript,i=document.createRange(),r=n.parentElement;let o=e.get(n);void 0===o&&(o=n.nextSibling,e.set(n,o));const s=document.createDocumentFragment();i.setStart(s,0),s.appendChild(i.createContextualFragment(t)),r.insertBefore(s,o)}}async _littleBreath(){Date.now()-this.lastBreath>45&&(await this._requestAnimFrame(),this.lastBreath=Date.now())}async _requestAnimFrame(){return document.hidden?new Promise((e=>setTimeout(e))):new Promise((e=>requestAnimationFrame(e)))}static run(){const e=new RocketLazyLoadScripts;e._addUserInteractionListener(e)}}RocketLazyLoadScripts.run();</script>
-	
-	<meta name="viewport" content="width=device-width, initial-scale=1">    
-	<meta name="keywords" content="Home Health Agency in Sugar Land Texas, In Home Care Service in Sugar Land Texas, Home Health Agency in Sugar Land TX, Senior Home Care in Sugar Land TX, In Home Support in Sugar Land TX, Elderly Care in Sugar Land TX, Home Care Assistance in Sugar Land TX, Personal Attendant Services Sugar Land TX" > 
+<head><title>Home Care in Sugar Land, TX | Primetime Home Health</title><meta name="description" content="Compassionate in-home support for eligible Sugar Land families a long-standing Houston-area provider."><link rel="canonical" href="https://pthhs.net/home-care-sugar-land-texas"><meta name="theme-color" content="#0d4f8f"><link rel="icon" href="/assets/meta/favicon.svg" type="image/svg+xml"><link rel="icon" href="/assets/meta/favicon-32x32.png" sizes="32x32" type="image/png"><link rel="icon" href="/assets/meta/favicon-16x16.png" sizes="16x16" type="image/png"><link rel="shortcut icon" href="/assets/meta/favicon.ico"><link rel="apple-touch-icon" href="/assets/meta/apple-touch-icon.png" sizes="180x180"><link rel="manifest" href="/site.webmanifest"><meta property="og:type" content="website"><meta property="og:site_name" content="Primetime Home Health Services"><meta property="og:title" content="Home Care in Sugar Land, TX | Primetime Home Health"><meta property="og:description" content="Compassionate in-home support for eligible Sugar Land families a long-standing Houston-area provider."><meta property="og:url" content="https://pthhs.net/home-care-sugar-land-texas"><meta property="og:image" content="https://pthhs.net/assets/meta/og-default.png"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta property="og:image:alt" content="Home Care in Sugar Land, TX | Primetime Home Health"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="Home Care in Sugar Land, TX | Primetime Home Health"><meta name="twitter:description" content="Compassionate in-home support for eligible Sugar Land families a long-standing Houston-area provider."><meta name="twitter:image" content="https://pthhs.net/assets/meta/og-default.png"><meta name="robots" content="noindex,nofollow"><meta charset="utf-8"><script>if(navigator.userAgent.match(/MSIE|Internet Explorer/i)||navigator.userAgent.match(/Trident\/7\..*?rv:11/i)){var href=document.location.href;if(!href.match(/[?&]nowprocket/)){if(href.indexOf("?")==-1){if(href.indexOf("#")==-1){document.location.href=href+"?nowprocket=1"}else{document.location.href=href.replace("#","?nowprocket=1")}}else{if(href.indexOf("#")==-1){document.location.href=href+"&nowprocket=1"}else{document.location.href=href.replace("#","&nowprocket=1#")}}}}</script><script>class RocketLazyLoadScripts{constructor(){this.triggerEvents=["keydown","mousedown","mousemove","touchmove","touchstart","touchend","wheel"],this.userEventHandler=this._triggerListener.bind(this),this.touchStartHandler=this._onTouchStart.bind(this),this.touchMoveHandler=this._onTouchMove.bind(this),this.touchEndHandler=this._onTouchEnd.bind(this),this.clickHandler=this._onClick.bind(this),this.interceptedClicks=[],window.addEventListener("pageshow",(e=>{this.persisted=e.persisted})),window.addEventListener("DOMContentLoaded",(()=>{this._preconnect3rdParties()})),this.delayedScripts={normal:[],async:[],defer:[]},this.allJQueries=[]}_addUserInteractionListener(e){document.hidden?e._triggerListener():(this.triggerEvents.forEach((t=>window.addEventListener(t,e.userEventHandler,{passive:!0}))),window.addEventListener("touchstart",e.touchStartHandler,{passive:!0}),window.addEventListener("mousedown",e.touchStartHandler),document.addEventListener("visibilitychange",e.userEventHandler))}_removeUserInteractionListener(){this.triggerEvents.forEach((e=>window.removeEventListener(e,this.userEventHandler,{passive:!0}))),document.removeEventListener("visibilitychange",this.userEventHandler)}_onTouchStart(e){"HTML"!==e.target.tagName&&(window.addEventListener("touchend",this.touchEndHandler),window.addEventListener("mouseup",this.touchEndHandler),window.addEventListener("touchmove",this.touchMoveHandler,{passive:!0}),window.addEventListener("mousemove",this.touchMoveHandler),e.target.addEventListener("click",this.clickHandler),this._renameDOMAttribute(e.target,"onclick","rocket-onclick"))}_onTouchMove(e){window.removeEventListener("touchend",this.touchEndHandler),window.removeEventListener("mouseup",this.touchEndHandler),window.removeEventListener("touchmove",this.touchMoveHandler,{passive:!0}),window.removeEventListener("mousemove",this.touchMoveHandler),e.target.removeEventListener("click",this.clickHandler),this._renameDOMAttribute(e.target,"rocket-onclick","onclick")}_onTouchEnd(e){window.removeEventListener("touchend",this.touchEndHandler),window.removeEventListener("mouseup",this.touchEndHandler),window.removeEventListener("touchmove",this.touchMoveHandler,{passive:!0}),window.removeEventListener("mousemove",this.touchMoveHandler)}_onClick(e){e.target.removeEventListener("click",this.clickHandler),this._renameDOMAttribute(e.target,"rocket-onclick","onclick"),this.interceptedClicks.push(e),e.preventDefault(),e.stopPropagation(),e.stopImmediatePropagation()}_replayClicks(){window.removeEventListener("touchstart",this.touchStartHandler,{passive:!0}),window.removeEventListener("mousedown",this.touchStartHandler),this.interceptedClicks.forEach((e=>{e.target.dispatchEvent(new MouseEvent("click",{view:e.view,bubbles:!0,cancelable:!0}))}))}_renameDOMAttribute(e,t,n){e.hasAttribute&&e.hasAttribute(t)&&(event.target.setAttribute(n,event.target.getAttribute(t)),event.target.removeAttribute(t))}_triggerListener(){this._removeUserInteractionListener(this),"loading"===document.readyState?document.addEventListener("DOMContentLoaded",this._loadEverythingNow.bind(this)):this._loadEverythingNow()}_preconnect3rdParties(){let e=[];document.querySelectorAll("script[type=rocketlazyloadscript]").forEach((t=>{if(t.hasAttribute("src")){const n=newURL(t.src).origin;n!==location.origin&&e.push({src:n,crossOrigin:t.crossOrigin||"module"===t.getAttribute("data-rocket-type")})}})),e=[...new Map(e.map((e=>[JSON.stringify(e),e]))).values()],this._batchInjectResourceHints(e,"preconnect")}async _loadEverythingNow(){this.lastBreath=Date.now(),this._delayEventListeners(),this._delayJQueryReady(this),this._handleDocumentWrite(),this._registerAllDelayedScripts(),this._preloadAllScripts(),await this._loadScriptsFromList(this.delayedScripts.normal),await this._loadScriptsFromList(this.delayedScripts.defer),await this._loadScriptsFromList(this.delayedScripts.async);try{await this._triggerDOMContentLoaded(),await this._triggerWindowLoad()}catch(e){}window.dispatchEvent(new Event("rocket-allScriptsLoaded")),this._replayClicks()}_registerAllDelayedScripts(){document.querySelectorAll("script[type=rocketlazyloadscript]").forEach((e=>{e.hasAttribute("src")?e.hasAttribute("async")&&!1!==e.async?this.delayedScripts.async.push(e):e.hasAttribute("defer")&&!1!==e.defer||"module"===e.getAttribute("data-rocket-type")?this.delayedScripts.defer.push(e):this.delayedScripts.normal.push(e):this.delayedScripts.normal.push(e)}))}async _transformScript(e){return await this._littleBreath(),new Promise((t=>{const n=document.createElement("script");[...e.attributes].forEach((e=>{let t=e.nodeName;"type"!==t&&("data-rocket-type"===t&&(t="type"),n.setAttribute(t,e.nodeValue))})),e.hasAttribute("src")?(n.addEventListener("load",t),n.addEventListener("error",t)):(n.text=e.text,t());try{e.parentNode.replaceChild(n,e)}catch(e){t()}}))}async _loadScriptsFromList(e){const t=e.shift();return t?(await this._transformScript(t),this._loadScriptsFromList(e)):Promise.resolve()}_preloadAllScripts(){this._batchInjectResourceHints([...this.delayedScripts.normal,...this.delayedScripts.defer,...this.delayedScripts.async],"preload")}_batchInjectResourceHints(e,t){var n=document.createDocumentFragment();e.forEach((e=>{if(e.src){const i=document.createElement("link");i.href=e.src;i.rel=t,"preconnect"!==t&&(i.as="script"),e.getAttribute&&"module"===e.getAttribute("data-rocket-type")&&(i.crossOrigin=!0),e.crossOrigin&&(i.crossOrigin=e.crossOrigin),n.appendChild(i)}})),document.head.appendChild(n)}_delayEventListeners(){let e={};function t(t,n){!function(t){function n(n){return e[t].eventsToRewrite.indexOf(n)>=0?"rocket-"+n:n}e[t]||(e[t]={originalFunctions:{add:t.addEventListener,remove:t.removeEventListener},eventsToRewrite:[]},t.addEventListener=function(){arguments[0]=n(arguments[0]),e[t].originalFunctions.add.apply(t,arguments)},t.removeEventListener=function(){arguments[0]=n(arguments[0]),e[t].originalFunctions.remove.apply(t,arguments)})}(t),e[t].eventsToRewrite.push(n)}function n(e,t){let n=e[t];Object.defineProperty(e,t,{get:()=>n||function(){},set(i){e["rocket"+t]=n=i}})}t(document,"DOMContentLoaded"),t(window,"DOMContentLoaded"),t(window,"load"),t(window,"pageshow"),t(document,"readystatechange"),n(document,"onreadystatechange"),n(window,"onload"),n(window,"onpageshow")}_delayJQueryReady(e){let t=window.jQuery;Object.defineProperty(window,"jQuery",{get:()=>t,set(n){if(n&&n.fn&&!e.allJQueries.includes(n)){n.fn.ready=n.fn.init.prototype.ready=function(t){e.domReadyFired?t.bind(document)(n):document.addEventListener("rocket-DOMContentLoaded",(()=>t.bind(document)(n)))};const t=n.fn.on;n.fn.on=n.fn.init.prototype.on=function(){if(this[0]===window){function e(e){return e.split(" ").map((e=>"load"===e||0===e.indexOf("load.")?"rocket-jquery-load":e)).join(" ")}"string"==typeof arguments[0]||arguments[0]instanceof String?arguments[0]=e(arguments[0]):"object"==typeof arguments[0]&&Object.keys(arguments[0]).forEach((t=>{delete Object.assign(arguments[0],{[e(t)]:arguments[0][t]})[t]}))}return t.apply(this,arguments),this},e.allJQueries.push(n)}t=n}})}async _triggerDOMContentLoaded(){this.domReadyFired=!0,await this._littleBreath(),document.dispatchEvent(new Event("rocket-DOMContentLoaded")),await this._littleBreath(),window.dispatchEvent(new Event("rocket-DOMContentLoaded")),await this._littleBreath(),document.dispatchEvent(new Event("rocket-readystatechange")),await this._littleBreath(),document.rocketonreadystatechange&&document.rocketonreadystatechange()}async _triggerWindowLoad(){await this._littleBreath(),window.dispatchEvent(new Event("rocket-load")),await this._littleBreath(),window.rocketonload&&window.rocketonload(),await this._littleBreath(),this.allJQueries.forEach((e=>e(window).trigger("rocket-jquery-load"))),await this._littleBreath();const e=new Event("rocket-pageshow");e.persisted=this.persisted,window.dispatchEvent(e),await this._littleBreath(),window.rocketonpageshow&&window.rocketonpageshow({persisted:this.persisted})}_handleDocumentWrite(){const e=new Map;document.write=document.writeln=function(t){const n=document.currentScript,i=document.createRange(),r=n.parentElement;let o=e.get(n);void 0===o&&(o=n.nextSibling,e.set(n,o));const s=document.createDocumentFragment();i.setStart(s,0),s.appendChild(i.createContextualFragment(t)),r.insertBefore(s,o)}}async _littleBreath(){Date.now()-this.lastBreath>45&&(await this._requestAnimFrame(),this.lastBreath=Date.now())}async _requestAnimFrame(){return document.hidden?new Promise((e=>setTimeout(e))):new Promise((e=>requestAnimationFrame(e)))}static run(){const e=new RocketLazyLoadScripts;e._addUserInteractionListener(e)}}RocketLazyLoadScripts.run();</script>
+
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta name="keywords" content="Home Health Agency in Sugar Land Texas, In Home Care Service in Sugar Land Texas, Home Health Agency in Sugar Land TX, Senior Home Care in Sugar Land TX, In Home Support in Sugar Land TX, Elderly Care in Sugar Land TX, Home Care Assistance in Sugar Land TX, Personal Attendant Services Sugar Land TX" >
   <!--[if IE]><meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1"><![endif]-->
 
-	
+
 
 	<link rel="stylesheet" href="./wp-content/themes/primetimehomeie989/style.min.css">
 	<link rel="stylesheet" href="./wp-content/themes/primetimehomeie989/css/hamburgers.min.css">
@@ -22,100 +22,30 @@
 	<link rel="stylesheet" href="./wp-content/themes/primetimehomeie989/css/owl.carousel.min.css">
 
 
-	
-		
+
+
 					<script type="rocketlazyloadscript">(function(html){html.className = html.className.replace(/\bno-js\b/,'js')})(document.documentElement);</script>
-<meta name='robots' content='max-image-preview:large' />
+
 
 	<!-- This site is optimized with the Yoast SEO plugin v15.5 - https://yoast.com/wordpress/plugins/seo/ -->
-	<title>Home Care Sugar Land TX | Primetime Home Health Services</title><link rel="preload" as="style" href="https://fonts.googleapis.com/css?family=Merriweather%3A400%2C700%2C900%2C400italic%2C700italic%2C900italic%7CMontserrat%3A400%2C700%7CInconsolata%3A400&subset=latin%2Clatin-ext&display=swap" /><link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Merriweather%3A400%2C700%2C900%2C400italic%2C700italic%2C900italic%7CMontserrat%3A400%2C700%7CInconsolata%3A400&subset=latin%2Clatin-ext&display=swap" media="print" onload="this.media='all'" /><noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Merriweather%3A400%2C700%2C900%2C400italic%2C700italic%2C900italic%7CMontserrat%3A400%2C700%7CInconsolata%3A400&subset=latin%2Clatin-ext&display=swap" /></noscript>
-	<meta name="description" content="Sugar Land home care since 1999. Compassionate personal assistance, respite care, and attendant support for eligible Houston families. Medicaid plans accepted. Call 713-977-7721." />
-	<meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1" />
-	<link rel="canonical" href="home-care-sugar-land-texas.html" />
-	<meta property="og:locale" content="en_US" />
-	<meta property="og:type" content="article" />
-	<meta property="og:title" content="Home Care Sugar Land TX | Primetime Home Health Services" />
-	<meta property="og:description" content="Sugar Land home care since 1999. Compassionate personal assistance, respite care, and attendant support for eligible Houston families. Medicaid plans accepted. Call 713-977-7721." />
-	<meta property="og:url" content="home-care-sugar-land-texas.html" />
-	<meta property="og:site_name" content="Primetime Home Health Services, Inc." />
-	<meta name="twitter:card" content="summary_large_image" />
+	<link rel="preload" as="style" href="https://fonts.googleapis.com/css?family=Merriweather%3A400%2C700%2C900%2C400italic%2C700italic%2C900italic%7CMontserrat%3A400%2C700%7CInconsolata%3A400&subset=latin%2Clatin-ext&display=swap" /><link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Merriweather%3A400%2C700%2C900%2C400italic%2C700italic%2C900italic%7CMontserrat%3A400%2C700%7CInconsolata%3A400&subset=latin%2Clatin-ext&display=swap" media="print" onload="this.media='all'" /><noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Merriweather%3A400%2C700%2C900%2C400italic%2C700italic%2C900italic%7CMontserrat%3A400%2C700%7CInconsolata%3A400&subset=latin%2Clatin-ext&display=swap" /></noscript>
+
+
+
+
+
+
+
+
+
+
 	<!-- PTHHS Organization + Location + FAQ Schema -->
-	<script type="application/ld+json">
-	{
-		"@context": "https://schema.org",
-		"@graph": [
-			{
-				"@type": "HomeHealthCareAgency",
-				"@id": "https://www.pthhs.net/#organization",
-				"name": "Primetime Home Health Services, Inc.",
-				"url": "https://www.pthhs.net",
-				"telephone": "713-977-7721",
-				"address": {
-					"@type": "PostalAddress",
-					"streetAddress": "11602 Burdine Street Suite A",
-					"addressLocality": "Houston",
-					"addressRegion": "TX",
-					"postalCode": "77035",
-					"addressCountry": "US"
-				},
-				"areaServed": ["Houston", "Sugar Land", "Missouri City", "Stafford", "Richmond", "Rosenberg", "Fort Bend County"],
-				"sameAs": ["https://www.facebook.com/primetimehomehealth", "https://www.instagram.com/primetimehomehealthservices/"],
-				"hasMap": "https://www.google.com/maps/place/11602+Burdine+St,+Houston,+TX+77035"
-			},
-			{
-				"@type": "LocalBusiness",
-				"@id": "https://www.pthhs.net/home-care-sugar-land-texas#localbusiness",
-				"name": "Primetime Home Health Services, Inc. - Sugar Land",
-				"address": {
-					"@type": "PostalAddress",
-					"addressLocality": "Sugar Land",
-					"addressRegion": "TX"
-				},
-				"areaServed": "Sugar Land and surrounding Fort Bend County communities",
-				"parentOrganization": {
-					"@id": "https://www.pthhs.net/#organization"
-				},
-				"telephone": "713-977-7721",
-				"url": "https://www.pthhs.net/home-care-sugar-land-texas"
-			},
-			{
-				"@type": "FAQPage",
-				"@id": "https://www.pthhs.net/home-care-sugar-land-texas#faq",
-				"mainEntity": [
-					{
-						"@type": "Question",
-						"name": "Does Primetime serve Sugar Land, Texas?",
-						"acceptedAnswer": {
-							"@type": "Answer",
-							"text": "Yes. Primetime Home Health Services provides personal attendant care, respite care, and in-home support throughout Sugar Land and surrounding Fort Bend County communities."
-						}
-					},
-					{
-						"@type": "Question",
-						"name": "What insurance plans does Primetime accept in Sugar Land?",
-						"acceptedAnswer": {
-							"@type": "Answer",
-							"text": "Primetime participates in multiple Texas Medicaid programs including PHC, FC, CAS, and other HHSC-linked plans. We also work with private insurance where applicable."
-						}
-					},
-					{
-						"@type": "Question",
-						"name": "How do I get started with home care in Sugar Land?",
-						"acceptedAnswer": {
-							"@type": "Answer",
-							"text": "Call 713-977-7721 or use the contact form on this page. We offer free consultations to discuss eligibility, services, and scheduling for Sugar Land families."
-						}
-					}
-				]
-			}
-		]
-	}
-	</script>
-	<link rel="icon" href="./wp-content/uploads/2020/09/primetime-home-health-logo-150x150.png" sizes="32x32" />
-	<link rel="icon" href="./wp-content/uploads/2020/09/primetime-home-health-logo-300x300.png" sizes="192x192" />
-	<link rel="apple-touch-icon" href="./wp-content/uploads/2020/09/primetime-home-health-logo-300x300.png" />
+	<script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"LocalBusiness","@id":"https://pthhs.net/#organization","name":"Primetime Home Health Services, Inc.","url":"https://pthhs.net","telephone":"+1-713-977-7721","address":{"@type":"PostalAddress","streetAddress":"11602 Burdine St, Suite A","addressLocality":"Houston","addressRegion":"TX","postalCode":"77035","addressCountry":"US"},"areaServed":["Houston","Sugar Land","Missouri City","Stafford","Richmond","Rosenberg","Fort Bend County"],"sameAs":["https://www.facebook.com/primetimehomehealth","https://www.instagram.com/primetimehomehealthservices/"],"hasMap":"https://www.google.com/maps/place/11602+Burdine+St,+Houston,+TX+77035"},{"@type":"LocalBusiness","@id":"https://pthhs.net/home-care-sugar-land-texas#localbusiness","name":"Primetime Home Health Services, Inc. - Sugar Land","address":{"@type":"PostalAddress","addressLocality":"Sugar Land","addressRegion":"TX"},"areaServed":"Sugar Land and surrounding Fort Bend County communities","parentOrganization":{"@id":"https://pthhs.net/#organization"},"telephone":"713-977-7721","url":"https://pthhs.net/home-care-sugar-land-texas"},{"@type":"FAQPage","@id":"https://pthhs.net/home-care-sugar-land-texas#faq","mainEntity":[{"@type":"Question","name":"Does Primetime serve Sugar Land, Texas?","acceptedAnswer":{"@type":"Answer","text":"Yes. Primetime Home Health Services provides personal attendant care, respite care, and in-home support throughout Sugar Land and surrounding Fort Bend County communities."}},{"@type":"Question","name":"What insurance plans does Primetime accept in Sugar Land?","acceptedAnswer":{"@type":"Answer","text":"Eligibility and network participation vary by program and plan. Contact Primetime and the plan to confirm current status."}},{"@type":"Question","name":"How do I get started with home care in Sugar Land?","acceptedAnswer":{"@type":"Answer","text":"Call 713-977-7721 or use the contact form on this page. We offer free consultations to discuss eligibility, services, and scheduling for Sugar Land families."}}]}]}</script>
+
+
+
 	<meta name="msapplication-TileImage" content="./wp-content/uploads/2020/09/primetime-home-health-logo-300x300.png" />
-</head>
+<link rel="stylesheet" href="/assets/polish.css"></head>
 <body class="page-template-default page page-id-home-care-sugar-land-texas">
 <div id="page" class="site">
 	<header id="masthead" class="site-header">
@@ -124,8 +54,8 @@
 				<div class="row">
 					<div class="col-md-6">
 						<div class="contact-info">
-							<span class="phone"><a href="tel:7139777721"><i class="fa fa-phone"></i> 713-977-7721</a></span>
-							<span class="email"><a href="mailto:info@pthhs.com"><i class="fa fa-envelope"></i> info@pthhs.com</a></span>
+							<span class="phone"><a class="phone-link" href="tel:7139777721"><i class="fa fa-phone"></i> 713-977-7721</a></span>
+							<span class="email"><a href="mailto:pas@pthhs.net"><i class="fa fa-envelope"></i> pas@pthhs.net</a></span>
 						</div>
 					</div>
 					<div class="col-md-6">
@@ -171,10 +101,10 @@
 			<div class="row">
 				<div class="col-md-8">
 					<h1>Home Care in Sugar Land, TX</h1>
-					<p class="lead">Compassionate in-home support for eligible Sugar Land families since 1999. Personal attendant care, respite, and daily living assistance—delivered by a local Houston team you know and trust.</p>
+					<p class="lead">Compassionate in-home support for eligible Sugar Land families a long-standing Houston-area provider. Personal attendant care, respite, and daily living assistance—delivered by a local Houston team you know and trust.</p>
 					<div class="hero-ctas">
 						<a href="home-care-contact-us.html" class="btn btn-primary btn-lg">Get Started with Care</a>
-						<a href="tel:7139777721" class="btn btn-outline-light btn-lg"><i class="fa fa-phone"></i> Call 713-977-7721</a>
+						<a href="tel:7139777721" class="btn btn-outline-light btn-lg phone-link"><i class="fa fa-phone"></i> Call 713-977-7721</a>
 					</div>
 				</div>
 			</div>
@@ -184,7 +114,7 @@
 	<section class="trust-bar">
 		<div class="container">
 			<div class="row text-center">
-				<div class="col-md-3"><i class="fa fa-check-circle"></i> <strong>25+ Years</strong> Serving Houston</div>
+				<div class="col-md-3"><i class="fa fa-check-circle"></i> <strong>Long-Standing Local Team</strong> Serving Houston</div>
 				<div class="col-md-3"><i class="fa fa-check-circle"></i> <strong>500+ Attendants</strong> On Staff</div>
 				<div class="col-md-3"><i class="fa fa-check-circle"></i> <strong>Multiple Medicaid Plans</strong> Accepted</div>
 				<div class="col-md-3"><i class="fa fa-check-circle"></i> <strong>Greater Houston</strong> Coverage</div>
@@ -275,7 +205,7 @@
 			<h2>Ready to Get Started with Home Care in Sugar Land?</h2>
 			<p>Call 713-977-7721 or request a free consultation. We’ll walk you through eligibility, services, and scheduling—no obligation.</p>
 			<a href="home-care-contact-us.html" class="btn btn-primary btn-lg">Request a Consultation</a>
-			<a href="tel:7139777721" class="btn btn-outline-light btn-lg">Call Now</a>
+			<a href="tel:7139777721" class="btn btn-outline-light btn-lg phone-link">Call Now</a>
 		</div>
 	</section>
 
@@ -285,7 +215,7 @@
 				<div class="col-md-4">
 					<h4>Primetime Home Health Services</h4>
 					<p>11602 Burdine Street, Suite A<br>Houston, TX 77035</p>
-					<p><a href="tel:7139777721">713-977-7721</a><br><a href="mailto:info@pthhs.com">info@pthhs.com</a></p>
+					<p><a class="phone-link" href="tel:7139777721">713-977-7721</a><br><a href="mailto:pas@pthhs.net">pas@pthhs.net</a></p>
 				</div>
 				<div class="col-md-4">
 					<h4>Quick Links</h4>
@@ -311,5 +241,5 @@
 		</div>
 	</footer>
 </div>
-</body>
+<script src="/assets/site-enhancements.js" defer></script></body>
 </html>

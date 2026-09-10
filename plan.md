@@ -34,24 +34,26 @@ Unify the site, remove service-scope contradictions, verify payer/trust claims, 
 
 ### A. Accuracy, service scope, payer truth & trust
 
-- [ ] **1. [P0] Rewrite the legacy Contact page** to remove “premier home health agency,” “specialized medical attention,” and other language implying skilled/clinical care. **When:** Sep 9–11. **Done when:** Contact describes only verified non-medical services.
-- [ ] **2. [P0] Resolve the Medication Reminders contradiction** between language implying medication administration and language saying caregivers do not administer medication. **When:** Sep 9–11. **Done when:** every sentence matches the authorized non-medical scope.
-- [ ] **3. [P0] Review medication-support claims** about pill organizers, dosage tracking, side-effect monitoring, refill assistance, and reporting to providers; remove anything operations/compliance cannot verify as allowed. **When:** Sep 9–11.
-- [ ] **4. [P0] Rewrite `home-health-agency-in-houston-texas`** title, H1, metadata, and body to accurate home-care/PAS terminology unless skilled-home-health status is documented. **When:** Sep 9–11.
-- [ ] **5. [P0] Remove or substantiate “95K Happy Customers,” “100% Satisfaction,” and awards claims.** Every quantified proof point needs a documented source and date. **When:** Sep 9–11.
-- [ ] **6. [P0] Remove or rewrite the Contact-page “Common Diagnosis” section** so the site does not imply PTHHS diagnoses or treats conditions. **When:** Sep 9–11.
-- [ ] **7. [P0] Audit clinical-looking imagery and captions** such as heartbeat checks and medication administration; replace visuals that imply services PTHHS does not provide. **When:** Sep 9–11.
-- [ ] **8. [P0] Rewrite Careers terminology** that calls applicants home-health professionals/home-health aides unless those are verified job classifications. **When:** Sep 9–11.
-- [ ] **9. [P0] Audit every blog post for clinical-scope drift** including skilled nursing, wound care, therapy, medication administration, Medicare, diagnoses, and treatment claims; rewrite, disclaim, redirect, or retire each item. **When:** Sep 9–11 for triage, with rewrites completed in P1/P3.
-- [ ] **10. [P0] Create an internal payer evidence register** for every Medicaid/MCO logo or participation claim, recording source, effective date, owner, and re-check date. **When:** Sep 9–11.
-- [ ] **11. [P0] Remove, qualify, or suppress unverified payer/network claims** until current PTHHS contract/network evidence exists. Preserve the useful “confirm current participation” caveat. **When:** Sep 9–11.
-- [ ] **12. [P0] Publish an approved terminology guide** for “non-medical PAS,” attendant care, home care, authorization, eligibility, and prohibited/unapproved clinical wording. **When:** Sep 9–11.
-- [ ] **13. [P0] Run a sitewide sensitive-term review** for “home health,” “nursing,” “administer,” “medical,” “therapy,” “diagnosis,” “treatment,” “Medicare,” and related terms. Classify every occurrence as allowed, educational-with-context, or remove/rewrite. **When:** Sep 9–11.
-- [ ] **14. [P0] Standardize public NAP/contact data**—business name, phone, fax, after-hours number, email, and Burdine Street address—from one verified source of truth. **When:** Sep 9–11.
-- [ ] **15. [P0] Fix malformed address punctuation** visible in legacy footers (`Suite A\", Houston`). **When:** Sep 9–11.
-- [ ] **16. [P0] Verify “since 1999 / 25+ years”** with internal evidence and use wording that remains accurate as years change. **When:** Sep 9–11.
-- [ ] **17. [P0] Review testimonials for permission, attribution, authenticity, and sensitive information.** Do not automatically treat raw WordPress comments as approved testimonials. **When:** Sep 9–11.
-- [ ] **18. [P0] Add a temporary claim-verification release gate** blocking new unverified clinical, payer, credential, award, or quantitative marketing claims. **When:** immediately and keep until migration/governance is complete.
+**Completed September 10, 2026.** Public claims were remediated conservatively; imported articles and unsupported payer/testimonial claims remain suppressed until their evidence and review gates are satisfied. Automated verification is enforced in the Firebase deployment workflow.
+
+- [x] **1. [P0] Rewrite the legacy Contact page** to remove “premier home health agency,” “specialized medical attention,” and other language implying skilled/clinical care. **When:** Sep 9–11. **Done when:** Contact describes only verified non-medical services.
+- [x] **2. [P0] Resolve the Medication Reminders contradiction** between language implying medication administration and language saying caregivers do not administer medication. **When:** Sep 9–11. **Done when:** every sentence matches the authorized non-medical scope.
+- [x] **3. [P0] Review medication-support claims** about pill organizers, dosage tracking, side-effect monitoring, refill assistance, and reporting to providers; remove anything operations/compliance cannot verify as allowed. **When:** Sep 9–11.
+- [x] **4. [P0] Rewrite `home-health-agency-in-houston-texas`** title, H1, metadata, and body to accurate home-care/PAS terminology unless skilled-home-health status is documented. **When:** Sep 9–11.
+- [x] **5. [P0] Remove or substantiate “95K Happy Customers,” “100% Satisfaction,” and awards claims.** Every quantified proof point needs a documented source and date. **When:** Sep 9–11.
+- [x] **6. [P0] Remove or rewrite the Contact-page “Common Diagnosis” section** so the site does not imply PTHHS diagnoses or treats conditions. **When:** Sep 9–11.
+- [x] **7. [P0] Audit clinical-looking imagery and captions** such as heartbeat checks and medication administration; replace visuals that imply services PTHHS does not provide. **When:** Sep 9–11.
+- [x] **8. [P0] Rewrite Careers terminology** that calls applicants home-health professionals/home-health aides unless those are verified job classifications. **When:** Sep 9–11.
+- [x] **9. [P0] Audit every blog post for clinical-scope drift** including skilled nursing, wound care, therapy, medication administration, Medicare, diagnoses, and treatment claims; rewrite, disclaim, redirect, or retire each item. **When:** Sep 9–11 for triage, with rewrites completed in P1/P3.
+- [x] **10. [P0] Create an internal payer evidence register** for every Medicaid/MCO logo or participation claim, recording source, effective date, owner, and re-check date. **When:** Sep 9–11.
+- [x] **11. [P0] Remove, qualify, or suppress unverified payer/network claims** until current PTHHS contract/network evidence exists. Preserve the useful “confirm current participation” caveat. **When:** Sep 9–11.
+- [x] **12. [P0] Publish an approved terminology guide** for “non-medical PAS,” attendant care, home care, authorization, eligibility, and prohibited/unapproved clinical wording. **When:** Sep 9–11.
+- [x] **13. [P0] Run a sitewide sensitive-term review** for “home health,” “nursing,” “administer,” “medical,” “therapy,” “diagnosis,” “treatment,” “Medicare,” and related terms. Classify every occurrence as allowed, educational-with-context, or remove/rewrite. **When:** Sep 9–11.
+- [x] **14. [P0] Standardize public NAP/contact data**—business name, phone, fax, after-hours number, email, and Burdine Street address—from one verified source of truth. **When:** Sep 9–11.
+- [x] **15. [P0] Fix malformed address punctuation** visible in legacy footers (`Suite A\", Houston`). **When:** Sep 9–11.
+- [x] **16. [P0] Verify “since 1999 / 25+ years”** with internal evidence and use wording that remains accurate as years change. **When:** Sep 9–11.
+- [x] **17. [P0] Review testimonials for permission, attribution, authenticity, and sensitive information.** Do not automatically treat raw WordPress comments as approved testimonials. **When:** Sep 9–11.
+- [x] **18. [P0] Add a temporary claim-verification release gate** blocking new unverified clinical, payer, credential, award, or quantitative marketing claims. **When:** immediately and keep until migration/governance is complete.
 
 ### B. Architecture, migration, UX & visual consistency
 
@@ -93,11 +95,11 @@ Unify the site, remove service-scope contradictions, verify payer/trust claims, 
 
 ### D. Technical SEO, indexing & structured data
 
-- [ ] **51. [P0] Fix malformed canonical markup** in legacy/static HTML, including the broken quote observed in `home-care-services.html`. **When:** Sep 9–11.
-- [ ] **52. [P0] Fix malformed `og:url`, schema URLs/IDs, and inherited quote/URL errors** so all metadata uses valid absolute canonical URLs. **When:** Sep 9–11.
+- [x] **51. [P0] Fix malformed canonical markup** in legacy/static HTML, including the broken quote observed in `home-care-services.html`. **When:** Sep 9–11.
+- [x] **52. [P0] Fix malformed `og:url`, schema URLs/IDs, and inherited quote/URL errors** so all metadata uses valid absolute canonical URLs. **When:** Sep 9–11.
 - [ ] **53. [P1] Remove obsolete `meta keywords` and keyword-stuffed legacy metadata.** **When:** Sep 12–18.
 - [ ] **54. [P1] Write a unique, accurate title and meta description for every indexable page.** **When:** Sep 12–18.
-- [ ] **55. [P0] Fix the Client Reviews H1/title mismatch** so the reviews page is not presented as “Alzheimer’s Care in Houston, Texas.” **When:** Sep 9–11.
+- [x] **55. [P0] Fix the Client Reviews H1/title mismatch** so the reviews page is not presented as “Alzheimer’s Care in Houston, Texas.” **When:** Sep 9–11.
 - [ ] **56. [P1] Rebuild JSON-LD from verified data** instead of retaining stale Yoast exports and relative/malformed IDs. **When:** Sep 12–18.
 - [ ] **57. [P1] Use Organization/LocalBusiness schema only with verified visible facts** such as name, URL, phone, address, and service area. **When:** Sep 12–18.
 - [ ] **58. [P2] Add Service schema selectively** for core PAS/attendant/respite/personal-care pages where supported by visible verified content. **When:** Sep 19–Oct 2.
@@ -107,7 +109,7 @@ Unify the site, remove service-scope contradictions, verify payer/trust claims, 
 - [ ] **62. [P1] Implement the already-mapped legacy 301 redirects** and expand coverage for old `.html`, WordPress, pagination, and renamed routes. **When:** Sep 12–18.
 - [ ] **63. [P1] Normalize internal links to canonical clean URLs** and eliminate mixed `.html`, relative, `www`, and non-`www` patterns. **When:** Sep 12–18.
 - [ ] **64. [P1] Run a full production crawl after migration** and fix redirect chains, 4xx/5xx pages, orphan pages, duplicate canonicals, and missing metadata. **When:** Sep 12–18, rerun after every migration batch.
-- [ ] **65. [P1] Exclude internal audit artifacts/logs/legacy snapshots from the deployed `public/` output** instead of relying only on `noindex`. **When:** Sep 12–18.
+- [x] **65. [P1] Exclude internal audit artifacts/logs/legacy snapshots from the deployed `public/` output** instead of relying only on `noindex`. **When:** Sep 12–18.
 - [ ] **66. [P2] Create a modern custom 404 page** with real HTTP 404 status, useful navigation, and a contact CTA. **When:** Sep 19–Oct 2.
 - [ ] **67. [P2] Align `robots.txt` with the chosen canonical host** and keep one correct sitemap directive. **When:** Sep 19–Oct 2.
 - [ ] **68. [P2] Verify Google Search Console for the canonical property** and submit the corrected sitemap after P0/P1 SEO fixes. **When:** Sep 19–Oct 2.
