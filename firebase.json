@@ -9,7 +9,9 @@
       {"source":"/areas-we-serve","destination":"/home-care-areas-we-serve","type":301},
       {"source":"/locations","destination":"/home-care-areas-we-serve","type":301},
       {"source":"/home-care-services-attendant-care-services","destination":"/home-care-services/attendant-care-services","type":301},
-      {"source":"/home-care-services-respite-care","destination":"/home-care-services/respite-care","type":301}
+      {"source":"/home-care-services-respite-care","destination":"/home-care-services/respite-care","type":301},
+      {"source":"/privacy","destination":"/privacy-policy","type":301},
+      {"source":"/terms","destination":"/terms-of-use","type":301}
     ],
     "headers": [
       {"source":"**/*.@(eot|otf|ttf|ttc|woff|woff2|font.css)","headers":[{"key":"Access-Control-Allow-Origin","value":"*"}]},
