@@ -60,8 +60,8 @@ Unify the site, remove service-scope contradictions, verify payer/trust claims, 
 - [ ] **19. [P1] Adopt one shared site shell** for header, nav, typography, buttons, footer, and mobile navigation across every public route. **When:** Sep 12–18.
 - [ ] **20. [P1] Migrate Contact to the modern shell** and delete the duplicated legacy-homepage content currently embedded above/beside the contact experience. **When:** Sep 12–18.
 - [ ] **21. [P1] Migrate Careers to the modern shell** with accurate role terminology. **When:** Sep 12–18.
-- [ ] **22. [P1] Migrate Meet Our Staff and staff profiles** to the modern shell and verify every bio/credential. **When:** Sep 12–18.
-- [ ] **23. [P1] Migrate Resources to the modern shell** and replace the bare legacy link-list presentation. **When:** Sep 12–18.
+- [x] **22. [P1] Migrate Meet Our Staff and staff profiles** to the modern shell and verify every bio/credential. **When:** Sep 12–18. **Completed Sep 10:** migrated the staff index and remaining profile route; withheld every individual role-history, credential, education, staffing, and quantitative claim pending current documentation and publication approval.
+- [x] **23. [P1] Migrate Resources to the modern shell** and replace the bare legacy link-list presentation. **When:** Sep 12–18. **Completed Sep 10:** replaced the legacy list with an annotated official-source resource hub, clear independence/eligibility caveats, and standardized next-step actions.
 - [ ] **24. [P1] Migrate the Blog index, pagination, retained author/archive routes, and retained posts** to the modern shell. **When:** Sep 12–18.
 - [ ] **25. [P1] Migrate Client Reviews** to the modern shell and remove WordPress comment/reply UI. **When:** Sep 12–18.
 - [ ] **26. [P1] Migrate remaining legacy service pages** including Medication Reminders onto one modern service template with scope language and CTA standards. **When:** Sep 12–18.
@@ -155,7 +155,7 @@ Unify the site, remove service-scope contradictions, verify payer/trust claims, 
 - [ ] **99. [P2] Verify every county/Region 5/6/service-area claim** against real operational coverage and payer/network constraints. **When:** Sep 19–Oct 2.
 - [ ] **100. [P2] Audit Google Business Profile information** so name, address, phone, and service areas match the website source of truth. **When:** Sep 19–Oct 2.
 - [ ] **101. [P2] Create a dedicated Medicaid/eligibility explainer** clearly separating public program rules, payer eligibility/authorization, and PTHHS-specific current participation/onboarding. **When:** Sep 19–Oct 2.
-- [ ] **102. [P2] Upgrade Resources from a bare link list** to maintained, annotated resources prioritizing authoritative Texas HHSC/Medicaid sources and recording last-checked dates. **When:** Sep 19–Oct 2.
+- [x] **102. [P2] Upgrade Resources from a bare link list** to maintained, annotated resources prioritizing authoritative Texas HHSC/Medicaid sources and recording last-checked dates. **When:** Sep 19–Oct 2. **Completed Sep 10:** reduced the public set to six official/public-service sources and added a dated quarterly link register with access outcomes and review rules.
 - [ ] **103. [P2] Create an editorial policy for health-adjacent content** covering source requirements, reviewer role, prohibited claims, disclaimers, and review cadence. **When:** Sep 19–Oct 2.
 - [ ] **104. [P3] Refresh or retire stale blog content.** The live blog’s newest listed post is February 11, 2025. **When:** Oct 3–23.
 - [ ] **105. [P3] Build content clusters around actual services and user questions**—PAS, attendant care, respite, ADLs, caregiver support, Texas Medicaid navigation, and local service questions—rather than clinical nursing topics. **When:** Oct 3–23.

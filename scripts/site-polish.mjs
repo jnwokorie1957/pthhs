@@ -44,6 +44,18 @@ const coreMeta = {
   '/home-care-blog': {
     title: 'Houston Home Care Resources | Primetime Home Health',
     description: 'Access verified service, eligibility and location information while Primetime reviews its imported article archive for accuracy and scope.'
+  },
+  '/home-care-meet-our-staff': {
+    title: 'Our Team | Primetime Home Health Services',
+    description: 'Learn how Primetime\'s Houston office and attendants support authorized, non-medical personal assistance services.'
+  },
+  '/home-care-meet-our-staff/johnson-nwokorie': {
+    title: 'Staff Profile Review | Primetime Home Health',
+    description: 'This archived staff biography is withheld while its role, credential and history claims are revalidated.'
+  },
+  '/home-care-resources': {
+    title: 'Official Home Care Resources | Primetime Houston',
+    description: 'Use maintained official Texas and federal resources for Medicaid, benefits, long-term supports and community assistance information.'
   }
 };
 
