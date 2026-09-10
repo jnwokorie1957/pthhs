@@ -1,8 +1,4 @@
 User-agent: *
 Allow: /
-Disallow: /legacy-index-wordpress
-Disallow: /CRAWL-REPORT.md
-Disallow: /crawl-report.json
-Disallow: /crawl.log
 
-Sitemap: https://www.pthhs.net/sitemap.xml
+Sitemap: https://pthhs.net/sitemap.xml

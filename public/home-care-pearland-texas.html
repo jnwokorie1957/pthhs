@@ -4,13 +4,13 @@
 <!--[if IE 10]>         <html class="no-js lt-ie11 lt-ie10 lt-ie9 lt-ie8"> <![endif]-->
 <!--[if IE 11]>         <html class="no-js lt-ie11"> <![endif]-->
 <!--[if gt IE 11]><!--> <html class="no-js" lang="en-US"> <!--<![endif]-->
-<head><meta charset="utf-8"><script>if(navigator.userAgent.match(/MSIE|Internet Explorer/i)||navigator.userAgent.match(/Trident\/7\..*?rv:11/i)){var href=document.location.href;if(!href.match(/[?&]nowprocket/)){if(href.indexOf("?")==-1){if(href.indexOf("#")==-1){document.location.href=href+"?nowprocket=1"}else{document.location.href=href.replace("#","?nowprocket=1#")}}else{if(href.indexOf("#")==-1){document.location.href=href+"&nowprocket=1"}else{document.location.href=href.replace("#","&nowprocket=1#")}}}}</script><script>class RocketLazyLoadScripts{constructor(){this.triggerEvents=["keydown","mousedown","mousemove","touchmove","touchstart","touchend","wheel"],this.userEventHandler=this._triggerListener.bind(this),this.touchStartHandler=this._onTouchStart.bind(this),this.touchMoveHandler=this._onTouchMove.bind(this),this.touchEndHandler=this._onTouchEnd.bind(this),this.clickHandler=this._onClick.bind(this),this.interceptedClicks=[],window.addEventListener("pageshow",(e=>{this.persisted=e.persisted})),window.addEventListener("DOMContentLoaded",(()=>{this._preconnect3rdParties()})),this.delayedScripts={normal:[],async:[],defer:[]},this.allJQueries=[]}_addUserInteractionListener(e){document.hidden?e._triggerListener():(this.triggerEvents.forEach((t=>window.addEventListener(t,e.userEventHandler,{passive:!0}))),window.addEventListener("touchstart",e.touchStartHandler,{passive:!0}),window.addEventListener("mousedown",e.touchStartHandler),document.addEventListener("visibilitychange",e.userEventHandler))}_removeUserInteractionListener(){this.triggerEvents.forEach((e=>window.removeEventListener(e,this.userEventHandler,{passive:!0}))),document.removeEventListener("visibilitychange",this.userEventHandler)}_onTouchStart(e){"HTML"!==e.target.tagName&&(window.addEventListener("touchend",this.touchEndHandler),window.addEventListener("mouseup",this.touchEndHandler),window.addEventListener("touchmove",this.touchMoveHandler,{passive:!0}),window.addEventListener("mousemove",this.touchMoveHandler),e.target.addEventListener("click",this.clickHandler),this._renameDOMAttribute(e.target,"onclick","rocket-onclick"))}_onTouchMove(e){window.removeEventListener("touchend",this.touchEndHandler),window.removeEventListener("mouseup",this.touchEndHandler),window.removeEventListener("touchmove",this.touchMoveHandler,{passive:!0}),window.removeEventListener("mousemove",this.touchMoveHandler),e.target.removeEventListener("click",this.clickHandler),this._renameDOMAttribute(e.target,"rocket-onclick","onclick")}_onTouchEnd(e){window.removeEventListener("touchend",this.touchEndHandler),window.removeEventListener("mouseup",this.touchEndHandler),window.removeEventListener("touchmove",this.touchMoveHandler,{passive:!0}),window.removeEventListener("mousemove",this.touchMoveHandler)}_onClick(e){e.target.removeEventListener("click",this.clickHandler),this._renameDOMAttribute(e.target,"rocket-onclick","onclick"),this.interceptedClicks.push(e),e.preventDefault(),e.stopPropagation(),e.stopImmediatePropagation()}_replayClicks(){window.removeEventListener("touchstart",this.touchStartHandler,{passive:!0}),window.removeEventListener("mousedown",this.touchStartHandler),this.interceptedClicks.forEach((e=>{e.target.dispatchEvent(new MouseEvent("click",{view:e.view,bubbles:!0,cancelable:!0}))}))}_renameDOMAttribute(e,t,n){e.hasAttribute&&e.hasAttribute(t)&&(event.target.setAttribute(n,event.target.getAttribute(t)),event.target.removeAttribute(t))}_triggerListener(){this._removeUserInteractionListener(this),"loading"===document.readyState?document.addEventListener("DOMContentLoaded",this._loadEverythingNow.bind(this)):this._loadEverythingNow()}_preconnect3rdParties(){let e=[];document.querySelectorAll("script[type=rocketlazyloadscript]").forEach((t=>{if(t.hasAttribute("src")){const n=new URL(t.src).origin;n!==location.origin&&e.push({src:n,crossOrigin:t.crossOrigin||"module"===t.getAttribute("data-rocket-type")})}})),e=[...new Map(e.map((e=>[JSON.stringify(e),e]))).values()],this._batchInjectResourceHints(e,"preconnect")}async _loadEverythingNow(){this.lastBreath=Date.now(),this._delayEventListeners(),this._delayJQueryReady(this),this._handleDocumentWrite(),this._registerAllDelayedScripts(),this._preloadAllScripts(),await this._loadScriptsFromList(this.delayedScripts.normal),await this._loadScriptsFromList(this.delayedScripts.defer),await this._loadScriptsFromList(this.delayedScripts.async);try{await this._triggerDOMContentLoaded(),await this._triggerWindowLoad()}catch(e){}window.dispatchEvent(new Event("rocket-allScriptsLoaded")),this._replayClicks()}_registerAllDelayedScripts(){document.querySelectorAll("script[type=rocketlazyloadscript]").forEach((e=>{e.hasAttribute("src")?e.hasAttribute("async")&&!1!==e.async?this.delayedScripts.async.push(e):e.hasAttribute("defer")&&!1!==e.defer||"module"===e.getAttribute("data-rocket-type")?this.delayedScripts.defer.push(e):this.delayedScripts.normal.push(e):this.delayedScripts.normal.push(e)}))}async _transformScript(e){return await this._littleBreath(),new Promise((t=>{const n=document.createElement("script");[...e.attributes].forEach((e=>{let t=e.nodeName;"type"!==t&&("data-rocket-type"===t&&(t="type"),n.setAttribute(t,e.nodeValue))})),e.hasAttribute("src")?(n.addEventListener("load",t),n.addEventListener("error",t)):(n.text=e.text,t());try{e.parentNode.replaceChild(n,e)}catch(e){t()}}))}async _loadScriptsFromList(e){const t=e.shift();return t?(await this._transformScript(t),this._loadScriptsFromList(e)):Promise.resolve()}_preloadAllScripts(){this._batchInjectResourceHints([...this.delayedScripts.normal,...this.delayedScripts.defer,...this.delayedScripts.async],"preload")}_batchInjectResourceHints(e,t){var n=document.createDocumentFragment();e.forEach((e=>{if(e.src){const i=document.createElement("link");i.href=e.src;i.rel=t,"preconnect"!==t&&(i.as="script"),e.getAttribute&&"module"===e.getAttribute("data-rocket-type")&&(i.crossOrigin=!0),e.crossOrigin&&(i.crossOrigin=e.crossOrigin),n.appendChild(i)}})),document.head.appendChild(n)}_delayEventListeners(){let e={};function t(t,n){!function(t){function n(n){return e[t].eventsToRewrite.indexOf(n)>=0?"rocket-"+n:n}e[t]||(e[t]={originalFunctions:{add:t.addEventListener,remove:t.removeEventListener},eventsToRewrite:[]},t.addEventListener=function(){arguments[0]=n(arguments[0]),e[t].originalFunctions.add.apply(t,arguments)},t.removeEventListener=function(){arguments[0]=n(arguments[0]),e[t].originalFunctions.remove.apply(t,arguments)})}(t),e[t].eventsToRewrite.push(n)}function n(e,t){let n=e[t];Object.defineProperty(e,t,{get:()=>n||function(){},set(i){e["rocket"+t]=n=i}})}t(document,"DOMContentLoaded"),t(window,"DOMContentLoaded"),t(window,"load"),t(window,"pageshow"),t(document,"readystatechange"),n(document,"onreadystatechange"),n(window,"onload"),n(window,"onpageshow")}_delayJQueryReady(e){let t=window.jQuery;Object.defineProperty(window,"jQuery",{get:()=>t,set(n){if(n&&n.fn&&!e.allJQueries.includes(n)){n.fn.ready=n.fn.init.prototype.ready=function(t){e.domReadyFired?t.bind(document)(n):document.addEventListener("rocket-DOMContentLoaded",(()=>t.bind(document)(n)))};const t=n.fn.on;n.fn.on=n.fn.init.prototype.on=function(){if(this[0]===window){function e(e){return e.split(" ").map((e=>"load"===e||0===e.indexOf("load.")?"rocket-jquery-load":e)).join(" ")}"string"==typeof arguments[0]||arguments[0]instanceof String?arguments[0]=e(arguments[0]):"object"==typeof arguments[0]&&Object.keys(arguments[0]).forEach((t=>{delete Object.assign(arguments[0],{[e(t)]:arguments[0][t]})[t]}))}return t.apply(this,arguments),this},e.allJQueries.push(n)}t=n}})}async _triggerDOMContentLoaded(){this.domReadyFired=!0,await this._littleBreath(),document.dispatchEvent(new Event("rocket-DOMContentLoaded")),await this._littleBreath(),window.dispatchEvent(new Event("rocket-DOMContentLoaded")),await this._littleBreath(),document.dispatchEvent(new Event("rocket-readystatechange")),await this._littleBreath(),document.rocketonreadystatechange&&document.rocketonreadystatechange()}async _triggerWindowLoad(){await this._littleBreath(),window.dispatchEvent(new Event("rocket-load")),await this._littleBreath(),window.rocketonload&&window.rocketonload(),await this._littleBreath(),this.allJQueries.forEach((e=>e(window).trigger("rocket-jquery-load"))),await this._littleBreath();const e=new Event("rocket-pageshow");e.persisted=this.persisted,window.dispatchEvent(e),await this._littleBreath(),window.rocketonpageshow&&window.rocketonpageshow({persisted:this.persisted})}_handleDocumentWrite(){const e=new Map;document.write=document.writeln=function(t){const n=document.currentScript,i=document.createRange(),r=n.parentElement;let o=e.get(n);void 0===o&&(o=n.nextSibling,e.set(n,o));const s=document.createDocumentFragment();i.setStart(s,0),s.appendChild(i.createContextualFragment(t)),r.insertBefore(s,o)}}async _littleBreath(){Date.now()-this.lastBreath>45&&(await this._requestAnimFrame(),this.lastBreath=Date.now())}async _requestAnimFrame(){return document.hidden?new Promise((e=>setTimeout(e))):new Promise((e=>requestAnimationFrame(e)))}static run(){const e=new RocketLazyLoadScripts;e._addUserInteractionListener(e)}}RocketLazyLoadScripts.run();</script>
-	
-	<meta name="viewport" content="width=device-width, initial-scale=1">    
-	<meta name="keywords" content="Home Health Agency in Pearland Texas, In Home Care Service in Pearland Texas, Children Health Plan in Pearland Texas, Home Health Agency in Pearland TX, Senior Home Care in Pearland TX, In Home Support in Pearland TX, Elderly Care in Pearland TX, Home Care Assistance in Pearland TX" > 
+<head><title>Home Care Pearland Texas | Primetime Home Health</title><meta name="description" content="Are you or a loved one in need of compassionate and personalized home care services?"><link rel="canonical" href="https://pthhs.net/home-care-pearland-texas"><meta name="theme-color" content="#0d4f8f"><link rel="icon" href="/assets/meta/favicon.svg" type="image/svg+xml"><link rel="icon" href="/assets/meta/favicon-32x32.png" sizes="32x32" type="image/png"><link rel="icon" href="/assets/meta/favicon-16x16.png" sizes="16x16" type="image/png"><link rel="shortcut icon" href="/assets/meta/favicon.ico"><link rel="apple-touch-icon" href="/assets/meta/apple-touch-icon.png" sizes="180x180"><link rel="manifest" href="/site.webmanifest"><meta property="og:type" content="website"><meta property="og:site_name" content="Primetime Home Health Services"><meta property="og:title" content="Home Care Pearland Texas | Primetime Home Health"><meta property="og:description" content="Are you or a loved one in need of compassionate and personalized home care services?"><meta property="og:url" content="https://pthhs.net/home-care-pearland-texas"><meta property="og:image" content="https://pthhs.net/assets/meta/og-default.png"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta property="og:image:alt" content="Home Care Pearland Texas | Primetime Home Health"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="Home Care Pearland Texas | Primetime Home Health"><meta name="twitter:description" content="Are you or a loved one in need of compassionate and personalized home care services?"><meta name="twitter:image" content="https://pthhs.net/assets/meta/og-default.png"><meta name="robots" content="noindex,nofollow"><meta charset="utf-8"><script>if(navigator.userAgent.match(/MSIE|Internet Explorer/i)||navigator.userAgent.match(/Trident\/7\..*?rv:11/i)){var href=document.location.href;if(!href.match(/[?&]nowprocket/)){if(href.indexOf("?")==-1){if(href.indexOf("#")==-1){document.location.href=href+"?nowprocket=1"}else{document.location.href=href.replace("#","?nowprocket=1#")}}else{if(href.indexOf("#")==-1){document.location.href=href+"&nowprocket=1"}else{document.location.href=href.replace("#","&nowprocket=1#")}}}}</script><script>class RocketLazyLoadScripts{constructor(){this.triggerEvents=["keydown","mousedown","mousemove","touchmove","touchstart","touchend","wheel"],this.userEventHandler=this._triggerListener.bind(this),this.touchStartHandler=this._onTouchStart.bind(this),this.touchMoveHandler=this._onTouchMove.bind(this),this.touchEndHandler=this._onTouchEnd.bind(this),this.clickHandler=this._onClick.bind(this),this.interceptedClicks=[],window.addEventListener("pageshow",(e=>{this.persisted=e.persisted})),window.addEventListener("DOMContentLoaded",(()=>{this._preconnect3rdParties()})),this.delayedScripts={normal:[],async:[],defer:[]},this.allJQueries=[]}_addUserInteractionListener(e){document.hidden?e._triggerListener():(this.triggerEvents.forEach((t=>window.addEventListener(t,e.userEventHandler,{passive:!0}))),window.addEventListener("touchstart",e.touchStartHandler,{passive:!0}),window.addEventListener("mousedown",e.touchStartHandler),document.addEventListener("visibilitychange",e.userEventHandler))}_removeUserInteractionListener(){this.triggerEvents.forEach((e=>window.removeEventListener(e,this.userEventHandler,{passive:!0}))),document.removeEventListener("visibilitychange",this.userEventHandler)}_onTouchStart(e){"HTML"!==e.target.tagName&&(window.addEventListener("touchend",this.touchEndHandler),window.addEventListener("mouseup",this.touchEndHandler),window.addEventListener("touchmove",this.touchMoveHandler,{passive:!0}),window.addEventListener("mousemove",this.touchMoveHandler),e.target.addEventListener("click",this.clickHandler),this._renameDOMAttribute(e.target,"onclick","rocket-onclick"))}_onTouchMove(e){window.removeEventListener("touchend",this.touchEndHandler),window.removeEventListener("mouseup",this.touchEndHandler),window.removeEventListener("touchmove",this.touchMoveHandler,{passive:!0}),window.removeEventListener("mousemove",this.touchMoveHandler),e.target.removeEventListener("click",this.clickHandler),this._renameDOMAttribute(e.target,"rocket-onclick","onclick")}_onTouchEnd(e){window.removeEventListener("touchend",this.touchEndHandler),window.removeEventListener("mouseup",this.touchEndHandler),window.removeEventListener("touchmove",this.touchMoveHandler,{passive:!0}),window.removeEventListener("mousemove",this.touchMoveHandler)}_onClick(e){e.target.removeEventListener("click",this.clickHandler),this._renameDOMAttribute(e.target,"rocket-onclick","onclick"),this.interceptedClicks.push(e),e.preventDefault(),e.stopPropagation(),e.stopImmediatePropagation()}_replayClicks(){window.removeEventListener("touchstart",this.touchStartHandler,{passive:!0}),window.removeEventListener("mousedown",this.touchStartHandler),this.interceptedClicks.forEach((e=>{e.target.dispatchEvent(new MouseEvent("click",{view:e.view,bubbles:!0,cancelable:!0}))}))}_renameDOMAttribute(e,t,n){e.hasAttribute&&e.hasAttribute(t)&&(event.target.setAttribute(n,event.target.getAttribute(t)),event.target.removeAttribute(t))}_triggerListener(){this._removeUserInteractionListener(this),"loading"===document.readyState?document.addEventListener("DOMContentLoaded",this._loadEverythingNow.bind(this)):this._loadEverythingNow()}_preconnect3rdParties(){let e=[];document.querySelectorAll("script[type=rocketlazyloadscript]").forEach((t=>{if(t.hasAttribute("src")){const n=new URL(t.src).origin;n!==location.origin&&e.push({src:n,crossOrigin:t.crossOrigin||"module"===t.getAttribute("data-rocket-type")})}})),e=[...new Map(e.map((e=>[JSON.stringify(e),e]))).values()],this._batchInjectResourceHints(e,"preconnect")}async _loadEverythingNow(){this.lastBreath=Date.now(),this._delayEventListeners(),this._delayJQueryReady(this),this._handleDocumentWrite(),this._registerAllDelayedScripts(),this._preloadAllScripts(),await this._loadScriptsFromList(this.delayedScripts.normal),await this._loadScriptsFromList(this.delayedScripts.defer),await this._loadScriptsFromList(this.delayedScripts.async);try{await this._triggerDOMContentLoaded(),await this._triggerWindowLoad()}catch(e){}window.dispatchEvent(new Event("rocket-allScriptsLoaded")),this._replayClicks()}_registerAllDelayedScripts(){document.querySelectorAll("script[type=rocketlazyloadscript]").forEach((e=>{e.hasAttribute("src")?e.hasAttribute("async")&&!1!==e.async?this.delayedScripts.async.push(e):e.hasAttribute("defer")&&!1!==e.defer||"module"===e.getAttribute("data-rocket-type")?this.delayedScripts.defer.push(e):this.delayedScripts.normal.push(e):this.delayedScripts.normal.push(e)}))}async _transformScript(e){return await this._littleBreath(),new Promise((t=>{const n=document.createElement("script");[...e.attributes].forEach((e=>{let t=e.nodeName;"type"!==t&&("data-rocket-type"===t&&(t="type"),n.setAttribute(t,e.nodeValue))})),e.hasAttribute("src")?(n.addEventListener("load",t),n.addEventListener("error",t)):(n.text=e.text,t());try{e.parentNode.replaceChild(n,e)}catch(e){t()}}))}async _loadScriptsFromList(e){const t=e.shift();return t?(await this._transformScript(t),this._loadScriptsFromList(e)):Promise.resolve()}_preloadAllScripts(){this._batchInjectResourceHints([...this.delayedScripts.normal,...this.delayedScripts.defer,...this.delayedScripts.async],"preload")}_batchInjectResourceHints(e,t){var n=document.createDocumentFragment();e.forEach((e=>{if(e.src){const i=document.createElement("link");i.href=e.src;i.rel=t,"preconnect"!==t&&(i.as="script"),e.getAttribute&&"module"===e.getAttribute("data-rocket-type")&&(i.crossOrigin=!0),e.crossOrigin&&(i.crossOrigin=e.crossOrigin),n.appendChild(i)}})),document.head.appendChild(n)}_delayEventListeners(){let e={};function t(t,n){!function(t){function n(n){return e[t].eventsToRewrite.indexOf(n)>=0?"rocket-"+n:n}e[t]||(e[t]={originalFunctions:{add:t.addEventListener,remove:t.removeEventListener},eventsToRewrite:[]},t.addEventListener=function(){arguments[0]=n(arguments[0]),e[t].originalFunctions.add.apply(t,arguments)},t.removeEventListener=function(){arguments[0]=n(arguments[0]),e[t].originalFunctions.remove.apply(t,arguments)})}(t),e[t].eventsToRewrite.push(n)}function n(e,t){let n=e[t];Object.defineProperty(e,t,{get:()=>n||function(){},set(i){e["rocket"+t]=n=i}})}t(document,"DOMContentLoaded"),t(window,"DOMContentLoaded"),t(window,"load"),t(window,"pageshow"),t(document,"readystatechange"),n(document,"onreadystatechange"),n(window,"onload"),n(window,"onpageshow")}_delayJQueryReady(e){let t=window.jQuery;Object.defineProperty(window,"jQuery",{get:()=>t,set(n){if(n&&n.fn&&!e.allJQueries.includes(n)){n.fn.ready=n.fn.init.prototype.ready=function(t){e.domReadyFired?t.bind(document)(n):document.addEventListener("rocket-DOMContentLoaded",(()=>t.bind(document)(n)))};const t=n.fn.on;n.fn.on=n.fn.init.prototype.on=function(){if(this[0]===window){function e(e){return e.split(" ").map((e=>"load"===e||0===e.indexOf("load.")?"rocket-jquery-load":e)).join(" ")}"string"==typeof arguments[0]||arguments[0]instanceof String?arguments[0]=e(arguments[0]):"object"==typeof arguments[0]&&Object.keys(arguments[0]).forEach((t=>{delete Object.assign(arguments[0],{[e(t)]:arguments[0][t]})[t]}))}return t.apply(this,arguments),this},e.allJQueries.push(n)}t=n}})}async _triggerDOMContentLoaded(){this.domReadyFired=!0,await this._littleBreath(),document.dispatchEvent(new Event("rocket-DOMContentLoaded")),await this._littleBreath(),window.dispatchEvent(new Event("rocket-DOMContentLoaded")),await this._littleBreath(),document.dispatchEvent(new Event("rocket-readystatechange")),await this._littleBreath(),document.rocketonreadystatechange&&document.rocketonreadystatechange()}async _triggerWindowLoad(){await this._littleBreath(),window.dispatchEvent(new Event("rocket-load")),await this._littleBreath(),window.rocketonload&&window.rocketonload(),await this._littleBreath(),this.allJQueries.forEach((e=>e(window).trigger("rocket-jquery-load"))),await this._littleBreath();const e=new Event("rocket-pageshow");e.persisted=this.persisted,window.dispatchEvent(e),await this._littleBreath(),window.rocketonpageshow&&window.rocketonpageshow({persisted:this.persisted})}_handleDocumentWrite(){const e=new Map;document.write=document.writeln=function(t){const n=document.currentScript,i=document.createRange(),r=n.parentElement;let o=e.get(n);void 0===o&&(o=n.nextSibling,e.set(n,o));const s=document.createDocumentFragment();i.setStart(s,0),s.appendChild(i.createContextualFragment(t)),r.insertBefore(s,o)}}async _littleBreath(){Date.now()-this.lastBreath>45&&(await this._requestAnimFrame(),this.lastBreath=Date.now())}async _requestAnimFrame(){return document.hidden?new Promise((e=>setTimeout(e))):new Promise((e=>requestAnimationFrame(e)))}static run(){const e=new RocketLazyLoadScripts;e._addUserInteractionListener(e)}}RocketLazyLoadScripts.run();</script>
+
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta name="keywords" content="Home Health Agency in Pearland Texas, In Home Care Service in Pearland Texas, Children Health Plan in Pearland Texas, Home Health Agency in Pearland TX, Senior Home Care in Pearland TX, In Home Support in Pearland TX, Elderly Care in Pearland TX, Home Care Assistance in Pearland TX" >
   <!--[if IE]><meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1"><![endif]-->
 
-	
+
 
 	<link rel="stylesheet" href="./wp-content/themes/primetimehomeie989/style.min.css">
 	<link rel="stylesheet" href="./wp-content/themes/primetimehomeie989/css/hamburgers.min.css">
@@ -22,119 +22,25 @@
 	<link rel="stylesheet" href="./wp-content/themes/primetimehomeie989/css/owl.carousel.min.css">
 
 
-	
-		
+
+
 					<script type="rocketlazyloadscript">(function(html){html.className = html.className.replace(/\bno-js\b/,'js')})(document.documentElement);</script>
-<meta name='robots' content='max-image-preview:large' />
+
 
 	<!-- This site is optimized with the Yoast SEO plugin v15.5 - https://yoast.com/wordpress/plugins/seo/ -->
-	<title>Home Care Pearland TX | Primetime Home Health Services</title><link rel="preload" as="style" href="https://fonts.googleapis.com/css?family=Merriweather%3A400%2C700%2C900%2C400italic%2C700italic%2C900italic%7CMontserrat%3A400%2C700%7CInconsolata%3A400&subset=latin%2Clatin-ext&display=swap" /><link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Merriweather%3A400%2C700%2C900%2C400italic%2C700italic%2C900italic%7CMontserrat%3A400%2C700%7CInconsolata%3A400&subset=latin%2Clatin-ext&display=swap" media="print" onload="this.media='all'" /><noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Merriweather%3A400%2C700%2C900%2C400italic%2C700italic%2C900italic%7CMontserrat%3A400%2C700%7CInconsolata%3A400&subset=latin%2Clatin-ext&display=swap" /></noscript>
-	<meta name="description" content="Pearland home care since 1999. Compassionate personal assistance, respite care, and senior support for eligible Houston families. Medicaid plans accepted. Call 713-977-7721." />
-	<meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1" />
-	<link rel="canonical" href="home-care-pearland-texas.html" />
-	<meta property="og:locale" content="en_US" />
-	<meta property="og:type" content="article" />
-	<meta property="og:title" content="Home Care Pearland TX | Primetime Home Health Services" />
-	<meta property="og:description" content="Pearland home care since 1999. Compassionate personal assistance, respite care, and senior support for eligible Houston families. Medicaid plans accepted. Call 713-977-7721." />
-	<meta property="og:url" content="home-care-pearland-texas.html" />
-	<meta property="og:site_name" content="Primetime Home Health Services, Inc." />
-	<meta name="twitter:card" content="summary_large_image" />
+	<link rel="preload" as="style" href="https://fonts.googleapis.com/css?family=Merriweather%3A400%2C700%2C900%2C400italic%2C700italic%2C900italic%7CMontserrat%3A400%2C700%7CInconsolata%3A400&subset=latin%2Clatin-ext&display=swap" /><link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Merriweather%3A400%2C700%2C900%2C400italic%2C700italic%2C900italic%7CMontserrat%3A400%2C700%7CInconsolata%3A400&subset=latin%2Clatin-ext&display=swap" media="print" onload="this.media='all'" /><noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Merriweather%3A400%2C700%2C900%2C400italic%2C700italic%2C900italic%7CMontserrat%3A400%2C700%7CInconsolata%3A400&subset=latin%2Clatin-ext&display=swap" /></noscript>
+
+
+
+
+
+
+
+
+
+
 	<!-- PTHHS Organization + Location + FAQ Schema -->
-	<script type="application/ld+json">
-	{
-		"@context": "https://schema.org",
-		"@graph": [
-			{
-				"@type": "HomeHealthCareAgency",
-				"@id": "https://www.pthhs.net/#organization",
-				"name": "Primetime Home Health Services, Inc.",
-				"url": "https://www.pthhs.net",
-				"telephone": "713-977-7721",
-				"address": {
-					"@type": "PostalAddress",
-					"streetAddress": "11602 Burdine Street Suite A",
-					"addressLocality": "Houston",
-					"addressRegion": "TX",
-					"postalCode": "77035",
-					"addressCountry": "US"
-				},
-				"areaServed": ["Houston", "Katy", "Sugar Land", "Pearland", "Spring", "Alief", "Sharpstown", "Gulfton", "Sunnyside", "Southwest Houston"],
-				"sameAs": ["https://www.facebook.com/primetimehomehealth", "https://www.instagram.com/primetimehomehealthservices/"],
-				"hasMap": "https://www.google.com/maps/place/11602+Burdine+St,+Houston,+TX+77035"
-			},
-			{
-				"@type": "LocalBusiness",
-				"@id": "https://www.pthhs.net/home-care-pearland-texas#localbusiness",
-				"name": "Primetime Home Health Services, Inc. - Pearland",
-				"address": {
-					"@type": "PostalAddress",
-					"addressLocality": "Pearland",
-					"addressRegion": "TX"
-				},
-				"areaServed": "Pearland and surrounding South Houston communities",
-				"parentOrganization": {
-					"@id": "https://www.pthhs.net/#organization"
-				},
-				"telephone": "713-977-7721",
-				"url": "https://www.pthhs.net/home-care-pearland-texas"
-			},
-			{
-				"@type": "FAQPage",
-				"@id": "https://www.pthhs.net/home-care-pearland-texas#faq",
-				"mainEntity": [
-					{
-						"@type": "Question",
-						"name": "Does Primetime serve Pearland, Texas?",
-						"acceptedAnswer": {
-							"@type": "Answer",
-							"text": "Yes. Primetime Home Health Services provides personal assistance and respite care to eligible clients in Pearland and South Houston communities."
-						}
-					},
-					{
-						"@type": "Question",
-						"name": "What home care services are available in Pearland?",
-						"acceptedAnswer": {
-							"@type": "Answer",
-							"text": "We offer attendant care, personal assistance with ADLs, respite care for family caregivers, medication reminders, light housekeeping, and transportation support for eligible Medicaid and private-pay clients."
-						}
-					},
-					{
-						"@type": "Question",
-						"name": "Does Primetime accept Medicaid in Pearland?",
-						"acceptedAnswer": {
-							"@type": "Answer",
-							"text": "Yes. We participate in Texas Medicaid programs including STAR+PLUS, PAS, and other managed care plans. We also work with private insurance and self-pay families."
-						}
-					},
-					{
-						"@type": "Question",
-						"name": "How do I start home care services in Pearland?",
-						"acceptedAnswer": {
-							"@type": "Answer",
-							"text": "Call 713-977-7721 or submit our online form. Our team will verify your eligibility, coordinate with your health plan, and schedule an assessment at no obligation."
-						}
-					},
-					{
-						"@type": "Question",
-						"name": "What areas near Pearland do you serve?",
-						"acceptedAnswer": {
-							"@type": "Answer",
-							"text": "We serve Pearland, Friendswood, Manvel, Alvin, and surrounding South Houston communities when the requested service and payer authorization are within our coverage."
-						}
-					},
-					{
-						"@type": "Question",
-						"name": "Are your caregivers background-checked and trained?",
-						"acceptedAnswer": {
-							"@type": "Answer",
-							"text": "Yes. All Primetime caregivers undergo background checks, reference verification, and ongoing training in personal care, safety, and client communication."
-						}
-					}
-				]
-			}
-		]
-	}
-	</script>
+	<script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"LocalBusiness","@id":"https://pthhs.net/#organization","name":"Primetime Home Health Services, Inc.","url":"https://pthhs.net","telephone":"+1-713-977-7721","address":{"@type":"PostalAddress","streetAddress":"11602 Burdine St, Suite A","addressLocality":"Houston","addressRegion":"TX","postalCode":"77035","addressCountry":"US"},"areaServed":["Houston","Katy","Sugar Land","Pearland","Spring","Alief","Sharpstown","Gulfton","Sunnyside","Southwest Houston"],"sameAs":["https://www.facebook.com/primetimehomehealth","https://www.instagram.com/primetimehomehealthservices/"],"hasMap":"https://www.google.com/maps/place/11602+Burdine+St,+Houston,+TX+77035"},{"@type":"LocalBusiness","@id":"https://pthhs.net/home-care-pearland-texas#localbusiness","name":"Primetime Home Health Services, Inc. - Pearland","address":{"@type":"PostalAddress","addressLocality":"Pearland","addressRegion":"TX"},"areaServed":"Pearland and surrounding South Houston communities","parentOrganization":{"@id":"https://pthhs.net/#organization"},"telephone":"713-977-7721","url":"https://pthhs.net/home-care-pearland-texas"},{"@type":"FAQPage","@id":"https://pthhs.net/home-care-pearland-texas#faq","mainEntity":[{"@type":"Question","name":"Does Primetime serve Pearland, Texas?","acceptedAnswer":{"@type":"Answer","text":"Yes. Primetime Home Health Services provides personal assistance and respite care to eligible clients in Pearland and South Houston communities."}},{"@type":"Question","name":"What home care services are available in Pearland?","acceptedAnswer":{"@type":"Answer","text":"We offer attendant care, personal assistance with ADLs, respite care for family caregivers, medication reminders, light housekeeping, and transportation support for eligible Medicaid and private-pay clients."}},{"@type":"Question","name":"Does Primetime accept Medicaid in Pearland?","acceptedAnswer":{"@type":"Answer","text":"Yes. We participate in Texas Medicaid programs including STAR+PLUS, PAS, and other managed care plans. We also work with private insurance and self-pay families."}},{"@type":"Question","name":"How do I start home care services in Pearland?","acceptedAnswer":{"@type":"Answer","text":"Call 713-977-7721 or submit our online form. Our team will verify your eligibility, coordinate with your health plan, and schedule an assessment at no obligation."}},{"@type":"Question","name":"What areas near Pearland do you serve?","acceptedAnswer":{"@type":"Answer","text":"We serve Pearland, Friendswood, Manvel, Alvin, and surrounding South Houston communities when the requested service and payer authorization are within our coverage."}},{"@type":"Question","name":"Are your caregivers background-checked and trained?","acceptedAnswer":{"@type":"Answer","text":"Yes. All Primetime caregivers undergo background checks, reference verification, and ongoing training in personal care, safety, and client communication."}}]}]}</script>
 
 
 <link rel='dns-prefetch' href='//fonts.googleapis.com' />
@@ -143,9 +49,9 @@
 <link rel="alternate" type="application/rss+xml" title="Primetime Home Health Services, Inc. &raquo; Comments Feed" href="comments/feed" />
 <link rel='stylesheet' id='wp-block-library-css' href='wp-includes/css/dist/block-library/style.min.css?ver=6.2.2' type='text/css' media='all' />
 <link rel='stylesheet' id='classic-theme-styles-css' href='wp-includes/css/classic-themes.min.css?ver=6.2.2' type='text/css' media='all' />
-<link rel="icon" href="./wp-content/uploads/2024/02/fav-icon.png" sizes="32x32" />
-<link rel="icon" href="./wp-content/uploads/2024/02/fav-icon.png" sizes="192x192" />
-<link rel="apple-touch-icon" href="./wp-content/uploads/2024/02/fav-icon.png" />
+
+
+
 <meta name="msapplication-TileImage" content="./wp-content/uploads/2024/02/fav-icon.png" />
 <noscript><style id="rocket-lazyload-nojs-css">.rll-youtube-player, [data-lazy-src]{display:none !important;}</style></noscript>
 	<!-- Google tag (gtag.js) -->
@@ -161,11 +67,11 @@
 <script type="rocketlazyloadscript" src="./wp-content/themes/primetimehomeie989/js/jquery.skitter.min.js" defer></script>
 <script type="rocketlazyloadscript" src="./wp-content/themes/primetimehomeie989/js/responsiveslides.min.js" defer></script>
 <script type="rocketlazyloadscript" src="./wp-content/themes/primetimehomeie989/js/plugins.min.js" defer></script>
-</head>
+<link rel="stylesheet" href="/assets/polish.css"></head>
 	<body>
 		<div class="protect-me">
 		<div class="clearfix">
-			
+
 
 <!-- Modal -->
 <div id="myModal" class="modal">
@@ -193,7 +99,7 @@
 					  <div class="captcha-box"><div class="g-recaptcha" data-sitekey="6LeokIUpAAAAAIFOaj9nEGex0-aGML7tQxtgt9Xb"></div></div>
 				  <button type="submit" name="submit_info_popUp" class="modal_btn" >Submit</button>
 			  </div>
-	  </form> 
+	  </form>
   </div>
 </div>
 </div>
@@ -210,12 +116,12 @@
 					<ul>
 						<li>
 							<figure class="hdr_info_img"><img width="79" height="79" src="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2079%2079'%3E%3C/svg%3E" alt="Text messaging and phone" data-lazy-src="./wp-content/themes/primetimehomeie989/images/header-icon1.png"><noscript><img width="79" height="79" src="./wp-content/themes/primetimehomeie989/images/header-icon1.png" alt="Text messaging and phone"></noscript></figure>
-							<div class="widget_text widget-container widget_custom_html"><div class="textwidget custom-html-widget"><span>Have a Question? Call Us Now!</span> <a href="tel:713-977-7721" class="tele"><mark>713-977-7721</mark></a></div></div>						</li>
-						<li class="cta_holder"><div class="widget_text widget-container widget_custom_html"><div class="textwidget custom-html-widget"><span>Help!</span><a href="tel:7139777721" class="CTA"></a></div></div></li>
+							<div class="widget_text widget-container widget_custom_html"><div class="textwidget custom-html-widget"><span>Have a Question? Call Us Now!</span> <a href="tel:713-977-7721" class="tele phone-link"><mark>713-977-7721</mark></a></div></div>						</li>
+						<li class="cta_holder"><div class="widget_text widget-container widget_custom_html"><div class="textwidget custom-html-widget"><span>Help!</span><a href="tel:7139777721" class="CTA phone-link"></a></div></div></li>
 					</ul>
 				</div>
 				<div class="social_media">
-					<h3><span>Serving the </span> <span>Greater Houston</span> <span>area with Home</span> <span> Care since 1999</span></h3>
+					<h3><span>Serving the </span> <span>Greater Houston</span> <span>area with Home</span> <span> Care a long-standing Houston-area provider</span></h3>
 				</div>
 			</div>
 		</div>
@@ -277,7 +183,7 @@
 	<li id="menu-item-494" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-494"><a href="./home-care-areas-we-serve">Areas We Serve</a><span><i class="fa fa-2x">&nbsp;&nbsp;&nbsp;&nbsp;</i></span></li>
 </ul>
 </li>
-</ul></div>				
+</ul></div>
 			</div>
 	  </nav>
 		<div class="toggle_nav_close"></div>
@@ -291,7 +197,7 @@
 		<div class="bnr_con">
 			<div style="max-width: 720px; color: #fff; padding: 40px 0;">
 				<h1 style="color:#fff; font-size:42px; margin-bottom:12px;">Home Care Pearland Texas</h1>
-				<p style="color:#f0f0f0; font-size:18px; line-height:1.5;">Compassionate, reliable in-home care for Pearland and South Houston families. Personal assistance, respite care, and senior support — delivered by trusted local caregivers since 1999.</p>
+				<p style="color:#f0f0f0; font-size:18px; line-height:1.5;">Compassionate, reliable in-home care for Pearland and South Houston families. Personal assistance, respite care, and senior support — delivered by trusted local caregivers a long-standing Houston-area provider.</p>
 				<a href="#contact" class="btn" style="margin-top:16px; display:inline-block;">Request a Consultation</a>
 			</div>
 		</div>
@@ -303,8 +209,8 @@
 <div class="wrapper" style="padding:40px 0;">
 
 <div style="margin-bottom:15px;color:#666;font-size:14px;">
-<a href="./">Home</a> » 
-<a href="./home-care-areas-we-serve.html">Areas We Serve</a> » 
+<a href="./">Home</a> »
+<a href="./home-care-areas-we-serve.html">Areas We Serve</a> »
 Pearland Home Care
 </div>
 
@@ -349,20 +255,20 @@ Pearland Home Care
 <li class="menu-item menu-item-type-post_type menu-item-object-page"><a href="./home-care-insurance">Insurance</a></li>
 <li class="menu-item menu-item-type-post_type menu-item-object-page"><a href="./home-care-blog">Blog</a></li>
 <li class="menu-item menu-item-type-post_type menu-item-object-page"><a href="./home-care-contact-us">Contact Us</a></li>
-</ul></div>					
+</ul></div>
 		</div>
 		<div class="ftr_contact">
 <h2>Contact Details </h2>
 <ul>
 	<li>
-		<span>Phone Number: <a href="tel:7139777721"><mark>713-977-7721</mark></a></span> <span>Fax: <mark>713-977-7728</mark></span>
-		<span>After Hour: <a href="tel:3465992755"><mark>346-599-2755</mark></a></span>
+		<span>Phone Number: <a class="phone-link" href="tel:7139777721"><mark>713-977-7721</mark></a></span> <span>Fax: <mark>713-977-7728</mark></span>
+		<span>After Hour: <a class="phone-link" href="tel:3465992755"><mark>346-599-2755</mark></a></span>
 	</li>
 	<li>
 		<span>Email Address: <a href="mailto:pas@pthhs.net"><mark>pas@pthhs.net</mark></a></span>
 	</li>
 	<li>
-		<span>Location: <mark>11602 Burdine St, Suite A, Houston, TX 77035</mark></span>
+		<span>Location: <mark><a class="address-link" data-map-address="11602 Burdine St, Suite A, Houston, TX 77035" href="https://www.google.com/maps/search/?api=1&query=11602%20Burdine%20St%2C%20Suite%20A%2C%20Houston%2C%20TX%2077035" target="_blank" rel="noopener noreferrer">11602 Burdine St, Suite A, Houston, TX 77035</a></mark></span>
 	</li>
 </ul>
 		</div>
@@ -380,7 +286,7 @@ Pearland Home Care
 <li class="menu-item menu-item-type-post_type menu-item-object-page"><a href="./home-care-insurance">Insurance</a></li>
 <li class="menu-item menu-item-type-post_type menu-item-object-page"><a href="./home-care-blog">Blog</a></li>
 <li class="menu-item menu-item-type-post_type menu-item-object-page"><a href="./home-care-contact-us">Contact Us</a></li>
-</ul></div>					
+</ul></div>
 <div class="copy_right"><p>© Primetime Home Health Services, Inc. All Rights Reserved.</p></div>
 <div class="ftr_btm_social"><a href="https://www.facebook.com/primetimehomehealth/" target="_blank"><i class="fa fa-facebook"></i></a> <a href="https://www.instagram.com/primetimehomehealthservices/" target="_blank"><i class="fa fa-instagram"></i></a></div>
 </div>
@@ -389,38 +295,11 @@ Pearland Home Care
 </footer>
 <!-- End Footer -->
 
-<script type="application/ld+json">
-		{
-		"@context":"http://schema.org",
-		"@type":"LocalBusiness",
-		"image": [
-			"./wp-content/themes/primetimehomeie989/images/main-logo.png",
-			"./wp-content/themes/primetimehomeie989/images/main-logo1x1.png",
-			"./wp-content/themes/primetimehomeie989/images/main-logo2x2.png"
-		],
-		"@id":"./",
-		"name":"Primetime Home Health Services, Inc. - Pearland",
-		"address":{
-			"@type":"PostalAddress",
-			"streetAddress":"11602 Burdine St a",
-			"addressLocality":"Houston",
-			"addressRegion":"TX ",
-			"postalCode":"77035",
-			"addressCountry":"United States"
-		},
-		"geo":{
-			"@type":"GeoCoordinates",
-			"latitude":29.6537471,
-			"longitude":-95.4836885
-		},
-		"telephone":"+1-713-977-7721",
-		"priceRange" : "-"
-		}
-	</script>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"LocalBusiness","image":["https://pthhs.net/wp-content/themes/primetimehomeie989/images/main-logo.png","https://pthhs.net/wp-content/themes/primetimehomeie989/images/main-logo1x1.png","https://pthhs.net/wp-content/themes/primetimehomeie989/images/main-logo2x2.png"],"@id":"https://pthhs.net/","name":"Primetime Home Health Services, Inc. - Pearland","address":{"@type":"PostalAddress","streetAddress":"11602 Burdine St, Suite A","addressLocality":"Houston","addressRegion":"TX","postalCode":"77035","addressCountry":"US"},"geo":{"@type":"GeoCoordinates","latitude":29.6537471,"longitude":-95.4836885},"telephone":"+1-713-977-7721","priceRange":"-"}</script>
 
 <script type="rocketlazyloadscript" data-rocket-type='text/javascript' src='./wp-content/themes/primetimehomeie989/js/jquery-3.6.1.min.js' defer></script>
 <script type="rocketlazyloadscript" data-rocket-type='text/javascript' src='./wp-content/themes/primetimehomeie989/js/plugins.min.js' defer></script>
-</body>
+<script src="/assets/site-enhancements.js" defer></script></body>
 </html>
 <!-- End Footer -->
 

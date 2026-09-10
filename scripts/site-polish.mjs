@@ -4,13 +4,13 @@ import path from 'node:path';
 const root = process.cwd();
 const publicDir = path.join(root, 'public');
 const metaDir = path.join(publicDir, 'assets', 'meta');
-const SITE = 'https://www.pthhs.net';
+const SITE = 'https://pthhs.net';
 const BRAND = 'Primetime Home Health';
 const BRAND_FULL = 'Primetime Home Health Services';
 
 const coreMeta = {
   '/': {
-    title: 'Home Care in Houston, TX | Primetime Home Health',
+    title: 'Non-Medical Home Care Houston | Primetime',
     description: 'Compassionate non-medical personal assistance, attendant care, respite care and ADL support for eligible families across Greater Houston.'
   },
   '/home-care-about-us': {
@@ -27,7 +27,7 @@ const coreMeta = {
   },
   '/home-care-insurance': {
     title: 'Medicaid & Insurance for Houston Home Care | Primetime',
-    description: 'Review Medicaid and managed-care plan information for Primetime home care services in Houston, including current participation and authorization guidance.'
+    description: 'Learn how eligibility, authorization and changing network status affect non-medical personal assistance services in Greater Houston.'
   },
   '/home-care-contact-us': {
     title: 'Contact Primetime Home Health | Houston, TX',
@@ -38,12 +38,12 @@ const coreMeta = {
     description: 'Explore caregiver and home care career opportunities with Primetime Home Health Services in Houston and surrounding communities.'
   },
   '/home-care-client-reviews': {
-    title: 'Client Reviews | Primetime Home Health Houston',
-    description: 'Read feedback from families who have worked with Primetime Home Health Services for non-medical personal assistance and home care in Greater Houston.'
+    title: 'Client Feedback | Primetime Home Health Houston',
+    description: 'Learn how Primetime handles service feedback, testimonial permission, attribution and privacy for non-medical personal assistance services.'
   },
   '/home-care-blog': {
     title: 'Houston Home Care Resources | Primetime Home Health',
-    description: 'Read practical home care resources for Houston-area families, including caregiving, daily living support, senior safety and personal assistance topics.'
+    description: 'Access verified service, eligibility and location information while Primetime reviews its imported article archive for accuracy and scope.'
   }
 };
 
@@ -293,21 +293,16 @@ const addressEncoded = encodeURIComponent(addressPlain);
 const googleMaps = `https://www.google.com/maps/search/?api=1&query=${addressEncoded}`;
 
 function linkAddresses(html) {
-  if (html.includes('data-map-address="11602 Burdine')) return html;
-  const replacements = [
-    {
-      re: /11602 Burdine St, Suite A<br\s*\/?>(?:\s*)Houston, TX 77035/gi,
-      label: '11602 Burdine St, Suite A<br>Houston, TX 77035'
-    },
-    {
-      re: /11602 Burdine St, Suite A, Houston, TX 77035/gi,
-      label: '11602 Burdine St, Suite A, Houston, TX 77035'
-    }
-  ];
-  for (const item of replacements) {
-    html = html.replace(item.re, `<a class="address-link" data-map-address="${addressPlain}" href="${googleMaps}" target="_blank" rel="noopener noreferrer">${item.label}</a>`);
-  }
-  return html;
+  // Do not touch pages that have already been processed.
+  if (/class=["']address-link["']/i.test(html)) return html;
+
+  const addressPattern = /11602 Burdine St, Suite A(?:,\s*|<br\s*\/?>\s*)Houston, TX 77035/gi;
+  return html.replace(addressPattern, (match) => {
+    const label = /<br/i.test(match)
+      ? '11602 Burdine St, Suite A<br>Houston, TX 77035'
+      : addressPlain;
+    return `<a class="address-link" data-map-address="${addressPlain}" href="${googleMaps}" target="_blank" rel="noopener noreferrer">${label}</a>`;
+  });
 }
 
 function stylePhoneLinks(html) {

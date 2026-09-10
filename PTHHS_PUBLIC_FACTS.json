@@ -1,0 +1,28 @@
+{
+  "schema_version": 1,
+  "last_reviewed": "2026-09-10",
+  "review_owner": "PTHHS administrator",
+  "business_name": "Primetime Home Health Services, Inc.",
+  "service_scope": "Non-medical personal assistance services (PAS)",
+  "phone_display": "713-977-7721",
+  "phone_e164": "+1-713-977-7721",
+  "fax_display": "713-977-7728",
+  "after_hours_display": "346-599-2755",
+  "public_email": "pas@pthhs.net",
+  "address": {
+    "street": "11602 Burdine St, Suite A",
+    "city": "Houston",
+    "state": "TX",
+    "postal_code": "77035",
+    "country": "US"
+  },
+  "canonical_host": "https://pthhs.net",
+  "not_approved_without_current_evidence": [
+    "payer or provider-network participation",
+    "clinical or skilled service claims",
+    "awards",
+    "customer counts or satisfaction rates",
+    "precise founding-date or years-in-business claims",
+    "credentials not supported by a current personnel record"
+  ]
+}

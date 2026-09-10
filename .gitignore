@@ -1,0 +1,5 @@
+node_modules/
+scripts/__pycache__/
+*.pyc
+public/assets/meta/
+public/site.webmanifest
