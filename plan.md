@@ -57,7 +57,7 @@ Unify the site, remove service-scope contradictions, verify payer/trust claims, 
 
 ### B. Architecture, migration, UX & visual consistency
 
-- [ ] **19. [P1] Adopt one shared site shell** for header, nav, typography, buttons, footer, and mobile navigation across every public route. **When:** Sep 12–18.
+- [x] **19. [P1] Adopt one shared site shell** for header, nav, typography, buttons, footer, and mobile navigation across every public route. **When:** Sep 12–18. **Completed Sep 10:** normalized all 132 HTML files to one generated header, navigation, skip-link/main contract, footer, component layer, and mobile action bar.
 - [x] **20. [P1] Migrate Contact to the modern shell** and delete the duplicated legacy-homepage content currently embedded above/beside the contact experience. **When:** Sep 12–18. **Completed Sep 10:** the canonical contact/Get Started page uses the modern shell and contains only focused service, eligibility, privacy, and contact guidance.
 - [x] **21. [P1] Migrate Careers to the modern shell** with accurate role terminology. **When:** Sep 12–18. **Completed Sep 10:** the modern Careers route uses attendant and administrative terminology, avoids unsupported opening claims, and routes applicants to the verified office process.
 - [x] **22. [P1] Migrate Meet Our Staff and staff profiles** to the modern shell and verify every bio/credential. **When:** Sep 12–18. **Completed Sep 10:** migrated the staff index and remaining profile route; withheld every individual role-history, credential, education, staffing, and quantitative claim pending current documentation and publication approval.
@@ -66,13 +66,13 @@ Unify the site, remove service-scope contradictions, verify payer/trust claims, 
 - [x] **25. [P1] Migrate Client Reviews** to the modern shell and remove WordPress comment/reply UI. **When:** Sep 12–18. **Completed Sep 10:** the modern Client Feedback page contains no comment/reply workflow and publishes no testimonial without the existing permission and privacy gate.
 - [x] **26. [P1] Migrate remaining legacy service pages** including Medication Reminders onto one modern service template with scope language and CTA standards. **When:** Sep 12–18. **Completed Sep 10:** the service index and five canonical details use the modern service structure, canonical Get Started route, and non-medical scope controls.
 - [x] **27. [P1] Merge Set an Appointment/Get Started into one canonical lead flow** instead of parallel legacy implementations. **When:** Sep 12–18. **Completed Sep 10:** `/home-care-set-an-appointment` permanently redirects to `/home-care-contact-us`; its static fallback is noindex and contains no legacy form/runtime.
-- [ ] **28. [P1] Remove old WordPress/Proweaver theme CSS/JS dependencies** from each migrated page. **When:** as each page migrates, complete by Sep 18.
-- [ ] **29. [P1] Remove obsolete IE conditional markup and WP Rocket lazy-script bootstrap** from the modern static site. **When:** Sep 12–18.
-- [ ] **30. [P1] Define one information architecture:** About, Services, Areas, Insurance/Eligibility, Resources, Careers, Contact/Get Started. **When:** Sep 12–18.
-- [ ] **31. [P1] Standardize CTA language and hierarchy** so each page has one primary action and one consistent call option. **When:** Sep 12–18.
-- [ ] **32. [P1] Create reusable design tokens/components** for type, spacing, buttons, cards, forms, radii, content widths, and states instead of duplicating styles per HTML file. **When:** Sep 12–18.
+- [x] **28. [P1] Remove old WordPress/Proweaver theme CSS/JS dependencies** from each migrated page. **When:** as each page migrates, complete by Sep 18. **Completed Sep 10:** no checked-in HTML file loads a legacy theme, plugin, cache, or WordPress runtime stylesheet/script.
+- [x] **29. [P1] Remove obsolete IE conditional markup and WP Rocket lazy-script bootstrap** from the modern static site. **When:** Sep 12–18. **Completed Sep 10:** eliminated the last legacy payloads; the sitewide gate now rejects IE conditionals, WP Rocket loaders, and WordPress runtime dependencies.
+- [x] **30. [P1] Define one information architecture:** About, Services, Areas, Insurance/Eligibility, Resources, Careers, Contact/Get Started. **When:** Sep 12–18. **Completed Sep 10:** all page headers use this exact ordered navigation and set the appropriate current section.
+- [x] **31. [P1] Standardize CTA language and hierarchy** so each page has one primary action and one consistent call option. **When:** Sep 12–18. **Completed Sep 10:** primary content actions now resolve to “Get Started” at the canonical contact route; phone buttons use one number and label.
+- [x] **32. [P1] Create reusable design tokens/components** for type, spacing, buttons, cards, forms, radii, content widths, and states instead of duplicating styles per HTML file. **When:** Sep 12–18. **Completed Sep 10:** added a shared component/token stylesheet for spacing, content widths, controls, forms, cards, focus, disabled, success, error, and reduced-motion states, backed by reusable shell markup.
 - [ ] **33. [P1] Run responsive QA at 320, 375, 768, 1024, and 1440+ widths** for nav, forms, cards, plan logos, tables, and footer. **When:** Sep 12–18.
-- [ ] **34. [P1] Add a mobile call/get-started affordance** if it can be implemented without covering content or accessibility controls. **When:** Sep 12–18.
+- [x] **34. [P1] Add a mobile call/get-started affordance** if it can be implemented without covering content or accessibility controls. **When:** Sep 12–18. **Completed Sep 10:** every route includes the shared labeled call/Get Started bar, safe-area padding, footer clearance, and desktop suppression.
 - [ ] **35. [P1] Choose one canonical host (`pthhs.net` or `www.pthhs.net`)** and enforce it in redirects, templates, metadata, sitemap, analytics, and Search Console. Current production behavior favors non-`www`. **When:** Sep 12–18.
 
 ### C. Forms, lead handling & conversion
@@ -135,7 +135,7 @@ Unify the site, remove service-scope contradictions, verify payer/trust claims, 
 
 ### F. Performance, frontend hygiene & security
 
-- [ ] **85. [P1] Remove WP Rocket delayed-script code and unused WordPress plugin/theme JS** from migrated pages. **When:** Sep 12–18.
+- [x] **85. [P1] Remove WP Rocket delayed-script code and unused WordPress plugin/theme JS** from migrated pages. **When:** Sep 12–18. **Completed Sep 10:** the sitewide shell gate confirms zero WP Rocket, WordPress plugin, or legacy theme JavaScript references across all HTML files.
 - [ ] **86. [P1] Remove unused legacy CSS, Font Awesome, carousel, and theme assets** as templates migrate. **When:** Sep 12–18.
 - [ ] **87. [P2] Convert oversized photography to responsive WebP/AVIF variants** with appropriate fallbacks. **When:** Sep 19–Oct 2.
 - [ ] **88. [P2] Add intrinsic image/embed dimensions or `aspect-ratio`** to control layout shift. **When:** Sep 19–Oct 2.

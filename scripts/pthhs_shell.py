@@ -7,6 +7,49 @@ import json
 
 HOST = "https://pthhs.net"
 
+NAV_ITEMS = (
+    ("About", "/home-care-about-us"),
+    ("Services", "/home-care-services"),
+    ("Areas", "/home-care-areas-we-serve"),
+    ("Insurance & Eligibility", "/home-care-insurance"),
+    ("Resources", "/home-care-resources"),
+    ("Careers", "/home-care-careers"),
+    ("Get Started", "/home-care-contact-us"),
+)
+
+
+def header_markup(current: str | None = None) -> str:
+    links = []
+    for label, href in NAV_ITEMS:
+        classes = ' class="nav-cta"' if label == "Get Started" else ""
+        aria = ' aria-current="page"' if label == current else ""
+        links.append(f'<a{classes} href="{href}"{aria}>{html.escape(label)}</a>')
+    return (
+        '<header class="site-header"><div class="shell nav-wrap">'
+        '<a class="brand" href="/" aria-label="Primetime Home Health Services home">'
+        '<img src="/wp-content/themes/primetimehomeie989/images/main-logo.png" '
+        'alt="Primetime Home Health Services, Inc." width="410" height="203"></a>'
+        '<nav class="site-nav" aria-label="Primary navigation">'
+        + "".join(links)
+        + "</nav></div></header>"
+    )
+
+
+def footer_markup() -> str:
+    return '''<footer class="site-footer"><div class="shell footer-grid">
+<div><a href="/" aria-label="Primetime home"><img class="footer-logo" src="/wp-content/themes/primetimehomeie989/images/footer-logo.png" alt="Primetime Home Health Services" width="410" height="203" loading="lazy"></a><p>Non-medical personal assistance services for eligible children, adults, and seniors throughout Greater Houston.</p></div>
+<div><h2>Explore</h2><ul><li><a href="/home-care-about-us">About</a></li><li><a href="/home-care-services">Services</a></li><li><a href="/home-care-areas-we-serve">Areas We Serve</a></li><li><a href="/home-care-insurance">Insurance &amp; Eligibility</a></li><li><a href="/home-care-resources">Resources</a></li></ul></div>
+<div><h2>Contact</h2><ul><li><a href="tel:7139777721">713-977-7721</a></li><li><a href="mailto:pas@pthhs.net">pas@pthhs.net</a></li><li>11602 Burdine St, Suite A<br>Houston, TX 77035</li><li><a href="/home-care-contact-us">Get Started</a></li></ul></div>
+</div><div class="shell footer-bottom">© 2026 Primetime Home Health Services, Inc. All rights reserved.</div></footer>'''
+
+
+def mobile_bar_markup() -> str:
+    return '<div class="mobile-care-bar" aria-label="Quick contact"><a href="tel:7139777721">Call Now</a><a href="/home-care-contact-us">Get Started</a></div>'
+
+
+def skip_link_markup() -> str:
+    return '<a class="skip-link" href="#main-content">Skip to main content</a>'
+
 
 def render_page(
     *,
@@ -55,26 +98,14 @@ def render_page(
 <meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="/assets/modern.css">
+<link rel="stylesheet" href="/assets/components.css">
 <link rel="stylesheet" href="/assets/polish.css">
 <link rel="stylesheet" href="/assets/section-pages.css?v=20260910">
 <script type="application/ld+json">{json.dumps(schema, separators=(",", ":"))}</script>
 </head>
 <body class="modern-page template-refresh">
-  <a class="skip-link" href="#main-content">Skip to main content</a>
-  <header class="site-header">
-    <div class="shell nav-wrap">
-      <a class="brand" href="/" aria-label="Primetime Home Health Services home"><img src="/wp-content/themes/primetimehomeie989/images/main-logo.png" alt="Primetime Home Health Services, Inc." width="410" height="203"></a>
-      <nav class="site-nav" aria-label="Primary navigation">
-        <a href="/home-care-about-us">About</a>
-        <a href="/home-care-services">Services</a>
-        <a href="/home-care-areas-we-serve">Areas</a>
-        <a href="/home-care-insurance">Insurance &amp; Eligibility</a>
-        <a href="/home-care-resources">Resources</a>
-        <a href="/home-care-careers">Careers</a>
-        <a class="nav-cta" href="/home-care-contact-us">Get Started</a>
-      </nav>
-    </div>
-  </header>
+  {skip_link_markup()}
+  {header_markup()}
   <main id="main-content" tabindex="-1">
     <section class="page-hero"><div class="shell">
       <nav class="breadcrumb" aria-label="Breadcrumb"><a href="/">Home</a> / <span aria-current="page">{html.escape(heading)}</span></nav>
@@ -84,12 +115,8 @@ def render_page(
     </div></section>
     {body}
   </main>
-  <footer class="site-footer"><div class="shell footer-grid">
-    <div><a href="/" aria-label="Primetime home"><img class="footer-logo" src="/wp-content/themes/primetimehomeie989/images/footer-logo.png" alt="Primetime Home Health Services" width="410" height="203" loading="lazy"></a><p>Non-medical personal assistance services for eligible children, adults, and seniors throughout Greater Houston.</p></div>
-    <div><h2>Explore</h2><ul><li><a href="/home-care-about-us">About</a></li><li><a href="/home-care-services">Services</a></li><li><a href="/home-care-areas-we-serve">Areas We Serve</a></li><li><a href="/home-care-insurance">Insurance &amp; Eligibility</a></li><li><a href="/home-care-resources">Resources</a></li></ul></div>
-    <div><h2>Contact</h2><ul><li><a href="tel:7139777721">713-977-7721</a></li><li><a href="mailto:pas@pthhs.net">pas@pthhs.net</a></li><li>11602 Burdine St, Suite A<br>Houston, TX 77035</li><li><a href="/home-care-contact-us">Get Started</a></li></ul></div>
-  </div><div class="shell footer-bottom">© 2026 Primetime Home Health Services, Inc. All rights reserved.</div></footer>
-  <div class="mobile-care-bar" aria-label="Quick contact"><a href="tel:7139777721">Call Now</a><a href="/home-care-contact-us">Get Started</a></div>
+  {footer_markup()}
+  {mobile_bar_markup()}
   <script src="/assets/site-enhancements.js" defer></script>
 </body>
 </html>

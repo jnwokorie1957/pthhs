@@ -17,6 +17,8 @@
       {"source":"/home-care-baytown-texas","destination":"/locations/baytown","type":301},
       {"source":"/home-care-conroe-texas","destination":"/locations/conroe","type":301},
       {"source":"/home-care-cypress-texas","destination":"/locations/cypress","type":301},
+      {"source":"/home-care-friendswood-texas","destination":"/home-care-areas-we-serve","type":301},
+      {"source":"/home-care-katy-texas","destination":"/locations/katy","type":301},
       {"source":"/home-care-league-city-texas","destination":"/locations/league-city","type":301},
       {"source":"/home-care-missouri-city-texas","destination":"/locations/missouri-city","type":301},
       {"source":"/home-care-pasadena-texas","destination":"/locations/pasadena","type":301},

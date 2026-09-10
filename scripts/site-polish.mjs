@@ -446,6 +446,8 @@ async function processHtmlFile(file) {
   html = socialIcons(html);
   html = injectMeta(html, route, meta);
   html = injectEnhancementScript(html);
+  html = html.split(/\r?\n/).map((line) => line.trimEnd()).join('\n');
+  if (!html.endsWith('\n')) html += '\n';
   await fs.writeFile(file, html, 'utf8');
   const indexable = !/<meta\s+name=["']robots["'][^>]+noindex/i.test(html);
   return { route, indexable, ...meta };
