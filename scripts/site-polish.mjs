@@ -41,10 +41,6 @@ const coreMeta = {
     title: 'Client Feedback | Primetime Home Health Houston',
     description: 'Learn how Primetime handles service feedback, testimonial permission, attribution and privacy for non-medical personal assistance services.'
   },
-  '/home-care-blog': {
-    title: 'Houston Home Care Resources | Primetime Home Health',
-    description: 'Access verified service, eligibility and location information while Primetime reviews its imported article archive for accuracy and scope.'
-  },
   '/home-care-meet-our-staff': {
     title: 'Our Team | Primetime Home Health Services',
     description: 'Learn how Primetime\'s Houston office and attendants support authorized, non-medical personal assistance services.'
@@ -56,6 +52,10 @@ const coreMeta = {
   '/home-care-resources': {
     title: 'Official Home Care Resources | Primetime Houston',
     description: 'Use maintained official Texas and federal resources for Medicaid, benefits, long-term supports and community assistance information.'
+  },
+  '/home-care-blog': {
+    title: 'Home Care Information | Primetime Houston',
+    description: 'Use verified Primetime service information and maintained official resources while the imported article archive remains under review.'
   }
 };
 
@@ -447,7 +447,8 @@ async function processHtmlFile(file) {
   html = injectMeta(html, route, meta);
   html = injectEnhancementScript(html);
   await fs.writeFile(file, html, 'utf8');
-  return { route, ...meta };
+  const indexable = !/<meta\s+name=["']robots["'][^>]+noindex/i.test(html);
+  return { route, indexable, ...meta };
 }
 
 async function main() {
@@ -457,6 +458,7 @@ async function main() {
   for (const file of files) results.push(await processHtmlFile(file));
   const titles = new Map();
   for (const item of results) {
+    if (!item.indexable) continue;
     if (!titles.has(item.title)) titles.set(item.title, []);
     titles.get(item.title).push(item.route);
   }
