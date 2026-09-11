@@ -84,6 +84,9 @@ label { display: inline-block; margin-bottom: var(--space-1); font-weight: 700; 
 .field-error { color: #9b1c1c; font-weight: 700; }
 .status-success { color: #17603a; }
 .status-error { color: #9b1c1c; }
+.action-row-spaced,
+.hero-actions-spaced { margin-top: 26px; }
+.section-title-spaced { margin-top: 40px; }
 
 @media (max-width: 560px) {
   .btn-primary,
