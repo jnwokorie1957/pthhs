@@ -56,6 +56,14 @@ DOCUMENTED_LEGACY_REDIRECTS = {
     "/cypress-home-care": "/locations/cypress",
 }
 
+SERVICE_SCHEMA_TYPES = {
+    "/home-care-services": "Non-medical personal assistance services",
+    "/home-care-services/activities-of-daily-living-adl": "Activities of daily living assistance",
+    "/home-care-services/attendant-care-services": "Attendant care services",
+    "/home-care-services/personal-care": "Personal care assistance",
+    "/home-care-services/respite-care": "Respite care",
+}
+
 
 def route_for(path: Path) -> str:
     relative = path.relative_to(PUBLIC).as_posix()
@@ -96,13 +104,74 @@ def is_noindex(text: str) -> bool:
     )
 
 
-def verified_schema(canonical: str, title: str, description: str, facts: dict) -> dict:
+def breadcrumb_items(route: str, text: str) -> list[tuple[str, str]]:
+    if route.startswith("/home-care-services/"):
+        current = head_value(text, r"<h1[^>]*>(.*?)</h1>", "H1", file_for_route(route))
+        return [("Home", "/"), ("Services", "/home-care-services"), (current, route)]
+    if route.startswith("/locations/"):
+        current = route.rsplit("/", 1)[-1].replace("-", " ").title()
+        return [("Home", "/"), ("Areas We Serve", "/home-care-areas-we-serve"), (current, route)]
+    if route == "/home-care-blog":
+        return [("Home", "/"), ("Home Care Information", route)]
+    return []
+
+
+def absolute_url(route: str) -> str:
+    return f"{HOST}{'/' if route == '/' else route}"
+
+
+def render_breadcrumb(items: list[tuple[str, str]]) -> str:
+    rows = []
+    for position, (name, route) in enumerate(items, start=1):
+        escaped_name = html.escape(name)
+        if position == len(items):
+            rows.append(f'<li aria-current="page">{escaped_name}</li>')
+        else:
+            rows.append(f'<li><a href="{html.escape(route)}">{escaped_name}</a></li>')
+    return '<nav class="breadcrumb" aria-label="Breadcrumb"><ol>' + "".join(rows) + "</ol></nav>"
+
+
+def normalize_visible_breadcrumb(text: str, items: list[tuple[str, str]], path: Path) -> str:
+    if not items:
+        return text
+    rendered = render_breadcrumb(items)
+    pattern = r'<nav\s+class=["\']breadcrumb["\'][^>]*>[\s\S]*?</nav>'
+    if re.search(pattern, text, re.I):
+        return re.sub(pattern, rendered, text, count=1, flags=re.I)
+    updated, count = re.subn(
+        r'(<section\s+class=["\']page-hero["\'][^>]*>\s*<div\s+class=["\']shell["\']>)',
+        rf"\1{rendered}",
+        text,
+        count=1,
+        flags=re.I,
+    )
+    if count != 1:
+        raise RuntimeError(f"unable to insert breadcrumb: {path.relative_to(ROOT)}")
+    return updated
+
+
+def verified_schema(
+    canonical: str,
+    title: str,
+    description: str,
+    facts: dict,
+    service_type: str | None,
+    service_name: str | None,
+    breadcrumbs: list[tuple[str, str]],
+) -> dict:
     organization_id = f"{HOST}/#organization"
     website_id = f"{HOST}/#website"
     address = facts["address"]
-    return {
-        "@context": "https://schema.org",
-        "@graph": [
+    webpage = {
+        "@type": "WebPage",
+        "@id": f"{canonical}#webpage",
+        "url": canonical,
+        "name": title,
+        "description": description,
+        "isPartOf": {"@id": website_id},
+        "about": {"@id": organization_id},
+    }
+    graph = [
             {
                 "@type": "Organization",
                 "@id": organization_id,
@@ -126,17 +195,39 @@ def verified_schema(canonical: str, title: str, description: str, facts: dict) -
                 "name": facts["business_name"],
                 "publisher": {"@id": organization_id},
             },
+            webpage,
+    ]
+    if service_type:
+        service_id = f"{canonical}#service"
+        graph.append(
             {
-                "@type": "WebPage",
-                "@id": f"{canonical}#webpage",
-                "url": canonical,
-                "name": title,
+                "@type": "Service",
+                "@id": service_id,
+                "name": service_name,
                 "description": description,
-                "isPartOf": {"@id": website_id},
-                "about": {"@id": organization_id},
-            },
-        ],
-    }
+                "url": canonical,
+                "serviceType": service_type,
+                "provider": {"@id": organization_id},
+            }
+        )
+        webpage["mainEntity"] = {"@id": service_id}
+    if breadcrumbs:
+        breadcrumb_id = f"{canonical}#breadcrumb"
+        breadcrumb_rows = []
+        for position, (name, route) in enumerate(breadcrumbs, start=1):
+            row = {"@type": "ListItem", "position": position, "name": name}
+            if position < len(breadcrumbs):
+                row["item"] = absolute_url(route)
+            breadcrumb_rows.append(row)
+        graph.append(
+            {
+                "@type": "BreadcrumbList",
+                "@id": breadcrumb_id,
+                "itemListElement": breadcrumb_rows,
+            }
+        )
+        webpage["breadcrumb"] = {"@id": breadcrumb_id}
+    return {"@context": "https://schema.org", "@graph": graph}
 
 
 def remove_unsupported_claims(text: str) -> str:
@@ -217,8 +308,24 @@ def process_html(path: Path, facts: dict) -> tuple[str, bool]:
             "description",
             path,
         )
+        breadcrumbs = breadcrumb_items(route, text)
+        text = normalize_visible_breadcrumb(text, breadcrumbs, path)
+        service_type = SERVICE_SCHEMA_TYPES.get(route)
+        service_name = (
+            head_value(text, r"<h1[^>]*>(.*?)</h1>", "H1", path)
+            if service_type
+            else None
+        )
         payload = json.dumps(
-            verified_schema(canonical, title, description, facts),
+            verified_schema(
+                canonical,
+                title,
+                description,
+                facts,
+                service_type,
+                service_name,
+                breadcrumbs,
+            ),
             ensure_ascii=False,
             separators=(",", ":"),
         )
@@ -261,6 +368,12 @@ def generate_sitemap(indexable: set[str]) -> None:
     (PUBLIC / "sitemap.xml").write_text(sitemap)
 
 
+def generate_robots() -> None:
+    (PUBLIC / "robots.txt").write_text(
+        "User-agent: *\nAllow: /\n\nSitemap: https://pthhs.net/sitemap.xml\n"
+    )
+
+
 def expand_redirects() -> int:
     config_path = ROOT / "firebase.json"
     config = json.loads(config_path.read_text())
@@ -297,6 +410,7 @@ def main() -> None:
     results = [process_html(path, facts) for path in sorted(PUBLIC.rglob("*.html"))]
     indexable = {route for route, can_index in results if can_index and route != "/404"}
     generate_sitemap(indexable)
+    generate_robots()
     html_redirects = expand_redirects()
     print(
         f"SEO foundation generated for {len(results)} pages "

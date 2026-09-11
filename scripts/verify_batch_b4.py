@@ -108,7 +108,9 @@ for path in sorted(PUBLIC.rglob("*.html")):
                 payload = json.loads(schemas[0])
                 graph = payload.get("@graph", [])
                 types = {node.get("@type") for node in graph}
-                if types != {"Organization", "WebSite", "WebPage"}:
+                required_types = {"Organization", "WebSite", "WebPage"}
+                allowed_types = required_types | {"Service", "BreadcrumbList"}
+                if not required_types.issubset(types) or types - allowed_types:
                     errors.append(f"unexpected schema types: {relative} ({sorted(types)})")
                 organization = next((node for node in graph if node.get("@type") == "Organization"), {})
                 allowed = {"@type", "@id", "name", "url", "telephone", "email", "address"}
