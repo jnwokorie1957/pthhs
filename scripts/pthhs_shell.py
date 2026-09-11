@@ -40,7 +40,7 @@ def footer_markup() -> str:
 <div><a href="/" aria-label="Primetime home"><img class="footer-logo" src="/wp-content/themes/primetimehomeie989/images/footer-logo.png" alt="Primetime Home Health Services" width="410" height="203" loading="lazy"></a><p>Non-medical personal assistance services for eligible children, adults, and seniors throughout Greater Houston.</p></div>
 <div><h2>Explore</h2><ul><li><a href="/home-care-about-us">About</a></li><li><a href="/home-care-services">Services</a></li><li><a href="/home-care-areas-we-serve">Areas We Serve</a></li><li><a href="/home-care-insurance">Insurance &amp; Eligibility</a></li><li><a href="/home-care-resources">Resources</a></li></ul></div>
 <div><h2>Contact</h2><ul><li><a href="tel:7139777721">713-977-7721</a></li><li><a href="mailto:pas@pthhs.net">pas@pthhs.net</a></li><li>11602 Burdine St, Suite A<br>Houston, TX 77035</li><li><a href="/home-care-contact-us">Get Started</a></li></ul></div>
-</div><div class="shell footer-bottom">© 2026 Primetime Home Health Services, Inc. All rights reserved.</div></footer>'''
+</div><div class="shell footer-bottom"><span>© 2026 Primetime Home Health Services, Inc. All rights reserved.</span><span class="footer-legal"><a href="/privacy-policy">Privacy Policy</a><a href="/terms-of-use">Terms of Use</a></span></div></footer>'''
 
 
 def mobile_bar_markup() -> str:

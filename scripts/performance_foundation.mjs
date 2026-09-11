@@ -5,11 +5,16 @@ import sharp from 'sharp';
 const root = process.cwd();
 const publicDir = path.join(root, 'public');
 const sourceDir = path.join(root, 'source-assets', 'performance');
+const ownerSourceDir = path.join(root, 'source-assets', 'owner-content');
 const mediaDir = path.join(publicDir, 'assets', 'media');
 
 const responsiveImages = {
-  'side-img1': { width: 586, height: 586, widths: [320, 586] },
-  'side-img2': { width: 535, height: 684, widths: [320, 535] }
+  'side-img1': { width: 586, height: 586, sourceWidth: 586, sourceHeight: 586, widths: [320, 586], source: path.join(sourceDir, 'side-img1.webp') },
+  'side-img2': { width: 535, height: 684, sourceWidth: 535, sourceHeight: 684, widths: [320, 535], source: path.join(sourceDir, 'side-img2.webp') },
+  'staff-johnson': { width: 640, height: 698, sourceWidth: 867, sourceHeight: 945, widths: [320, 640], source: path.join(ownerSourceDir, 'Team-img6.jpg') },
+  'staff-irasema': { width: 640, height: 703, sourceWidth: 735, sourceHeight: 807, widths: [320, 640], source: path.join(ownerSourceDir, 'Team-img41.jpg') },
+  'staff-jeremy': { width: 640, height: 698, sourceWidth: 867, sourceHeight: 945, widths: [320, 640], source: path.join(ownerSourceDir, 'team-img42.jpg') },
+  'medication-reminders': { width: 300, height: 200, sourceWidth: 300, sourceHeight: 200, widths: [300], source: path.join(ownerSourceDir, 'medication-reminders.jpg') }
 };
 
 const intrinsicDimensions = new Map([
@@ -19,8 +24,18 @@ const intrinsicDimensions = new Map([
   ['/wp-content/themes/primetimehomeie989/images/mid-img2.webp', [209, 209]],
   ['/wp-content/themes/primetimehomeie989/images/mid-img3.webp', [209, 209]],
   ['/wp-content/themes/primetimehomeie989/images/mid-img4.webp', [209, 209]],
+  ['/wp-content/themes/primetimehomeie989/images/wellpoint.png', [300, 140]],
+  ['/wp-content/themes/primetimehomeie989/images/molina.png', [300, 140]],
+  ['/wp-content/themes/primetimehomeie989/images/united-healthcare.png', [300, 140]],
+  ['/wp-content/themes/primetimehomeie989/images/medicaid-1.png', [302, 151]],
+  ['/wp-content/themes/primetimehomeie989/images/texas-chldrn-hlth-plan.png', [300, 140]],
+  ['/wp-content/themes/primetimehomeie989/images/comm-health-choice.jpg', [300, 123]],
   ['/assets/media/side-img1-586.webp', [586, 586]],
   ['/assets/media/side-img2-535.webp', [535, 684]]
+  ,['/assets/media/staff-johnson-640.webp', [640, 698]]
+  ,['/assets/media/staff-irasema-640.webp', [640, 703]]
+  ,['/assets/media/staff-jeremy-640.webp', [640, 698]]
+  ,['/assets/media/medication-reminders-300.webp', [300, 200]]
 ]);
 
 const lcpByRoute = new Map([
@@ -61,7 +76,10 @@ function setAttr(tag, name, value) {
 }
 
 function responsiveName(src) {
-  return src.match(/\/(side-img[12])(?:-\d+)?\.webp$/i)?.[1] || '';
+  const name = src.match(/\/assets\/media\/([a-z0-9-]+)-\d+\.webp$/i)?.[1]
+    || src.match(/\/(side-img[12])(?:-\d+)?\.webp$/i)?.[1]
+    || '';
+  return responsiveImages[name] ? name : '';
 }
 
 function imageSizes(image) {
@@ -89,7 +107,7 @@ function lcpPreload(image) {
 
 function optimizeHtml(html, route) {
   html = html.replace(
-    /<picture\s+data-responsive-image=["']side-img[12]["'][^>]*>[\s\S]*?(<img\b[^>]*>)[\s\S]*?<\/picture>/gi,
+    /<picture\s+data-responsive-image=["'][^"']+["'][^>]*>[\s\S]*?(<img\b[^>]*>)[\s\S]*?<\/picture>/gi,
     '$1'
   );
   html = html.replace(/<link\b[^>]*data-lcp-image=["'][^"']+["'][^>]*>/gi, '');
@@ -127,9 +145,9 @@ function optimizeHtml(html, route) {
 async function generateResponsiveImages() {
   await fs.mkdir(mediaDir, { recursive: true });
   for (const [name, config] of Object.entries(responsiveImages)) {
-    const source = path.join(sourceDir, `${name}.webp`);
+    const source = config.source;
     const metadata = await sharp(source).metadata();
-    if (metadata.width !== config.width || metadata.height !== config.height) {
+    if (metadata.width !== config.sourceWidth || metadata.height !== config.sourceHeight) {
       throw new Error(`${name} source dimensions changed: ${metadata.width}x${metadata.height}`);
     }
     for (const width of config.widths) {
@@ -211,6 +229,6 @@ documents.push(await fs.readFile(path.join(publicDir, 'site.webmanifest'), 'utf8
 const pruned = await pruneLegacyPublicFiles(documents);
 
 console.log(
-  `Performance foundation processed ${htmlFiles.length} pages; generated 8 responsive images; ` +
+  `Performance foundation processed ${htmlFiles.length} pages; generated responsive image variants; ` +
   `pruned ${pruned.removedFiles} unreachable legacy files (${pruned.removedBytes} bytes).`
 );

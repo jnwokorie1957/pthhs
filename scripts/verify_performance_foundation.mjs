@@ -19,6 +19,12 @@ const expectedLegacyAssets = new Set([
   'wp-content/themes/primetimehomeie989/images/mid-img2.webp',
   'wp-content/themes/primetimehomeie989/images/mid-img3.webp',
   'wp-content/themes/primetimehomeie989/images/mid-img4.webp'
+  ,'wp-content/themes/primetimehomeie989/images/wellpoint.png'
+  ,'wp-content/themes/primetimehomeie989/images/molina.png'
+  ,'wp-content/themes/primetimehomeie989/images/united-healthcare.png'
+  ,'wp-content/themes/primetimehomeie989/images/medicaid-1.png'
+  ,'wp-content/themes/primetimehomeie989/images/texas-chldrn-hlth-plan.png'
+  ,'wp-content/themes/primetimehomeie989/images/comm-health-choice.jpg'
 ]);
 
 const expectedResponsiveAssets = new Set([
@@ -30,6 +36,20 @@ const expectedResponsiveAssets = new Set([
   'assets/media/side-img2-320.webp',
   'assets/media/side-img2-535.avif',
   'assets/media/side-img2-535.webp'
+  ,'assets/media/staff-johnson-320.avif'
+  ,'assets/media/staff-johnson-320.webp'
+  ,'assets/media/staff-johnson-640.avif'
+  ,'assets/media/staff-johnson-640.webp'
+  ,'assets/media/staff-irasema-320.avif'
+  ,'assets/media/staff-irasema-320.webp'
+  ,'assets/media/staff-irasema-640.avif'
+  ,'assets/media/staff-irasema-640.webp'
+  ,'assets/media/staff-jeremy-320.avif'
+  ,'assets/media/staff-jeremy-320.webp'
+  ,'assets/media/staff-jeremy-640.avif'
+  ,'assets/media/staff-jeremy-640.webp'
+  ,'assets/media/medication-reminders-300.avif'
+  ,'assets/media/medication-reminders-300.webp'
 ]);
 
 async function walk(dir, predicate = () => true) {
@@ -91,7 +111,7 @@ for (const file of htmlFiles) {
   }
   if (/<(?:iframe|embed|form)\b/i.test(html)) errors.push(`embedded runtime or form remains: ${relative}`);
 
-  const pictures = [...html.matchAll(/<picture\s+data-responsive-image=["'](side-img[12])["'][^>]*>([\s\S]*?)<\/picture>/gi)];
+  const pictures = [...html.matchAll(/<picture\s+data-responsive-image=["']([a-z0-9-]+)["'][^>]*>([\s\S]*?)<\/picture>/gi)];
   pictureCount += pictures.length;
   for (const picture of pictures) {
     const sources = [...picture[2].matchAll(/<source\b[^>]*>/gi)].map((item) => item[0]);
@@ -177,8 +197,8 @@ if (phpFiles.length) errors.push(`public PHP endpoints remain: ${phpFiles.join('
 
 const publicFiles = await walk(publicDir);
 const publicBytes = (await Promise.all(publicFiles.map((file) => fs.stat(file)))).reduce((sum, stat) => sum + stat.size, 0);
-if (publicBytes > 2_000_000) errors.push(`public output exceeds 2 MB foundation budget: ${publicBytes}`);
-if (pictureCount !== 4 || preloadCount !== 3) errors.push(`expected 4 responsive pictures and 3 LCP preloads, found ${pictureCount}/${preloadCount}`);
+if (publicBytes > 2_400_000) errors.push(`public output exceeds 2.4 MB foundation budget: ${publicBytes}`);
+if (pictureCount !== 9 || preloadCount !== 3) errors.push(`expected 9 responsive pictures and 3 LCP preloads, found ${pictureCount}/${preloadCount}`);
 if (externalRuntimeCount !== 0) errors.push(`expected zero external runtime resources, found ${externalRuntimeCount}`);
 
 const plan = await fs.readFile(path.join(root, 'plan.md'), 'utf8');

@@ -35,6 +35,7 @@
 .template-refresh .career-steps{padding-left:24px;display:grid;gap:14px}
 .template-refresh .footer-bottom{display:flex;flex-wrap:wrap;justify-content:space-between;gap:14px}
 .template-refresh .footer-bottom a{text-decoration:underline}
+.footer-legal{display:flex;flex-wrap:wrap;gap:18px}.staff-card{padding:0;overflow:hidden}.staff-card>img{width:100%;aspect-ratio:1/1;object-fit:cover;object-position:center 20%}.staff-card>div{padding:26px}.staff-role{font-weight:800;color:var(--blue)!important}.review-card blockquote{margin:14px 0 22px;font-size:1.2rem;line-height:1.55;color:var(--ink)}.review-card .stars{color:var(--orange);letter-spacing:.18em;font-size:1.1rem}.staff-profile .photo-frame{aspect-ratio:4/5}.staff-profile .photo-frame img{object-position:center 20%}
 .template-refresh [id]{scroll-margin-top:115px}
 .template-refresh .cta-band .hero-actions{margin-top:24px}
 .template-refresh .mobile-care-bar{padding-bottom:env(safe-area-inset-bottom);background:var(--blue-dark)}

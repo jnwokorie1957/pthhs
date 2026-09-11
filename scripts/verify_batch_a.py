@@ -22,6 +22,8 @@ required_files = [
     "PTHHS_PAYER_EVIDENCE_REGISTER.md",
     "PTHHS_CLAIM_RELEASE_GATE.md",
     "PTHHS_BLOG_SCOPE_TRIAGE.md",
+    "PTHHS_OWNER_ATTESTATION.md",
+    "PTHHS_REVIEW_SOURCE_REGISTER.md",
 ]
 for name in required_files:
     if not (ROOT / name).exists():
@@ -69,6 +71,12 @@ for path in high_risk_pages:
     for phrase in ["95k", "100% satisfaction", "awards win", "premier home health agency", "specialized medical attention", "common diagnosis"]:
         if phrase in text:
             errors.append(f"unsupported claim '{phrase}' in {path.relative_to(ROOT)}")
+
+facts = json.loads((ROOT / "PTHHS_PUBLIC_FACTS.json").read_text())
+if facts.get("approval_basis") != "Business-owner attestation received September 11, 2026":
+    errors.append("owner-attestation approval basis is missing from public facts")
+if facts.get("service_scope") != "Non-medical personal assistance services (PAS)":
+    errors.append("non-medical PAS scope changed")
 
 for slug in BLOG_SLUGS:
     path = PUBLIC / f"{slug}.html"

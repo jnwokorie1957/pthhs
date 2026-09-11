@@ -6,45 +6,15 @@ from __future__ import annotations
 import html
 import json
 import re
+import subprocess
+from datetime import datetime
+from zoneinfo import ZoneInfo
 from pathlib import Path
 from urllib.parse import urlsplit
 
 ROOT = Path(__file__).resolve().parents[1]
 PUBLIC = ROOT / "public"
 HOST = "https://pthhs.net"
-
-# This is the reviewed sitemap publication set. Other indexable pages can remain
-# discoverable, but they are not promoted here until their business facts are
-# revalidated. The generator checks every entry against its page canonical.
-SITEMAP_ROUTES = (
-    "/",
-    "/home-health-agency-in-houston-texas",
-    "/home-care-about-us",
-    "/home-care-meet-our-staff",
-    "/home-care-services",
-    "/home-care-services/activities-of-daily-living-adl",
-    "/home-care-services/attendant-care-services",
-    "/home-care-services/personal-care",
-    "/home-care-services/respite-care",
-    "/home-care-services/medication-reminders",
-    "/home-care-insurance",
-    "/home-care-areas-we-serve",
-    "/locations/houston",
-    "/locations/alief",
-    "/locations/sharpstown",
-    "/locations/gulfton",
-    "/locations/southwest-houston",
-    "/locations/sunnyside",
-    "/locations/katy",
-    "/locations/sugar-land",
-    "/home-care-client-reviews",
-    "/home-care-careers",
-    "/home-care-contact-us",
-    "/home-care-resources",
-    "/home-care-blog",
-    "/privacy-policy",
-    "/terms-of-use",
-)
 
 # Additional historical paths documented in the repository's redirect map.
 DOCUMENTED_LEGACY_REDIRECTS = {
@@ -230,56 +200,8 @@ def verified_schema(
     return {"@context": "https://schema.org", "@graph": graph}
 
 
-def remove_unsupported_claims(text: str) -> str:
-    text = re.sub(r"\blong-standing\b", "Houston-based", text, flags=re.I)
-    text = re.sub(
-        r'<article class="card(?: text-card)?"><h3>Protective Supervision</h3>.*?</article>',
-        '<article class="card text-card"><h3>Authorization-based support</h3>'
-        '<p>Available tasks depend on the client’s program, assessed needs, and current service authorization.</p>'
-        '<a class="card-link" href="/home-care-insurance">Review Eligibility Information →</a></article>',
-        text,
-        flags=re.I | re.S,
-    )
-    text = re.sub(
-        r'<div class="stars"[^>]*>★★★★★</div>',
-        '<div class="section-label">Feedback and privacy</div>',
-        text,
-        flags=re.I,
-    )
-    replacements = {
-        "We work with major health plans serving Houston families":
-            "Understand eligibility and current plan requirements",
-        "Plan networks and authorizations can change. Contact us with your plan name and member information so our team can confirm current participation and explain the next step.":
-            "Eligibility, network status, and authorization are determined by the applicable plan and can change. Confirm benefits with the plan, then ask Primetime whether the agency can currently accept the referral.",
-        "Which Medicaid plans does Primetime work with?":
-            "How can I check current plan participation?",
-        "Primetime works with multiple Texas Medicaid and managed-care plans. Because network participation can change, contact our office to verify the current status of your plan.":
-            "Named network claims are withheld until current documentation is approved. Confirm network status with the plan and Primetime before relying on coverage.",
-        "Primetime works with multiple Medicaid managed-care plans. Plan participation can change, so contact us to confirm the current status.":
-            "Named network claims are withheld until current documentation is approved. Contact the plan and Primetime to confirm current status.",
-        "Multiple Medicaid Plans": "Plan-Specific Eligibility",
-        "Greater Houston & Region 5/6 Coverage": "Confirm Location Availability",
-        "Flexible Care Schedules": "Authorization-Based Support",
-        "Protective supervision when authorized through an applicable program":
-            "Other non-medical tasks when included in an applicable service authorization",
-        "Hear directly from families who have worked with Primetime":
-            "How Primetime handles client feedback",
-        "Our client reviews page brings together testimonials about the care, communication and support families have experienced with our team.":
-            "Individual testimonials remain unpublished until source, permission, attribution, accuracy, and privacy checks are documented.",
-    }
-    for unsafe, safe in replacements.items():
-        text = text.replace(unsafe, safe)
-    # Repair awkward combinations and punctuation exposed by the conservative
-    # historical-claim rewrite in legacy location templates.
-    text = re.sub(r"Houston-based (?:Houston|local) agency", "Houston-based agency", text, flags=re.I)
-    text = re.sub(r"Houston-based local team", "Houston-based team", text, flags=re.I)
-    text = re.sub(r"\bincluding ([^<.,]+),\.", r"including \1.", text)
-    return text
-
-
 def process_html(path: Path, facts: dict) -> tuple[str, bool]:
     text = path.read_text(errors="strict")
-    text = remove_unsupported_claims(text)
     text = re.sub(r'<meta\s+name=["\']keywords["\'][^>]*>', "", text, flags=re.I)
     text = re.sub(
         r'<script\b[^>]*type=["\']application/ld\+json["\'][^>]*>[\s\S]*?</script>',
@@ -342,9 +264,38 @@ def process_html(path: Path, facts: dict) -> tuple[str, bool]:
     return route, not noindex
 
 
+def reliable_lastmod(path: Path) -> str:
+    relative = path.relative_to(ROOT).as_posix()
+    dirty = subprocess.run(
+        ["git", "status", "--porcelain", "--", relative],
+        cwd=ROOT,
+        check=True,
+        text=True,
+        capture_output=True,
+    ).stdout.strip()
+    if dirty:
+        return datetime.now(ZoneInfo("America/Chicago")).date().isoformat()
+    committed = subprocess.run(
+        ["git", "log", "-1", "--format=%cs", "--", relative],
+        cwd=ROOT,
+        check=True,
+        text=True,
+        capture_output=True,
+    ).stdout.strip()
+    if committed:
+        return committed
+    return subprocess.run(
+        ["git", "show", "-s", "--format=%cs", "HEAD"],
+        cwd=ROOT,
+        check=True,
+        text=True,
+        capture_output=True,
+    ).stdout.strip()
+
+
 def generate_sitemap(indexable: set[str]) -> None:
     rows = []
-    for route in SITEMAP_ROUTES:
+    for route in sorted(indexable, key=lambda value: (value != "/", value)):
         path = file_for_route(route)
         text = path.read_text(errors="strict")
         if route not in indexable or is_noindex(text):
@@ -358,7 +309,10 @@ def generate_sitemap(indexable: set[str]) -> None:
         expected = f"{HOST}{'/' if route == '/' else route}"
         if canonical != expected:
             raise RuntimeError(f"sitemap canonical mismatch: {route}")
-        rows.append(f"  <url><loc>{html.escape(canonical)}</loc></url>")
+        rows.append(
+            f"  <url><loc>{html.escape(canonical)}</loc>"
+            f"<lastmod>{reliable_lastmod(path)}</lastmod></url>"
+        )
     sitemap = (
         '<?xml version="1.0" encoding="UTF-8"?>\n'
         '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
@@ -414,7 +368,7 @@ def main() -> None:
     html_redirects = expand_redirects()
     print(
         f"SEO foundation generated for {len(results)} pages "
-        f"({len(indexable)} indexable schemas, {len(SITEMAP_ROUTES)} sitemap URLs, "
+        f"({len(indexable)} indexable schemas and sitemap URLs, "
         f"{html_redirects} explicit .html redirects added)."
     )
 

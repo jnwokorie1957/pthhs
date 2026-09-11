@@ -26,8 +26,8 @@ const coreMeta = {
     description: 'Explore Primetime Home Health Services coverage across Greater Houston and surrounding Texas counties, with community and ZIP-level service information.'
   },
   '/home-care-insurance': {
-    title: 'Medicaid & Insurance for Houston Home Care | Primetime',
-    description: 'Learn how eligibility, authorization and changing network status affect non-medical personal assistance services in Greater Houston.'
+    title: 'Insurance & Medicaid Plans | Primetime Home Health Services Houston',
+    description: 'Review Medicaid and managed-care plans Primetime works with in Greater Houston, including UnitedHealthcare, Molina, Wellpoint, Texas Children’s Health Plan and Community Health Choice.'
   },
   '/home-care-contact-us': {
     title: 'Contact Primetime Home Health | Houston, TX',
@@ -38,16 +38,16 @@ const coreMeta = {
     description: 'Explore caregiver and home care career opportunities with Primetime Home Health Services in Houston and surrounding communities.'
   },
   '/home-care-client-reviews': {
-    title: 'Client Feedback | Primetime Home Health Houston',
-    description: 'Learn how Primetime handles service feedback, testimonial permission, attribution and privacy for non-medical personal assistance services.'
+    title: 'Google Reviews | Primetime Home Health Services Houston',
+    description: 'Read public Google review excerpts about the communication, responsiveness and support provided by Primetime Home Health Services in Houston.'
   },
   '/home-care-meet-our-staff': {
-    title: 'Our Team | Primetime Home Health Services',
-    description: 'Learn how Primetime\'s Houston office and attendants support authorized, non-medical personal assistance services.'
+    title: 'Meet Our Leadership Team | Primetime Home Health Services',
+    description: 'Meet the Primetime Home Health Services leadership team coordinating non-medical personal assistance and attendant support in Greater Houston.'
   },
   '/home-care-meet-our-staff/johnson-nwokorie': {
-    title: 'Staff Profile Review | Primetime Home Health',
-    description: 'This archived staff biography is withheld while its role, credential and history claims are revalidated.'
+    title: 'Johnson Nwokorie | Administrator | Primetime Home Health',
+    description: 'Meet Johnson Nwokorie, founder and Administrator of Primetime Home Health Services, with more than 25 years of Houston home-care leadership experience.'
   },
   '/home-care-resources': {
     title: 'Official Home Care Resources | Primetime Houston',

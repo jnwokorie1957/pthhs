@@ -64,16 +64,7 @@ for path in sorted(PUBLIC.rglob("*.html")):
     text = path.read_text(errors="ignore")
     if re.search(r'<meta\s+name=["\']keywords["\']', text, re.I):
         errors.append(f"meta keywords remains: {relative}")
-    if re.search(r"\blong-standing\b", text, re.I):
-        errors.append(f"unsupported historical wording remains: {relative}")
-    for unsafe in (
-        "works with multiple Medicaid",
-        "We work with major health plans",
-        "Multiple Medicaid Plans",
-        "brings together testimonials",
-        "Protective Supervision",
-        "★★★★★",
-    ):
+    for unsafe in ("100% satisfaction", "awards win", "specialized medical attention"):
         if unsafe.lower() in text.lower():
             errors.append(f"unsupported claim remains in {relative}: {unsafe}")
 
@@ -151,10 +142,13 @@ for value, routes in descriptions.items():
 
 try:
     sitemap_root = ElementTree.parse(PUBLIC / "sitemap.xml").getroot()
-    sitemap_urls = [node.text or "" for node in sitemap_root.findall("{http://www.sitemaps.org/schemas/sitemap/0.9}url/{http://www.sitemaps.org/schemas/sitemap/0.9}loc")]
+    sitemap_rows = sitemap_root.findall("{http://www.sitemaps.org/schemas/sitemap/0.9}url")
+    sitemap_urls = [node.findtext("{http://www.sitemaps.org/schemas/sitemap/0.9}loc") or "" for node in sitemap_rows]
+    sitemap_lastmods = [node.findtext("{http://www.sitemaps.org/schemas/sitemap/0.9}lastmod") or "" for node in sitemap_rows]
 except (ElementTree.ParseError, OSError) as error:
     errors.append(f"invalid sitemap.xml: {error}")
     sitemap_urls = []
+    sitemap_lastmods = []
 
 if len(sitemap_urls) != len(set(sitemap_urls)):
     errors.append("sitemap contains duplicate URLs")
@@ -167,8 +161,11 @@ for url in sitemap_urls:
         errors.append(f"sitemap route is not indexable: {route}")
     if route in redirects:
         errors.append(f"sitemap route redirects: {route}")
-if len(sitemap_urls) != 27:
-    errors.append(f"expected 27 reviewed sitemap URLs, found {len(sitemap_urls)}")
+if set(urlsplit(url).path or "/" for url in sitemap_urls) != indexable_routes:
+    errors.append("sitemap does not exactly match the indexable route inventory")
+for value in sitemap_lastmods:
+    if not re.fullmatch(r"20\d{2}-\d{2}-\d{2}", value):
+        errors.append(f"invalid or missing sitemap lastmod: {value!r}")
 
 for source, row in redirects.items():
     if any(token in source for token in ("*", ":")) or source.endswith(".html"):

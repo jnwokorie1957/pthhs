@@ -14,7 +14,7 @@ errors: list[str] = []
 
 pages = {
     "home-care-meet-our-staff.html": False,
-    "home-care-meet-our-staff/johnson-nwokorie.html": True,
+    "home-care-meet-our-staff/johnson-nwokorie.html": False,
     "home-care-resources.html": False,
 }
 
@@ -46,9 +46,17 @@ for relative, should_noindex in pages.items():
 
 staff_text = (PUBLIC / "home-care-meet-our-staff.html").read_text(errors="ignore").lower()
 profile_text = (PUBLIC / "home-care-meet-our-staff/johnson-nwokorie.html").read_text(errors="ignore").lower()
-for claim in ["500 pas attendants", "10 office supervisors", "bachelor", "master's", "certification", "texas southern university", "founder"]:
-    if claim in staff_text or claim in profile_text:
-        errors.append(f"unverified staff claim remains: {claim}")
+for required in ["johnson nwokorie", "irasema baron", "jeremy nwokorie", "administrator &amp; founder", "general manager", "assistant administrator"]:
+    if required not in staff_text:
+        errors.append(f"owner-approved staff content missing: {required}")
+for required in ["johnson nwokorie", "texas southern university", "bachelor", "master"]:
+    if required not in profile_text:
+        errors.append(f"owner-approved Johnson profile content missing: {required}")
+for forbidden in ["500 pas attendants", "10 office supervisors", "asian-speaking", "diagnose", "skilled nursing"]:
+    if forbidden in staff_text or forbidden in profile_text:
+        errors.append(f"unapproved or misleading staff claim remains: {forbidden}")
+if not (ROOT / "PTHHS_OWNER_ATTESTATION.md").exists():
+    errors.append("owner attestation record missing")
 
 resource_text = (PUBLIC / "home-care-resources.html").read_text(errors="ignore")
 allowed_hosts = {"www.hhs.texas.gov", "www.yourtexasbenefits.com", "www.medicaid.gov", "www.211texas.org"}
@@ -74,4 +82,4 @@ if errors:
         print("-", error)
     raise SystemExit(1)
 
-print("BATCH_B1_QA: PASS (staff claims suppressed; 3 pages on shared shell; 6 resources governed)")
+print("BATCH_B1_QA: PASS (owner-approved staff profiles restored; 3 pages on shared shell; 6 resources governed)")

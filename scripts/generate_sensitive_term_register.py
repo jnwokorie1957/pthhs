@@ -47,6 +47,10 @@ def classify(term: str, text: str, quarantined: bool) -> tuple[str, str]:
         return "ALLOWED", "Scope FAQ question paired with a limiting answer on the same page."
     if term == "administer" and "administer requested services" in low:
         return "ALLOWED", "Ordinary operational verb; not medication administration."
+    if term == "administer" and "health and human services administers medicaid" in low:
+        return "EDUCATIONAL_WITH_CONTEXT", "Describes the government agency's public-program role."
+    if term == "medical" and "medical emergency" in low and "call 911" in low:
+        return "ALLOWED", "Emergency direction limits website and agency contact channels."
     if "healthcare provider" in low or "licensed healthcare" in low or "physician" in low or "health plan" in low:
         return "EDUCATIONAL_WITH_CONTEXT", "Refers users to an external licensed provider, plan, or provider-established instruction."
     if term == "medical" and ("medicaid" in low or "medical assistance" in low):

@@ -33,7 +33,11 @@ for (const file of htmlFiles) {
   const normalized = original
     .replace(/<p style=["']margin-top:26px["']>/g, '<p class="action-row-spaced">')
     .replace(/<div class=["']hero-actions["'] style=["']margin-top:26px["']>/g, '<div class="hero-actions hero-actions-spaced">')
-    .replace(/<h2 class=["']section-title["'] style=["']margin-top:40px["']>/g, '<h2 class="section-title section-title-spaced">');
+    .replace(/<h2 class=["']section-title["'] style=["']margin-top:40px["']>/g, '<h2 class="section-title section-title-spaced">')
+    .replace(
+      /<div class=["']shell footer-bottom["']>© 2026 Primetime Home Health Services, Inc\. All rights reserved\.<\/div>/g,
+      '<div class="shell footer-bottom"><span>© 2026 Primetime Home Health Services, Inc. All rights reserved.</span><span class="footer-legal"><a href="/privacy-policy">Privacy Policy</a><a href="/terms-of-use">Terms of Use</a></span></div>',
+    );
   const updated = normalized.replace(
     /(\b(?:href|src)=)(["'])(\/assets\/[^"'?#]+\.(?:css|js))(?:\?v=[^"'#]*)?\2/gi,
     (match, attribute, quote, assetUrl) => {
