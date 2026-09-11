@@ -137,15 +137,15 @@ Unify the site, remove service-scope contradictions, verify payer/trust claims, 
 
 - [x] **85. [P1] Remove WP Rocket delayed-script code and unused WordPress plugin/theme JS** from migrated pages. **When:** Sep 12–18. **Completed Sep 10:** the sitewide shell gate confirms zero WP Rocket, WordPress plugin, or legacy theme JavaScript references across all HTML files.
 - [x] **86. [P1] Remove unused legacy CSS, Font Awesome, carousel, and theme assets** as templates migrate. **When:** Sep 12–18. **Completed Sep 11:** removed 26 unreferenced WordPress, plugin, Font Awesome, carousel, and theme CSS/JS files (523 KB); the gate now permits only the six shared modern runtime assets.
-- [ ] **87. [P2] Convert oversized photography to responsive WebP/AVIF variants** with appropriate fallbacks. **When:** Sep 19–Oct 2.
-- [ ] **88. [P2] Add intrinsic image/embed dimensions or `aspect-ratio`** to control layout shift. **When:** Sep 19–Oct 2.
-- [ ] **89. [P2] Lazy-load below-the-fold images/iframes but never lazy-load the LCP/hero image.** **When:** Sep 19–Oct 2.
-- [ ] **90. [P2] Preload only the actual LCP image/font needed in the first viewport** and remove speculative preloads. **When:** Sep 19–Oct 2.
-- [ ] **91. [P2] Reduce webfont families/weights, subset or self-host where practical, and use `font-display: swap`.** **When:** Sep 19–Oct 2.
+- [x] **87. [P2] Convert oversized photography to responsive WebP/AVIF variants** with appropriate fallbacks. **When:** Sep 19–Oct 2. **Completed Sep 11:** the two shared photographs now use generated 320px/full-width AVIF and WebP candidates with a WebP fallback; high-resolution build sources live outside the deploy output.
+- [x] **88. [P2] Add intrinsic image/embed dimensions or `aspect-ratio`** to control layout shift. **When:** Sep 19–Oct 2. **Completed Sep 11:** corrected inaccurate logo and photography dimensions and release-gated every one of the 276 rendered image instances against decoded file dimensions; no embeds are present.
+- [x] **89. [P2] Lazy-load below-the-fold images/iframes but never lazy-load the LCP/hero image.** **When:** Sep 19–Oct 2. **Completed Sep 11:** all 141 below-the-fold/footer instances load lazily; the three hero LCP images and header logos load eagerly, and no iframe is present.
+- [x] **90. [P2] Preload only the actual LCP image/font needed in the first viewport** and remove speculative preloads. **When:** Sep 19–Oct 2. **Completed Sep 11:** Home, Services, and About each preload exactly one responsive AVIF hero candidate; all other pages and fonts have no preload.
+- [x] **91. [P2] Reduce webfont families/weights, subset or self-host where practical, and use `font-display: swap`.** **When:** Sep 19–Oct 2. **Completed Sep 11:** removed the Google Fonts import and both remote families in favor of one system-font stack, eliminating font downloads and making `font-display` unnecessary.
 - [ ] **92. [P2] Fingerprint/version CSS and JS when using long cache lifetimes** and align Firebase caching rules with the deployment strategy. **When:** Sep 19–Oct 2.
 - [ ] **93. [P2] Audit response headers and add CSP, `X-Content-Type-Options`, `Referrer-Policy`, `Permissions-Policy`, and clickjacking protection where compatible.** **When:** Sep 19–Oct 2.
 - [ ] **94. [P2] Verify HTTP→HTTPS, alternate-host redirects, and HSTS behavior** so all requests reach one canonical HTTPS URL without chains. **When:** Sep 19–Oct 2.
-- [ ] **95. [P2] Inventory every third-party script, iframe, form endpoint, font, analytics tag, and external asset** and remove/document dependencies. **When:** Sep 19–Oct 2.
+- [x] **95. [P2] Inventory every third-party script, iframe, form endpoint, font, analytics tag, and external asset** and remove/document dependencies. **When:** Sep 19–Oct 2. **Completed Sep 11:** documented zero passive third-party runtimes, removed the external font request and unreachable PHP endpoint, classified all 138 external navigation links, and added an allowlist-based dependency gate.
 - [ ] **96. [P3] Set measurable performance budgets** for LCP, CLS, INP, total JS, and image weight and flag regressions on representative mobile pages. **When:** Oct 3–23.
 
 ### G. Local SEO, content, analytics & operations
