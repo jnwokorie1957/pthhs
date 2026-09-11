@@ -33,16 +33,47 @@ textarea {
   padding: var(--space-2) var(--space-3);
   color: var(--ink);
   background: var(--white);
-  border: 1px solid #aebdca;
+  border: 1px solid #627486;
   border-radius: var(--radius-sm);
 }
 
 textarea { min-height: 8rem; resize: vertical; }
 label { display: inline-block; margin-bottom: var(--space-1); font-weight: 700; }
+::placeholder { color: #5d6878; opacity: 1; }
+
+.skip-link {
+  position: fixed;
+  z-index: 1000;
+  top: var(--space-2);
+  left: var(--space-3);
+  padding: var(--space-2) var(--space-4);
+  color: var(--blue-dark);
+  background: #fff;
+  border: 2px solid var(--blue);
+  border-radius: var(--radius-sm);
+  transform: translateY(calc(-100% - 2rem));
+}
+
+.skip-link:focus,
+.skip-link:focus-visible { transform: translateY(0); }
 
 :where(a, button, input, select, textarea, summary):focus-visible {
   outline: var(--focus-ring);
   outline-offset: var(--focus-offset);
+}
+
+:where(.site-footer, .cta-band) :focus-visible,
+.mobile-care-bar a:first-child:focus-visible { outline-color: #fff; }
+:where(.nav-cta, .btn-primary, .mobile-care-bar a:last-child):focus-visible { outline-color: #172033; }
+.card:focus-within { box-shadow: 0 0 0 3px #1768b5, var(--shadow); }
+
+:where(.site-nav a, .mobile-care-bar a, .site-footer a, .card-link, .breadcrumb a, summary) {
+  min-height: 44px;
+}
+
+:where(.site-footer a, .card-link, .breadcrumb a, summary) {
+  display: inline-flex;
+  align-items: center;
 }
 
 :where(button, input, select, textarea):disabled {
@@ -62,5 +93,10 @@ label { display: inline-block; margin-bottom: var(--space-1); font-weight: 700; 
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
-  *::after { scroll-behavior: auto !important; }
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+  }
 }

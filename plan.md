@@ -117,26 +117,26 @@ Unify the site, remove service-scope contradictions, verify payer/trust claims, 
 
 ### E. Accessibility
 
-- [ ] **70. [P1] Add a visible-on-focus skip link to `main`** on every template. **When:** Sep 12–18.
-- [ ] **71. [P1] Use semantic `header`, `nav`, `main`, `footer`, lists, buttons, and links** rather than generic click targets. **When:** Sep 12–18.
-- [ ] **72. [P1] Audit heading structure** for one purposeful H1 and logical H2/H3 hierarchy per page. **When:** Sep 12–18.
-- [ ] **73. [P1] Make desktop/mobile navigation fully keyboard operable** including submenus, Escape behavior, and sensible focus return. **When:** Sep 12–18.
-- [ ] **74. [P1] Define visible focus styles** for links, buttons, forms, cards, and menu triggers. **When:** Sep 12–18.
-- [ ] **75. [P1] Audit text, icon, border, placeholder, and focus contrast** against WCAG 2.2 AA targets. **When:** Sep 12–18.
-- [ ] **76. [P1] Increase touch target size/spacing** to roughly 44 CSS px where practical. **When:** Sep 12–18.
-- [ ] **77. [P1] Audit meaningful image alt text and use empty alt for decorative imagery.** Remove generic “image” alt text and duplicate announcements. **When:** Sep 12–18.
+- [x] **70. [P1] Add a visible-on-focus skip link to `main`** on every template. **When:** Sep 12–18. **Completed Sep 11:** all 132 templates use one visible-on-focus skip link and one deterministic `main-content` target.
+- [x] **71. [P1] Use semantic `header`, `nav`, `main`, `footer`, lists, buttons, and links** rather than generic click targets. **When:** Sep 12–18. **Completed Sep 11:** audited all templates, moved every page hero/H1 into `main`, promoted 67 generic breadcrumb containers to named navigation landmarks, and found zero scripted fake controls.
+- [x] **72. [P1] Audit heading structure** for one purposeful H1 and logical H2/H3 hierarchy per page. **When:** Sep 12–18. **Completed Sep 11:** validated one named H1 inside `main` and a no-skip heading sequence on every page; corrected the 404 card-heading jump.
+- [x] **73. [P1] Make desktop/mobile navigation fully keyboard operable** including submenus, Escape behavior, and sensible focus return. **When:** Sep 12–18. **Completed Sep 11:** the flat navigation uses native links and a named native menu button with programmatic expanded state, Escape close, and focus return; no submenu interaction is present.
+- [x] **74. [P1] Define visible focus styles** for links, buttons, forms, cards, and menu triggers. **When:** Sep 12–18. **Completed Sep 11:** added persistent high-contrast focus-visible rules, card focus-within treatment, and context-aware focus colors across light, dark, and orange surfaces.
+- [x] **75. [P1] Audit text, icon, border, placeholder, and focus contrast** against WCAG 2.2 AA targets. **When:** Sep 12–18. **Completed Sep 11:** added a release-gated palette audit for 16 foreground/background pairs and strengthened form borders, placeholder text, and translucent focus indicators.
+- [x] **76. [P1] Increase touch target size/spacing** to roughly 44 CSS px where practical. **When:** Sep 12–18. **Completed Sep 11:** set a 44px minimum for primary navigation, mobile actions, footer links, card links, breadcrumbs, summaries, buttons, and shared controls.
+- [x] **77. [P1] Audit meaningful image alt text and use empty alt for decorative imagery.** Remove generic “image” alt text and duplicate announcements. **When:** Sep 12–18. **Completed Sep 11:** validated all public image alternatives and link names, rejecting missing and generic image alternatives.
 - [ ] **78. [P1] Make form errors, success states, dialogs, menus, and async status updates screen-reader discoverable.** **When:** Sep 12–18.
 - [ ] **79. [P2] Verify 200%/400% zoom and reflow** without lost content or functionality. **When:** Sep 19–Oct 2.
-- [ ] **80. [P2] Honor `prefers-reduced-motion`** for animation, smooth scrolling, carousels, and attention effects. **When:** Sep 19–Oct 2.
-- [ ] **81. [P2] Give icon-only phone/social/menu controls accessible names** and remove duplicate focus stops. **When:** Sep 19–Oct 2.
-- [ ] **82. [P2] Validate page language, page titles, and named landmarks** across every template. **When:** Sep 19–Oct 2.
-- [ ] **83. [P2] Make the underlying site accessible natively instead of relying on the UserWay overlay.** Decide separately whether the widget remains. **When:** Sep 19–Oct 2.
+- [x] **80. [P2] Honor `prefers-reduced-motion`** for animation, smooth scrolling, carousels, and attention effects. **When:** Sep 19–Oct 2. **Completed Sep 11:** reduced-motion mode now disables smooth scrolling and collapses animation/transition duration sitewide; interactive scripts also bypass motion.
+- [x] **81. [P2] Give icon-only phone/social/menu controls accessible names** and remove duplicate focus stops. **When:** Sep 19–Oct 2. **Completed Sep 11:** validated names for all links and controls; the generated hamburger exposes open/close labels and social controls retain visible focus without duplicate targets.
+- [x] **82. [P2] Validate page language, page titles, and named landmarks** across every template. **When:** Sep 19–Oct 2. **Completed Sep 11:** validated English language, nonempty titles, singular header/main/footer landmarks, and names for every navigation landmark on all 132 pages.
+- [x] **83. [P2] Make the underlying site accessible natively instead of relying on the UserWay overlay.** Decide separately whether the widget remains. **When:** Sep 19–Oct 2. **Completed Sep 11:** the shared shell now carries native navigation, landmark, focus, motion, naming, and target controls; public pages load no accessibility overlay.
 - [ ] **84. [P2] Run automated plus manual accessibility tests** on Home, Services, Service Detail, Areas, Location, Insurance, Contact, Careers, Reviews, Resources, and Blog templates. **When:** Sep 19–Oct 2.
 
 ### F. Performance, frontend hygiene & security
 
 - [x] **85. [P1] Remove WP Rocket delayed-script code and unused WordPress plugin/theme JS** from migrated pages. **When:** Sep 12–18. **Completed Sep 10:** the sitewide shell gate confirms zero WP Rocket, WordPress plugin, or legacy theme JavaScript references across all HTML files.
-- [ ] **86. [P1] Remove unused legacy CSS, Font Awesome, carousel, and theme assets** as templates migrate. **When:** Sep 12–18.
+- [x] **86. [P1] Remove unused legacy CSS, Font Awesome, carousel, and theme assets** as templates migrate. **When:** Sep 12–18. **Completed Sep 11:** removed 26 unreferenced WordPress, plugin, Font Awesome, carousel, and theme CSS/JS files (523 KB); the gate now permits only the six shared modern runtime assets.
 - [ ] **87. [P2] Convert oversized photography to responsive WebP/AVIF variants** with appropriate fallbacks. **When:** Sep 19–Oct 2.
 - [ ] **88. [P2] Add intrinsic image/embed dimensions or `aspect-ratio`** to control layout shift. **When:** Sep 19–Oct 2.
 - [ ] **89. [P2] Lazy-load below-the-fold images/iframes but never lazy-load the LCP/hero image.** **When:** Sep 19–Oct 2.

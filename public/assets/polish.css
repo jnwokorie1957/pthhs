@@ -27,7 +27,7 @@ a.address-link::after{content:' ↗';font-size:.82em}
 .nav-wrap{position:relative}
 .menu-toggle{display:none;width:48px;height:48px;flex:0 0 48px;border:1px solid #cddfee;border-radius:14px;background:#fff;align-items:center;justify-content:center;flex-direction:column;gap:5px;cursor:pointer;color:#172033;box-shadow:0 5px 18px rgba(14,64,110,.08);-webkit-tap-highlight-color:transparent}
 .menu-toggle span{display:block;width:22px;height:2px;border-radius:999px;background:currentColor;transition:transform .25s ease,opacity .2s ease}
-.menu-toggle:focus-visible{outline:3px solid rgba(23,104,181,.35);outline-offset:3px}
+.menu-toggle:focus-visible{outline:3px solid #1768b5;outline-offset:3px}
 .menu-toggle[aria-expanded="true"] span:nth-child(1){transform:translateY(7px) rotate(45deg)}
 .menu-toggle[aria-expanded="true"] span:nth-child(2){opacity:0}
 .menu-toggle[aria-expanded="true"] span:nth-child(3){transform:translateY(-7px) rotate(-45deg)}
@@ -46,7 +46,7 @@ a.address-link::after{content:' ↗';font-size:.82em}
 .faq details{overflow:clip}
 .faq .faq-answer{overflow:hidden;will-change:height,opacity}
 .faq .faq-answer>p:first-child{margin-top:12px}
-.faq summary:focus-visible{outline:3px solid rgba(23,104,181,.35);outline-offset:5px;border-radius:4px}
+.faq summary:focus-visible{outline:3px solid #1768b5;outline-offset:5px;border-radius:4px}
 
 @media(max-width:900px){
   html.mobile-nav-open,html.mobile-nav-open body{overflow:hidden}
