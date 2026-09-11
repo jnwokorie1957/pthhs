@@ -97,17 +97,17 @@ Unify the site, remove service-scope contradictions, verify payer/trust claims, 
 
 - [x] **51. [P0] Fix malformed canonical markup** in legacy/static HTML, including the broken quote observed in `home-care-services.html`. **When:** Sep 9–11.
 - [x] **52. [P0] Fix malformed `og:url`, schema URLs/IDs, and inherited quote/URL errors** so all metadata uses valid absolute canonical URLs. **When:** Sep 9–11.
-- [ ] **53. [P1] Remove obsolete `meta keywords` and keyword-stuffed legacy metadata.** **When:** Sep 12–18.
-- [ ] **54. [P1] Write a unique, accurate title and meta description for every indexable page.** **When:** Sep 12–18.
+- [x] **53. [P1] Remove obsolete `meta keywords` and keyword-stuffed legacy metadata.** **When:** Sep 12–18. **Completed Sep 10:** confirmed zero `meta keywords` tags across all 132 HTML files and added a permanent release-gate check.
+- [x] **54. [P1] Write a unique, accurate title and meta description for every indexable page.** **When:** Sep 12–18. **Completed Sep 10:** verified 84 indexable routes have nonempty, unique titles and descriptions aligned with the canonical route and non-medical scope.
 - [x] **55. [P0] Fix the Client Reviews H1/title mismatch** so the reviews page is not presented as “Alzheimer’s Care in Houston, Texas.” **When:** Sep 9–11.
-- [ ] **56. [P1] Rebuild JSON-LD from verified data** instead of retaining stale Yoast exports and relative/malformed IDs. **When:** Sep 12–18.
-- [ ] **57. [P1] Use Organization/LocalBusiness schema only with verified visible facts** such as name, URL, phone, address, and service area. **When:** Sep 12–18.
+- [x] **56. [P1] Rebuild JSON-LD from verified data** instead of retaining stale Yoast exports and relative/malformed IDs. **When:** Sep 12–18. **Completed Sep 10:** replaced every indexable page's legacy/stale schema with one deterministic Organization, WebSite, and WebPage graph and removed structured data from noindex fallbacks.
+- [x] **57. [P1] Use Organization/LocalBusiness schema only with verified visible facts** such as name, URL, phone, address, and service area. **When:** Sep 12–18. **Completed Sep 10:** Organization schema is generated only from the approved public-facts register and omits service-area, payer, review, award, credential, history, and quantitative fields.
 - [ ] **58. [P2] Add Service schema selectively** for core PAS/attendant/respite/personal-care pages where supported by visible verified content. **When:** Sep 19–Oct 2.
 - [ ] **59. [P2] Add consistent visible breadcrumbs plus BreadcrumbList schema** to deep service/location/blog pages. **When:** Sep 19–Oct 2.
-- [ ] **60. [P1] Generate `sitemap.xml` from the canonical route set** rather than hand-maintaining it. The current sitemap lags the live Areas inventory. **When:** Sep 12–18.
+- [x] **60. [P1] Generate `sitemap.xml` from the canonical route set** rather than hand-maintaining it. The current sitemap lags the live Areas inventory. **When:** Sep 12–18. **Completed Sep 10:** a deterministic generator now publishes the 27 reviewed, indexable canonical routes and blocks noindex, redirected, missing, or alternate-host entries; unverified location expansion remains deliberately excluded.
 - [ ] **61. [P2] Add accurate sitemap `<lastmod>` values** only when reliable modification dates exist. **When:** Sep 19–Oct 2.
-- [ ] **62. [P1] Implement the already-mapped legacy 301 redirects** and expand coverage for old `.html`, WordPress, pagination, and renamed routes. **When:** Sep 12–18.
-- [ ] **63. [P1] Normalize internal links to canonical clean URLs** and eliminate mixed `.html`, relative, `www`, and non-`www` patterns. **When:** Sep 12–18.
+- [x] **62. [P1] Implement the already-mapped legacy 301 redirects** and expand coverage for old `.html`, WordPress, pagination, and renamed routes. **When:** Sep 12–18. **Completed Sep 10:** retained all migration redirects, added six documented historical location patterns, and generated explicit `.html` twins for every eligible permanent redirect.
+- [x] **63. [P1] Normalize internal links to canonical clean URLs** and eliminate mixed `.html`, relative, `www`, and non-`www` patterns. **When:** Sep 12–18. **Completed Sep 10:** verified 3,634 anchors contain no own-host absolute, `.html`, relative-dot, alternate-host, or redirect-chain targets and added CI enforcement.
 - [ ] **64. [P1] Run a full production crawl after migration** and fix redirect chains, 4xx/5xx pages, orphan pages, duplicate canonicals, and missing metadata. **When:** Sep 12–18, rerun after every migration batch.
 - [x] **65. [P1] Exclude internal audit artifacts/logs/legacy snapshots from the deployed `public/` output** instead of relying only on `noindex`. **When:** Sep 12–18.
 - [ ] **66. [P2] Create a modern custom 404 page** with real HTTP 404 status, useful navigation, and a contact CTA. **When:** Sep 19–Oct 2.

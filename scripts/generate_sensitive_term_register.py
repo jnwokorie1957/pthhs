@@ -70,7 +70,7 @@ for path in sorted(PUBLIC.rglob("*.html")):
 
 out = ROOT / "PTHHS_SENSITIVE_TERM_REGISTER.csv"
 with out.open("w", newline="", encoding="utf-8") as handle:
-    writer = csv.writer(handle)
+    writer = csv.writer(handle, lineterminator="\n")
     writer.writerow(["file", "text_node", "term", "classification", "rationale", "context"])
     writer.writerows(rows)
 

@@ -3,67 +3,640 @@
     "public": "public",
     "cleanUrls": true,
     "trailingSlash": false,
-    "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
+    "ignore": [
+      "firebase.json",
+      "**/.*",
+      "**/node_modules/**"
+    ],
     "redirects": [
-      {"source":"/home-care-services/:page/wp-content/:asset*","destination":"/wp-content/:asset","type":302},
-      {"source":"/areas-we-serve","destination":"/home-care-areas-we-serve","type":301},
-      {"source":"/locations","destination":"/home-care-areas-we-serve","type":301},
-      {"source":"/home-care-services-attendant-care-services","destination":"/home-care-services/attendant-care-services","type":301},
-      {"source":"/home-care-services-respite-care","destination":"/home-care-services/respite-care","type":301},
-      {"source":"/home-care-services-activities-of-daily-living-adl","destination":"/home-care-services/activities-of-daily-living-adl","type":301},
-      {"source":"/home-care-services-personal-care","destination":"/home-care-services/personal-care","type":301},
-      {"source":"/home-care-services-medication-reminders","destination":"/home-care-services/medication-reminders","type":301},
-      {"source":"/home-care-houston-texas","destination":"/locations/houston","type":301},
-      {"source":"/home-care-baytown-texas","destination":"/locations/baytown","type":301},
-      {"source":"/home-care-conroe-texas","destination":"/locations/conroe","type":301},
-      {"source":"/home-care-cypress-texas","destination":"/locations/cypress","type":301},
-      {"source":"/home-care-friendswood-texas","destination":"/home-care-areas-we-serve","type":301},
-      {"source":"/home-care-katy-texas","destination":"/locations/katy","type":301},
-      {"source":"/home-care-league-city-texas","destination":"/locations/league-city","type":301},
-      {"source":"/home-care-missouri-city-texas","destination":"/locations/missouri-city","type":301},
-      {"source":"/home-care-pasadena-texas","destination":"/locations/pasadena","type":301},
-      {"source":"/home-care-pearland-texas","destination":"/locations/pearland","type":301},
-      {"source":"/home-care-spring-texas","destination":"/locations/spring","type":301},
-      {"source":"/home-care-sugar-land-texas","destination":"/locations/sugar-land","type":301},
-      {"source":"/privacy","destination":"/privacy-policy","type":301},
-      {"source":"/terms","destination":"/terms-of-use","type":301},
-      {"source":"/privacy-notice","destination":"/privacy-policy","type":301},
-      {"source":"/primetime-home-health-services-inc-do-not-sell-or-share-my-personal-information","destination":"/privacy-policy","type":301},
-      {"source":"/home-care-services/companionship","destination":"/home-care-services","type":301},
-      {"source":"/a-home-care-plan-thats-all-about-you","destination":"/home-care-blog","type":301},
-      {"source":"/boosting-senior-safety-with-light-housekeeping","destination":"/home-care-blog","type":301},
-      {"source":"/elderly-comfort-optimizing-home-environments","destination":"/home-care-blog","type":301},
-      {"source":"/empathy-in-aging-nurturing-elderly-mental-health","destination":"/home-care-blog","type":301},
-      {"source":"/enhancing-quality-of-life-with-personal-home-care","destination":"/home-care-blog","type":301},
-      {"source":"/enhancing-senior-living-with-personal-assistance","destination":"/home-care-blog","type":301},
-      {"source":"/ensuring-home-care-safety-essential-tips","destination":"/home-care-blog","type":301},
-      {"source":"/ensuring-medication-adherence-for-better-health","destination":"/home-care-blog","type":301},
-      {"source":"/home-care-your-partner-in-aging-at-home","destination":"/home-care-blog","type":301},
-      {"source":"/home-nursing-care-key-services-you-need","destination":"/home-care-blog","type":301},
-      {"source":"/how-geriatric-care-improves-life-quality","destination":"/home-care-blog","type":301},
-      {"source":"/managing-medications-for-elderly-care","destination":"/home-care-blog","type":301},
-      {"source":"/medication-management-tips-for-home-health-aides","destination":"/home-care-blog","type":301},
-      {"source":"/nutrition-essentials-for-elderly-care","destination":"/home-care-blog","type":301},
-      {"source":"/preventing-falls-safe-homes-for-seniors","destination":"/home-care-blog","type":301},
-      {"source":"/promoting-wellness-in-senior-homes","destination":"/home-care-blog","type":301},
-      {"source":"/senior-wellness-holistic-home-care-tips","destination":"/home-care-blog","type":301},
-      {"source":"/the-benefits-personal-assistance-services","destination":"/home-care-blog","type":301},
-      {"source":"/the-holistic-approach-of-modern-home-care-agencies","destination":"/home-care-blog","type":301},
-      {"source":"/the-positive-impact-of-companionship-on-senior-health","destination":"/home-care-blog","type":301},
-      {"source":"/tips-for-choosing-the-right-home-care-provider","destination":"/home-care-blog","type":301},
-      {"source":"/understanding-medicaid-for-home-care-services","destination":"/home-care-blog","type":301},
-      {"source":"/unveiling-nursing-care-plans-a-comprehensive-guide","destination":"/home-care-blog","type":301},
-      {"source":"/why-home-care-is-essential-for-veterans-health","destination":"/home-care-blog","type":301}
-      ,{"source":"/home-care-blog-page-2","destination":"/home-care-blog","type":301}
-      ,{"source":"/home-care-blog-page-3","destination":"/home-care-blog","type":301}
-      ,{"source":"/home-care-blog-page-4","destination":"/home-care-blog","type":301}
-      ,{"source":"/home-care-blog-page-5","destination":"/home-care-blog","type":301}
-      ,{"source":"/home-care-set-an-appointment","destination":"/home-care-contact-us","type":301}
+      {
+        "source": "/home-care-services/:page/wp-content/:asset*",
+        "destination": "/wp-content/:asset",
+        "type": 302
+      },
+      {
+        "source": "/areas-we-serve",
+        "destination": "/home-care-areas-we-serve",
+        "type": 301
+      },
+      {
+        "source": "/locations",
+        "destination": "/home-care-areas-we-serve",
+        "type": 301
+      },
+      {
+        "source": "/home-care-services-attendant-care-services",
+        "destination": "/home-care-services/attendant-care-services",
+        "type": 301
+      },
+      {
+        "source": "/home-care-services-respite-care",
+        "destination": "/home-care-services/respite-care",
+        "type": 301
+      },
+      {
+        "source": "/home-care-services-activities-of-daily-living-adl",
+        "destination": "/home-care-services/activities-of-daily-living-adl",
+        "type": 301
+      },
+      {
+        "source": "/home-care-services-personal-care",
+        "destination": "/home-care-services/personal-care",
+        "type": 301
+      },
+      {
+        "source": "/home-care-services-medication-reminders",
+        "destination": "/home-care-services/medication-reminders",
+        "type": 301
+      },
+      {
+        "source": "/home-care-houston-texas",
+        "destination": "/locations/houston",
+        "type": 301
+      },
+      {
+        "source": "/home-care-baytown-texas",
+        "destination": "/locations/baytown",
+        "type": 301
+      },
+      {
+        "source": "/home-care-conroe-texas",
+        "destination": "/locations/conroe",
+        "type": 301
+      },
+      {
+        "source": "/home-care-cypress-texas",
+        "destination": "/locations/cypress",
+        "type": 301
+      },
+      {
+        "source": "/home-care-friendswood-texas",
+        "destination": "/home-care-areas-we-serve",
+        "type": 301
+      },
+      {
+        "source": "/home-care-katy-texas",
+        "destination": "/locations/katy",
+        "type": 301
+      },
+      {
+        "source": "/home-care-league-city-texas",
+        "destination": "/locations/league-city",
+        "type": 301
+      },
+      {
+        "source": "/home-care-missouri-city-texas",
+        "destination": "/locations/missouri-city",
+        "type": 301
+      },
+      {
+        "source": "/home-care-pasadena-texas",
+        "destination": "/locations/pasadena",
+        "type": 301
+      },
+      {
+        "source": "/home-care-pearland-texas",
+        "destination": "/locations/pearland",
+        "type": 301
+      },
+      {
+        "source": "/home-care-spring-texas",
+        "destination": "/locations/spring",
+        "type": 301
+      },
+      {
+        "source": "/home-care-sugar-land-texas",
+        "destination": "/locations/sugar-land",
+        "type": 301
+      },
+      {
+        "source": "/privacy",
+        "destination": "/privacy-policy",
+        "type": 301
+      },
+      {
+        "source": "/terms",
+        "destination": "/terms-of-use",
+        "type": 301
+      },
+      {
+        "source": "/privacy-notice",
+        "destination": "/privacy-policy",
+        "type": 301
+      },
+      {
+        "source": "/primetime-home-health-services-inc-do-not-sell-or-share-my-personal-information",
+        "destination": "/privacy-policy",
+        "type": 301
+      },
+      {
+        "source": "/home-care-services/companionship",
+        "destination": "/home-care-services",
+        "type": 301
+      },
+      {
+        "source": "/a-home-care-plan-thats-all-about-you",
+        "destination": "/home-care-blog",
+        "type": 301
+      },
+      {
+        "source": "/boosting-senior-safety-with-light-housekeeping",
+        "destination": "/home-care-blog",
+        "type": 301
+      },
+      {
+        "source": "/elderly-comfort-optimizing-home-environments",
+        "destination": "/home-care-blog",
+        "type": 301
+      },
+      {
+        "source": "/empathy-in-aging-nurturing-elderly-mental-health",
+        "destination": "/home-care-blog",
+        "type": 301
+      },
+      {
+        "source": "/enhancing-quality-of-life-with-personal-home-care",
+        "destination": "/home-care-blog",
+        "type": 301
+      },
+      {
+        "source": "/enhancing-senior-living-with-personal-assistance",
+        "destination": "/home-care-blog",
+        "type": 301
+      },
+      {
+        "source": "/ensuring-home-care-safety-essential-tips",
+        "destination": "/home-care-blog",
+        "type": 301
+      },
+      {
+        "source": "/ensuring-medication-adherence-for-better-health",
+        "destination": "/home-care-blog",
+        "type": 301
+      },
+      {
+        "source": "/home-care-your-partner-in-aging-at-home",
+        "destination": "/home-care-blog",
+        "type": 301
+      },
+      {
+        "source": "/home-nursing-care-key-services-you-need",
+        "destination": "/home-care-blog",
+        "type": 301
+      },
+      {
+        "source": "/how-geriatric-care-improves-life-quality",
+        "destination": "/home-care-blog",
+        "type": 301
+      },
+      {
+        "source": "/managing-medications-for-elderly-care",
+        "destination": "/home-care-blog",
+        "type": 301
+      },
+      {
+        "source": "/medication-management-tips-for-home-health-aides",
+        "destination": "/home-care-blog",
+        "type": 301
+      },
+      {
+        "source": "/nutrition-essentials-for-elderly-care",
+        "destination": "/home-care-blog",
+        "type": 301
+      },
+      {
+        "source": "/preventing-falls-safe-homes-for-seniors",
+        "destination": "/home-care-blog",
+        "type": 301
+      },
+      {
+        "source": "/promoting-wellness-in-senior-homes",
+        "destination": "/home-care-blog",
+        "type": 301
+      },
+      {
+        "source": "/senior-wellness-holistic-home-care-tips",
+        "destination": "/home-care-blog",
+        "type": 301
+      },
+      {
+        "source": "/the-benefits-personal-assistance-services",
+        "destination": "/home-care-blog",
+        "type": 301
+      },
+      {
+        "source": "/the-holistic-approach-of-modern-home-care-agencies",
+        "destination": "/home-care-blog",
+        "type": 301
+      },
+      {
+        "source": "/the-positive-impact-of-companionship-on-senior-health",
+        "destination": "/home-care-blog",
+        "type": 301
+      },
+      {
+        "source": "/tips-for-choosing-the-right-home-care-provider",
+        "destination": "/home-care-blog",
+        "type": 301
+      },
+      {
+        "source": "/understanding-medicaid-for-home-care-services",
+        "destination": "/home-care-blog",
+        "type": 301
+      },
+      {
+        "source": "/unveiling-nursing-care-plans-a-comprehensive-guide",
+        "destination": "/home-care-blog",
+        "type": 301
+      },
+      {
+        "source": "/why-home-care-is-essential-for-veterans-health",
+        "destination": "/home-care-blog",
+        "type": 301
+      },
+      {
+        "source": "/home-care-blog-page-2",
+        "destination": "/home-care-blog",
+        "type": 301
+      },
+      {
+        "source": "/home-care-blog-page-3",
+        "destination": "/home-care-blog",
+        "type": 301
+      },
+      {
+        "source": "/home-care-blog-page-4",
+        "destination": "/home-care-blog",
+        "type": 301
+      },
+      {
+        "source": "/home-care-blog-page-5",
+        "destination": "/home-care-blog",
+        "type": 301
+      },
+      {
+        "source": "/home-care-set-an-appointment",
+        "destination": "/home-care-contact-us",
+        "type": 301
+      },
+      {
+        "source": "/locations/houston-texas",
+        "destination": "/locations/houston",
+        "type": 301
+      },
+      {
+        "source": "/houston-home-care",
+        "destination": "/locations/houston",
+        "type": 301
+      },
+      {
+        "source": "/home-care-houston",
+        "destination": "/locations/houston",
+        "type": 301
+      },
+      {
+        "source": "/pasadena-home-care",
+        "destination": "/locations/pasadena",
+        "type": 301
+      },
+      {
+        "source": "/baytown-home-care",
+        "destination": "/locations/baytown",
+        "type": 301
+      },
+      {
+        "source": "/cypress-home-care",
+        "destination": "/locations/cypress",
+        "type": 301
+      },
+      {
+        "source": "/areas-we-serve.html",
+        "destination": "/home-care-areas-we-serve",
+        "type": 301
+      },
+      {
+        "source": "/locations.html",
+        "destination": "/home-care-areas-we-serve",
+        "type": 301
+      },
+      {
+        "source": "/home-care-services-attendant-care-services.html",
+        "destination": "/home-care-services/attendant-care-services",
+        "type": 301
+      },
+      {
+        "source": "/home-care-services-respite-care.html",
+        "destination": "/home-care-services/respite-care",
+        "type": 301
+      },
+      {
+        "source": "/home-care-services-activities-of-daily-living-adl.html",
+        "destination": "/home-care-services/activities-of-daily-living-adl",
+        "type": 301
+      },
+      {
+        "source": "/home-care-services-personal-care.html",
+        "destination": "/home-care-services/personal-care",
+        "type": 301
+      },
+      {
+        "source": "/home-care-services-medication-reminders.html",
+        "destination": "/home-care-services/medication-reminders",
+        "type": 301
+      },
+      {
+        "source": "/home-care-houston-texas.html",
+        "destination": "/locations/houston",
+        "type": 301
+      },
+      {
+        "source": "/home-care-baytown-texas.html",
+        "destination": "/locations/baytown",
+        "type": 301
+      },
+      {
+        "source": "/home-care-conroe-texas.html",
+        "destination": "/locations/conroe",
+        "type": 301
+      },
+      {
+        "source": "/home-care-cypress-texas.html",
+        "destination": "/locations/cypress",
+        "type": 301
+      },
+      {
+        "source": "/home-care-friendswood-texas.html",
+        "destination": "/home-care-areas-we-serve",
+        "type": 301
+      },
+      {
+        "source": "/home-care-katy-texas.html",
+        "destination": "/locations/katy",
+        "type": 301
+      },
+      {
+        "source": "/home-care-league-city-texas.html",
+        "destination": "/locations/league-city",
+        "type": 301
+      },
+      {
+        "source": "/home-care-missouri-city-texas.html",
+        "destination": "/locations/missouri-city",
+        "type": 301
+      },
+      {
+        "source": "/home-care-pasadena-texas.html",
+        "destination": "/locations/pasadena",
+        "type": 301
+      },
+      {
+        "source": "/home-care-pearland-texas.html",
+        "destination": "/locations/pearland",
+        "type": 301
+      },
+      {
+        "source": "/home-care-spring-texas.html",
+        "destination": "/locations/spring",
+        "type": 301
+      },
+      {
+        "source": "/home-care-sugar-land-texas.html",
+        "destination": "/locations/sugar-land",
+        "type": 301
+      },
+      {
+        "source": "/privacy.html",
+        "destination": "/privacy-policy",
+        "type": 301
+      },
+      {
+        "source": "/terms.html",
+        "destination": "/terms-of-use",
+        "type": 301
+      },
+      {
+        "source": "/privacy-notice.html",
+        "destination": "/privacy-policy",
+        "type": 301
+      },
+      {
+        "source": "/primetime-home-health-services-inc-do-not-sell-or-share-my-personal-information.html",
+        "destination": "/privacy-policy",
+        "type": 301
+      },
+      {
+        "source": "/home-care-services/companionship.html",
+        "destination": "/home-care-services",
+        "type": 301
+      },
+      {
+        "source": "/a-home-care-plan-thats-all-about-you.html",
+        "destination": "/home-care-blog",
+        "type": 301
+      },
+      {
+        "source": "/boosting-senior-safety-with-light-housekeeping.html",
+        "destination": "/home-care-blog",
+        "type": 301
+      },
+      {
+        "source": "/elderly-comfort-optimizing-home-environments.html",
+        "destination": "/home-care-blog",
+        "type": 301
+      },
+      {
+        "source": "/empathy-in-aging-nurturing-elderly-mental-health.html",
+        "destination": "/home-care-blog",
+        "type": 301
+      },
+      {
+        "source": "/enhancing-quality-of-life-with-personal-home-care.html",
+        "destination": "/home-care-blog",
+        "type": 301
+      },
+      {
+        "source": "/enhancing-senior-living-with-personal-assistance.html",
+        "destination": "/home-care-blog",
+        "type": 301
+      },
+      {
+        "source": "/ensuring-home-care-safety-essential-tips.html",
+        "destination": "/home-care-blog",
+        "type": 301
+      },
+      {
+        "source": "/ensuring-medication-adherence-for-better-health.html",
+        "destination": "/home-care-blog",
+        "type": 301
+      },
+      {
+        "source": "/home-care-your-partner-in-aging-at-home.html",
+        "destination": "/home-care-blog",
+        "type": 301
+      },
+      {
+        "source": "/home-nursing-care-key-services-you-need.html",
+        "destination": "/home-care-blog",
+        "type": 301
+      },
+      {
+        "source": "/how-geriatric-care-improves-life-quality.html",
+        "destination": "/home-care-blog",
+        "type": 301
+      },
+      {
+        "source": "/managing-medications-for-elderly-care.html",
+        "destination": "/home-care-blog",
+        "type": 301
+      },
+      {
+        "source": "/medication-management-tips-for-home-health-aides.html",
+        "destination": "/home-care-blog",
+        "type": 301
+      },
+      {
+        "source": "/nutrition-essentials-for-elderly-care.html",
+        "destination": "/home-care-blog",
+        "type": 301
+      },
+      {
+        "source": "/preventing-falls-safe-homes-for-seniors.html",
+        "destination": "/home-care-blog",
+        "type": 301
+      },
+      {
+        "source": "/promoting-wellness-in-senior-homes.html",
+        "destination": "/home-care-blog",
+        "type": 301
+      },
+      {
+        "source": "/senior-wellness-holistic-home-care-tips.html",
+        "destination": "/home-care-blog",
+        "type": 301
+      },
+      {
+        "source": "/the-benefits-personal-assistance-services.html",
+        "destination": "/home-care-blog",
+        "type": 301
+      },
+      {
+        "source": "/the-holistic-approach-of-modern-home-care-agencies.html",
+        "destination": "/home-care-blog",
+        "type": 301
+      },
+      {
+        "source": "/the-positive-impact-of-companionship-on-senior-health.html",
+        "destination": "/home-care-blog",
+        "type": 301
+      },
+      {
+        "source": "/tips-for-choosing-the-right-home-care-provider.html",
+        "destination": "/home-care-blog",
+        "type": 301
+      },
+      {
+        "source": "/understanding-medicaid-for-home-care-services.html",
+        "destination": "/home-care-blog",
+        "type": 301
+      },
+      {
+        "source": "/unveiling-nursing-care-plans-a-comprehensive-guide.html",
+        "destination": "/home-care-blog",
+        "type": 301
+      },
+      {
+        "source": "/why-home-care-is-essential-for-veterans-health.html",
+        "destination": "/home-care-blog",
+        "type": 301
+      },
+      {
+        "source": "/home-care-blog-page-2.html",
+        "destination": "/home-care-blog",
+        "type": 301
+      },
+      {
+        "source": "/home-care-blog-page-3.html",
+        "destination": "/home-care-blog",
+        "type": 301
+      },
+      {
+        "source": "/home-care-blog-page-4.html",
+        "destination": "/home-care-blog",
+        "type": 301
+      },
+      {
+        "source": "/home-care-blog-page-5.html",
+        "destination": "/home-care-blog",
+        "type": 301
+      },
+      {
+        "source": "/home-care-set-an-appointment.html",
+        "destination": "/home-care-contact-us",
+        "type": 301
+      },
+      {
+        "source": "/locations/houston-texas.html",
+        "destination": "/locations/houston",
+        "type": 301
+      },
+      {
+        "source": "/houston-home-care.html",
+        "destination": "/locations/houston",
+        "type": 301
+      },
+      {
+        "source": "/home-care-houston.html",
+        "destination": "/locations/houston",
+        "type": 301
+      },
+      {
+        "source": "/pasadena-home-care.html",
+        "destination": "/locations/pasadena",
+        "type": 301
+      },
+      {
+        "source": "/baytown-home-care.html",
+        "destination": "/locations/baytown",
+        "type": 301
+      },
+      {
+        "source": "/cypress-home-care.html",
+        "destination": "/locations/cypress",
+        "type": 301
+      }
     ],
     "headers": [
-      {"source":"**/*.@(eot|otf|ttf|ttc|woff|woff2|font.css)","headers":[{"key":"Access-Control-Allow-Origin","value":"*"}]},
-      {"source":"**/*.@(jpg|jpeg|gif|png|svg|webp|ico)","headers":[{"key":"Cache-Control","value":"public,max-age=31536000,immutable"}]},
-      {"source":"**/*.@(css|js)","headers":[{"key":"Cache-Control","value":"public,max-age=604800"},{"key":"X-Content-Type-Options","value":"nosniff"}]}
+      {
+        "source": "**/*.@(eot|otf|ttf|ttc|woff|woff2|font.css)",
+        "headers": [
+          {
+            "key": "Access-Control-Allow-Origin",
+            "value": "*"
+          }
+        ]
+      },
+      {
+        "source": "**/*.@(jpg|jpeg|gif|png|svg|webp|ico)",
+        "headers": [
+          {
+            "key": "Cache-Control",
+            "value": "public,max-age=31536000,immutable"
+          }
+        ]
+      },
+      {
+        "source": "**/*.@(css|js)",
+        "headers": [
+          {
+            "key": "Cache-Control",
+            "value": "public,max-age=604800"
+          },
+          {
+            "key": "X-Content-Type-Options",
+            "value": "nosniff"
+          }
+        ]
+      }
     ]
   }
 }
