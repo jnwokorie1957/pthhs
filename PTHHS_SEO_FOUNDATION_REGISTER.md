@@ -11,7 +11,7 @@
 - Organization data comes from `PTHHS_PUBLIC_FACTS.json`: legal business name, canonical URL, phone, public email, and street address.
 - Structured data is removed from all noindex fallback and quarantine pages.
 - The sitemap is regenerated from a reviewed 27-route publication set. It cannot include missing, noindex, redirected, or alternate-host URLs.
-- All existing migration redirects remain intact. Six additional historical location patterns from `PTHHS_LEGACY_REDIRECT_MAP.md` are implemented, and eligible permanent redirects have explicit `.html` twins.
+- All existing migration redirects remain intact. Six additional historical location patterns from `docs/archive/seo-2026-08/PTHHS_LEGACY_REDIRECT_MAP.md` are implemented, and eligible permanent redirects have explicit `.html` twins.
 - All 3,634 HTML anchors use clean internal URLs without own-host absolute URLs, `.html` suffixes, dot-relative paths, alternate hosts, or redirect sources.
 
 ## Claim repair found during QA

@@ -8,6 +8,8 @@ import re
 from html.parser import HTMLParser
 from pathlib import Path
 
+from site_scope import marketing_html_files
+
 ROOT = Path(__file__).resolve().parents[1]
 PUBLIC = ROOT / "public"
 errors: list[str] = []
@@ -62,7 +64,8 @@ class PageAudit(HTMLParser):
             self.current_anchor = (self.current_anchor[0], self.current_anchor[1] + data)
 
 
-for path in sorted(PUBLIC.rglob("*.html")):
+marketing_pages = marketing_html_files(PUBLIC)
+for path in marketing_pages:
     relative = path.relative_to(PUBLIC).as_posix()
     text = path.read_text(errors="ignore")
     parser = PageAudit()
@@ -121,4 +124,4 @@ if errors:
     for error in errors: print("-", error)
     raise SystemExit(1)
 
-print(f"BATCH_B3_QA: PASS ({len(list(PUBLIC.rglob('*.html')))} HTML files share one shell; zero legacy runtimes)")
+print(f"BATCH_B3_QA: PASS ({len(marketing_pages)} marketing HTML files share one shell; zero legacy runtimes)")

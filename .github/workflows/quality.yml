@@ -1,0 +1,58 @@
+name: Repository quality
+
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  site:
+    name: Static site and repository
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+
+      - name: Install deterministic tooling
+        run: npm ci
+
+      - name: Audit tooling dependencies
+        run: npm audit --audit-level=high
+
+      - name: Build and verify
+        run: npm run check
+
+  functions:
+    name: Primetime backend types
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: functions
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: functions/package-lock.json
+
+      - name: Install backend dependencies
+        run: npm ci
+
+      - name: Audit backend dependencies
+        run: npm audit --audit-level=high
+
+      - name: Type-check backend
+        run: npm run check

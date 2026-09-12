@@ -6,6 +6,8 @@ from __future__ import annotations
 import re
 from pathlib import Path
 
+from site_scope import is_internal_app_path, marketing_html_files
+
 ROOT = Path(__file__).resolve().parents[1]
 PUBLIC = ROOT / "public"
 
@@ -62,8 +64,9 @@ def normalize_404_headings(path: Path, text: str) -> str:
     )
 
 
+marketing_pages = marketing_html_files(PUBLIC)
 changed = 0
-for path in sorted(PUBLIC.rglob("*.html")):
+for path in marketing_pages:
     original = path.read_text(errors="strict")
     text = put_hero_inside_main(original)
     text = semantic_breadcrumbs(text)
@@ -77,6 +80,8 @@ removed_files = 0
 for path in sorted(PUBLIC.rglob("*")):
     if not path.is_file() or path.suffix.lower() not in {".css", ".js"}:
         continue
+    if is_internal_app_path(path, PUBLIC):
+        continue
     relative = path.relative_to(PUBLIC).as_posix()
     if relative in RUNTIME_ASSETS:
         continue
@@ -85,6 +90,6 @@ for path in sorted(PUBLIC.rglob("*")):
     path.unlink()
 
 print(
-    f"Applied accessibility foundation to {len(list(PUBLIC.rglob('*.html')))} HTML files "
+    f"Applied accessibility foundation to {len(marketing_pages)} marketing HTML files "
     f"({changed} changed); removed {removed_files} unused runtime files ({removed_bytes} bytes)."
 )

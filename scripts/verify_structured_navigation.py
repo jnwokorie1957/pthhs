@@ -9,6 +9,8 @@ import re
 from html.parser import HTMLParser
 from pathlib import Path
 
+from site_scope import marketing_html_files
+
 ROOT = Path(__file__).resolve().parents[1]
 PUBLIC = ROOT / "public"
 HOST = "https://pthhs.net"
@@ -82,7 +84,7 @@ def target_breadcrumb_route(route: str) -> bool:
 
 service_count = 0
 breadcrumb_count = 0
-for path in sorted(PUBLIC.rglob("*.html")):
+for path in marketing_html_files(PUBLIC):
     relative = path.relative_to(PUBLIC).as_posix()
     route = route_for(path)
     text = path.read_text(errors="strict")

@@ -1,18 +1,8 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
+import { marketingHtmlFiles } from './site-scope.mjs';
 
 const publicDir = path.join(process.cwd(), 'public');
-
-async function walk(dir) {
-  const files = [];
-  for (const entry of await fs.readdir(dir, { withFileTypes: true })) {
-    if (entry.name === 'node_modules' || entry.name.startsWith('.')) continue;
-    const full = path.join(dir, entry.name);
-    if (entry.isDirectory()) files.push(...await walk(full));
-    else if (entry.isFile() && entry.name.toLowerCase().endsWith('.html')) files.push(full);
-  }
-  return files;
-}
 
 function stripInjectedLinksFromJsonLd(html) {
   return html.replace(/<script\b([^>]*type=["']application\/ld\+json["'][^>]*)>([\s\S]*?)<\/script>/gi, (_all, attrs, body) => {
@@ -37,7 +27,7 @@ function injectPolishCss(html) {
   return html.replace(/<\/head>/i, '<link rel="stylesheet" href="/assets/polish.css"></head>');
 }
 
-for (const file of await walk(publicDir)) {
+for (const file of await marketingHtmlFiles(publicDir)) {
   let html = await fs.readFile(file, 'utf8');
   html = stripInjectedLinksFromJsonLd(html);
   html = normalizeLocationTitles(html);

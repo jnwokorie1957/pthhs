@@ -4,21 +4,11 @@ import { createHash } from "node:crypto";
 import { promises as fs } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { marketingHtmlFiles } from "./site-scope.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const publicDir = path.join(root, "public");
 const failures = [];
-
-async function walk(dir) {
-  const entries = await fs.readdir(dir, { withFileTypes: true });
-  const files = [];
-  for (const entry of entries) {
-    const full = path.join(dir, entry.name);
-    if (entry.isDirectory()) files.push(...(await walk(full)));
-    else files.push(full);
-  }
-  return files;
-}
 
 function fail(message) {
   failures.push(message);
@@ -28,7 +18,7 @@ function versionFor(bytes) {
   return createHash("sha256").update(bytes).digest("hex").slice(0, 12);
 }
 
-const htmlFiles = (await walk(publicDir)).filter((file) => file.endsWith(".html"));
+const htmlFiles = await marketingHtmlFiles(publicDir);
 const referencedAssets = new Set();
 let versionedReferences = 0;
 let jsonLdBlocks = 0;
