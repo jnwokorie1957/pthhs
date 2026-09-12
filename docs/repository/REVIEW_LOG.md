@@ -84,3 +84,65 @@ changes, verification evidence, and remaining opportunities.
 The requested second pass should fetch the then-current `main`, rerun the same
 full audit and release rehearsal, append a new dated section here, and update the
 owner/developer checkpoint only when new evidence changes task status.
+
+## Review 2 — September 12, 2026
+
+### Source and delta
+
+- Fetched the current `main` at `88fdff441a9bc7884e9f8c1c2ada9dd36a2418af`.
+  No commit had been added to `main` since Review 1 merged.
+- Re-read, hashed, and format-checked the same 278 tracked paths. The exact path
+  ledger in `FILE_INVENTORY.md` still matches `git ls-files`, so no inventory
+  rewrite was required.
+- Kept every tracked `public/` file frozen. The generators produced no tracked
+  public diff, and the `/primetime` before/after hash comparison remained clean.
+- Rechecked the owner and developer task lists. No evidence changed their
+  status: `OPS-003` and `DEV-005B` remain the current actions.
+
+### Verification evidence
+
+- `npm ci` completed from both clean root and Functions dependency trees.
+- `npm run check` passed all 132 marketing pages, 84 indexable schema pages,
+  27 sitemap URLs, 118 permanent redirects, 3,702 canonical link checks,
+  276 image checks, and 4,629 local public references.
+- The repository audit passed for 278 tracked files totaling 5,700,212 bytes,
+  including JSON/XML/CSV/ZIP parsing, image signatures, Markdown links,
+  workflow checks, likely-secret scanning, and Firebase project consistency.
+- `npm run check` in `functions/` passed strict TypeScript type checking.
+- Root npm audit remained clear. Functions audit still reports two moderate
+  findings in `firebase-admin@14.4.0` → `@google-cloud/storage@8.1.0` →
+  `gaxios@6.7.1` → `uuid@9.0.1`. Direct packages remain current, and
+  `npm audit fix --dry-run` proposed zero changes.
+- The latest `main` Firebase deployment completed successfully. Live smoke
+  checks returned HTTP 200 for `/`, both protected service routes, and
+  `/primetime`.
+
+### Findings and actions
+
+1. **No new `main` defect found.** Review 1's release-boundary repair remains
+   effective and the complete rehearsal is reproducible from a clean worktree.
+2. **Active content branch remains isolated.** `codex/batch-c-g-qa` advanced to
+   four commits ahead of `main` and has no pull request. It contains extensive
+   visitor-facing changes and deletes parts of the Review 1 archive/inventory
+   structure. It must be rebased and separately reviewed; merging it as-is
+   would violate this pass's public-data freeze and undo retained evidence.
+3. **Transitive dependency follow-up remains open.** Install notices also trace
+   `glob@10.5.0` and `node-domexception@1.0.0` to Firebase Admin's dependency
+   tree. Track upstream releases rather than adding untested overrides.
+4. **Optional CI optimization identified.** A future reviewed change may limit
+   Firebase deployments for documentation-only commits, but only after every
+   generator and deployment input is explicitly enumerated. The current broad
+   trigger is safer than an incomplete path filter.
+5. **Documentation-only completion recorded.** This append and the `R10`
+   checklist completion are the only Review 2 repository changes.
+
+### Remaining blockers
+
+- Complete `DEV-005B` through `DEV-009` before enabling credential- or
+  PHI-bearing management endpoints.
+- Complete owner decisions beginning with `OPS-003` before implementing real
+  exception thresholds or automated operational rules.
+- Require the `Repository quality` workflow through `main` branch protection
+  when repository settings access is available.
+- Resolve and re-review `codex/batch-c-g-qa` separately before any visitor-facing
+  content is proposed for `main`.
