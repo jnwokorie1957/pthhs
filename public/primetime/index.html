@@ -1,0 +1,175 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex,nofollow,noarchive">
+  <meta name="theme-color" content="#0d4f8f">
+  <title>Primetime Operations</title>
+  <link rel="icon" href="/assets/meta/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/primetime/primetime.css">
+</head>
+<body>
+  <a class="skip-link" href="#workspace">Skip to workspace</a>
+  <div class="app-shell">
+    <aside class="sidebar" id="sidebar">
+      <a class="admin-brand" href="/primetime" aria-label="Primetime Operations home">
+        <img src="/wp-content/themes/primetimehomeie989/images/main-logo.png" alt="Primetime Home Health Services">
+        <span>Operations</span>
+      </a>
+
+      <nav class="admin-nav" aria-label="Primetime administration">
+        <button class="nav-item is-active" data-view="overview"><span class="nav-icon">⌂</span><span>Overview</span></button>
+        <button class="nav-item" data-view="evv"><span class="nav-icon">✓</span><span>EVV Exceptions</span><span class="nav-badge">8</span></button>
+        <button class="nav-item" data-view="visits"><span class="nav-icon">◷</span><span>Live Visits</span></button>
+        <button class="nav-item" data-view="messages"><span class="nav-icon">✉</span><span>Messages & Alerts</span><span class="nav-badge neutral">3</span></button>
+        <button class="nav-item" data-view="staffing"><span class="nav-icon">◎</span><span>Staffing</span></button>
+        <button class="nav-item" data-view="billing"><span class="nav-icon">$</span><span>Billing & AR</span></button>
+        <button class="nav-item" data-view="hha"><span class="nav-icon">↻</span><span>HHA Integration</span></button>
+        <button class="nav-item" data-view="audit"><span class="nav-icon">≡</span><span>Audit Log</span></button>
+      </nav>
+
+      <div class="sidebar-footer">
+        <div class="environment"><span class="dot warning"></span><div><strong>Scaffold mode</strong><small>HHA adapter not connected</small></div></div>
+        <button class="nav-item compact" data-view="settings"><span class="nav-icon">⚙</span><span>Settings</span></button>
+        <a class="back-site" href="/">← Public website</a>
+      </div>
+    </aside>
+
+    <div class="main-area">
+      <header class="topbar">
+        <div class="topbar-left">
+          <button class="menu-button" id="menuButton" aria-label="Toggle navigation" aria-expanded="false">☰</button>
+          <div>
+            <p class="eyebrow">Primetime Home Health Services</p>
+            <h1 id="pageTitle">Operations overview</h1>
+          </div>
+        </div>
+        <div class="topbar-actions">
+          <div class="sync-pill"><span class="dot warning"></span><span>HHA sync: not connected</span></div>
+          <button class="icon-button" aria-label="Notifications">●<span class="notification-count">3</span></button>
+          <button class="profile-button" aria-label="Open user menu"><span class="avatar">PT</span><span class="profile-copy"><strong>Administrator</strong><small>Internal access</small></span></button>
+        </div>
+      </header>
+
+      <main id="workspace" class="workspace" tabindex="-1">
+        <section class="view is-active" data-view-panel="overview">
+          <div class="notice"><strong>Admin shell is ready.</strong> Metrics below are demonstration data until the secure HHA backend adapter and authentication are connected.</div>
+
+          <div class="section-heading">
+            <div><p class="eyebrow">Today</p><h2>Operational pulse</h2></div>
+            <div class="heading-actions"><button class="btn secondary" data-view-jump="hha">Integration status</button><button class="btn primary" data-view-jump="evv">Review exceptions</button></div>
+          </div>
+
+          <div class="metric-grid">
+            <article class="metric-card"><div class="metric-top"><span>Scheduled visits</span><span class="metric-icon">◷</span></div><strong>42</strong><small>Demo data</small></article>
+            <article class="metric-card attention"><div class="metric-top"><span>EVV exceptions</span><span class="metric-icon">!</span></div><strong>8</strong><small>3 high priority</small></article>
+            <article class="metric-card"><div class="metric-top"><span>Clocked in now</span><span class="metric-icon">●</span></div><strong>11</strong><small>Demo data</small></article>
+            <article class="metric-card"><div class="metric-top"><span>Projected billable</span><span class="metric-icon">$</span></div><strong>286.5h</strong><small>This week · demo</small></article>
+          </div>
+
+          <div class="dashboard-grid">
+            <section class="panel span-2">
+              <div class="panel-head"><div><p class="eyebrow">Needs attention</p><h3>EVV exception queue</h3></div><button class="text-button" data-view-jump="evv">View all →</button></div>
+              <div class="table-wrap">
+                <table>
+                  <thead><tr><th>Visit</th><th>Issue</th><th>Scheduled</th><th>Status</th><th></th></tr></thead>
+                  <tbody>
+                    <tr><td><strong>Visit #PT-1048</strong><small>Assigned caregiver</small></td><td>Missing clock-out</td><td>8:00 AM–12:00 PM</td><td><span class="status high">High</span></td><td><button class="row-action">Review</button></td></tr>
+                    <tr><td><strong>Visit #PT-1051</strong><small>Assigned caregiver</small></td><td>Clock-in variance</td><td>10:00 AM–2:00 PM</td><td><span class="status medium">Review</span></td><td><button class="row-action">Review</button></td></tr>
+                    <tr><td><strong>Visit #PT-1055</strong><small>Assigned caregiver</small></td><td>Verification incomplete</td><td>1:00 PM–5:00 PM</td><td><span class="status medium">Review</span></td><td><button class="row-action">Review</button></td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </section>
+
+            <section class="panel">
+              <div class="panel-head"><div><p class="eyebrow">Staffing</p><h3>Coverage</h3></div></div>
+              <div class="coverage-stat"><strong>4</strong><span>open shifts</span></div>
+              <div class="progress-row"><div><span>Today covered</span><strong>90%</strong></div><progress value="90" max="100"></progress></div>
+              <div class="mini-list"><div><span>Tomorrow</span><strong>2 open</strong></div><div><span>Next 7 days</span><strong>7 open</strong></div><div><span>Availability conflicts</span><strong>3</strong></div></div>
+              <button class="btn secondary full" data-view-jump="staffing">Open staffing</button>
+            </section>
+
+            <section class="panel">
+              <div class="panel-head"><div><p class="eyebrow">Alerts</p><h3>Manager inbox</h3></div></div>
+              <div class="alert-list">
+                <article><span class="alert-dot danger"></span><div><strong>Late clock-in threshold</strong><p>Manager-only rule triggered.</p><small>8 min ago</small></div></article>
+                <article><span class="alert-dot warn"></span><div><strong>Visit requires review</strong><p>EVV verification incomplete.</p><small>21 min ago</small></div></article>
+                <article><span class="alert-dot info"></span><div><strong>Staffing gap</strong><p>Tomorrow morning has an open shift.</p><small>34 min ago</small></div></article>
+              </div>
+            </section>
+
+            <section class="panel span-2">
+              <div class="panel-head"><div><p class="eyebrow">Integration</p><h3>HHAeXchange ENT v1.8 readiness</h3></div><span class="status pending">Backend required</span></div>
+              <div class="integration-steps">
+                <div class="step done"><span>1</span><div><strong>Reference contract discovered</strong><small>WSDL + endpoint inventory in /hharefs</small></div></div>
+                <div class="step"><span>2</span><div><strong>Secure SOAP adapter</strong><small>Keep App Key and credentials server-side</small></div></div>
+                <div class="step"><span>3</span><div><strong>Read-only synchronization</strong><small>Visits, schedules, caregivers, billing metadata</small></div></div>
+                <div class="step"><span>4</span><div><strong>Write-back workflows</strong><small>Confirm/correct visits only after validation</small></div></div>
+              </div>
+            </section>
+          </div>
+        </section>
+
+        <section class="view" data-view-panel="evv">
+          <div class="section-heading"><div><p class="eyebrow">Compliance workflow</p><h2>EVV exception queue</h2><p>One place to review discrepancies before any HHA write-back.</p></div><button class="btn primary">Create review rule</button></div>
+          <div class="filter-bar"><input id="exceptionSearch" type="search" placeholder="Search visit or exception"><select id="priorityFilter"><option value="all">All priorities</option><option value="high">High</option><option value="medium">Review</option><option value="low">Low</option></select><button class="btn secondary">Export</button></div>
+          <section class="panel"><div class="table-wrap"><table id="exceptionTable"><thead><tr><th>Visit</th><th>Exception</th><th>Source</th><th>Scheduled</th><th>Actual</th><th>Visibility</th><th>Priority</th><th></th></tr></thead><tbody>
+            <tr data-priority="high"><td>PT-1048</td><td><strong>Missing clock-out</strong></td><td>EVV</td><td>8:00–12:00</td><td>8:03–—</td><td>Employee + manager</td><td><span class="status high">High</span></td><td><button class="row-action">Review</button></td></tr>
+            <tr data-priority="medium"><td>PT-1051</td><td><strong>Clock-in variance</strong></td><td>EVV</td><td>10:00–2:00</td><td>10:18–2:01</td><td>Manager only</td><td><span class="status medium">Review</span></td><td><button class="row-action">Review</button></td></tr>
+            <tr data-priority="medium"><td>PT-1055</td><td><strong>Verification incomplete</strong></td><td>Visit</td><td>1:00–5:00</td><td>1:01–4:58</td><td>Manager only</td><td><span class="status medium">Review</span></td><td><button class="row-action">Review</button></td></tr>
+            <tr data-priority="low"><td>PT-1060</td><td><strong>Minor duration variance</strong></td><td>Schedule</td><td>2:00–6:00</td><td>2:02–5:55</td><td>Silent log</td><td><span class="status low">Low</span></td><td><button class="row-action">Review</button></td></tr>
+          </tbody></table></div></section>
+        </section>
+
+        <section class="view" data-view-panel="visits">
+          <div class="section-heading"><div><p class="eyebrow">Live operations</p><h2>Visits & clock activity</h2><p>Designed for expected-vs-actual visit monitoring once HHA synchronization is connected.</p></div><button class="btn secondary">Refresh</button></div>
+          <div class="metric-grid compact-grid"><article class="metric-card"><span>In progress</span><strong>11</strong></article><article class="metric-card"><span>Starting soon</span><strong>6</strong></article><article class="metric-card attention"><span>Late / missing</span><strong>3</strong></article><article class="metric-card"><span>Completed</span><strong>18</strong></article></div>
+          <section class="panel"><div class="empty-state"><div class="empty-icon">↻</div><h3>Waiting for the secure HHA adapter</h3><p>Live visit data will come from the server-side synchronization layer. No HHA credential will be exposed in this browser.</p><button class="btn primary" data-view-jump="hha">View integration plan</button></div></section>
+        </section>
+
+        <section class="view" data-view-panel="messages">
+          <div class="section-heading"><div><p class="eyebrow">Communications</p><h2>Messages & alert rules</h2><p>Separate employee-facing nudges from manager-only operational alerts.</p></div><button class="btn primary">New message</button></div>
+          <div class="cards-3"><article class="panel"><span class="rule-tag employee">Employee visible</span><h3>Missing clock-in</h3><p>Send a reminder after the grace period, then escalate if unresolved.</p><small>Channel: TBD</small></article><article class="panel"><span class="rule-tag manager">Manager only</span><h3>Location discrepancy</h3><p>Keep potentially sensitive discrepancy alerts invisible to employees until reviewed.</p><small>Channel: dashboard</small></article><article class="panel"><span class="rule-tag silent">Silent log</span><h3>Minor variance</h3><p>Record low-risk anomalies for analytics without interrupting staff.</p><small>Channel: audit only</small></article></div>
+        </section>
+
+        <section class="view" data-view-panel="staffing">
+          <div class="section-heading"><div><p class="eyebrow">Coverage engine</p><h2>Staffing</h2><p>Availability-first matching designed around caregiver availability and schedule data.</p></div><button class="btn primary">Find coverage</button></div>
+          <div class="dashboard-grid"><section class="panel span-2"><h3>Open shifts</h3><div class="table-wrap"><table><thead><tr><th>Shift</th><th>Service</th><th>Window</th><th>Suggested matches</th><th></th></tr></thead><tbody><tr><td>Open #S-014</td><td>PAS</td><td>Tomorrow · 8 AM–12 PM</td><td>5 eligible</td><td><button class="row-action">Match</button></td></tr><tr><td>Open #S-019</td><td>Respite</td><td>Tomorrow · 1 PM–5 PM</td><td>3 eligible</td><td><button class="row-action">Match</button></td></tr></tbody></table></div></section><section class="panel"><h3>Match factors</h3><ul class="check-list"><li>Marked availability</li><li>Schedule conflicts</li><li>Service / discipline eligibility</li><li>Geographic fit</li><li>Weekly hours / overtime</li><li>Patient restrictions</li></ul></section></div>
+        </section>
+
+        <section class="view" data-view-panel="billing">
+          <div class="section-heading"><div><p class="eyebrow">Revenue operations</p><h2>Billing & accounts receivable</h2><p>Future view from scheduled → completed → billing-ready → submitted → paid.</p></div><button class="btn secondary">Date range</button></div>
+          <div class="metric-grid"><article class="metric-card"><span>Completed hours</span><strong>214.0h</strong><small>Demo</small></article><article class="metric-card"><span>Billing-ready</span><strong>198.5h</strong><small>Demo</small></article><article class="metric-card attention"><span>Blocked by exceptions</span><strong>15.5h</strong><small>Demo</small></article><article class="metric-card"><span>Projected this week</span><strong>286.5h</strong><small>Demo</small></article></div>
+          <section class="panel"><div class="panel-head"><div><h3>Billing pipeline</h3><p>HHA exposes visit billing information and billing service-code operations that can feed this view.</p></div></div><div class="pipeline"><div><span>Scheduled</span><strong>286.5h</strong></div><i>→</i><div><span>Completed</span><strong>214h</strong></div><i>→</i><div><span>Ready</span><strong>198.5h</strong></div><i>→</i><div><span>Submitted</span><strong>—</strong></div><i>→</i><div><span>Paid</span><strong>—</strong></div></div></section>
+        </section>
+
+        <section class="view" data-view-panel="hha">
+          <div class="section-heading"><div><p class="eyebrow">Data layer</p><h2>HHAeXchange integration</h2><p>ENT v1.8 SOAP/WSDL contract found in the repository.</p></div><span class="status pending">Not connected</span></div>
+          <div class="integration-banner"><div><strong>Production SOAP endpoint</strong><code>https://cloud.hhaexchange.com/Integration/ENT/V1.8/ws.asmx</code></div><div><strong>Security rule</strong><span>Credentials and App Key belong only in the backend secret store.</span></div></div>
+          <div class="dashboard-grid"><section class="panel span-2"><div class="panel-head"><div><h3>Priority operation map</h3><p>Operations confirmed from the HHA reference endpoint list.</p></div></div><div class="table-wrap"><table><thead><tr><th>Area</th><th>Operations discovered</th><th>Primetime use</th><th>Phase</th></tr></thead><tbody>
+            <tr><td>Visits</td><td><code>GetVisitChangesV5</code>, <code>GetVisitInfoV3</code></td><td>Sync visits / discrepancies</td><td><span class="status medium">P0</span></td></tr>
+            <tr><td>Confirmation</td><td><code>ConfirmVisits</code>, <code>ConfirmVisitsEVV</code>, <code>ConfirmVisitsV2</code></td><td>EVV correction / confirmation</td><td><span class="status high">P0 gated</span></td></tr>
+            <tr><td>Schedules</td><td><code>GetScheduleInfo</code>, <code>CreateSchedule</code></td><td>Expected shifts / staffing</td><td><span class="status medium">P0/P1</span></td></tr>
+            <tr><td>Caregivers</td><td><code>GetCaregiverChanges*</code>, availability operations</td><td>Roster / staffing eligibility</td><td><span class="status low">P1</span></td></tr>
+            <tr><td>Billing</td><td><code>GetVisitBillInfoV2</code>, <code>GetBillingServiceCodes</code></td><td>Billable-hours projection</td><td><span class="status low">P1</span></td></tr>
+            <tr><td>POC / patients</td><td><code>CreatePatientPOC</code>, patient operations</td><td>Documentation context</td><td><span class="status pending">Map next</span></td></tr>
+          </tbody></table></div></section><section class="panel"><h3>Connection checklist</h3><ol class="number-list"><li><span>Inventory WSDL request/response schemas</span></li><li><span>Deploy server-side SOAP adapter</span></li><li><span>Test read-only call with production credentials</span></li><li><span>Store normalized snapshots + sync cursor</span></li><li><span>Validate exception rules with managers</span></li><li><span>Enable controlled HHA write-back</span></li></ol></section></div>
+        </section>
+
+        <section class="view" data-view-panel="audit">
+          <div class="section-heading"><div><p class="eyebrow">Traceability</p><h2>Audit log</h2><p>Every HHA sync, admin correction, alert and future write-back should be attributable.</p></div><button class="btn secondary">Export log</button></div>
+          <section class="panel"><div class="table-wrap"><table><thead><tr><th>Time</th><th>Actor</th><th>Action</th><th>Object</th><th>Result</th></tr></thead><tbody><tr><td>—</td><td>System</td><td>Admin scaffold initialized</td><td>/primetime</td><td><span class="status low">Ready</span></td></tr><tr><td>—</td><td>System</td><td>HHA references detected</td><td>ENT v1.8</td><td><span class="status low">Ready</span></td></tr></tbody></table></div></section>
+        </section>
+
+        <section class="view" data-view-panel="settings">
+          <div class="section-heading"><div><p class="eyebrow">Administration</p><h2>Settings</h2><p>Security, roles, integrations, thresholds and notification policy.</p></div></div>
+          <div class="settings-grid"><section class="panel"><h3>Access control</h3><p>Role design is waiting on your answer: single super-admin or Admin / Manager / Scheduler / Billing roles.</p><button class="btn secondary">Configure roles</button></section><section class="panel"><h3>EVV thresholds</h3><p>Define grace periods, variance limits and escalation behavior before enabling automation.</p><button class="btn secondary">Configure rules</button></section><section class="panel"><h3>Messaging</h3><p>Select employee communication channels and manager escalation channels.</p><button class="btn secondary">Configure channels</button></section><section class="panel"><h3>Data handling</h3><p>No PHI should be stored in browser localStorage. Production access must use authenticated, authorized backend APIs.</p><button class="btn secondary">Security checklist</button></section></div>
+        </section>
+      </main>
+    </div>
+  </div>
+  <script src="/primetime/primetime.js" defer></script>
+</body>
+</html>
