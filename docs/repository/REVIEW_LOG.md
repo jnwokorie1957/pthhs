@@ -105,7 +105,7 @@ owner/developer checkpoint only when new evidence changes task status.
 ### Branch disposition
 
 - Keep `main` and `codex/batch-c-g-qa`.
-- The other fourteen remote branches are merged or superseded by those two
+- The other fifteen remote branches are merged or superseded by those two
   histories and are eligible for deletion.
 - Remote deletion requires a GitHub ref-delete capability; the connected API in
   this run supports ref updates but not ref deletion, and unauthenticated Git
