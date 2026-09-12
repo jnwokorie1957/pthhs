@@ -1,6 +1,7 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import sharp from 'sharp';
+import { isInternalAppFile, marketingHtmlFiles } from './site-scope.mjs';
 
 const root = process.cwd();
 const publicDir = path.join(root, 'public');
@@ -206,6 +207,7 @@ async function pruneLegacyPublicFiles(documents) {
     await fs.unlink(file);
   }
   for (const file of await walk(publicDir, (entry) => entry.endsWith('.php'))) {
+    if (isInternalAppFile(file, publicDir)) continue;
     const stat = await fs.stat(file);
     removedBytes += stat.size;
     removedFiles += 1;
@@ -216,7 +218,7 @@ async function pruneLegacyPublicFiles(documents) {
 
 await generateResponsiveImages();
 await removeExternalFonts();
-const htmlFiles = await walk(publicDir, (file) => file.endsWith('.html'));
+const htmlFiles = await marketingHtmlFiles(publicDir);
 const documents = [];
 for (const file of htmlFiles) {
   const html = optimizeHtml(await fs.readFile(file, 'utf8'), routeFromFile(file));

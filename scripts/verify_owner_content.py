@@ -9,6 +9,8 @@ from pathlib import Path
 from urllib.parse import urlsplit
 from xml.etree import ElementTree
 
+from site_scope import marketing_html_files
+
 ROOT = Path(__file__).resolve().parents[1]
 PUBLIC = ROOT / "public"
 errors: list[str] = []
@@ -97,7 +99,7 @@ for phrase in ("Everyday personal assistance", "Caregiver support", "Texas Medic
     if phrase not in resources:
         errors.append(f"public content-cluster navigation missing: {phrase}")
 
-html_files = sorted(PUBLIC.rglob("*.html"))
+html_files = marketing_html_files(PUBLIC)
 for path in html_files:
     text = path.read_text(errors="ignore")
     if text.count('href="/privacy-policy"') < 1 or text.count('href="/terms-of-use"') < 1:

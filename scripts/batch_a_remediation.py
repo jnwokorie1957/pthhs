@@ -8,6 +8,8 @@ import json
 import re
 from pathlib import Path
 
+from site_scope import marketing_html_files
+
 ROOT = Path(__file__).resolve().parents[1]
 PUBLIC = ROOT / "public"
 HOST = "https://pthhs.net"
@@ -142,7 +144,7 @@ text = text.replace('Primetime Home Health Services has served Houston-area fami
 index.write_text(text)
 
 # General exact-phrase cleanup in still-public legacy material.
-for path in PUBLIC.rglob("*.html"):
+for path in marketing_html_files(PUBLIC):
     text = path.read_text(errors="ignore")
     replacements = {
         "Serving the Greater Houston area with Home Care since 1999": "Serving Greater Houston with non-medical home care",
@@ -210,4 +212,4 @@ if sitemap.exists():
 
 (PUBLIC / "robots.txt").write_text("User-agent: *\nAllow: /\n\nSitemap: https://pthhs.net/sitemap.xml\n")
 
-print(f"Batch A remediation applied to {len(list(PUBLIC.rglob('*.html')))} HTML files.")
+print(f"Batch A remediation applied to {len(marketing_html_files(PUBLIC))} marketing HTML files.")

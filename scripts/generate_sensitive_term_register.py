@@ -8,6 +8,8 @@ import re
 from html.parser import HTMLParser
 from pathlib import Path
 
+from site_scope import marketing_html_files
+
 ROOT = Path(__file__).resolve().parents[1]
 PUBLIC = ROOT / "public"
 TERMS = ["home health", "nursing", "nurse", "administer", "medical", "therapy", "diagnosis", "diagnose", "treatment", "medicare", "wound care"]
@@ -61,7 +63,7 @@ def classify(term: str, text: str, quarantined: bool) -> tuple[str, str]:
 rows = []
 from batch_a_config import BLOG_SLUGS
 quarantined_files = {slug + ".html" for slug in BLOG_SLUGS}
-for path in sorted(PUBLIC.rglob("*.html")):
+for path in marketing_html_files(PUBLIC):
     parser = TextNodes()
     parser.feed(path.read_text(errors="ignore"))
     rel = path.relative_to(PUBLIC).as_posix()

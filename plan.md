@@ -26,8 +26,8 @@ Unify the site, remove service-scope contradictions, verify payer/trust claims, 
 - The live Areas page lists more communities than the checked-in sitemap.
 - `public/home-care-services.html` contains malformed legacy canonical/Open Graph/schema markup and old WordPress/WP Rocket assets.
 - `public/CRAWL-REPORT.md` documents 24 imported blog posts and WordPress comment-form migration TODOs.
-- `PTHHS_SERVICE_SCOPE_AUDIT.md` flags “Home Health Agency” positioning as misleading for the intended non-medical PAS scope.
-- `PTHHS_PAYER_PROGRAM_TRUTH_TABLE.md` says specific PTHHS payer contracts were not independently verified by that audit.
+- The historical August service-scope audit that drove the September remediation remains available in Git history; current scope is enforced by the active terminology and release-gate files.
+- `PTHHS_PAYER_PROGRAM_TRUTH_TABLE.md` separates public program facts from the business relationships subsequently approved through the September 11 owner attestation.
 - Firebase Hosting deploys `public/`; internal crawl/audit artifacts should be excluded from the deploy rather than merely noindexed.
 
 ## 110-item backlog
@@ -183,3 +183,16 @@ Do not consider the remediation complete until all of the following are true:
 ## Governance notes
 
 Public Texas Medicaid/program facts are not evidence of a PTHHS-specific payer/network contract. Privacy, HIPAA applicability, employment wording, and regulated-service scope should be reviewed by the appropriate business/compliance/legal owner rather than inferred from marketing copy. If a P0 claim cannot be verified quickly, remove or soften it until evidence is available.
+
+## Repository maintenance addendum — September 12, 2026
+
+- [x] **R1. Review every tracked repository file** with format-aware validation and record the review method.
+- [x] **R2. Preserve visitor-facing website data** by leaving every tracked file under `public/` unchanged.
+- [x] **R3. Separate marketing and internal application scope** so broad generators/verifiers never rewrite or prune `/primetime`.
+- [x] **R4. Repair the release pipeline** and prove the full build/verification sequence passes after the `/primetime` merge.
+- [x] **R5. Align Firebase project configuration** on `primetimehomehealthservices`.
+- [x] **R6. Add reproducible dependencies and pull-request QA** for site tooling and Functions type checks.
+- [x] **R7. Organize current, strategic, historical, snapshot, source-package, and legacy-import material** without discarding evidence.
+- [x] **R8. Update the owner checklist, developer checklist, README, documentation map, inventory, and append-only review log.**
+- [x] **R9. Check for errors and optimization opportunities** across HTML/assets, scripts, workflows, Functions, archives, links, and structured files.
+- [ ] **R10. Append the six-hour follow-up review.** Re-run against the then-current `main`, append new evidence to `docs/repository/REVIEW_LOG.md`, and update task status only when verified.

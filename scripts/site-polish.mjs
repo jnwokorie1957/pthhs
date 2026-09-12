@@ -1,5 +1,6 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
+import { marketingHtmlFiles } from './site-scope.mjs';
 
 const root = process.cwd();
 const publicDir = path.join(root, 'public');
@@ -346,17 +347,6 @@ function injectEnhancementScript(html) {
   return html.replace(/<\/body>/i, '<script src="/assets/site-enhancements.js" defer></script></body>');
 }
 
-async function walkHtml(dir) {
-  const out = [];
-  for (const entry of await fs.readdir(dir, { withFileTypes: true })) {
-    if (entry.name === 'node_modules' || entry.name.startsWith('.')) continue;
-    const full = path.join(dir, entry.name);
-    if (entry.isDirectory()) out.push(...await walkHtml(full));
-    else if (entry.isFile() && entry.name.toLowerCase().endsWith('.html')) out.push(full);
-  }
-  return out;
-}
-
 function faviconSvg() {
   return `<?xml version="1.0" encoding="UTF-8"?>\n<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Primetime Home Health">\n  <rect width="64" height="64" rx="15" fill="#0d4f8f"/>\n  <path d="M16 31.5 32 18l16 13.5v17.2H37.7V37.8H26.3v10.9H16V31.5Z" fill="#fff"/>\n  <path d="M27.2 25.4h9.6v4.9h4.9v9.6h-4.9v4.9h-9.6v-4.9h-4.9v-9.6h4.9v-4.9Z" fill="#f5a623"/>\n</svg>`;
 }
@@ -455,7 +445,7 @@ async function processHtmlFile(file) {
 
 async function main() {
   await generateMetaAssets();
-  const files = await walkHtml(publicDir);
+  const files = await marketingHtmlFiles(publicDir);
   const results = [];
   for (const file of files) results.push(await processHtmlFile(file));
   const titles = new Map();

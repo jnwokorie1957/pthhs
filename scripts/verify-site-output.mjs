@@ -1,21 +1,11 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
+import { marketingHtmlFiles } from './site-scope.mjs';
 
 const publicDir = path.join(process.cwd(), 'public');
 
-async function walk(dir) {
-  const entries = await fs.readdir(dir, { withFileTypes: true });
-  const files = [];
-  for (const entry of entries) {
-    const full = path.join(dir, entry.name);
-    if (entry.isDirectory()) files.push(...await walk(full));
-    else if (entry.isFile() && entry.name.endsWith('.html')) files.push(full);
-  }
-  return files;
-}
-
 const failures = [];
-for (const file of await walk(publicDir)) {
+for (const file of await marketingHtmlFiles(publicDir)) {
   const html = await fs.readFile(file, 'utf8');
   const rel = path.relative(publicDir, file);
 
