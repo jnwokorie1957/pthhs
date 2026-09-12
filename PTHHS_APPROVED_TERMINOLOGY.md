@@ -33,3 +33,5 @@
 ## Claim approval rule
 
 Before publication, any clinical, payer, credential, award, historical, or quantitative claim must have a source, effective date, owner, and re-check date in the applicable evidence register. If evidence is absent or expired, remove or soften the claim.
+
+The September 11, 2026 owner attestation is the dated source for the history, award, customer, satisfaction, and staffing snapshots recorded in `PTHHS_PUBLIC_FACTS.json`. Those exact claims are approved; changed or additional figures require a new dated approval.

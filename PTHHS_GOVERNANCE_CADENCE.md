@@ -5,6 +5,7 @@
 | Area | Accountable role | Operational check | Cadence |
 |---|---|---|---|
 | Service scope and claims | PTHHS Administrator | Confirm all public services remain non-medical PAS and match current operations | Quarterly and before release |
+| Owner-reported business metrics | PTHHS Administrator | Reconfirm the awards, customer, satisfaction, attendant and supervisor snapshots in the public-facts register | Quarterly |
 | Payer participation | PTHHS Administrator | Reconfirm each displayed plan/program and its publication caveat | Quarterly |
 | Service areas | Operations lead | Reconfirm county, region, city, ZIP, payer and staffing availability | Quarterly |
 | Reviews | Administrator or communications lead | Recheck public source, attribution, privacy and removal requests | Quarterly |

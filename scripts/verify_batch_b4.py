@@ -64,7 +64,7 @@ for path in sorted(PUBLIC.rglob("*.html")):
     text = path.read_text(errors="ignore")
     if re.search(r'<meta\s+name=["\']keywords["\']', text, re.I):
         errors.append(f"meta keywords remains: {relative}")
-    for unsafe in ("100% satisfaction", "awards win", "specialized medical attention"):
+    for unsafe in ("specialized medical attention",):
         if unsafe.lower() in text.lower():
             errors.append(f"unsupported claim remains in {relative}: {unsafe}")
 

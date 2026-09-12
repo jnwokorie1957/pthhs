@@ -49,6 +49,9 @@ if "medication-reminders" not in home or "Hands organizing a weekly medication r
 for phrase in ("since 1999", "25+ Years Serving Houston", "Multiple Medicaid Plans", "Protective Supervision"):
     if phrase not in home:
         errors.append(f"owner-approved homepage claim missing: {phrase}")
+for phrase in ("34+", "95K", "100%", "Awards earned", "Happy customers"):
+    if phrase not in home:
+        errors.append(f"owner-approved homepage metric missing: {phrase}")
 
 expected_title = "Insurance &amp; Medicaid Plans | Primetime Home Health Services Houston"
 if f"<title>{expected_title}</title>" not in insurance:
@@ -68,6 +71,9 @@ if "Google Business Profile" not in reviews or "<form" in reviews.lower() or "co
 for person in ("Johnson Nwokorie", "Irasema Baron", "Jeremy Nwokorie"):
     if person not in staff:
         errors.append(f"staff profile missing: {person}")
+for phrase in ("500 PAS attendants", "10 office supervisors"):
+    if phrase not in staff:
+        errors.append(f"owner-approved staffing snapshot missing: {phrase}")
 if re.search(r'<meta\s+name=["\']robots["\'][^>]*noindex', profile, re.I):
     errors.append("restored Johnson profile remains noindex")
 
@@ -116,6 +122,9 @@ if facts.get("founded") != 1999 or len(facts.get("approved_payers_and_programs",
     errors.append("owner-approved fact register is incomplete")
 if len(facts.get("approved_service_area", {}).get("counties", [])) != 11:
     errors.append("approved county register is incomplete")
+metrics = facts.get("owner_reported_metrics", {})
+if metrics.get("pas_attendants_supported") != "500+" or metrics.get("office_supervisors") != 10:
+    errors.append("approved staffing snapshot is incomplete")
 
 for artifact in (
     "PTHHS_OWNER_ATTESTATION.md",

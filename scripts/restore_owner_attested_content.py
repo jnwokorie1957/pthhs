@@ -96,6 +96,24 @@ def restore_home() -> None:
     )
     for old, new, label in replacements:
         text = replace_exact(text, old, new, label)
+    text = re.sub(
+        r"<!-- owner-metrics:start -->[\s\S]*?<!-- owner-metrics:end -->",
+        "",
+        text,
+    )
+    owner_metrics = '''<!-- owner-metrics:start --><section class="section" aria-labelledby="owner-metrics-title"><div class="shell">
+<span class="eyebrow">Primetime by the Numbers</span><h2 class="section-title" id="owner-metrics-title">A long-standing Houston care community</h2>
+<div class="trust-grid">
+<article class="card"><strong class="metric-value">34+</strong><h3>Awards earned</h3></article>
+<article class="card"><strong class="metric-value">95K</strong><h3>Happy customers</h3></article>
+<article class="card"><strong class="metric-value">100%</strong><h3>Satisfaction</h3></article>
+<article class="card"><strong class="metric-value">25+</strong><h3>Years of experience</h3></article>
+</div><p class="small-note">Business figures reported and approved for publication by PTHHS ownership on September 11, 2026.</p>
+</div></section><!-- owner-metrics:end -->'''
+    marker = '<section class="section"><div class="shell"><div class="services-intro">'
+    if marker not in text:
+        raise RuntimeError("unable to insert owner-attested homepage metrics")
+    text = text.replace(marker, owner_metrics + marker, 1)
     path.write_text(text)
 
 
@@ -260,6 +278,7 @@ REVIEWS_MAIN = '''
 
 STAFF_MAIN = '''
 <section class="page-hero"><div class="shell"><nav class="breadcrumb" aria-label="Breadcrumb"><a href="/">Home</a> / <span aria-current="page">Our Leadership Team</span></nav><span class="eyebrow">Houston Personal Assistance Team</span><h1>Meet our leadership team</h1><p class="section-lead">Experienced local leaders coordinate non-medical personal assistance, client communication, attendant support and day-to-day operations.</p></div></section>
+<section class="section section-soft"><div class="shell"><div class="notice"><strong>Our team at a glance:</strong> Primetime supports more than 500 PAS attendants and is guided by a dedicated team of 10 office supervisors. Staffing figures were reported and approved for publication by PTHHS ownership on September 11, 2026.</div></div></section>
 <section class="section"><div class="shell"><div class="grid grid-3 staff-grid">
 <article class="card staff-card"><img src="/assets/media/staff-johnson-640.webp" alt="Johnson Nwokorie, Administrator and founder" width="640" height="698" loading="lazy" decoding="async"><div><h2>Johnson Nwokorie</h2><p class="staff-role">Administrator &amp; Founder</p><p>Johnson has more than 25 years of home-care leadership experience. His business and finance background supports Primetime’s focus on dependable operations for clients, attendants and office teams.</p><a class="card-link" href="/home-care-meet-our-staff/johnson-nwokorie">Read Johnson’s profile →</a></div></article>
 <article class="card staff-card"><img src="/assets/media/staff-irasema-640.webp" alt="Irasema Baron, General Manager" width="640" height="703" loading="lazy" decoding="async"><div><h2>Irasema Baron</h2><p class="staff-role">General Manager</p><p>Irasema supports office and field teams, client and attendant communication, and operational coordination. She communicates in English and Spanish and has completed ANE competency and Texas HHS administrator/alternate training.</p></div></article>

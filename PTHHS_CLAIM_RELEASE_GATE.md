@@ -7,7 +7,7 @@ A release is blocked when an indexable public page contains any of the following
 
 1. A claim that PTHHS provides skilled, clinical, nursing, treatment, therapy, wound-care, diagnosis, or medication-administration services.
 2. A named payer/network participation claim or payer logo without current evidence in `PTHHS_PAYER_EVIDENCE_REGISTER.md`. The September 11, 2026 business-owner attestation is recorded evidence for the six approved names and logos only.
-3. An award, ranking, customer count, satisfaction rate, guarantee, precise founding date, or years-in-business claim without a dated source. The business owner's September 11, 2026 attestation approves the 1999 and 25-plus-year history claims only.
+3. An award, ranking, customer count, satisfaction rate, staffing figure, guarantee, precise founding date, or years-in-business claim without a dated source. The business owner's September 11, 2026 attestation approves the historical, proof-point, and staffing snapshots recorded in `PTHHS_PUBLIC_FACTS.json`.
 4. A testimonial without a documented public source, attribution, publication approval, and privacy treatment in `PTHHS_REVIEW_SOURCE_REGISTER.md`.
 5. Contact information that conflicts with `PTHHS_PUBLIC_FACTS.json`.
 6. A malformed, relative, `www`, or non-HTTPS canonical/OG URL.

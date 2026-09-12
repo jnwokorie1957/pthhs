@@ -68,15 +68,23 @@ high_risk_pages = [
 ]
 for path in high_risk_pages:
     text = path.read_text(errors="ignore").lower()
-    for phrase in ["95k", "100% satisfaction", "awards win", "premier home health agency", "specialized medical attention", "common diagnosis"]:
+    for phrase in ["premier home health agency", "specialized medical attention", "common diagnosis"]:
         if phrase in text:
             errors.append(f"unsupported claim '{phrase}' in {path.relative_to(ROOT)}")
+
+home = (PUBLIC / "index.html").read_text(errors="ignore").lower()
+for approved_claim in ["34+", "95k", "100%", "awards earned", "happy customers", "business figures reported and approved"]:
+    if approved_claim not in home:
+        errors.append(f"owner-attested homepage claim missing: {approved_claim}")
 
 facts = json.loads((ROOT / "PTHHS_PUBLIC_FACTS.json").read_text())
 if facts.get("approval_basis") != "Business-owner attestation received September 11, 2026":
     errors.append("owner-attestation approval basis is missing from public facts")
 if facts.get("service_scope") != "Non-medical personal assistance services (PAS)":
     errors.append("non-medical PAS scope changed")
+metrics = facts.get("owner_reported_metrics", {})
+if metrics.get("awards_earned") != "34+" or metrics.get("happy_customers") != "95K" or metrics.get("satisfaction") != "100%":
+    errors.append("owner-attested business metrics are missing from public facts")
 
 for slug in BLOG_SLUGS:
     path = PUBLIC / f"{slug}.html"

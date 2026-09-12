@@ -52,7 +52,10 @@ for required in ["johnson nwokorie", "irasema baron", "jeremy nwokorie", "admini
 for required in ["johnson nwokorie", "texas southern university", "bachelor", "master"]:
     if required not in profile_text:
         errors.append(f"owner-approved Johnson profile content missing: {required}")
-for forbidden in ["500 pas attendants", "10 office supervisors", "asian-speaking", "diagnose", "skilled nursing"]:
+for required in ["500 pas attendants", "10 office supervisors", "reported and approved for publication"]:
+    if required not in staff_text:
+        errors.append(f"owner-approved staffing content missing: {required}")
+for forbidden in ["asian-speaking", "diagnose", "skilled nursing"]:
     if forbidden in staff_text or forbidden in profile_text:
         errors.append(f"unapproved or misleading staff claim remains: {forbidden}")
 if not (ROOT / "PTHHS_OWNER_ATTESTATION.md").exists():

@@ -19,6 +19,14 @@
   },
   "canonical_host": "https://pthhs.net",
   "founded": 1999,
+  "owner_reported_metrics": {
+    "as_of": "2026-09-11",
+    "awards_earned": "34+",
+    "happy_customers": "95K",
+    "satisfaction": "100%",
+    "pas_attendants_supported": "500+",
+    "office_supervisors": 10
+  },
   "office_hours": "Monday-Friday, 9 a.m.-5 p.m.",
   "approved_payers_and_programs": [
     "UnitedHealthcare",
@@ -34,8 +42,7 @@
   },
   "not_approved_without_separate_current_evidence": [
     "clinical or skilled service claims",
-    "awards",
-    "customer counts or satisfaction rates",
+    "awards, customer counts, satisfaction rates, or staffing figures beyond the September 11, 2026 owner-attested snapshot",
     "new payer, staff, location, credential, award, testimonial, historical, or quantitative claims not covered by the September 11, 2026 owner attestation"
   ]
 }

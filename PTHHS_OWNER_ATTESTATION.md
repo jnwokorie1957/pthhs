@@ -14,5 +14,7 @@ The approval covers the previously published, owner-provided claims restored in 
 - Johnson Nwokorie, Irasema Baron, and Jeremy Nwokorie may be identified with the roles, experience, education, training, and language information restored to the Team pages.
 - Protective supervision may be described only as non-medical observation when included in an applicable authorization.
 - Public Google review excerpts and reviewer names may be curated on the Reviews page from documented public sources.
+- The previously published business proof points may be restored as an owner-reported September 11, 2026 snapshot: 34-plus awards earned, 95K happy customers, 100% satisfaction, and more than 25 years of experience.
+- The staffing snapshot may state that PTHHS supports more than 500 PAS attendants and is guided by 10 office supervisors.
 
-This approval does not expand PTHHS's website service scope beyond non-medical personal assistance services. It does not approve skilled nursing, medication administration, diagnosis, treatment, therapy, unsupported awards, or new quantitative claims. Plan participation, staff facts, location coverage, and public review sources remain subject to their documented review cadences.
+This approval does not expand PTHHS's website service scope beyond non-medical personal assistance services. It does not approve skilled nursing, medication administration, diagnosis, treatment, therapy, or quantitative claims beyond the expressly approved snapshots above. Plan participation, staff facts, owner-reported metrics, location coverage, and public review sources remain subject to their documented review cadences.
