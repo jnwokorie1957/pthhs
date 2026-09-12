@@ -28,20 +28,16 @@ Operational/medical/management decisions: EVV rules, visibility/escalation, corr
 - [x] `DEV-002` — Firebase Functions backend/HHA adapter scaffold created under `functions/`.
 - [x] `DEV-003` — runtime HHA configuration contract created: `HHAEXCHANGE_CREDENTIALS` secret + `HHAEXCHANGE_BASE_URL` config.
 - [x] `DEV-004` — initial vendor-neutral management schema created in `functions/src/domain/models.ts`.
-- [ ] **`DEV-005` — CURRENT DEVELOPER ACTION:** confirm which Firebase project owns the live `/primetime` panel and create `HHAEXCHANGE_CREDENTIALS` there in Google Cloud Secret Manager / Firebase Functions secrets.
+- [x] `DEV-005A` — live Firebase project confirmed by the developer as **`primetimehomehealthservices`**.
+- [ ] **`DEV-005B` — CURRENT DEVELOPER ACTION:** create `HHAEXCHANGE_CREDENTIALS` in Google Cloud Secret Manager / Firebase Functions secrets for project `primetimehomehealthservices`.
 - [ ] `DEV-006` — identify/verify the existing `/primetime` authentication mechanism and define the server-side admin authorization gate.
 - [ ] `DEV-007` — activate Functions deployment + Firebase Hosting rewrite so `/primetime/api/**` reaches `primetimeApi`.
 - [ ] `DEV-008` — finish SOAP response parsing, HHA error normalization, retries, redaction, and telemetry.
 - [ ] `DEV-009` — first harmless read-only authenticated HHA call.
 
-### ⚠️ Firebase project mismatch to resolve at DEV-005
+### Firebase project status
 
-The current repo contains two project identifiers:
-
-- `.github/workflows/deploy-firebase.yml` explicitly deploys Hosting to **`primetimehomehealthservices`**.
-- `.firebaserc` currently lists **`pthhs-net`** as the default project.
-
-Do not activate the new Functions deployment until the developer confirms which project serves the live `/primetime` admin panel.
+The live management/site Firebase project is confirmed as **`primetimehomehealthservices`**. The deployment workflow already targets this project. `.firebaserc` may still contain the older `pthhs-net` default and should be treated as stale until it is aligned; do not infer deployment ownership from that stale value.
 
 ### Secret-storage decision
 
@@ -59,6 +55,12 @@ Expected JSON shape:
   "appSecret": "...",
   "appKey": "..."
 }
+```
+
+Create it with:
+
+```bash
+firebase functions:secrets:set HHAEXCHANGE_CREDENTIALS --project primetimehomehealthservices
 ```
 
 Never commit the real value.
