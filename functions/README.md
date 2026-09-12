@@ -12,6 +12,14 @@ This directory contains server-side code for the internal PTHHS management layer
 
 The Function is scaffolded but **must not be activated for HHA/PHI-bearing endpoints until the existing `/primetime` authentication mechanism is identified and enforced server-side**.
 
+## Confirmed Firebase project
+
+The developer explicitly confirmed that the live site/admin project is:
+
+`primetimehomehealthservices`
+
+The GitHub deployment workflow already targets that project. `.firebaserc` may still contain the older `pthhs-net` default and should be treated as stale until aligned.
+
 ## HHA runtime configuration
 
 The code expects one Secret Manager JSON secret:
@@ -34,28 +42,17 @@ The production ENT v1.8 endpoint defaults to:
 
 and can be overridden with the non-secret parameter `HHAEXCHANGE_BASE_URL` if HHA provisions a different endpoint.
 
-### Recommended secret setup
+### Current developer action
 
-Use Google Cloud Secret Manager / Firebase Functions secrets in the **confirmed live Firebase project**. Do not commit the value to Git and do not use a checked-in `.env` file as the production secret store.
-
-Interactive Firebase CLI flow:
+Create the secret in the confirmed live project:
 
 ```bash
-firebase functions:secrets:set HHAEXCHANGE_CREDENTIALS --project <CONFIRMED_PROJECT_ID>
+firebase functions:secrets:set HHAEXCHANGE_CREDENTIALS --project primetimehomehealthservices
 ```
 
 When prompted, paste the JSON object above with the real values.
 
-GitHub Actions Secrets should remain for CI/deployment credentials; the HHA runtime credentials should live in Secret Manager and be granted only to the function(s) that need them.
-
-## Current blocker before deployment
-
-The repository currently references two Firebase project IDs:
-
-- `.github/workflows/deploy-firebase.yml` deploys Hosting to `primetimehomehealthservices`
-- `.firebaserc` defaults to `pthhs-net`
-
-Confirm which project serves the live `/primetime` panel before adding the Hosting rewrite or deploying `primetimeApi`.
+Do not commit the value to Git or a checked-in `.env` file. GitHub Actions Secrets remain appropriate for CI/deployment credentials; HHA runtime credentials belong in Secret Manager and should be accessible only to function(s) that need them.
 
 ## Current implementation status
 
@@ -67,14 +64,14 @@ Implemented:
 - HHA credentials/config contract
 - generic SOAP envelope/transport scaffold
 - vendor-neutral management domain interfaces
+- live Firebase project confirmed as `primetimehomehealthservices`
 
 Next:
 
-1. confirm live Firebase project
-2. create `HHAEXCHANGE_CREDENTIALS`
-3. identify/enforce existing admin authentication
-4. activate Firebase Functions + Hosting rewrite
-5. add SOAP response/error parser
-6. make the first harmless read-only HHA call
+1. create `HHAEXCHANGE_CREDENTIALS`
+2. identify/enforce existing admin authentication
+3. activate Firebase Functions + Hosting rewrite
+4. add SOAP response/error parser
+5. make the first harmless read-only HHA call
 
 Track completion in `../docs/management-layer/DEVELOPER_TASKS.md` and the root `../README.md` checkpoint.
