@@ -1,443 +1,405 @@
-# PTHHS Management Layer — Owner / Operations Task Track
+# PTHHS Management Layer — Owner / Operations Checklist
 
 > **Primary owner:** PTHHS Owner / Operations Lead
 >
-> **Purpose:** Define how PTHHS actually operates so the developer can implement the correct rules. This file is for operational, clinical/management, billing, staffing, compliance, escalation, and approval decisions — not code.
+> **Purpose:** Define how PTHHS actually operates so the developer can implement the correct management, EVV, clinical-review, billing, staffing, compliance, and escalation rules. This is a decision checklist, not a coding checklist.
+
+## How this checklist is used
+
+- `[x]` = completed and explicitly confirmed.
+- `[ ]` = pending.
+- The developer must not invent an operational/medical rule to make progress.
+- When an owner item is completed, mark it `[x]`, update the root `README.md` checkpoint when it changes a development dependency, and prompt with the next owner decision needed.
+- Use de-identified examples in repository documentation.
 
 ## Start here
 
-Read these alongside this task list:
+- [`DEVELOPER_TASKS.md`](./DEVELOPER_TASKS.md) — technical implementation/checkpoint tracker.
+- [`../../hharefs/endpoints.html`](../../hharefs/endpoints.html) — HHA capability map; use it to see **what HHA exposes**.
+- [`../../hharefs/hha-wdsl.xml`](../../hharefs/hha-wdsl.xml) — exact HHA SOAP contract; the developer uses it to determine **how each operation actually works**.
 
-- [`DEVELOPER_TASKS.md`](./DEVELOPER_TASKS.md) — what the developer is responsible for implementing.
-- [`../../hharefs/endpoints.html`](../../hharefs/endpoints.html) — **HHA capability map**. This is the fast reference for what ENT v1.8 exposes: visits/EVV, schedules, authorizations, caregiver availability, billing/payroll visit data, collections, compliance, documents, POC-related operations, and more.
-- [`../../hharefs/hha-wdsl.xml`](../../hharefs/hha-wdsl.xml) — **exact HHA SOAP contract**. The developer uses this to inspect exact request/response fields, authentication structures, errors, and operation signatures before implementing a workflow.
-
-**Rule of thumb:** `endpoints.html` tells us *what HHA can do*; `hha-wdsl.xml` tells the developer *exactly how HHA expects it to be done*.
-
-The developer should not invent business rules. Your job is to define each rule clearly enough that it can be implemented and tested.
-
-For operational decisions, try to specify:
-
-- trigger
-- threshold or timing
-- exceptions
-- who can see it
-- who can act on it
-- what happens next
-- escalation path
-- what counts as resolved
-- whether automation is ever allowed
-
-Use de-identified examples in repository documentation.
+> `endpoints.html` tells us what exists. `hha-wdsl.xml` tells the developer exactly how to implement it.
 
 ---
 
-# 1. Define roles and permissions
+# Current owner checkpoint
 
-- [ ] List the real roles used at PTHHS: owner, administrator, scheduler/coordinator, clinical reviewer, field staff, billing/collections, compliance/HR, etc.
+No owner decisions are blocking the developer's initial SOAP/config/schema setup yet. The highest-value owner work can happen in parallel now.
+
+- [ ] **OPS-001 — Document the current daily EVV/visit-review workflow.** Who reviews visits, what they inspect, when they do it, and what they do when something is wrong.
+- [ ] **OPS-002 — List the most common EVV/visit exceptions.** For each one, explain how management resolves it today in HHAExchange.
+- [ ] **OPS-003 — Define clock exception thresholds.** Missing/late clock-in, missing clock-out, early clock-out/short visit, long visit/late clock-out.
+- [ ] **OPS-004 — Split alerts by audience.** Which issues employees may see vs manager-only vs billing/compliance-only.
+- [ ] **OPS-005 — Define who may approve visit/EVV corrections.** Include any second-review or clinical-review cases.
+
+**Owner handoff target:** complete OPS-001 through OPS-005 by the time the developer has real read-only schedule + visit data ready for validation.
+
+---
+
+# Roles and permissions
+
+- [ ] List the real PTHHS roles: owner, administrator, scheduler/coordinator, clinical reviewer, field staff, billing/collections, compliance/HR, etc.
 - [ ] Define what each role may view.
-- [ ] Define who may view management-only EVV discrepancies.
+- [ ] Define who may view manager-only EVV discrepancies.
 - [ ] Define who may approve visit/EVV corrections.
 - [ ] Define who may change schedules.
-- [ ] Define who may view billing/AR information.
-- [ ] Define who may view caregiver compliance information.
+- [ ] Define who may view billing/AR data.
+- [ ] Define who may view caregiver compliance data.
 - [ ] Define who may view visit-location evidence.
 - [ ] Identify actions that require owner approval.
 
-**Deliverable:** a simple role-permission matrix.
+**Deliverable:** role-permission matrix.
 
 ---
 
-# 2. Document the current HHAeXchange workflow
+# Current HHAExchange workflows
 
-Explain what staff actually do today for:
+For each workflow, identify **who**, **how often**, **what they check**, **what decision they make**, **what action follows**, and **what commonly goes wrong**.
 
 - [ ] daily visit review
-- [ ] clock-in/clock-out review
+- [ ] clock-in / clock-out review
 - [ ] EVV exception correction
 - [ ] visit confirmation
 - [ ] visit documentation issues
 - [ ] authorizations
 - [ ] missed visits
 - [ ] billing readiness
-- [ ] collections/AR follow-up
+- [ ] collections / AR follow-up
 - [ ] caregiver availability
 - [ ] open-shift staffing
 - [ ] caregiver compliance
-
-For each workflow answer:
-
-1. Who performs it?
-2. How often?
-3. What information do they check?
-4. What decision do they make?
-5. What action follows?
-6. What problems or delays happen most often?
 
 **Deliverable:** plain-language current-state workflow notes.
 
 ---
 
-# 3. Validate imported HHA data
+# Validate imported HHA data
 
-Once the developer has read-only HHA synchronization, review representative de-identified records and confirm:
+**BLOCKED until developer read-only sync exists.** Review representative de-identified records and mark each as correct, incorrect, or needs HHA clarification.
 
-- [ ] patient matching is correct
-- [ ] employee/caregiver matching is correct
-- [ ] scheduled start/end is correct
-- [ ] actual visit start/end is correct
-- [ ] clock-in/out interpretation is correct
-- [ ] visit confirmation state is correct
-- [ ] service/discipline interpretation is correct
-- [ ] authorization interpretation is correct
-- [ ] edit/deletion/correction fields make operational sense
-- [ ] billing-related visit fields are interpreted correctly
+- [ ] patient matching
+- [ ] caregiver/employee matching
+- [ ] scheduled start/end
+- [ ] actual visit start/end
+- [ ] clock-in/out interpretation
+- [ ] visit confirmation state
+- [ ] service/discipline interpretation
+- [ ] authorization interpretation
+- [ ] edit/deletion/correction interpretation
+- [ ] billing-related visit fields
 
-Mark each reviewed item as **correct**, **incorrect**, or **needs HHA clarification**.
-
-**Important:** do not approve automated exception logic until the underlying HHA data interpretation is trusted.
+Do not approve automated exception logic until the underlying data interpretation is trusted.
 
 ---
 
-# 4. Define EVV and visit exception rules
+# EVV and visit exception rules
 
-This is one of the highest-priority owner tasks.
+For every rule, define:
 
-## Missing clock-in
+- trigger
+- grace period / threshold
+- legitimate exceptions
+- employee visibility
+- manager visibility
+- escalation
+- who may resolve it
+- what counts as resolved
+- whether automation is never allowed, possibly allowed later, or approved under explicit conditions
 
-- [ ] How many minutes after scheduled start before it becomes a concern?
-- [ ] When should the employee be contacted?
-- [ ] When should management be alerted?
-- [ ] Are there service types where the rule differs?
-- [ ] What counts as resolved?
+## Missing / late clock-in
+
+- [ ] minutes after scheduled start before concern
+- [ ] employee-contact timing
+- [ ] management-alert timing
+- [ ] service-specific differences
+- [ ] repeat-occurrence handling
+- [ ] resolution definition
 
 ## Missing clock-out
 
-- [ ] How long after expected end before a reminder/alert?
-- [ ] Who sees it first?
-- [ ] When does it escalate?
-
-## Late clock-in
-
-- [ ] What lateness threshold matters?
-- [ ] Is there a grace period?
-- [ ] Are repeated occurrences treated differently?
+- [ ] threshold after expected end
+- [ ] first audience
+- [ ] escalation timing
+- [ ] resolution definition
 
 ## Early clock-out / short visit
 
-- [ ] What variance is acceptable?
-- [ ] Does it depend on service type or authorization?
-- [ ] When is documentation or correction required?
+- [ ] acceptable variance
+- [ ] service/authorization differences
+- [ ] when documentation is required
+- [ ] when correction is required
 
 ## Long visit / late clock-out
 
-- [ ] What variance requires review?
-- [ ] What are legitimate exceptions?
-- [ ] When does authorization become a concern?
+- [ ] variance requiring review
+- [ ] legitimate exceptions
+- [ ] authorization-impact handling
 
-## Unconfirmed visit
+## Unconfirmed visits
 
-- [ ] When should a completed visit be confirmed?
-- [ ] Who owns confirmation?
-- [ ] What makes an unconfirmed visit urgent?
+- [ ] expected confirmation timing
+- [ ] confirmation owner
+- [ ] urgency conditions
 
-## Documentation / POC issues
+## Documentation / POC
 
-- [ ] Which documentation/tasks are required for the services PTHHS provides?
-- [ ] Which missing items block billing?
-- [ ] Which require clinical or management review?
-- [ ] Who may resolve them?
+- [ ] required documentation/tasks by service type
+- [ ] missing items that block billing
+- [ ] items requiring clinical review
+- [ ] items requiring management review
+- [ ] who may resolve each type
 
-## Visit corrections
+## Corrections
 
-- [ ] Which corrections are routine?
-- [ ] Which require management approval?
-- [ ] Which require clinical approval?
-- [ ] Which should never be automated?
-- [ ] What reason/explanation is required for each type?
+- [ ] routine corrections
+- [ ] manager-approval corrections
+- [ ] clinical-approval corrections
+- [ ] corrections that must never be automated
+- [ ] reason/explanation requirements
 
-For every approved exception rule, provide:
-
-| Field | Decision |
-|---|---|
-| Rule name | ___ |
-| Trigger | ___ |
-| Grace period / threshold | ___ |
-| Employee sees it? | Yes / No |
-| Manager sees it? | Yes / No |
-| Escalation | ___ |
-| Resolution | ___ |
-| May system automate it? | Never / Later / Approved conditions |
+**Deliverable:** approved exception matrix.
 
 ---
 
-# 5. Define messaging and escalation
+# Messaging and escalation
 
-For each operational exception decide:
+For each exception:
 
-- [ ] whether the employee receives a message
-- [ ] whether it is management-only
-- [ ] whether billing/compliance is involved
-- [ ] when the first message is sent
-- [ ] whether reminders repeat
-- [ ] when reminders stop
-- [ ] whether acknowledgement is required
-- [ ] when the issue escalates
-- [ ] who receives the escalation
+- [ ] employee receives message or not
+- [ ] management-only or not
+- [ ] billing/compliance involvement
+- [ ] first-message timing
+- [ ] reminder cadence
+- [ ] stop conditions
+- [ ] acknowledgement requirement
+- [ ] escalation timing
+- [ ] escalation recipient
 - [ ] approved wording or message intent
 
-Prioritize rules for:
+Prioritize:
 
-- missing clock-in
-- missing clock-out
-- late arrival
-- schedule change/cancellation
-- open-shift offer
-- incomplete visit documentation
-- authorization warning
-- HHA/integration outage affecting workflow
-
-Explicitly list issues that should remain **manager-only** until reviewed.
+- [ ] missing clock-in
+- [ ] missing clock-out
+- [ ] late arrival
+- [ ] schedule change/cancellation
+- [ ] open-shift offer
+- [ ] incomplete documentation
+- [ ] authorization warning
+- [ ] HHA/integration outage
 
 **Deliverable:** alert matrix with audience, timing, escalation, and message intent.
 
 ---
 
-# 6. Define HHA correction/write-back policy
+# HHA correction / write-back policy
 
-Before the developer enables HHA writes:
+Before developer enables writes:
 
-- [ ] List the visit/EVV corrections managers currently perform in HHA.
-- [ ] Identify what information is needed before each correction is approved.
-- [ ] Identify the usual HHA edit reason/category.
-- [ ] Identify who may approve each correction.
-- [ ] Identify whether a second reviewer is ever required.
-- [ ] Define cases that should still be handled directly in HHA.
-- [ ] Define what information management wants retained in the audit history.
+- [ ] list correction types currently performed in HHA
+- [ ] define evidence/information required before approval
+- [ ] map usual HHA edit reason/category
+- [ ] define approver by correction type
+- [ ] define second-review cases
+- [ ] define cases that remain HHA-only
+- [ ] define required audit-history details
 
-Classify every correction as one of:
+Classify every correction:
 
-- manual in HHA only
-- PTHHS may suggest but not submit
-- PTHHS may submit after manager approval
-- potentially automatable later under approved conditions
+- [ ] manual in HHA only
+- [ ] PTHHS may suggest only
+- [ ] PTHHS may submit after manager approval
+- [ ] potentially automatable later under explicit conditions
 
 **Deliverable:** correction approval matrix.
 
 ---
 
-# 7. Define authorization rules
+# Authorization rules
 
-Document how PTHHS currently thinks about:
+- [ ] define authorized units/hours
+- [ ] define used units/hours
+- [ ] define scheduled future units/hours
+- [ ] define remaining units/hours
+- [ ] define effective/expiration-date behavior
+- [ ] define overlapping/replacement authorization behavior
+- [ ] define service-specific limits
+- [ ] define cases where schedule may exceed authorization
+- [ ] define expiration warning window
+- [ ] define low-remaining warning threshold
+- [ ] define projected-overage warning threshold
+- [ ] define missing-authorization behavior
 
-- [ ] authorized units/hours
-- [ ] used units/hours
-- [ ] scheduled future units/hours
-- [ ] remaining units/hours
-- [ ] effective and expiration dates
-- [ ] overlapping/replacement authorizations
-- [ ] service-specific limits
-- [ ] situations where scheduled work may exceed authorization
-
-Define warning conditions such as:
-
-- authorization expires within ___ days
-- remaining units below ___
-- future schedule will exceed remaining authorization by ___
-- missing authorization before scheduled service
-
-**Deliverable:** approved authorization calculations and warning thresholds.
+**Deliverable:** approved authorization calculations and warnings.
 
 ---
 
-# 8. Define billing, billable-hours, and AR logic
+# Billing, billable hours, projections, and AR
 
-Describe the actual billing pipeline in plain language:
+Answer the actual workflow:
 
-1. When is a visit considered completed?
-2. When is it considered EVV-ready/compliant?
-3. What prevents it from being billable?
-4. When is it actually billed/submitted?
-5. Which statuses mean held, rejected, pending, outstanding, or paid?
-6. How are collections followed up?
+- [ ] when a visit is considered completed
+- [ ] when it is considered EVV-ready/compliant
+- [ ] what prevents billing
+- [ ] when it is actually billed/submitted
+- [ ] statuses meaning held/rejected/pending/outstanding/paid
+- [ ] how collections are followed up
 
-Then define:
+Define:
 
-- [ ] service codes PTHHS bills
+- [ ] service codes billed by PTHHS
 - [ ] unit/hour conversion rules
 - [ ] authoritative rate sources
-- [ ] visit conditions that block billing
-- [ ] what counts as AR
-- [ ] collection statuses management cares about
-- [ ] desired AR aging buckets
-- [ ] desired weekly/monthly billable-hour projections
+- [ ] visit conditions blocking billing
+- [ ] what management considers AR
+- [ ] collection statuses that matter
+- [ ] AR aging buckets
+- [ ] weekly/monthly billable-hour projections
 - [ ] desired revenue projections
-- [ ] whether forecasts use scheduled, authorized, historical, or mixed assumptions
+- [ ] forecast assumptions: scheduled / authorized / historical / mixed
 
 **Deliverable:** approved billing-state flow and formulas.
 
-Example starting point:
-
-`Scheduled → Completed → EVV Reviewed → Billing Ready → Submitted → Outstanding → Paid`
-
-Adjust this to match the real PTHHS process.
-
 ---
 
-# 9. Define staffing rules
-
-Split staffing logic into **hard restrictions** and **preferences**.
+# Staffing rules
 
 ## Hard restrictions
 
-Decide which are absolute:
+- [ ] discipline/role
+- [ ] training/competency
+- [ ] compliance/credential status
+- [ ] availability
+- [ ] schedule conflicts
+- [ ] patient restrictions
+- [ ] employee restrictions
+- [ ] service eligibility
+- [ ] hard maximum-hours/overtime rules
 
-- required discipline/role
-- required training/competency
-- missing/expired compliance item
-- unavailable at visit time
-- conflicting assignment
-- patient restriction
-- employee restriction
-- service-specific eligibility
-- maximum-hours/overtime rule, if absolute
+## Ranking preferences
 
-## Preferences / ranking factors
+- [ ] existing patient relationship
+- [ ] travel distance
+- [ ] continuity of care
+- [ ] preferred work area
+- [ ] workload balancing
+- [ ] overtime avoidance
+- [ ] patient preference
+- [ ] relevant language/skill preference
 
-Decide which should influence ranking:
+For every factor:
 
-- existing patient relationship
-- travel distance
-- continuity of care
-- preferred work area
-- workload balancing
-- overtime avoidance
-- patient preference
-- relevant language/skill preference
+- [ ] hard exclusion vs ranking preference
+- [ ] relative importance
+- [ ] who may override
+- [ ] whether override needs a reason
 
-For each factor define:
+Open-shift workflow:
 
-- [ ] hard exclusion or ranking preference?
-- [ ] how important is it?
-- [ ] who may override it?
-- [ ] does an override require a reason?
+- [ ] who sees it first
+- [ ] one employee vs multiple offers
+- [ ] offer expiration
+- [ ] no-acceptance fallback
+- [ ] final assignment authority
 
-Also define the open-shift process:
-
-- [ ] who sees an open visit first
-- [ ] whether one or multiple employees receive an offer
-- [ ] how long an offer remains open
-- [ ] what happens when nobody accepts
-- [ ] who makes the final assignment
-
-**Deliverable:** staffing eligibility matrix plus ranked preference list.
+**Deliverable:** staffing eligibility matrix + ranking preferences.
 
 ---
 
-# 10. Define caregiver compliance behavior
+# Caregiver compliance
 
-- [ ] List compliance/credential items management actually tracks.
-- [ ] Identify which items make a caregiver ineligible for scheduling when missing/expired.
-- [ ] Identify which items should warn but not block scheduling.
-- [ ] Define expiration-warning windows.
-- [ ] Identify who receives compliance alerts.
-- [ ] Define who, if anyone, may override a block.
-- [ ] Define what clears/resolves a compliance issue.
+- [ ] list tracked compliance/credential items
+- [ ] identify items that block scheduling
+- [ ] identify warning-only items
+- [ ] define expiration warning windows
+- [ ] define alert recipients
+- [ ] define override authority
+- [ ] define what resolves an issue
 
-**Deliverable:** compliance matrix with blocking/warning behavior.
-
----
-
-# 11. Define visit-location evidence policy
-
-Keep this focused on visit verification rather than unnecessary continuous tracking.
-
-- [ ] Confirm which workflows need location evidence.
-- [ ] Explain how location discrepancies are handled today.
-- [ ] Define whether distance from the expected visit location matters and the appropriate tolerance.
-- [ ] List legitimate alternate-location scenarios, if applicable.
-- [ ] Define who may view location evidence.
-- [ ] Define whether employees should see a discrepancy before management review.
-
-**Deliverable:** location-evidence and visibility rules.
+**Deliverable:** compliance matrix.
 
 ---
 
-# 12. Rank the management dashboard
+# Visit-location evidence
 
-Rank these as **P0 / P1 / P2** based on what management actually needs to act on:
+Keep this focused on visit verification, not continuous employee tracking.
 
-- active visits now
-- starting soon
-- missing clock-ins
-- missing clock-outs
-- late arrivals
-- unconfirmed visits
-- documentation/POC issues
-- open shifts
-- caregiver compliance issues
-- authorization at-risk count
-- projected authorization overage
-- billable hours this week
-- billing blocked by exceptions
-- outstanding AR
-- HHA integration health
+- [ ] workflows that need location evidence
+- [ ] how location discrepancies are handled today
+- [ ] whether distance from expected visit location matters
+- [ ] approved distance/tolerance rules
+- [ ] legitimate alternate-location scenarios
+- [ ] who may view location evidence
+- [ ] whether employee sees discrepancy before management review
 
-For each P0 metric answer:
+**Deliverable:** location-evidence policy.
 
-- Who owns the response?
-- What action should they take?
-- How quickly should they act?
+---
+
+# Management dashboard priority
+
+Rank each **P0 / P1 / P2** and identify owner/action/response time for every P0 item.
+
+- [ ] active visits now
+- [ ] starting soon
+- [ ] missing clock-ins
+- [ ] missing clock-outs
+- [ ] late arrivals
+- [ ] unconfirmed visits
+- [ ] documentation/POC issues
+- [ ] open shifts
+- [ ] caregiver compliance issues
+- [ ] authorization at-risk count
+- [ ] projected authorization overage
+- [ ] billable hours this week
+- [ ] billing blocked by exceptions
+- [ ] outstanding AR
+- [ ] HHA integration health
 
 **Deliverable:** prioritized dashboard requirements.
 
 ---
 
-# 13. Production and outage workflow
+# Production and outage workflow
 
-The developer owns infrastructure implementation. You define the operational fallback.
+Developer owns infrastructure; owner defines fallback operations.
 
-- [ ] Define who should have production administrative access.
-- [ ] Define acceptable downtime for the management layer.
-- [ ] Define what staff should do if the PTHHS management layer is unavailable but HHAExchange is available.
-- [ ] Define what staff should do if HHAExchange is unavailable.
-- [ ] Identify which management functions are essential during an outage.
-- [ ] Confirm organizational hosting/security requirements before production use.
+- [ ] who should have production admin access
+- [ ] acceptable management-layer downtime
+- [ ] fallback when PTHHS management layer is down but HHA works
+- [ ] fallback when HHAExchange is down
+- [ ] essential functions during outage
+- [ ] organizational hosting/security requirements before production PHI use
 
-**Deliverable:** production approval and outage fallback checklist.
-
----
-
-# Owner acceptance checklist
-
-Before calling a management feature operationally complete:
-
-- [ ] Normal case behaves correctly.
-- [ ] Missing/late-data case behaves correctly.
-- [ ] Legitimate exceptions do not create harmful false alarms.
-- [ ] Employee-facing information is appropriate.
-- [ ] Manager-only information stays manager-only.
-- [ ] Management can understand why the system raised an issue.
-- [ ] Resolution matches real PTHHS workflow.
-- [ ] Message wording is approved.
-- [ ] Audit history contains what management needs.
-- [ ] Any automatic action is explicitly approved.
+**Deliverable:** production approval + outage fallback checklist.
 
 ---
 
-# Highest-priority owner tasks right now
+# Owner acceptance checklist for every feature
 
-The developer can begin the SOAP/integration foundation immediately. In parallel, complete these first:
+- [ ] normal case works
+- [ ] missing/late-data case works
+- [ ] legitimate exceptions do not cause harmful false alarms
+- [ ] employee-facing information is appropriate
+- [ ] manager-only information remains manager-only
+- [ ] reason for each alert/decision is understandable
+- [ ] resolution matches real workflow
+- [ ] message wording is approved
+- [ ] audit history is sufficient
+- [ ] every automatic action is explicitly approved
 
-1. [ ] Document the current daily EVV/visit review workflow.
-2. [ ] List the most common EVV exceptions and how managers currently resolve each one.
-3. [ ] Define missing/late clock-in and missing clock-out thresholds.
-4. [ ] Separate employee-visible alerts from manager-only alerts.
-5. [ ] Define who may approve visit/EVV corrections.
-6. [ ] Explain how management checks authorization before scheduling/billing.
-7. [ ] Explain exactly what makes a completed visit billing-ready.
-8. [ ] List the hard rules used to decide whether an employee can cover a visit.
-9. [ ] Identify caregiver compliance items that should block scheduling.
-10. [ ] Rank the first management dashboard metrics.
+---
 
-**Immediate handoff target:** by the time the developer has read-only schedule and visit synchronization working, items 1–5 above should be documented so the first exception engine can be implemented without guesswork.
+# Immediate owner sequence
+
+- [ ] **NOW:** document daily EVV/visit review.
+- [ ] list common EVV exceptions + current resolution steps.
+- [ ] define clock thresholds.
+- [ ] define employee-visible vs manager-only alerts.
+- [ ] define correction approvers.
+- [ ] explain authorization checks used before scheduling/billing.
+- [ ] explain exactly what makes a completed visit billing-ready.
+- [ ] list hard staffing eligibility rules.
+- [ ] list compliance items that block scheduling.
+- [ ] rank first dashboard metrics.
+
+**Immediate handoff target:** OPS-001 through OPS-005 should be complete before the developer starts implementing the first exception rules.
