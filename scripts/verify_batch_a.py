@@ -13,6 +13,7 @@ PUBLIC = ROOT / "public"
 HOST = "https://pthhs.net"
 sys.path.insert(0, str(Path(__file__).parent))
 from batch_a_config import BLOG_SLUGS  # noqa: E402
+from site_scope import marketing_html_files  # noqa: E402
 
 errors: list[str] = []
 
@@ -31,7 +32,8 @@ for forbidden in ["CRAWL-REPORT.md", "crawl-report.json", "crawl-report.json.new
     if (PUBLIC / forbidden).exists():
         errors.append(f"internal artifact remains deployable: public/{forbidden}")
 
-for path in sorted(PUBLIC.rglob("*.html")):
+marketing_pages = marketing_html_files(PUBLIC)
+for path in marketing_pages:
     text = path.read_text(errors="ignore")
     rel = path.relative_to(PUBLIC).as_posix()
     if rel == "index.html":
@@ -89,4 +91,4 @@ if errors:
         print("-", error)
     raise SystemExit(1)
 
-print(f"BATCH_A_QA: PASS ({len(list(PUBLIC.rglob('*.html')))} HTML files checked; {len(BLOG_SLUGS)} articles quarantined)")
+print(f"BATCH_A_QA: PASS ({len(marketing_pages)} marketing HTML files checked; {len(BLOG_SLUGS)} articles quarantined)")

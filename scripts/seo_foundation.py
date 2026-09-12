@@ -7,6 +7,8 @@ import html
 import json
 import re
 from pathlib import Path
+
+from site_scope import marketing_html_files
 from urllib.parse import urlsplit
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -407,7 +409,7 @@ def main() -> None:
     facts = json.loads((ROOT / "PTHHS_PUBLIC_FACTS.json").read_text())
     if facts.get("canonical_host") != HOST:
         raise RuntimeError("verified public facts do not match the canonical host")
-    results = [process_html(path, facts) for path in sorted(PUBLIC.rglob("*.html"))]
+    results = [process_html(path, facts) for path in marketing_html_files(PUBLIC)]
     indexable = {route for route, can_index in results if can_index and route != "/404"}
     generate_sitemap(indexable)
     generate_robots()

@@ -11,6 +11,8 @@ from pathlib import Path
 from urllib.parse import urlsplit
 from xml.etree import ElementTree
 
+from site_scope import marketing_html_files
+
 ROOT = Path(__file__).resolve().parents[1]
 PUBLIC = ROOT / "public"
 HOST = "https://pthhs.net"
@@ -58,7 +60,7 @@ indexable_routes: set[str] = set()
 schema_count = 0
 anchor_count = 0
 
-for path in sorted(PUBLIC.rglob("*.html")):
+for path in marketing_html_files(PUBLIC):
     relative = path.relative_to(PUBLIC).as_posix()
     route = route_for(path)
     text = path.read_text(errors="ignore")

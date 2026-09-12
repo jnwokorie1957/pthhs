@@ -7,6 +7,8 @@ import re
 from html.parser import HTMLParser
 from pathlib import Path
 
+from site_scope import is_internal_app_path, marketing_html_files
+
 ROOT = Path(__file__).resolve().parents[1]
 PUBLIC = ROOT / "public"
 errors: list[str] = []
@@ -115,7 +117,8 @@ class AccessibilityAudit(HTMLParser):
 
 
 page_count = image_count = link_count = form_count = 0
-for path in sorted(PUBLIC.rglob("*.html")):
+marketing_pages = marketing_html_files(PUBLIC)
+for path in marketing_pages:
     relative = path.relative_to(PUBLIC).as_posix()
     text = path.read_text(errors="ignore")
     audit = AccessibilityAudit()
@@ -236,7 +239,11 @@ for item in (*range(70, 78), *range(80, 84)):
 runtime_assets = {
     path.relative_to(PUBLIC).as_posix()
     for path in PUBLIC.rglob("*")
-    if path.is_file() and path.suffix.lower() in {".css", ".js"}
+    if (
+        path.is_file()
+        and path.suffix.lower() in {".css", ".js"}
+        and not is_internal_app_path(path, PUBLIC)
+    )
 }
 expected_runtime_assets = {
     "assets/components.css",

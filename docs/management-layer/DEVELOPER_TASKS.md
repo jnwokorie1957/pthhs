@@ -27,6 +27,9 @@
 - [x] **DEV-003 — Runtime HHA config contract created.** Runtime secret: `HHAEXCHANGE_CREDENTIALS`; non-secret endpoint config: `HHAEXCHANGE_BASE_URL`.
 - [x] **DEV-004 — Initial vendor-neutral domain schema created.** See `functions/src/domain/models.ts`.
 - [x] **DEV-005A — Live Firebase project confirmed.** Developer explicitly confirmed the live project is `primetimehomehealthservices`.
+- [x] **DEV-R01 — Repository release boundary repaired.** Marketing generators/verifiers exclude `public/primetime/`, and the consolidated build proves the internal app is unchanged.
+- [x] **DEV-R02 — Deployment configuration aligned.** `.firebaserc` and the deployment workflow both target `primetimehomehealthservices`.
+- [x] **DEV-R03 — Reproducible verification added.** Lockfiles, pull-request QA, whole-repository auditing, and one deterministic release command are present.
 - [ ] **DEV-005B — Create HHA runtime secret. CURRENT DEVELOPER ACTION.** Create `HHAEXCHANGE_CREDENTIALS` in project `primetimehomehealthservices` using Secret Manager / Firebase Functions secrets.
 - [ ] **DEV-006 — Verify `/primetime` authentication and authorization.** Identify the existing admin authentication mechanism and establish a server-side admin authorization gate for `/primetime/api/*`.
 - [ ] **DEV-007 — Activate backend routing/deployment. BLOCKED by DEV-006.** Configure Functions deployment and Hosting rewrite so `/primetime/api/**` reaches `primetimeApi` without destabilizing Hosting.
@@ -66,13 +69,23 @@ Expected JSON value:
 - [x] HHA credentials are backend-only.
 - [x] HHA is modeled as an external adapter, not the internal domain schema.
 - [x] `.gitignore` protects common local secret/emulator/build artifacts.
-- [ ] Align stale `.firebaserc` default from `pthhs-net` to confirmed project `primetimehomehealthservices` when deployment-config mutation is available/approved.
+- [x] Align `.firebaserc` default with the confirmed `primetimehomehealthservices` project.
 - [ ] Add centralized log redaction before real HHA traffic is logged.
 - [ ] Add server-side admin authorization middleware before credential/PHI-bearing routes.
 - [ ] Keep full SOAP bodies, PHI, patient records, and location evidence out of ordinary logs.
 - [ ] Define immutable audit IDs and retention policy with owner input.
 - [ ] Every important future HHA write follows **write → re-read → reconcile**.
 - [ ] Every automated management decision records its rule/version and an audit event.
+
+## Repository maintenance
+
+- [x] Keep marketing-site and `/primetime` application build scopes separate.
+- [x] Run the complete site release suite in pull requests and before Firebase deployment.
+- [x] Pin root and Functions dependency trees with lockfiles.
+- [x] Audit every tracked file, local public reference, archive, and structured-data file.
+- [x] Preserve historical evidence in dated archives rather than deleting referenced reports.
+- [ ] Require the `Repository quality` workflow in `main` branch protection when repository-administration access is available.
+- [ ] Recheck the moderate optional `gaxios`/`uuid` advisory after the Firebase Admin dependency tree publishes a compatible fix; do not force a major transitive override without tests.
 
 ---
 

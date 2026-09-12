@@ -6,6 +6,8 @@ from __future__ import annotations
 import re
 from pathlib import Path
 
+from site_scope import marketing_html_files
+
 from pthhs_shell import (
     footer_markup,
     header_markup,
@@ -115,7 +117,8 @@ def normalize_actions(text: str) -> str:
     return re.sub(r"<a\b([^>]*)>(.*?)</a>", action, text, flags=re.I | re.S)
 
 
-for path in sorted(PUBLIC.rglob("*.html")):
+marketing_pages = marketing_html_files(PUBLIC)
+for path in marketing_pages:
     text = path.read_text(errors="ignore")
     route = route_for(path)
     text = normalize_actions(text)
@@ -137,4 +140,4 @@ for path in sorted(PUBLIC.rglob("*.html")):
     text = "\n".join(line.rstrip() for line in text.splitlines()) + "\n"
     path.write_text(text)
 
-print(f"Retired {len(ALIASES)} location aliases and normalized {len(list(PUBLIC.rglob('*.html')))} HTML shells.")
+print(f"Retired {len(ALIASES)} location aliases and normalized {len(marketing_pages)} marketing HTML shells.")

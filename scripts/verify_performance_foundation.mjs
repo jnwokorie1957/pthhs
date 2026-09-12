@@ -1,6 +1,7 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import sharp from 'sharp';
+import { marketingHtmlFiles } from './site-scope.mjs';
 
 const root = process.cwd();
 const publicDir = path.join(root, 'public');
@@ -58,7 +59,7 @@ function localFile(publicUrl) {
   return path.join(publicDir, publicUrl.split(/[?#]/)[0].replace(/^\//, ''));
 }
 
-const htmlFiles = await walk(publicDir, (file) => file.endsWith('.html'));
+const htmlFiles = await marketingHtmlFiles(publicDir);
 const metadata = new Map();
 let imageCount = 0;
 let lazyCount = 0;

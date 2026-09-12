@@ -18,7 +18,7 @@ The developer explicitly confirmed that the live site/admin project is:
 
 `primetimehomehealthservices`
 
-The GitHub deployment workflow already targets that project. `.firebaserc` may still contain the older `pthhs-net` default and should be treated as stale until aligned.
+The GitHub deployment workflow and `.firebaserc` both target that project.
 
 ## HHA runtime configuration
 
@@ -75,3 +75,17 @@ Next:
 5. make the first harmless read-only HHA call
 
 Track completion in `../docs/management-layer/DEVELOPER_TASKS.md` and the root `../README.md` checkpoint.
+
+## Local verification
+
+Use the committed lockfile and Node 22:
+
+```bash
+npm ci
+npm run check
+npm audit --audit-level=high
+```
+
+The September 12, 2026 audit found no high/critical advisory. Two moderate
+findings remain in an optional Firebase Admin storage dependency path; see the
+repository review log before considering any transitive override.
