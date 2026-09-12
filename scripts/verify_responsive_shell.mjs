@@ -21,7 +21,7 @@ const routes = [
   '/privacy-policy'
 ];
 
-const browser = await chromium.launch({ headless: true, executablePath: chromium.executablePath() });
+const browser = await chromium.launch({ headless: true });
 const errors = [];
 let checks = 0;
 

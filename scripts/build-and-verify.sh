@@ -39,6 +39,7 @@ python3 scripts/verify_batch_b4.py
 python3 scripts/verify_structured_navigation.py
 python3 scripts/verify_accessibility_foundation.py
 node scripts/verify_performance_foundation.mjs
+node scripts/verify_performance_budgets.mjs
 node scripts/verify_frontend_controls.mjs
 python3 scripts/verify_owner_content.py
 python3 scripts/repository_audit.py

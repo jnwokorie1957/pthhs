@@ -132,8 +132,10 @@ const plan = await fs.readFile(path.join(root, "plan.md"), "utf8");
 for (const item of [92, 93]) {
   if (!new RegExp(`- \\[x\\] \\*\\*${item}\\.`).test(plan)) fail(`plan.md item ${item} is not marked complete`);
 }
-if (!/- \[ \] \*\*96\./.test(plan)) fail("plan.md item 96 must remain open until browser metrics are enforced");
+if (!/- \[x\] \*\*96\./.test(plan)) fail("plan.md item 96 must be checked when performance budgets are enforced");
 await fs.access(path.join(root, "PTHHS_SECURITY_CACHE_REGISTER.md")).catch(() => fail("Security/cache register is missing"));
+await fs.access(path.join(root, "PTHHS_PERFORMANCE_BUDGETS.md")).catch(() => fail("Performance budget register is missing"));
+await fs.access(path.join(root, "performance-budgets.json")).catch(() => fail("Machine-readable performance budgets are missing"));
 
 if (inlineStyles !== 0) fail(`CSP compatibility inventory expected no inline style attributes; found ${inlineStyles}`);
 if (failures.length) {

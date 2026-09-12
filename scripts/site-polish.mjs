@@ -16,7 +16,7 @@ const coreMeta = {
   },
   '/home-care-about-us': {
     title: 'About Primetime Home Health | Houston Home Care',
-    description: 'Learn about Primetime Home Health Services, a Houston-based personal assistance agency serving local families with dependable non-medical in-home support.'
+    description: 'Learn about Primetime Home Health Services, a Houston personal assistance agency serving families since 1999 with dependable non-medical in-home support.'
   },
   '/home-care-services': {
     title: 'Home Care Services in Houston, TX | Primetime',
@@ -417,7 +417,9 @@ async function generateMetaAssets() {
     const png32 = await sharp(favBuffer).resize(32, 32).png().toBuffer();
     await fs.writeFile(path.join(metaDir, 'favicon.ico'), pngToIco(png32));
     for (const [name, [label, subtitle]] of Object.entries(ogs)) {
-      await sharp(Buffer.from(ogSvg(label, subtitle))).png().toFile(path.join(metaDir, `${name}.png`));
+      await sharp(Buffer.from(ogSvg(label, subtitle)))
+        .png({ compressionLevel: 9, palette: true, quality: 90, colours: 64, dither: 0.5 })
+        .toFile(path.join(metaDir, `${name}.png`));
     }
     console.log('Generated PNG/ICO favicon and Open Graph image set.');
   } catch (error) {

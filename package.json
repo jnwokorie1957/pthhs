@@ -8,9 +8,12 @@
   },
   "scripts": {
     "check": "bash scripts/build-and-verify.sh",
+    "check:browser": "bash scripts/run-browser-qa.sh",
+    "check:performance": "node scripts/verify_performance_budgets.mjs",
     "check:repository": "python3 scripts/repository_audit.py"
   },
   "devDependencies": {
+    "playwright": "1.55.1",
     "sharp": "0.35.4"
   }
 }

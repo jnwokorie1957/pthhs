@@ -56,3 +56,26 @@ jobs:
 
       - name: Type-check backend
         run: npm run check
+
+  browser:
+    name: Responsive and performance budgets
+    runs-on: ubuntu-latest
+    needs: site
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+
+      - name: Install deterministic tooling
+        run: npm ci
+
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Run browser QA and budgets
+        run: npm run check:browser

@@ -51,11 +51,13 @@
  .template-refresh .page-hero .photo-frame{max-width:620px;aspect-ratio:16/10}
  .template-refresh .site-footer{padding-bottom:calc(104px + env(safe-area-inset-bottom))}
  .template-refresh .mobile-care-bar a{padding:14px 9px}
- /* Keep all primary links available if the shared enhancement script cannot run. */
- .template-refresh .nav-wrap:not(:has(.menu-toggle)){flex-wrap:wrap;padding-block:12px}
- .template-refresh .site-header:not(:has(.menu-toggle)){position:relative}
- .template-refresh .site-nav:not([data-mobile-enhanced="true"]){display:flex;flex-wrap:wrap;width:100%;gap:10px 18px}
- .template-refresh .site-nav:not([data-mobile-enhanced="true"]) a{padding-block:8px}
+}
+/* Keep primary links available with scripting disabled without shifting the JS layout. */
+@media(max-width:900px) and (scripting:none){
+ .template-refresh .nav-wrap{flex-wrap:wrap;padding-block:12px}
+ .template-refresh .site-header{position:relative}
+ .template-refresh .site-nav{display:flex;flex-wrap:wrap;width:100%;gap:10px 18px}
+ .template-refresh .site-nav a{padding-block:8px}
 }
 @media(max-width:560px){
  .template-refresh .page-hero h1{overflow-wrap:break-word}

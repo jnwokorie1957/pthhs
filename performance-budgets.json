@@ -1,0 +1,32 @@
+{
+  "schema_version": 1,
+  "mobile_viewport": {
+    "width": 375,
+    "height": 812
+  },
+  "lab_thresholds": {
+    "lcp_ms": 2500,
+    "cls": 0.1,
+    "inp_ms": 200,
+    "route_javascript_bytes": 12000,
+    "route_image_bytes": 250000
+  },
+  "deploy_thresholds": {
+    "marketing_javascript_bytes": 10000,
+    "all_image_bytes": 800000,
+    "largest_image_bytes": 70000
+  },
+  "representative_routes": [
+    "/",
+    "/home-care-services",
+    "/home-care-services/medication-reminders",
+    "/home-care-areas-we-serve",
+    "/locations/houston",
+    "/home-care-insurance",
+    "/home-care-contact-us",
+    "/home-care-careers",
+    "/home-care-client-reviews",
+    "/home-care-resources",
+    "/home-care-blog"
+  ]
+}
