@@ -1,15 +1,7 @@
-import { onRequest } from "firebase-functions/v2/https";
 import { logger } from "firebase-functions";
+import { onRequest } from "firebase-functions/v2/https";
 
 const API_PREFIX = "/primetime/api";
-
-function writeJson(
-  response: Parameters<Parameters<typeof onRequest>[0]>[1],
-  status: number,
-  body: Record<string, unknown>,
-): void {
-  response.status(status).set("Cache-Control", "no-store").json(body);
-}
 
 /**
  * Backend entry point for the internal management layer.
@@ -29,14 +21,15 @@ export const primetimeApi = onRequest(
   },
   (request, response) => {
     const path = request.path;
+    response.set("Cache-Control", "no-store");
 
     if (!path.startsWith(API_PREFIX)) {
-      writeJson(response, 404, { error: "not_found" });
+      response.status(404).json({ error: "not_found" });
       return;
     }
 
     if (request.method === "GET" && path === `${API_PREFIX}/status`) {
-      writeJson(response, 200, {
+      response.status(200).json({
         ok: true,
         service: "primetime-admin-api",
         stage: "scaffolded",
@@ -50,6 +43,6 @@ export const primetimeApi = onRequest(
       path,
     });
 
-    writeJson(response, 404, { error: "not_found" });
+    response.status(404).json({ error: "not_found" });
   },
 );
