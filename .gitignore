@@ -3,3 +3,21 @@ scripts/__pycache__/
 *.pyc
 public/assets/meta/
 public/site.webmanifest
+
+# Local/runtime configuration and secrets
+.env
+.env.*
+!.env.example
+.secret.local
+**/.secret.local
+*.local.env
+
+# Firebase local/build artifacts
+.firebase/
+firebase-debug.log*
+functions/lib/
+functions/node_modules/
+
+# Never commit downloaded service-account credentials
+*service-account*.json
+*service_account*.json
