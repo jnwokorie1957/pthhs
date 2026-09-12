@@ -4,6 +4,9 @@ scripts/__pycache__/
 public/assets/meta/
 public/site.webmanifest
 
+# Generated/scraped archive output (may contain Windows-incompatible paths)
+extracted/
+
 # Local/runtime configuration and secrets
 .env
 .env.*
