@@ -44,7 +44,7 @@ def footer_markup() -> str:
 
 
 def mobile_bar_markup() -> str:
-    return '<div class="mobile-care-bar" aria-label="Quick contact"><a href="tel:7139777721">Call Now</a><a href="/home-care-contact-us">Get Started</a></div>'
+    return '<nav class="mobile-care-bar" aria-label="Quick contact"><a href="tel:7139777721">Call Now</a><a href="/home-care-contact-us">Get Started</a></nav>'
 
 
 def skip_link_markup() -> str:

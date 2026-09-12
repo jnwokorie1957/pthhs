@@ -13,6 +13,7 @@
     "check:repository": "python3 scripts/repository_audit.py"
   },
   "devDependencies": {
+    "axe-core": "4.13.0",
     "playwright": "1.55.1",
     "sharp": "0.35.4"
   }

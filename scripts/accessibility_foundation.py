@@ -64,6 +64,17 @@ def normalize_404_headings(path: Path, text: str) -> str:
     )
 
 
+def semantic_mobile_action_bar(text: str) -> str:
+    """Expose the persistent mobile actions as a named navigation landmark."""
+    return re.sub(
+        r'<div\b([^>]*class=["\'][^"\']*\bmobile-care-bar\b[^"\']*["\'][^>]*)>'
+        r'([\s\S]*?)</div>',
+        r'<nav\1>\2</nav>',
+        text,
+        flags=re.I,
+    )
+
+
 marketing_pages = marketing_html_files(PUBLIC)
 changed = 0
 for path in marketing_pages:
@@ -71,6 +82,7 @@ for path in marketing_pages:
     text = put_hero_inside_main(original)
     text = semantic_breadcrumbs(text)
     text = normalize_404_headings(path, text)
+    text = semantic_mobile_action_bar(text)
     if text != original:
         path.write_text(text)
         changed += 1

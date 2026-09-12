@@ -168,6 +168,11 @@
       const overflow = Math.max(0, text.scrollHeight - text.clientHeight);
       if (overflow < 2) return;
       card.classList.add('is-scrollable');
+      const heading = card.querySelector(':scope > h2, :scope > h3');
+      const label = heading?.textContent?.trim() || 'Service-area communities';
+      text.tabIndex = 0;
+      text.setAttribute('role', 'region');
+      text.setAttribute('aria-label', `${label} communities`);
       let raf = 0;
 
       const animateTo = (target, duration) => {

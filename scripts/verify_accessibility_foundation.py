@@ -232,7 +232,7 @@ if "rgba(23,104,181,.35)" in polish:
     errors.append("translucent focus indicator remains")
 
 plan = (ROOT / "plan.md").read_text()
-for item in (*range(70, 78), *range(80, 84)):
+for item in range(70, 84):
     if not re.search(rf"- \[x\] \*\*{item}\. ", plan):
         errors.append(f"completed plan item is not checked: {item}")
 

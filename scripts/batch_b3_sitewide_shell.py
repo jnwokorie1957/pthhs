@@ -123,7 +123,7 @@ for path in marketing_pages:
     route = route_for(path)
     text = normalize_actions(text)
     text = re.sub(r'<a\b[^>]*class=["\'][^"\']*skip-link[^"\']*["\'][^>]*>.*?</a>', "", text, flags=re.I | re.S)
-    text = re.sub(r'<div\b[^>]*class=["\'][^"\']*mobile-care-bar[^"\']*["\'][^>]*>.*?</div>', "", text, flags=re.I | re.S)
+    text = re.sub(r'<(?:div|nav)\b[^>]*class=["\'][^"\']*mobile-care-bar[^"\']*["\'][^>]*>.*?</(?:div|nav)>', "", text, flags=re.I | re.S)
     text, header_count = re.subn(r"<header\b[^>]*>.*?</header>", header_markup(current_section(route)), text, count=1, flags=re.I | re.S)
     text, footer_count = re.subn(r"<footer\b[^>]*>.*?</footer>", footer_markup() + mobile_bar_markup(), text, count=1, flags=re.I | re.S)
     if header_count != 1 or footer_count != 1:

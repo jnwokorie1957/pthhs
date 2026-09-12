@@ -17,4 +17,5 @@ for _ in {1..30}; do
 done
 
 BASE_URL="http://127.0.0.1:${PORT}" node scripts/verify_responsive_shell.mjs
+BASE_URL="http://127.0.0.1:${PORT}" node scripts/verify_accessibility_browser.mjs
 BASE_URL="http://127.0.0.1:${PORT}" node scripts/verify_performance_budgets.mjs --browser
