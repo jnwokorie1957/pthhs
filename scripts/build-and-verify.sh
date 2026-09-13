@@ -22,6 +22,7 @@ find scripts public -type f \( -name '*.js' -o -name '*.mjs' \) -print0 \
 find public/primetime -type f -print0 | sort -z | xargs -0 sha256sum > "$INTERNAL_SNAPSHOT"
 
 python3 scripts/restore_owner_attested_content.py
+python3 scripts/location_content_quality.py
 node scripts/site-polish.mjs
 node scripts/site-polish-finalize.mjs
 python3 scripts/seo_foundation.py
@@ -42,6 +43,7 @@ node scripts/verify_performance_foundation.mjs
 node scripts/verify_performance_budgets.mjs
 node scripts/verify_frontend_controls.mjs
 python3 scripts/verify_owner_content.py
+python3 scripts/verify_location_content_quality.py
 python3 scripts/repository_audit.py
 
 diff -u "$INTERNAL_SNAPSHOT" <(
