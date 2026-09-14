@@ -44,6 +44,7 @@ node scripts/verify_performance_budgets.mjs
 node scripts/verify_frontend_controls.mjs
 python3 scripts/verify_owner_content.py
 python3 scripts/verify_location_content_quality.py
+python3 scripts/verify_public_profile_audit.py
 python3 scripts/repository_audit.py
 
 diff -u "$INTERNAL_SNAPSHOT" <(

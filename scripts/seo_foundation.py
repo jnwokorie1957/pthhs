@@ -7,8 +7,7 @@ import html
 import json
 import re
 import subprocess
-from datetime import datetime
-from zoneinfo import ZoneInfo
+from datetime import date
 from pathlib import Path
 
 from site_scope import marketing_html_files
@@ -266,8 +265,23 @@ def process_html(path: Path, facts: dict) -> tuple[str, bool]:
     return route, not noindex
 
 
-def reliable_lastmod(path: Path) -> str:
+def reliable_lastmod(path: Path, review_date: str) -> str:
     relative = path.relative_to(ROOT).as_posix()
+    committed = subprocess.run(
+        ["git", "log", "-1", "--format=%cs", "--", relative],
+        cwd=ROOT,
+        check=True,
+        text=True,
+        capture_output=True,
+    ).stdout.strip()
+    if not committed:
+        committed = subprocess.run(
+            ["git", "show", "-s", "--format=%cs", "HEAD"],
+            cwd=ROOT,
+            check=True,
+            text=True,
+            capture_output=True,
+        ).stdout.strip()
     dirty = subprocess.run(
         ["git", "status", "--porcelain", "--", relative],
         cwd=ROOT,
@@ -276,26 +290,16 @@ def reliable_lastmod(path: Path) -> str:
         capture_output=True,
     ).stdout.strip()
     if dirty:
-        return datetime.now(ZoneInfo("America/Chicago")).date().isoformat()
-    committed = subprocess.run(
-        ["git", "log", "-1", "--format=%cs", "--", relative],
-        cwd=ROOT,
-        check=True,
-        text=True,
-        capture_output=True,
-    ).stdout.strip()
-    if committed:
-        return committed
-    return subprocess.run(
-        ["git", "show", "-s", "--format=%cs", "HEAD"],
-        cwd=ROOT,
-        check=True,
-        text=True,
-        capture_output=True,
-    ).stdout.strip()
+        # Build steps temporarily rewrite generated HTML before later stages
+        # restore content-hashed assets.  A wall-clock date here made an
+        # otherwise identical build drift at midnight.  Use the controlled
+        # content-review date for genuinely uncommitted output, without ever
+        # moving a committed page's date backwards.
+        return max(committed, review_date)
+    return committed
 
 
-def generate_sitemap(indexable: set[str]) -> None:
+def generate_sitemap(indexable: set[str], review_date: str) -> None:
     rows = []
     for route in sorted(indexable, key=lambda value: (value != "/", value)):
         path = file_for_route(route)
@@ -313,7 +317,7 @@ def generate_sitemap(indexable: set[str]) -> None:
             raise RuntimeError(f"sitemap canonical mismatch: {route}")
         rows.append(
             f"  <url><loc>{html.escape(canonical)}</loc>"
-            f"<lastmod>{reliable_lastmod(path)}</lastmod></url>"
+            f"<lastmod>{reliable_lastmod(path, review_date)}</lastmod></url>"
         )
     sitemap = (
         '<?xml version="1.0" encoding="UTF-8"?>\n'
@@ -363,9 +367,14 @@ def main() -> None:
     facts = json.loads((ROOT / "PTHHS_PUBLIC_FACTS.json").read_text())
     if facts.get("canonical_host") != HOST:
         raise RuntimeError("verified public facts do not match the canonical host")
+    review_date = facts.get("last_reviewed", "")
+    try:
+        date.fromisoformat(review_date)
+    except (TypeError, ValueError) as error:
+        raise RuntimeError("verified public facts require an ISO last_reviewed date") from error
     results = [process_html(path, facts) for path in marketing_html_files(PUBLIC)]
     indexable = {route for route, can_index in results if can_index and route != "/404"}
-    generate_sitemap(indexable)
+    generate_sitemap(indexable, review_date)
     generate_robots()
     html_redirects = expand_redirects()
     print(
