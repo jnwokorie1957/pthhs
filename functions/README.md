@@ -10,7 +10,7 @@ This directory contains server-side code for the internal PTHHS management layer
 - HHA adapter: `src/integrations/hhaexchange/`
 - Vendor-neutral domain models: `src/domain/models.ts`
 
-The Function is scaffolded but **must not be activated for HHA/PHI-bearing endpoints until the existing `/primetime` authentication mechanism is identified and enforced server-side**.
+The backend now contains Firebase ID-token verification and an `admin` custom-claim authorization gate. Do not activate the live Hosting rewrite or HHA-bearing UI calls until Firebase Email/Password Authentication is enabled and the first trusted admin user is claim-authorized.
 
 ## Confirmed Firebase project
 
@@ -42,37 +42,40 @@ The production ENT v1.8 endpoint defaults to:
 
 and can be overridden with the non-secret parameter `HHAEXCHANGE_BASE_URL` if HHA provisions a different endpoint.
 
-### Current developer action
+### Runtime secret status
 
-Create the secret in the confirmed live project:
+The developer confirmed `HHAEXCHANGE_CREDENTIALS` has been created in `primetimehomehealthservices`. Do not commit the value to Git or a checked-in `.env` file.
 
-```bash
-firebase functions:secrets:set HHAEXCHANGE_CREDENTIALS --project primetimehomehealthservices
-```
+### Current human auth gate
 
-When prompted, paste the JSON object above with the real values.
+1. Enable Firebase Authentication Email/Password for `primetimehomehealthservices`.
+2. Create the first trusted admin user.
+3. Grant that Firebase Auth user an `admin: true` custom claim from a privileged Firebase Admin SDK environment.
+4. Sign out and back in so the next ID token contains the claim.
 
-Do not commit the value to Git or a checked-in `.env` file. GitHub Actions Secrets remain appropriate for CI/deployment credentials; HHA runtime credentials belong in Secret Manager and should be accessible only to function(s) that need them.
+Do not send passwords, ID tokens, or service-account keys through chat.
 
 ## Current implementation status
 
 Implemented:
 
 - TypeScript/Firebase Functions backend scaffold
-- `/primetime/api` namespace guard
-- non-sensitive `/primetime/api/status` scaffold response
+- Firebase Admin ID-token verification + `admin` custom-claim gate
+- protected `/primetime/api/session` and `/primetime/api/status` handlers
 - HHA credentials/config contract
-- generic SOAP envelope/transport scaffold
+- SOAP envelope/transport with bounded retries, correlation IDs, and metadata-only logging
+- normalized SOAP/application/transport error parser with sanitized tests
+- protected HHA health handler prepared around the read-only `GetCollectionStatus` reference operation
 - vendor-neutral management domain interfaces
 - live Firebase project confirmed as `primetimehomehealthservices`
 
 Next:
 
-1. create `HHAEXCHANGE_CREDENTIALS`
-2. identify/enforce existing admin authentication
-3. activate Firebase Functions + Hosting rewrite
-4. add SOAP response/error parser
-5. make the first harmless read-only HHA call
+1. enable Firebase Email/Password Authentication and create the first trusted admin user
+2. grant that user the `admin` custom claim
+3. wire the `/primetime` login UI to obtain Firebase ID tokens
+4. activate Firebase Functions + the `/primetime/api/**` Hosting rewrite
+5. deploy and verify the protected `GetCollectionStatus` HHA health call
 
 Track completion in `../docs/management-layer/DEVELOPER_TASKS.md` and the root `../README.md` checkpoint.
 
@@ -83,6 +86,7 @@ Use the committed lockfile and Node 22:
 ```bash
 npm ci
 npm run check
+npm test
 npm audit --audit-level=high
 ```
 
