@@ -124,7 +124,14 @@ export interface CollectionRecord {
   amountOutstanding?: number;
 }
 
-export type NotificationAudience = "employee" | "manager" | "billing" | "admin";
+export type NotificationAudience =
+  | "employee"
+  | "manager"
+  | "billing"
+  | "admin"
+  | "clinical"
+  | "compliance"
+  | "owner";
 
 export interface Notification {
   id: string;
