@@ -26,9 +26,16 @@ if (existingAdmins.length > 0) {
   process.exit(0);
 }
 
+if (users.length === 0) {
+  console.log(
+    "No Firebase Auth users are visible in the live project; skipping permanent admin bootstrap.",
+  );
+  process.exit(0);
+}
+
 if (users.length !== 1) {
   console.error(
-    "Refusing admin bootstrap: expected exactly one Firebase Auth user and no existing admin.",
+    "Refusing admin bootstrap: multiple Firebase Auth users exist but no admin claim exists.",
   );
   console.error("User count:", users.length);
   process.exit(1);
