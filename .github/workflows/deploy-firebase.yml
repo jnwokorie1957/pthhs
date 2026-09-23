@@ -39,6 +39,22 @@ jobs:
       - name: Install Firebase CLI
         run: npm install -g firebase-tools@15.30.0
 
+      - name: Prepare Firebase deployment credentials
+        shell: bash
+        run: |
+          printf '%s' '${{ secrets.FIREBASE_SERVICE_ACCOUNT_PRIMETIMEHOMEHEALTHSERVICES }}' > "$RUNNER_TEMP/firebase-service-account.json"
+          chmod 600 "$RUNNER_TEMP/firebase-service-account.json"
+
+      - name: Bootstrap first Primetime admin claim
+        env:
+          GOOGLE_APPLICATION_CREDENTIALS: ${{ runner.temp }}/firebase-service-account.json
+        run: node functions/scripts/bootstrap-sole-admin.mjs
+
+      - name: Deploy Primetime Functions
+        env:
+          GOOGLE_APPLICATION_CREDENTIALS: ${{ runner.temp }}/firebase-service-account.json
+        run: firebase deploy --only functions --project primetimehomehealthservices --non-interactive
+
       - name: Deploy to Firebase Hosting
         uses: FirebaseExtended/action-hosting-deploy@v0
         with:
