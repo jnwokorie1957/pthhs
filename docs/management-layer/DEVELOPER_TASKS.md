@@ -38,7 +38,7 @@
 
 **Next milestone:** DEV-009 succeeds from the `/primetime` backend without exposing HHA credentials or PHI.
 
-**Code-ahead progress:** Firestore persistence, sync checkpoints/dead letters, `GetVisitChangesV5`, targeted `GetScheduleInfo`, caregiver/patient change wrappers, authorization/availability/service-code reads, schedule-vs-actual comparison, configurable EVV evaluation, internal notification planning, and audit generation are implemented. Backend CI has passed the persistence/sync/rules stack; the latest wrapper-only commit is in the normal CI pipeline. Runtime use remains gated by Firebase IAM/Auth visibility, Firestore provisioning, and live-record validation.
+**Code-ahead progress:** Firestore persistence, sync checkpoints/dead letters, `GetVisitChangesV5`, targeted `GetScheduleInfo`, caregiver/patient change wrappers, authorization/availability/service-code reads, schedule-vs-actual comparison, configurable EVV evaluation, internal notification planning, and audit generation are implemented. Backend CI has passed the persistence/sync/rules stack **and the full read-only wrapper surface**. Current red deployment runs fail only at the external Firebase Functions IAM gate, not at repository QA, TypeScript compilation, or backend tests. Runtime use remains gated by Firebase IAM/Auth visibility, Firestore provisioning, and live-record validation.
 
 ---
 
