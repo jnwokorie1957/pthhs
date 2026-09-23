@@ -51,6 +51,7 @@ FORBIDDEN_TRACKED_PARTS = {
 IGNORED_URL_SCHEMES = {"data", "http", "https", "mailto", "sms", "tel"}
 GENERATED_PUBLIC_PREFIXES = ("/assets/meta/",)
 GENERATED_PUBLIC_PATHS = {"/site.webmanifest"}
+FIREBASE_RESERVED_PREFIXES = ("/__/",)
 SECRET_PATTERNS = {
     "private key": re.compile(r"-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----"),
     "GitHub token": re.compile(r"\bgh[pousr]_[A-Za-z0-9]{30,}\b"),
@@ -176,6 +177,8 @@ def public_route_exists(url_path: str, redirects: set[str]) -> bool:
     if clean in GENERATED_PUBLIC_PATHS or any(
         clean.startswith(prefix) for prefix in GENERATED_PUBLIC_PREFIXES
     ):
+        return True
+    if any(clean.startswith(prefix) for prefix in FIREBASE_RESERVED_PREFIXES):
         return True
     if clean in redirects:
         return True
