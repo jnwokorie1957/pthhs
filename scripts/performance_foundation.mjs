@@ -105,13 +105,10 @@ function optimizeHtml(html, route) {
       src = `/assets/media/${responsive}-${config.width}.webp`;
       tag = setAttr(tag, 'src', src);
     }
-    const isDataImage = src.startsWith('data:');
     const dimensions = intrinsicDimensions.get(src);
-    // Unknown images are left without injected dimensions; existing markup may already define them.
-    if (dimensions) {
-      tag = setAttr(tag, 'width', dimensions[0]);
-      tag = setAttr(tag, 'height', dimensions[1]);
-    }
+    if (!dimensions) throw new Error(`No approved intrinsic dimensions for ${src} on ${route}`);
+    tag = setAttr(tag, 'width', dimensions[0]);
+    tag = setAttr(tag, 'height', dimensions[1]);
     tag = setAttr(tag, 'decoding', 'async');
 
     const isLogo = src.endsWith('/main-logo.png');
