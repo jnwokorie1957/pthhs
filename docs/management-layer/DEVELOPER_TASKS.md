@@ -34,7 +34,7 @@
 - [ ] **DEV-006 — Activate `/primetime` authentication and authorization. CURRENT DEVELOPER ACTION.** Client sign-in and server-side token/claim enforcement are implemented. Enable Email/Password Auth, identify the approved admin by UID and email, and grant its `admin` claim from a privileged environment. CI cannot choose an administrator automatically.
 - [ ] **DEV-007 — Verify backend routing/deployment.** Functions source, `/primetime/api/**` Hosting rewrite, and backend-first deployment are configured. The deployment verifier rejects invalid tokens and reports authenticated/HHA checks pending until DEV-006; verify the routes with the approved admin afterward.
 - [x] **DEV-008 — HHA SOAP parser/error/retry layer complete and CI-verified.** Parser, application/SOAP/transport normalization, bounded retries, correlation IDs, metadata-only telemetry, and sanitized tests compile and pass in GitHub Actions. Real HHA response validation moves to DEV-009.
-- [ ] **DEV-009 — First harmless read-only authenticated HHA call. BLOCKED by DEV-005B through DEV-008.**
+- [ ] **DEV-009 — First harmless read-only authenticated HHA call. BLOCKED by DEV-007 + DEV-006 runtime verification.** Protected `GetCollectionStatus` health call and automated post-deploy verifier are implemented; real HHA execution waits on successful Functions deployment and a visible authorized admin.
 
 **Next milestone:** DEV-009 succeeds from the `/primetime` backend without exposing HHA credentials or PHI.
 
@@ -70,9 +70,9 @@ Expected JSON value:
 - [x] HHA is modeled as an external adapter, not the internal domain schema.
 - [x] `.gitignore` protects common local secret/emulator/build artifacts.
 - [x] Align `.firebaserc` default with the confirmed `primetimehomehealthservices` project.
-- [ ] Add centralized log redaction before real HHA traffic is logged.
+- [x] Keep HHA request/response bodies and credentials out of normal logs; current HHA telemetry is metadata-only. A reusable redactor remains desirable before broader payload logging exists.
 - [x] Add server-side Firebase ID-token verification + `admin` custom-claim authorization middleware before credential/PHI-bearing routes.
-- [ ] Keep full SOAP bodies, PHI, patient records, and location evidence out of ordinary logs.
+- [x] Keep full SOAP bodies, PHI, patient records, and location evidence out of ordinary logs in the current integration layer.
 - [ ] Define immutable audit IDs and retention policy with owner input.
 - [ ] Every important future HHA write follows **write → re-read → reconcile**.
 - [ ] Every automated management decision records its rule/version and an audit event.
