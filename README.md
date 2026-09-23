@@ -43,7 +43,13 @@ The September 23 review removed automatic first-user admin promotion. Deployment
 
 ### Firebase project status
 
-The live management/site Firebase project is confirmed as **`primetimehomehealthservices`**. The deployment workflow and `.firebaserc` now both target this project.
+The live management/site Firebase project is confirmed as **`primetimehomehealthservices`**. The deployment workflow and `.firebaserc` both target this project.
+
+Current runtime blockers:
+- GitHub CI service account: `firebase-adminsdk-fbsvc@primetimehomehealthservices.iam.gserviceaccount.com`.
+- Functions deployment currently fails on missing `serviceusage.services.get`; grant **Cloud Functions Admin** + **Service Account User** to that CI principal.
+- The live Firebase Admin SDK currently reports **0 Authentication users**, despite the developer reporting an admin user was created. Verify the user appears under Authentication → Users in the `primetimehomehealthservices` project before admin-claim verification.
+- Firestore code is prepared, but the production Firestore database/location still needs to be provisioned before persistent HHA imports are enabled.
 
 ### Secret-storage decision
 
