@@ -1,5 +1,11 @@
 # PTHHS Website Improvement Plan
 
+## Current checkpoint — September 23, 2026
+
+The numbered marketing backlog below is the September 9 baseline and has not been fully reconciled against later branches. The active management-layer checklists are [`docs/management-layer/DEVELOPER_TASKS.md`](docs/management-layer/DEVELOPER_TASKS.md) and [`docs/management-layer/OWNER_OPERATIONS_TASKS.md`](docs/management-layer/OWNER_OPERATIONS_TASKS.md). The next gates are `DEV-006` (approve and claim-authorize the first administrator), `DEV-007` (verify deployed protected API), and `DEV-009` (verify a read-only HHA reference call). `OPS-003` through `OPS-005` are marked complete based on an owner completion attestation, but exact values must come from the approved source record before runtime configuration; imported HHA records and feature acceptance still require validation.
+
+The September 23 security review removed automatic first-user admin promotion from CI. The internal UI remains demonstration data until live read-only sync is implemented. Reconcile remaining marketing items with production evidence before marking them complete; do not infer completion from an unmerged branch.
+
 **Audit date:** September 9, 2026  
 **Repository:** `jnwokorie1957/pthhs`  
 **Production site reviewed:** `https://pthhs.net/`

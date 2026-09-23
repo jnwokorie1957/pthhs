@@ -16,6 +16,7 @@ python3 -m py_compile scripts/*.py
 find scripts -type f -name '*.sh' -print0 | xargs -0 -n1 bash -n
 find scripts public -type f \( -name '*.js' -o -name '*.mjs' \) -print0 \
   | xargs -0 -n1 node --check
+node --test scripts/verify_primetime_auth.test.mjs
 
 # The internal operations app is deployed from public/ but owns a separate UI
 # contract. Marketing generators must never rewrite or prune it.

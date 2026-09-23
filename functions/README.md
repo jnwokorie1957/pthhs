@@ -10,7 +10,7 @@ This directory contains server-side code for the internal PTHHS management layer
 - HHA adapter: `src/integrations/hhaexchange/`
 - Vendor-neutral domain models: `src/domain/models.ts`
 
-The backend now contains Firebase ID-token verification and an `admin` custom-claim authorization gate. Do not activate the live Hosting rewrite or HHA-bearing UI calls until Firebase Email/Password Authentication is enabled and the first trusted admin user is claim-authorized.
+The backend contains Firebase ID-token verification and an `admin` custom-claim authorization gate. The Hosting rewrite is configured. Production verification distinguishes an invalid-token check from authenticated access and HHA connectivity, which remain pending until an approved admin exists.
 
 ## Confirmed Firebase project
 
@@ -50,7 +50,7 @@ The developer confirmed `HHAEXCHANGE_CREDENTIALS` has been created in `primetime
 
 1. Enable Firebase Authentication Email/Password for `primetimehomehealthservices`.
 2. Create the first trusted admin user.
-3. Grant that Firebase Auth user an `admin: true` custom claim from a privileged Firebase Admin SDK environment.
+3. Confirm the approved user's UID and email independently. From a privileged Firebase Admin SDK environment, set `GOOGLE_APPLICATION_CREDENTIALS`, `PRIMETIME_ADMIN_UID`, and `PRIMETIME_ADMIN_EMAIL`; run `node functions/scripts/bootstrap-sole-admin.mjs`. This script rejects mismatches and existing admins. It does not run in CI.
 4. Sign out and back in so the next ID token contains the claim.
 
 Do not send passwords, ID tokens, or service-account keys through chat.
@@ -73,8 +73,8 @@ Next:
 
 1. enable Firebase Email/Password Authentication and create the first trusted admin user
 2. grant that user the `admin` custom claim
-3. wire the `/primetime` login UI to obtain Firebase ID tokens
-4. activate Firebase Functions + the `/primetime/api/**` Hosting rewrite
+3. verify the already wired `/primetime` login UI and protected `/session` route
+4. verify Firebase Functions and the configured `/primetime/api/**` Hosting rewrite
 5. deploy and verify the protected `GetCollectionStatus` HHA health call
 
 Track completion in `../docs/management-layer/DEVELOPER_TASKS.md` and the root `../README.md` checkpoint.

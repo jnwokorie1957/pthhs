@@ -20,7 +20,7 @@ Operational/management decisions: EVV rules, visibility/escalation, correction a
 
 # 🚦 CURRENT MANAGEMENT-LAYER CHECKPOINT
 
-**Last updated:** 2026-09-22
+**Last updated:** 2026-09-23
 
 ## Developer status
 
@@ -34,10 +34,12 @@ Operational/management decisions: EVV rules, visibility/escalation, correction a
 - [x] Marketing generators and verifiers now preserve the separate `/primetime` application byte-for-byte.
 - [x] Deterministic root/Functions dependencies, pull-request QA, and whole-repository integrity checks are in place.
 - [x] `DEV-005B` — developer confirmed `HHAEXCHANGE_CREDENTIALS` is set in Secret Manager for `primetimehomehealthservices`.
-- [ ] **`DEV-006` — CURRENT DEVELOPER ACTION:** enable Firebase Email/Password Authentication, create the first trusted admin user, and grant the `admin` custom claim. Repo inspection confirmed the static `/primetime` shell itself had no authentication; server-side token/claim enforcement is now implemented.
-- [ ] `DEV-007` — Functions source is registered; after auth activation, wire the login UI, deploy `primetimeApi`, and add the Hosting rewrite so `/primetime/api/**` reaches it.
+- [ ] **`DEV-006` — CURRENT DEVELOPER ACTION:** enable Firebase Email/Password Authentication, identify the approved admin by UID and email, and grant its `admin` custom claim. The login UI and server-side claim check are implemented. CI does not select an admin account.
+- [ ] `DEV-007` — Functions source, Hosting rewrite, and backend-first deployment workflow are configured. Verify the protected API routes in production; repository configuration is not proof of a successful deployment.
 - [x] `DEV-008` — SOAP parsing/error normalization, retries, correlation IDs, metadata-only telemetry, and sanitized tests are implemented and pass CI.
-- [ ] `DEV-009` — deploy and verify the prepared harmless read-only `GetCollectionStatus` HHA connectivity call.
+- [ ] `DEV-009` — verify the read-only `GetCollectionStatus` HHA connectivity call once an approved admin is available.
+
+The September 23 review removed automatic first-user admin promotion. Deployment verifies invalid tokens are rejected; if no approved admin exists, the authenticated and HHA checks report **PENDING**, not complete. The operations workspace still displays demonstration metrics and visits.
 
 ### Firebase project status
 

@@ -31,8 +31,8 @@
 - [x] **DEV-R02 — Deployment configuration aligned.** `.firebaserc` and the deployment workflow both target `primetimehomehealthservices`.
 - [x] **DEV-R03 — Reproducible verification added.** Lockfiles, pull-request QA, whole-repository auditing, and one deterministic release command are present.
 - [x] **DEV-005B — HHA runtime secret created.** Developer explicitly confirmed `HHAEXCHANGE_CREDENTIALS` is set in project `primetimehomehealthservices`.
-- [ ] **DEV-006 — Activate `/primetime` authentication and authorization. CURRENT DEVELOPER ACTION.** Repo inspection confirmed the existing admin shell has no auth. Server-side Firebase ID-token verification + `admin` custom-claim enforcement is now implemented. Remaining human gate: enable Email/Password Auth, create the first trusted admin user, grant the `admin` claim, then wire the login UI.
-- [ ] **DEV-007 — Activate backend routing/deployment. BLOCKED by DEV-006.** `firebase.json` now registers `functions/` as the Functions source. Remaining after auth activation: deploy `primetimeApi`, add the `/primetime/api/**` Hosting rewrite, and verify both direct and Hosting-routed requests.
+- [ ] **DEV-006 — Activate `/primetime` authentication and authorization. CURRENT DEVELOPER ACTION.** Client sign-in and server-side token/claim enforcement are implemented. Enable Email/Password Auth, identify the approved admin by UID and email, and grant its `admin` claim from a privileged environment. CI cannot choose an administrator automatically.
+- [ ] **DEV-007 — Verify backend routing/deployment.** Functions source, `/primetime/api/**` Hosting rewrite, and backend-first deployment are configured. The deployment verifier rejects invalid tokens and reports authenticated/HHA checks pending until DEV-006; verify the routes with the approved admin afterward.
 - [x] **DEV-008 — HHA SOAP parser/error/retry layer complete and CI-verified.** Parser, application/SOAP/transport normalization, bounded retries, correlation IDs, metadata-only telemetry, and sanitized tests compile and pass in GitHub Actions. Real HHA response validation moves to DEV-009.
 - [ ] **DEV-009 — First harmless read-only authenticated HHA call. BLOCKED by DEV-005B through DEV-008.**
 
@@ -294,8 +294,8 @@ Do not begin until Owner / Operations has defined and approved correction workfl
 - [x] Confirm live Firebase project = `primetimehomehealthservices`.
 - [x] `HHAEXCHANGE_CREDENTIALS` created in the live project.
 - [ ] **NOW: enable Firebase Email/Password Auth, create the first trusted admin user, and grant the `admin` custom claim.**
-- [ ] Wire the `/primetime` login UI after the first admin is claim-authorized.
-- [ ] Activate Functions + Hosting rewrite/deployment.
+- [x] Wire the `/primetime` login UI to the protected session endpoint.
+- [ ] Verify Functions + Hosting rewrite/deployment with the approved administrator.
 - [x] Verify SOAP parser/error handling in CI.
 - [ ] First read-only authenticated HHA call.
 - [ ] Visit-change sync.

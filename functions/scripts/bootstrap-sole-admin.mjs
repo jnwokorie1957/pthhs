@@ -7,6 +7,12 @@ const app = initializeApp({
   projectId,
 });
 const auth = getAuth(app);
+const expectedUid = process.env.PRIMETIME_ADMIN_UID?.trim();
+const expectedEmail = process.env.PRIMETIME_ADMIN_EMAIL?.trim().toLowerCase();
+if (!expectedUid || !expectedEmail) {
+  console.error("Set PRIMETIME_ADMIN_UID and PRIMETIME_ADMIN_EMAIL to the approved account before bootstrap.");
+  process.exit(1);
+}
 
 const users = [];
 let pageToken;
@@ -22,28 +28,21 @@ const existingAdmins = users.filter(
 );
 
 if (existingAdmins.length > 0) {
-  console.log("Primetime admin claim already exists; bootstrap not needed.");
-  process.exit(0);
-}
-
-if (users.length === 0) {
-  console.log(
-    "No Firebase Auth users are visible in the live project; skipping permanent admin bootstrap.",
-  );
-  process.exit(0);
-}
-
-if (users.length !== 1) {
-  console.error(
-    "Refusing admin bootstrap: multiple Firebase Auth users exist but no admin claim exists.",
-  );
-  console.error("User count:", users.length);
+  console.error("Refusing bootstrap: an admin claim already exists; inspect access manually.");
   process.exit(1);
 }
 
-const [user] = users;
+const matches = users.filter(
+  (user) => user.uid === expectedUid && user.email?.toLowerCase() === expectedEmail,
+);
+if (matches.length !== 1) {
+  console.error("Refusing bootstrap: approved UID and email do not identify the same user.");
+  process.exit(1);
+}
+
+const [user] = matches;
 if (!user || user.disabled) {
-  console.error("Refusing admin bootstrap: sole Firebase Auth user is missing or disabled.");
+  console.error("Refusing admin bootstrap: approved Firebase Auth user is missing or disabled.");
   process.exit(1);
 }
 
@@ -67,5 +66,5 @@ await auth.setCustomUserClaims(user.uid, {
       : "admin",
 });
 
-console.log("Primetime admin claim bootstrapped for the sole trusted Auth user.");
+console.log("Primetime admin claim bootstrapped for the explicitly approved Auth user.");
 console.log("UID:", user.uid);

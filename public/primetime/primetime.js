@@ -20,6 +20,7 @@
   const signedInIdentity = document.getElementById('signedInIdentity');
   const hhaSyncStatus = document.getElementById('hhaSyncStatus');
   const hhaConnectionStatus = document.getElementById('hhaConnectionStatus');
+  let authSequence = 0;
 
   function setAuthMessage(text, isError = false) {
     if (!authMessage) return;
@@ -56,7 +57,7 @@
     if (updateHash) history.replaceState(null, '', view === 'overview' ? '/primetime' : `/primetime#${view}`);
     sidebar?.classList.remove('is-open');
     menuButton?.setAttribute('aria-expanded', 'false');
-    document.getElementById('workspace')?.focus({ preventScroll: true });
+    if (!appShell?.hidden) document.getElementById('workspace')?.focus({ preventScroll: true });
   }
 
   navItems.forEach(item => item.addEventListener('click', () => setView(item.dataset.view)));
@@ -174,23 +175,34 @@
   });
 
   signOutButton?.addEventListener('click', async () => {
-    await auth.signOut();
+    authSequence += 1;
+    showLogin();
+    try {
+      await auth.signOut();
+    } catch {
+      showLogin('Sign-out failed. Close this browser session.', true);
+    }
   });
 
   auth.onAuthStateChanged(async user => {
+    const sequence = ++authSequence;
     if (!user) {
       showLogin();
       return;
     }
 
+    showLogin('Checking administrator access…');
     try {
       const session = await verifyAdminSession(user);
+      if (sequence !== authSequence || auth.currentUser?.uid !== user.uid) return;
+      if (session?.ok !== true || !session.roles?.includes('admin')) throw new Error('forbidden');
       if (signedInIdentity) {
         signedInIdentity.textContent = session.email || 'Internal access · sign out';
       }
       showApp();
       void refreshHhaHealth();
     } catch {
+      if (sequence !== authSequence) return;
       await auth.signOut();
       showLogin('This account is not authorized for Primetime administration.', true);
     }

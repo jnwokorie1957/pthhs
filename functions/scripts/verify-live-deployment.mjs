@@ -92,11 +92,15 @@ async function protectedGet(path, idToken) {
   return lastResponse;
 }
 
+const unauthorized = await protectedGet("/primetime/api/session", "invalid-token");
+if (unauthorized.status !== 401) {
+  throw new Error("Protected Primetime session did not reject an invalid token: HTTP " + unauthorized.status);
+}
+console.log("Protected Primetime session rejects invalid tokens.");
+
 const user = await adminUser();
 if (!user) {
-  console.log(
-    "No permanent Primetime admin is visible in the live Firebase project; skipping authenticated live/HHA verification.",
-  );
+  console.log("PENDING: no approved admin claim exists; authenticated session and HHA connectivity are not verified.");
   process.exit(0);
 }
 const idToken = await firebaseIdToken(user);
