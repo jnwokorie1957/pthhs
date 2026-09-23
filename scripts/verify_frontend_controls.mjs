@@ -109,14 +109,28 @@ const requiredDirectives = [
   "style-src 'self'",
   "img-src 'self' data:",
   "font-src 'self'",
-  "connect-src 'self'",
   "frame-src 'none'",
   "media-src 'self'",
   "manifest-src 'self'",
   "upgrade-insecure-requests",
 ];
+const cspDirectives = csp.split(";").map((item) => item.trim()).filter(Boolean);
 for (const directive of requiredDirectives) {
-  if (!csp.split(";").map((item) => item.trim()).includes(directive)) fail(`CSP is missing: ${directive}`);
+  if (!cspDirectives.includes(directive)) fail(`CSP is missing: ${directive}`);
+}
+
+const connectDirective = cspDirectives.find((directive) => directive.startsWith("connect-src "));
+if (!connectDirective) {
+  fail("CSP is missing: connect-src");
+} else {
+  const connectSources = connectDirective.split(/\s+/).slice(1);
+  for (const source of [
+    "'self'",
+    "https://identitytoolkit.googleapis.com",
+    "https://securetoken.googleapis.com",
+  ]) {
+    if (!connectSources.includes(source)) fail(`CSP connect-src is missing approved source: ${source}`);
+  }
 }
 
 const assetCache = values(rule("**/*.@(css|js)"))["cache-control"];
