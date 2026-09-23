@@ -12,7 +12,8 @@
     "build": "tsc",
     "check": "tsc --noEmit",
     "serve": "npm run build && firebase emulators:start --only functions",
-    "deploy": "firebase deploy --only functions"
+    "deploy": "firebase deploy --only functions",
+    "test": "npm run build && node --test lib/integrations/hhaexchange/parser.test.js"
   },
   "dependencies": {
     "firebase-admin": "14.4.0",
