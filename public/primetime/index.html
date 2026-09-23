@@ -10,8 +10,26 @@
   <link rel="stylesheet" href="/primetime/primetime.css">
 </head>
 <body>
+  <div class="auth-shell" id="authShell">
+    <section class="auth-card" aria-labelledby="authTitle">
+      <img class="auth-logo" src="/wp-content/themes/primetimehomeie989/images/main-logo.png" alt="Primetime Home Health Services">
+      <p class="eyebrow">Internal operations</p>
+      <h1 id="authTitle">Sign in to Primetime</h1>
+      <p class="auth-copy">Use your approved Primetime administrator account. Access is verified again by the server before management data is available.</p>
+      <form id="loginForm" class="auth-form">
+        <label for="loginEmail">Email</label>
+        <input id="loginEmail" name="email" type="email" autocomplete="username" required>
+        <label for="loginPassword">Password</label>
+        <input id="loginPassword" name="password" type="password" autocomplete="current-password" required>
+        <button class="btn primary full" type="submit">Sign in</button>
+      </form>
+      <p class="auth-message" id="authMessage" aria-live="polite"></p>
+      <a class="auth-back" href="/">← Public website</a>
+    </section>
+  </div>
+
   <a class="skip-link" href="#workspace">Skip to workspace</a>
-  <div class="app-shell">
+  <div class="app-shell" id="appShell" hidden>
     <aside class="sidebar" id="sidebar">
       <a class="admin-brand" href="/primetime" aria-label="Primetime Operations home">
         <img src="/wp-content/themes/primetimehomeie989/images/main-logo.png" alt="Primetime Home Health Services">
@@ -48,7 +66,7 @@
         <div class="topbar-actions">
           <div class="sync-pill"><span class="dot warning"></span><span>HHA sync: not connected</span></div>
           <button class="icon-button" aria-label="Notifications">●<span class="notification-count">3</span></button>
-          <button class="profile-button" aria-label="Open user menu"><span class="avatar">PT</span><span class="profile-copy"><strong>Administrator</strong><small>Internal access</small></span></button>
+          <button class="profile-button" id="signOutButton" aria-label="Sign out of Primetime"><span class="avatar">PT</span><span class="profile-copy"><strong>Administrator</strong><small id="signedInIdentity">Internal access · sign out</small></span></button>
         </div>
       </header>
 
@@ -165,11 +183,14 @@
 
         <section class="view" data-view-panel="settings">
           <div class="section-heading"><div><p class="eyebrow">Administration</p><h2>Settings</h2><p>Security, roles, integrations, thresholds and notification policy.</p></div></div>
-          <div class="settings-grid"><section class="panel"><h3>Access control</h3><p>Role design is waiting on your answer: single super-admin or Admin / Manager / Scheduler / Billing roles.</p><button class="btn secondary">Configure roles</button></section><section class="panel"><h3>EVV thresholds</h3><p>Define grace periods, variance limits and escalation behavior before enabling automation.</p><button class="btn secondary">Configure rules</button></section><section class="panel"><h3>Messaging</h3><p>Select employee communication channels and manager escalation channels.</p><button class="btn secondary">Configure channels</button></section><section class="panel"><h3>Data handling</h3><p>No PHI should be stored in browser localStorage. Production access must use authenticated, authorized backend APIs.</p><button class="btn secondary">Security checklist</button></section></div>
+          <div class="settings-grid"><section class="panel"><h3>Access control</h3><p>Owner role and permission decisions are complete; server enforcement starts with the administrator claim and expands by approved role.</p><button class="btn secondary">Configure roles</button></section><section class="panel"><h3>EVV thresholds</h3><p>Owner exception-policy decisions are complete; runtime configuration will be applied after live HHA field validation.</p><button class="btn secondary">Configure rules</button></section><section class="panel"><h3>Messaging</h3><p>Owner audience and escalation decisions are complete; delivery channels remain disabled until live-data validation.</p><button class="btn secondary">Configure channels</button></section><section class="panel"><h3>Data handling</h3><p>No PHI should be stored in browser localStorage. Production access must use authenticated, authorized backend APIs.</p><button class="btn secondary">Security checklist</button></section></div>
         </section>
       </main>
     </div>
   </div>
+  <script src="/__/firebase/8.10.1/firebase-app.js" defer></script>
+  <script src="/__/firebase/8.10.1/firebase-auth.js" defer></script>
+  <script src="/__/firebase/init.js" defer></script>
   <script src="/primetime/primetime.js" defer></script>
 </body>
 </html>
