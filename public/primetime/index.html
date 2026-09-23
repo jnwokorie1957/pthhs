@@ -64,7 +64,7 @@
           </div>
         </div>
         <div class="topbar-actions">
-          <div class="sync-pill"><span class="dot warning"></span><span>HHA sync: not connected</span></div>
+          <div class="sync-pill"><span class="dot warning" id="hhaSyncDot"></span><span id="hhaSyncStatus">HHA sync: checking</span></div>
           <button class="icon-button" aria-label="Notifications">●<span class="notification-count">3</span></button>
           <button class="profile-button" id="signOutButton" aria-label="Sign out of Primetime"><span class="avatar">PT</span><span class="profile-copy"><strong>Administrator</strong><small id="signedInIdentity">Internal access · sign out</small></span></button>
         </div>
@@ -164,7 +164,7 @@
         </section>
 
         <section class="view" data-view-panel="hha">
-          <div class="section-heading"><div><p class="eyebrow">Data layer</p><h2>HHAeXchange integration</h2><p>ENT v1.8 SOAP/WSDL contract found in the repository.</p></div><span class="status pending">Not connected</span></div>
+          <div class="section-heading"><div><p class="eyebrow">Data layer</p><h2>HHAeXchange integration</h2><p>ENT v1.8 SOAP/WSDL contract found in the repository.</p></div><span class="status pending" id="hhaConnectionStatus">Checking</span></div>
           <div class="integration-banner"><div><strong>Production SOAP endpoint</strong><code>https://cloud.hhaexchange.com/Integration/ENT/V1.8/ws.asmx</code></div><div><strong>Security rule</strong><span>Credentials and App Key belong only in the backend secret store.</span></div></div>
           <div class="dashboard-grid"><section class="panel span-2"><div class="panel-head"><div><h3>Priority operation map</h3><p>Operations confirmed from the HHA reference endpoint list.</p></div></div><div class="table-wrap"><table><thead><tr><th>Area</th><th>Operations discovered</th><th>Primetime use</th><th>Phase</th></tr></thead><tbody>
             <tr><td>Visits</td><td><code>GetVisitChangesV5</code>, <code>GetVisitInfoV3</code></td><td>Sync visits / discrepancies</td><td><span class="status medium">P0</span></td></tr>
