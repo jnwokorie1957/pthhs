@@ -35,8 +35,8 @@ Operational/management decisions: EVV rules, visibility/escalation, correction a
 - [x] Deterministic root/Functions dependencies, pull-request QA, and whole-repository integrity checks are in place.
 - [x] `DEV-005B` — developer confirmed `HHAEXCHANGE_CREDENTIALS` is set in Secret Manager for `primetimehomehealthservices`.
 - [ ] **`DEV-006` — CURRENT DEVELOPER ACTION:** enable Firebase Email/Password Authentication, create the first trusted admin user, and grant the `admin` custom claim. Repo inspection confirmed the static `/primetime` shell itself had no authentication; server-side token/claim enforcement is now implemented.
-- [ ] `DEV-007` — wire the login UI, activate Functions deployment, and add the Hosting rewrite so `/primetime/api/**` reaches `primetimeApi`.
-- [ ] `DEV-008` — core SOAP parsing/error/retry/correlation/metadata telemetry and sanitized tests are implemented; CI/runtime verification remains.
+- [ ] `DEV-007` — Functions source is registered; after auth activation, wire the login UI, deploy `primetimeApi`, and add the Hosting rewrite so `/primetime/api/**` reaches it.
+- [x] `DEV-008` — SOAP parsing/error normalization, retries, correlation IDs, metadata-only telemetry, and sanitized tests are implemented and pass CI.
 - [ ] `DEV-009` — deploy and verify the prepared harmless read-only `GetCollectionStatus` HHA connectivity call.
 
 ### Firebase project status
