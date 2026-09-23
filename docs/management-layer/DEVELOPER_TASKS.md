@@ -30,10 +30,10 @@
 - [x] **DEV-R01 — Repository release boundary repaired.** Marketing generators/verifiers exclude `public/primetime/`, and the consolidated build proves the internal app is unchanged.
 - [x] **DEV-R02 — Deployment configuration aligned.** `.firebaserc` and the deployment workflow both target `primetimehomehealthservices`.
 - [x] **DEV-R03 — Reproducible verification added.** Lockfiles, pull-request QA, whole-repository auditing, and one deterministic release command are present.
-- [ ] **DEV-005B — Create HHA runtime secret. CURRENT DEVELOPER ACTION.** Create `HHAEXCHANGE_CREDENTIALS` in project `primetimehomehealthservices` using Secret Manager / Firebase Functions secrets.
-- [ ] **DEV-006 — Verify `/primetime` authentication and authorization.** Identify the existing admin authentication mechanism and establish a server-side admin authorization gate for `/primetime/api/*`.
+- [x] **DEV-005B — HHA runtime secret created.** Developer explicitly confirmed `HHAEXCHANGE_CREDENTIALS` is set in project `primetimehomehealthservices`.
+- [ ] **DEV-006 — Activate `/primetime` authentication and authorization. CURRENT DEVELOPER ACTION.** Repo inspection confirmed the existing admin shell has no auth. Server-side Firebase ID-token verification + `admin` custom-claim enforcement is now implemented. Remaining human gate: enable Email/Password Auth, create the first trusted admin user, grant the `admin` claim, then wire the login UI.
 - [ ] **DEV-007 — Activate backend routing/deployment. BLOCKED by DEV-006.** Configure Functions deployment and Hosting rewrite so `/primetime/api/**` reaches `primetimeApi` without destabilizing Hosting.
-- [ ] **DEV-008 — Finish HHA SOAP parser/error/retry layer.** Add response parsing, typed HHA result/error handling, redaction, telemetry, correlation IDs, and bounded retries.
+- [ ] **DEV-008 — Finish/verify HHA SOAP parser/error/retry layer.** Core parser, application/SOAP/transport normalization, retry logic, correlation IDs, metadata-only telemetry, and sanitized parser tests are implemented. Remaining: CI/runtime verification and production-response validation after DEV-007.
 - [ ] **DEV-009 — First harmless read-only authenticated HHA call. BLOCKED by DEV-005B through DEV-008.**
 
 **Next milestone:** DEV-009 succeeds from the `/primetime` backend without exposing HHA credentials or PHI.
@@ -58,9 +58,9 @@ Expected JSON value:
 }
 ```
 
-- [ ] Secret created in `primetimehomehealthservices`.
-- [ ] Secret value is not stored in Git, GitHub Actions YAML, browser code, or a committed `.env` file.
-- [ ] Developer confirms completion so DEV-005B can be marked `[x]`.
+- [x] Secret created in `primetimehomehealthservices` — explicit developer confirmation.
+- [x] Secret value is not stored in Git, GitHub Actions YAML, browser code, or a committed `.env` file.
+- [x] Developer confirmed completion.
 
 ---
 
@@ -71,7 +71,7 @@ Expected JSON value:
 - [x] `.gitignore` protects common local secret/emulator/build artifacts.
 - [x] Align `.firebaserc` default with the confirmed `primetimehomehealthservices` project.
 - [ ] Add centralized log redaction before real HHA traffic is logged.
-- [ ] Add server-side admin authorization middleware before credential/PHI-bearing routes.
+- [x] Add server-side Firebase ID-token verification + `admin` custom-claim authorization middleware before credential/PHI-bearing routes.
 - [ ] Keep full SOAP bodies, PHI, patient records, and location evidence out of ordinary logs.
 - [ ] Define immutable audit IDs and retention policy with owner input.
 - [ ] Every important future HHA write follows **write → re-read → reconcile**.
@@ -94,14 +94,14 @@ Expected JSON value:
 - [x] Base HHA config module.
 - [x] Reusable SOAP envelope/transport scaffold.
 - [x] `AppParams` support: `AppName`, `AppSecret`, `AppKey`.
-- [ ] XML response parser.
-- [ ] Typed operation-result parser.
-- [ ] HHA application-error normalization (`Result`, `ErrorInfo`, `ErrorID`, `ErrorMessage`, `RetryAfter`).
-- [ ] SOAP/HTTP error normalization.
-- [ ] Retry classification and bounded exponential backoff.
-- [ ] Request correlation IDs.
-- [ ] Per-operation timing/success/failure telemetry.
-- [ ] Sanitized fixtures/tests.
+- [x] XML response parser.
+- [x] Typed operation-result parser for HHA result/error envelopes.
+- [x] HHA application-error normalization (`Result`, `ErrorInfo`, `ErrorID`, `ErrorMessage`, `RetryAfter`).
+- [x] SOAP/HTTP/transport error normalization.
+- [x] Retry classification and bounded exponential backoff.
+- [x] Request correlation IDs.
+- [x] Per-operation timing/success/failure telemetry without SOAP bodies or credentials.
+- [x] Sanitized fixtures/tests for success, application error, and SOAP fault.
 - [ ] Authenticated HHA health state: reachable / auth failure / operation failure / stale sync.
 
 Initial endpoint wrappers:
@@ -292,10 +292,11 @@ Do not begin until Owner / Operations has defined and approved correction workfl
 - [x] Runtime secret/config contract.
 - [x] Initial internal schema.
 - [x] Confirm live Firebase project = `primetimehomehealthservices`.
-- [ ] **NOW: create `HHAEXCHANGE_CREDENTIALS` in that project.**
-- [ ] Identify and enforce existing admin auth for `/primetime/api/*`.
+- [x] `HHAEXCHANGE_CREDENTIALS` created in the live project.
+- [ ] **NOW: enable Firebase Email/Password Auth, create the first trusted admin user, and grant the `admin` custom claim.**
+- [ ] Wire the `/primetime` login UI after the first admin is claim-authorized.
 - [ ] Activate Functions + Hosting rewrite/deployment.
-- [ ] Finish SOAP parser/error handling.
+- [ ] Verify SOAP parser/error handling in CI/runtime.
 - [ ] First read-only authenticated HHA call.
 - [ ] Visit-change sync.
 - [ ] Schedule sync.
