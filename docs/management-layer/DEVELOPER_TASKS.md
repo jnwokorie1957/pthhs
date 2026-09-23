@@ -38,7 +38,7 @@
 
 **Next milestone:** DEV-009 succeeds from the `/primetime` backend without exposing HHA credentials or PHI.
 
-**Code-ahead progress:** Firestore persistence, sync checkpoints/dead letters, `GetVisitChangesV5`, targeted `GetScheduleInfo`, schedule-vs-actual comparison, configurable EVV evaluation, internal notification planning, and audit generation are implemented and backend CI has passed these layers. Runtime use remains gated by Firebase IAM/Auth visibility, Firestore provisioning, and live-record validation.
+**Code-ahead progress:** Firestore persistence, sync checkpoints/dead letters, `GetVisitChangesV5`, targeted `GetScheduleInfo`, caregiver/patient change wrappers, authorization/availability/service-code reads, schedule-vs-actual comparison, configurable EVV evaluation, internal notification planning, and audit generation are implemented. Backend CI has passed the persistence/sync/rules stack; the latest wrapper-only commit is in the normal CI pipeline. Runtime use remains gated by Firebase IAM/Auth visibility, Firestore provisioning, and live-record validation.
 
 ---
 
@@ -108,13 +108,13 @@ Expected JSON value:
 
 Initial endpoint wrappers:
 
-- [ ] visit changes / visit info
-- [ ] schedule info
-- [ ] caregivers
-- [ ] patients
-- [ ] patient authorizations
-- [ ] caregiver availability
-- [ ] billing/service-code references
+- [ ] visit changes / visit info — `GetVisitChangesV5` is implemented; targeted visit-info enrichment remains.
+- [x] schedule info — targeted `GetScheduleInfo` wrapper implemented.
+- [x] caregivers — paged `GetCaregiverChangesV4` wrapper implemented.
+- [x] patients — paged `GetPatientChangesV4` wrapper implemented.
+- [x] patient authorizations — changes + targeted authorization-info wrappers implemented.
+- [x] caregiver availability — permanent-week + special-availability read wrappers implemented.
+- [x] billing/service-code references — `GetBillingServiceCodes` read wrapper implemented.
 
 ---
 
