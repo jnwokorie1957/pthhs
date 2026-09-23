@@ -38,6 +38,8 @@
 
 **Next milestone:** DEV-009 succeeds from the `/primetime` backend without exposing HHA credentials or PHI.
 
+**Code-ahead progress:** Firestore persistence, sync checkpoints/dead letters, `GetVisitChangesV5`, targeted `GetScheduleInfo`, schedule-vs-actual comparison, configurable EVV evaluation, internal notification planning, and audit generation are implemented and backend CI has passed these layers. Runtime use remains gated by Firebase IAM/Auth visibility, Firestore provisioning, and live-record validation.
+
 ---
 
 # DEV-005B — Secret setup
@@ -139,30 +141,30 @@ Initial interfaces are created:
 
 Persistence work:
 
-- [ ] Confirm persistent database for management data.
-- [ ] Convert interfaces into persistence schema/migrations/collections.
-- [ ] Preserve HHA IDs as external references rather than PTHHS primary IDs.
-- [ ] Store source-update timestamp where available.
-- [ ] Store last-successful-sync timestamps.
-- [ ] Add payload/version hashes where useful for reconciliation.
-- [ ] Add indexes for dates and external-ID lookups.
+- [x] Firestore selected as the initial management persistence target; actual database provisioning is still a runtime/project setup gate.
+- [x] Initial Firestore collection repository implemented for the vendor-neutral domain entities.
+- [x] Preserve HHA IDs in a separate hashed external-reference registry rather than using them as PTHHS primary IDs.
+- [x] Store source-update timestamps where available.
+- [x] Store last-successful-sync timestamps in integration cursors.
+- [x] Add source payload/version hashes where useful for reconciliation (visit-change adapter implemented).
+- [ ] Finalize production query/date composite indexes after representative live query shapes are validated; external-ID lookup indexing is already implemented.
 
 ---
 
 # Read-only sync framework
 
-- [ ] Incremental sync cursors/checkpoints.
-- [ ] Advance cursor only after successful batch.
-- [ ] Idempotent imports.
-- [ ] Manual resync/reconciliation.
-- [ ] Dead-letter/error state for normalization failures.
-- [ ] Authorized integration-health view under `/primetime`.
-- [ ] Periodic targeted/full reconciliation.
+- [x] Incremental sync cursors/checkpoints.
+- [x] Advance the durable cursor only after a successful run.
+- [x] Idempotent imports through internal IDs + external-reference resolution.
+- [x] Manual resync/reconciliation support through checkpoint overrides and replay-safe upserts.
+- [x] Dead-letter/error state for normalization failures.
+- [ ] Authorized integration-health view under `/primetime` beyond the HHA connectivity health endpoint.
+- [ ] Periodic targeted/full reconciliation schedule.
 
 Import order:
 
-1. [ ] visit changes / visit info
-2. [ ] schedule info
+1. [x] visit changes — `GetVisitChangesV5` paging/checkpoint adapter is code-complete; live execution pending DEV-009 and Firestore provisioning. Visit-info enrichment remains later.
+2. [ ] schedule info — targeted `GetScheduleInfo` wrapper is code-complete, but a safe source of schedule IDs/bulk discovery still needs live-contract validation.
 3. [ ] caregiver info
 4. [ ] patient info
 5. [ ] authorizations
@@ -175,12 +177,12 @@ Import order:
 
 # EVV operations center
 
-- [ ] Schedule-vs-actual comparison.
-- [ ] Separate clock evidence from high-level visit state where HHA supports it.
-- [ ] Preserve confirmation/edit/deletion state.
-- [ ] Configurable exception engine.
-- [ ] Rule version stored with each exception.
-- [ ] Configurable severity, threshold, audience, escalation, human-review requirement, and automation eligibility.
+- [x] Vendor-neutral schedule-vs-actual comparison with variance calculations.
+- [x] Separate EVV clock evidence from high-level visit state in the visit-change normalization layer.
+- [ ] Preserve and validate confirmation/edit/deletion state from live HHA records before binding those semantics.
+- [x] Configurable exception engine implemented with no production thresholds hardcoded.
+- [x] Rule version stored with each generated exception and audit event.
+- [x] Configurable severity, threshold, audience, human-review requirement, and automation eligibility; escalation timers remain messaging-layer work.
 
 Candidate rule IDs — thresholds must come from owner:
 
@@ -214,14 +216,14 @@ Dashboard:
 
 Messaging infrastructure:
 
-- [ ] event-driven notification model
-- [ ] employee / manager / billing / admin audiences
-- [ ] deduplication/suppression
+- [x] event-driven internal notification planning model
+- [x] employee / manager / billing / admin / clinical / compliance / owner audiences
+- [x] deterministic notification IDs for deduplication; time/window suppression remains future delivery work
 - [ ] acknowledgement state
 - [ ] escalation timers
 - [ ] configurable templates
 - [ ] delivery audit trail
-- [ ] manager-only information protected from employee channels
+- [x] audience model preserves manager-only vs employee-visible decisions before any delivery channel is enabled
 
 ---
 
