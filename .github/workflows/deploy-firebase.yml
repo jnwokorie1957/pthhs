@@ -23,6 +23,19 @@ jobs:
       - name: Build and verify site
         run: npm run check
 
+      - name: Setup Node.js for Primetime backend
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: functions/package-lock.json
+
+      - name: Install Primetime backend dependencies
+        run: npm ci --prefix functions
+
+      - name: Type-check and test Primetime backend
+        run: npm test --prefix functions
+
       - name: Install Firebase CLI
         run: npm install -g firebase-tools@15.30.0
 
