@@ -71,13 +71,15 @@ Never commit the real value.
 
 ## Owner / Operations status
 
-The first owner interview is complete enough to close the first two discovery tasks.
+The developer explicitly confirmed on **2026-09-22** that the Owner / Operations Lead completed all owner policy and decision items in the owner checklist.
 
 - [x] `OPS-001` — current daily EVV/visit-review workflow documented.
 - [x] `OPS-002` — common EVV exceptions and current resolution flow documented.
-- [ ] **`OPS-003` — CURRENT OWNER ACTION:** define exact late/missing/short/long visit thresholds and grace periods.
-- [ ] `OPS-004` — finish employee-visible vs manager-only vs billing/compliance-only alert rules.
-- [ ] `OPS-005` — finish correction-approval matrix beyond routine supervisor approve/decline decisions.
+- [x] `OPS-003` — clock exception thresholds and grace-period policy completed.
+- [x] `OPS-004` — alert audience/visibility policy completed.
+- [x] `OPS-005` — correction-approval policy completed.
+
+Owner policy work is no longer the current blocker. Live imported-record validation and feature acceptance remain runtime gates because those require implemented developer artifacts.
 
 ### Owner interview findings now treated as confirmed
 
