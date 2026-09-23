@@ -611,7 +611,7 @@
         "headers": [
           {
             "key": "Content-Security-Policy",
-            "value": "default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; form-action 'self'; script-src 'self' 'unsafe-inline'; style-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'self'; frame-src 'none'; media-src 'self'; manifest-src 'self'; upgrade-insecure-requests"
+            "value": "default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; form-action 'self'; script-src 'self' 'unsafe-inline'; style-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'self' https://identitytoolkit.googleapis.com https://securetoken.googleapis.com; frame-src 'none'; media-src 'self'; manifest-src 'self'; upgrade-insecure-requests"
           },
           {
             "key": "X-Content-Type-Options",
@@ -657,6 +657,15 @@
             "value": "public,max-age=0,must-revalidate"
           }
         ]
+      }
+    ],
+    "rewrites": [
+      {
+        "source": "/primetime/api/**",
+        "function": {
+          "functionId": "primetimeApi",
+          "region": "us-central1"
+        }
       }
     ]
   },
