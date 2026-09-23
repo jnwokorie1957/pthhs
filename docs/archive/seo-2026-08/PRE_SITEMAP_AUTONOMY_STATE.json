@@ -138,10 +138,5 @@
       "blocked_reason": "Explicit Jeremy approval required."
     }
   ],
-<<<<<<< Updated upstream:docs/archive/seo-2026-08/PRE_SITEMAP_AUTONOMY_STATE.json
   "blocker_summary": "Sitemap approved by Jeremy (2026-08-27). Proceeding with sitemap submission and legacy redirect implementation. Status set to sitemap_approved."
 }
-=======
-  "blocker_summary": "All executable verification complete. final_go_no_go_report complete. APPROVE SITEMAP. Awaiting Jeremy approval for sitemap_submission and legacy_redirect_implementation. Report: /root/.openclaw/workspace/pthhs/PTHHS_FINAL_PRE_SITEMAP_GO_NO_GO.md"
-}
->>>>>>> Stashed changes:AUTONOMY_STATE.json
