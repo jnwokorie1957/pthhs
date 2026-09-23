@@ -32,8 +32,8 @@
 - [x] **DEV-R03 — Reproducible verification added.** Lockfiles, pull-request QA, whole-repository auditing, and one deterministic release command are present.
 - [x] **DEV-005B — HHA runtime secret created.** Developer explicitly confirmed `HHAEXCHANGE_CREDENTIALS` is set in project `primetimehomehealthservices`.
 - [ ] **DEV-006 — Activate `/primetime` authentication and authorization. CURRENT DEVELOPER ACTION.** Repo inspection confirmed the existing admin shell has no auth. Server-side Firebase ID-token verification + `admin` custom-claim enforcement is now implemented. Remaining human gate: enable Email/Password Auth, create the first trusted admin user, grant the `admin` claim, then wire the login UI.
-- [ ] **DEV-007 — Activate backend routing/deployment. BLOCKED by DEV-006.** Configure Functions deployment and Hosting rewrite so `/primetime/api/**` reaches `primetimeApi` without destabilizing Hosting.
-- [ ] **DEV-008 — Finish/verify HHA SOAP parser/error/retry layer.** Core parser, application/SOAP/transport normalization, retry logic, correlation IDs, metadata-only telemetry, and sanitized parser tests are implemented. Remaining: CI/runtime verification and production-response validation after DEV-007.
+- [ ] **DEV-007 — Activate backend routing/deployment. BLOCKED by DEV-006.** `firebase.json` now registers `functions/` as the Functions source. Remaining after auth activation: deploy `primetimeApi`, add the `/primetime/api/**` Hosting rewrite, and verify both direct and Hosting-routed requests.
+- [x] **DEV-008 — HHA SOAP parser/error/retry layer complete and CI-verified.** Parser, application/SOAP/transport normalization, bounded retries, correlation IDs, metadata-only telemetry, and sanitized tests compile and pass in GitHub Actions. Real HHA response validation moves to DEV-009.
 - [ ] **DEV-009 — First harmless read-only authenticated HHA call. BLOCKED by DEV-005B through DEV-008.**
 
 **Next milestone:** DEV-009 succeeds from the `/primetime` backend without exposing HHA credentials or PHI.
@@ -271,7 +271,7 @@ Do not begin until Owner / Operations has defined and approved correction workfl
 # Production / deployment
 
 - [x] Live Firebase project identified as `primetimehomehealthservices`.
-- [ ] Align stale `.firebaserc` default.
+- [x] Align `.firebaserc` default with `primetimehomehealthservices`.
 - [ ] Separate dev/staging/production as management layer matures.
 - [ ] Least-privilege runtime identities.
 - [x] Runtime secrets designated for Secret Manager, not repo storage.
@@ -296,7 +296,7 @@ Do not begin until Owner / Operations has defined and approved correction workfl
 - [ ] **NOW: enable Firebase Email/Password Auth, create the first trusted admin user, and grant the `admin` custom claim.**
 - [ ] Wire the `/primetime` login UI after the first admin is claim-authorized.
 - [ ] Activate Functions + Hosting rewrite/deployment.
-- [ ] Verify SOAP parser/error handling in CI/runtime.
+- [x] Verify SOAP parser/error handling in CI.
 - [ ] First read-only authenticated HHA call.
 - [ ] Visit-change sync.
 - [ ] Schedule sync.
