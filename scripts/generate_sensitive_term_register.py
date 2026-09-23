@@ -76,6 +76,9 @@ with out.open("w", newline="", encoding="utf-8") as handle:
     writer.writerow(["file", "text_node", "term", "classification", "rationale", "context"])
     writer.writerows(rows)
 
-pending = sum(row[3] == "REVIEW_REQUIRED" for row in rows)
+pending_rows = [row for row in rows if row[3] == "REVIEW_REQUIRED"]
+pending = len(pending_rows)
 print(f"Wrote {len(rows)} classified occurrences to {out.name}; {pending} require review.")
+for row in pending_rows:
+    print(f"REVIEW_REQUIRED: {row[0]} | term={row[2]} | context={row[5]}")
 raise SystemExit(1 if pending else 0)
