@@ -659,5 +659,8 @@
         ]
       }
     ]
+  },
+  "functions": {
+    "source": "functions"
   }
 }
