@@ -99,6 +99,32 @@ export class ManagementStore {
     });
   }
 
+  async resolveOrCreateId(
+    collection: DomainCollection,
+    reference: Pick<ExternalReference, "system" | "entityType" | "externalId">,
+  ): Promise<string> {
+    const ref = this.db.collection("externalReferences").doc(lookupId(reference));
+
+    return this.db.runTransaction(async (transaction) => {
+      const snapshot = await transaction.get(ref);
+      if (snapshot.exists) {
+        return (snapshot.data() as ExternalReferenceLookup).entityId;
+      }
+
+      const entityId = newInternalId();
+      const lookup: ExternalReferenceLookup = {
+        system: reference.system,
+        entityType: reference.entityType,
+        externalId: reference.externalId,
+        collection,
+        entityId,
+        updatedAt: new Date().toISOString(),
+      };
+      transaction.create(ref, lookup);
+      return entityId;
+    });
+  }
+
   async get<T extends PersistableEntity>(
     collection: DomainCollection,
     id: string,
