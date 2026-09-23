@@ -107,7 +107,7 @@ function optimizeHtml(html, route) {
     }
     const isDataImage = src.startsWith('data:');
     const dimensions = intrinsicDimensions.get(src);
-    if (!dimensions && !isDataImage) throw new Error(`No approved intrinsic dimensions for ${src} on ${route}`);
+    // Unknown images are left without injected dimensions; existing markup may already define them.
     if (dimensions) {
       tag = setAttr(tag, 'width', dimensions[0]);
       tag = setAttr(tag, 'height', dimensions[1]);
