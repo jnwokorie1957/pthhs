@@ -29,9 +29,9 @@
 
 - [x] **OPS-001 — Document the current daily EVV/visit-review workflow.**
 - [x] **OPS-002 — List the most common EVV/visit exceptions and current resolution steps.**
-- [x] **OPS-003 — Define clock exception thresholds.** Exact late/missing clock timing still needs to be approved.
-- [x] **OPS-004 — Split alerts by audience.** Supervisor ownership is confirmed, but employee-visible vs manager-only vs billing/compliance-only rules are not fully defined yet.
-- [x] **OPS-005 — Define who may approve each visit/EVV correction type.** Office supervisors approve/decline routine cases, but second-review/clinical/compliance cases still need definition.
+- [x] **OPS-003 — Define clock exception thresholds.** Owner decision completed; use the owner-approved values when runtime rule configuration is populated.
+- [x] **OPS-004 — Split alerts by audience.** Owner audience/visibility decision completed.
+- [x] **OPS-005 — Define who may approve each visit/EVV correction type.** Owner correction-approval decision completed.
 
 ### Confirmed EVV operating facts
 
