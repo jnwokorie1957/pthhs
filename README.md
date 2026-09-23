@@ -20,7 +20,7 @@ Operational/management decisions: EVV rules, visibility/escalation, correction a
 
 # 🚦 CURRENT MANAGEMENT-LAYER CHECKPOINT
 
-**Last updated:** 2026-09-12
+**Last updated:** 2026-09-22
 
 ## Developer status
 
@@ -33,11 +33,11 @@ Operational/management decisions: EVV rules, visibility/escalation, correction a
 - [x] Repository-wide maintenance pass completed without changing tracked files under `public/`.
 - [x] Marketing generators and verifiers now preserve the separate `/primetime` application byte-for-byte.
 - [x] Deterministic root/Functions dependencies, pull-request QA, and whole-repository integrity checks are in place.
-- [ ] **`DEV-005B` — CURRENT DEVELOPER ACTION:** create `HHAEXCHANGE_CREDENTIALS` in Google Cloud Secret Manager / Firebase Functions secrets for project `primetimehomehealthservices`.
-- [ ] `DEV-006` — identify/verify the existing `/primetime` authentication mechanism and define the server-side admin authorization gate.
-- [ ] `DEV-007` — activate Functions deployment + Firebase Hosting rewrite so `/primetime/api/**` reaches `primetimeApi`.
-- [ ] `DEV-008` — finish SOAP response parsing, HHA error normalization, retries, redaction, and telemetry.
-- [ ] `DEV-009` — first harmless read-only authenticated HHA call.
+- [x] `DEV-005B` — developer confirmed `HHAEXCHANGE_CREDENTIALS` is set in Secret Manager for `primetimehomehealthservices`.
+- [ ] **`DEV-006` — CURRENT DEVELOPER ACTION:** enable Firebase Email/Password Authentication, create the first trusted admin user, and grant the `admin` custom claim. Repo inspection confirmed the static `/primetime` shell itself had no authentication; server-side token/claim enforcement is now implemented.
+- [ ] `DEV-007` — wire the login UI, activate Functions deployment, and add the Hosting rewrite so `/primetime/api/**` reaches `primetimeApi`.
+- [ ] `DEV-008` — core SOAP parsing/error/retry/correlation/metadata telemetry and sanitized tests are implemented; CI/runtime verification remains.
+- [ ] `DEV-009` — deploy and verify the prepared harmless read-only `GetCollectionStatus` HHA connectivity call.
 
 ### Firebase project status
 
@@ -114,6 +114,7 @@ Run the backend type check separately with:
 ```bash
 npm ci --prefix functions
 npm run check --prefix functions
+npm test --prefix functions
 ```
 
 The build must leave tracked `public/` files unchanged. This prevents a
