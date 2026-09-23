@@ -24,11 +24,14 @@
 
 ## Confirmed in the owner interview
 
+> **Completion attestation — 2026-09-22:** the developer explicitly confirmed that the Owner / Operations Lead completed all owner policy and decision items in this checklist. Items that require live imported HHA records or finished-feature acceptance remain runtime validation gates rather than policy decisions. Where an exact approved value is not written in this repository, implementation must use the owner-approved source record and must not infer or invent it.
+
+
 - [x] **OPS-001 — Document the current daily EVV/visit-review workflow.**
 - [x] **OPS-002 — List the most common EVV/visit exceptions and current resolution steps.**
-- [ ] **OPS-003 — Define clock exception thresholds.** Exact late/missing clock timing still needs to be approved.
-- [ ] **OPS-004 — Split alerts by audience.** Supervisor ownership is confirmed, but employee-visible vs manager-only vs billing/compliance-only rules are not fully defined yet.
-- [ ] **OPS-005 — Define who may approve each visit/EVV correction type.** Office supervisors approve/decline routine cases, but second-review/clinical/compliance cases still need definition.
+- [x] **OPS-003 — Define clock exception thresholds.** Exact late/missing clock timing still needs to be approved.
+- [x] **OPS-004 — Split alerts by audience.** Supervisor ownership is confirmed, but employee-visible vs manager-only vs billing/compliance-only rules are not fully defined yet.
+- [x] **OPS-005 — Define who may approve each visit/EVV correction type.** Office supervisors approve/decline routine cases, but second-review/clinical/compliance cases still need definition.
 
 ### Confirmed EVV operating facts
 
@@ -65,29 +68,29 @@
 - **Hours are the second ranking factor**, including both caregiver-desired hours and avoiding overtime/schedule conflicts.
 - Geography, transportation, and other eligibility constraints also matter.
 
-**Next owner priority:** complete OPS-003, OPS-004, and OPS-005 before the developer implements real exception thresholds or automated alerts.
+**Owner policy checkpoint:** OPS-001 through OPS-005 are complete. The next owner involvement is runtime validation of imported HHA records and acceptance testing as developer milestones become available.
 
 ## Repository review handoff — September 12, 2026
 
 - [x] **OPS-R01 — Visitor-facing data freeze honored.** The repository cleanup did not change any tracked file under `public/`, including visible claims, payer names, copy, images, metadata, sitemap, and redirects.
 - [x] **OPS-R02 — Historical evidence preserved.** Superseded reports and source captures were archived and labeled rather than discarded.
 - [x] **OPS-R03 — No operational rules inferred.** Repository engineering changes did not invent EVV, billing, staffing, compliance, or approval logic.
-- [ ] **OPS-003 remains the current owner action.** Define exact clock thresholds and grace periods; OPS-004 and OPS-005 follow.
+- [x] **OPS-003/004/005 owner policy decisions completed.** Runtime validation remains tied to developer implementation.
 
 ---
 
 # Roles and permissions
 
-- [ ] List the real PTHHS roles: owner, administrator, supervisor, scheduler/coordinator, clinical reviewer, field staff, billing/collections, compliance/HR, etc.
-- [ ] Define what each role may view.
+- [x] List the real PTHHS roles: owner, administrator, supervisor, scheduler/coordinator, clinical reviewer, field staff, billing/collections, compliance/HR, etc.
+- [x] Define what each role may view.
 - [x] Confirm the **supervisor role** is the first operational owner for EVV red-flag review and follow-up.
-- [ ] Define who may view manager-only EVV discrepancies.
-- [ ] Define who may approve visit/EVV corrections beyond routine supervisor approval.
-- [ ] Define who may change schedules.
-- [ ] Define who may view billing/AR data.
-- [ ] Define who may view caregiver compliance data.
-- [ ] Define who may view visit-location evidence.
-- [ ] Identify actions that require owner approval.
+- [x] Define who may view manager-only EVV discrepancies.
+- [x] Define who may approve visit/EVV corrections beyond routine supervisor approval.
+- [x] Define who may change schedules.
+- [x] Define who may view billing/AR data.
+- [x] Define who may view caregiver compliance data.
+- [x] Define who may view visit-location evidence.
+- [x] Identify actions that require owner approval.
 
 **Deliverable:** role-permission matrix.
 
@@ -100,15 +103,15 @@ For each workflow, identify **who**, **how often**, **what they check**, **what 
 - [x] daily visit review — current EVV review path documented.
 - [x] clock-in / clock-out review — common missing/misaligned call scenarios documented.
 - [x] EVV exception correction — current Link Visit / confirmation / reason-code / supervisor-decision flow documented.
-- [ ] visit confirmation — partially covered; exact confirmation-state rules still need definition.
-- [ ] visit documentation issues
-- [ ] authorizations
-- [ ] missed visits — red-flag concept documented, but formal workflow still needs definition.
-- [ ] billing readiness
-- [ ] collections / AR follow-up
+- [x] visit confirmation — partially covered; exact confirmation-state rules still need definition.
+- [x] visit documentation issues
+- [x] authorizations
+- [x] missed visits — red-flag concept documented, but formal workflow still needs definition.
+- [x] billing readiness
+- [x] collections / AR follow-up
 - [x] caregiver availability — current handwritten/phone-call state documented.
 - [x] open-shift staffing — current phone-tree replacement workflow documented at a high level.
-- [ ] caregiver compliance
+- [x] caregiver compliance
 
 **Deliverable:** plain-language current-state workflow notes.
 
@@ -116,7 +119,7 @@ For each workflow, identify **who**, **how often**, **what they check**, **what 
 
 # Validate imported HHA data
 
-**BLOCKED until developer read-only sync exists.** Review representative de-identified records and mark each as correct, incorrect, or needs HHA clarification.
+**RUNTIME VALIDATION GATE — still blocked until developer read-only sync exists.** Owner policy work is complete, but representative imported records cannot be truthfully validated before the sync exists. Review de-identified records and mark each correct, incorrect, or needs HHA clarification when available.
 
 - [ ] patient matching
 - [ ] caregiver/employee matching
@@ -139,58 +142,58 @@ For every rule, define trigger, grace period, legitimate exceptions, employee vi
 
 ## Missing / late clock-in
 
-- [ ] minutes after scheduled start before concern
-- [ ] employee-contact timing
-- [ ] management-alert timing
-- [ ] service-specific differences
-- [ ] repeat-occurrence handling
-- [ ] resolution definition
+- [x] minutes after scheduled start before concern
+- [x] employee-contact timing
+- [x] management-alert timing
+- [x] service-specific differences
+- [x] repeat-occurrence handling
+- [x] resolution definition
 
 ## Missing clock-out
 
-- [ ] threshold after expected end
-- [ ] first audience
-- [ ] escalation timing
-- [ ] resolution definition
+- [x] threshold after expected end
+- [x] first audience
+- [x] escalation timing
+- [x] resolution definition
 
 ## Early clock-out / short visit
 
-- [ ] acceptable variance
-- [ ] service/authorization differences
-- [ ] when documentation is required
-- [ ] when correction is required
+- [x] acceptable variance
+- [x] service/authorization differences
+- [x] when documentation is required
+- [x] when correction is required
 
 ## Long visit / late clock-out
 
 - [x] Confirm that long visits can require downward adjustment to scheduled hours after management review.
-- [ ] define exact variance requiring review
-- [ ] legitimate exceptions
-- [ ] authorization-impact handling
+- [x] define exact variance requiring review
+- [x] legitimate exceptions
+- [x] authorization-impact handling
 
 ## Repeated missing activity / red flags
 
 - [x] Repeated missing activity beyond normal leniency is a management red flag requiring investigation.
 - [x] Supervisor is the first operational owner of investigation.
-- [ ] define exact automated trigger by count/time window
-- [ ] define outreach SLA
-- [ ] define required note fields
-- [ ] define escalation if member/caregiver cannot be reached
+- [x] define exact automated trigger by count/time window
+- [x] define outreach SLA
+- [x] define required note fields
+- [x] define escalation if member/caregiver cannot be reached
 
 ## Documentation / POC
 
-- [ ] required documentation/tasks by service type
-- [ ] missing items that block billing
-- [ ] items requiring clinical review
-- [ ] items requiring management review
-- [ ] who may resolve each type
+- [x] required documentation/tasks by service type
+- [x] missing items that block billing
+- [x] items requiring clinical review
+- [x] items requiring management review
+- [x] who may resolve each type
 
 ## Corrections
 
 - [x] Routine EVV corrections are reviewed by an office supervisor for approve/decline.
-- [ ] second-review cases
-- [ ] clinical-approval corrections
-- [ ] corrections that must never be automated
-- [ ] required reason/evidence rules
+- [x] second-review cases
+- [x] clinical-approval corrections
+- [x] corrections that must never be automated
+- [x] required reason/evidence rules
 
 **Deliverable:** approved exception matrix.
 
@@ -201,16 +204,16 @@ For every rule, define trigger, grace period, legitimate exceptions, employee vi
 - [x] Supervisor should receive visibility into abnormal/unresolved EVV events.
 - [x] A morning supervisor summary of red flags is desired.
 - [x] Investigation activity should be captured in formal notes/history rather than informal memory.
-- [ ] employee receives message or not by exception type
-- [ ] manager-only issues
-- [ ] billing/compliance involvement
-- [ ] first-message timing
-- [ ] reminder cadence
-- [ ] stop conditions
-- [ ] acknowledgement requirement
-- [ ] escalation timing
-- [ ] escalation recipient
-- [ ] approved wording or message intent
+- [x] employee receives message or not by exception type
+- [x] manager-only issues
+- [x] billing/compliance involvement
+- [x] first-message timing
+- [x] reminder cadence
+- [x] stop conditions
+- [x] acknowledgement requirement
+- [x] escalation timing
+- [x] escalation recipient
+- [x] approved wording or message intent
 
 **Deliverable:** alert matrix with audience, timing, escalation, and message intent.
 
@@ -221,13 +224,13 @@ For every rule, define trigger, grace period, legitimate exceptions, employee vi
 Before developer enables writes:
 
 - [x] Current routine correction flow includes call verification, reason-code selection, and supervisor approve/decline.
-- [ ] list all correction types currently performed in HHA
-- [ ] define evidence/information required before approval by type
-- [ ] map usual HHA edit reason/category by type
-- [ ] define approver by correction type
-- [ ] define second-review cases
-- [ ] define cases that remain HHA-only
-- [ ] define required audit-history details
+- [x] list all correction types currently performed in HHA
+- [x] define evidence/information required before approval by type
+- [x] map usual HHA edit reason/category by type
+- [x] define approver by correction type
+- [x] define second-review cases
+- [x] define cases that remain HHA-only
+- [x] define required audit-history details
 
 Classify every correction as manual-only, suggest-only, submit-after-manager-approval, or potentially automatable later.
 
@@ -237,18 +240,18 @@ Classify every correction as manual-only, suggest-only, submit-after-manager-app
 
 # Authorization rules
 
-- [ ] define authorized units/hours
-- [ ] define used units/hours
-- [ ] define scheduled future units/hours
-- [ ] define remaining units/hours
-- [ ] define effective/expiration-date behavior
-- [ ] define overlapping/replacement authorization behavior
-- [ ] define service-specific limits
-- [ ] define cases where schedule may exceed authorization
-- [ ] define expiration warning window
-- [ ] define low-remaining warning threshold
-- [ ] define projected-overage warning threshold
-- [ ] define missing-authorization behavior
+- [x] define authorized units/hours
+- [x] define used units/hours
+- [x] define scheduled future units/hours
+- [x] define remaining units/hours
+- [x] define effective/expiration-date behavior
+- [x] define overlapping/replacement authorization behavior
+- [x] define service-specific limits
+- [x] define cases where schedule may exceed authorization
+- [x] define expiration warning window
+- [x] define low-remaining warning threshold
+- [x] define projected-overage warning threshold
+- [x] define missing-authorization behavior
 
 **Deliverable:** approved authorization calculations and warnings.
 
@@ -256,20 +259,20 @@ Classify every correction as manual-only, suggest-only, submit-after-manager-app
 
 # Billing, billable hours, projections, and AR
 
-- [ ] when a visit is considered completed
-- [ ] when it is considered EVV-ready/compliant
-- [ ] what prevents billing
-- [ ] when it is actually billed/submitted
-- [ ] statuses meaning held/rejected/pending/outstanding/paid
-- [ ] how collections are followed up
-- [ ] service codes billed by PTHHS
-- [ ] unit/hour conversion rules
-- [ ] authoritative rate sources
-- [ ] what management considers AR
-- [ ] AR aging buckets
-- [ ] weekly/monthly billable-hour projections
-- [ ] desired revenue projections
-- [ ] forecast assumptions
+- [x] when a visit is considered completed
+- [x] when it is considered EVV-ready/compliant
+- [x] what prevents billing
+- [x] when it is actually billed/submitted
+- [x] statuses meaning held/rejected/pending/outstanding/paid
+- [x] how collections are followed up
+- [x] service codes billed by PTHHS
+- [x] unit/hour conversion rules
+- [x] authoritative rate sources
+- [x] what management considers AR
+- [x] AR aging buckets
+- [x] weekly/monthly billable-hour projections
+- [x] desired revenue projections
+- [x] forecast assumptions
 
 **Deliverable:** approved billing-state flow and formulas.
 
@@ -287,37 +290,37 @@ Classify every correction as manual-only, suggest-only, submit-after-manager-app
 
 ## Hard restrictions still to define
 
-- [ ] discipline/role
-- [ ] training/competency
-- [ ] compliance/credential status
-- [ ] availability
-- [ ] schedule conflicts
-- [ ] patient restrictions
-- [ ] employee restrictions
-- [ ] service eligibility
-- [ ] hard maximum-hours/overtime rules
+- [x] discipline/role
+- [x] training/competency
+- [x] compliance/credential status
+- [x] availability
+- [x] schedule conflicts
+- [x] patient restrictions
+- [x] employee restrictions
+- [x] service eligibility
+- [x] hard maximum-hours/overtime rules
 
 ## Ranking preferences
 
-- [ ] existing patient relationship
+- [x] existing patient relationship
 - [x] travel distance / geographic practicality
-- [ ] continuity of care
+- [x] continuity of care
 - [x] preferred work area / transportation practicality
-- [ ] workload balancing
+- [x] workload balancing
 - [x] overtime avoidance / hours fit
 - [x] patient preference
-- [ ] relevant language/skill preference
+- [x] relevant language/skill preference
 
 For every factor still define hard exclusion vs ranking preference, relative importance, override authority, and override-reason requirements.
 
 ## Open-shift workflow
 
 - [x] Current state is primarily a phone tree.
-- [ ] who sees an open shift first in the future system
-- [ ] one employee vs multiple offers
-- [ ] offer expiration
-- [ ] no-acceptance fallback
-- [ ] final assignment authority
+- [x] who sees an open shift first in the future system
+- [x] one employee vs multiple offers
+- [x] offer expiration
+- [x] no-acceptance fallback
+- [x] final assignment authority
 
 **Deliverable:** staffing eligibility matrix + ranking preferences.
 
@@ -325,13 +328,13 @@ For every factor still define hard exclusion vs ranking preference, relative imp
 
 # Caregiver compliance
 
-- [ ] list tracked compliance/credential items
-- [ ] identify items that block scheduling
-- [ ] identify warning-only items
-- [ ] define expiration warning windows
-- [ ] define alert recipients
-- [ ] define override authority
-- [ ] define what resolves an issue
+- [x] list tracked compliance/credential items
+- [x] identify items that block scheduling
+- [x] identify warning-only items
+- [x] define expiration warning windows
+- [x] define alert recipients
+- [x] define override authority
+- [x] define what resolves an issue
 
 **Deliverable:** compliance matrix.
 
@@ -341,13 +344,13 @@ For every factor still define hard exclusion vs ranking preference, relative imp
 
 Keep this focused on visit verification, not continuous employee tracking.
 
-- [ ] workflows that need location evidence
-- [ ] how location discrepancies are handled today
-- [ ] whether distance from expected visit location matters
-- [ ] approved distance/tolerance rules
-- [ ] legitimate alternate-location scenarios
-- [ ] who may view location evidence
-- [ ] whether employee sees discrepancy before management review
+- [x] workflows that need location evidence
+- [x] how location discrepancies are handled today
+- [x] whether distance from expected visit location matters
+- [x] approved distance/tolerance rules
+- [x] legitimate alternate-location scenarios
+- [x] who may view location evidence
+- [x] whether employee sees discrepancy before management review
 
 **Deliverable:** location-evidence policy.
 
@@ -357,21 +360,21 @@ Keep this focused on visit verification, not continuous employee tracking.
 
 Rank each **P0 / P1 / P2** and identify owner/action/response time for every P0 item.
 
-- [ ] active visits now
-- [ ] starting soon
+- [x] active visits now
+- [x] starting soon
 - [x] missing clock-ins — confirmed core operational exception
 - [x] missing clock-outs — confirmed core operational exception
-- [ ] late arrivals — confirmed relevant, exact threshold pending
-- [ ] unconfirmed visits
-- [ ] documentation/POC issues
+- [x] late arrivals — confirmed relevant, exact threshold pending
+- [x] unconfirmed visits
+- [x] documentation/POC issues
 - [x] open shifts / caregiver replacement — confirmed major operational pain point
-- [ ] caregiver compliance issues
-- [ ] authorization at-risk count
-- [ ] projected authorization overage
-- [ ] billable hours this week
-- [ ] billing blocked by exceptions
-- [ ] outstanding AR
-- [ ] HHA integration health
+- [x] caregiver compliance issues
+- [x] authorization at-risk count
+- [x] projected authorization overage
+- [x] billable hours this week
+- [x] billing blocked by exceptions
+- [x] outstanding AR
+- [x] HHA integration health
 
 **Deliverable:** prioritized dashboard requirements.
 
@@ -379,18 +382,20 @@ Rank each **P0 / P1 / P2** and identify owner/action/response time for every P0 
 
 # Production and outage workflow
 
-- [ ] who should have production admin access
-- [ ] acceptable management-layer downtime
-- [ ] fallback when PTHHS management layer is down but HHA works
-- [ ] fallback when HHAExchange is down
-- [ ] essential functions during outage
-- [ ] organizational hosting/security requirements before production PHI use
+- [x] who should have production admin access
+- [x] acceptable management-layer downtime
+- [x] fallback when PTHHS management layer is down but HHA works
+- [x] fallback when HHAExchange is down
+- [x] essential functions during outage
+- [x] organizational hosting/security requirements before production PHI use
 
 **Deliverable:** production approval + outage fallback checklist.
 
 ---
 
 # Owner acceptance checklist for every feature
+
+**RUNTIME ACCEPTANCE GATE:** policy decisions are complete; these checks stay open until each implemented feature exists and can be exercised.
 
 - [ ] normal case works
 - [ ] missing/late-data case works
@@ -409,13 +414,13 @@ Rank each **P0 / P1 / P2** and identify owner/action/response time for every P0 
 
 - [x] **OPS-001:** document daily EVV/visit review.
 - [x] **OPS-002:** list common EVV exceptions + current resolution steps.
-- [ ] **OPS-003 — NEXT:** define exact clock thresholds and grace periods.
-- [ ] **OPS-004:** define employee-visible vs manager-only vs billing/compliance-only alerts.
-- [ ] **OPS-005:** finish correction approver matrix beyond routine supervisor decisions.
-- [ ] explain authorization checks used before scheduling/billing.
-- [ ] explain exactly what makes a completed visit billing-ready.
-- [ ] list hard staffing eligibility rules.
-- [ ] list compliance items that block scheduling.
-- [ ] rank first dashboard metrics.
+- [x] **OPS-003 — NEXT:** define exact clock thresholds and grace periods.
+- [x] **OPS-004:** define employee-visible vs manager-only vs billing/compliance-only alerts.
+- [x] **OPS-005:** finish correction approver matrix beyond routine supervisor decisions.
+- [x] explain authorization checks used before scheduling/billing.
+- [x] explain exactly what makes a completed visit billing-ready.
+- [x] list hard staffing eligibility rules.
+- [x] list compliance items that block scheduling.
+- [x] rank first dashboard metrics.
 
-**Immediate handoff target:** OPS-003 through OPS-005 should be completed before the developer implements production exception rules or automated messaging.
+**Immediate handoff target:** owner policy decisions are complete. Developer may build configurable rule/messaging infrastructure, but production values must come from the owner-approved record and live-data validation must occur before automation is enabled.
