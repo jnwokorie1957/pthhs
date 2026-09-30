@@ -8,6 +8,7 @@ const source = readFileSync(new URL('../public/primetime/primetime.js', import.m
 function startApp(session) {
   const elements = new Map();
   const element = id => {
+    if (id === 'capabilityRows') return null;
     if (!elements.has(id)) elements.set(id, {
       hidden: id === 'appShell', dataset: {},
       classList: { add() {}, remove() {}, toggle() {} },
@@ -22,9 +23,10 @@ function startApp(session) {
   };
   const firebase = { auth: () => auth };
   const requests = [];
+  const window = { firebase, innerWidth: 1200 };
   vm.runInNewContext(source, {
     document: { getElementById: element, querySelectorAll: () => [], addEventListener() {} },
-    window: { firebase, innerWidth: 1200 },
+    window,
     location: { hash: '' }, history: { replaceState() {} }, Headers,
     fetch: async (path, options) => {
       requests.push({ path, options });
@@ -33,7 +35,7 @@ function startApp(session) {
       };
     }
   });
-  return { auth, element, requests };
+  return { auth, element, requests, window };
 }
 
 test('server rejection never reveals the management workspace', async () => {
@@ -59,3 +61,26 @@ test('admin server confirmation opens workspace and sign-out closes it', async (
   await app.auth.signOut();
   assert.equal(app.element('appShell').hidden, true);
 });
+
+for (const transition of ['logout', 'account switch', 'same-user new session']) {
+  test(`delayed token cannot submit after ${transition}`, async () => {
+    const app = startApp({ ok: true, status: 200, json: async () => ({ ok: true, roles: ['admin'] }) });
+    const user = { uid: 'approved', getIdToken: async () => 'token' };
+    app.auth.currentUser = user;
+    await app.auth.callback(user);
+    await new Promise(resolve => setImmediate(resolve));
+    let release;
+    user.getIdToken = () => new Promise(resolve => { release = resolve; });
+    const pending = app.window.primetimeApiFetch('/primetime/api/workspace/rate-proposals/execute', { method: 'POST' });
+    const rejected = assert.rejects(pending, /session_changed/);
+    if (transition === 'logout') await app.auth.signOut();
+    else {
+      const next = { uid: transition === 'account switch' ? 'other' : user.uid, getIdToken: async () => 'newtoken' };
+      app.auth.currentUser = next;
+      await app.auth.callback(next);
+    }
+    release('oldtoken');
+    await rejected;
+    assert.equal(app.requests.filter(item => item.path.endsWith('/execute')).length, 0);
+  });
+}

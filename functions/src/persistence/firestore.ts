@@ -57,15 +57,36 @@ export class ManagementStore {
   async upsert<T extends PersistableEntity>(
     collection: DomainCollection,
     entity: T,
+    mode: "merge" | "replace" = "merge",
+    importFence?: { token: string },
   ): Promise<void> {
     assertDocumentId(entity.id);
     const entityRef = this.db.collection(collection).doc(entity.id);
 
     await this.db.runTransaction(async (transaction) => {
+      if (importFence) {
+        const lock = await transaction.get(this.db.collection("integrationLocks").doc("hhaexchange__all_hha_imports"));
+        if (!lock.data()?.active || lock.data()?.token !== importFence.token) throw new Error("sync_lock_owner_mismatch");
+      }
       const previous = await transaction.get(entityRef);
       const prior = previous.exists
         ? (previous.data() as PersistableEntity | undefined)
         : undefined;
+
+      // Keep immutable imported evidence independently of the current projection.
+      // Replays deduplicate by source version, and existing history is never edited.
+      const histories = [];
+      if (mode === "replace" && collection === "visits") {
+        for (const snapshot of [prior, entity]) {
+          if (!snapshot) continue;
+          const version = snapshot.externalReferences?.find(ref => ref.system === "hhaexchange")?.sourceVersionHash
+            ?? createHash("sha256").update(JSON.stringify(snapshot)).digest("hex");
+          const key = createHash("sha256").update(snapshot.id + "\0" + version).digest("hex");
+          const ref = this.db.collection("visitImportHistory").doc(key);
+          const existing = await transaction.get(ref);
+          histories.push({ ref, existing: existing.exists, snapshot });
+        }
+      }
 
       const oldRefs = prior?.externalReferences ?? [];
       const newRefs = entity.externalReferences ?? [];
@@ -78,7 +99,16 @@ export class ManagementStore {
         }
       }
 
-      transaction.set(entityRef, entity, { merge: true });
+      // Imports are complete source snapshots: omitted optional fields must clear.
+      // Locally owned notes/decisions belong in separate collections.
+      transaction.set(entityRef, entity, { merge: mode === "merge" });
+      const createdHistory = new Set<string>();
+      for (const history of histories) {
+        if (!history.existing && !createdHistory.has(history.ref.path)) {
+          transaction.create(history.ref, { snapshot: history.snapshot, recordedAt: new Date().toISOString() });
+          createdHistory.add(history.ref.path);
+        }
+      }
 
       const updatedAt = new Date().toISOString();
       for (const reference of newRefs) {

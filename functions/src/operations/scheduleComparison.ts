@@ -53,8 +53,7 @@ export function compareScheduleToVisit(
     scheduleId: schedule.id,
     scheduledStart: schedule.scheduledStart,
     scheduledEnd: schedule.scheduledEnd,
-    ...(visit?.actualStart ? { clockIn: visit.actualStart } : {}),
-    ...(visit?.actualEnd ? { clockOut: visit.actualEnd } : {}),
+    ...clockEvidence(visit),
     ...(visit?.confirmation
       ? { confirmed: visit.confirmation.confirmed }
       : {}),
@@ -72,4 +71,18 @@ export function compareScheduleToVisit(
     ...(durationVarianceMinutes !== undefined ? { durationVarianceMinutes } : {}),
     observation,
   };
+}
+
+// Reported/manual visit times are not proof that an EVV call occurred. Reject
+// ambiguous or malformed evidence rather than silently choosing a clock event.
+function clockEvidence(visit: Visit | null): Pick<EvvObservation, "clockIn" | "clockOut"> {
+  const result: Pick<EvvObservation, "clockIn" | "clockOut"> = {};
+  for (const [type, field] of [["clock_in", "clockIn"], ["clock_out", "clockOut"]] as const) {
+    const events = visit?.clockEvents.filter(event => event.type === type && event.visitId === visit.id) ?? [];
+    if (events.length > 1 || events.some(event => parse(event.occurredAt) === undefined)) {
+      throw new Error("ambiguous_or_invalid_clock_evidence");
+    }
+    if (events[0]) result[field] = events[0].occurredAt;
+  }
+  return result;
 }

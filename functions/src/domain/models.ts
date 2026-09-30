@@ -155,14 +155,16 @@ export interface AuditEvent {
 }
 
 export interface IntegrationSync {
+  importLockToken?: string;
   id: string;
   integration: "hhaexchange";
   resource: string;
   startedAt: string;
   completedAt?: string;
   checkpoint?: string;
-  status: "running" | "success" | "failed";
+  status: "running" | "success" | "partial" | "failed";
   processedCount?: number;
+  deadLetterCount?: number;
   errorCode?: string;
 }
 

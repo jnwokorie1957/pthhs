@@ -29,6 +29,7 @@ export interface RunSyncOptions {
 }
 
 export interface SyncRunResult {
+  status: "success" | "partial";
   resource: string;
   processedCount: number;
   deadLetterCount: number;
@@ -41,12 +42,18 @@ export async function runIncrementalSync<
 >(
   adapter: IncrementalSyncAdapter<TSource, TEntity>,
   options: RunSyncOptions = {},
-  management = new ManagementStore(),
-  state = new SyncStateStore(),
+  management: Pick<ManagementStore, "upsert"> = new ManagementStore(),
+  state: Pick<SyncStateStore, "getRun" | "acquire" | "release" | "getCheckpoint" | "begin" | "deadLetter" | "succeed" | "partial" | "fail"> = new SyncStateStore(),
 ): Promise<SyncRunResult> {
+  // Serialize all HHA imports: different feed versions can write the same
+  // domain collections, so per-feed locks are insufficient.
+  const lockResource = "all_hha_imports";
+  const lock = await state.acquire(lockResource);
+  let finalized = false;
+  try {
   const storedCheckpoint = await state.getCheckpoint(adapter.resource);
   let checkpoint = options.checkpointOverride ?? storedCheckpoint;
-  const sync = await state.begin(adapter.resource, checkpoint);
+  const sync = await state.begin(adapter.resource, checkpoint, lock);
 
   let processedCount = 0;
   let deadLetterCount = 0;
@@ -64,7 +71,7 @@ export async function runIncrementalSync<
       for (const source of page.items) {
         try {
           const normalized = await adapter.normalize(source);
-          await management.upsert(adapter.collection, normalized);
+          await management.upsert(adapter.collection, normalized, "replace", { token: lock });
           processedCount += 1;
         } catch (error) {
           deadLetterCount += 1;
@@ -74,11 +81,20 @@ export async function runIncrementalSync<
             ...(options.correlationId ? { correlationId: options.correlationId } : {}),
             ...(checkpoint ? { checkpoint } : {}),
             ...(source.sourceIdentifier ? { sourceIdentifier: source.sourceIdentifier } : {}),
-            errorCode: error instanceof Error ? error.name || "normalization_error" : "normalization_error",
-            errorMessage: error instanceof Error ? error.message : "Unknown normalization failure",
+            errorCode: "record_import_failed",
+            errorMessage: "Record could not be imported; replay requires source validation.",
             attempts: 1,
           });
         }
+      }
+
+      // Do not lose rejected records by advancing the durable watermark. Stop
+      // this run and replay from its original cursor after the cause is fixed.
+      if (deadLetterCount > 0) {
+        await state.partial(sync, processedCount, deadLetterCount);
+        finalized = true;
+        return { status: "partial", resource: adapter.resource, processedCount, deadLetterCount,
+          ...(storedCheckpoint ? { checkpoint: storedCheckpoint } : {}) };
       }
 
       if (page.nextCheckpoint) {
@@ -95,6 +111,7 @@ export async function runIncrementalSync<
     } while (true);
 
     await state.succeed(sync, processedCount, checkpoint);
+    finalized = true;
 
     logger.info("Integration sync completed", {
       integration: "hhaexchange",
@@ -106,14 +123,27 @@ export async function runIncrementalSync<
     });
 
     return {
+      status: "success",
       resource: adapter.resource,
       processedCount,
       deadLetterCount,
       ...(checkpoint ? { checkpoint } : {}),
     };
   } catch (error) {
-    const code = error instanceof Error ? error.message : "sync_failed";
+    // A transaction may commit even when its acknowledgement is lost.
+    // Read failure deliberately retains the lock; never overwrite uncertainty.
+    const terminal = await state.getRun(sync.id);
+    if (terminal && terminal.importLockToken === sync.importLockToken &&
+        (terminal.status === "success" || terminal.status === "partial")) {
+      finalized = true;
+      return { status: terminal.status, resource: terminal.resource,
+        processedCount: terminal.processedCount ?? 0, deadLetterCount: terminal.deadLetterCount ?? 0,
+        ...(terminal.checkpoint ? { checkpoint: terminal.checkpoint } : {}) };
+    }
+    // Upstream exception messages can contain credentials, XML or patient data.
+    const code = "sync_failed";
     await state.fail(sync, code);
+    finalized = true;
     logger.error("Integration sync failed", {
       integration: "hhaexchange",
       resource: adapter.resource,
@@ -124,5 +154,10 @@ export async function runIncrementalSync<
       errorCode: code,
     });
     throw error;
+  }
+  } finally {
+    // Release only after all awaited record operations and durable terminal state.
+    // Ambiguous begin/finalization failures conservatively keep the lock.
+    if (finalized) await state.release(lockResource, lock);
   }
 }

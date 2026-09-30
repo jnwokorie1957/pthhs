@@ -1,0 +1,90 @@
+{
+  "side-img1-320.webp": {
+    "recipe": {
+      "sourceHash": "7d762e5bd94fbcf16d53310f1afef3ebe8355c7d64c6a38f3eb65924650aad1f",
+      "width": 320,
+      "withoutEnlargement": true,
+      "format": "webp",
+      "quality": 78,
+      "effort": 6
+    },
+    "outputHash": "20ecdba759c155c1b1781dfe3e6d4692ce0c69fabbafb69c25358957ef34dceb"
+  },
+  "side-img1-320.avif": {
+    "recipe": {
+      "sourceHash": "7d762e5bd94fbcf16d53310f1afef3ebe8355c7d64c6a38f3eb65924650aad1f",
+      "width": 320,
+      "withoutEnlargement": true,
+      "format": "avif",
+      "quality": 52,
+      "effort": 5
+    },
+    "outputHash": "ca73f61d9a30989e585f3b593a705b93f829f0216c174a45b24d27a217fa0f5e"
+  },
+  "side-img1-586.webp": {
+    "recipe": {
+      "sourceHash": "7d762e5bd94fbcf16d53310f1afef3ebe8355c7d64c6a38f3eb65924650aad1f",
+      "width": 586,
+      "withoutEnlargement": true,
+      "format": "webp",
+      "quality": 78,
+      "effort": 6
+    },
+    "outputHash": "95d9807496b5c244f4f5f563bc98e7171f88471c66aeeb42150597e3d0f173d3"
+  },
+  "side-img1-586.avif": {
+    "recipe": {
+      "sourceHash": "7d762e5bd94fbcf16d53310f1afef3ebe8355c7d64c6a38f3eb65924650aad1f",
+      "width": 586,
+      "withoutEnlargement": true,
+      "format": "avif",
+      "quality": 52,
+      "effort": 5
+    },
+    "outputHash": "6c8010dbddf4eea04bfb11752853ba637b4ff0a34fb15aa001c5e280688a9ee5"
+  },
+  "side-img2-320.webp": {
+    "recipe": {
+      "sourceHash": "6e8fb8fa8c8567b68dfec6ca84f53bc984b731f38f9b793f9c4dd5a96bcec548",
+      "width": 320,
+      "withoutEnlargement": true,
+      "format": "webp",
+      "quality": 78,
+      "effort": 6
+    },
+    "outputHash": "252ec8eb5d4a56132ae7026ea5773966c81861bafd8702c6f1f23a308aa92df1"
+  },
+  "side-img2-320.avif": {
+    "recipe": {
+      "sourceHash": "6e8fb8fa8c8567b68dfec6ca84f53bc984b731f38f9b793f9c4dd5a96bcec548",
+      "width": 320,
+      "withoutEnlargement": true,
+      "format": "avif",
+      "quality": 52,
+      "effort": 5
+    },
+    "outputHash": "6e89618c9eaf5cc91a4ca917d55fc4f13243b3052bcc20c35b5311cc715a6b7a"
+  },
+  "side-img2-535.webp": {
+    "recipe": {
+      "sourceHash": "6e8fb8fa8c8567b68dfec6ca84f53bc984b731f38f9b793f9c4dd5a96bcec548",
+      "width": 535,
+      "withoutEnlargement": true,
+      "format": "webp",
+      "quality": 78,
+      "effort": 6
+    },
+    "outputHash": "e08f8f16b4bd437bbcc2231186e6f59a17e494e4660949d8bc1b309693241649"
+  },
+  "side-img2-535.avif": {
+    "recipe": {
+      "sourceHash": "6e8fb8fa8c8567b68dfec6ca84f53bc984b731f38f9b793f9c4dd5a96bcec548",
+      "width": 535,
+      "withoutEnlargement": true,
+      "format": "avif",
+      "quality": 52,
+      "effort": 5
+    },
+    "outputHash": "3bcaa4e50ef6df40b340b06260ecca4fe1c7bbb2d3fa45f6bbd8d92b58b44f97"
+  }
+}

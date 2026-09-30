@@ -36,6 +36,8 @@
 - [x] **DEV-008 — HHA SOAP parser/error/retry layer complete and CI-verified.** Parser, application/SOAP/transport normalization, bounded retries, correlation IDs, metadata-only telemetry, and sanitized tests compile and pass in GitHub Actions. Real HHA response validation moves to DEV-009.
 - [ ] **DEV-009 — First harmless read-only authenticated HHA call. BLOCKED by DEV-007 + DEV-006 runtime verification.** Protected `GetCollectionStatus` health call and automated post-deploy verifier are implemented; real HHA execution waits on successful Functions deployment and a visible authorized admin.
 
+**September 30 code-ahead review:** [Implementation, validation and remaining full-coverage work](IMPLEMENTATION_REVIEW_2026-09-30.md); [all 222 contract operations](HHA_CAPABILITY_MATRIX.md). Import safety fixes with durable single-flight fencing, 143 protected operational read serializers, twenty-two scoped default-disabled mutation workflows, audited crash/unknown-outcome recovery, saved owner preferences, persistent investigations, independent change-request review and audit views are implemented with synthetic tests. Data-bearing routes default to locked; automated EVV decisions and HHA writes remain disabled. The inventory is not full execution coverage. DEV-006/007/009 remain pending.
+
 **Next milestone:** DEV-009 succeeds from the `/primetime` backend without exposing HHA credentials or PHI.
 
 **Code-ahead progress:** Firestore persistence, sync checkpoints/dead letters, `GetVisitChangesV5`, targeted `GetScheduleInfo`, caregiver/patient change wrappers, authorization/availability/service-code reads, schedule-vs-actual comparison, configurable EVV evaluation, internal notification planning, and audit generation are implemented. Backend CI has passed the persistence/sync/rules stack **and the full read-only wrapper surface**. Current red deployment runs fail only at the external Firebase Functions IAM gate, not at repository QA, TypeScript compilation, or backend tests. Runtime use remains gated by Firebase IAM/Auth visibility, Firestore provisioning, and live-record validation.
@@ -158,7 +160,7 @@ Persistence work:
 - [x] Idempotent imports through internal IDs + external-reference resolution.
 - [x] Manual resync/reconciliation support through checkpoint overrides and replay-safe upserts.
 - [x] Dead-letter/error state for normalization failures.
-- [ ] Authorized integration-health view under `/primetime` beyond the HHA connectivity health endpoint.
+- [x] Authorized metadata-only integration-health API and dashboard view implemented with synthetic checks; production verification remains DEV-007. Connection reachability is separate from successful import age, partial/replay state and unknown freshness.
 - [ ] Periodic targeted/full reconciliation schedule.
 
 Import order:
@@ -305,3 +307,6 @@ Do not begin until Owner / Operations has defined and approved correction workfl
 - [ ] Owner validates schedule-vs-actual records.
 
 **Sprint stop condition:** no employee messaging or automated HHA/EVV corrections until the corresponding owner checklist decisions are complete.
+
+
+September 30 continuation: limited CreateLinkedSchedule workflow now has independent scheduling review, explicit field scope, office serialization and partial source reconciliation. Persisted ScheduleType is absent from readback; keep the lock until vendor-confirmed type attestation and audited recovery. Gate stays false. Remaining ordinary implementations are listed in HHA_REMAINING_CATEGORIES.md; this checkpoint does not close them or production DEV006/007/009 gates.

@@ -1,7 +1,7 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import sharp from 'sharp';
-import { marketingHtmlFiles } from './site-scope.mjs';
+import { isInternalAppFile, marketingHtmlFiles } from './site-scope.mjs';
 
 const root = process.cwd();
 const publicDir = path.join(root, 'public');
@@ -184,7 +184,9 @@ if (phpFiles.length) errors.push(`public PHP endpoints remain: ${phpFiles.join('
 
 const publicFiles = await walk(publicDir);
 const publicBytes = (await Promise.all(publicFiles.map((file) => fs.stat(file)))).reduce((sum, stat) => sum + stat.size, 0);
-if (publicBytes > 2_000_000) errors.push(`public output exceeds 2 MB foundation budget: ${publicBytes}`);
+const internalBytes = (await Promise.all(publicFiles.filter(file => isInternalAppFile(file, publicDir)).map(file => fs.stat(file)))).reduce((sum, stat) => sum + stat.size, 0);
+if (publicBytes - internalBytes > 2_000_000) errors.push(`marketing output exceeds 2 MB foundation budget: ${publicBytes - internalBytes}`);
+if (internalBytes > 256_000) errors.push(`internal app output exceeds 256 KB budget: ${internalBytes}`);
 if (pictureCount !== 4 || preloadCount !== 3) errors.push(`expected 4 responsive pictures and 3 LCP preloads, found ${pictureCount}/${preloadCount}`);
 if (externalRuntimeCount !== 0) errors.push(`expected zero external runtime resources, found ${externalRuntimeCount}`);
 

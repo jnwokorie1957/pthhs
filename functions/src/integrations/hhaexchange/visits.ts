@@ -71,7 +71,9 @@ export async function getVisitChangesV5(
   const records = extractElementBodies(response.resultXml, "GetVisitChangesV5Info")
     .map((xml): HhaVisitChangeRecord | null => {
       const visitId = extractElementText(xml, "VisitID");
-      if (!visitId) return null;
+      // A malformed source row must fail the page, not disappear behind a
+      // successful watermark advance. Retry after validating the source.
+      if (!visitId) throw new Error("visit_missing_source_id");
       const lastModifiedDate = extractElementText(xml, "LastModifiedDate");
       return {
         sourceIdentifier: visitId,

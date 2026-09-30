@@ -99,7 +99,7 @@ function clockEvent(
 export function createVisitChangesAdapter(
   client: HhaSoapClient,
   initialModifiedAfter: string,
-  management = new ManagementStore(),
+  management: Pick<ManagementStore, "resolveOrCreateId"> = new ManagementStore(),
 ): IncrementalSyncAdapter<HhaVisitChangeRecord, Visit> {
   if (!initialModifiedAfter.trim()) {
     throw new Error("Visit sync requires an explicit initial ModifiedAfter boundary.");
@@ -113,6 +113,10 @@ export function createVisitChangesAdapter(
 
     async fetchPage(checkpoint): Promise<SyncPage<HhaVisitChangeRecord>> {
       const cursor = decodeCheckpoint(checkpoint, initialModifiedAfter);
+      // An empty resumed run must never reset the durable boundary to bootstrap.
+      if (Date.parse(cursor.modifiedAfter) > Date.parse(maxObservedModifiedAfter)) {
+        maxObservedModifiedAfter = cursor.modifiedAfter;
+      }
       const page = await getVisitChangesV5(client, cursor.modifiedAfter, cursor.page);
 
       if (!page.response.ok) {

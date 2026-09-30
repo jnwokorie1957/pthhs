@@ -20,7 +20,9 @@ Operational/management decisions: EVV rules, visibility/escalation, correction a
 
 # 🚦 CURRENT MANAGEMENT-LAYER CHECKPOINT
 
-**Last updated:** 2026-09-23
+**Last updated:** 2026-09-30
+
+See the [September 30 implementation review](docs/management-layer/IMPLEMENTATION_REVIEW_2026-09-30.md) and [222-operation API coverage matrix](docs/management-layer/HHA_CAPABILITY_MATRIX.md). Local code adds 144 protected workspace reads (141 release-eligible, three vendor-blocked), 23 typed/prepared mutation workflows (22 default-disabled gated dispatch paths plus one independently blocked partial linked-schedule workflow), persistent owner preferences/investigations/change-review/audit workflows, truthful integration health and replay/evidence protections. Production data remains default-locked; full 222-operation execution is not complete.
 
 ## Developer status
 
@@ -47,7 +49,7 @@ The live management/site Firebase project is confirmed as **`primetimehomehealth
 
 Current runtime blockers:
 - GitHub CI service account: `firebase-adminsdk-fbsvc@primetimehomehealthservices.iam.gserviceaccount.com`.
-- Functions deployment currently fails on missing `serviceusage.services.get`; grant **Cloud Functions Admin** + **Service Account User** to that CI principal.
+- September 30 workflow 36658534189 fails because Cloud Build API is disabled and CI cannot enable it. A project owner must approve/enable `cloudbuild.googleapis.com`; do not grant blanket roles based on the superseded error.
 - The live Firebase Admin SDK currently reports **0 Authentication users**, despite the developer reporting an admin user was created. Verify the user appears under Authentication → Users in the `primetimehomehealthservices` project before admin-claim verification.
 - Firestore code is prepared, but the production Firestore database/location still needs to be provisioned before persistent HHA imports are enabled.
 

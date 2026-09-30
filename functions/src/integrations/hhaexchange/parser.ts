@@ -115,6 +115,20 @@ export function extractElementBodies(
   return bodies;
 }
 
+// Lossless string projection for fields that will be sent back unchanged.
+// Do not trim clinical evidence or strip markup from CDATA.
+export function extractExactElementText(xml: string, localName: string): string | undefined {
+  const tag = openingTag(xml, localName);
+  if (!tag || /(?:\w+:)?nil\s*=\s*["'](?:true|1)["']/i.test(tag)) return undefined;
+  if (/\/\s*>$/.test(tag)) return "";
+  const body = extractElementBody(xml, localName);
+  if (body === undefined) return undefined;
+  const cdata = body.match(/^<!\[CDATA\[([\s\S]*)\]\]>$/);
+  if (cdata) return cdata[1];
+  if (body.includes("<")) throw new Error("non_scalar_source_text");
+  return decodeXmlEntities(body);
+}
+
 export function extractElementText(
   xml: string,
   localName: string,
@@ -211,7 +225,8 @@ export function parseHhaSoapResponse(
 
   const successStatus =
     status === undefined || /^(success|succeeded|ok)$/i.test(status.trim());
-  const applicationFailed = !successStatus || errorInfoXml !== undefined;
+  const explicitZeroError = errorId === 0 && !errorMessage?.trim() && !applicationRetryAfter;
+  const applicationFailed = !successStatus || (errorInfoXml !== undefined && !explicitZeroError);
 
   return {
     operation,

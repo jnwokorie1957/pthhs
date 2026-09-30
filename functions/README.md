@@ -93,3 +93,17 @@ npm audit --audit-level=high
 The September 12, 2026 audit found no high/critical advisory. Two moderate
 findings remain in an optional Firebase Admin storage dependency path; see the
 repository review log before considering any transitive override.
+
+
+### Limited linked-schedule creation
+
+`/workspace/linked-schedule-creations/{prepare,recheck,review,execute,reconcile}` supports explicit same-day Non-Skilled creation only. All source reads must be owner-enabled. `PRIMETIME_LINKED_SCHEDULE_CREATE_APPROVED=false` is a separate default-off deployment gate; review/execute and applied recovery approval additionally require `scheduling_reviewer` on the verified principal. This does not grant that role.
+
+Source checks require an active patient in the configured office, an active caregiver belonging only to that office, explicit caregiver pay code, a linked service present only in the Non-Skilled catalog, and complete empty schedules for both subjects across the selected/adjacent dates. The office-wide scheduling target remains locked across unknown outcomes. Existing visits, clocks and bill amounts are never updated.
+
+GetLinkedScheduleInfo omits persisted ScheduleType. Automatic reconciliation therefore reports `matched_returned_fields`, never complete proposal verification, and retains the lock even after acknowledgement. Applied recovery is server-blocked until an independent evidence verifier exists; a case-reference string, checkbox and independent approval are insufficient. Production dispatch also requires that unavailable verifier, independently of deployment configuration. Eligibility, authorization coverage and notification behavior require documented human review before any release. No live activation is authorized.
+
+
+Correction to linked-schedule recovery: applied recovery is server-blocked until a supported independent evidence verifier is integrated. Constant type assertions, reference strings and independent approval alone are insufficient. Previously pending/resolved applied records cannot use the release shortcut. The UI offers no linked recovery form. This operation remains partially reconcilable and is not ready for production activation.
+
+`POST /workspace/schedule-review` accepts `{visitId,kind:"standard"|"linked"}` and only reads owner-enabled operations. It verifies patient office, record identity and shared snapshot fields. Standard review exposes GetScheduleInfo, GetVisitInfoV2 and GetVisitBillInfoV2 separately; V2 supplies temporary flags, budget, suggested times and duration. Nulls remain unknown. Linked review explicitly identifies missing persisted ScheduleType/Comments. No schedule mutation is prepared or submitted by this route.

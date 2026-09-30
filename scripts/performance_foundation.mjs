@@ -1,6 +1,7 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import sharp from 'sharp';
+import { createHash } from 'node:crypto';
 import { isInternalAppFile, marketingHtmlFiles } from './site-scope.mjs';
 
 const root = process.cwd();
@@ -133,18 +134,37 @@ function optimizeHtml(html, route) {
 
 async function generateResponsiveImages() {
   await fs.mkdir(mediaDir, { recursive: true });
+  const manifestPath = path.join(root, 'scripts', 'responsive-image-manifest.json');
+  let manifest;
+  try { manifest = JSON.parse(await fs.readFile(manifestPath, 'utf8')); }
+  catch (error) { if (error.code !== 'ENOENT') throw error; manifest = {}; }
+  const hash = bytes => createHash('sha256').update(bytes).digest('hex');
   for (const [name, config] of Object.entries(responsiveImages)) {
     const source = path.join(sourceDir, `${name}.webp`);
+    const sourceHash = hash(await fs.readFile(source));
     const metadata = await sharp(source).metadata();
     if (metadata.width !== config.width || metadata.height !== config.height) {
       throw new Error(`${name} source dimensions changed: ${metadata.width}x${metadata.height}`);
     }
     for (const width of config.widths) {
-      const input = sharp(source).resize({ width, withoutEnlargement: true });
-      await input.clone().webp({ quality: 78, effort: 6 }).toFile(path.join(mediaDir, `${name}-${width}.webp`));
-      await input.clone().avif({ quality: 52, effort: 5 }).toFile(path.join(mediaDir, `${name}-${width}.avif`));
+      for (const [format, options] of [['webp', { quality: 78, effort: 6 }], ['avif', { quality: 52, effort: 5 }]]) {
+        const filename = `${name}-${width}.${format}`;
+        const output = path.join(mediaDir, filename);
+        const recipe = { sourceHash, width, withoutEnlargement: true, format, ...options };
+        let currentHash;
+        try { currentHash = hash(await fs.readFile(output)); }
+        catch (error) { if (error.code !== 'ENOENT') throw error; }
+        // Preserve reviewed output bytes when both source/recipe and artifact
+        // hashes match. Native AVIF encoders can differ between Windows/Linux.
+        // A missing, modified or stale artifact is still regenerated and must
+        // pass the release diff review alongside its updated manifest.
+        if (JSON.stringify(manifest[filename]?.recipe) === JSON.stringify(recipe) && manifest[filename]?.outputHash === currentHash) continue;
+        await sharp(source).resize({ width, withoutEnlargement: true })[format](options).toFile(output);
+        manifest[filename] = { recipe, outputHash: hash(await fs.readFile(output)) };
+      }
     }
   }
+  await fs.writeFile(manifestPath, JSON.stringify(manifest, null, 2) + '\n');
 }
 
 async function removeExternalFonts() {
@@ -219,6 +239,6 @@ documents.push(await fs.readFile(path.join(publicDir, 'site.webmanifest'), 'utf8
 const pruned = await pruneLegacyPublicFiles(documents);
 
 console.log(
-  `Performance foundation processed ${htmlFiles.length} pages; generated 8 responsive images; ` +
+  `Performance foundation processed ${htmlFiles.length} pages; verified/generated 8 responsive images; ` +
   `pruned ${pruned.removedFiles} unreachable legacy files (${pruned.removedBytes} bytes).`
 );

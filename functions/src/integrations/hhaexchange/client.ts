@@ -1,4 +1,6 @@
+import { HhaNotSubmittedError } from "./dispatch.js";
 import { randomUUID } from "node:crypto";
+import { vendorContractBlocked } from "./contractGates.js";
 import { logger } from "firebase-functions";
 import type { HhaCredentials } from "./config.js";
 import {
@@ -13,6 +15,32 @@ const HHA_NAMESPACE = "https://www.hhaexchange.com/apis/hhaws.integration";
 const DEFAULT_MAX_ATTEMPTS = 3;
 const REQUEST_TIMEOUT_MS = 20_000;
 const MAX_RETRY_DELAY_MS = 15_000;
+const MAX_RESPONSE_BYTES = 5 * 1024 * 1024;
+export async function boundedSoapText(response: Response, maximumBytes = MAX_RESPONSE_BYTES): Promise<string> {
+  const length = response.headers.get("content-length");
+  if (length && /^\d+$/.test(length) && Number(length) > maximumBytes) {
+    await response.body?.cancel(); throw new Error("hha_response_size_limit");
+  }
+  if (!response.body) return "";
+  const reader = response.body.getReader(), decoder = new TextDecoder(), chunks: string[] = []; let bytes = 0;
+  try {
+    for (;;) {
+      const { done, value } = await reader.read(); if (done) break;
+      bytes += value.byteLength;
+      if (bytes > maximumBytes) { await reader.cancel(); throw new Error("hha_response_size_limit"); }
+      chunks.push(decoder.decode(value, { stream: true }));
+    }
+    chunks.push(decoder.decode()); return chunks.join("");
+  } finally { reader.releaseLock(); }
+}
+// Reviewed reads only. Unknown operations and mutations must never be blindly
+// retried: a timeout can mean the remote change already happened.
+const RETRY_SAFE_READS = new Set([
+  "GetCollectionStatus", "GetVisitChangesV5", "GetScheduleInfo",
+  "GetCaregiverChangesV4", "GetPatientChangesV4", "GetPatientAuthorizationChanges",
+  "GetPatientAuthorizationInfo", "GetCaregiverPermanentWeekAvailability",
+  "GetCaregiverSpecialAvailability", "GetBillingServiceCodes",
+]);
 
 export interface HhaRawResponse {
   operation: string;
@@ -27,6 +55,7 @@ export interface HhaCallResponse extends HhaParsedSoapResponse {
   attempts: number;
   durationMs: number;
   retryable: boolean;
+  outcome?: "unknown";
 }
 
 export interface CollectionStatusReference {
@@ -61,7 +90,7 @@ function retryAfterMs(value: string | undefined): number | undefined {
 
   const trimmed = value.trim();
   if (/^\d+(?:\.\d+)?$/.test(trimmed)) {
-    return Math.min(Math.ceil(Number(trimmed) * 1000), MAX_RETRY_DELAY_MS);
+    return Math.ceil(Number(trimmed) * 1000);
   }
 
   const duration = trimmed.match(/^(\d{1,2}):(\d{2}):(\d{2})$/);
@@ -69,12 +98,12 @@ function retryAfterMs(value: string | undefined): number | undefined {
     const hours = Number(duration[1]);
     const minutes = Number(duration[2]);
     const seconds = Number(duration[3]);
-    return Math.min(((hours * 60 + minutes) * 60 + seconds) * 1000, MAX_RETRY_DELAY_MS);
+    return ((hours * 60 + minutes) * 60 + seconds) * 1000;
   }
 
   const date = Date.parse(trimmed);
   if (Number.isFinite(date)) {
-    return Math.min(Math.max(date - Date.now(), 0), MAX_RETRY_DELAY_MS);
+    return Math.max(date - Date.now(), 0);
   }
 
   return undefined;
@@ -156,11 +185,27 @@ function parseCollectionStatuses(resultXml: string): CollectionStatusReference[]
   return parsed;
 }
 
+export interface HhaRequestBudget {
+  beforeRequest(): Promise<void>;
+  defer(seconds: number): Promise<void>;
+}
+class BackoffPersistenceError extends Error {}
+
 export class HhaSoapClient {
   constructor(
     private readonly baseUrl: string,
     private readonly credentials: HhaCredentials,
+    private readonly budget?: HhaRequestBudget,
   ) {}
+
+  private async persistBackoff(value: string | undefined): Promise<void> {
+    const delay = retryAfterMs(value);
+    if (delay === undefined || delay <= 0 || !this.budget) return;
+    try {
+      if (!Number.isFinite(delay)) throw new Error("invalid_vendor_backoff");
+      await this.budget.defer(Math.ceil(delay / 1000));
+    } catch { throw new BackoffPersistenceError("vendor_backoff_persistence_failed"); }
+  }
 
   buildEnvelope(operation: string, operationBodyXml = ""): string {
     if (!/^[A-Za-z_][A-Za-z0-9_]*$/.test(operation)) {
@@ -196,8 +241,9 @@ export class HhaSoapClient {
       signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
     });
 
-    const xml = await response.text();
     const retryAfter = response.headers.get("retry-after") ?? undefined;
+    try { await this.persistBackoff(retryAfter); } catch (error) { await response.body?.cancel(); throw error; }
+    const xml = await boundedSoapText(response);
 
     return {
       operation,
@@ -213,10 +259,21 @@ export class HhaSoapClient {
     operationBodyXml = "",
     maxAttempts = DEFAULT_MAX_ATTEMPTS,
   ): Promise<HhaCallResponse> {
+    if (vendorContractBlocked(operation)) throw new Error("vendor_contract_clarification_required");
+    if (!Number.isInteger(maxAttempts) || maxAttempts < 1 || maxAttempts > DEFAULT_MAX_ATTEMPTS) {
+      throw new Error("invalid_hha_attempt_limit");
+    }
+    const retrySafe = RETRY_SAFE_READS.has(operation);
+    if (!retrySafe) maxAttempts = 1;
     const correlationId = randomUUID();
     const startedAt = Date.now();
 
     for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
+      // A denied budget must never be interpreted as a retryable transport failure.
+      try { await this.budget?.beforeRequest(); } catch (error) {
+        if (!retrySafe) throw new HhaNotSubmittedError();
+        throw error;
+      }
       try {
         const raw = await this.callRaw(operation, operationBodyXml);
         const parsed = parseHhaSoapResponse(
@@ -226,13 +283,15 @@ export class HhaSoapClient {
           raw.xml,
           raw.retryAfter,
         );
-        const retryable = shouldRetry(parsed);
+        if (parsed.retryAfter !== raw.retryAfter) await this.persistBackoff(parsed.retryAfter);
+        const retryable = retrySafe && shouldRetry(parsed);
         const normalized: HhaCallResponse = {
           ...parsed,
           correlationId,
           attempts: attempt,
           durationMs: Date.now() - startedAt,
           retryable,
+          ...(!retrySafe && !parsed.ok ? { outcome: "unknown" as const } : {}),
         };
 
         logCall(normalized);
@@ -243,6 +302,11 @@ export class HhaSoapClient {
 
         const delay =
           retryAfterMs(normalized.retryAfter) ?? exponentialBackoffMs(attempt);
+        // Defer to the next explicitly scheduled run if vendor backoff cannot
+        // fit the request budget. Never shorten Retry-After to retry early.
+        if (delay > MAX_RETRY_DELAY_MS || Date.now() - startedAt + delay + REQUEST_TIMEOUT_MS > 50_000) {
+          return normalized;
+        }
         await new Promise((resolve) => setTimeout(resolve, delay));
       } catch (error) {
         const normalized = transportFailure(
@@ -251,6 +315,10 @@ export class HhaSoapClient {
           attempt,
           Date.now() - startedAt,
         );
+        if (!retrySafe) {
+          normalized.retryable = false;
+          normalized.outcome = "unknown";
+        }
 
         logger.warn("HHA SOAP transport failure", {
           operation,
@@ -260,7 +328,8 @@ export class HhaSoapClient {
           errorName: error instanceof Error ? error.name : "unknown",
         });
 
-        if (attempt >= maxAttempts) {
+        if (error instanceof BackoffPersistenceError) normalized.retryable = false;
+        if (error instanceof BackoffPersistenceError || attempt >= maxAttempts) {
           return normalized;
         }
 
