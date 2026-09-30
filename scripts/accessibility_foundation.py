@@ -12,6 +12,7 @@ ROOT = Path(__file__).resolve().parents[1]
 PUBLIC = ROOT / "public"
 
 RUNTIME_ASSETS = {
+    "assets/insurance-logos.css",
     "assets/components.css",
     "assets/home.css",
     "assets/modern.css",

@@ -1,0 +1,89 @@
+name: Restore and verify original insurance logos
+
+on:
+  push:
+    branches: [restore/original-insurance-logos]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  restore:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+      - run: npm ci
+      - name: Restore approved logo grids without replacing the current site shell
+        run: |
+          node scripts/verify-insurance-logos.mjs --restore
+          node scripts/register-insurance-logo-assets.mjs
+      - name: Normalize generated site assets
+        run: |
+          node scripts/site-polish.mjs
+          node scripts/site-polish-finalize.mjs
+          python3 scripts/seo_foundation.py
+          python3 scripts/accessibility_foundation.py
+          node scripts/performance_foundation.mjs
+          node scripts/frontend_controls.mjs
+          python3 scripts/generate_sensitive_term_register.py
+      - name: Commit deterministic restoration output locally
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add public scripts PTHHS_SENSITIVE_TERM_REGISTER.csv firebase.json
+          if ! git diff --cached --quiet; then
+            git commit -m 'Restore original insurance logos on homepage and insurance page'
+          fi
+      - name: Run all existing site checks and original-logo regression checks
+        run: npm run check
+      - name: Install browser verification tooling
+        run: |
+          python3 -m pip install --quiet playwright==1.55.0
+          python3 -m playwright install --with-deps chromium
+      - name: Verify visible logos on desktop and mobile
+        run: |
+          python3 - <<'PY'
+          import functools, http.server, os, pathlib, threading
+          from playwright.sync_api import sync_playwright
+          handler = functools.partial(http.server.SimpleHTTPRequestHandler, directory='public')
+          server = http.server.ThreadingHTTPServer(('127.0.0.1', 8765), handler)
+          threading.Thread(target=server.serve_forever, daemon=True).start()
+          output = pathlib.Path(os.environ['RUNNER_TEMP']) / 'insurance-logo-proof'
+          output.mkdir(parents=True, exist_ok=True)
+          with sync_playwright() as p:
+              browser = p.chromium.launch()
+              for width in (1440, 390):
+                  page = browser.new_page(viewport={'width': width, 'height': 1000})
+                  for name, route in [('home', '/'), ('insurance', '/home-care-insurance.html')]:
+                      page.goto('http://127.0.0.1:8765' + route, wait_until='networkidle')
+                      grid = page.locator('[data-insurance-logos="approved"]')
+                      grid.scroll_into_view_if_needed()
+                      images = grid.locator('img')
+                      assert images.count() == 6, (name, width, 'incorrect logo count')
+                      for image in images.all():
+                          image.scroll_into_view_if_needed()
+                          image.evaluate('(img) => img.decode()')
+                          assert image.is_visible(), (name, width, 'hidden logo')
+                          assert image.evaluate('(img) => img.naturalWidth > 1 && img.naturalHeight > 1'), (name, width, 'placeholder')
+                          box = image.bounding_box()
+                          assert box and box['width'] >= 30 and box['height'] >= 10, (name, width, box)
+                          assert box['x'] >= 0 and box['x'] + box['width'] <= width, (name, width, 'horizontal clipping')
+                      grid.screenshot(path=str(output / f'{name}-{width}.png'))
+                  page.close()
+              browser.close()
+          server.shutdown()
+          print('INSURANCE_LOGOS_BROWSER: PASS (desktop/mobile, both pages, 24 visible original-image checks)')
+          PY
+      - name: Push verified restoration output
+        run: git push origin "HEAD:${GITHUB_REF_NAME}"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: insurance-logo-visual-proof
+          path: ${{ runner.temp }}/insurance-logo-proof/
