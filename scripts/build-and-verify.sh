@@ -30,6 +30,7 @@ node scripts/performance_foundation.mjs
 node scripts/frontend_controls.mjs
 
 node scripts/verify-site-output.mjs
+node scripts/verify-insurance-logos.mjs
 python3 scripts/generate_sensitive_term_register.py
 python3 scripts/verify_batch_a.py
 python3 scripts/verify_batch_b1.py
