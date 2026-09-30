@@ -3,7 +3,7 @@ import fs from 'node:fs/promises';
 import sharp from 'sharp';
 
 // One-time migration for the original, owner-approved image set. The resulting
-// dimension map and asset inventory are committed and checked by normal CI.
+// dimension map and asset inventories are committed and checked by normal CI.
 const files = ['wellpoint.png', 'molina.png', 'united-healthcare.png', 'medicaid-1.png', 'texas-chldrn-hlth-plan.png', 'comm-health-choice.jpg'];
 const base = '/wp-content/themes/primetimehomeie989/images/';
 const performancePath = 'scripts/performance_foundation.mjs';
@@ -28,4 +28,17 @@ assert(verifier.includes(inventoryAnchor), 'Expected asset inventory changed');
 const assets = files.filter(file => !verifier.includes(`'${base.slice(1)}${file}'`)).map(file => `  '${base.slice(1)}${file}',`);
 if (assets.length) verifier = verifier.replace(inventoryAnchor, inventoryAnchor + assets.join('\n') + '\n');
 await fs.writeFile(verifierPath, verifier);
-console.log('Registered all six original insurance images with the performance generator and asset inventory.');
+
+// Retain and version the dedicated responsive logo stylesheet. Keep the asset
+// inventories explicit rather than weakening the existing pruning/QA checks.
+for (const [file, anchor, entry] of [
+  ['scripts/accessibility_foundation.py', 'RUNTIME_ASSETS = {\n', '    "assets/insurance-logos.css",\n'],
+  ['scripts/verify_accessibility_foundation.py', 'expected_runtime_assets = {\n', '    "assets/insurance-logos.css",\n'],
+  ['scripts/verify_frontend_controls.mjs', 'const expectedAssets = [\n', '  "/assets/insurance-logos.css",\n'],
+]) {
+  let text = await fs.readFile(file, 'utf8');
+  assert(text.includes(anchor), `${file}: runtime asset registry changed`);
+  if (!text.includes(entry.trim())) text = text.replace(anchor, anchor + entry);
+  await fs.writeFile(file, text);
+}
+console.log('Registered all six original insurance images and shared logo styles with the build and QA asset inventories.');
