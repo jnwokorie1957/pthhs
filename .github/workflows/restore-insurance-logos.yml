@@ -21,7 +21,9 @@ jobs:
           cache: npm
       - run: npm ci
       - name: Restore approved logo grids without replacing the current site shell
-        run: node scripts/verify-insurance-logos.mjs --restore
+        run: |
+          node scripts/verify-insurance-logos.mjs --restore
+          node scripts/register-insurance-logo-assets.mjs
       - name: Normalize generated site assets
         run: |
           node scripts/site-polish.mjs
@@ -35,7 +37,7 @@ jobs:
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add public PTHHS_SENSITIVE_TERM_REGISTER.csv firebase.json
+          git add public scripts PTHHS_SENSITIVE_TERM_REGISTER.csv firebase.json
           if ! git diff --cached --quiet; then
             git commit -m 'Restore original insurance logos on homepage and insurance page'
           fi
