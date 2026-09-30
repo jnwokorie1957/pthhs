@@ -68,6 +68,7 @@ for (const file of htmlFiles) {
 }
 
 const expectedAssets = [
+  "/assets/insurance-logos.css",
   "/assets/components.css",
   "/assets/home.css",
   "/assets/modern.css",

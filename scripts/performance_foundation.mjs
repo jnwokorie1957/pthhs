@@ -14,6 +14,12 @@ const responsiveImages = {
 };
 
 const intrinsicDimensions = new Map([
+  ['/wp-content/themes/primetimehomeie989/images/wellpoint.png', [300, 140]],
+  ['/wp-content/themes/primetimehomeie989/images/molina.png', [300, 140]],
+  ['/wp-content/themes/primetimehomeie989/images/united-healthcare.png', [300, 140]],
+  ['/wp-content/themes/primetimehomeie989/images/medicaid-1.png', [302, 151]],
+  ['/wp-content/themes/primetimehomeie989/images/texas-chldrn-hlth-plan.png', [300, 140]],
+  ['/wp-content/themes/primetimehomeie989/images/comm-health-choice.jpg', [300, 123]],
   ['/wp-content/themes/primetimehomeie989/images/main-logo.png', [388, 106]],
   ['/wp-content/themes/primetimehomeie989/images/footer-logo.png', [410, 203]],
   ['/wp-content/themes/primetimehomeie989/images/mid-img1.webp', [209, 209]],
@@ -105,7 +111,7 @@ function optimizeHtml(html, route) {
       src = `/assets/media/${responsive}-${config.width}.webp`;
       tag = setAttr(tag, 'src', src);
     }
-    const dimensions = intrinsicDimensions.get(src);
+    const dimensions = intrinsicDimensions.get(src.split(/[?#]/)[0]);
     if (!dimensions) throw new Error(`No approved intrinsic dimensions for ${src} on ${route}`);
     tag = setAttr(tag, 'width', dimensions[0]);
     tag = setAttr(tag, 'height', dimensions[1]);

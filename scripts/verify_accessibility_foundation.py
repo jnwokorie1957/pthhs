@@ -246,6 +246,7 @@ runtime_assets = {
     )
 }
 expected_runtime_assets = {
+    "assets/insurance-logos.css",
     "assets/components.css",
     "assets/home.css",
     "assets/modern.css",

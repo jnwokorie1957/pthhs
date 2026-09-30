@@ -14,6 +14,12 @@ const lcpByRoute = new Map([
 ]);
 
 const expectedLegacyAssets = new Set([
+  'wp-content/themes/primetimehomeie989/images/wellpoint.png',
+  'wp-content/themes/primetimehomeie989/images/molina.png',
+  'wp-content/themes/primetimehomeie989/images/united-healthcare.png',
+  'wp-content/themes/primetimehomeie989/images/medicaid-1.png',
+  'wp-content/themes/primetimehomeie989/images/texas-chldrn-hlth-plan.png',
+  'wp-content/themes/primetimehomeie989/images/comm-health-choice.jpg',
   'wp-content/themes/primetimehomeie989/images/footer-logo.png',
   'wp-content/themes/primetimehomeie989/images/main-logo.png',
   'wp-content/themes/primetimehomeie989/images/mid-img1.webp',
