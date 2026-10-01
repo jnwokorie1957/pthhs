@@ -68,9 +68,13 @@ jobs:
       - name: Prepare reviewed non-secret deployment parameters
         run: node functions/scripts/prepare-deploy-env.mjs
       - name: Deploy Primetime Functions
+        id: deploy_functions
         env:
           GOOGLE_APPLICATION_CREDENTIALS: ${{ runner.temp }}/firebase-service-account.json
         run: firebase deploy --only functions --project primetimehomehealthservices --non-interactive
+      - name: Verify anonymous API boundary independently
+        if: ${{ !cancelled() && (steps.deploy_functions.outcome == 'success' || steps.deploy_functions.outcome == 'failure') }}
+        run: node functions/scripts/verify-anonymous-deployment.mjs
       - name: Verify protected Primetime API and HHA connectivity
         env:
           GOOGLE_APPLICATION_CREDENTIALS: ${{ runner.temp }}/firebase-service-account.json

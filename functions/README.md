@@ -111,3 +111,9 @@ Correction to linked-schedule recovery: applied recovery is server-blocked until
 ### Noninteractive deployment parameters
 
 CI generates an ignored, non-secret `functions/.env.primetimehomehealthservices` from reviewed source defaults before deployment. All 24 `PRIMETIME_*_APPROVED` parameters are explicitly false. The HHA endpoint must match both the existing ENT v1.8 default and captured vendor contract. Generation refuses changed approval inventories, enabled defaults, unverified endpoints or an existing parameter file. Credentials are neither read nor written by this step. An agency-specific endpoint, entitlement validation and any future activation require separate review; deployment does not authorize PHI processing or HHA writes.
+
+### Deployment result versus anonymous verification
+
+Firebase CLI 15.30.0 can create the function and then exit nonzero because no Artifact Registry cleanup policy is configured. Keep that original failure visible: do not add `--force`, cleanup deletion rules, broad `continue-on-error`, or log-based success classification. CLI cleanup handling precedes some final deployment-error handling, so the cleanup message alone is not sufficient proof of success. Retained container images may accumulate storage charges; retention is an owner decision.
+
+A separate credential-free CI step checks missing/invalid-token rejection on the direct Function URL and both Hosting domains after either deployment success or failure (not a skipped/cancelled deploy). Its result does not override deployment status or prove the current revision is live. Authenticated admin/HHA verification remains a separate success-path check. This verifies only an uncached JSON 401 boundary, not PHI readiness, roles or vendor connectivity.
