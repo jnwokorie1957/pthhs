@@ -186,3 +186,5 @@ Confirmed authentication uses `AppParams` with `AppName`, `AppSecret`, and `AppK
 ## Management-layer architecture rule
 
 PTHHS owns the workflow, rules, audit trail, alerts, and management experience. HHAeXchange initially acts as an external data source/sink behind an adapter. The internal schema must remain vendor-neutral so HHA components can later be replaced without rebuilding the `/primetime` management product.
+
+Owner read controls include search, selected-only filtering and selection counts; filtering never changes permissions. See [release recovery boundaries](docs/management-layer/RELEASE_RECOVERY.md) for rollback and verification guidance. Production activation and vendor-contract prerequisites remain separate from publication.

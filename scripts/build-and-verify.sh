@@ -18,6 +18,7 @@ find scripts public -type f \( -name '*.js' -o -name '*.mjs' \) -print0 \
   | xargs -0 -n1 node --check
 node --test scripts/verify_primetime_auth.test.mjs
 node --test scripts/verify_primetime_file_session.test.mjs
+node --test scripts/verify_primetime_read_filters.test.mjs
 node --test scripts/verify_primetime_assets.test.mjs
 python3 scripts/verify_hha_preservation_evidence.py
 

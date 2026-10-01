@@ -36,7 +36,7 @@
 - [x] **DEV-008 — HHA SOAP parser/error/retry layer complete and CI-verified.** Parser, application/SOAP/transport normalization, bounded retries, correlation IDs, metadata-only telemetry, and sanitized tests compile and pass in GitHub Actions. Real HHA response validation moves to DEV-009.
 - [ ] **DEV-009 — First harmless read-only authenticated HHA call. BLOCKED by DEV-007 + DEV-006 runtime verification.** Protected `GetCollectionStatus` health call and automated post-deploy verifier are implemented; real HHA execution waits on successful Functions deployment and a visible authorized admin.
 
-**September 30 code-ahead review:** [Implementation, validation and remaining full-coverage work](IMPLEMENTATION_REVIEW_2026-09-30.md); [all 222 contract operations](HHA_CAPABILITY_MATRIX.md). Import safety fixes with durable single-flight fencing, 143 protected operational read serializers, twenty-two scoped default-disabled mutation workflows, audited crash/unknown-outcome recovery, saved owner preferences, persistent investigations, independent change-request review and audit views are implemented with synthetic tests. Data-bearing routes default to locked; automated EVV decisions and HHA writes remain disabled. The inventory is not full execution coverage. DEV-006/007/009 remain pending.
+**September 30 code-ahead review:** [Implementation, validation and remaining full-coverage work](IMPLEMENTATION_REVIEW_2026-09-30.md); [all 222 contract operations](HHA_CAPABILITY_MATRIX.md). Import safety fixes with durable single-flight fencing, 144 protected workspace reads (141 release-eligible), 23 typed/prepared mutation workflows (22 default-disabled dispatch paths and one independently blocked partial workflow), audited crash/unknown-outcome recovery, saved owner preferences, persistent investigations, independent change-request review and audit views are implemented with synthetic tests. Data-bearing routes default to locked; automated EVV decisions and HHA writes remain disabled. The inventory is not full execution coverage. DEV-006/007/009 remain pending.
 
 **Next milestone:** DEV-009 succeeds from the `/primetime` backend without exposing HHA credentials or PHI.
 
@@ -282,7 +282,7 @@ Do not begin until Owner / Operations has defined and approved correction workfl
 - [ ] Restrict production administrative access.
 - [ ] Backups/restores after persistence exists.
 - [ ] Monitoring for API, sync, DB, and HHA failures.
-- [ ] Deployment rollback plan.
+- [x] Deployment rollback plan documented in [RELEASE_RECOVERY.md](RELEASE_RECOVERY.md); operational restore drills and retention decisions remain pending.
 - [ ] Log retention/redaction policy.
 - [ ] Disaster recovery documentation.
 - [ ] Owner confirmation of hosting/security/BAA requirements before placing PHI on any new platform.
@@ -309,4 +309,6 @@ Do not begin until Owner / Operations has defined and approved correction workfl
 **Sprint stop condition:** no employee messaging or automated HHA/EVV corrections until the corresponding owner checklist decisions are complete.
 
 
-September 30 continuation: limited CreateLinkedSchedule workflow now has independent scheduling review, explicit field scope, office serialization and partial source reconciliation. Persisted ScheduleType is absent from readback; keep the lock until vendor-confirmed type attestation and audited recovery. Gate stays false. Remaining ordinary implementations are listed in HHA_REMAINING_CATEGORIES.md; this checkpoint does not close them or production DEV006/007/009 gates.
+September 30 continuation: limited CreateLinkedSchedule workflow now has independent scheduling review, explicit field scope, office serialization and partial source reconciliation. Persisted ScheduleType is absent from readback; keep the lock: applied recovery and production dispatch are server-blocked until a supported independent persisted-type evidence verifier exists. An attestation, case reference or checkbox cannot unlock it. Gate stays false. Remaining ordinary implementations are listed in HHA_REMAINING_CATEGORIES.md; this checkpoint does not close them or production DEV006/007/009 gates.
+
+October 1 usability review: owner read preferences now support text filtering, selected-only display and selection counts without changing hidden selections or release gates. Remaining automated queues, financial calculations, retention/archival and role expansion still require validated source mappings or owner policy; the exact operation prerequisites remain in HHA_REMAINING_CATEGORIES.md.
