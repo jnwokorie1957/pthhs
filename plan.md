@@ -1,6 +1,18 @@
 # PTHHS Website Improvement Plan
 
-## Current checkpoint — September 23, 2026
+## SEO checkpoint - October 1, 2026
+
+- [x] Deepen services, attendant care and insurance pages with verified HHSC guidance and phone-first authorization steps.
+- [x] Add service/eligibility links to the eight already-promoted locations and areas hub, preserving content and logos.
+- [x] Inventory 65 location pages against 27 sitemap URLs (eight locations), without indexing changes. See [evidence](docs/seo/2026-10-01-content-review.md).
+- [x] Pass full site build, 14 existing tests, 24 desktop/mobile checks and independent review.
+- [ ] Establish Search Console query/page baseline and validate target keywords. Top-three positions remain an objective, not a guarantee or measured result.
+- [ ] Verify community availability and useful unique content before promoting the other 57 location pages.
+- [ ] Verify this batch on live Hosting after publication; backend and PHI acceptance remain separate.
+
+The September checkpoint below is historical; this update does not mark admin/HHA activation complete.
+
+## Historical checkpoint - September 23, 2026
 
 The numbered marketing backlog below is the September 9 baseline and has not been fully reconciled against later branches. The active management-layer checklists are [`docs/management-layer/DEVELOPER_TASKS.md`](docs/management-layer/DEVELOPER_TASKS.md) and [`docs/management-layer/OWNER_OPERATIONS_TASKS.md`](docs/management-layer/OWNER_OPERATIONS_TASKS.md). The next gates are `DEV-006` (approve and claim-authorize the first administrator), `DEV-007` (verify deployed protected API), and `DEV-009` (verify a read-only HHA reference call). `OPS-003` through `OPS-005` are marked complete based on an owner completion attestation, but exact values must come from the approved source record before runtime configuration; imported HHA records and feature acceptance still require validation.
 
