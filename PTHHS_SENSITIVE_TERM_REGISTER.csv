@@ -85,8 +85,8 @@ home-care-contact-us.html,34,medical,ALLOWED,Explicit scope limitation or non-me
 home-care-contact-us.html,34,therapy,ALLOWED,Explicit scope limitation or non-medical context.,"Primetime provides non-medical personal assistance services. We do not diagnose conditions or provide skilled nursing, medical treatment, or therapy through these services."
 home-care-contact-us.html,34,diagnose,ALLOWED,Explicit scope limitation or non-medical context.,"Primetime provides non-medical personal assistance services. We do not diagnose conditions or provide skilled nursing, medical treatment, or therapy through these services."
 home-care-contact-us.html,34,treatment,ALLOWED,Explicit scope limitation or non-medical context.,"Primetime provides non-medical personal assistance services. We do not diagnose conditions or provide skilled nursing, medical treatment, or therapy through these services."
-home-care-contact-us.html,35,medical,ALLOWED,Explicit scope limitation or non-medical context.,"Non-medical personal assistance services for eligible children, adults, and seniors throughout Greater Houston."
-home-care-contact-us.html,48,home health,ALLOWED,Legal business name.,"© 2026 Primetime Home Health Services, Inc. All rights reserved."
+home-care-contact-us.html,50,medical,ALLOWED,Explicit scope limitation or non-medical context.,"Non-medical personal assistance services for eligible children, adults, and seniors throughout Greater Houston."
+home-care-contact-us.html,63,home health,ALLOWED,Legal business name.,"© 2026 Primetime Home Health Services, Inc. All rights reserved."
 home-care-cypress-texas.html,1,home health,ALLOWED,Legal-name or explicit service-distinction context.,This location page has moved | Primetime Home Health
 home-care-cypress-texas.html,19,medical,ALLOWED,Explicit scope limitation or non-medical context.,"Non-medical personal assistance services for eligible children, adults, and seniors throughout Greater Houston."
 home-care-cypress-texas.html,32,home health,ALLOWED,Legal business name.,"© 2026 Primetime Home Health Services, Inc. All rights reserved."
@@ -124,9 +124,13 @@ home-care-pasadena-texas.html,32,home health,ALLOWED,Legal business name.,"© 20
 home-care-pearland-texas.html,1,home health,ALLOWED,Legal-name or explicit service-distinction context.,This location page has moved | Primetime Home Health
 home-care-pearland-texas.html,19,medical,ALLOWED,Explicit scope limitation or non-medical context.,"Non-medical personal assistance services for eligible children, adults, and seniors throughout Greater Houston."
 home-care-pearland-texas.html,32,home health,ALLOWED,Legal business name.,"© 2026 Primetime Home Health Services, Inc. All rights reserved."
-home-care-resources.html,60,medical,ALLOWED,Explicit scope limitation or non-medical context.,"Call to ask about non-medical personal assistance, current service-area availability, or the information needed for next steps."
-home-care-resources.html,62,medical,ALLOWED,Explicit scope limitation or non-medical context.,"Non-medical personal assistance services for eligible children, adults, and seniors throughout Greater Houston."
-home-care-resources.html,75,home health,ALLOWED,Legal business name.,"© 2026 Primetime Home Health Services, Inc. All rights reserved."
+home-care-resources.html,18,medical,ALLOWED,Explicit scope limitation or non-medical context.,non-medical personal assistance services (PAS)
+home-care-resources.html,31,medical,ALLOWED,Explicit scope limitation or non-medical context.,"Ask our team about non-medical PAS, current agency participation, service-area and staffing availability, and onboarding after eligibility and authorization are confirmed."
+home-care-resources.html,38,medical,ALLOWED,Explicit scope limitation or non-medical context.,"Do not send diagnoses, medication lists, member IDs or medical records through ordinary email or social media. Call for the appropriate next step."
+home-care-resources.html,38,diagnose,ALLOWED,Explicit scope limitation or non-medical context.,"Do not send diagnoses, medication lists, member IDs or medical records through ordinary email or social media. Call for the appropriate next step."
+home-care-resources.html,85,medical,ALLOWED,Explicit scope limitation or non-medical context.,"Call to ask about non-medical personal assistance, current service-area availability, or the information needed for next steps."
+home-care-resources.html,87,medical,ALLOWED,Explicit scope limitation or non-medical context.,"Non-medical personal assistance services for eligible children, adults, and seniors throughout Greater Houston."
+home-care-resources.html,100,home health,ALLOWED,Legal business name.,"© 2026 Primetime Home Health Services, Inc. All rights reserved."
 home-care-services/activities-of-daily-living-adl.html,1,home health,ALLOWED,Legal-name or explicit service-distinction context.,Activities of Daily Living (ADL) | Primetime Home Health
 home-care-services/activities-of-daily-living-adl.html,19,medical,ALLOWED,Explicit scope limitation or non-medical context.,Non-Medical PAS Support
 home-care-services/activities-of-daily-living-adl.html,23,medical,ALLOWED,Explicit scope limitation or non-medical context.,"Activities of Daily Living are the basic self-care tasks people complete each day. Aging, disability, illness or mobility limitations can make those routines harder. Primetime caregivers provide hands-on, non-medical assistance based on the client’s authorized care plan and individual needs."

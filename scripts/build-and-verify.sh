@@ -29,6 +29,7 @@ find public/primetime -type f -print0 | sort -z | xargs -0 sha256sum > "$INTERNA
 node scripts/site-polish.mjs
 node scripts/site-polish-finalize.mjs
 python3 scripts/seo_foundation.py
+python3 scripts/verify_sitemap_dates.py
 python3 scripts/accessibility_foundation.py
 node scripts/performance_foundation.mjs
 node scripts/frontend_controls.mjs

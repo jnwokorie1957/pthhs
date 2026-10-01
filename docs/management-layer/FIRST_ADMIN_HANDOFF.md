@@ -1,0 +1,13 @@
+# First administrator handoff
+
+Intended business identity: `jnwokorie@pthhs.net`. This document does not grant access, create an account or request a password.
+
+Before any persistent change, use an existing authorized Firebase administrator session for project `primetimehomehealthservices` to inspect the existing user read-only: exact UID, matching email, email verification, disabled status, sign-in provider and current custom claims. Inspect whether an administrator already exists. Do not infer identity from the email string alone or choose another user automatically. If mailbox verification or privileged access is missing, report that specific prerequisite.
+
+Minimum proposed application grant, after reporting the inspected identity and claims for approval: merge `admin: true` into that exact user's existing custom claims, preserving every unrelated claim. `functions/src/auth/admin.ts` recognizes that claim; no GCP IAM role is proposed. Do not overwrite an existing role just to set `role: "admin"`.
+
+The existing `bootstrap-sole-admin.mjs` is a mutating tool, not an inspection command. It checks UID/email, enabled status, password provider and absence of another boolean admin, but does not check `emailVerified`; it also adds a role when absent. Do not run it as a substitute for the read-only review or the minimal approved grant. Admin recognition also accepts an admin role string or roles array, so inspect those claims when assessing existing administrators.
+
+After an approved grant, the owner signs in or refreshes the session normally. Verify `/primetime/api/session` and then the harmless protected HHA health check. Never log passwords, tokens, secret values, patient records or full SOAP payloads. Do not create new credentials to bypass unavailable office access.
+
+Office checkpoint: no live UID or claims were inspected; no grant was performed. Chrome/Edge processes were present, but the supported browser-control runtime was not exposed. No GCP CLI or Firebase login configuration was found in the standard locations checked. Firestore, PHI readiness, BAA coverage and all 24 operational/write approvals remain separate gates.

@@ -345,6 +345,11 @@ def process_html(path: Path, facts: dict) -> tuple[str, bool]:
 
 
 def generate_sitemap(indexable: set[str]) -> None:
+    from sitemap_dates import validated_dates
+    dates = validated_dates(
+        json.loads((ROOT / "docs/seo/sitemap-content-dates.json").read_text()),
+        SITEMAP_ROUTES,
+    )
     rows = []
     for route in SITEMAP_ROUTES:
         path = file_for_route(route)
@@ -360,7 +365,8 @@ def generate_sitemap(indexable: set[str]) -> None:
         expected = f"{HOST}{'/' if route == '/' else route}"
         if canonical != expected:
             raise RuntimeError(f"sitemap canonical mismatch: {route}")
-        rows.append(f"  <url><loc>{html.escape(canonical)}</loc></url>")
+        lastmod = f"<lastmod>{dates[route]}</lastmod>" if route in dates else ""
+        rows.append(f"  <url><loc>{html.escape(canonical)}</loc>{lastmod}</url>")
     sitemap = (
         '<?xml version="1.0" encoding="UTF-8"?>\n'
         '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
