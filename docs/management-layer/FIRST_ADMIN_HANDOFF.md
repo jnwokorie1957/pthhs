@@ -10,4 +10,6 @@ The existing `bootstrap-sole-admin.mjs` is a mutating tool, not an inspection co
 
 After an approved grant, the owner signs in or refreshes the session normally. Verify `/primetime/api/session` and then the harmless protected HHA health check. Never log passwords, tokens, secret values, patient records or full SOAP payloads. Do not create new credentials to bypass unavailable office access.
 
+Unattended `functions/scripts/verify-live-deployment.mjs` now reports authenticated acceptance as BLOCKED and exits 2 without discovering administrators, creating tokens or calling protected endpoints. The workflow records this gate after either attempted deployment outcome, separately from anonymous checks. It deliberately cannot turn a successful deployment into verified admin/HHA acceptance. A reviewed normal-session verification mechanism is still required before this automated gate can report success; do not suppress its failure to make the job green.
+
 Office checkpoint: no live UID or claims were inspected; no grant was performed. Chrome/Edge processes were present, but the supported browser-control runtime was not exposed. No GCP CLI or Firebase login configuration was found in the standard locations checked. Firestore, PHI readiness, BAA coverage and all 24 operational/write approvals remain separate gates.

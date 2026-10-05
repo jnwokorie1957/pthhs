@@ -20,7 +20,7 @@ async function findTests(directory) {
   return files;
 }
 
-const tests = [...await findTests(lib), path.join(root, "scripts/prepare-deploy-env.test.mjs"), path.join(root, "scripts/verify-anonymous-deployment.test.mjs")].sort();
+const tests = [...await findTests(lib), path.join(root, "scripts/prepare-deploy-env.test.mjs"), path.join(root, "scripts/verify-anonymous-deployment.test.mjs"), path.join(root, "scripts/verify-live-deployment.test.mjs")].sort();
 if (tests.length === 0) {
   console.error("No compiled backend tests found.");
   process.exit(1);

@@ -76,6 +76,5 @@ jobs:
         if: ${{ !cancelled() && (steps.deploy_functions.outcome == 'success' || steps.deploy_functions.outcome == 'failure') }}
         run: node functions/scripts/verify-anonymous-deployment.mjs
       - name: Verify protected Primetime API and HHA connectivity
-        env:
-          GOOGLE_APPLICATION_CREDENTIALS: ${{ runner.temp }}/firebase-service-account.json
+        if: ${{ !cancelled() && (steps.deploy_functions.outcome == 'success' || steps.deploy_functions.outcome == 'failure') }}
         run: node functions/scripts/verify-live-deployment.mjs
