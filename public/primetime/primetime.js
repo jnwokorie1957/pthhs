@@ -155,10 +155,17 @@
       const response = await apiFetch('/primetime/api/hha/health');
       const payload = await response.json();
       if (sequence !== authSequence) return;
-      if (response.ok && payload?.ok) {
-        setHhaStatus('HHA connection: reachable', true);
+      if (response.ok && payload?.ok === true && payload.hhaConnection === 'reachable' && payload.operation === 'GetCollectionStatus') {
+        setHhaStatus('HHA reference API: reachable; imports not verified', true);
+      } else if (response.status === 401 || response.status === 403) {
+        setHhaStatus('HHA check: administrator session rejected; sign in again');
       } else {
-        setHhaStatus('HHA connection: needs attention');
+        const failures = {
+          auth_failure: 'HHA reference check: vendor authentication rejected',
+          operation_failure: 'HHA reference check: operation failed; access not confirmed',
+          unavailable_or_deferred: 'HHA reference check: unavailable or deferred; check backend, storage and throttle state'
+        };
+        setHhaStatus(failures[payload?.hhaConnection] || 'HHA reference check: unverified response');
       }
     } catch {
       if (sequence === authSequence) setHhaStatus('HHA connection: unavailable');
@@ -167,6 +174,7 @@
 
   async function refreshIntegration() {
     const sequence = authSequence;
+    const restoreRefreshFocus = document.activeElement === refreshButton;
     if (refreshButton) refreshButton.disabled = true;
     if (syncDetails) syncDetails.textContent = 'Checking import history…';
     await Promise.all([refreshHhaHealth(), (async () => {
@@ -184,7 +192,10 @@
         if (sequence === authSequence && syncDetails) syncDetails.textContent = 'Import history unavailable. No current-data claim can be made. Check backend deployment and Firestore setup, then retry.';
       }
     })()]);
-    if (refreshButton) refreshButton.disabled = false;
+    if (sequence === authSequence && refreshButton) {
+      refreshButton.disabled = false;
+      if (restoreRefreshFocus && document.activeElement === document.body) refreshButton.focus();
+    }
   }
   refreshButton?.addEventListener('click', refreshIntegration);
 

@@ -5,7 +5,7 @@ import vm from 'node:vm';
 
 const source = readFileSync(new URL('../public/primetime/primetime.js', import.meta.url), 'utf8');
 
-function startApp(session) {
+function startApp(session, health = { ok: true, status: 200, json: async () => ({ ok: true }) }) {
   const elements = new Map();
   const element = id => {
     if (id === 'capabilityRows') return null;
@@ -30,12 +30,33 @@ function startApp(session) {
     location: { hash: '' }, history: { replaceState() {} }, Headers,
     fetch: async (path, options) => {
       requests.push({ path, options });
-      return path.endsWith('/session') ? session : {
+      return path.endsWith('/session') ? session : path.endsWith('/hha/health') ? health : {
         ok: true, status: 200, json: async () => ({ ok: true })
       };
     }
   });
   return { auth, element, requests, window };
+}
+
+for (const [status, payload, expected] of [
+  [200, { ok: true, hhaConnection: 'reachable', operation: 'GetCollectionStatus' }, 'HHA reference API: reachable; imports not verified'],
+  [200, { ok: true }, 'HHA reference check: unverified response'],
+  [200, { ok: true, hhaConnection: 'reachable', operation: 'Other' }, 'HHA reference check: unverified response'],
+  [403, { ok: false }, 'HHA check: administrator session rejected; sign in again'],
+  [502, { ok: false, hhaConnection: 'auth_failure' }, 'HHA reference check: vendor authentication rejected'],
+  [502, { ok: false, hhaConnection: 'operation_failure' }, 'HHA reference check: operation failed; access not confirmed'],
+  [503, { ok: false, hhaConnection: 'unavailable_or_deferred', detail: 'PRIVATE-SOURCE' }, 'HHA reference check: unavailable or deferred; check backend, storage and throttle state']
+]) {
+  test(`reference health distinguishes ${status} ${JSON.stringify(payload)}`, async () => {
+    const app = startApp({ ok: true, status: 200, json: async () => ({ ok: true, roles: ['admin'] }) },
+      { ok: status === 200, status, json: async () => payload });
+    app.auth.currentUser = { uid: 'approved', getIdToken: async () => 'fixture-token' };
+    await app.auth.callback(app.auth.currentUser);
+    await new Promise(resolve => setImmediate(resolve));
+    assert.equal(app.element('hhaSyncStatus').textContent, expected);
+    assert.equal(app.element('hhaConnectionStatus').textContent.includes('PRIVATE-SOURCE'), false);
+    assert.equal(app.requests.filter(request => request.path.endsWith('/hha/health')).length, 1);
+  });
 }
 
 test('server rejection never reveals the management workspace', async () => {
