@@ -10,6 +10,8 @@ Firebase Authentication must have the Email/Password provider and its **Email li
 
 Firebase console configuration verified October 10: Email link is enabled and `pthhs.net` is listed as a custom authorized domain. The owner's completed mailbox sign-in remains pending.
 
+Deployment artifact cleanup was configured and saved through the owner's Google Cloud session on October 10: repository `gcf-artifacts` in `us-central1` has policy `firebase-functions-cleanup`, deleting build images older than seven days. These retained build images are separate from deployed function runtime copies. CI uses normal Functions deployment and the existing policy; it does not force policy writes or require broader repository administration permissions for the deployment service account.
+
 Publication and provider setup do not establish the owner's completed sign-in or HHA acceptance. DEV-006/007/009 remain pending until normal-session checks succeed. Firestore/privacy readiness and operational/write approvals remain separate.
 
 ## Historical claim-based handoff

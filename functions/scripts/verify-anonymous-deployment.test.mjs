@@ -38,10 +38,9 @@ test('workflow preserves deploy failure and runs separate credential-free verifi
   assert.ok(!anonymous.includes('GOOGLE_APPLICATION_CREDENTIALS'));
 });
 
-test('artifact retention is configured narrowly without forcing function deployment', () => {
+test('deployment uses the owner-configured artifact policy without forcing policy writes or function deployment', () => {
   const workflow = readFileSync(new URL('../../.github/workflows/deploy-firebase.yml', import.meta.url), 'utf8');
-  const policy = workflow.split('      - name: Configure deployment artifact retention')[1].split('      - name: Deploy Primetime Functions')[0];
-  assert.ok(policy.includes('firebase functions:artifacts:setpolicy --project primetimehomehealthservices --location us-central1 --days 7 --force --non-interactive'));
+  assert.doesNotMatch(workflow, /functions:artifacts:setpolicy|--force/);
   const deployment = workflow.split('      - name: Deploy Primetime Functions')[1].split('      - name: Verify anonymous')[0];
   assert.doesNotMatch(deployment, /--force|continue-on-error|\|\| true/);
 });
