@@ -1,4 +1,6 @@
 (() => {
+  // Keep the one-time action link in memory before navigation can replace it.
+  const initialSignInHref = location.href || '';
   const titles = {
     workbench: 'Operational tools',
     overview: 'Operations overview', evv: 'EVV exceptions', visits: 'Visit preview',
@@ -15,7 +17,9 @@
   const appShell = document.getElementById('appShell');
   const loginForm = document.getElementById('loginForm');
   const loginEmail = document.getElementById('loginEmail');
-  const loginPassword = document.getElementById('loginPassword');
+  const loginSubmit = document.getElementById('loginSubmit');
+  const requestNewLink = document.getElementById('requestNewLink');
+  const authCopy = document.getElementById('authCopy');
   const authMessage = document.getElementById('authMessage');
   const signOutButton = document.getElementById('signOutButton');
   const signedInIdentity = document.getElementById('signedInIdentity');
@@ -24,6 +28,37 @@
   const syncDetails = document.getElementById('integrationSyncDetails');
   const refreshButton = document.getElementById('refreshIntegration');
   let authSequence = 0;
+  let pendingSignInLink = '';
+  let authBusy = false;
+  let activeSignInAttempt = null;
+  let handledAuthUser;
+  const pendingEmailKey = 'primetime.emailForSignIn';
+
+  function savedSignInEmail(action, email) {
+    try {
+      if (action === 'save') window.localStorage.setItem(pendingEmailKey, email);
+      else if (action === 'clear') window.localStorage.removeItem(pendingEmailKey);
+      else return window.localStorage.getItem(pendingEmailKey) || '';
+    } catch {
+      // Storage is optional: the same form supports email confirmation.
+    }
+    return '';
+  }
+
+  function updateSignInForm() {
+    if (loginSubmit) {
+      loginSubmit.disabled = authBusy;
+      loginSubmit.textContent = pendingSignInLink ? 'Finish sign in' : 'Send sign-in link';
+    }
+    if (requestNewLink) {
+      requestNewLink.hidden = !pendingSignInLink;
+      requestNewLink.disabled = authBusy;
+    }
+    if (loginEmail) loginEmail.disabled = authBusy;
+    if (authCopy) authCopy.textContent = pendingSignInLink
+      ? 'Confirm the email address that received this sign-in link, then finish signing in.'
+      : 'Enter your approved administrator email. We will email you a link to sign in.';
+  }
 
   function setAuthMessage(text, isError = false) {
     if (!authMessage) return;
@@ -112,6 +147,13 @@
   }
 
   const auth = window.firebase.auth();
+  if (auth.isSignInWithEmailLink(initialSignInHref)) {
+    pendingSignInLink = initialSignInHref;
+    if (loginEmail) loginEmail.value = savedSignInEmail('read');
+    // Never keep the action code in the visible URL or put an email in it.
+    history.replaceState(null, '', '/primetime');
+  }
+  updateSignInForm();
 
   async function apiFetch(path, options = {}) {
     const sequence = authSequence;
@@ -242,28 +284,85 @@
 
   loginForm?.addEventListener('submit', async event => {
     event.preventDefault();
+    if (authBusy) return;
     const email = loginEmail?.value.trim() || '';
-    const password = loginPassword?.value || '';
 
-    if (!email || !password) {
-      setAuthMessage('Enter your email and password.', true);
+    if (!email) {
+      setAuthMessage('Enter your email address.', true);
       return;
     }
 
-    setAuthMessage('Signing in…');
+    const link = pendingSignInLink;
+    const sequence = authSequence;
+    const attempt = link ? { beforeUser: auth.currentUser, changes: [], cancelled: false } : null;
+    activeSignInAttempt = attempt;
+    authBusy = true;
+    updateSignInForm();
+    setAuthMessage(link ? 'Finishing sign in…' : 'Sending sign-in link…');
     try {
       await auth.setPersistence(window.firebase.auth.Auth.Persistence.SESSION);
-      await auth.signInWithEmailAndPassword(email, password);
-    } catch {
-      setAuthMessage('Sign-in failed. Check your credentials and try again.', true);
+      if (attempt?.cancelled || (!link && sequence !== authSequence)) return;
+      if (!link) {
+        await auth.sendSignInLinkToEmail(email, {
+          url: 'https://pthhs.net/primetime',
+          handleCodeInApp: true
+        });
+        if (sequence !== authSequence) return;
+        savedSignInEmail('save', email);
+        setAuthMessage('Check your email for a sign-in link. Open it to finish signing in.');
+      } else {
+        const result = await auth.signInWithEmailLink(email, link);
+        const changed = attempt.cancelled || auth.currentUser !== result.user
+          || attempt.changes.some(user => user !== attempt.beforeUser && user !== result.user);
+        if (changed) {
+          // A late SDK completion must not reopen a signed-out or changed session.
+          if (auth.currentUser === result.user) await auth.signOut();
+          pendingSignInLink = '';
+          savedSignInEmail('clear');
+          if (activeSignInAttempt === attempt) showLogin('Sign-in changed before it finished. Request a new link.', true);
+          return;
+        }
+        pendingSignInLink = '';
+        savedSignInEmail('clear');
+        activeSignInAttempt = null;
+        handledAuthUser = undefined;
+        await handleAuthState(result.user);
+      }
+    } catch (error) {
+      if (attempt?.cancelled || (!link && sequence !== authSequence)) return;
+      if (link && (error?.code === 'auth/expired-action-code' || error?.code === 'auth/invalid-action-code')) {
+        pendingSignInLink = '';
+        savedSignInEmail('clear');
+        setAuthMessage('This sign-in link is invalid or expired. Request a new link.', true);
+      } else {
+        setAuthMessage(link
+          ? 'Sign-in failed. Confirm the email address that received the link, or request a new link.'
+          : 'The sign-in email could not be sent. Try again or contact an administrator.', true);
+      }
+    } finally {
+      if (activeSignInAttempt === attempt) activeSignInAttempt = null;
+      authBusy = false;
+      updateSignInForm();
     }
   });
 
+  requestNewLink?.addEventListener('click', () => {
+    if (authBusy) return;
+    pendingSignInLink = '';
+    savedSignInEmail('clear');
+    updateSignInForm();
+    showLogin('Enter your email to request a new sign-in link.');
+    loginEmail?.focus();
+  });
+
   signOutButton?.addEventListener('click', async () => {
+    if (activeSignInAttempt) activeSignInAttempt.cancelled = true;
     authSequence += 1;
+    pendingSignInLink = '';
+    savedSignInEmail('clear');
     showLogin();
     if (syncDetails) syncDetails.textContent = '';
-    if (loginPassword) loginPassword.value = '';
+    updateSignInForm();
     try {
       await auth.signOut();
     } catch {
@@ -271,8 +370,20 @@
     }
   });
 
-  auth.onAuthStateChanged(async user => {
+  async function handleAuthState(user) {
+    // The completion promise and SDK observer can report the same sign-in.
+    if (!activeSignInAttempt && !pendingSignInLink && user && handledAuthUser === user) return;
     const sequence = ++authSequence;
+    if (activeSignInAttempt) {
+      activeSignInAttempt.changes.push(user);
+      showLogin('Finishing sign in…');
+      return;
+    }
+    if (pendingSignInLink) {
+      showLogin('Confirm the email address that received this sign-in link.');
+      return;
+    }
+    handledAuthUser = user;
     if (!user) {
       showLogin();
       return;
@@ -288,14 +399,14 @@
       }
       showApp();
       document.dispatchEvent?.(new Event('primetime-ready'));
-      if (loginPassword) loginPassword.value = '';
       void refreshIntegration();
     } catch {
       if (sequence !== authSequence) return;
       await auth.signOut();
       showLogin('This account is not authorized for Primetime administration.', true);
     }
-  });
+  }
+  auth.onAuthStateChanged(handleAuthState);
 
   window.primetimeApiFetch = apiFetch;
 })();

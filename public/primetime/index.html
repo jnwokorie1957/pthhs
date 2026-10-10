@@ -15,13 +15,12 @@
       <img class="auth-logo" src="/wp-content/themes/primetimehomeie989/images/main-logo.png" alt="Primetime Home Health Services">
       <p class="eyebrow">Internal operations</p>
       <h1 id="authTitle">Sign in to Primetime</h1>
-      <p class="auth-copy">Use your approved Primetime administrator account. Access is verified again by the server before management data is available.</p>
+      <p class="auth-copy" id="authCopy">Enter your approved administrator email. We will email you a link to sign in.</p>
       <form id="loginForm" class="auth-form">
         <label for="loginEmail">Email</label>
-        <input id="loginEmail" name="email" type="email" autocomplete="username" required>
-        <label for="loginPassword">Password</label>
-        <input id="loginPassword" name="password" type="password" autocomplete="current-password" required>
-        <button class="btn primary full" type="submit">Sign in</button>
+        <input id="loginEmail" name="email" type="email" autocomplete="email" required>
+        <button id="loginSubmit" class="btn primary full" type="submit">Send sign-in link</button>
+        <button id="requestNewLink" class="btn secondary full" type="button" hidden>Request a new link</button>
       </form>
       <p class="auth-message" id="authMessage" aria-live="polite"></p>
       <a class="auth-back" href="/">← Public website</a>
@@ -212,6 +211,6 @@
   <script src="/__/firebase/8.10.1/firebase-app.js" defer></script>
   <script src="/__/firebase/8.10.1/firebase-auth.js" defer></script>
   <script src="/__/firebase/init.js" defer></script>
-  <script src="/primetime/primetime.js?v=502c8ecb98fa" defer></script>
+  <script src="/primetime/primetime.js?v=92901e7a546d" defer></script>
 <script src="/primetime/workspace.js?v=ca92e0c4f39a" defer></script></body>
 </html>

@@ -1,5 +1,5 @@
 import { getApps, initializeApp } from "firebase-admin/app";
-import { getAuth, type DecodedIdToken } from "firebase-admin/auth";
+import { getAuth, type DecodedIdToken, type UserRecord } from "firebase-admin/auth";
 
 if (getApps().length === 0) {
   initializeApp();
@@ -7,6 +7,21 @@ if (getApps().length === 0) {
 
 interface HeaderRequest {
   get(name: string): string | undefined;
+}
+
+// Application access approved by the owner. Firebase must prove mailbox
+// ownership; a submitted email or a browser-side check cannot grant access.
+export const APPROVED_ADMIN_EMAILS: readonly string[] = Object.freeze([
+  "jeremynwokorie@gmail.com",
+]);
+
+interface AdminAuth {
+  verifyIdToken(token: string, checkRevoked: boolean): Promise<DecodedIdToken>;
+  getUser(uid: string): Promise<Pick<UserRecord, "uid" | "email" | "emailVerified" | "disabled">>;
+}
+
+function approvedEmail(email: unknown): boolean {
+  return typeof email === "string" && APPROVED_ADMIN_EMAILS.includes(email.trim().toLowerCase());
 }
 
 export interface PrimetimePrincipal {
@@ -49,6 +64,7 @@ function claimRoles(token: DecodedIdToken): string[] {
 
 export async function requirePrimetimeAdmin(
   request: HeaderRequest,
+  auth: AdminAuth = getAuth(),
 ): Promise<PrimetimePrincipal> {
   const authorization = request.get("authorization") ?? request.get("Authorization");
 
@@ -63,12 +79,25 @@ export async function requirePrimetimeAdmin(
 
   let decoded: DecodedIdToken;
   try {
-    decoded = await getAuth().verifyIdToken(idToken, true);
+    decoded = await auth.verifyIdToken(idToken, true);
   } catch {
     throw new PrimetimeAuthError(401, "unauthorized");
   }
 
   const roles = claimRoles(decoded);
+  if (!roles.includes("admin") && decoded.email_verified === true && approvedEmail(decoded.email)) {
+    // Recheck the current account so an old verified token cannot retain this
+    // email-based grant after the account is disabled or its email changes.
+    let user: Awaited<ReturnType<AdminAuth["getUser"]>>;
+    try {
+      user = await auth.getUser(decoded.uid);
+    } catch {
+      throw new PrimetimeAuthError(401, "unauthorized");
+    }
+    if (user.uid === decoded.uid && !user.disabled && user.emailVerified === true && approvedEmail(user.email)) {
+      roles.push("admin");
+    }
+  }
   if (!roles.includes("admin")) {
     throw new PrimetimeAuthError(403, "forbidden");
   }

@@ -20,6 +20,8 @@ Operational/management decisions: EVV rules, visibility/escalation, correction a
 
 # 🚦 CURRENT MANAGEMENT-LAYER CHECKPOINT
 
+**October 10 sign-in update:** the owner approved `jeremynwokorie@gmail.com` for administration and selected password-free email links. The server checks verified mailbox ownership and the current enabled account alongside existing admin claims. See [sign-in setup and acceptance](docs/management-layer/FIRST_ADMIN_HANDOFF.md). The next owner action is to open `/primetime`, request a link and complete normal sign-in; live session/HHA acceptance remains pending.
+
 **Last updated:** 2026-09-30
 
 See the [September 30 implementation review](docs/management-layer/IMPLEMENTATION_REVIEW_2026-09-30.md) and [222-operation API coverage matrix](docs/management-layer/HHA_CAPABILITY_MATRIX.md). Local code adds 144 protected workspace reads (141 release-eligible, three vendor-blocked), 23 typed/prepared mutation workflows (22 default-disabled gated dispatch paths plus one independently blocked partial linked-schedule workflow), persistent owner preferences/investigations/change-review/audit workflows, truthful integration health and replay/evidence protections. Production data remains default-locked; full 222-operation execution is not complete.
@@ -36,7 +38,7 @@ See the [September 30 implementation review](docs/management-layer/IMPLEMENTATIO
 - [x] Marketing generators and verifiers now preserve the separate `/primetime` application byte-for-byte.
 - [x] Deterministic root/Functions dependencies, pull-request QA, and whole-repository integrity checks are in place.
 - [x] `DEV-005B` — developer confirmed `HHAEXCHANGE_CREDENTIALS` is set in Secret Manager for `primetimehomehealthservices`.
-- [ ] **`DEV-006` — CURRENT DEVELOPER ACTION:** enable Firebase Email/Password Authentication, identify the approved admin by UID and email, and grant its `admin` custom claim. The login UI and server-side claim check are implemented. CI does not select an admin account.
+- [ ] **`DEV-006` — CURRENT ACCEPTANCE ACTION:** enable Firebase email-link sign-in and verify `jeremynwokorie@gmail.com` through its normal mailbox sign-in. The server-approved verified-email path does not require a claim bootstrap; existing claimed administrators remain supported. CI does not sign in for the owner.
 - [ ] `DEV-007` — Functions source, Hosting rewrite, and backend-first deployment workflow are configured. Verify the protected API routes in production; repository configuration is not proof of a successful deployment.
 - [x] `DEV-008` — SOAP parsing/error normalization, retries, correlation IDs, metadata-only telemetry, and sanitized tests are implemented and pass CI.
 - [ ] `DEV-009` — verify the read-only `GetCollectionStatus` HHA connectivity call once an approved admin is available.
