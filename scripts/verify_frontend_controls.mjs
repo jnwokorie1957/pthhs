@@ -129,8 +129,13 @@ if (!connectDirective) {
     "'self'",
     "https://identitytoolkit.googleapis.com",
     "https://securetoken.googleapis.com",
+    // Firebase 8.10.1 uses this legacy, path-scoped Identity Toolkit endpoint.
+    "https://www.googleapis.com/identitytoolkit/v3/relyingparty/",
   ]) {
     if (!connectSources.includes(source)) fail(`CSP connect-src is missing approved source: ${source}`);
+  }
+  if (connectSources.includes("https://www.googleapis.com")) {
+    fail("Firebase authentication must use its path-scoped source, not the entire Google APIs host");
   }
 }
 
