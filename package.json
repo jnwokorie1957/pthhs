@@ -11,6 +11,6 @@
     "check:repository": "python3 scripts/repository_audit.py"
   },
   "devDependencies": {
-    "sharp": "0.35.4"
+    "sharp": "0.35.5"
   }
 }

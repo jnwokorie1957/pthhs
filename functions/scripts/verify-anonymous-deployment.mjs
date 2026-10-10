@@ -34,5 +34,5 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
   const message = `Anonymous API boundary: PASS (${checked} missing/invalid-token checks across Function and Hosting URLs).`;
   console.log(message);
   if (process.env.GITHUB_STEP_SUMMARY) appendFileSync(process.env.GITHUB_STEP_SUMMARY,
-    `\n${message}\n\nDeployment retains its original result. A reachable prior revision can also pass this check. Authenticated/HHA acceptance remains separate. Cleanup policy remains an owner decision; retained container images can accumulate storage charges.\n`);
+    `\n${message}\n\nDeployment retains its original result. A reachable prior revision can also pass this check. Authenticated/HHA acceptance remains separate. Deployment build images use the configured seven-day Artifact Registry retention policy.\n`);
 }
