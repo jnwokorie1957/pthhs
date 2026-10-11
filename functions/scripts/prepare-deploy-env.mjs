@@ -4,7 +4,7 @@ import path from 'node:path';
 
 export function deploymentEnvironment(index, config, wsdl) {
   const names = [...new Set(index.match(/PRIMETIME_[A-Z_]+_APPROVED/g) ?? [])].sort();
-  if (!names.includes('PRIMETIME_OPERATIONAL_DATA_APPROVED') || names.length !== 24) {
+  if (!names.includes('PRIMETIME_OPERATIONAL_DATA_APPROVED') || names.length !== 29) {
     throw new Error('Deployment approval inventory changed; review before deploying');
   }
   for (const name of names) {
@@ -27,5 +27,5 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
   );
   // Fresh CI checkout only: never overwrite an operator's existing configuration.
   writeFileSync(path.join(root, 'functions/.env.primetimehomehealthservices'), content, { flag: 'wx', mode: 0o600 });
-  console.log('Prepared non-secret deployment parameters: verified ENT endpoint; all 24 approval gates false.');
+  console.log('Prepared non-secret deployment parameters: verified ENT endpoint; all 29 approval gates false.');
 }

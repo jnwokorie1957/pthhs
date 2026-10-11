@@ -20,6 +20,8 @@ node --test scripts/verify_primetime_auth.test.mjs
 node --test scripts/verify_primetime_file_session.test.mjs
 node --test scripts/verify_primetime_read_filters.test.mjs
 node --test scripts/verify_primetime_assets.test.mjs
+node --test scripts/verify_primetime_data_mode.test.mjs
+node --test scripts/verify_primetime_revisions.test.mjs
 python3 scripts/verify_hha_preservation_evidence.py
 
 # The internal operations app is deployed from public/ but owns a separate UI

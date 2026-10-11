@@ -10,7 +10,7 @@ const wsdl = read('../../hharefs/hha-wdsl.xml');
 
 test('noninteractive deployment supplies every approval as false and the captured endpoint', () => {
   const values = Object.fromEntries(deploymentEnvironment(index, config, wsdl).trim().split('\n').map(line => line.split('=')));
-  assert.equal(Object.keys(values).length, 25);
+  assert.equal(Object.keys(values).length, 30);
   assert.equal(values.HHAEXCHANGE_BASE_URL, 'https://cloud.hhaexchange.com/Integration/ENT/V1.8/ws.asmx');
   for (const [key, value] of Object.entries(values)) if (key.startsWith('PRIMETIME_')) assert.equal(value, 'false');
   assert.equal(values.HHAEXCHANGE_CREDENTIALS, undefined);

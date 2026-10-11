@@ -2,8 +2,8 @@
   // Keep the one-time action link in memory before navigation can replace it.
   const initialSignInHref = location.href || '';
   const titles = {
-    workbench: 'Operational tools',
-    overview: 'Operations overview', evv: 'EVV exceptions', visits: 'Visit preview',
+    workbench: 'Advanced tools', revisions: 'Visit review',
+    overview: 'Operations overview', evv: 'EVV exceptions', visits: 'Visits',
     messages: 'Messages & alerts', staffing: 'Staffing', billing: 'Billing & AR',
     hha: 'HHA integration', audit: 'Audit log', settings: 'Settings'
   };
@@ -66,8 +66,10 @@
     authMessage.dataset.state = isError ? 'error' : 'info';
   }
 
-  function showLogin(message = '', isError = false) {
-    document.dispatchEvent?.(new Event('primetime-signed-out'));
+  function showLogin(message = '', isError = false, preserveDataMode = false) {
+    const event = new Event('primetime-signed-out');
+    event.preserveDataMode = preserveDataMode;
+    document.dispatchEvent?.(event);
     if (appShell) appShell.hidden = true;
     if (loginShell) loginShell.hidden = false;
     setAuthMessage(message, isError);
@@ -97,6 +99,7 @@
     sidebar?.classList.remove('is-open');
     menuButton?.setAttribute('aria-expanded', 'false');
     if (!appShell?.hidden) document.getElementById('workspace')?.focus({ preventScroll: true });
+    if (typeof CustomEvent === 'function') document.dispatchEvent?.(new CustomEvent('primetime-view-changed', { detail: { view } }));
   }
 
   navItems.forEach(item => item.addEventListener('click', () => setView(item.dataset.view)));
@@ -123,12 +126,11 @@
 
   const search = document.getElementById('exceptionSearch');
   const priority = document.getElementById('priorityFilter');
-  const rows = [...document.querySelectorAll('#exceptionTable tbody tr')];
 
   function filterExceptions() {
     const term = (search?.value || '').trim().toLowerCase();
     const selected = priority?.value || 'all';
-    rows.forEach(row => {
+    document.querySelectorAll('#exceptionTable tbody tr').forEach(row => {
       const matchesTerm = !term || row.textContent.toLowerCase().includes(term);
       const matchesPriority = selected === 'all' || row.dataset.priority === selected;
       row.hidden = !(matchesTerm && matchesPriority);
@@ -159,18 +161,59 @@
     const sequence = authSequence;
     const user = auth.currentUser;
     if (!user) throw new Error('not_authenticated');
-
+    if (typeof path !== 'string' || !path.startsWith('/primetime/api/')) throw new Error('invalid_api_path');
+    const controller = window.primetimeDataMode;
+    const mode = controller?.getMode() || 'demo';
+    const modeGeneration = controller?.getGeneration();
+    const method = (options.method || 'GET').toUpperCase();
+    const safeMetadata = method === 'GET' && ['/primetime/api/session', '/primetime/api/status', '/primetime/api/data/status'].includes(path.split('?')[0]);
+    if (mode !== 'live' && !safeMetadata) throw new Error('demo_mode_source_requests_disabled');
+    if (controller?.isActive?.() === false) throw new Error('not_authenticated');
+    const check = () => {
+      if (sequence !== authSequence || auth.currentUser !== user) throw new Error('session_changed');
+      if (modeGeneration !== controller?.getGeneration() || mode !== (controller?.getMode() || 'demo')) throw new Error('data_mode_changed');
+    };
     const token = await user.getIdToken();
+    check();
     const headers = new Headers(options.headers || {});
     headers.set('Authorization', 'Bearer ' + token);
-
-    if (sequence !== authSequence || auth.currentUser !== user) throw new Error('session_changed');
-    return fetch(path, {
-      ...options,
-      headers,
-      cache: 'no-store',
-      credentials: 'same-origin'
+    headers.set('X-Primetime-Data-Mode', mode);
+    const abort = typeof AbortController === 'function' ? new AbortController() : null;
+    const untrack = abort ? controller?.trackRequest?.(abort) : null;
+    const cancel = () => abort?.abort();
+    if (options.signal?.aborted) cancel();
+    options.signal?.addEventListener('abort', cancel, { once: true });
+    const release = () => { untrack?.(); options.signal?.removeEventListener('abort', cancel); };
+    const guardedResponse = response => new Proxy(response, {
+      get(target, property) {
+        if (property === 'clone') return () => { check(); return guardedResponse(target.clone()); };
+        // Raw streams bypass the mode/session guard; use a fenced body method.
+        if (property === 'body') {
+          if (target.body == null) return null;
+          throw new Error('api_response_stream_not_supported');
+        }
+        if (['json', 'text', 'blob', 'arrayBuffer', 'formData', 'bytes'].includes(property)) return async (...args) => {
+          try { check(); const result = await target[property](...args); check(); return result; }
+          finally { release(); }
+        };
+        const value = Reflect.get(target, property, target);
+        return typeof value === 'function' ? value.bind(target) : value;
+      }
     });
+    try {
+      const response = await fetch(path, {
+        ...options, headers, ...(abort ? { signal: abort.signal } : {}),
+        cache: 'no-store', credentials: 'same-origin'
+      });
+      check();
+      // A mode change can happen after headers arrive but before JSON completes.
+      // Fence both moments so source records cannot reappear in a new mode.
+      return guardedResponse(response);
+    } catch (error) {
+      release();
+      check();
+      throw error;
+    }
   }
 
   async function verifyAdminSession(user) {
@@ -192,11 +235,14 @@
 
   async function refreshHhaHealth() {
     const sequence = authSequence;
+    const modeGeneration = window.primetimeDataMode?.getGeneration();
+    const current = () => sequence === authSequence && window.primetimeDataMode?.isLive() === true && modeGeneration === window.primetimeDataMode.getGeneration();
+    if (!current()) return;
     setHhaStatus('HHA connection: checking');
     try {
       const response = await apiFetch('/primetime/api/hha/health');
       const payload = await response.json();
-      if (sequence !== authSequence) return;
+      if (!current()) return;
       if (response.ok && payload?.ok === true && payload.hhaConnection === 'reachable' && payload.operation === 'GetCollectionStatus') {
         setHhaStatus('HHA reference API: reachable; imports not verified', true);
       } else if (response.status === 401 || response.status === 403) {
@@ -210,12 +256,15 @@
         setHhaStatus(failures[payload?.hhaConnection] || 'HHA reference check: unverified response');
       }
     } catch {
-      if (sequence === authSequence) setHhaStatus('HHA connection: unavailable');
+      if (current()) setHhaStatus('HHA connection: unavailable');
     }
   }
 
   async function refreshIntegration() {
     const sequence = authSequence;
+    const modeGeneration = window.primetimeDataMode?.getGeneration();
+    const current = () => sequence === authSequence && window.primetimeDataMode?.isLive() === true && modeGeneration === window.primetimeDataMode.getGeneration();
+    if (!current()) return;
     const restoreRefreshFocus = document.activeElement === refreshButton;
     if (refreshButton) refreshButton.disabled = true;
     if (syncDetails) syncDetails.textContent = 'Checking import history…';
@@ -223,7 +272,7 @@
       try {
         const response = await apiFetch('/primetime/api/integration/health');
         const payload = await response.json();
-        if (sequence !== authSequence) return;
+        if (!current()) return;
         if (!response.ok || !payload.ok || !payload.sync) throw new Error('unavailable');
         const sync = payload.sync;
         const states = { never_synced: 'No successful import recorded', running: 'Import running', success: 'Last import succeeded', partial: 'Partial import — replay required', failed: 'Import failed — replay required', unknown: 'Latest import outcome unknown' };
@@ -231,15 +280,20 @@
         const last = sync.lastSuccessfulAt ? new Date(sync.lastSuccessfulAt).toLocaleString() : 'None';
         if (syncDetails) syncDetails.textContent = `${states[sync.state] || states.unknown}. Last successful import: ${last}. Records processed in latest run: ${sync.processedCount}. Rejected: ${sync.deadLetterCount}. Freshness schedule and source validation are pending. Connection checks do not import visits.${lockStatus}`;
       } catch {
-        if (sequence === authSequence && syncDetails) syncDetails.textContent = 'Import history unavailable. No current-data claim can be made. Check backend deployment and Firestore setup, then retry.';
+        if (current() && syncDetails) syncDetails.textContent = 'Import history unavailable. No current-data claim can be made. Check backend deployment and Firestore setup, then retry.';
       }
     })()]);
-    if (sequence === authSequence && refreshButton) {
+    if (current() && refreshButton) {
       refreshButton.disabled = false;
       if (restoreRefreshFocus && document.activeElement === document.body) refreshButton.focus();
     }
   }
   refreshButton?.addEventListener('click', refreshIntegration);
+  document.addEventListener('primetime-data-mode-changed', () => {
+    if (refreshButton) refreshButton.disabled = !window.primetimeDataMode?.isLive();
+    setHhaStatus(window.primetimeDataMode?.isLive() ? 'HHA connection: not checked' : 'Demo mode: HHA checks paused');
+    if (syncDetails) syncDetails.textContent = window.primetimeDataMode?.isLive() ? 'Select Refresh to check reference connectivity and import history.' : 'Demo mode uses sample data. No live import or HHA check runs.';
+  });
 
   // This is a contract inventory, not an arbitrary SOAP console. Only the
   // reviewed reference health check is executable; source records stay gated.
@@ -383,13 +437,15 @@
       showLogin('Confirm the email address that received this sign-in link.');
       return;
     }
+    const priorUser = handledAuthUser;
     handledAuthUser = user;
     if (!user) {
       showLogin();
       return;
     }
 
-    showLogin('Checking administrator access…');
+    if (priorUser && priorUser !== user) window.primetimeDataMode?.reset();
+    showLogin('Checking administrator access…', false, true);
     try {
       const session = await verifyAdminSession(user);
       if (sequence !== authSequence || auth.currentUser?.uid !== user.uid) return;
@@ -399,7 +455,7 @@
       }
       showApp();
       document.dispatchEvent?.(new Event('primetime-ready'));
-      void refreshIntegration();
+      if (window.primetimeDataMode?.isLive()) void refreshIntegration();
     } catch {
       if (sequence !== authSequence) return;
       await auth.signOut();

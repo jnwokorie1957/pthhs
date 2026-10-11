@@ -9,7 +9,7 @@ test('owner filtering preserves hidden selections through save and clears on sig
   const el = id => { if(!elements.has(id)) elements.set(id,node(id)); return elements.get(id) };
   const settings = { revision: 1, officeId: '7', officeTimezone: 'America/Chicago', policyReference: 'synthetic', enabledReads: ['SearchPatients','SearchCaregivers'] };
   const document = {getElementById:el, querySelectorAll:()=>[], createElement:()=>node(), createTextNode:text=>({textContent:text}), addEventListener:(e,f)=>events.set(e,f)};
-  const window = {async primetimeApiFetch(path, options){sent.push({path,body:options?.body}); return {ok:true,json:async()=>({ok:true,settings,dataApproved:false,supportedReads:['SearchPatients','SearchCaregivers','GetOffices']})}}};
+  const window = {primetimeDataMode:{isLive:()=>true},async primetimeApiFetch(path, options){sent.push({path,body:options?.body}); return {ok:true,json:async()=>({ok:true,settings,dataApproved:false,supportedReads:['SearchPatients','SearchCaregivers','GetOffices']})}}};
   vm.runInNewContext(readFileSync(new URL('../public/primetime/workspace.js',import.meta.url),'utf8'),{document,window,console});
   events.get('primetime-ready')(); await new Promise(r=>setImmediate(r));
   el('readPermissionSearch').value='PATIENT'; el('readPermissionSearch').handlers.get('input')();

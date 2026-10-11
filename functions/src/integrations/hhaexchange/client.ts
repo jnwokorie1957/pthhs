@@ -37,6 +37,7 @@ export async function boundedSoapText(response: Response, maximumBytes = MAX_RES
 // retried: a timeout can mean the remote change already happened.
 const RETRY_SAFE_READS = new Set([
   "GetCollectionStatus", "GetVisitChangesV5", "GetScheduleInfo",
+  "SearchVisitsV2", "GetVisitInfoV3",
   "GetCaregiverChangesV4", "GetPatientChangesV4", "GetPatientAuthorizationChanges",
   "GetPatientAuthorizationInfo", "GetCaregiverPermanentWeekAvailability",
   "GetCaregiverSpecialAvailability", "GetBillingServiceCodes",

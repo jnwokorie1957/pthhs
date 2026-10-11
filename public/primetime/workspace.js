@@ -32,6 +32,7 @@
   $('readOperation').addEventListener('change', () => selectRead($('readOperation').value));
   async function request(path, body, expectedGeneration = generation) {
     if (expectedGeneration !== generation) throw new Error('Session changed. Start this action again.');
+    if (window.primetimeDataMode?.isLive() !== true) throw new Error('Demo mode uses sample data. Switch Demo data off to load operational controls.');
     if (path !== 'settings' && !dataApproved) throw new Error('Operational data is locked until release approval.');
     const current = generation;
     const response = await window.primetimeApiFetch('/primetime/api/workspace/' + path, body === undefined ? {} : { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
@@ -40,7 +41,7 @@
     if (!response.ok || !result.ok) throw new Error(({ operational_data_release_not_approved: 'Operational data is locked pending deployment and privacy approval. Owner preferences can still be configured.', read_not_owner_enabled: 'Enable this read in owner controls after entitlement review.', revision_conflict: 'Another administrator updated this record. Reload before retrying.', independent_reviewer_required: 'A different administrator must review this request.', vendor_contract_clarification_required: 'This operation is absent from or removed by the vendor guide. Vendor clarification is required before it can be enabled.', workspace_unavailable: 'Workspace storage is unavailable. Verify backend deployment and Firestore, then retry.' })[result.error] || (result.error || 'Request failed').replaceAll('_', ' '));
     return result;
   }
-  async function action(task) { try { message('Working…'); await task(); } catch (error) { message(error.message); } }
+  async function action(task) { const current = generation; try { message('Working…'); await task(); } catch (error) { if (current === generation) message(error.message); } }
   function button(label, click) { const b = document.createElement('button'); b.type = 'button'; b.className = 'btn secondary'; b.textContent = label; b.addEventListener('click', () => action(async () => { b.disabled = true; try { await click(); } finally { b.disabled = false; } })); return b; }
   function paragraph(text) { const p = document.createElement('p'); p.textContent = text; return p; }
   function setDataAccess(enabled) {
@@ -55,6 +56,22 @@
   setDataAccess(false);
   function reset() { linkedScheduleCreationWritesEnabled = false; pendingLinkedScheduleCreationId = null; setDataAccess(false); collectionNoteWritesEnabled = false; pendingCollectionNoteId = null; referralCreationWritesEnabled = false; pendingReferralCreationId = null; contractCreationWritesEnabled = false; pendingContractCreationId = null; caregiverPictureWritesEnabled = false; pendingCaregiverPictureId = null; documentCreationWrites = []; pendingDocumentCreationId = null; documentReplacementWrites = []; pendingDocumentReplacementId = null; medicalCreationWritesEnabled = false; pendingMedicalCreationId = null; patientClinicalWritesEnabled = false; pendingPatientClinicalId = null; documentMetadataWrites = []; pendingDocumentMetadataId = null; patientNoteWritesEnabled = false; pendingPatientNoteId = null; $("patientNoteForm").reset(); $("patientNoteChanges").replaceChildren(); availabilityCreationWrites = []; pendingAvailabilityCreationId = null; $("availabilityCreationForm").reset(); $("availabilityCreations").replaceChildren(); patientContractWritesEnabled = false; pendingPatientContractId = null; $("patientContractForm").reset(); $("patientContractChanges").replaceChildren(); rateCreationWritesEnabled = false; pendingRateCreationId = null; $("rateCreationForm").reset(); $("rateCreations").replaceChildren(); topicWritesEnabled = false; pendingTopicId = null; $("topicForm").reset(); $("topicChanges").replaceChildren(); documentTypeWritesEnabled = false; pendingDocumentTypeId = null; $("documentTypeForm").reset(); $("documentTypeChanges").replaceChildren(); generation++; readSequence++; readInputs = {}; writesEnabled = false; settings = null; investigations = []; intents = []; pendingIntentId = null; pendingRateId = null; $('rateProposalForm').reset(); $('staffingReviewForm').reset(); $('availabilityForm').reset(); availabilityWrites = []; pendingAvailabilityId = null; for (const id of ['availabilityChanges', 'staffingEvidence', 'readResults', 'investigationList', 'intentList', 'workspaceAudit']) $(id)?.replaceChildren(); $('investigationForm').reset(); $('intentForm').reset(); $('readForm').reset(); $('ownerForm').reset(); $('readPermissions').replaceChildren(); $('readPermissionSearch').value = ''; $('readPermissionSelectedOnly').checked = false; $('readPermissionCount').textContent = 'Sign in to load available reads.'; message('Sign in to load operational controls.'); }
   document.addEventListener('primetime-signed-out', reset);
+  function applyMode() {
+    const live = window.primetimeDataMode?.isLive() === true;
+    panel.inert = !live;
+    if (!live) {
+      for (const form of panel.querySelectorAll('form')) form.reset();
+      $('dataGate').textContent = 'Demo mode: operational records and production changes are paused. Switch Demo data off to load live controls.';
+      message('Demo mode uses sample data. Live operational tools are paused.');
+    }
+    $('reloadWorkspace').disabled = !live;
+  }
+  applyMode();
+  document.addEventListener('primetime-data-mode-changed', () => {
+    reset();
+    applyMode();
+    if (window.primetimeDataMode?.isLive() && window.primetimeDataMode.isActive?.()) void action(loadSettings);
+  });
   function filterReadPermissions() {
     const words = $('readPermissionSearch').value.trim().toLowerCase().split(/\s+/).filter(Boolean);
     const selectedOnly = $('readPermissionSelectedOnly').checked;
@@ -86,7 +103,10 @@
     const enabledWrites = [linkedScheduleCreationWritesEnabled,writesEnabled, documentTypeWritesEnabled, topicWritesEnabled, rateCreationWritesEnabled, patientContractWritesEnabled, patientNoteWritesEnabled, patientClinicalWritesEnabled, medicalCreationWritesEnabled, caregiverPictureWritesEnabled, contractCreationWritesEnabled, referralCreationWritesEnabled, collectionNoteWritesEnabled].filter(Boolean).length + availabilityWrites.length + availabilityCreationWrites.length + documentMetadataWrites.length + documentReplacementWrites.length + documentCreationWrites.length;
     message(`Owner controls loaded. ${enabledWrites} specific write workflows have release approval; all other submissions remain locked.`);
   }
-  document.addEventListener('primetime-ready', () => action(loadSettings));
+  document.addEventListener('primetime-ready', () => {
+    applyMode();
+    if (window.primetimeDataMode?.isLive()) void action(loadSettings);
+  });
   $('reloadWorkspace').addEventListener('click', () => action(loadSettings));
   $('ownerForm').addEventListener('submit', event => { event.preventDefault(); action(async () => {
     if (!settings) throw new Error('Load owner controls first.');

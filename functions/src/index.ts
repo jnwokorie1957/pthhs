@@ -18,6 +18,7 @@ import { submitDocumentType } from "./operations/documentTypes.js";
 import { AVAILABILITY_WRITES, submitAvailability } from "./operations/availability.js";
 import { logger } from "firebase-functions";
 import { onRequest } from "firebase-functions/v2/https";
+import { onSchedule } from "firebase-functions/v2/scheduler";
 import {
   PrimetimeAuthError,
   requirePrimetimeAdmin,
@@ -34,6 +35,12 @@ import { OperationsWorkspace, FirestoreWorkspaceRepository } from "./operations/
 import { operationalRead } from "./operations/reads.js";
 import { submitRate } from "./operations/writes.js";
 import { workspaceRoute } from "./operations/routes.js";
+import { assertLiveDataMode, viewRoute } from "./views/visits.js";
+import { WorkflowError } from "./operations/reads.js";
+import { RevisionBackend, type RevisionActor, type RevisionApprovals } from "./revisions/service.js";
+import { revisionRoute } from "./revisions/routes.js";
+import { createSmsAdapter, handleSmsCallback } from "./revisions/sms.js";
+import type { NotificationDeliveryAdapter } from "./revisions/notifications.js";
 
 // Deployment approval is separate from owner feature preferences. The browser
 // cannot enable PHI processing or HHA write execution through settings.
@@ -65,8 +72,56 @@ const documentTypeWriteApproved = defineString("PRIMETIME_DOCUMENT_TYPE_WRITE_AP
 const topicWriteApproved = defineString("PRIMETIME_INSERVICE_TOPIC_CREATE_APPROVED", { default: "false" });
 
 const rateCreationApproved = defineString("PRIMETIME_CAREGIVER_RATE_CREATE_APPROVED", { default: "false" });
+const revisionSourceApproved = defineString("PRIMETIME_REVISION_SOURCE_APPROVED", { default: "false" });
+const revisionMonitorApproved = defineString("PRIMETIME_REVISION_MONITOR_APPROVED", { default: "false" });
+const smsCapabilityApproved = defineString("PRIMETIME_SMS_CAPABILITY_APPROVED", { default: "false" });
+const smsConfigurationApproved = defineString("PRIMETIME_SMS_CONFIGURATION_APPROVED", { default: "false" });
+const smsSendApproved = defineString("PRIMETIME_SMS_SEND_APPROVED", { default: "false" });
 
 const API_PREFIX = "/primetime/api";
+
+function revisionBackend(actor: RevisionActor) {
+  const repository = new FirestoreWorkspaceRepository();
+  let client: HhaSoapClient | undefined;
+  const workspace = new OperationsWorkspace(repository, (input, scope) => {
+    client ??= new HhaSoapClient(hhaBaseUrl.value(), getHhaCredentials(), { beforeRequest: () => repository.reserveRead(), defer: seconds => repository.deferReads(seconds) });
+    return operationalRead(client, input, scope);
+  }, operationalDataApproved.value() === "true");
+  const approvals: RevisionApprovals = { data: operationalDataApproved.value() === "true", source: revisionSourceApproved.value() === "true", monitor: revisionMonitorApproved.value() === "true",
+    smsCapability: smsCapabilityApproved.value() === "true", smsConfiguration: smsConfigurationApproved.value() === "true", smsSend: smsSendApproved.value() === "true" };
+  let backend: RevisionBackend;
+  const adapter: NotificationDeliveryAdapter = {
+    submit: async input => {
+      let provider;
+      try {
+        const configuration = await backend.smsConfiguration(actor);
+        provider = await createSmsAdapter(configuration.config, configuration.context);
+        const fresh = await backend.smsConfiguration(actor);
+        if (!provider || fresh.fingerprint !== configuration.fingerprint || !fresh.config.policyApproved || !fresh.config.sourceApproved
+          || !await backend.smsDispatchAllowed(actor, configuration.context.officeId)) return { state: "not_submitted", providerId: null, errorCode: "sms_policy_deferred_before_dispatch" };
+      } catch { return { state: "not_submitted", providerId: null, errorCode: "sms_preparation_deferred_before_dispatch" }; }
+      return provider.submit(input);
+    },
+    reconcile: async input => {
+      const configuration = await backend.smsConfiguration(actor), provider = await createSmsAdapter(configuration.config, configuration.context);
+      return provider ? provider.reconcile(input) : { state: "unknown", providerId: input.providerId, errorCode: "sms_reconciliation_not_configured" };
+    },
+  };
+  backend = new RevisionBackend(repository, workspace, approvals, adapter);
+  return backend;
+}
+
+// The handler stays deployed with closed defaults; it reads no operational
+// facts and sends nothing until release, source acceptance and office policy agree.
+export const primetimeRevisionMonitor = onSchedule({ region: "us-central1", schedule: "* * * * *", timeZone: "America/Chicago",
+  timeoutSeconds: 300, memory: "256MiB", maxInstances: 1, concurrency: 1, retryCount: 0, secrets: [hhaCredentials] }, async () => {
+  try {
+    const result = await revisionBackend({ actorId: "revision_monitor", roles: ["admin"], mode: "live" }).monitor();
+    logger.info("Primetime revision monitor", result);
+  } catch (error) {
+    logger.warn("Primetime revision monitor deferred", { code: error instanceof WorkflowError ? error.code : "monitor_unavailable" });
+  }
+});
 
 function apiPath(path: string): string {
   if (path.startsWith(API_PREFIX)) {
@@ -78,13 +133,25 @@ function apiPath(path: string): string {
 export const primetimeApi = onRequest(
   {
     region: "us-central1",
-    timeoutSeconds: 60,
+    timeoutSeconds: 120,
     memory: "256MiB",
     maxInstances: 10,
     secrets: [hhaCredentials],
   },
   async (request, response) => {
     response.set("Cache-Control", "no-store");
+
+    const path = apiPath(request.path);
+    if (path === "/revisions/sms/status") {
+      try {
+        const actor: RevisionActor = { actorId: "sms_status_callback", roles: ["admin"], mode: "live" }, backend = revisionBackend(actor);
+        const configuration = await backend.smsConfiguration(actor), { box, context } = await backend.outbox(actor);
+        await handleSmsCallback(configuration.config, { method: request.method, query: request.query, rawForm: request.rawBody.toString("utf8"),
+          signature: request.get("X-Twilio-Signature") ?? "", contentType: request.get("Content-Type") ?? "" }, box, context);
+        response.status(204).end();
+      } catch (error) { response.status(error instanceof WorkflowError ? error.status : 503).json({ ok: false, error: error instanceof WorkflowError ? error.code : "sms_callback_unavailable" }); }
+      return;
+    }
 
     let principal;
     try {
@@ -102,7 +169,32 @@ export const primetimeApi = onRequest(
       return;
     }
 
-    const path = apiPath(request.path);
+    try { assertLiveDataMode(request.method, path, request.get("X-Primetime-Data-Mode")); }
+    catch (error) {
+      response.status(error instanceof WorkflowError ? error.status : 400).json({ ok: false, error: error instanceof WorkflowError ? error.code : "invalid_data_mode" });
+      return;
+    }
+
+    if (path.startsWith("/revisions/")) {
+      if (request.method === "POST" && (!request.is("application/json") || Buffer.byteLength(JSON.stringify(request.body ?? {}), "utf8") > 24576)) {
+        response.status(400).json({ ok: false, error: "invalid_json_request" }); return;
+      }
+      const actor: RevisionActor = { actorId: principal.uid, roles: principal.roles, mode: request.get("X-Primetime-Data-Mode")?.trim().toLowerCase() === "demo" ? "demo" : "live" };
+      const result = await revisionRoute(revisionBackend(actor), actor, request.method, path, request.method === "GET" ? request.query : request.body);
+      response.status(result?.status ?? 404).json(result?.body ?? { ok: false, error: "not_found" }); return;
+    }
+
+    if (path === "/data/status" || path === "/views/visits") {
+      const repository = new FirestoreWorkspaceRepository();
+      let client: HhaSoapClient | undefined;
+      const service = new OperationsWorkspace(repository, (input, scope) => {
+        client ??= new HhaSoapClient(hhaBaseUrl.value(), getHhaCredentials(), { beforeRequest: () => repository.reserveRead(), defer: seconds => repository.deferReads(seconds) });
+        return operationalRead(client, input, scope);
+      }, operationalDataApproved.value() === "true");
+      const result = await viewRoute(service, request.method, path, request.query, principal.uid);
+      response.status(result!.status).json(result!.body);
+      return;
+    }
 
     if (path.startsWith("/workspace/")) {
       if (!collectionActionAllowed(principal.roles, request.method, path, request.body)) {

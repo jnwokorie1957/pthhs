@@ -5,7 +5,7 @@ import test from 'node:test';
 
 test('immutable Primetime assets have current content versions', () => {
   const html = readFileSync(new URL('../public/primetime/index.html', import.meta.url), 'utf8');
-  for (const name of ['primetime.css', 'primetime.js', 'workspace.js']) {
+  for (const name of ['primetime.css', 'data-source.js', 'demo-data.js', 'dashboard.js', 'revisions.js', 'primetime.js', 'workspace.js']) {
     const bytes = readFileSync(new URL(`../public/primetime/${name}`, import.meta.url));
     const hash = createHash('sha256').update(bytes).digest('hex').slice(0, 12);
     assert.ok(html.includes(`/primetime/${name}?v=${hash}`), `Run node scripts/version-primetime-assets.mjs after editing ${name}`);

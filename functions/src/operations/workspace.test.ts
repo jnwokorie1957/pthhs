@@ -84,7 +84,7 @@ test("owner controls persist across services, reject stale writes, enforce offic
   await assert.rejects(reloaded.query({ operation: "SearchVisitsV2", officeId: "456", date: "2026-09-30" }, "owner"), /office_scope_mismatch/);
   await assert.rejects(reloaded.query({ operation: "GetVisitBillInfoV2", id: "77" }, "owner"), /read_not_owner_enabled/);
   assert.equal((await reloaded.query({ operation: "SearchVisitsV2", officeId: "123", date: "2026-09-30" }, "owner")).records[0]?.VisitID, "77");
-  assert.equal(repository.reads, 1); assert.ok(repository.audit.some(value => value.includes("read_requested_SearchVisitsV2")));
+  assert.equal(repository.reads, 0); assert.ok(repository.audit.some(value => value.includes("read_requested_SearchVisitsV2")));
 });
 
 test("investigation create, assign, outreach and resolve preserve append-only history with conflict protection", async () => {

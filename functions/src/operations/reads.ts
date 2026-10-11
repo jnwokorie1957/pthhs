@@ -335,7 +335,7 @@ const projections: Record<Exclude<ReadOperation, "SearchVisitsV2" | "SearchPatie
   GetCaregiverNoteChanges: { record: "CaregiverNoteInfo", fields: ["CaregiverNoteID", "CaregiverID", "NoteDate", "Note", "CaregiverNotified", "SubjectID", "PatientID"] },
   GetPatientNotes: { record: "PatientNote", fields: ["PatientNoteID", "PatientID", "NoteReason/ID", "NoteDate", "NoteType", "FromDate", "ToDate", "Note", "EmergencyOfPriority", "Internal"] },
   GetCaregiverNotes: { record: "CaregiverNoteInfo", fields: ["CaregiverNoteID", "CaregiverID", "NoteDate", "Note", "CaregiverNotified"] },
-  GetCallDashBoardData: { record: "CallInfo", fields: ["CallDashboardID", "CallTime", "CallType", "CallStatus"] },
+  GetCallDashBoardData: { record: "CallInfo", fields: ["CallDashboardID", "CallTime", "CallType", "CallStatus", "Patient/ID", "Caregiver/ID"] },
   GetReferralSource: { record: "ReferralSourceInfo", fields: ["ReferralSourceID", "ReferralSourceName", "Status", "ParenetReferralSourceID", "ParentReferralsourceName", "ReferralSourceType", "AccountManagerId", "AccountMangerName", "MarketerId", "DefaultMarketer"] },
   GetReferralSourceContact: { record: "ReferralSourceContact", fields: ["ReferralSourceContactID", "ReferralSourceContactName", "Position", "Phone1", "Phone2", "EmailAddress", "OfficeHours", "IsPrimary"] },
   GetPatientAddress: { record: "Addresses", fields: ["AddressID", "Address1", "Address2", "State", "County", "City", "Zip5", "Zip4"] },

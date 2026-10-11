@@ -7,7 +7,7 @@
   <meta name="theme-color" content="#0d4f8f">
   <title>Primetime Operations</title>
   <link rel="icon" href="/assets/meta/favicon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="/primetime/primetime.css?v=bbf92e13ba14">
+  <link rel="stylesheet" href="/primetime/primetime.css?v=51027630a64a">
 </head>
 <body>
   <div class="auth-shell" id="authShell">
@@ -26,168 +26,80 @@
       <a class="auth-back" href="/">← Public website</a>
     </section>
   </div>
-
   <a class="skip-link" href="#workspace">Skip to workspace</a>
   <div class="app-shell" id="appShell" hidden>
     <aside class="sidebar" id="sidebar">
-      <a class="admin-brand" href="/primetime" aria-label="Primetime Operations home">
-        <img src="/wp-content/themes/primetimehomeie989/images/main-logo.png" alt="Primetime Home Health Services">
-        <span>Operations</span>
-      </a>
-
-      <nav class="admin-nav" aria-label="Primetime administration"><button class="nav-item" data-view="workbench"><span class="nav-icon">☷</span><span>Operational tools</span></button>
+      <a class="admin-brand" href="/primetime" aria-label="Primetime Operations home"><img src="/wp-content/themes/primetimehomeie989/images/main-logo.png" alt="Primetime Home Health Services"><span>Operations</span></a>
+      <nav class="admin-nav" aria-label="Primetime administration">
         <button class="nav-item is-active" data-view="overview"><span class="nav-icon">⌂</span><span>Overview</span></button>
-        <button class="nav-item" data-view="evv"><span class="nav-icon">✓</span><span>EVV Exceptions</span><span class="nav-badge">8</span></button>
+        <button class="nav-item" data-view="revisions"><span class="nav-icon">☑</span><span>Visit review</span></button>
+        <button class="nav-item" data-view="evv"><span class="nav-icon">✓</span><span>EVV Exceptions</span><span class="nav-badge" data-demo-badge="exceptions" hidden></span></button>
         <button class="nav-item" data-view="visits"><span class="nav-icon">◷</span><span>Visit Preview</span></button>
-        <button class="nav-item" data-view="messages"><span class="nav-icon">✉</span><span>Messages & Alerts</span><span class="nav-badge neutral">3</span></button>
+        <button class="nav-item" data-view="messages"><span class="nav-icon">✉</span><span>Messages & Alerts</span><span class="nav-badge neutral" data-demo-badge="alerts" hidden></span></button>
         <button class="nav-item" data-view="staffing"><span class="nav-icon">◎</span><span>Staffing</span></button>
         <button class="nav-item" data-view="billing"><span class="nav-icon">$</span><span>Billing & AR</span></button>
         <button class="nav-item" data-view="hha"><span class="nav-icon">↻</span><span>HHA Integration</span></button>
         <button class="nav-item" data-view="audit"><span class="nav-icon">≡</span><span>Audit Log</span></button>
+        <button class="nav-item" data-view="workbench"><span class="nav-icon">☷</span><span>Advanced tools</span></button>
       </nav>
-
       <div class="sidebar-footer">
-        <div class="environment"><span class="dot warning"></span><div><strong>Scaffold mode</strong><small>Reference check does not verify imports</small></div></div>
+        <div class="environment"><span class="dot warning"></span><div><strong id="environmentMode">Demo data</strong><small id="environmentDetails">Synthetic preview records</small></div></div>
         <button class="nav-item compact" data-view="settings"><span class="nav-icon">⚙</span><span>Settings</span></button>
         <a class="back-site" href="/">← Public website</a>
       </div>
     </aside>
-
     <div class="main-area">
       <header class="topbar">
-        <div class="topbar-left">
-          <button class="menu-button" id="menuButton" aria-label="Toggle navigation" aria-expanded="false">☰</button>
-          <div>
-            <p class="eyebrow">Primetime Home Health Services</p>
-            <h1 id="pageTitle">Operations overview</h1>
-          </div>
-        </div>
+        <div class="topbar-left"><button class="menu-button" id="menuButton" aria-label="Toggle navigation" aria-expanded="false">☰</button><div><p class="eyebrow">Primetime Home Health Services</p><h1 id="pageTitle">Operations overview</h1></div></div>
         <div class="topbar-actions">
-          <div class="sync-pill"><span class="dot warning" id="hhaSyncDot"></span><span id="hhaSyncStatus">HHA connection: checking</span></div>
-          <button class="icon-button" aria-label="Notifications" disabled title="Demonstration only; workflow not connected">●<span class="notification-count">3</span></button>
+          <label class="data-mode-control" for="demoDataToggle"><span>Demo data</span><input id="demoDataToggle" type="checkbox" role="switch" checked aria-describedby="dataModeBadge"><span class="data-mode-track" aria-hidden="true"></span><strong id="demoToggleState">On</strong></label>
+          <span id="dataModeBadge" class="data-mode-badge demo" role="status" aria-live="polite">Demo · synthetic</span>
+          <div class="sync-pill"><span class="dot warning" id="hhaSyncDot"></span><span id="hhaSyncStatus">HHA reference status unavailable</span></div>
+          <button class="icon-button" aria-label="Demo notifications" disabled title="Preview only; messages are not sent">●<span class="notification-count" data-demo-badge="alerts" hidden></span></button>
           <button class="profile-button" id="signOutButton" aria-label="Sign out of Primetime"><span class="avatar">PT</span><span class="profile-copy"><strong>Administrator</strong><small id="signedInIdentity">Internal access · sign out</small></span></button>
         </div>
       </header>
-
       <main id="workspace" class="workspace" tabindex="-1">
-        <div class="notice" role="note"><strong>Preview panels contain demonstration data.</strong> Use Operational tools for protected source reads, owner controls and investigation history. Live data is locked until deployment approval; source interpretation and HHA writes remain gated.</div>
-        <section class="view is-active" data-view-panel="overview"><section class="panel"><h3>Connected operational tools</h3><button type="button" class="btn secondary" data-view-jump="workbench" data-workflow="SearchPatients">Find patient records</button><button type="button" class="btn secondary" data-view-jump="workbench" data-workflow="SearchCaregivers">Find caregiver records</button><button type="button" class="btn secondary" data-view-jump="workbench" data-workflow="SearchPayrollBatches">Review payroll batches</button></section>
-          <div class="notice"><strong>Demonstration data only.</strong> The metrics and example visits below are placeholders. The HHA connection indicator reflects the protected read-only health check.</div>
-
-          <div class="section-heading">
-            <div><p class="eyebrow">Today</p><h2>Operational pulse</h2></div>
-            <div class="heading-actions"><button class="btn secondary" data-view-jump="hha">Integration status</button><button class="btn primary" data-view-jump="evv">Review exceptions</button></div>
-          </div>
-
-          <div class="metric-grid">
-            <article class="metric-card"><div class="metric-top"><span>Scheduled visits</span><span class="metric-icon">◷</span></div><strong>42</strong><small>Demo data</small></article>
-            <article class="metric-card attention"><div class="metric-top"><span>EVV exceptions</span><span class="metric-icon">!</span></div><strong>8</strong><small>3 high priority</small></article>
-            <article class="metric-card"><div class="metric-top"><span>Clocked in now</span><span class="metric-icon">●</span></div><strong>11</strong><small>Demo data</small></article>
-            <article class="metric-card"><div class="metric-top"><span>Projected billable</span><span class="metric-icon">$</span></div><strong>286.5h</strong><small>This week · demo</small></article>
-          </div>
-
-          <div class="dashboard-grid">
-            <section class="panel span-2">
-              <div class="panel-head"><div><p class="eyebrow">Needs attention</p><h3>EVV exception queue</h3></div><button class="text-button" data-view-jump="evv">View all →</button></div>
-              <div class="table-wrap">
-                <table>
-                  <thead><tr><th>Visit</th><th>Issue</th><th>Scheduled</th><th>Status</th><th></th></tr></thead>
-                  <tbody>
-                    <tr><td><strong>Visit #PT-1048</strong><small>Assigned caregiver</small></td><td>Missing clock-out</td><td>8:00 AM–12:00 PM</td><td><span class="status high">High</span></td><td><button class="row-action" disabled title="Demonstration only; workflow not connected">Review</button></td></tr>
-                    <tr><td><strong>Visit #PT-1051</strong><small>Assigned caregiver</small></td><td>Clock-in variance</td><td>10:00 AM–2:00 PM</td><td><span class="status medium">Review</span></td><td><button class="row-action" disabled title="Demonstration only; workflow not connected">Review</button></td></tr>
-                    <tr><td><strong>Visit #PT-1055</strong><small>Assigned caregiver</small></td><td>Verification incomplete</td><td>1:00 PM–5:00 PM</td><td><span class="status medium">Review</span></td><td><button class="row-action" disabled title="Demonstration only; workflow not connected">Review</button></td></tr>
-                  </tbody>
-                </table>
-              </div>
-            </section>
-
-            <section class="panel">
-              <div class="panel-head"><div><p class="eyebrow">Staffing</p><h3>Coverage</h3></div></div>
-              <div class="coverage-stat"><strong>4</strong><span>open shifts</span></div>
-              <div class="progress-row"><div><span>Today covered</span><strong>90%</strong></div><progress value="90" max="100"></progress></div>
-              <div class="mini-list"><div><span>Tomorrow</span><strong>2 open</strong></div><div><span>Next 7 days</span><strong>7 open</strong></div><div><span>Availability conflicts</span><strong>3</strong></div></div>
-              <button class="btn secondary full" data-view-jump="staffing">Open staffing</button>
-            </section>
-
-            <section class="panel">
-              <div class="panel-head"><div><p class="eyebrow">Alerts</p><h3>Manager inbox</h3></div></div>
-              <div class="alert-list">
-                <article><span class="alert-dot danger"></span><div><strong>Late clock-in threshold</strong><p>Manager-only rule triggered.</p><small>8 min ago</small></div></article>
-                <article><span class="alert-dot warn"></span><div><strong>Visit requires review</strong><p>EVV verification incomplete.</p><small>21 min ago</small></div></article>
-                <article><span class="alert-dot info"></span><div><strong>Staffing gap</strong><p>Tomorrow morning has an open shift.</p><small>34 min ago</small></div></article>
-              </div>
-            </section>
-
-            <section class="panel span-2">
-              <div class="panel-head"><div><p class="eyebrow">Integration</p><h3>HHAeXchange ENT v1.8 readiness</h3></div><span class="status pending">Runtime acceptance pending</span></div>
-              <div class="integration-steps">
-                <div class="step done"><span>1</span><div><strong>Reference contract discovered</strong><small>WSDL + endpoint inventory in /hharefs</small></div></div>
-                <div class="step"><span>2</span><div><strong>Secure SOAP adapter</strong><small>Keep App Key and credentials server-side</small></div></div>
-                <div class="step"><span>3</span><div><strong>Read-only synchronization</strong><small>Visits, schedules, caregivers, billing metadata</small></div></div>
-                <div class="step"><span>4</span><div><strong>Write-back workflows</strong><small>Confirm/correct visits only after validation</small></div></div>
-              </div>
-            </section>
-          </div>
+        <div class="notice" id="dashboardModeNotice" role="note">Demo data is on. All preview records are synthetic; messages and HHA changes are disabled.</div>
+        <section class="view is-active" data-view-panel="overview">
+          <section class="panel connected-tools"><h3>Operational tools</h3><button type="button" class="btn secondary" data-view-jump="workbench" data-workflow="SearchPatients">Find patient records</button><button type="button" class="btn secondary" data-view-jump="workbench" data-workflow="SearchCaregivers">Find caregiver records</button><button type="button" class="btn secondary" data-view-jump="workbench" data-workflow="SearchPayrollBatches">Review payroll batches</button></section>
+          <div class="section-heading"><div><p class="eyebrow">Selected day</p><h2>Operational pulse</h2></div><div class="heading-actions"><button class="btn secondary" data-view-jump="visits">Visit preview</button><button class="btn secondary" data-view-jump="evv">Review exceptions</button></div></div>
+          <div id="dashboardOverviewMetrics" class="metric-grid"></div>
+          <div class="dashboard-grid"><section class="panel span-2"><div class="panel-head"><h3>EVV exception queue</h3><button class="text-button" data-view-jump="evv">View queue →</button></div><div id="dashboardOverviewExceptions"></div></section><section class="panel"><h3>Coverage</h3><div id="dashboardCoverage"></div></section><section class="panel"><h3>Manager inbox</h3><div id="dashboardAlerts"></div></section><section class="panel span-2"><h3>Source readiness</h3><p id="dashboardReadiness">Live source validation is pending.</p><button class="btn secondary" data-view-jump="hha">Integration details</button></section></div>
         </section>
-
-        <section class="view" data-view-panel="evv"><section class="panel"><h3>Connected operational tools</h3><button type="button" class="btn secondary" data-view-jump="workbench" data-workflow="SearchVisitsV2">Inspect source EVV evidence</button><button type="button" class="btn secondary" data-view-jump="workbench" data-workflow="investigations">Open investigation queue</button></section>
-          <div class="section-heading"><div><p class="eyebrow">Compliance workflow</p><h2>EVV exception queue</h2><p>One place to review discrepancies before any HHA write-back.</p></div><button class="btn primary" disabled title="Demonstration only; workflow not connected">Create review rule</button></div>
-          <div class="filter-bar"><input id="exceptionSearch" type="search" placeholder="Search visit or exception"><select id="priorityFilter"><option value="all">All priorities</option><option value="high">High</option><option value="medium">Review</option><option value="low">Low</option></select><button class="btn secondary" disabled title="Demonstration only; workflow not connected">Export</button></div>
-          <section class="panel"><div class="table-wrap"><table id="exceptionTable"><thead><tr><th>Visit</th><th>Exception</th><th>Source</th><th>Scheduled</th><th>Actual</th><th>Visibility</th><th>Priority</th><th></th></tr></thead><tbody>
-            <tr data-priority="high"><td>PT-1048</td><td><strong>Missing clock-out</strong></td><td>EVV</td><td>8:00–12:00</td><td>8:03–—</td><td>Employee + manager</td><td><span class="status high">High</span></td><td><button class="row-action" disabled title="Demonstration only; workflow not connected">Review</button></td></tr>
-            <tr data-priority="medium"><td>PT-1051</td><td><strong>Clock-in variance</strong></td><td>EVV</td><td>10:00–2:00</td><td>10:18–2:01</td><td>Manager only</td><td><span class="status medium">Review</span></td><td><button class="row-action" disabled title="Demonstration only; workflow not connected">Review</button></td></tr>
-            <tr data-priority="medium"><td>PT-1055</td><td><strong>Verification incomplete</strong></td><td>Visit</td><td>1:00–5:00</td><td>1:01–4:58</td><td>Manager only</td><td><span class="status medium">Review</span></td><td><button class="row-action" disabled title="Demonstration only; workflow not connected">Review</button></td></tr>
-            <tr data-priority="low"><td>PT-1060</td><td><strong>Minor duration variance</strong></td><td>Schedule</td><td>2:00–6:00</td><td>2:02–5:55</td><td>Silent log</td><td><span class="status low">Low</span></td><td><button class="row-action" disabled title="Demonstration only; workflow not connected">Review</button></td></tr>
-          </tbody></table></div></section>
+        <section class="view" data-view-panel="evv">
+          <section class="panel connected-tools"><h3>Operational tools</h3><button type="button" class="btn secondary" data-view-jump="workbench" data-workflow="SearchVisitsV2">Inspect source EVV evidence</button><button type="button" class="btn secondary" data-view-jump="workbench" data-workflow="investigations">Open investigation queue</button></section>
+          <div class="section-heading"><div><p class="eyebrow">Compliance workflow</p><h2>EVV exception queue</h2><p>Source evidence must be validated before policy rules can classify an exception.</p></div></div>
+          <div class="filter-bar"><label for="exceptionSearch">Search preview<input id="exceptionSearch" type="search" placeholder="Visit or exception"></label><label for="priorityFilter">Priority<select id="priorityFilter"><option value="all">All priorities</option><option value="high">High</option><option value="medium">Review</option><option value="low">Low</option></select></label></div>
+          <section class="panel"><div id="dashboardExceptions"></div></section>
         </section>
-
-        <section class="view" data-view-panel="visits"><section class="panel"><h3>Connected operational tools</h3><button type="button" class="btn secondary" data-view-jump="workbench" data-workflow="SearchVisitsV2">Find source visits</button></section>
-          <div class="section-heading"><div><p class="eyebrow">Live operations</p><h2>Visits & clock activity</h2><p>Designed for expected-vs-actual visit monitoring once HHA synchronization is connected.</p></div><button class="btn secondary" disabled title="Demonstration only; workflow not connected">Refresh</button></div>
-          <div class="metric-grid compact-grid"><article class="metric-card"><span>In progress</span><strong>11</strong></article><article class="metric-card"><span>Starting soon</span><strong>6</strong></article><article class="metric-card attention"><span>Late / missing</span><strong>3</strong></article><article class="metric-card"><span>Completed</span><strong>18</strong></article></div>
-          <section class="panel"><div class="empty-state"><div class="empty-icon">↻</div><h3>Source visits available in Operational tools</h3><p>Use the protected date-and-office search to inspect source visits. Automatic synchronization and policy-based summaries remain gated.</p><button class="btn primary" data-view-jump="workbench">Open operational tools</button></div></section>
+        <section class="view" data-view-panel="visits">
+          <div class="section-heading"><div><p class="eyebrow">Selected office and day</p><h2>Visit source preview</h2><p>Scheduled, actual and EVV values remain separate. Source interpretation is pending.</p></div><button id="dashboardVisitRefresh" type="button" class="btn secondary">Refresh visits</button></div>
+          <div class="filter-bar visit-controls"><label for="dashboardVisitDate">Service date<input id="dashboardVisitDate" type="date" required></label><p id="dashboardVisitScope" class="scope-copy">Office not configured</p></div>
+          <div id="dashboardVisitMetrics" class="metric-grid compact-grid"></div>
+          <section class="panel"><p id="dashboardVisitStatus" role="status" aria-live="polite">Select a date to preview visits.</p><p id="dashboardVisitMetadata" class="source-metadata"></p><div id="dashboardVisitRows"></div><div class="visit-pagination"><button id="dashboardVisitNext" class="btn secondary" type="button" hidden>Next page</button><small id="dashboardVisitCompleteness"></small></div></section>
         </section>
-
-        <section class="view" data-view-panel="messages">
-          <div class="section-heading"><div><p class="eyebrow">Communications</p><h2>Messages & alert rules</h2><p>Separate employee-facing nudges from manager-only operational alerts.</p></div><button class="btn primary" disabled title="Demonstration only; workflow not connected">New message</button></div>
-          <div class="cards-3"><article class="panel"><span class="rule-tag employee">Employee visible</span><h3>Missing clock-in</h3><p>Send a reminder after the grace period, then escalate if unresolved.</p><small>Channel: TBD</small></article><article class="panel"><span class="rule-tag manager">Manager only</span><h3>Location discrepancy</h3><p>Keep potentially sensitive discrepancy alerts invisible to employees until reviewed.</p><small>Channel: dashboard</small></article><article class="panel"><span class="rule-tag silent">Silent log</span><h3>Minor variance</h3><p>Record low-risk anomalies for analytics without interrupting staff.</p><small>Channel: audit only</small></article></div>
+        <section class="view" data-view-panel="revisions" id="revisionWorkspace">
+          <div class="section-heading"><div><p class="eyebrow">Office & caregiver follow-up</p><h2>Visit review</h2><p>Review original times, understand the next step, and keep office follow-up together.</p></div><button class="btn secondary" id="revisionRefresh" type="button">Refresh review</button></div>
+          <p id="revisionStatus" class="revision-notice" role="status" aria-live="polite">Sign in to open visit review.</p>
+          <div class="filter-bar revision-filters"><label for="revisionDate">Service date<input id="revisionDate" type="date" required></label><label for="revisionSearch">Find in this page<input id="revisionSearch" type="search" placeholder="Visit, member, caregiver or issue"></label><label for="revisionSeverity">Show<select id="revisionSeverity"><option value="all">All visits</option><option value="attention">Needs attention</option><option value="blocker">Blocking issues</option><option value="review">Needs review</option><option value="verified">Verified</option><option value="unknown">Unknown evidence</option></select></label></div>
+          <p id="revisionScope" class="source-metadata"></p>
+          <div class="revision-review-grid"><section class="panel"><div class="panel-head"><h3>Visits on this page</h3><small id="revisionPageCount"></small></div><div id="revisionVisits"></div><div class="visit-pagination"><button class="btn secondary" id="revisionNext" type="button" hidden>Next visits</button><small id="revisionCompleteness"></small></div></section><section class="panel revision-selected" aria-labelledby="revisionDetailTitle"><h3 id="revisionDetailTitle" tabindex="-1">Selected visit</h3><div id="revisionDetail"></div></section></div>
+          <details class="panel revision-secondary"><summary>Office follow-up</summary><p>Review and acknowledge persisted issues. Resolving an office record does not verify or change the HHA visit.</p><div id="revisionExceptions"></div><button class="btn secondary" id="revisionExceptionsNext" type="button" hidden>Next follow-ups</button></details>
+          <details class="panel revision-secondary"><summary>Supervisory visits & orientation</summary><p>Each requirement uses an owner-defined program rule. Completion evidence is reviewed before the next due date advances.</p><div id="revisionRequirements"></div><button class="btn secondary" id="revisionRequirementsNext" type="button" hidden>Next requirements</button><details id="revisionCreateRequirement"><summary>Add a requirement</summary><form id="revisionRequirementForm" class="operational-form"><label>Requirement<select name="type"><option value="supervisory_visit">Supervisory visit</option><option value="initial_orientation">Initial orientation</option><option value="recurring_orientation">Recurring orientation</option></select></label><label>For<select name="subjectKind"><option value="member">Member</option><option value="caregiver">Caregiver</option></select></label><label>Member or caregiver reference<input name="subjectId" required inputmode="numeric" pattern="[1-9][0-9]{0,9}" maxlength="10"></label><label>Program<input name="program" required maxlength="128"></label><label>Service<input name="service" required maxlength="128"></label><label>Responsible supervisor<input name="assignedSupervisor" required maxlength="128"></label><label>Applicable rule or document reference<input name="ruleReference" required maxlength="500"></label><label>First due date<input name="anchorDate" type="date" required></label><label>Repeat every (calendar months)<input name="cadenceMonths" type="number" min="1" max="120" step="1" placeholder="Leave blank until defined"></label><label>Next due date follows<select name="anchorMode"><option value="fixed_due_date">Original due-date schedule</option><option value="completion_date">Accepted completion date</option></select></label><label>Effective from<input name="effectiveFrom" type="date" required></label><label>Effective until (optional)<input name="effectiveUntil" type="date"></label><label>Configuration note<textarea name="note" required maxlength="1000"></textarea></label><button class="btn primary" type="submit">Save requirement</button><p class="revision-form-message" role="status" aria-live="polite"></p></form></details></details>
+          <details class="panel revision-secondary"><summary>Reminders & office alerts</summary><p>Provider acceptance, confirmed delivery and office acknowledgement are shown separately. No messages are sent from this panel.</p><div id="revisionNotifications"></div><button class="btn secondary" id="revisionNotificationsNext" type="button" hidden>Next alerts</button></details>
         </section>
-
-        <section class="view" data-view-panel="staffing"><section class="panel"><h3>Connected operational tools</h3><button type="button" class="btn secondary" data-view-jump="workbench" data-workflow="SearchCaregivers">Read caregiver availability and preferences</button></section>
-          <div class="section-heading"><div><p class="eyebrow">Coverage engine</p><h2>Staffing</h2><p>Availability-first matching designed around caregiver availability and schedule data.</p></div><button class="btn primary" disabled title="Demonstration only; workflow not connected">Find coverage</button></div>
-          <div class="dashboard-grid"><section class="panel span-2"><h3>Open shifts</h3><div class="table-wrap"><table><thead><tr><th>Shift</th><th>Service</th><th>Window</th><th>Suggested matches</th><th></th></tr></thead><tbody><tr><td>Open #S-014</td><td>PAS</td><td>Tomorrow · 8 AM–12 PM</td><td>5 eligible</td><td><button class="row-action" disabled title="Demonstration only; workflow not connected">Match</button></td></tr><tr><td>Open #S-019</td><td>Respite</td><td>Tomorrow · 1 PM–5 PM</td><td>3 eligible</td><td><button class="row-action" disabled title="Demonstration only; workflow not connected">Match</button></td></tr></tbody></table></div></section><section class="panel"><h3>Match factors</h3><ul class="check-list"><li>Marked availability</li><li>Schedule conflicts</li><li>Service / discipline eligibility</li><li>Geographic fit</li><li>Weekly hours / overtime</li><li>Patient restrictions</li></ul></section></div>
-        </section>
-
-        <section class="view" data-view-panel="billing"><section class="panel"><h3>Connected operational tools</h3><button type="button" class="btn secondary" data-view-jump="workbench" data-workflow="SearchBilledVisits">Review billed visits and collection follow-up</button><button type="button" class="btn secondary" data-view-jump="workbench" data-workflow="SearchPayrollBatches">Review selected payroll batch</button></section>
-          <div class="section-heading"><div><p class="eyebrow">Revenue operations</p><h2>Billing & accounts receivable</h2><p>Future view from scheduled → completed → billing-ready → submitted → paid.</p></div><button class="btn secondary" disabled title="Demonstration only; workflow not connected">Date range</button></div>
-          <div class="metric-grid"><article class="metric-card"><span>Completed hours</span><strong>214.0h</strong><small>Demo</small></article><article class="metric-card"><span>Billing-ready</span><strong>198.5h</strong><small>Demo</small></article><article class="metric-card attention"><span>Blocked by exceptions</span><strong>15.5h</strong><small>Demo</small></article><article class="metric-card"><span>Projected this week</span><strong>286.5h</strong><small>Demo</small></article></div>
-          <section class="panel"><div class="panel-head"><div><h3>Billing pipeline</h3><p>HHA exposes visit billing information and billing service-code operations that can feed this view.</p></div></div><div class="pipeline"><div><span>Scheduled</span><strong>286.5h</strong></div><i>→</i><div><span>Completed</span><strong>214h</strong></div><i>→</i><div><span>Ready</span><strong>198.5h</strong></div><i>→</i><div><span>Submitted</span><strong>—</strong></div><i>→</i><div><span>Paid</span><strong>—</strong></div></div></section>
-        </section>
-
+        <section class="view" data-view-panel="messages"><div class="section-heading"><div><p class="eyebrow">Communications</p><h2>Messages & alert rules</h2><p>Delivery requires an approved channel and audience policy.</p></div></div><div id="dashboardMessages" class="cards-3"></div></section>
+        <section class="view" data-view-panel="staffing"><section class="panel connected-tools"><h3>Operational tools</h3><button type="button" class="btn secondary" data-view-jump="workbench" data-workflow="SearchCaregivers">Read caregiver availability and preferences</button></section><div class="section-heading"><div><p class="eyebrow">Coverage</p><h2>Staffing</h2><p>Availability and assignment rules require validated source evidence.</p></div></div><section class="panel"><h3>Open shifts</h3><div id="dashboardStaffing"></div></section></section>
+        <section class="view" data-view-panel="billing"><section class="panel connected-tools"><h3>Operational tools</h3><button type="button" class="btn secondary" data-view-jump="workbench" data-workflow="SearchBilledVisits">Review billed visits</button><button type="button" class="btn secondary" data-view-jump="workbench" data-workflow="SearchPayrollBatches">Review payroll batches</button></section><div class="section-heading"><div><p class="eyebrow">Revenue operations</p><h2>Billing & accounts receivable</h2><p>Hours, charges, submitted claims and payments require distinct source evidence.</p></div></div><div id="dashboardBillingMetrics" class="metric-grid"></div><section class="panel"><h3>Billing pipeline</h3><div id="dashboardBillingPipeline"></div></section></section>
         <section class="view" data-view-panel="hha">
-
           <section class="panel"><div class="panel-head"><h3>Import history</h3><button id="refreshIntegration" class="btn secondary" type="button">Refresh health</button></div><p id="integrationSyncDetails" role="status" aria-live="polite">Sign in to check import history.</p></section>
-          <div class="section-heading"><div><p class="eyebrow">Data layer</p><h2>HHAeXchange integration</h2><p>ENT v1.8 SOAP/WSDL contract found in the repository.</p></div><span class="status pending" id="hhaConnectionStatus">Checking</span></div>
-          <section class="panel"><h3>HHA capability controls</h3><p>Browse the full captured contract. Unavailable operations show the work and approvals still required; they cannot submit changes.</p><div class="filter-bar"><label for="capabilitySearch">Find operation<input id="capabilitySearch" type="search" placeholder="Operation or workflow"></label><label for="capabilityKind">Operation type<select id="capabilityKind"><option value="">All operations</option><option>Read candidate</option><option>Consequential write</option></select></label></div><p id="capabilitySummary" role="status">Loading contract inventory…</p><div class="table-wrap"><table><thead><tr><th>Operation</th><th>Workflow</th><th>Access</th><th>Implementation</th><th>Control</th></tr></thead><tbody id="capabilityRows"></tbody></table></div></section>
-          <div class="integration-banner"><div><strong>Production SOAP endpoint</strong><code>https://cloud.hhaexchange.com/Integration/ENT/V1.8/ws.asmx</code></div><div><strong>Security rule</strong><span>Credentials and App Key belong only in the backend secret store.</span></div></div>
-          <div class="dashboard-grid"><section class="panel span-2"><div class="panel-head"><div><h3>Priority operation map</h3><p>Operations confirmed from the HHA reference endpoint list.</p></div></div><div class="table-wrap"><table><thead><tr><th>Area</th><th>Operations discovered</th><th>Primetime use</th><th>Phase</th></tr></thead><tbody>
-            <tr><td>Visits</td><td><code>GetVisitChangesV5</code>, <code>GetVisitInfoV3</code></td><td>Sync visits / discrepancies</td><td><span class="status medium">P0</span></td></tr>
-            <tr><td>Confirmation</td><td><code>ConfirmVisits</code>, <code>ConfirmVisitsEVV</code>, <code>ConfirmVisitsV2</code></td><td>EVV correction / confirmation</td><td><span class="status high">P0 gated</span></td></tr>
-            <tr><td>Schedules</td><td><code>GetScheduleInfo</code>, <code>CreateSchedule</code></td><td>Expected shifts / staffing</td><td><span class="status medium">P0/P1</span></td></tr>
-            <tr><td>Caregivers</td><td><code>GetCaregiverChanges*</code>, availability operations</td><td>Roster / staffing eligibility</td><td><span class="status low">P1</span></td></tr>
-            <tr><td>Billing</td><td><code>GetVisitBillInfoV2</code>, <code>GetBillingServiceCodes</code></td><td>Billable-hours projection</td><td><span class="status low">P1</span></td></tr>
-            <tr><td>POC / patients</td><td><code>CreatePatientPOC</code>, patient operations</td><td>Documentation context</td><td><span class="status pending">Map next</span></td></tr>
-          </tbody></table></div></section><section class="panel"><h3>Connection checklist</h3><ol class="number-list"><li><span>Inventory WSDL request/response schemas</span></li><li><span>Deploy server-side SOAP adapter</span></li><li><span>Test read-only call with production credentials</span></li><li><span>Store normalized snapshots + sync cursor</span></li><li><span>Validate exception rules with managers</span></li><li><span>Enable controlled HHA write-back</span></li></ol></section></div>
+          <div class="section-heading"><div><p class="eyebrow">Reference metadata</p><h2>HHAeXchange integration</h2><p>The captured contract describes operations. Contract presence does not prove account access or source validation.</p></div><span class="status pending" id="hhaConnectionStatus">Unverified</span></div>
+          <section class="panel"><h3>HHA capability controls</h3><p>Browse the captured contract and the prerequisites for source reads and prepared changes.</p><div class="filter-bar"><label for="capabilitySearch">Find operation<input id="capabilitySearch" type="search" placeholder="Operation or workflow"></label><label for="capabilityKind">Operation type<select id="capabilityKind"><option value="">All operations</option><option>Read candidate</option><option>Consequential write</option></select></label></div><p id="capabilitySummary" role="status">Loading contract inventory…</p><div class="table-wrap"><table><thead><tr><th>Operation</th><th>Workflow</th><th>Access</th><th>Implementation</th><th>Control</th></tr></thead><tbody id="capabilityRows"></tbody></table></div></section>
+          <div class="integration-banner"><div><strong>Captured SOAP endpoint</strong><code>https://cloud.hhaexchange.com/Integration/ENT/V1.8/ws.asmx</code></div><div><strong>Server credentials</strong><span>Credentials and App Key are held in the backend secret store.</span></div></div>
         </section>
-
-        <section class="view" data-view-panel="audit"><section class="panel"><h3>Connected operational tools</h3><button type="button" class="btn secondary" data-view-jump="workbench" data-workflow="audit">Load persisted audit history</button></section>
-          <div class="section-heading"><div><p class="eyebrow">Traceability</p><h2>Audit log</h2><p>Every HHA sync, admin correction, alert and future write-back should be attributable.</p></div><button class="btn secondary" disabled title="Demonstration only; workflow not connected">Export log</button></div>
-          <section class="panel"><div class="table-wrap"><table><thead><tr><th>Time</th><th>Actor</th><th>Action</th><th>Object</th><th>Result</th></tr></thead><tbody><tr><td>—</td><td>System</td><td>Admin scaffold initialized</td><td>/primetime</td><td><span class="status low">Ready</span></td></tr><tr><td>—</td><td>System</td><td>HHA references detected</td><td>ENT v1.8</td><td><span class="status low">Ready</span></td></tr></tbody></table></div></section>
-        </section>
-
-        <section class="view" data-view-panel="settings"><section class="panel"><h3>Connected operational tools</h3><button type="button" class="btn secondary" data-view-jump="workbench" data-workflow="settings">Configure owner read controls and review thresholds</button></section>
-          <div class="section-heading"><div><p class="eyebrow">Administration</p><h2>Settings</h2><p>Security, roles, integrations, thresholds and notification policy.</p></div></div>
-          <div class="settings-grid"><section class="panel"><h3>Access control</h3><p>Owner role and permission decisions are complete; server enforcement starts with the administrator claim and expands by approved role.</p><button class="btn secondary" disabled title="Demonstration only; workflow not connected">Configure roles</button></section><section class="panel"><h3>EVV thresholds</h3><p>The owner checklist records policy decisions as complete. Exact approved values still need verification; nullable review settings are available in Operational tools and do not activate rules.</p><button class="btn secondary" disabled title="Demonstration only; workflow not connected">Configure rules</button></section><section class="panel"><h3>Messaging</h3><p>Owner audience and escalation decisions are complete; delivery channels remain disabled until live-data validation.</p><button class="btn secondary" disabled title="Demonstration only; workflow not connected">Configure channels</button></section><section class="panel"><h3>Data handling</h3><p>No PHI should be stored in browser localStorage. Production access must use authenticated, authorized backend APIs.</p><button class="btn secondary" disabled title="Demonstration only; workflow not connected">Security checklist</button></section></div>
-        </section>
+        <section class="view" data-view-panel="audit"><section class="panel connected-tools"><h3>Operational tools</h3><button type="button" class="btn secondary" data-view-jump="workbench" data-workflow="audit">Load persisted audit history</button></section><div class="section-heading"><div><p class="eyebrow">Traceability</p><h2>Audit log</h2><p>Persisted actions are available through authenticated operational tools.</p></div></div><section class="panel"><div id="dashboardAudit"></div></section></section>
+        <section class="view" data-view-panel="settings"><section class="panel connected-tools"><h3>Operational tools</h3><button type="button" class="btn secondary" data-view-jump="workbench" data-workflow="settings">Configure owner controls</button></section><div class="section-heading"><div><p class="eyebrow">Administration</p><h2>Settings</h2><p>Owner preferences and server approval govern live source access.</p></div></div><div id="dashboardSettings" class="settings-grid"></div></section>
 <section class="view" data-view-panel="workbench" id="operationalWorkspace">
 <div class="section-heading"><div><p class="eyebrow">Operational tools</p><h2>Owner & supervisor workspace</h2><p id="dataGate">Load the current deployment and owner controls.</p></div><button class="btn secondary" id="reloadWorkspace" type="button">Reload controls</button></div>
 <p id="workspaceMessage" role="status" aria-live="polite">Sign in to load operational controls.</p>
@@ -211,6 +123,11 @@
   <script src="/__/firebase/8.10.1/firebase-app.js" defer></script>
   <script src="/__/firebase/8.10.1/firebase-auth.js" defer></script>
   <script src="/__/firebase/init.js" defer></script>
-  <script src="/primetime/primetime.js?v=92901e7a546d" defer></script>
-<script src="/primetime/workspace.js?v=ca92e0c4f39a" defer></script></body>
+  <script src="/primetime/data-source.js?v=4f43e3e00584" defer></script>
+  <script src="/primetime/demo-data.js?v=d81432e3500d" defer></script>
+  <script src="/primetime/dashboard.js?v=aada4f42bddc" defer></script>
+  <script src="/primetime/revisions.js?v=a4406bb340ad" defer></script>
+  <script src="/primetime/primetime.js?v=7f70136168e0" defer></script>
+  <script src="/primetime/workspace.js?v=b9ff2452ce2c" defer></script>
+</body>
 </html>

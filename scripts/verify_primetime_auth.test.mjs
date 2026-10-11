@@ -47,7 +47,8 @@ function startApp(session, health = { ok: true, status: 200, json: async () => (
   const location = { hash: '', href: options.href || 'https://pthhs.net/primetime' };
   const historyChanges = [];
   const events = [];
-  const window = { firebase, innerWidth: 1200, localStorage, location };
+  const window = { firebase, innerWidth: 1200, localStorage, location,
+    primetimeDataMode: { getMode: () => 'live', getGeneration: () => 0, isLive: () => true, reset() {} } };
   vm.runInNewContext(source, {
     document: { getElementById: element, querySelectorAll: () => [], addEventListener() {}, dispatchEvent(event) { events.push(event.type); } },
     window,

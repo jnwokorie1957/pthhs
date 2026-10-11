@@ -56,6 +56,7 @@ export interface WorkspaceRepository {
   get<T extends Versioned>(collection: string, id: string): Promise<T | null>;
   list<T extends Versioned>(collection: string): Promise<T[]>;
   page<T extends Versioned>(collection: string, cursor?: string): Promise<WorkspacePage<T>>;
+  pageActiveNotifications?<T extends Versioned>(collection: string, afterId?: string): Promise<WorkspacePage<T>>;
   change<T extends Versioned>(collection: string, id: string, expected: number, actor: string, action: string, update: (prior: T | null) => T): Promise<T>;
   reserveRead(): Promise<void>;
   deferReads(seconds: number): Promise<void>;
@@ -79,6 +80,14 @@ export class FirestoreWorkspaceRepository implements WorkspaceRepository {
     if (boundary) query = query.startAfter(boundary.updatedAt, boundary.id);
     const snapshot = await query.get(), docs = snapshot.docs.slice(0, 100), last = docs.at(-1);
     return { items: docs.map(doc => doc.data() as T), nextCursor: snapshot.size > 100 && last ? nextWorkspaceCursor(last.data().updatedAt, last.id) : null };
+  }
+  async pageActiveNotifications<T extends Versioned>(collection: string, afterId?: string): Promise<WorkspacePage<T>> {
+    if (!/^revisionNotificationOutbox_[1-9]\d{0,9}$/.test(collection)) throw new WorkflowError("invalid_notification_collection");
+    if (afterId !== undefined && !/^[a-f0-9]{64}$/.test(afterId)) throw new WorkflowError("invalid_notification_delivery_cursor");
+    let query = this.db.collection(collection).where("state", "in", ["queued", "claimed", "unknown", "accepted"]).orderBy(FieldPath.documentId()).limit(101);
+    if (afterId) query = query.startAfter(afterId);
+    const snapshot = await query.get(), docs = snapshot.docs.slice(0, 100), last = docs.at(-1);
+    return { items: docs.map(doc => doc.data() as T), nextCursor: snapshot.size > 100 && last ? last.id : null };
   }
   async change<T extends Versioned>(collection: string, id: string, expected: number, actor: string, action: string, update: (prior: T | null) => T): Promise<T> {
     return this.db.runTransaction(async tx => {
@@ -179,7 +188,8 @@ export class OperationsWorkspace {
     const { settings } = await this.settings();
     if (!settings.enabledReads.includes(input.operation)) throw new WorkflowError("read_not_owner_enabled", 423);
     if (OFFICE_SCOPED_READS.includes(input.operation) && input.officeId !== settings.officeId) throw new WorkflowError("office_scope_mismatch", 403);
-    await this.repository.reserveRead();
+    // The SOAP transport reserves the shared budget per actual dispatch. Do not
+    // charge this service layer again; gated or invalid reads never dispatch.
     const id = randomUUID();
     await this.repository.change("readRequests", id, 0, actor, "read_requested_" + input.operation, () => ({ id, revision: 1, updatedAt: new Date().toISOString(), operation: input.operation }));
     try { return await this.read(input, projectionScope); }
