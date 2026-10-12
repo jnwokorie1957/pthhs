@@ -3,9 +3,19 @@ name: Deploy to Firebase Hosting
 on:
   push:
     branches: [ main ]
+  workflow_dispatch:
+    inputs:
+      deployment_target:
+        description: 'Website only (Firebase Hosting; no backend)'
+        required: true
+        type: choice
+        default: hosting
+        options:
+          - hosting
 
 jobs:
   build_and_deploy:
+    if: github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' && inputs.deployment_target == 'hosting')
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repo
@@ -19,6 +29,11 @@ jobs:
         run: npm ci
       - name: Build and verify site
         run: npm run check
+      - name: Verify Hosting-only deployment boundary
+        if: github.event_name == 'workflow_dispatch'
+        run: |
+          node --test scripts/verify-hosting-only.test.mjs
+          node scripts/verify-hosting-only.mjs
       - name: Deploy to Firebase Hosting
         uses: FirebaseExtended/action-hosting-deploy@v0
         with:
@@ -39,6 +54,8 @@ jobs:
   # A Functions IAM failure must not prevent an independently verified static
   # website restoration from reaching Firebase Hosting.
   deploy_backend:
+    # Manual releases are always website-only, regardless of supplied inputs.
+    if: github.event_name == 'push'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repo

@@ -40,3 +40,14 @@ The existing main-push deployment workflow invokes both Firebase Hosting and a b
 - Final deterministic full release gate: **PTHHS_BUILD_AND_VERIFICATION: PASS**. This includes source syntax checks, local regression tests, sitemap tests, all marketing release verifiers, repository audit and byte-preservation of the internal app. The first unstaged run correctly stopped at the clean-diff guard; the reviewed staged rerun passed with no generated differences.
 
 Publication is intentionally separated from deployment: the content commit uses `[skip ci]` to prevent the existing combined workflow from retrying the out-of-scope backend. This does not resolve or bypass the separate backend approval blocker. Hosting deployment and post-deployment content verification remain pending; there is no deployment run for this content release yet.
+
+
+## Approved Hosting-only release option
+
+After the initial content push, the owner approved adding a website-only option to the existing deployment workflow using its existing credentials and permissions. The manual `workflow_dispatch` input accepts only `deployment_target=hosting`; the website job permits this mode only on main. The backend job has a job-level push-only condition, so no manual dispatch can execute it. Normal main-push behavior remains unchanged.
+
+The manual path runs the existing build, then tests and enforces the Hosting-only configuration boundary immediately before the existing Hosting action. It rejects deployment hooks, framework source, alternate public directories/sites/targets/projects and pinned backend rewrites. The existing project, Hosting configuration, action and secret references are unchanged. No permissions, secret, IAM or HHA diagnostic changes are included.
+
+The workflow commit is pushed with `[skip ci]` to prevent the default combined push deployment. Release is then explicitly dispatched with `deployment_target=hosting` on the verified main commit. Production content and job results must be verified before marking this release live.
+
+Validation of the approved option: YAML parsing and comparison with the previous workflow passed; the only behavioral additions are the manual input, job conditions and Hosting-only guard. All 13 boundary tests passed, including attempts to select backend/all, alternate branches, hooks, pinned rewrites and different deployment targets. The complete current SEO build also returned `PTHHS_BUILD_AND_VERIFICATION: PASS`.
