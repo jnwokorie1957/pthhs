@@ -199,6 +199,7 @@
       if (!response.ok || payload?.ok !== true || payload.mode !== 'live') throw new Error('data_status_unavailable');
       metadata = payload;
       const settings = payload.settings || {};
+      if (controller.observeScope?.(settings)) return;
       if (!dateChosen && settings.officeTimezone && dateInput) {
         try { const parts = new Intl.DateTimeFormat('en', { timeZone: settings.officeTimezone, year: 'numeric', month: '2-digit', day: '2-digit' }).formatToParts(new Date()); dateInput.value = ['year', 'month', 'day'].map(type => parts.find(part => part.type === type)?.value).join('-'); } catch { /* A user-selected date remains available. */ }
       }
@@ -241,7 +242,7 @@
     }
     if (get('dashboardVisitRefresh')) get('dashboardVisitRefresh').disabled = true;
     try {
-      const query = new URLSearchParams({ date, limit: '10' });
+      const query = new URLSearchParams({ date, limit: '10', officeId: metadata.settings.officeId });
       if (cursor) query.set('cursor', cursor);
       const response = await window.primetimeApiFetch('/primetime/api/views/visits?' + query, { signal: abort.signal });
       if (!current(captured)) return;
@@ -274,7 +275,7 @@
     if (controller.isLive()) void loadVisits(); else { demoOffset = 0; renderMode(); }
   });
   get('dashboardVisitRefresh')?.addEventListener('click', () => {
-    if (controller.isLive()) void loadVisits(); else { demoOffset = 0; showVisitPreview(fixtures.visitPage(dateInput.value), { mode: 'demo', date: dateInput.value }); }
+    if (controller.isLive()) { clearSource(); void loadMetadata(); } else { demoOffset = 0; showVisitPreview(fixtures.visitPage(dateInput.value), { mode: 'demo', date: dateInput.value }); }
   });
   get('dashboardVisitNext')?.addEventListener('click', () => {
     if (!nextCursor) return;

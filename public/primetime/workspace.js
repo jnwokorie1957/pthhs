@@ -91,6 +91,7 @@
   $('readPermissions').addEventListener('change', filterReadPermissions);
   async function loadSettings() {
     const data = await request('settings'); linkedScheduleCreationWritesEnabled = data.linkedScheduleCreationWritesEnabled === true; collectionNoteWritesEnabled = data.collectionNoteWritesEnabled === true; referralCreationWritesEnabled = data.referralCreationWritesEnabled === true; contractCreationWritesEnabled = data.contractCreationWritesEnabled === true; caregiverPictureWritesEnabled = data.caregiverPictureWritesEnabled === true; documentCreationWrites = data.documentCreationWrites || []; documentReplacementWrites = data.documentReplacementWrites || []; medicalCreationWritesEnabled = data.medicalCreationWritesEnabled === true; patientClinicalWritesEnabled = data.patientClinicalWritesEnabled === true; documentMetadataWrites = data.documentMetadataWrites || []; patientNoteWritesEnabled = data.patientNoteWritesEnabled === true; availabilityCreationWrites = data.availabilityCreationWrites || []; patientContractWritesEnabled = data.patientContractWritesEnabled === true; settings = data.settings; writesEnabled = data.writesEnabled === true; documentTypeWritesEnabled = data.documentTypeWritesEnabled === true; topicWritesEnabled = data.topicWritesEnabled === true; rateCreationWritesEnabled = data.rateCreationWritesEnabled === true; readInputs = data.readInputs || {}; availabilityWrites = data.availabilityWrites || []; showReadInputs();
+    if (window.primetimeDataMode?.observeScope?.(settings)) return;
     $('ownerOffice').value = settings.officeId || ''; $('ownerTimezone').value = settings.officeTimezone || ''; $('ownerReference').value = settings.policyReference;
     $('ownerInMinutes').value = settings.missingClockInMinutes ?? ''; $('ownerOutMinutes').value = settings.missingClockOutMinutes ?? '';
     $('readOffice').value = settings.officeId || ''; $('staffingOffice').value = settings.officeId || '';
@@ -112,7 +113,9 @@
     if (!settings) throw new Error('Load owner controls first.');
     const threshold = id => $(id).value === '' ? null : Number($(id).value);
     const result = await request('settings', { revision: settings.revision, officeId: $('ownerOffice').value || null, officeTimezone: $('ownerTimezone').value || null, policyReference: $('ownerReference').value, enabledReads: [...$('readPermissions').querySelectorAll('input:checked')].map(input => input.value), missingClockInMinutes: threshold('ownerInMinutes'), missingClockOutMinutes: threshold('ownerOutMinutes') });
-    settings = result.settings; $('readOffice').value = settings.officeId || ''; $('staffingOffice').value = settings.officeId || ''; message('Preferences saved with an audit event. Thresholds are review configuration; automated decisions remain disabled.');
+    settings = result.settings;
+    if (window.primetimeDataMode?.observeScope?.(settings)) return;
+    $('readOffice').value = settings.officeId || ''; $('staffingOffice').value = settings.officeId || ''; message('Preferences saved with an audit event. Thresholds are review configuration; automated decisions remain disabled.');
   }); });
   $('readForm').addEventListener('submit', event => { event.preventDefault(); action(async () => {
     const sequence = ++readSequence; $('readResults').replaceChildren();

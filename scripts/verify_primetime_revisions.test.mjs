@@ -122,7 +122,7 @@ test('an unapproved Live status prevents all protected data reads', async () => 
   await app.openLive(); assert.equal(app.calls.length, 1); assert.ok(app.text('revisionStatus').includes('not been approved')); assert.ok(!app.text('revisionVisits').includes('DEMO-'));
 });
 test('Live reads run only in the selected panel; source text never becomes HTML', async () => {
-  const payload = visits(); payload.items[0].diagnosis.issues[0].summary = '<img src=x onerror=alert(1)>';
+  const payload = visits(new Date().toLocaleDateString('en-CA')); payload.items[0].diagnosis.issues[0].summary = '<img src=x onerror=alert(1)>';
   const app = harness(path => path.includes('/visits?') ? { ok: true, json: async () => payload } : null);
   app.emit('primetime-ready'); app.window.primetimeDataMode.setMode('live'); await tick(); assert.equal(app.calls.length, 0);
   app.emit('primetime-view-changed', { view: 'revisions' }); await tick(); await tick();
@@ -135,7 +135,7 @@ for (const transition of ['demo', 'signed-out', 'date', 'away']) test(`pending s
   await app.openLive(); const oldDate = app.element('revisionDate').value;
   if (transition === 'demo') app.window.primetimeDataMode.setMode('demo');
   if (transition === 'signed-out') app.emit('primetime-signed-out');
-  if (transition === 'date') { app.element('revisionDate').value = '2026-10-12'; await app.change('revisionDate'); }
+  if (transition === 'date') { app.element('revisionDate').value = new Date(Date.parse(oldDate + 'T00:00:00Z') + 86400000).toISOString().slice(0, 10); await app.change('revisionDate'); }
   if (transition === 'away') app.emit('primetime-view-changed', { view: 'overview' });
   wait.resolve(visits(oldDate)); await tick(); await tick();
   assert.ok(!app.text('revisionDetail').includes('Original source start'));
@@ -208,4 +208,15 @@ test('a late office-review response cannot restore records after switching to De
   const save = app.submit(form); await tick(); app.window.primetimeDataMode.setMode('demo');
   wait.resolve({ ok: true, mode: 'live', source: 'primetime', ...exception, revision: 2 }); await save;
   assert.ok(app.text('revisionDetail').includes('DEMO-V-')); assert.ok(!app.text('revisionExceptions').includes('Missing punches'));
+});
+
+test('Demo review paging never reuses prior-page selection or performs source requests', async () => {
+  const app=harness(); app.emit('primetime-ready'); app.emit('primetime-view-changed', {view:'revisions'});
+  assert.ok(app.text('revisionDetail').includes('DEMO-V-1048'));
+  await app.click('revisionNext');
+  assert.ok(app.text('revisionDetail').includes('DEMO-V-1058'));
+  assert.ok(!app.text('revisionDetail').includes('DEMO-V-1048'));
+  for(let i=0;i<3;i++) await app.click('revisionNext');
+  assert.equal(app.element('revisionNext').hidden,true);
+  assert.equal(app.calls.length,0);
 });

@@ -192,7 +192,12 @@ export class OperationsWorkspace {
     // charge this service layer again; gated or invalid reads never dispatch.
     const id = randomUUID();
     await this.repository.change("readRequests", id, 0, actor, "read_requested_" + input.operation, () => ({ id, revision: 1, updatedAt: new Date().toISOString(), operation: input.operation }));
-    try { return await this.read(input, projectionScope); }
+    try {
+      const result = await this.read(input, projectionScope);
+      const latest = (await this.settings()).settings;
+      if (JSON.stringify(latest) !== JSON.stringify(settings)) throw new WorkflowError("office_policy_changed_restart", 409);
+      return result;
+    }
     catch (error) {
       if (error instanceof WorkflowError && error.retryAfterSeconds) await this.repository.deferReads(error.retryAfterSeconds);
       throw error;
@@ -224,6 +229,7 @@ export class OperationsWorkspace {
     this.requireData(); const input = object(value);
     if (Object.keys(input).some(key => key !== "visitIds") || !Array.isArray(input.visitIds) || input.visitIds.length < 1 || input.visitIds.length > 10) throw new WorkflowError("select_one_to_ten_visits");
     const ids = [...new Set(input.visitIds.map(identifier))];
+    const initialScope = (await this.settings()).settings;
     const visits: { visitId: string; state: "reviewed" | "unavailable"; fetchedAt: string | null; flags: string[]; facts: Record<string, string | null> | null; error: string | null }[] = [];
     const started = this.elapsedClock();
     for (const visitId of ids) {
@@ -238,6 +244,10 @@ export class OperationsWorkspace {
         const matches = source.records.filter(row => row.ID === visitId);
         if (source.truncated || matches.length !== 1) throw new WorkflowError("visit_not_uniquely_returned", 502);
         const facts = matches[0]!, flags: string[] = [];
+        const patientId = identifier(facts["Patient/ID"]);
+        const patient = await this.query({ operation: "GetPatientDemographics", id: patientId }, actor);
+        if (!initialScope.officeId || patient.truncated || patient.records.length !== 1 || patient.records[0]?.PatientID !== patientId
+          || patient.records[0]?.OfficeID !== initialScope.officeId) throw new WorkflowError("visit_patient_office_mismatch", 403);
         if (!facts.EVVStartTime) flags.push("EVV clock-in not supplied; investigate source evidence");
         if (!facts.EVVEndTime) flags.push("EVV clock-out not supplied; investigate source evidence");
         if (facts.VisitStartTime && !facts.EVVStartTime || facts.VisitEndTime && !facts.EVVEndTime) flags.push("Visit times do not establish EVV clock evidence");
@@ -251,6 +261,7 @@ export class OperationsWorkspace {
         }
       }
     }
+    if (JSON.stringify((await this.settings()).settings) !== JSON.stringify(initialScope)) throw new WorkflowError("office_policy_changed_restart", 409);
     return { visits, state: visits.some(row => row.state === "unavailable") ? "partial" : "complete", policyEvaluated: false, sourceValidated: false };
   }
   async availability(action: "prepare" | "recheck" | "review" | "execute" | "reconcile", value: unknown, actor: string) {
@@ -266,26 +277,12 @@ export class OperationsWorkspace {
     // Validate the discovery scope before making any source requests.
     readRequest({ operation: "SearchVisitsV2", officeId, date });
     if ((await this.settings()).settings.officeId !== officeId) throw new WorkflowError("office_scope_mismatch", 403);
-    const started = this.elapsedClock(); let deferred = false;
-    const evidence: { subject: string; operation: string; source: OperationalRead | null; error: string | null }[] = [];
-    const readEvidence = async (subject: string, request: ReadInput) => {
-      if (deferred || this.elapsedClock() - started >= 25_000) {
-        evidence.push({ subject, operation: request.operation, source: null, error: deferred ? "not_attempted_vendor_backoff" : "not_attempted_batch_time_budget" }); return;
-      }
-      try { evidence.push({ subject, operation: request.operation, source: await this.query(request, actor), error: null }); }
-      catch (error) {
-        if (error instanceof WorkflowError && error.status === 429) deferred = true;
-        evidence.push({ subject, operation: request.operation, source: null, error: error instanceof WorkflowError ? error.code : "staffing_evidence_unavailable" });
-      }
-    };
-    await readEvidence(`patient:${patientId}`, { operation: "GetPatientPreferences", patientId });
-    await readEvidence(`patient:${patientId}`, { operation: "GetPatientDeclinedCaregivers", patientId });
-    for (const id of caregiverIds) {
-      for (const operation of ["GetCaregiverPreferences", "GetCaregiverPermanentWeekAvailability", "GetCaregiverSpecialAvailability"] as const) await readEvidence(`caregiver:${id}`, { operation, id });
-      await readEvidence(`caregiver:${id}`, { operation: "SearchVisitsV2", officeId, date, caregiverId: id });
-    }
-    return { patientId, officeId, date, caregiverIds, evidence, state: evidence.some(item => item.error || item.source?.truncated) ? "partial" : "complete", eligibility: "not_determined", rankingApplied: false, assignmentChanged: false, warning: "Selected-day visit IDs do not establish overlapping shifts, free capacity or travel feasibility. Review patient choice, declines, source availability and verified schedule details before a human assignment." };
+    // The captured caregiver demographic response has no OfficeID. Neither an
+    // empty schedule nor a supplied caregiver ID proves office membership.
+    // Keep this composite review closed until an authoritative join is accepted.
+    throw new WorkflowError("staffing_caregiver_office_evidence_unavailable", 423);
   }
+
   async page<T extends Versioned>(collection: "investigations" | "writeIntents" | "workspaceAudit" | "availabilityChanges" | "documentTypeChanges" | "topicChanges" | "rateCreations" | "patientContractChanges" | "availabilityCreations" | "patientNoteChanges" | "documentMetadataChanges" | "patientClinicalChanges" | "medicalCreations" | "documentReplacementChanges" | "documentCreationChanges" | "caregiverPictureChanges" | "contractCreations" | "referralCreations" | "collectionNoteChanges" | "linkedScheduleCreations", query: unknown): Promise<WorkspacePage<T>> {
     this.requireData();
     const input = object(query ?? {});

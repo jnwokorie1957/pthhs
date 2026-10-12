@@ -10,7 +10,7 @@
   function normalizeStatus(payload) {
     if (payload?.ok !== true || payload.mode !== 'live' || typeof payload.dataApproved !== 'boolean' || payload.sourceWritesEnabled !== false
       || payload.officeId !== null && !sourceId(payload.officeId) || !payload.capabilities || ['diagnosis', 'records', 'monitoring', 'sms'].some(key => typeof payload.capabilities[key] !== 'boolean')) throw new Error('invalid_revision_status');
-    return { officeId: payload.officeId, dataApproved: payload.dataApproved, capabilities: { ...payload.capabilities },
+    return { officeId: payload.officeId, workspaceScope: payload.workspaceScope, dataApproved: payload.dataApproved, capabilities: { ...payload.capabilities },
       earlyReminderConfigured: payload.earlyReminderConfigured === true, blockedReason: short(payload.blockedReason),
       sourceAcceptance: payload.sourceAcceptance ? { version: short(payload.sourceAcceptance.version, 128), reference: short(payload.sourceAcceptance.reference, 500), validUntil: short(payload.sourceAcceptance.validUntil, 40) } : null };
   }
@@ -280,6 +280,7 @@
     try {
       status = normalizeStatus(await request('status', ticket));
       if (!current(ticket)) return;
+        if (controller.observeScope?.(status.workspaceScope)) return;
       text('revisionScope', `Office ${status.officeId || 'not configured'} · ${ticket.date}`);
       if (!status.dataApproved || !status.officeId) {
         text('revisionStatus', friendlyErrors[status.blockedReason] || 'Live review is unavailable until the office and data approvals are ready.');

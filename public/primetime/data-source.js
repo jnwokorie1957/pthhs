@@ -3,6 +3,7 @@
   let mode = 'demo';
   let generation = 0;
   let active = false;
+  let scope = null;
   const requests = new Set();
   try {
     if (window.sessionStorage?.getItem(preferenceKey) === 'live') mode = 'live';
@@ -31,6 +32,7 @@
 
   function reset() {
     active = false;
+    scope = null;
     invalidate();
     mode = 'demo';
     try { window.sessionStorage?.removeItem(preferenceKey); } catch { /* Optional. */ }
@@ -44,6 +46,17 @@
     isActive: () => active,
     setMode,
     reset,
+    // Observed server settings, not browser authority. Any changed office or
+    // policy clears every panel and fences responses already in flight.
+    observeScope(settings) {
+      if (!settings || !Number.isInteger(settings.revision)) return false;
+      const next = JSON.stringify([settings.officeId, settings.officeTimezone, settings.revision]);
+      if (scope === next) return false;
+      const changed = scope !== null;
+      scope = next;
+      if (changed) { invalidate(); announce(); }
+      return changed;
+    },
     trackRequest(controller) {
       requests.add(controller);
       return () => requests.delete(controller);

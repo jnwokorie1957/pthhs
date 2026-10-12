@@ -113,7 +113,9 @@ function revisionBackend(actor: RevisionActor) {
 
 // The handler stays deployed with closed defaults; it reads no operational
 // facts and sends nothing until release, source acceptance and office policy agree.
-export const primetimeRevisionMonitor = onSchedule({ region: "us-central1", schedule: "* * * * *", timeZone: "America/Chicago",
+// API-only discovery excludes the undeployed scheduled handler. The matching
+// deploy filter must name primetimeApi, so no existing function is deleted.
+export const primetimeRevisionMonitor = process.env.PRIMETIME_API_ONLY_DEPLOY === "true" ? undefined : onSchedule({ region: "us-central1", schedule: "* * * * *", timeZone: "America/Chicago",
   timeoutSeconds: 300, memory: "256MiB", maxInstances: 1, concurrency: 1, retryCount: 0, secrets: [hhaCredentials] }, async () => {
   try {
     const result = await revisionBackend({ actorId: "revision_monitor", roles: ["admin"], mode: "live" }).monitor();

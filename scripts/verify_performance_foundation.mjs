@@ -1,6 +1,7 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import sharp from 'sharp';
+import { gzipSync } from 'node:zlib';
 import { isInternalAppFile, marketingHtmlFiles } from './site-scope.mjs';
 
 const root = process.cwd();
@@ -186,7 +187,18 @@ const publicFiles = await walk(publicDir);
 const publicBytes = (await Promise.all(publicFiles.map((file) => fs.stat(file)))).reduce((sum, stat) => sum + stat.size, 0);
 const internalBytes = (await Promise.all(publicFiles.filter(file => isInternalAppFile(file, publicDir)).map(file => fs.stat(file)))).reduce((sum, stat) => sum + stat.size, 0);
 if (publicBytes - internalBytes > 2_000_000) errors.push(`marketing output exceeds 2 MB foundation budget: ${publicBytes - internalBytes}`);
-if (internalBytes > 256_000) errors.push(`internal app output exceeds 256 KB budget: ${internalBytes}`);
+// The authenticated app now includes source review, Demo/Live and durable
+// follow-up UI. Keep a bounded raw budget plus compressed-transfer and per-file
+// caps; the separate marketing budget remains unchanged.
+if (internalBytes > 360_000) errors.push(`internal app output exceeds 360 KB budget: ${internalBytes}`);
+const internalFiles = publicFiles.filter(file => isInternalAppFile(file, publicDir));
+let compressedInternalBytes = 0;
+for (const file of internalFiles) {
+  const bytes = await fs.readFile(file);
+  compressedInternalBytes += gzipSync(bytes).length;
+  if (bytes.length > 110_000) errors.push(`internal asset exceeds 110 KB budget: ${path.basename(file)}`);
+}
+if (compressedInternalBytes > 90_000) errors.push(`internal app gzip estimate exceeds 90 KB budget: ${compressedInternalBytes}`);
 if (pictureCount !== 4 || preloadCount !== 3) errors.push(`expected 4 responsive pictures and 3 LCP preloads, found ${pictureCount}/${preloadCount}`);
 if (externalRuntimeCount !== 0) errors.push(`expected zero external runtime resources, found ${externalRuntimeCount}`);
 

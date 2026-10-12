@@ -70,8 +70,9 @@ jobs:
       - name: Deploy Primetime Functions
         id: deploy_functions
         env:
+          PRIMETIME_API_ONLY_DEPLOY: "true"
           GOOGLE_APPLICATION_CREDENTIALS: ${{ runner.temp }}/firebase-service-account.json
-        run: firebase deploy --only functions --project primetimehomehealthservices --non-interactive
+        run: firebase deploy --only functions:primetimeApi --project primetimehomehealthservices --non-interactive
       - name: Verify anonymous API boundary independently
         if: ${{ !cancelled() && (steps.deploy_functions.outcome == 'success' || steps.deploy_functions.outcome == 'failure') }}
         run: node functions/scripts/verify-anonymous-deployment.mjs

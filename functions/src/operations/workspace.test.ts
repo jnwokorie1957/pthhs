@@ -206,11 +206,12 @@ test("reference catalogs preserve vendor spelling and parameter order and cannot
 test("bounded evidence review distinguishes manual clocks, partial reads and deferred visits", async () => {
   const repository = new MemoryRepository(); const calls: string[] = [];
   const service = new OperationsWorkspace(repository, async input => {
+    if (input.operation === "GetPatientDemographics") return { ...result(input), records: [{ PatientID: input.id!, OfficeID: "123" }] };
     calls.push(input.id!);
     if (input.id === "2") throw new WorkflowError("vendor_backoff_active", 429, 90);
-    return { ...result(input), records: [{ ID: input.id!, VisitStartTime: "08:00", EVVStartTime: null, EVVEndTime: null, ActualHours: "4", PayHours: "4" }] };
+    return { ...result(input), records: [{ ID: input.id!, "Patient/ID": "8", VisitStartTime: "08:00", EVVStartTime: null, EVVEndTime: null, ActualHours: "4", PayHours: "4" }] };
   }, true);
-  await service.saveSettings({ ...preferences, enabledReads: ["GetVisitInfoV3"] }, "owner");
+  await service.saveSettings({ ...preferences, enabledReads: ["GetVisitInfoV3", "GetPatientDemographics"] }, "owner");
   await assert.rejects(service.reviewVisits({ visitIds: Array(11).fill("1") }, "owner"), /select_one_to_ten_visits/);
   const data = await service.reviewVisits({ visitIds: ["1", "2", "3"] }, "owner");
   assert.equal(data.state, "partial"); assert.equal(data.policyEvaluated, false);
@@ -222,10 +223,11 @@ test("bounded evidence review distinguishes manual clocks, partial reads and def
 test("slow visit reviews return completed evidence and explicitly defer remaining visits", async () => {
   const repository = new MemoryRepository(); let elapsed = 0; const calls: string[] = [];
   const service = new OperationsWorkspace(repository, async input => {
+    if (input.operation === "GetPatientDemographics") return { ...result(input), records: [{ PatientID: input.id!, OfficeID: "123" }] };
     calls.push(input.id!); elapsed += 20_000;
-    return { ...result(input), records: [{ ID: input.id!, EVVStartTime: "08:00", EVVEndTime: "12:00" }] };
+    return { ...result(input), records: [{ ID: input.id!, "Patient/ID": "8", EVVStartTime: "08:00", EVVEndTime: "12:00" }] };
   }, true, undefined, () => elapsed);
-  await service.saveSettings({ ...preferences, enabledReads: ["GetVisitInfoV3"] }, "owner");
+  await service.saveSettings({ ...preferences, enabledReads: ["GetVisitInfoV3", "GetPatientDemographics"] }, "owner");
   const data = await service.reviewVisits({ visitIds: ["1", "2", "3", "4"] }, "owner");
   assert.equal(data.state, "partial"); assert.deepEqual(calls, ["1", "2"]);
   assert.deepEqual(data.visits.map(row => row.error), [null, null, "not_attempted_batch_time_budget", "not_attempted_batch_time_budget"]);
@@ -356,29 +358,17 @@ test("slow rate submission persists its outcome and leaves reconciliation for a 
 });
 
 
-test("staffing evidence preserves patient-first sources and scoped candidate reads without eligibility or assignment claims", async () => {
-  const repository = new MemoryRepository(), calls: ReadInput[] = [];
-  const service = new OperationsWorkspace(repository, async input => { calls.push(input); return { ...result(input), records: [] }; }, true);
-  await service.saveSettings({ ...preferences, enabledReads: ["GetPatientPreferences", "GetPatientDeclinedCaregivers", "GetCaregiverPreferences", "GetCaregiverPermanentWeekAvailability", "GetCaregiverSpecialAvailability", "SearchVisitsV2"] }, "owner");
-  const input = { patientId: "8", officeId: "123", date: "2026-09-30", caregiverIds: ["7", "9"] };
-  await assert.rejects(service.reviewStaffing({ ...input, officeId: "456" }, "owner"), /office_scope_mismatch/); assert.equal(calls.length, 0);
-  const response = await workspaceRoute(service, "POST", "/workspace/staffing-review", input, "owner");
-  assert.equal(response?.status, 200);
-  const data = response?.body as any;
-  assert.equal(data.evidence.length, 10); assert.equal(data.eligibility, "not_determined"); assert.equal(data.assignmentChanged, false); assert.equal(data.rankingApplied, false);
-  assert.deepEqual(calls.slice(0, 2).map(row => row.operation), ["GetPatientPreferences", "GetPatientDeclinedCaregivers"]);
-  assert.deepEqual(calls.filter(row => row.operation === "SearchVisitsV2").map(row => [row.officeId, row.date, row.caregiverId]), [["123", "2026-09-30", "7"], ["123", "2026-09-30", "9"]]);
-});
-
-test("staffing review stops on vendor backoff and reports every unattempted evidence source", async () => {
+test("staffing review cannot disclose subjects without authoritative caregiver office evidence", async () => {
   const repository = new MemoryRepository(); let calls = 0;
-  const service = new OperationsWorkspace(repository, async () => { calls++; throw new WorkflowError("vendor_backoff_active", 429, 90); }, true);
-  await service.saveSettings({ ...preferences, enabledReads: ["GetPatientPreferences"] }, "owner");
-  const data = await service.reviewStaffing({ patientId: "8", officeId: "123", date: "2026-09-30", caregiverIds: ["7"] }, "owner");
-  assert.equal(calls, 1); assert.equal(data.state, "partial"); assert.equal(data.evidence.length, 6);
-  assert.equal(data.evidence[0]?.error, "vendor_backoff_active"); assert.ok(data.evidence.slice(1).every(row => row.error === "not_attempted_vendor_backoff"));
+  const service = new OperationsWorkspace(repository, async input => { calls++; return result(input); }, true);
+  await service.saveSettings(preferences, "owner");
+  const input = { patientId: "8", officeId: "123", date: "2026-09-30", caregiverIds: ["7"] };
+  const response = await workspaceRoute(service, "POST", "/workspace/staffing-review", input, "owner");
+  assert.equal(response?.status, 423);
+  assert.equal((response?.body as any).error, "staffing_caregiver_office_evidence_unavailable");
+  await assert.rejects(service.reviewStaffing({ ...input, officeId: "456" }, "owner"), /office_scope_mismatch/);
+  assert.equal(calls, 0);
 });
-
 
 test("UTC feeds require explicit UTC while EST feeds reject UTC conversion and long cursors retain precision", () => {
   assert.throws(() => readRequest({ operation: "GetPatientNotes", patientId: "8", modifiedAfterUtc: "2026-09-30T00:00:00", lastId: "0" }), /explicit_utc_timestamp_required/);
@@ -1220,4 +1210,17 @@ test("schedule preservation review is scoped, read-only and rejects inconsistent
 test("visit V2 preserves documented temporary, duration and budget fields without interpreting defaults",async()=>{
  const output=await operationalRead({async call(){return {ok:true,resultXml:'<VisitInfo><ID>77</ID><IsScheduleTemporary>Yes</IsScheduleTemporary><IsCaregiverTemporary>No</IsCaregiverTemporary><BudgetNumber>3</BudgetNumber><ScheduleDuration><ScheduleDurationHours>4</ScheduleDurationHours><ScheduleDurationMinutes>15</ScheduleDurationMinutes></ScheduleDuration><SuggestedStartTime>0900</SuggestedStartTime><BilledAmount>0.00</BilledAmount></VisitInfo>'};}} as never,{operation:"GetVisitInfoV2",id:"77"});
  assert.equal(output.records[0]?.IsScheduleTemporary,"Yes");assert.equal(output.records[0]?.BudgetNumber,"3");assert.equal(output.records[0]?.["ScheduleDuration/ScheduleDurationMinutes"],"15");assert.equal(output.records[0]?.SuggestedEndTime,null);assert.equal(output.records[0]?.BilledAmount,"0.00");
+});
+
+test("late operational read cannot publish after owner office or policy changes", async () => {
+  for (const change of [{ officeId: "456" }, { policyReference: "new-review" }]) {
+    const repository = new MemoryRepository();
+    const service = new OperationsWorkspace(repository, async input => {
+      const old = await repository.get<Settings>("workspaceSettings", "owner");
+      repository.records.set("workspaceSettings/owner", { ...old!, ...change, revision: old!.revision + 1 });
+      return result(input);
+    }, true);
+    await service.saveSettings(preferences, "owner");
+    await assert.rejects(service.query({ operation: "SearchVisitsV2", officeId: "123", date: "2026-10-10" }, "owner"), /office_policy_changed_restart/);
+  }
 });

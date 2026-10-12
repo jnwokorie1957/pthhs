@@ -47,16 +47,16 @@ function contract(): SourceContract {
 }
 function setup(options: { approvals?: Partial<RevisionApprovals>; workspaceData?: boolean; accepted?: boolean; monitoring?: boolean } = {}) {
   const repo = new MemoryRepository(), calls: ReadInput[] = [], approvals: RevisionApprovals = { data: true, source: true, monitor: true, smsCapability: false, smsConfiguration: false, smsSend: false, ...options.approvals };
-  const settings: Settings = { id: "owner", revision: 2, updatedAt: NOW, officeId: "123", officeTimezone: "America/Chicago", enabledReads: ["SearchVisitsV2", "GetVisitInfoV3", "GetCallDashBoardData"], policyReference: "Synthetic owner review", missingClockInMinutes: null, missingClockOutMinutes: null };
+  const settings: Settings = { id: "owner", revision: 2, updatedAt: NOW, officeId: "123", officeTimezone: "America/Chicago", enabledReads: ["SearchVisitsV2", "GetVisitInfoV3", "GetPatientDemographics", "GetCallDashBoardData"], policyReference: "Synthetic owner review", missingClockInMinutes: null, missingClockOutMinutes: null };
   repo.records.set("workspaceSettings/owner", settings);
   repo.records.set("revisionPolicies_office_123/owner", { ...defaultRevisionPolicy("123"), revision: 1, updatedAt: NOW, monitoringEnabled: options.monitoring ?? false } as RevisionPolicy);
   if (options.accepted !== false) repo.records.set("revisionSourceAcceptance_office_123/owner", contract());
-  let now = new Date(NOW), sends = 0;
+  let now = new Date(NOW), sends = 0, patientOffice = "123";
   let handler: (input: ReadInput) => Promise<OperationalRead> = async input => input.operation === "SearchVisitsV2" ? source(input.operation, [{ VisitID: "77" }])
     : input.operation === "GetVisitInfoV3" ? detail(input.id!) : source("GetCallDashBoardData", [{ CallDashboardID: "33", "Patient/ID": "5", "Caregiver/ID": "6", CallTime: "2026-10-10T08:00:00-05:00", CallType: "synthetic-in", CallStatus: "synthetic-status" }]);
-  const workspace = new OperationsWorkspace(repo, async input => { readRequest(input); calls.push(structuredClone(input)); return handler(input); }, options.workspaceData ?? true);
+  const workspace = new OperationsWorkspace(repo, async input => { readRequest(input); calls.push(structuredClone(input)); return input.operation === "GetPatientDemographics" ? source(input.operation, [{ PatientID: input.id!, OfficeID: patientOffice }]) : handler(input); }, options.workspaceData ?? true);
   const backend = new RevisionBackend(repo, workspace, approvals, { submit: async () => { sends++; return { state: "unknown", providerId: null }; }, reconcile: async () => ({ state: "unknown", providerId: null }) }, () => now);
-  return { repo, backend, calls, settings, approvals, sends: () => sends, clock: () => new Date(now), setClock: (value: string) => { now = new Date(value); }, setRead: (read: typeof handler) => { handler = read; }, advance: (ms: number) => { now = new Date(now.getTime() + ms); } };
+  return { setPatientOffice: (office: string) => { patientOffice = office; }, repo, backend, calls, settings, approvals, sends: () => sends, clock: () => new Date(now), setClock: (value: string) => { now = new Date(value); }, setRead: (read: typeof handler) => { handler = read; }, advance: (ms: number) => { now = new Date(now.getTime() + ms); } };
 }
 const prepare = { id: "synthetic-match", revision: 0, date: "2026-10-10", visitId: "77", lastId: "0", note: "Synthetic matching evidence" };
 const decide = { id: "synthetic-match", revision: 1, officeId: "123", action: "match", callId: "33", reason: "Synthetic human review" };
@@ -145,10 +145,10 @@ test("call discovery requires an explicit source boundary and retains it for mat
   }
   const f = setup(), candidate = await f.backend.callCandidates(actor, prepare);
   assert.equal(candidate.state, "candidate"); assert.equal(candidate.sourceValidation, "accepted");
-  assert.equal(f.calls[2]?.lastId, "0");
+  assert.equal(f.calls[3]?.lastId, "0");
   const matched = await f.backend.decideCallMatch(actor, decide);
   assert.equal(matched.state, "matched"); assert.equal(matched.hhaVerification, "not_established");
-  assert.equal(f.calls.at(-1)?.lastId, "0"); assert.deepEqual(f.calls.slice(3).map(call => call.operation), ["SearchVisitsV2", "GetVisitInfoV3", "GetCallDashBoardData"]);
+  assert.equal(f.calls.at(-1)?.lastId, "0"); assert.deepEqual(f.calls.slice(4).map(call => call.operation), ["SearchVisitsV2", "GetVisitInfoV3", "GetPatientDemographics", "GetCallDashBoardData"]);
   assert.equal(f.sends(), 0);
 });
 test("a changed visit or call prevents matching and preserves the candidate audit state", async () => {
@@ -403,4 +403,11 @@ test("the final SMS guard rechecks approval flags, policy requirements and offic
   await assert.rejects(f.backend.smsDispatchAllowed({ ...actor, roles: ["viewer"] }, "123"), /revision_management_role_required/);
   f.approvals.data = false; await assert.rejects(f.backend.smsDispatchAllowed(actor, "123"), /operational_data_release_not_approved/);
   assert.equal(f.calls.length, 0); assert.equal(f.sends(), 0);
+});
+
+test("revision visit diagnosis and call matching reject a returned patient outside the office", async () => {
+  const f = setup(); f.setPatientOffice("999");
+  await assert.rejects(f.backend.visits(actor, { date: "2026-10-10" }), /visit_patient_office_mismatch/);
+  assert.equal(f.sends(), 0);
+  assert.equal(f.repo.audit.some(row => row.collection.startsWith("revisionExceptions")), false);
 });

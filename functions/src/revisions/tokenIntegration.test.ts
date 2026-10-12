@@ -40,7 +40,7 @@ function fixture() {
     ["79", { date: "2026-10-10", caregiverId: "6", complete: false, discovered: true }],
   ]);
   const settings: Settings = { id: "owner", revision: 2, updatedAt: now.toISOString(), officeId: "123", officeTimezone: "America/Chicago",
-    enabledReads: ["SearchVisitsV2", "GetVisitInfoV3"], policyReference: "Synthetic acceptance", missingClockInMinutes: null, missingClockOutMinutes: null };
+    enabledReads: ["SearchVisitsV2", "GetVisitInfoV3", "GetPatientDemographics"], policyReference: "Synthetic acceptance", missingClockInMinutes: null, missingClockOutMinutes: null };
   repo.values.set("workspaceSettings/owner", settings);
   const policy: RevisionPolicy = { ...defaultRevisionPolicy("123"), revision: 1, updatedAt: now.toISOString(),
     monitoringEnabled: true, quietHours: { startHour: 11, endHour: 13 }, smsPolicyReference: "Synthetic messaging consent policy",
@@ -60,6 +60,7 @@ function fixture() {
   const workspace = new OperationsWorkspace(repo, async input => {
     calls.push(structuredClone(input));
     beforeRead?.(input);
+    if (input.operation === "GetPatientDemographics") return read(input.operation, [{ PatientID: input.id!, OfficeID: "123" }]);
     if (input.operation === "SearchVisitsV2") return read(input.operation, [...visits].filter(([, value]) => value.date === input.date && value.discovered).map(([VisitID]) => ({ VisitID })));
     if (input.operation !== "GetVisitInfoV3") throw new Error("Unexpected source operation");
     if (input.id === unavailableId) throw new WorkflowError("synthetic_source_unavailable", 503);
@@ -99,7 +100,7 @@ test("aggregated token reminders reread all visits and send one caregiver messag
   assert.equal(f.submissions[0]!.to, "+18325550123");
   assert.deepEqual(f.calls.slice(before).filter(call => call.operation === "GetVisitInfoV3").map(call => call.id).sort(), ["77", "78", "79"]);
   assert.deepEqual(f.calls.slice(before).filter(call => call.operation === "SearchVisitsV2").map(call => call.date).sort(), ["2026-10-10", "2026-10-11"]);
-  assert.ok(f.calls.every(call => ["SearchVisitsV2", "GetVisitInfoV3"].includes(call.operation)), "The reminder must never perform an HHA source write");
+  assert.ok(f.calls.every(call => ["SearchVisitsV2", "GetVisitInfoV3", "GetPatientDemographics"].includes(call.operation)), "The reminder must never perform an HHA source write");
 });
 
 test("resolved later dates reduce the current reminder count instead of using the saved missing-day count", async () => {

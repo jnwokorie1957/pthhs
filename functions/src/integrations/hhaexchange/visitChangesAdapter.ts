@@ -168,12 +168,10 @@ export function createVisitChangesAdapter(
           )
         : undefined;
 
-      const actualStart =
-        extractElementText(source.xml, "EVVStartTime") ??
-        extractElementText(source.xml, "VisitStartTime");
-      const actualEnd =
-        extractElementText(source.xml, "EVVEndTime") ??
-        extractElementText(source.xml, "VisitEndTime");
+      const actualStart = extractElementText(source.xml, "VisitStartTime");
+      const actualEnd = extractElementText(source.xml, "VisitEndTime");
+      const evvStart = extractElementText(source.xml, "EVVStartTime");
+      const evvEnd = extractElementText(source.xml, "EVVEndTime");
 
       const clockEvents = [
         clockEvent(visitId, "clock_in", extractElementText(source.xml, "EVVStartTime")),
@@ -187,6 +185,8 @@ export function createVisitChangesAdapter(
         ...(employeeId ? { employeeId } : {}),
         ...(actualStart ? { actualStart } : {}),
         ...(actualEnd ? { actualEnd } : {}),
+        ...(evvStart ? { evvStart } : {}),
+        ...(evvEnd ? { evvEnd } : {}),
         status: "imported_unvalidated",
         clockEvents,
       };

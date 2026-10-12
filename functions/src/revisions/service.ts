@@ -34,9 +34,23 @@ export class RevisionBackend {
   private deadline = Infinity;
   constructor(private repository: WorkspaceRepository, private workspace: Workspace, private approvals: RevisionApprovals,
     private adapter?: NotificationDeliveryAdapter, private now: () => Date = () => new Date()) {}
-  private query(value: ReadInput, actor: string) {
+  private async query(value: ReadInput, actor: string): Promise<OperationalRead> {
     if (performance.now() >= this.deadline) throw new WorkflowError("revision_run_budget_deferred", 429, 300);
-    return this.workspace.query(value, actor);
+    try {
+      const settings = (await this.workspace.settings()).settings;
+      const result = await this.workspace.query(value, actor);
+      if (value.operation === "GetVisitInfoV3" && !result.truncated && result.records.length === 1 && result.records[0]?.ID === value.id) {
+        const patientId = identifier(result.records[0]?.["Patient/ID"]);
+        const patient = await this.query({ operation: "GetPatientDemographics", id: patientId }, actor);
+        if (!settings.officeId || patient.operation !== "GetPatientDemographics" || patient.source !== "hhaexchange" || patient.truncated || patient.records.length !== 1
+          || patient.records[0]?.PatientID !== patientId || patient.records[0]?.OfficeID !== settings.officeId) throw new WorkflowError("visit_patient_office_mismatch", 403);
+      }
+      if (JSON.stringify((await this.workspace.settings()).settings) !== JSON.stringify(settings)) throw new WorkflowError("revision_policy_changed_restart", 409);
+      return result;
+    } catch (error) {
+      if (error instanceof WorkflowError && error.code === "office_policy_changed_restart") throw new WorkflowError("revision_policy_changed_restart", 409);
+      throw error;
+    }
   }
   private role(actor: RevisionActor) {
     if (actor.mode !== "live") throw new WorkflowError("demo_revision_actions_disabled", 423);
@@ -59,11 +73,13 @@ export class RevisionBackend {
     const policy = configuration ? await configuration.policy() : null;
     const contract = this.approvals.source && configuration ? await configuration.sourceContract() : null;
     const data = this.approvals.data && current.dataApproved;
-    const readsReady = ["SearchVisitsV2", "GetVisitInfoV3"].every(operation => current.settings.enabledReads.includes(operation));
+    const readsReady = ["SearchVisitsV2", "GetVisitInfoV3", "GetPatientDemographics"].every(operation => current.settings.enabledReads.includes(operation));
     let timezoneReady = false;
     try { if (current.settings.officeTimezone) { new Intl.DateTimeFormat("en", { timeZone: current.settings.officeTimezone }); timezoneReady = true; } } catch { /* Await owner timezone configuration. */ }
     const sourceReady = readsReady && timezoneReady && !!contract;
-    return { ok: true, mode: "live", officeId, source: "primetime", dataApproved: data, policy,
+      if (JSON.stringify((await this.workspace.settings()).settings) !== JSON.stringify(current.settings)) throw new WorkflowError("revision_policy_changed_restart", 409);
+      return { ok: true, mode: "live", officeId, source: "primetime", dataApproved: data, policy,
+        workspaceScope: { officeId, officeTimezone: current.settings.officeTimezone, revision: current.settings.revision },
       capabilities: { diagnosis: data && sourceReady, records: data && !!officeId && timezoneReady, monitoring: data && sourceReady && this.approvals.monitor && policy?.monitoringEnabled === true,
         sms: data && sourceReady && this.approvals.monitor && policy?.monitoringEnabled === true && this.approvals.smsCapability && this.approvals.smsConfiguration && this.approvals.smsSend && !!policy?.smsPolicyReference && !!policy.quietHours },
       sourceAcceptance: contract ? { version: contract.version, reference: contract.reviewReference, validUntil: contract.validUntil } : null,

@@ -20,7 +20,7 @@ class Repository implements WorkspaceRepository {
   async releaseWriteTarget() {}
 }
 const settings: Settings = { id: "owner", revision: 1, updatedAt: "2026-10-10T00:00:00.000Z", officeId: "123", officeTimezone: "America/Chicago",
-  enabledReads: ["SearchVisitsV2", "GetVisitInfoV3"], policyReference: "synthetic acceptance", missingClockInMinutes: null, missingClockOutMinutes: null };
+  enabledReads: ["SearchVisitsV2", "GetVisitInfoV3", "GetPatientDemographics"], policyReference: "synthetic acceptance", missingClockInMinutes: null, missingClockOutMinutes: null };
 const source = (operation: ReadInput["operation"], records: Record<string, string | null>[], truncated = false): OperationalRead => ({ operation, records, truncated,
   fetchedAt: "2026-10-10T08:00:00.000Z", source: "hhaexchange", validation: "source_unvalidated", timezone: "source_values_unconverted" });
 const detail = (id: string) => source("GetVisitInfoV3", [{ ID: id, VisitDate: "2026-10-10T00:00:00", "Patient/ID": "5", "Caregiver/ID": "6",
@@ -29,7 +29,7 @@ function fixture(ids = ["77"], options: { approved?: boolean; settings?: Setting
   const repository = new Repository(), calls: ReadInput[] = [];
   repository.records.set("workspaceSettings/owner", structuredClone(options.settings ?? settings));
   const service = new OperationsWorkspace(repository, async input => {
-    calls.push(input); return options.read ? options.read(input) : input.operation === "SearchVisitsV2" ? source(input.operation, ids.map(VisitID => ({ VisitID }))) : detail(input.id!);
+    calls.push(input); if (input.operation === "GetPatientDemographics") return source(input.operation, [{ PatientID: input.id!, OfficeID: "123" }]); return options.read ? options.read(input) : input.operation === "SearchVisitsV2" ? source(input.operation, ids.map(VisitID => ({ VisitID }))) : detail(input.id!);
   }, options.approved ?? true);
   return { repository, service, calls };
 }
@@ -162,7 +162,7 @@ test("time budget and vendor backoff preserve unattempted rows instead of hiding
     elapsed = 25_001; return detail(input.id!);
   } });
   const result = await visitPreview(f.service, { date: "2026-10-10" }, "owner", () => elapsed);
-  assert.deepEqual(result.items.map(item => item.error ?? null), [null, "not_attempted_batch_time_budget", "not_attempted_batch_time_budget"]); assert.equal(f.calls.length, 2);
+  assert.deepEqual(result.items.map(item => item.error ?? null), [null, "not_attempted_batch_time_budget", "not_attempted_batch_time_budget"]); assert.equal(f.calls.length, 3);
   const backoff = fixture(["77", "88"], { read: async input => {
     if (input.operation === "SearchVisitsV2") return source(input.operation, [{ VisitID: "77" }, { VisitID: "88" }]);
     throw new WorkflowError("vendor_backoff_active", 429, 120);
@@ -192,4 +192,28 @@ test("workspace plus real SOAP transport reserves once per dispatch and quota de
     await assert.rejects(service.query({ operation: "GetVisitInfoV3", id: "77" }, "owner"), /read_budget_exhausted_retry_next_minute/);
     assert.equal(calls, 1); assert.equal(repository.reservations, 1); assert.equal(repository.deferred, 20);
   } finally { globalThis.fetch = originalFetch; }
+});
+
+for (const badPatient of [{ PatientID: "5", OfficeID: "999" }, { PatientID: "9", OfficeID: "123" }, { PatientID: "5", OfficeID: null }]) {
+  test(`visit preview hides returned subject with unproven office ${JSON.stringify(badPatient)}`, async () => {
+    const f = fixture();
+    const workspace = new OperationsWorkspace(f.repository, async input => input.operation === "SearchVisitsV2" ? source(input.operation, [{ VisitID: "77" }])
+      : input.operation === "GetPatientDemographics" ? source(input.operation, [badPatient]) : detail("77"), true);
+    const page = await visitPreview(workspace, { date: "2026-10-10" }, "owner");
+    assert.equal(page.items[0]?.state, "unavailable");
+    assert.equal(page.items[0]?.patientId, null); assert.equal(page.items[0]?.actualStart, null);
+    assert.equal(page.items[0]?.error, "visit_patient_office_mismatch");
+  });
+}
+
+test("transport retry reserves each actual dispatch once and never repeats a denied reservation", async () => {
+  const original = globalThis.fetch; let sends = 0, reservations = 0;
+  globalThis.fetch = async () => { sends++; return new Response("temporary failure", { status: 503 }); };
+  try {
+    const client = new HhaSoapClient("https://example.invalid", { appName: "synthetic", appKey: "synthetic", appSecret: "synthetic" }, {
+      async beforeRequest() { reservations++; if (reservations === 3) throw new WorkflowError("read_budget_exhausted_retry_next_minute", 429, 20); }, async defer() {}
+    });
+    await assert.rejects(client.call("GetCollectionStatus", "<Status>Active</Status>"), /read_budget_exhausted/);
+    assert.equal(sends, 2); assert.equal(reservations, 3);
+  } finally { globalThis.fetch = original; }
 });

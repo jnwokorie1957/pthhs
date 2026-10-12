@@ -69,6 +69,8 @@ export interface Visit {
   discipline?: string;
   actualStart?: string;
   actualEnd?: string;
+  evvStart?: string;
+  evvEnd?: string;
   status: string;
   confirmation?: VisitConfirmation;
   clockEvents: ClockEvent[];

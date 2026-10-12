@@ -4,7 +4,7 @@ import { identifier, readRequest, WorkflowError, type OperationalRead } from "..
 
 type Workspace = Pick<OperationsWorkspace, "settings" | "query">;
 type WorkspaceSettings = Awaited<ReturnType<Workspace["settings"]>>;
-const REQUIRED_READS = ["SearchVisitsV2", "GetVisitInfoV3"] as const;
+const REQUIRED_READS = ["SearchVisitsV2", "GetVisitInfoV3", "GetPatientDemographics"] as const;
 const TIME_BUDGET_MS = 25_000;
 
 function object(value: unknown): Record<string, unknown> {
@@ -26,7 +26,7 @@ function statusFromSettings(current: WorkspaceSettings) {
   const blockedReason = !current.dataApproved ? "operational_data_release_not_approved"
     : !settings.officeId || !settings.officeTimezone ? "office_timezone_not_configured"
     : REQUIRED_READS.some(operation => !current.settings.enabledReads.includes(operation)) ? "visit_reads_not_owner_enabled" : null;
-  return { ok: true, mode: "live" as const, dataApproved: current.dataApproved, settings,
+  return { ok: true, mode: "live" as const, dataApproved: current.dataApproved, settings: { ...settings, revision: current.settings.revision },
     panels: { visits: { available: blockedReason === null, blockedReason } }, sourceValidation: "pending" as const };
 }
 export async function dataStatus(workspace: Workspace) { return statusFromSettings(await workspace.settings()); }
@@ -132,7 +132,16 @@ export async function visitPreview(workspace: Workspace, value: unknown, actor: 
     // discovery must stop further details and must never publish the old view.
     await assertCurrentScope();
     if (clock() - started >= TIME_BUDGET_MS) { items.push(unavailable(id, "not_attempted_batch_time_budget")); continue; }
-    try { items.push(detailItem(id, date, await workspace.query({ operation: "GetVisitInfoV3", id }, actor))); }
+    try {
+      const item = detailItem(id, date, await workspace.query({ operation: "GetVisitInfoV3", id }, actor));
+      const patientId = identifier(item.patientId);
+      await assertCurrentScope();
+      const patient = await workspace.query({ operation: "GetPatientDemographics", id: patientId }, actor);
+      if (patient.operation !== "GetPatientDemographics" || patient.source !== "hhaexchange" || patient.truncated || patient.records.length !== 1
+        || patient.records[0]?.PatientID !== patientId || patient.records[0]?.OfficeID !== officeId) throw new WorkflowError("visit_patient_office_mismatch", 403);
+      await assertCurrentScope();
+      items.push(item);
+    }
     catch (error) {
       const code = error instanceof WorkflowError ? error.code : "visit_preview_unavailable";
       items.push(unavailable(id, code));

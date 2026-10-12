@@ -49,3 +49,14 @@ test("malformed rows cannot disappear behind a successful page", async () => {
   const adapter = createVisitChangesAdapter(client, "2026-08-01T00:00:00Z", { async resolveOrCreateId() { return "synthetic"; } });
   await assert.rejects(adapter.fetchPage(), /visit_missing_source_id/);
 });
+
+test("normalization keeps actual and EVV timestamps separate without fallback or calculated hours", async () => {
+  const adapter = createVisitChangesAdapter({} as HhaSoapClient, "2026-10-10T00:00:00Z", { async resolveOrCreateId() { return "synthetic"; } });
+  for (const actual of [true, false]) {
+    const visit = await adapter.normalize({ visitId: "77", lastModifiedDate: "2026-10-10T20:00:00Z", xml: `<Patient><ID>5</ID></Patient><EVVStartTime>2026-10-10T08:03:00</EVVStartTime><EVVEndTime>2026-10-10T12:02:00</EVVEndTime>${actual ? "<VisitStartTime>2026-10-10T08:00:00</VisitStartTime><VisitEndTime>2026-10-10T12:00:00</VisitEndTime>" : ""}` });
+    assert.equal(visit.actualStart, actual ? "2026-10-10T08:00:00" : undefined);
+    assert.equal(visit.actualEnd, actual ? "2026-10-10T12:00:00" : undefined);
+    assert.equal(visit.evvStart, "2026-10-10T08:03:00"); assert.equal(visit.evvEnd, "2026-10-10T12:02:00");
+    assert.equal("workedHours" in visit, false); assert.equal("gps" in visit, false);
+  }
+});

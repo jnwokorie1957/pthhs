@@ -489,3 +489,33 @@ test('a stale Live dashboard request cannot repaint Demo with source records', a
   assert.match(nodeText(rows), /DEMO-V-/);
   assert.equal(nodeText(rows).includes('900001'), false);
 });
+
+for (const changed of [{ officeId: '456', officeTimezone: 'America/Chicago', revision: 2 }, { officeId: '123', officeTimezone: 'America/Chicago', revision: 2 }]) {
+  test(`office/policy change fences pending bodies and clears integration status ${JSON.stringify(changed)}`, async () => {
+    const body = deferred(), wire = response(); wire.json = () => body.promise;
+    const app = harness({ fetchSource: path => path === sourcePath ? wire : response() });
+    await app.signIn(); await app.live();
+    const mode = app.window.primetimeDataMode;
+    mode.observeScope({ officeId: '123', officeTimezone: 'America/Chicago', revision: 1 });
+    const result = await app.window.primetimeApiFetch(sourcePath, sourceRequest);
+    const pending = result.json(), rejected = assert.rejects(pending, /data_mode_changed/);
+    app.element('integrationSyncDetails').textContent = 'OLD-OFFICE-HISTORY';
+    app.element('hhaConnectionStatus').textContent = 'OLD-REACHABLE';
+    mode.observeScope(changed);
+    assert.equal(app.element('integrationSyncDetails').textContent.includes('OLD-OFFICE'), false);
+    assert.equal(app.element('hhaConnectionStatus').textContent.includes('OLD-REACHABLE'), false);
+    body.resolve({ records: [{ ID: 'OLD-OFFICE' }] }); await rejected;
+  });
+}
+
+test('Demo visit pages advance, finish and restart without source calls', async () => {
+  const app = harness(); installDashboard(app); await app.signIn();
+  assert.match(nodeText(app.element('dashboardVisitRows')), /DEMO-V-1048/);
+  await app.click('dashboardVisitNext');
+  assert.match(nodeText(app.element('dashboardVisitRows')), /DEMO-V-1058/);
+  for (let i=0;i<3;i++) await app.click('dashboardVisitNext');
+  assert.equal(app.element('dashboardVisitNext').hidden, true);
+  await app.click('dashboardVisitRefresh');
+  assert.match(nodeText(app.element('dashboardVisitRows')), /DEMO-V-1048/);
+  assert.equal(app.calls.filter(call => !call.path.endsWith('/session')).length, 0);
+});
