@@ -14,6 +14,10 @@ const coreMeta = {
     title: 'Non-Medical Home Care Houston | Primetime',
     description: 'Compassionate non-medical personal assistance, attendant care, respite care and ADL support for eligible families across Greater Houston.'
   },
+  '/home-care-services/personal-care': {
+    title: 'Personal Care Services in Houston, TX | Primetime',
+    description: 'Non-medical personal care services in Houston help with bathing, dressing, grooming and daily routines, based on the authorized service plan.'
+  },
   '/home-care-about-us': {
     title: 'About Primetime Home Health | Houston Home Care',
     description: 'Learn about Primetime Home Health Services, a Houston-based personal assistance agency serving local families with dependable non-medical in-home support.'

@@ -32,8 +32,8 @@
     "evidence": "Content changed in d634274791401c8daff78d7586e08ae4c2830718; docs/seo/2026-10-01-content-review.md"
   },
   "/locations/southwest-houston": {
-    "lastmod": "2026-10-01",
-    "evidence": "Content changed in d634274791401c8daff78d7586e08ae4c2830718; docs/seo/2026-10-01-content-review.md"
+    "lastmod": "2026-10-12",
+    "evidence": "Public content review: docs/seo/2026-10-12-content-review.md"
   },
   "/locations/sunnyside": {
     "lastmod": "2026-10-01",
@@ -54,5 +54,13 @@
   "/home-care-resources": {
     "lastmod": "2026-10-01",
     "evidence": "Office follow-up content edit; docs/seo/2026-10-01-followup-review.md. Publish this date only with the corresponding content."
+  },
+  "/": {
+    "lastmod": "2026-10-12",
+    "evidence": "Public content review: docs/seo/2026-10-12-content-review.md"
+  },
+  "/home-care-services/personal-care": {
+    "lastmod": "2026-10-12",
+    "evidence": "Public content review: docs/seo/2026-10-12-content-review.md"
   }
 }
