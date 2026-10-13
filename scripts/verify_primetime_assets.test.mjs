@@ -8,7 +8,7 @@ test('immutable Primetime assets have current content versions', () => {
   for (const name of ['primetime.css', 'data-source.js', 'demo-data.js', 'dashboard.js', 'revisions.js', 'primetime.js', 'workspace.js']) {
     const bytes = readFileSync(new URL(`../public/primetime/${name}`, import.meta.url));
     const hash = createHash('sha256').update(bytes).digest('hex').slice(0, 12);
-    assert.ok(html.includes(`/primetime/${name}?v=${hash}`), `Run node scripts/version-primetime-assets.mjs after editing ${name}`);
+    assert.ok(html.includes(`/primetime/${name}?v=${hash}`), `Edit source/primetime/${name} and run npm run build:primetime`);
   }
 });
 

@@ -82,6 +82,7 @@
         <section class="view" data-view-panel="revisions" id="revisionWorkspace">
           <div class="section-heading"><div><p class="eyebrow">Office & caregiver follow-up</p><h2>Visit review</h2><p>Review original times, understand the next step, and keep office follow-up together.</p></div><button class="btn secondary" id="revisionRefresh" type="button">Refresh review</button></div>
           <p id="revisionStatus" class="revision-notice" role="status" aria-live="polite">Sign in to open visit review.</p>
+          <details class="panel revision-secondary"><summary>How to use visit review</summary><ol><li>Choose the service date, then select a visit.</li><li>Compare the clock records and read the suggested next step.</li><li>Open Office follow-up, choose a review action and save a note.</li></ol></details>
           <div class="filter-bar revision-filters"><label for="revisionDate">Service date<input id="revisionDate" type="date" required></label><label for="revisionSearch">Find in this page<input id="revisionSearch" type="search" placeholder="Visit, member, caregiver or issue"></label><label for="revisionSeverity">Show<select id="revisionSeverity"><option value="all">All visits</option><option value="attention">Needs attention</option><option value="blocker">Blocking issues</option><option value="review">Needs review</option><option value="verified">Verified</option><option value="unknown">Unknown evidence</option></select></label></div>
           <p id="revisionScope" class="source-metadata"></p>
           <div class="revision-review-grid"><section class="panel"><div class="panel-head"><h3>Visits on this page</h3><small id="revisionPageCount"></small></div><div id="revisionVisits"></div><div class="visit-pagination"><button class="btn secondary" id="revisionNext" type="button" hidden>Next visits</button><small id="revisionCompleteness"></small></div></section><section class="panel revision-selected" aria-labelledby="revisionDetailTitle"><h3 id="revisionDetailTitle" tabindex="-1">Selected visit</h3><div id="revisionDetail"></div></section></div>
@@ -123,11 +124,11 @@
   <script src="/__/firebase/8.10.1/firebase-app.js" defer></script>
   <script src="/__/firebase/8.10.1/firebase-auth.js" defer></script>
   <script src="/__/firebase/init.js" defer></script>
-  <script src="/primetime/data-source.js?v=e67c2a9ed16d" defer></script>
-  <script src="/primetime/demo-data.js?v=d81432e3500d" defer></script>
-  <script src="/primetime/dashboard.js?v=34fdc69fd9cc" defer></script>
-  <script src="/primetime/revisions.js?v=45afe91b7456" defer></script>
-  <script src="/primetime/primetime.js?v=7f70136168e0" defer></script>
-  <script src="/primetime/workspace.js?v=489b1f422c4b" defer></script>
+  <script src="/primetime/data-source.js?v=66b663cc4686" defer></script>
+  <script src="/primetime/demo-data.js?v=daf4470da486" defer></script>
+  <script src="/primetime/dashboard.js?v=2b20fdc9de64" defer></script>
+  <script src="/primetime/revisions.js?v=15344edff1d3" defer></script>
+  <script src="/primetime/primetime.js?v=ea2c34ff88b8" defer></script>
+  <script src="/primetime/workspace.js?v=975702a84f0f" defer></script>
 </body>
 </html>

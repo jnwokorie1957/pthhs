@@ -12,10 +12,11 @@ for (const apiOnly of [true, false]) test(`Firebase discovery preserves API and 
   assert.equal(manifest.apis.includes('cloudscheduler.googleapis.com'), !apiOnly);
 });
 
-test('API-only workflow targets only the API and does not request deletion, Scheduler or force', () => {
+test('push release discovers the gated monitor while manual releases remain Hosting-only', () => {
   const workflow = readFileSync(new URL('../../.github/workflows/deploy-firebase.yml', import.meta.url), 'utf8');
   const step = workflow.split('- name: Deploy Primetime Functions')[1].split('- name: Verify anonymous')[0];
-  assert.match(step, /PRIMETIME_API_ONLY_DEPLOY: "true"/);
-  assert.match(step, /--only functions:primetimeApi --project primetimehomehealthservices --non-interactive/);
+  assert.doesNotMatch(step, /PRIMETIME_API_ONLY_DEPLOY/);
+  assert.match(step, /--only functions --project primetimehomehealthservices --non-interactive/);
   assert.doesNotMatch(step, /--force|functions:delete|services enable/);
+  assert.match(workflow, /deploy_backend:[\s\S]*?if: github.event_name == 'push'/);
 });
