@@ -1,0 +1,10 @@
+{
+  "title": "Primetime Scheduler Deployer",
+  "description": "Read, create and update Scheduler jobs for reviewed Firebase scheduled-function deployments in the Primetime project.",
+  "stage": "GA",
+  "includedPermissions": [
+    "cloudscheduler.jobs.get",
+    "cloudscheduler.jobs.create",
+    "cloudscheduler.jobs.update"
+  ]
+}

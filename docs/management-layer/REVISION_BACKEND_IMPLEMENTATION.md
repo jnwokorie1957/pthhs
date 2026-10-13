@@ -17,6 +17,8 @@ This implementation follows the completed dashboard interview in `PRIMETIME_ADMI
 
 Release note: Cloud Scheduler API has been enabled for the existing Firebase project. Normal pushes discover and deploy both the API and the gated monitor. The explicit manual Hosting-only release still skips the backend. The API-only discovery switch remains available for an intentionally filtered recovery deployment; it is not used in the normal release workflow.
 
+Deployment prerequisite: the existing CI identity `firebase-adminsdk-fbsvc@primetimehomehealthservices.iam.gserviceaccount.com` needs `cloudscheduler.jobs.get`, `cloudscheduler.jobs.create` and `cloudscheduler.jobs.update` in `primetimehomehealthservices`. The proposed project custom role is defined in [primetime-scheduler-deployer-role.json](primetime-scheduler-deployer-role.json); it excludes run, delete, pause and enable permissions. The grant applies across this project's Scheduler jobs. Scheduler does not support job-specific IAM policies or a resource-name condition to restrict this role to one job. Creating the role definition does not assign access; an authorized operator must approve and assign it before retrying the backend deployment. See [Google Scheduler access control](https://docs.cloud.google.com/scheduler/docs/access-control) and [supported resource attributes](https://docs.cloud.google.com/iam/docs/conditions-resource-attributes).
+
 ## API contract
 
 All dashboard endpoints require the existing verified administrator session, live mode and office scope. Operational records also require the operational-data release. GET responses use `Cache-Control: no-store`. Records use optimistic revisions and transactional audit entries.
