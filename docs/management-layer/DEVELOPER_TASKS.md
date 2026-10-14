@@ -22,6 +22,13 @@
 
 # Current checkpoint
 
+**October 14 live-mode incident resolved:** the missing default Native Firestore
+database is now provisioned in `us-central1`. With demo mode off, the existing
+approved administrator's normal browser session loads owner controls and import
+history and reports **Reference API reachable**, with no captured console errors.
+Database preflight and server-only rules prevent backend releases from overlooking
+this prerequisite. Operational data release remains closed. See [Firestore setup](FIRESTORE_SETUP.md).
+
 - [x] **DEV-001 — Management namespace fixed at `/primetime`.** Admin UI remains under `/primetime/*`; management API is intended under `/primetime/api/*`.
 - [x] **DEV-002 — Server-side backend/HHA module scaffolded.** Firebase Functions code is under `functions/`; HHA adapter is isolated under `functions/src/integrations/hhaexchange/`.
 - [x] **DEV-003 — Runtime HHA config contract created.** Runtime secret: `HHAEXCHANGE_CREDENTIALS`; non-secret endpoint config: `HHAEXCHANGE_BASE_URL`.
