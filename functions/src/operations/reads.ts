@@ -341,7 +341,7 @@ const projections: Record<Exclude<ReadOperation, "SearchVisitsV2" | "SearchPatie
   GetPatientAddress: { record: "Addresses", fields: ["AddressID", "Address1", "Address2", "State", "County", "City", "Zip5", "Zip4"] },
   GetPOCDutyLists: { record: "DutyLists", fields: ["DutyListId", "DutyListName", "DutyListStatus"] },
   GetVisitBillInfo: { record: "VisitBillInfo", fields: ["ID", "VisitDate", "Patient/ID", "Caregiver/ID", "PrimaryBillTo/IsBilled", "PrimaryBillTo/BilledRate", "PrimaryBillTo/BilledMinutes", "PrimaryBillTo/BilledAmount", "SecondaryBillTo/IsBilled", "SecondaryBillTo/BilledAmount"] },
-  GetVisitInfoV2: { record: "VisitInfo", fields: ["VisitType", "ScheduleDuration/ScheduleDurationHours", "ScheduleDuration/ScheduleDurationMinutes", "IsScheduleTemporary", "IsCaregiverTemporary", "BudgetNumber", "SuggestedStartTime", "SuggestedEndTime", "BilledAmount", "ID", "VisitDate", "Patient/ID", "Caregiver/ID", "ScheduleStartTime", "ScheduleEndTime", "VisitStartTime", "VisitEndTime", "EVVStartTime", "EVVEndTime", "ActualHours", "PayHours", "AdjustedHours", "TimeZone", "IsMissedVisit", "VisitAggregationStatus/Status"] },
+  GetVisitInfoV2: { record: "VisitInfo", fields: ["VisitType", "ScheduleDuration/ScheduleDurationHours", "ScheduleDuration/ScheduleDurationMinutes", "IsScheduleTemporary", "IsCaregiverTemporary", "BudgetNumber", "SuggestedStartTime", "SuggestedEndTime", "BilledAmount", "ID", "VisitDate", "Patient/ID", "Caregiver/ID", "ScheduleStartTime", "ScheduleEndTime", "VisitStartTime", "VisitEndTime", "EVVStartTime", "EVVEndTime", "ActualHours", "PayHours", "AdjustedHours", "TimeZone", "IsMissedVisit", "VisitAggregationStatus/Status", "Verification/VerifiedBy", "Verification/Notes", "Verification/VerifiedDate", "Verification/VerifiedTime", "Verification/SupervisorName"] },
   GetVisitPayrollInfo: { record: "VisitPayrollInfo", fields: ["ID", "VisitDate", "Caregiver/ID", "Caregiver/CaregiverCode", "PayrollAdjustmentMinutes", "Payrolldate", "RegularHours/Minutes", "RegularHours/Amount", "OTHours/Minutes", "OTHours/Amount", "HolidayHours/Minutes", "HolidayHours/Amount"] },
   SearchPhoneNumber: { record: "$result", fields: ["Patients/Patient/PatientID", "Patients/Patient/FirstName", "Patients/Patient/LastName", "Caregivers/Caregiver/CaregiverID", "Caregivers/Caregiver/FirstName", "Caregivers/Caregiver/LastName"] },
   DownloadPatientDocument: { record: "PatientDocument", fields: ["PatientDocID", "FileName", "FileSize", "ContentType", "StreamData"] },
@@ -431,7 +431,7 @@ const projections: Record<Exclude<ReadOperation, "SearchVisitsV2" | "SearchPatie
   SearchPatientAuthorizations: { record: "Authorization", fields: ["ID", "StartDate", "StopDate", "AuthorizationNumber", "ContractID", "ContractName"] },
   SearchBilledVisits: { record: "BilledVisits", fields: ["VisitID", "PatientID", "ContractID", "OtherChargeID"] },
   GetScheduleInfo: { record: "ScheduleInfo", fields: ["Caregiver/PayCode/ID", "PrimaryBillTo/ServiceCode/ID", "PrimaryBillTo/ServiceCode/BillType", "PrimaryBillTo/Hours", "PrimaryBillTo/Minutes", "SecondaryBillTo/ServiceCode/ID", "SecondaryBillTo/ServiceCode/BillType", "SecondaryBillTo/Hours", "SecondaryBillTo/Minutes", "ID", "Patient/ID", "Caregiver/ID", "PrimaryBillTo/Contract/ID", "SecondaryBillTo/Contract/ID", "VisitDate", "ScheduleStartTime", "ScheduleEndTime", "VisitType", "LastModifiedDate"] },
-  GetVisitInfoV3: { record: "VisitInfo", fields: ["ID", "Patient/ID", "Caregiver/ID", "VisitDate", "ScheduleStartTime", "ScheduleEndTime", "VisitStartTime", "VisitEndTime", "EVVStartTime", "EVVEndTime", "ActualHours", "ActualHoursRounded", "PayHours", "PayHoursUnrounded", "AdjustedHours", "BilledAmount", "TimeZone", "VisitType"] },
+  GetVisitInfoV3: { record: "VisitInfo", fields: ["ID", "Patient/ID", "Caregiver/ID", "VisitDate", "ScheduleStartTime", "ScheduleEndTime", "VisitStartTime", "VisitEndTime", "EVVStartTime", "EVVEndTime", "ActualHours", "ActualHoursRounded", "PayHours", "PayHoursUnrounded", "AdjustedHours", "BilledAmount", "TimeZone", "VisitType", "Verification/VerifiedBy", "Verification/Notes", "Verification/VerifiedDate", "Verification/VerifiedTime", "Verification/SupervisorName"] },
   GetPatientDemographics: { record: "PatientInfo", fields: ["PatientID", "OfficeID", "FirstName", "LastName", "PatientStatusName", "AdmissionID", "PayerName", "LastModifiedDate"] },
   GetCaregiverDemographics: { record: "CaregiverInfo", fields: ["ID", "FirstName", "LastName", "CaregiverCode", "EmployeeID", "Status/Name", "TimeZone", "LastModifiedDate"] },
   GetPatientAuthorizationInfo: { record: "AuthorizationInfo", fields: ["AuthorizationID", "Patient/ID", "AuthorizationNumber", "ServiceCode/Name", "StartDate", "StopDate", "MaxUnits", "RemainingUnits", "BankedHours", "WeeklyMaxAuthorization", "MonthlyMaxAuthorization", "EntirePeriodMaxAuthorization"] },
@@ -495,6 +495,36 @@ function field(xml: string, path: string): string | null {
   for (const parent of parts.slice(0, -1)) xml = extractElementBody(xml, parent) ?? "";
   return extractElementText(xml, parts.at(-1)!) ?? null;
 }
+// Receipt evidence must be a direct VisitInfo child. Descendant searches could
+// borrow an unrelated nested object's Verification or accept duplicate fields.
+function directChildElements(xml: string, wanted: string): string[] {
+  const stack: string[] = [], result: string[] = [];
+  let start = -1;
+  const tags = /<!--[\s\S]*?-->|<!\[CDATA\[[\s\S]*?\]\]>|<\?[\s\S]*?\?>|<\/?([A-Za-z_][\w:.-]*)(?:\s+(?:"[^"]*"|'[^']*'|[^"'<>])*)?\s*\/?>/g;
+  for (const match of xml.matchAll(tags)) {
+    const name = match[1]; if (!name) continue;
+    const local = name.split(":").at(-1), closing = match[0].startsWith("</"), selfClosing = /\/\s*>$/.test(match[0]);
+    if (closing) {
+      if (stack.pop() !== name) return [];
+      if (!stack.length && start >= 0) { result.push(xml.slice(start, match.index! + match[0].length)); start = -1; }
+    } else if (selfClosing) {
+      if (!stack.length && local === wanted) result.push(match[0]);
+    } else {
+      if (!stack.length && local === wanted) start = match.index!;
+      stack.push(name);
+    }
+  }
+  return stack.length ? [] : result;
+}
+function verificationReceiptFields(xml: string): Record<string, string | null> {
+  const names = ["VerifiedBy", "Notes", "VerifiedDate", "VerifiedTime", "SupervisorName"], roots = directChildElements(xml, "Verification");
+  const empty = Object.fromEntries(names.map(name => ["Verification/" + name, null]));
+  if (roots.length !== 1 || /(?:\w+:)?nil\s*=\s*["'](?:true|1)["']/i.test(roots[0]!.match(/^<[^>]+>/)?.[0] ?? "")) return empty;
+  const body = extractElementBody(roots[0]!, "Verification") ?? "";
+  const entries = names.map(name => ({ name, elements: directChildElements(body, name) }));
+  if (entries.some(entry => entry.elements.length > 1)) return empty;
+  return Object.fromEntries(entries.map(({ name, elements }) => ["Verification/" + name, elements.length ? extractExactElementText(elements[0]!, name) ?? null : null]));
+}
 export interface OperationalRead { operation: ReadOperation; fetchedAt: string; source: "hhaexchange"; validation: "source_unvalidated"; timezone: "source_values_unconverted"; records: Record<string, string | null>[]; truncated: boolean; attachment?: { filename: string; byteLength: number; base64: string; contentType: "application/octet-stream" }; changePreview?: { timeBasis: "vendor_EST_wall_time_unconverted" | "UTC"; modifiedAfter: string; page: string | null; completeness: "not_inferred"; checkpointAdvanced: false }; }
 export function boundedAttachment(record: Record<string, string | null>, identity: string, expected: string) {
   if (record[identity] !== expected) throw new WorkflowError("download_identity_mismatch", 502);
@@ -536,6 +566,7 @@ export async function operationalRead(client: Pick<HhaSoapClient, "call">, input
     }
     records = bodies.map(xml => {
       const projected = Object.fromEntries(projection.fields.map(name => [name, field(xml, name)]));
+      if (input.operation === "GetVisitInfoV2" || input.operation === "GetVisitInfoV3") Object.assign(projected, verificationReceiptFields(xml));
       if ((projectionScope === "medical_review" || projectionScope === "write_recovery") && input.operation === "GetCaregiverMedicalDetails") { for (const name of ["Notes", "Result", "DocumentName"]) projected[name] = extractExactElementText(xml, name) ?? null; }
       if ((projectionScope === "clinical_review" || projectionScope === "write_recovery") && input.operation === "GetPatientClinicalInfo") { projected.Comments = extractExactElementText(xml, "Comments") ?? null; projected.Allergies = extractExactElementText(xml, "Allergies") ?? null; }
       if ((projectionScope === "document_metadata" || projectionScope === "write_recovery") && ["SearchPatientDocument", "SearchCaregiverDocument"].includes(input.operation)) projected.Description = field(xml, "Description");

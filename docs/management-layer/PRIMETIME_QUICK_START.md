@@ -19,17 +19,23 @@ On a phone, selecting **Review details** takes you directly to the chosen visit.
 
 The status text and next action explain the issue alongside its color. Resolving an office follow-up records the office's decision; source verification and source corrections require their own approved workflow.
 
+The collapsed **HHA verification receipt** shows the source reviewer and date when available. A receipt can be recorded while other checks remain unresolved; it does not make every part of the visit approved.
+
 ## Use Demo and Live
 
 **Demo** provides clearly labeled sample visits for learning the workflow. It cannot change operational records or send reminders. **Live** clears the sample data and uses approved office-scoped source reads. If a source is unavailable or still awaiting approval, the screen explains that condition and leaves the real-data panel empty.
 
 Changing mode or date clears the previous results. Lists are bounded; load the next page to inspect more records. A page is not a complete agency report.
 
+If a source page takes too long, wait about a minute and select **Retry visits**. This retries the same page. Deferred visits are kept for another read.
+
 ## Keep required visits and reminders organized
 
 Record supervisory visits and orientation requirements with their subject, program, service, responsible supervisor, rule reference and due-date basis. Submit completion evidence for review. Accepted evidence advances the next due date using the configured recurrence; pending evidence does not.
 
 The reminder list distinguishes queued, provider-accepted, delivered, unknown and failed messages. Office acknowledgement is a separate action. Unknown delivery is investigated before another message is attempted.
+
+**Office review needed** explains failed or uncertain delivery and a missed supervisor delivery target. Read the next action, check the existing attempt and record the office follow-up. Acknowledgement records your response; it does not turn an unconfirmed message into a delivered one.
 
 ## What must be configured before automation starts
 

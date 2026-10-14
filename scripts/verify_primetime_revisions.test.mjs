@@ -56,6 +56,32 @@ test('search and severity use only the current page and preserve multiple issues
   assert.equal(model.filterVisits(normalized.items, '', 'unknown').length, 0);
   assert.equal(model.filterVisits(normalized.items, 'unrelated', 'all').length, 0);
 });
+
+function withReceipt() {
+  const value = visits(), evidence = value.items[0].evidence;
+  evidence.verification = 'verified';
+  evidence.verificationReceipt = { state: 'ready', verification: 'verified', scope: { ...scope }, visitId: evidence.visitId, sourceRevision: evidence.provenance.sourceRevision,
+    acceptanceVersion: 'receipt-v1', verifiedAt: { iso: '2026-10-11T14:00:00Z' }, reasons: [], receipt: { verifiedBy: '<b>Source reviewer</b>', verifiedDate: '2026-10-11T14:00:00Z', verifiedTime: '14:00', supervisorName: 'Source supervisor', notes: 'Source receipt only' } };
+  return value;
+}
+test('a scoped source receipt stays separate from overall verification and rejects unrelated receipt evidence', () => {
+  const model = pure(), value = withReceipt(), normalized = model.normalizeVisits(value, { ...scope, offset: 0 });
+  assert.equal(normalized.items[0].diagnosis.verification, 'blocked');
+  assert.equal(normalized.items[0].evidence.verificationReceipt.state, 'ready');
+  for (const edit of [{ visitId: '56' }, { sourceRevision: 'c'.repeat(64) }, { scope: { ...scope, officeId: '999' } }, { verifiedAt: null }]) {
+    const changed = withReceipt(); Object.assign(changed.items[0].evidence.verificationReceipt, edit);
+    assert.throws(() => model.normalizeVisits(changed, { ...scope, offset: 0 }));
+  }
+});
+
+test('receipt details display source text safely without a green or source-write claim', async () => {
+  const app = harness(path => path.includes('/visits?') ? { ok: true, json: async () => { const value = withReceipt(), date = app.element('revisionDate').value;
+    value.scope.date = date; value.items[0].evidence.scope.date = date; value.items[0].diagnosis.scope.date = date; value.items[0].evidence.verificationReceipt.scope.date = date; return value; } } : null);
+  await app.openLive(); const text = app.text('revisionDetail');
+  for (const expected of ['HHA verification receipt', 'Accepted source receipt', '<b>Source reviewer</b>', 'does not resolve the other visit checks']) assert.ok(text.includes(expected));
+  assert.ok(!app.descendants(app.element('revisionDetail')).some(item => item.innerHTML));
+  assert.ok(!app.calls.some(call => call.options.method === 'POST'));
+});
 test('recurrence has no universal default and initial orientation remains one-time', () => {
   const model = pure();
   const fields = { type: 'supervisory_visit', subjectKind: 'member', subjectId: '77', program: 'Program', service: 'PAS', assignedSupervisor: 'Supervisor', ruleReference: 'Program rule', cadenceMonths: '', anchorMode: 'fixed_due_date', anchorDate: '2024-01-31', effectiveFrom: '2024-01-01', effectiveUntil: '', note: 'Reviewed configuration' };
@@ -172,6 +198,43 @@ test('next visits preserve date and discovery and replace the bounded page', asy
   assert.ok(app.text('revisionDetail').includes('56')); assert.equal(app.element('revisionNext').hidden, true);
 });
 
+test('a deferred later page retries the same offset and discovery instead of skipping visits or restarting', async () => {
+  let nextAttempts = 0;
+  const app = harness(path => {
+    if (!path.includes('/visits?')) return null;
+    const query = new URLSearchParams(path.split('?')[1]);
+    if (query.get('offset') === '10') {
+      nextAttempts++;
+      if (nextAttempts === 1) return { ok: false, json: async () => ({ ok: false, error: 'revision_batch_time_budget_deferred' }) };
+      assert.equal(query.get('discovery'), 'a'.repeat(64));
+      const value = visits(query.get('date')); value.items[0].evidence.visitId = '56'; value.items[0].diagnosis.visitId = '56';
+      return { ok: true, json: async () => value };
+    }
+    const value = visits(query.get('date')); value.nextOffset = 10;
+    return { ok: true, json: async () => value };
+  });
+  await app.openLive(); const date = app.element('revisionDate').value;
+  await app.click('revisionNext');
+  assert.ok(app.text('revisionVisits').includes('Wait about a minute')); assert.equal(app.text('revisionNext'), 'Retry visits');
+  assert.ok(!app.text('revisionDetail').includes('55')); assert.equal(app.element('revisionNext').hidden, false);
+  await app.click('revisionNext');
+  assert.equal(nextAttempts, 2); assert.equal(app.element('revisionDate').value, date); assert.ok(app.text('revisionDetail').includes('56'));
+  assert.equal(app.element('revisionNext').hidden, true);
+});
+
+test('zero-progress first pages can retry offset zero and mode changes discard the retry', async () => {
+  let attempts = 0;
+  const app = harness(path => {
+    if (!path.includes('/visits?')) return null;
+    attempts++; assert.equal(new URLSearchParams(path.split('?')[1]).get('offset'), '0');
+    return attempts === 1 ? { ok: false, json: async () => ({ ok: false, error: 'revision_batch_time_budget_deferred' }) } : { ok: true, json: async () => visits(app.element('revisionDate').value) };
+  });
+  await app.openLive(); assert.equal(app.text('revisionNext'), 'Retry visits');
+  await app.click('revisionNext'); assert.equal(attempts, 2); assert.ok(app.text('revisionDetail').includes('55'));
+  app.window.primetimeDataMode.setMode('demo'); const before = app.calls.length;
+  await app.click('revisionNext'); assert.equal(app.calls.length, before); assert.ok(app.text('revisionDetail').includes('DEMO-V-'));
+});
+
 test('record paging keeps opaque cursors and only eligible office-review actions', async () => {
   const app = harness(path => {
     if (!path.includes('/exceptions')) return null;
@@ -198,6 +261,24 @@ test('provider acceptance is displayed separately from delivery and office ackno
   await app.openLive(); assert.ok(app.text('revisionNotifications').includes('Provider accepted · delivery unconfirmed'));
   assert.ok(app.text('revisionNotifications').includes('Acknowledge office alert'));
   assert.ok(!app.text('revisionNotifications').includes('Delivery confirmed'));
+});
+
+test('overdue supervisor delivery explains the next office action without implying receipt or resending', async () => {
+  const app = harness(path => path.endsWith('/notifications') ? { ok: true, json: async () => page([{ id: 'c'.repeat(64), officeId: '123', revision: 1, visitId: '55', rule: 'supervisor_overage', state: 'accepted', plannedSendAt: '2026-10-11T15:00:00Z', deadlineAt: '2026-10-12T15:00:00Z', acknowledgement: null,
+    attention: { deliveryTarget: 'overdue', reason: 'delivery_overdue', needsReview: true, officeAcknowledged: false, nextAction: 'Review the existing attempt and contact the supervisor through the approved office process.' } }]) } : null);
+  await app.openLive();
+  const text = app.text('revisionNotifications');
+  for (const expected of ['Office review needed', 'Delivery target: overdue', 'Review the existing attempt', 'Supervisor delivery target', 'Provider accepted · delivery unconfirmed']) assert.ok(text.includes(expected));
+  assert.ok(!text.includes('Delivery confirmed'));
+  assert.ok(!app.calls.some(call => call.options.method === 'POST'));
+});
+
+test('malformed server delivery guidance cannot become an actionable office record', () => {
+  const model = pure();
+  const record = { id: 'c'.repeat(64), officeId: '123', revision: 1, visitId: '55', rule: 'supervisor_overlap', state: 'unknown', deadlineAt: null, plannedSendAt: null, acknowledgement: null,
+    attention: { deliveryTarget: 'unknown', reason: 'delivery_unknown', needsReview: true, officeAcknowledged: false, nextAction: 'Reconcile the existing receipt.' } };
+  assert.equal(model.normalizeRecords(page([record]), 'notifications', '123').items[0].attention.needsReview, true);
+  for (const edit of [{ deliveryTarget: 'delivered' }, { reason: 'resend' }, { needsReview: 'yes' }, { nextAction: 'x'.repeat(1001) }, { officeAcknowledged: 1 }]) assert.throws(() => model.normalizeRecords(page([{ ...record, attention: { ...record.attention, ...edit } }]), 'notifications', '123'));
 });
 
 test('a late office-review response cannot restore records after switching to Demo', async () => {

@@ -3,6 +3,7 @@ import test from "node:test";
 import type { Versioned, WorkspaceRepository } from "../operations/workspace.js";
 import { WorkflowError } from "../operations/reads.js";
 import { RevisionConfiguration, defaultRevisionPolicy, type SourceContract } from "./policy.js";
+import type { VerificationReceiptAcceptance } from "./verification.js";
 
 class Repository implements Pick<WorkspaceRepository, "get" | "page" | "change"> {
   records = new Map<string, Versioned>(); actions: string[] = [];
@@ -34,7 +35,7 @@ test("policy defaults keep unresolved early threshold, monitoring and delivery c
 });
 test("policy updates require exact schema and optimistic revision; browser cannot approve source semantics", async () => {
   const { configuration, repo } = setup();
-  for (const extra of [{ sourceAccepted: true }, { callsAccepted: true }, { completeFieldSemantics: true }, { version: "browser-trust" }]) await assert.rejects(configuration.savePolicy(policy(extra), "owner"), /unsupported_revision_field/);
+  for (const extra of [{ sourceAccepted: true }, { callsAccepted: true }, { completeFieldSemantics: true }, { version: "browser-trust" }, { verificationReceipt: { accepted: true } }]) await assert.rejects(configuration.savePolicy(policy(extra), "owner"), /unsupported_revision_field/);
   assert.equal(repo.records.size, 0);
   const first = await configuration.savePolicy(policy({ earlyReminderMinutes: 5 }), "owner");
   assert.equal(first.revision, 1); assert.equal(first.earlyReminderMinutes, 5);
@@ -65,6 +66,19 @@ test("contact normalization infers +1, persists consent/audit provenance and blo
     assert.equal(saved.phone, "+18324030094"); assert.equal(saved.reviewedBy, "reviewer"); assert.equal(saved.validatedAt, NOW);
     await assert.rejects(configuration.saveContact(contact({ phone }), "other"), /revision_conflict/);
     assert.equal((await configuration.contact("caregiver_6"))?.revision, 1);
+  }
+});
+
+test("optional verification semantics are protected, version-bound and absent by default", async () => {
+  const profile: VerificationReceiptAcceptance = { accepted: true, version: "synthetic-receipt-v1", sourceVersion: "synthetic-source-v1", reviewReference: "Synthetic receipt semantics",
+    receiptMeansVerified: true, timestampEncoding: "explicit_offset" };
+  const f = setup(); f.repo.records.set("revisionSourceAcceptance_office_123/owner", contract());
+  assert.equal((await f.configuration.sourceContract())?.verificationReceipt, undefined);
+  f.repo.records.set("revisionSourceAcceptance_office_123/owner", { ...contract(), verificationReceipt: profile } as SourceContract);
+  assert.deepEqual((await f.configuration.sourceContract())?.verificationReceipt, profile);
+  for (const patch of [{ sourceVersion: "different" }, { accepted: "true" }, { receiptMeansVerified: false }, { timestampEncoding: "wall_time" }, { absenceMeansUnverified: true }, { reviewReference: "" }]) {
+    f.repo.records.set("revisionSourceAcceptance_office_123/owner", { ...contract(), verificationReceipt: { ...profile, ...patch } } as unknown as SourceContract);
+    assert.equal(await f.configuration.sourceContract(), null);
   }
 });
 test("contact identity, country, kind and reviewed source cannot be overridden by malformed input", async () => {

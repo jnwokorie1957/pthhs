@@ -52,6 +52,22 @@ test("long backfill pages preserve their day and current progress", () => {
   assert.equal(next.currentDiscovery, discovery); assert.equal(next.turn, 0); assert.deepEqual(prior, state({ turn: 3, currentOffset: 190, currentDiscovery: discovery, backfillDayOffset: 6, backfillOffset: 40, backfillDiscovery: discovery }));
 });
 
+test("partial attempted prefixes advance only their own window and retain the next deferred visit", () => {
+  const initial = chooseMonitorWindow(null, today), first = advanceMonitorWindow(initial, { nextOffset: 1, discovery });
+  assert.equal(first.currentOffset, 1); assert.equal(first.currentDiscovery, discovery); assert.equal(first.turn, 1);
+  const retry = chooseMonitorWindow(first, today), next = advanceMonitorWindow(retry, { nextOffset: 3, discovery });
+  assert.equal(retry.offset, 1); assert.equal(next.currentOffset, 3);
+  const historical = chooseMonitorWindow({ ...next, turn: 3, backfillOffset: 40, backfillDiscovery: discovery }, today);
+  const partial = advanceMonitorWindow(historical, { nextOffset: 41, discovery });
+  assert.equal(partial.backfillOffset, 41); assert.equal(partial.backfillDayOffset, 1); assert.equal(partial.currentOffset, 3); assert.equal(partial.turn, 0);
+});
+
+test("a successful page cannot claim zero progress at a nonzero cursor", () => {
+  const prior = state({ currentOffset: 10, currentDiscovery: discovery }), plan = chooseMonitorWindow(prior, today);
+  assert.throws(() => advanceMonitorWindow(plan, { nextOffset: 10, discovery }), /invalid_monitor_page_result/);
+  assert.deepEqual(prior, state({ currentOffset: 10, currentDiscovery: discovery }));
+});
+
 test("changed current discovery restarts only today and changed backfill cannot monopolize runs", () => {
   const prior = state({ currentOffset: 90, currentDiscovery: discovery, backfillDayOffset: 4, backfillOffset: 30, backfillDiscovery: changed, turn: 2 });
   const next = resetMonitorWindow(chooseMonitorWindow(prior, today));

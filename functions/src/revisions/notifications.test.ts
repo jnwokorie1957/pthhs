@@ -3,7 +3,7 @@ import test from "node:test";
 import { createHmac } from "node:crypto";
 import type { Versioned, WorkspacePage } from "../operations/workspace.js";
 import { WorkflowError } from "../operations/reads.js";
-import { NotificationOutbox, TwilioRestAdapter, friendlySms, normalizeUsPhone, notificationKey, notificationDeliveryCursor, validateTwilioFormSignature, validatedTwilioCallback,
+import { NotificationOutbox, TwilioRestAdapter, friendlySms, normalizeUsPhone, notificationKey, notificationDeliveryCursor, notificationAttention, validateTwilioFormSignature, validatedTwilioCallback,
   type NotificationConfig, type NotificationContact, type NotificationContext, type NotificationEvidence, type NotificationOutboxRecord,
   type NotificationRequest, type NotificationSubmission, type ProviderResult } from "./notifications.js";
 
@@ -257,6 +257,52 @@ test("supervisor deadlines begin at verified detection and caregiver messages ha
   const item = await f.outbox.queue({ ...request, rule: "supervisor_overage" }, context);
   assert.equal(item.deadlineAt, new Date(NOW - 60_000 + 86_400_000).toISOString());
   const g = fixture(); assert.equal((await g.outbox.queue(request, context)).deadlineAt, null);
+});
+
+test("office delivery guidance recognizes deadline boundaries without treating provider acceptance or acknowledgement as delivery", async () => {
+  const f = fixture(), queued = await f.outbox.queue(request, context), deadlineAt = new Date(NOW + 1000).toISOString();
+  const record = { ...queued, rule: "supervisor_overage" as const, deadlineAt };
+  assert.equal(notificationAttention(record, NOW).deliveryTarget, "pending");
+  const overdue = notificationAttention({ ...record, state: "accepted", providerId: sid, acceptedAt: new Date(NOW).toISOString() }, NOW + 1000);
+  assert.equal(overdue.deliveryTarget, "overdue"); assert.equal(overdue.needsReview, true);
+  assert.equal(overdue.reason, "delivery_overdue"); assert.match(overdue.nextAction!, /existing attempt/);
+  const acknowledged = notificationAttention({ ...record, acknowledgement: { at: new Date(NOW).toISOString(), actorId: "office", note: "Called supervisor" } }, NOW + 1000);
+  assert.equal(acknowledged.deliveryTarget, "overdue"); assert.equal(acknowledged.officeAcknowledged, true); assert.equal(acknowledged.needsReview, false);
+  assert.equal(notificationAttention({ ...record, state: "delivered", deliveredAt: deadlineAt }, NOW + 1000).deliveryTarget, "met");
+  const late = notificationAttention({ ...record, state: "delivered", deliveredAt: new Date(NOW + 1001).toISOString() }, NOW + 2000);
+  assert.equal(late.deliveryTarget, "late"); assert.equal(late.reason, "delivery_late");
+  assert.equal(notificationAttention(queued, NOW + 3 * 86_400_000).deliveryTarget, "not_applicable");
+  assert.equal(notificationAttention({ ...record, state: "suppressed" }, NOW + 1000).deliveryTarget, "cancelled");
+  assert.equal(f.submissions.length, 0);
+});
+
+test("uncertain, failed and expired attempts get distinct recovery guidance while invalid receipts never establish delivery", async () => {
+  const f = fixture(), record = await f.outbox.queue(request, context);
+  assert.equal(notificationAttention({ ...record, state: "unknown" }, NOW).reason, "delivery_unknown");
+  assert.match(notificationAttention({ ...record, state: "unknown" }, NOW).nextAction!, /Confirm its outcome/);
+  assert.equal(notificationAttention({ ...record, state: "failed" }, NOW).reason, "delivery_failed");
+  const claimed = { ...record, state: "claimed" as const, leaseExpiresAt: new Date(NOW + 1000).toISOString() };
+  assert.equal(notificationAttention(claimed, NOW).needsReview, false);
+  assert.equal(notificationAttention(claimed, NOW + 1000).reason, "claim_expired");
+  for (const patch of [{ state: "delivered" as const }, { state: "delivered" as const, deliveredAt: new Date(NOW + 1).toISOString() }, { deadlineAt: "invalid" }, { deliveredAt: new Date(NOW - 1).toISOString() }]) {
+    const view = notificationAttention({ ...record, ...patch }, NOW);
+    assert.equal(view.deliveryTarget, "unknown"); assert.equal(view.reason, "delivery_evidence_invalid"); assert.equal(view.needsReview, true);
+  }
+  assert.equal(f.submissions.length, 0);
+});
+
+test("office outbox pages derive current guidance without rewriting records or invoking providers", async () => {
+  const f = fixture(), record = await f.outbox.queue(request, context), actions = f.repo.actions.length;
+  const before = await f.outbox.page(context);
+  assert.equal(before.items[0]!.attention.reason, "none");
+  const key = "revisionNotificationOutbox_123/" + record.id;
+  const failed: NotificationOutboxRecord = { ...record, state: "failed" };
+  f.repo.records.set(key, failed);
+  const after = await f.outbox.page(context);
+  assert.equal(after.items[0]!.attention.needsReview, true);
+  assert.equal((f.repo.records.get(key) as NotificationOutboxRecord).state, "failed");
+  assert.ok(!Object.hasOwn(f.repo.records.get(key)!, "attention"));
+  assert.equal(f.repo.actions.length, actions); assert.equal(f.submissions.length, 0);
 });
 
 test("Twilio adapter uses only injected fetch, form encoding, Basic auth, known callback URL and normalized phones", async () => {

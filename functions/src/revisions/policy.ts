@@ -2,6 +2,7 @@ import { WorkflowError, identifier } from "../operations/reads.js";
 import type { Versioned, WorkspaceRepository } from "../operations/workspace.js";
 import { normalizedInstant } from "./evidence.js";
 import { normalizeUsPhone, type NotificationContact } from "./notifications.js";
+import { validVerificationReceiptAcceptance, type VerificationReceiptAcceptance } from "./verification.js";
 
 export interface RevisionPolicy extends Versioned {
   officeId: string; monitoringEnabled: boolean; earlyReminderMinutes: number | null;
@@ -19,6 +20,7 @@ export interface SourceContract extends Versioned {
   fixedVisitTypes: string[]; variableVisitTypes: string[];
   clockingMethodField: string | null; tokenValues: string[];
   callsAccepted: boolean; maxAgeSeconds: number;
+  verificationReceipt?: VerificationReceiptAcceptance;
 }
 export interface ContactRecord extends Versioned, NotificationContact { reviewedBy: string; reviewReference: string; }
 type Repository = Pick<WorkspaceRepository, "get" | "page" | "change">;
@@ -82,6 +84,7 @@ export class RevisionConfiguration {
         || ![item.fixedVisitTypes, item.variableVisitTypes, item.tokenValues].every(items => Array.isArray(items) && items.length <= 30 && items.every(value => typeof value === "string" && value.length <= 80))
         || ![item.missingEvvMeansAbsent, item.nullEndMeansOpen, item.clockingAttemptFromEvv, item.callsAccepted].every(value => typeof value === "boolean")
         || (item.clockingMethodField !== null && !["VisitType"].includes(item.clockingMethodField))) return null;
+      if (item.verificationReceipt !== undefined && !validVerificationReceiptAcceptance(item.verificationReceipt, item.version)) return null;
       if (normalizedInstant(item.validUntil).epochMs <= this.now().getTime()) return null;
     } catch { return null; }
     return item;

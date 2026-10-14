@@ -95,6 +95,25 @@ test("a closed source-acceptance gate keeps explicit previews raw and diagnoses 
   assert.deepEqual(item.diagnosis.issues.map(issue => issue.kind), ["source_evidence_unknown"]); assert.equal(result.completeness.complete, false);
   assert.equal(f.sends(), 0);
 });
+test("HHA receipt interpretation needs independent protected acceptance and never bypasses unresolved verification checks", async () => {
+  const f = setup();
+  f.setRead(async input => input.operation === "SearchVisitsV2" ? source(input.operation, [{ VisitID: "77" }]) : detail(input.id!, {
+    "Verification/VerifiedBy": "Synthetic reviewer", "Verification/VerifiedDate": "2026-10-10T17:10:00Z", "Verification/VerifiedTime": "17:10", "Verification/SupervisorName": "Synthetic supervisor", "Verification/Notes": "Synthetic receipt only" }));
+  const pending = (await f.backend.visits(actor, { date: "2026-10-10" })).items[0]!;
+  assert.equal(pending.evidence.verification, "unknown"); assert.equal(pending.evidence.verificationReceipt!.receipt.verifiedBy, "Synthetic reviewer");
+  const accepted: SourceContract = { ...contract(), verificationReceipt: { accepted: true, version: "receipt-v1", sourceVersion: contract().version,
+    reviewReference: "Synthetic receipt semantics review", receiptMeansVerified: true, timestampEncoding: "explicit_offset" } };
+  f.repo.records.set("revisionSourceAcceptance_office_123/owner", accepted);
+  const item = (await f.backend.visits(actor, { date: "2026-10-10" })).items[0]!;
+  assert.equal(item.evidence.verification, "verified"); assert.equal(item.evidence.verificationReceipt!.state, "ready");
+  assert.equal(item.evidence.verificationReceipt!.verifiedAt!.iso, "2026-10-10T17:10:00.000Z");
+  assert.equal(item.diagnosis.sourceVerification, "verified"); assert.equal(item.diagnosis.verification, "unknown");
+  assert.ok(item.diagnosis.issues.some(issue => issue.kind === "eligibility_unknown")); assert.equal(f.sends(), 0);
+  f.approvals.source = false;
+  const closed = (await f.backend.visits(actor, { date: "2026-10-10" })).items[0]!;
+  assert.equal(closed.evidence.verification, "unknown"); assert.equal(closed.evidence.verificationReceipt!.state, "unknown");
+});
+
 test("accepted explicit-offset source reports overage and early factual notes with default reminder null", async () => {
   const f = setup();
   f.setRead(async input => input.operation === "SearchVisitsV2" ? source(input.operation, [{ VisitID: "77" }, { VisitID: "78" }])
@@ -188,7 +207,7 @@ test("a held monitor lease stops duplicate dispatch and leaves the prior checkpo
   assert.deepEqual(await f.backend.monitor(), { state: "already_running", processed: 0 });
   assert.equal(f.calls.length, 0); assert.deepEqual(f.repo.records.get("revisionMonitor_office_123/checkpoint"), held);
 });
-test("batch time budget exposes unattempted visits without diagnosing nonexistent missing punches", async t => {
+test("batch time budget returns only attempted visits and leaves deferred IDs at the next cursor", async t => {
   let elapsed = 0; t.mock.method(performance, "now", () => elapsed);
   const f = setup(); f.setRead(async input => {
     if (input.operation === "SearchVisitsV2") return source(input.operation, [{ VisitID: "77" }, { VisitID: "78" }, { VisitID: "79" }]);
@@ -196,8 +215,58 @@ test("batch time budget exposes unattempted visits without diagnosing nonexisten
   });
   const result = await f.backend.visits(actor, { date: "2026-10-10" });
   assert.equal(f.calls.filter(call => call.operation === "GetVisitInfoV3").length, 1);
-  assert.equal(result.items[1]?.evidence.state, "unavailable"); assert.deepEqual(result.items[1]?.evidence.reasons, ["not_attempted_batch_time_budget"]);
-  assert.equal(result.items[1]?.diagnosis.state, "unknown"); assert.equal(result.items[1]?.diagnosis.issues.some(issue => issue.kind === "no_punches"), false);
+  assert.deepEqual(result.items.map(item => item.evidence.visitId), ["77"]);
+  assert.equal(result.nextOffset, 1);
+  assert.deepEqual(result.completeness, { complete: false, truncated: false, selectedCount: 3, pageSelectedCount: 3, attemptedCount: 1, evaluatedCount: 1, deferredCount: 2 });
+  assert.equal(result.items.some(item => item.evidence.reasons.includes("not_attempted_batch_time_budget")), false);
+});
+
+test("bounded partial pages retry every deferred visit in order without skipping or duplicating an attempted ID", async t => {
+  let elapsed = 0; t.mock.method(performance, "now", () => elapsed);
+  const f = setup(), ids = ["77", "78", "79"];
+  f.setRead(async input => {
+    if (input.operation === "SearchVisitsV2") return source(input.operation, ids.map(VisitID => ({ VisitID })));
+    elapsed += 25000; return detail(input.id!);
+  });
+  let offset = 0, fingerprint: string | null = null;
+  const seen: string[] = [];
+  for (let page = 0; page < ids.length; page++) {
+    const result = await f.backend.visits(actor, { date: "2026-10-10", offset: String(offset), ...(fingerprint ? { discovery: fingerprint } : {}) });
+    seen.push(...result.items.map(item => item.evidence.visitId));
+    assert.equal(result.completeness.attemptedCount, 1); assert.equal(result.completeness.evaluatedCount, 1);
+    assert.equal(result.completeness.deferredCount, ids.length - page - 1);
+    assert.equal(result.nextOffset, page < ids.length - 1 ? offset + 1 : null);
+    if (result.nextOffset !== null) { offset = result.nextOffset; fingerprint = result.discovery; }
+  }
+  assert.deepEqual(seen, ids);
+  assert.deepEqual(f.calls.filter(call => call.operation === "GetVisitInfoV3").map(call => call.id), ids);
+  assert.equal(f.calls.filter(call => call.operation === "SearchVisitsV2").length, 3); assert.equal(f.sends(), 0);
+});
+
+test("zero-attempt pages return retryable failure without inventing same-offset success or any detail reads", async t => {
+  let elapsed = 0; t.mock.method(performance, "now", () => elapsed);
+  const f = setup(), ids = ["77", "78", "79"], fingerprint = discoveryHash(ids);
+  f.setRead(async input => { elapsed += 25000; return source(input.operation, ids.map(VisitID => ({ VisitID }))); });
+  const query = { date: "2026-10-10", offset: "1", discovery: fingerprint };
+  await assert.rejects(f.backend.visits(actor, query), error => error instanceof WorkflowError && error.code === "revision_batch_time_budget_deferred" && error.status === 429 && error.retryAfterSeconds === 60);
+  assert.deepEqual(f.calls.map(call => call.operation), ["SearchVisitsV2"]); assert.equal(f.repo.audit.filter(entry => entry.collection.startsWith("revisionDiagnoses_")).length, 0);
+  f.setRead(async input => input.operation === "SearchVisitsV2" ? source(input.operation, ids.map(VisitID => ({ VisitID }))) : detail(input.id!));
+  const retry = await f.backend.visits(actor, query);
+  assert.deepEqual(retry.items.map(item => item.evidence.visitId), ["78", "79"]); assert.equal(retry.nextOffset, null);
+  assert.equal(retry.completeness.attemptedCount, 2); assert.equal(retry.completeness.deferredCount, 0);
+});
+
+test("an attempted source failure advances its own ID but never counts later deferred IDs as evaluated", async t => {
+  let elapsed = 0; t.mock.method(performance, "now", () => elapsed);
+  const f = setup(); f.setRead(async input => {
+    if (input.operation === "SearchVisitsV2") return source(input.operation, [{ VisitID: "77" }, { VisitID: "78" }]);
+    elapsed += 25000; throw new WorkflowError("synthetic_source_unavailable", 503);
+  });
+  const result = await f.backend.visits(actor, { date: "2026-10-10" });
+  assert.equal(result.items.length, 1); assert.equal(result.items[0]!.evidence.visitId, "77"); assert.equal(result.items[0]!.evidence.state, "failed");
+  assert.equal(result.items[0]!.diagnosis.state, "unknown"); assert.equal(result.items[0]!.diagnosis.issues.some(issue => issue.kind === "no_punches"), false);
+  assert.equal(result.nextOffset, 1); assert.equal(result.completeness.attemptedCount, 1); assert.equal(result.completeness.deferredCount, 1);
+  assert.deepEqual(f.calls.filter(call => call.operation === "GetVisitInfoV3").map(call => call.id), ["77"]);
 });
 test("office-local service dates are stable across UTC midnight and daylight-saving boundaries", () => {
   assert.equal(officeDate(new Date("2026-10-11T00:10:00Z"), "America/Chicago"), "2026-10-10");
@@ -238,6 +307,51 @@ test("monitor prioritizes today's independent ten-visit pages for three runs the
   const checkpoint = monitorCheckpoint(f);
   assert.deepEqual(checkpoint.plan, monitorState({ backfillOffset: 10, backfillDiscovery: discoveryHash(ids) }));
   assert.equal(Date.parse(checkpoint.leaseUntil), 0); assert.equal(checkpoint.lastRunState, "partial_window"); assert.equal(f.sends(), 0);
+});
+
+test("partial monitor reads checkpoint only their attempted prefix while today and backfill retain deferred IDs", async t => {
+  let elapsed = 0; t.mock.method(performance, "now", () => elapsed);
+  const f = setup({ monitoring: true }), ids = ["77", "78", "79", "80", "81"], fingerprint = discoveryHash(ids);
+  let serviceDate = "2026-10-10";
+  f.setRead(async input => {
+    if (input.operation === "SearchVisitsV2") { serviceDate = input.date!; return source(input.operation, ids.map(VisitID => ({ VisitID }))); }
+    elapsed += 25000;
+    const fields = Object.fromEntries(["ScheduleStartTime", "VisitStartTime", "EVVStartTime"].map(key => [key, `${serviceDate}T08:00:00-05:00`]));
+    for (const key of ["ScheduleEndTime", "VisitEndTime", "EVVEndTime"]) fields[key] = `${serviceDate}T12:00:00-05:00`;
+    return detail(input.id!, { VisitDate: serviceDate, ...fields });
+  });
+  for (let run = 0; run < 5; run++) {
+    const result = await f.backend.monitor();
+    assert.equal(result.state, "partial_batch_time_budget"); assert.equal(result.processed, 1);
+    assert.equal(monitorCheckpoint(f).lastRunState, "partial_batch_time_budget");
+  }
+  assert.deepEqual(f.calls.filter(call => call.operation === "GetVisitInfoV3").map(call => call.id), ["77", "78", "79", "77", "80"]);
+  assert.deepEqual(f.calls.filter(call => call.operation === "SearchVisitsV2").map(call => call.date), ["2026-10-10", "2026-10-10", "2026-10-10", "2026-10-09", "2026-10-10"]);
+  assert.deepEqual(monitorCheckpoint(f).plan, monitorState({ currentOffset: 4, currentDiscovery: fingerprint, backfillOffset: 1, backfillDiscovery: fingerprint, turn: 1 }));
+  assert.equal(f.repo.audit.filter(entry => entry.action === "visit_diagnosed").length, 5);
+  assert.equal(f.sends(), 0); assert.equal(Date.parse(monitorCheckpoint(f).leaseUntil), 0);
+});
+
+test("a zero-attempt monitor run rotates its turn and retains both current and backfill cursors for retry", async t => {
+  let elapsed = 0; t.mock.method(performance, "now", () => elapsed);
+  const ids = ["77", "78", "79", "80", "81"], fingerprint = discoveryHash(ids);
+  for (const kind of ["current", "backfill"] as const) {
+    const f = setup({ monitoring: true }), prior = monitorState({ currentOffset: 1, currentDiscovery: fingerprint, backfillOffset: 2, backfillDiscovery: fingerprint,
+      backfillDayOffset: 4, turn: kind === "current" ? 0 : 3 });
+    seedMonitor(f, prior);
+    f.setRead(async input => { elapsed += 25000; return source(input.operation, ids.map(VisitID => ({ VisitID }))); });
+    await assert.rejects(f.backend.monitor(), error => error instanceof WorkflowError && error.code === "revision_batch_time_budget_deferred" && error.status === 429);
+    assert.deepEqual(f.calls.map(call => call.operation), ["SearchVisitsV2"]);
+    assert.deepEqual(monitorCheckpoint(f).plan, { ...prior, turn: (prior.turn + 1) % 4 });
+    assert.equal(monitorCheckpoint(f).lastRunState, "revision_batch_time_budget_deferred"); assert.equal(Date.parse(monitorCheckpoint(f).leaseUntil), 0);
+    assert.equal(f.repo.audit.filter(entry => entry.action === "visit_diagnosed").length, 0); assert.equal(f.sends(), 0);
+    monitoringSource(f, ids);
+    const retry = await f.backend.monitor();
+    assert.equal(retry.processed, 4);
+    assert.deepEqual(f.calls.filter(call => call.operation === "GetVisitInfoV3").map(call => call.id), ids.slice(1));
+    assert.equal(monitorCheckpoint(f).plan.backfillOffset, prior.backfillOffset);
+    assert.equal(monitorCheckpoint(f).plan.backfillDiscovery, prior.backfillDiscovery);
+  }
 });
 
 test("legacy historical checkpoints migrate safely to today's first page instead of importing an old cursor", async () => {

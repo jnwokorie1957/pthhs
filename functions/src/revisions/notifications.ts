@@ -42,6 +42,42 @@ export interface NotificationOutboxRecord extends Versioned, NotificationRequest
   acknowledgement: { actorId: string; at: string; note: string } | null;
   suppression: { at: string; reason: string } | null;
 }
+export interface NotificationAttention {
+  deliveryTarget: "not_applicable" | "pending" | "met" | "late" | "overdue" | "cancelled" | "unknown";
+  needsReview: boolean;
+  reason: "none" | "delivery_failed" | "delivery_unknown" | "claim_expired" | "delivery_overdue" | "delivery_late" | "delivery_evidence_invalid";
+  nextAction: string | null;
+  officeAcknowledged: boolean;
+}
+export interface NotificationOutboxView extends NotificationOutboxRecord { attention: NotificationAttention; }
+/** Read-time office guidance. It never changes delivery state or submits another message. */
+export function notificationAttention(record: NotificationOutboxRecord, at: number): NotificationAttention {
+  if (!Number.isFinite(at)) throw new WorkflowError("invalid_notification_time");
+  let deliveryTarget: NotificationAttention["deliveryTarget"] = "not_applicable";
+  let reason: NotificationAttention["reason"] = "none", nextAction: string | null = null;
+  try {
+    const deadline = record.deadlineAt === null ? null : instant(record.deadlineAt);
+    const delivered = record.deliveredAt === null ? null : instant(record.deliveredAt);
+    if (delivered !== null && (delivered > at || record.state !== "delivered") || record.state === "delivered" && delivered === null) throw new Error();
+    if (record.state === "suppressed") deliveryTarget = deadline === null ? "not_applicable" : "cancelled";
+    else if (deadline !== null) deliveryTarget = delivered !== null ? delivered <= deadline ? "met" : "late" : at >= deadline ? "overdue" : "pending";
+    if (record.state === "failed") {
+      reason = "delivery_failed"; nextAction = "Review the failed delivery and the current contact and provider records. Record office follow-up before considering another message.";
+    } else if (record.state === "unknown") {
+      reason = "delivery_unknown"; nextAction = "Reconcile the existing provider receipt or investigate the uncertain attempt. Confirm its outcome before considering another message.";
+    } else if (record.state === "claimed" && instant(record.leaseExpiresAt) <= at) {
+      reason = "claim_expired"; nextAction = "Reconcile the expired delivery attempt. A lost worker does not prove that no message was sent.";
+    } else if (deliveryTarget === "overdue") {
+      reason = "delivery_overdue"; nextAction = "The supervisor delivery target has passed without confirmed delivery. Review the existing attempt and contact the supervisor through the approved office process.";
+    } else if (deliveryTarget === "late") {
+      reason = "delivery_late"; nextAction = "Delivery was confirmed after the supervisor target. Review the delay and record office follow-up.";
+    }
+  } catch {
+    deliveryTarget = "unknown"; reason = "delivery_evidence_invalid";
+    nextAction = "Refresh and review the delivery timestamps before deciding whether the notification reached its target.";
+  }
+  return { deliveryTarget, reason, nextAction, needsReview: reason !== "none" && !record.acknowledgement, officeAcknowledged: !!record.acknowledgement };
+}
 type Repository = Pick<WorkspaceRepository, "get" | "page" | "change"> & {
   /** Active-state query ordered by ascending document ID. Boundaries are raw document IDs. */
   pageActiveNotifications?<T extends Versioned>(collection: string, afterId?: string): Promise<WorkspacePage<T>>;
@@ -186,9 +222,11 @@ export class NotificationOutbox {
     try { return await this.repository.change(this.collection(context.officeId), outboxId, 0, context.actorId, "notification_queued", () => record); }
     catch (error) { if (error instanceof WorkflowError && error.code === "revision_conflict") return this.read(outboxId, context); throw error; }
   }
-  async page(context: NotificationContext, cursor?: string): Promise<WorkspacePage<NotificationOutboxRecord>> {
+  async page(context: NotificationContext, cursor?: string): Promise<WorkspacePage<NotificationOutboxView>> {
     this.guard(context); const page = await this.repository.page<NotificationOutboxRecord>(this.collection(context.officeId), cursor);
-    page.items.forEach(record => this.scoped(record, context)); return page;
+    page.items.forEach(record => this.scoped(record, context));
+    const at = this.clock();
+    return { ...page, items: page.items.map(record => ({ ...record, attention: notificationAttention(record, at) })) };
   }
   async deliveryPage(context: NotificationContext, cursor?: string): Promise<WorkspacePage<NotificationOutboxRecord>> {
     this.guard(context);

@@ -18,6 +18,7 @@
     if (payload?.ok !== true || payload.mode !== 'live' || payload.source !== 'hhaexchange' || payload.scope?.officeId !== expected.officeId
       || payload.scope?.date !== expected.date || !short(payload.scope.timezone, 128) || !Array.isArray(payload.items) || payload.items.length > 10
       || payload.completeness?.complete !== false || !/^[a-f0-9]{64}$/.test(payload.discovery || '')
+      || payload.completeness.deferredCount !== undefined && (!Number.isInteger(payload.completeness.deferredCount) || payload.completeness.deferredCount < 0 || payload.completeness.deferredCount > 10)
       || payload.nextOffset !== null && (!Number.isInteger(payload.nextOffset) || payload.nextOffset <= expected.offset || payload.nextOffset >= 200)) throw new Error('invalid_revision_visits');
     const items = payload.items.map(item => {
       const evidence = item?.evidence, diagnosis = item?.diagnosis;
@@ -30,6 +31,17 @@
         || evidence.patientId !== null && evidence.patientId !== undefined && !sourceId(evidence.patientId)
         || evidence.caregiverId !== null && evidence.caregiverId !== undefined && !sourceId(evidence.caregiverId)) throw new Error('invalid_revision_visits');
       const times = Object.fromEntries(['scheduledStart', 'scheduledEnd', 'actualStart', 'actualEnd', 'evvStart', 'evvEnd'].map(key => [key, evidence.times?.[key] ? { raw: short(evidence.times[key].raw, 128), iso: short(evidence.times[key].iso, 40) } : null]));
+      let verificationReceipt = null;
+      if (evidence.verificationReceipt !== undefined) {
+        const value = evidence.verificationReceipt;
+        if (!value || !['ready', 'unknown'].includes(value.state) || !['verified', 'unknown'].includes(value.verification)
+          || value.visitId !== evidence.visitId || value.scope?.officeId !== expected.officeId || value.scope?.date !== expected.date || value.scope?.timezone !== payload.scope.timezone
+          || value.sourceRevision !== (evidence.provenance?.sourceRevision || null) || !value.receipt || !Array.isArray(value.reasons)
+          || value.state === 'ready' && (evidence.state !== 'ready' || value.verification !== 'verified' || evidence.verification !== 'verified' || !short(value.verifiedAt?.iso, 40))) throw new Error('invalid_revision_visits');
+        verificationReceipt = { state: value.state, verification: value.verification, verifiedAt: short(value.verifiedAt?.iso, 40), acceptanceVersion: short(value.acceptanceVersion, 128),
+          receipt: Object.fromEntries(['verifiedBy', 'verifiedDate', 'verifiedTime', 'supervisorName', 'notes'].map(key => [key, short(value.receipt[key], 1000)])),
+          reasons: value.reasons.map(reason => short(reason, 128)).filter(Boolean).slice(0, 10) };
+      }
       const issues = diagnosis.issues.map(issue => {
         if (!['blocker', 'review', 'information', 'unknown'].includes(issue?.level) || !short(issue.summary, 2000) || !Array.isArray(issue.reasonCodeCandidates) || issue.reasonCodeCandidates.some(code => !['110A', '110D'].includes(code))) throw new Error('invalid_revision_visits');
         return { id: short(issue.id, 128), kind: short(issue.kind, 128), level: issue.level, summary: issue.summary, nextAction: short(issue.nextAction, 2000),
@@ -39,11 +51,11 @@
       return { evidence: { visitId: evidence.visitId, state: evidence.state, patientId: evidence.patientId || null, caregiverId: evidence.caregiverId || null, times,
         rawTimes: Object.fromEntries(['ScheduleStartTime', 'ScheduleEndTime', 'VisitStartTime', 'VisitEndTime', 'EVVStartTime', 'EVVEndTime'].map(key => [key, short(evidence.raw?.[key], 128)])),
         reasons: Array.isArray(evidence.reasons) ? evidence.reasons.map(value => short(value)).filter(Boolean).slice(0, 30) : [],
-        provenance: evidence.provenance ? { operation: short(evidence.provenance.operation, 128), fetchedAt: short(evidence.provenance.fetchedAt, 40), sourceRevision: short(evidence.provenance.sourceRevision, 128), acceptanceVersion: short(evidence.provenance.acceptanceVersion, 128) } : null },
+        provenance: evidence.provenance ? { operation: short(evidence.provenance.operation, 128), fetchedAt: short(evidence.provenance.fetchedAt, 40), sourceRevision: short(evidence.provenance.sourceRevision, 128), acceptanceVersion: short(evidence.provenance.acceptanceVersion, 128) } : null, verificationReceipt },
       diagnosis: { state: diagnosis.state, verification: diagnosis.verification, issues, metrics: Object.fromEntries(['scheduledMinutes', 'actualMinutes', 'evvMinutes', 'varianceMinutes'].map(key => [key, number(diagnosis.metrics?.[key])])) } };
     });
     if (new Set(items.map(item => item.evidence.visitId)).size !== items.length) throw new Error('invalid_revision_visits');
-    return { items, scope: { ...payload.scope }, evaluatedAt: short(payload.evaluatedAt, 40), nextOffset: payload.nextOffset, discovery: payload.discovery, truncated: payload.completeness.truncated === true };
+    return { items, scope: { ...payload.scope }, evaluatedAt: short(payload.evaluatedAt, 40), nextOffset: payload.nextOffset, discovery: payload.discovery, truncated: payload.completeness.truncated === true, deferredCount: payload.completeness.deferredCount || 0 };
   }
   function normalizeRecords(payload, kind, officeId) {
     if (payload?.ok !== true || payload.mode !== 'live' || payload.source !== 'primetime' || !Array.isArray(payload.items) || payload.items.length > 100
@@ -66,8 +78,17 @@
         return { ...base, visitId: item.visitId, diagnosis: short(item.diagnosis, 2000), state: item.state, followUpAt: short(item.followUpAt, 40), assignee: short(item.assignee, 128) };
       }
       if (kind !== 'notifications' || !['queued', 'claimed', 'accepted', 'delivered', 'failed', 'unknown', 'suppressed'].includes(item.state)) throw new Error('invalid_revision_records');
+      let attention = null;
+      if (item.attention !== undefined) {
+        const value = item.attention;
+        if (!value || !['not_applicable', 'pending', 'met', 'late', 'overdue', 'cancelled', 'unknown'].includes(value.deliveryTarget)
+          || !['none', 'delivery_failed', 'delivery_unknown', 'claim_expired', 'delivery_overdue', 'delivery_late', 'delivery_evidence_invalid'].includes(value.reason)
+          || typeof value.needsReview !== 'boolean' || typeof value.officeAcknowledged !== 'boolean'
+          || value.nextAction !== null && !short(value.nextAction, 1000)) throw new Error('invalid_revision_records');
+        attention = { deliveryTarget: value.deliveryTarget, reason: value.reason, needsReview: value.needsReview, officeAcknowledged: value.officeAcknowledged, nextAction: value.nextAction };
+      }
       return { ...base, visitId: item.visitId, rule: short(item.rule, 128), state: item.state, deadlineAt: short(item.deadlineAt, 40), plannedSendAt: short(item.plannedSendAt, 40),
-        acknowledgement: item.acknowledgement ? { at: short(item.acknowledgement.at, 40), note: short(item.acknowledgement.note) } : null };
+        attention, acknowledgement: item.acknowledgement ? { at: short(item.acknowledgement.at, 40), note: short(item.acknowledgement.note) } : null };
     });
     return { items, nextCursor: payload.nextCursor };
   }
@@ -119,7 +140,7 @@
   const get = id => document.getElementById(id);
   const panel = get('revisionWorkspace');
   if (!controller || !fixtures || !panel) return;
-  let ready = false, session = 0, serial = 0, active = false, loading = false, abort = null, status = null, visitPage = null, selectedId = null, demoOffset = 0;
+  let ready = false, session = 0, serial = 0, active = false, loading = false, abort = null, status = null, visitPage = null, visitRetry = null, selectedId = null, demoOffset = 0;
   const pages = { requirements: null, exceptions: null, notifications: null };
   const localDay = () => { const now = new Date(); return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`; };
   const dateInput = get('revisionDate');
@@ -141,7 +162,7 @@
   function context() { return { session, serial, generation: controller.getGeneration(), date: dateInput?.value, mode: controller.getMode() }; }
   function current(ticket) { return ready && active && ticket.session === session && ticket.serial === serial && ticket.generation === controller.getGeneration() && ticket.date === dateInput?.value && ticket.mode === controller.getMode(); }
   function invalidate() {
-    serial += 1; abort?.abort(); abort = null; loading = false; status = null; visitPage = null; selectedId = null; demoOffset = 0;
+    serial += 1; abort?.abort(); abort = null; loading = false; status = null; visitPage = null; visitRetry = null; selectedId = null; demoOffset = 0;
     for (const kind of Object.keys(pages)) pages[kind] = null;
     for (const id of ['revisionVisits', 'revisionDetail', 'revisionExceptions', 'revisionRequirements', 'revisionNotifications']) replace(id);
     for (const id of ['revisionNext', 'revisionRequirementsNext', 'revisionExceptionsNext', 'revisionNotificationsNext']) { if (get(id)) get(id).hidden = true; }
@@ -186,7 +207,7 @@
   function renderVisits() {
     const all = visitPage?.items || [], visible = filterVisits(all, get('revisionSearch')?.value || '', get('revisionSeverity')?.value || 'all');
     text('revisionPageCount', `${visible.length} of ${all.length} on this page`);
-    if (get('revisionNext')) get('revisionNext').hidden = !visitPage || visitPage.nextOffset === null;
+    if (get('revisionNext')) { get('revisionNext').hidden = !visitRetry && (!visitPage || visitPage.nextOffset === null); get('revisionNext').textContent = visitRetry ? 'Retry visits' : 'Next visits'; }
     if (!visible.length) unavailable('revisionVisits', all.length ? 'No visits on this page match your filters.' : 'No visits were returned in this bounded preview.');
     else replace('revisionVisits', ...visible.map(item => {
       const article = node('article', null, 'revision-visit-card');
@@ -236,6 +257,13 @@
     }
     if (item.evidence.reasons.length) box.append(node('p', item.evidence.reasons.map(human).join('; '), 'source-metadata'));
     const provenance = item.evidence.provenance;
+    if (item.evidence.verificationReceipt) {
+      const value = item.evidence.verificationReceipt, receipt = value.receipt;
+      const panel = details('HHA verification receipt', labels([['Receipt interpretation', value.state === 'ready' ? 'Accepted source receipt' : 'Interpretation pending'], ['Verified by (source)', receipt.verifiedBy], ['Verified date (source)', receipt.verifiedDate], ['Verified time (source)', receipt.verifiedTime], ['Supervisor (source)', receipt.supervisorName], ['Receipt notes', receipt.notes], ['Receipt acceptance version', value.acceptanceVersion]]));
+      panel.append(node('p', 'A source receipt does not resolve the other visit checks or approve a local change.', 'source-metadata'));
+      if (value.reasons.length) panel.append(node('small', value.reasons.map(human).join('; '), 'source-metadata'));
+      box.append(panel);
+    }
     if (item.evidence.rawTimes) box.append(details(item.evidence.state === 'ready' ? 'Original source values' : 'Original source values · interpretation pending', labels(Object.entries(item.evidence.rawTimes).map(([key, value]) => [key, value]))));
     box.append(details('Source references', labels([['Visit reference', item.evidence.visitId], ['Member reference', item.evidence.patientId], ['Caregiver reference', item.evidence.caregiverId], ['Evidence state', human(item.evidence.state)], ['Source operation', provenance?.operation], ['Fetched at', provenance?.fetchedAt], ['Source revision', provenance?.sourceRevision], ['Acceptance version', provenance?.acceptanceVersion]])));
     box.append(node('p', 'Office follow-up and suggestions do not establish HHA verification or change recorded work times.', 'source-metadata'));
@@ -294,16 +322,26 @@
     finally { untrack?.(); if (current(ticket)) { loading = false; controls(); } }
   }
   async function loadVisits(ticket, offset) {
+    const discovery = visitRetry?.discovery || visitPage?.discovery;
     try {
       const query = new URLSearchParams({ date: ticket.date, offset: String(offset) });
-      if (offset) query.set('discovery', visitPage.discovery);
+      if (offset) query.set('discovery', discovery);
       const result = normalizeVisits(await request('visits?' + query, ticket), { officeId: status.officeId, date: ticket.date, offset });
       if (!current(ticket)) return;
-      visitPage = result;
+      visitPage = result; visitRetry = null;
       text('revisionScope', `Office ${result.scope.officeId} · ${result.scope.date} · ${result.scope.timezone} · Reviewed ${result.evaluatedAt || 'time unavailable'}`);
-      text('revisionCompleteness', `Bounded source page. Complete office counts and cross-page overlap are not established.${result.truncated ? ' Source discovery was truncated.' : ''}`);
+      text('revisionCompleteness', `Bounded source page. Complete office counts and cross-page overlap are not established.${result.truncated ? ' Source discovery was truncated.' : ''}${result.deferredCount ? ` ${result.deferredCount} visits deferred to the next page.` : ''}`);
       renderVisits();
-    } catch (error) { if (current(ticket) && !clearRevokedAccess(error)) { visitPage = null; selectedId = null; unavailable('revisionVisits', errorText(error)); unavailable('revisionDetail', 'No current visit evidence is available.'); text('revisionPageCount', ''); text('revisionCompleteness', ''); get('revisionNext').hidden = true; } }
+    } catch (error) {
+      if (current(ticket) && !clearRevokedAccess(error)) {
+        visitPage = null; selectedId = null;
+        const deferred = error?.message === 'revision_batch_time_budget_deferred';
+        visitRetry = deferred ? { offset, discovery } : null;
+        unavailable('revisionVisits', deferred ? 'This visit page needs another read. Wait about a minute, then retry this page.' : errorText(error));
+        unavailable('revisionDetail', 'No current visit evidence is available.'); text('revisionPageCount', ''); text('revisionCompleteness', '');
+        get('revisionNext').hidden = !deferred; get('revisionNext').textContent = deferred ? 'Retry visits' : 'Next visits';
+      }
+    }
   }
   async function loadRecords(kind, ticket, cursor) {
     const host = 'revision' + kind[0].toUpperCase() + kind.slice(1);
@@ -379,7 +417,12 @@
         if (record.nextDueDate) article.append(details('Record completion evidence', completionForm(record)));
       } else {
         const delivery = { queued: 'Queued', claimed: 'Preparing delivery', accepted: 'Provider accepted · delivery unconfirmed', delivered: 'Delivery confirmed', failed: 'Delivery failed', unknown: 'Delivery state unknown', suppressed: 'Suppressed' };
-        article.append(node('h4', human(record.rule)), node('span', delivery[record.state], 'status pending'), labels([['Planned send', record.plannedSendAt], ['Office deadline', record.deadlineAt]]), details('References', labels([['Visit', record.visitId], ['Alert', record.id]])));
+        article.append(node('h4', human(record.rule)), node('span', delivery[record.state], 'status pending'), labels([['Planned send', record.plannedSendAt], ['Supervisor delivery target', record.deadlineAt]]), details('References', labels([['Visit', record.visitId], ['Alert', record.id]])));
+        if (record.attention) {
+          if (record.attention.needsReview) article.append(node('span', 'Office review needed', 'status high'));
+          if (record.attention.deliveryTarget !== 'not_applicable') article.append(node('p', `Delivery target: ${human(record.attention.deliveryTarget)}.`));
+          if (record.attention.nextAction) article.append(node('p', record.attention.nextAction, 'revision-next-action'));
+        }
         if (record.acknowledgement) article.append(node('p', `Office acknowledged ${record.acknowledgement.at || ''}: ${record.acknowledgement.note || ''}`));
         else article.append(noteForm('Acknowledge office alert', null, note => ({ path: 'notifications/acknowledge', body: { id: record.id, note } })));
       }
@@ -391,9 +434,9 @@
   get('revisionSeverity')?.addEventListener('change', renderVisits);
   dateInput?.addEventListener('change', () => { invalidate(); if (!validDay(dateInput.value)) { text('revisionStatus', 'Choose a valid service date.'); return; } if (controller.isLive()) { if (active) void refresh(); } else if (ready) renderDemo(); });
   get('revisionNext')?.addEventListener('click', async () => {
-    if (loading || !visitPage || visitPage.nextOffset === null || !ready || !active) return;
+    if (loading || !visitRetry && (!visitPage || visitPage.nextOffset === null) || !ready || !active) return;
     if (!controller.isLive()) { demoOffset = visitPage.nextOffset; renderDemo(); return; }
-    const offset = visitPage.nextOffset, { ticket, untrack } = begin();
+    const offset = visitRetry?.offset ?? visitPage.nextOffset, { ticket, untrack } = begin();
     try { await loadVisits(ticket, offset); } finally { untrack?.(); if (current(ticket)) { loading = false; controls(); } }
   });
   for (const kind of Object.keys(pages)) get('revision' + kind[0].toUpperCase() + kind.slice(1) + 'Next')?.addEventListener('click', async () => {

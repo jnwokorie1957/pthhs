@@ -1,5 +1,6 @@
 import { createHash } from "node:crypto";
 import { identifier, WorkflowError, type OperationalRead } from "../operations/reads.js";
+import type { VisitVerificationReceipt } from "./verification.js";
 
 export type EvidenceState = "ready" | "unavailable" | "unaccepted" | "stale" | "incomplete" | "failed";
 export interface EvidenceScope { officeId: string; date: string; timezone: string; revision: number; }
@@ -66,6 +67,7 @@ export interface NormalizedVisitEvidence {
   clockingAttempt: "present" | "none" | "unknown";
   openState: "open" | "closed" | "unknown";
   verification: "verified" | "unverified" | "unknown";
+  verificationReceipt?: VisitVerificationReceipt;
   serviceTimeBasis: VisitTimeBasis | null;
 }
 

@@ -9,6 +9,7 @@ import { NotificationOutbox, notificationDeliveryCursor, type NotificationDelive
 import type { SmsFactoryConfig } from "./sms.js";
 import { buildTokenGroups } from "./tokenGroups.js";
 import { chooseMonitorWindow, advanceMonitorWindow, resetMonitorWindow, type MonitorPlanState } from "./monitorPlan.js";
+import { adaptVerificationReceipt } from "./verification.js";
 
 type Workspace = Pick<OperationsWorkspace, "settings" | "query">;
 export interface RevisionApprovals { data: boolean; source: boolean; monitor: boolean; smsCapability: boolean; smsConfiguration: boolean; smsSend: boolean; }
@@ -116,24 +117,27 @@ export class RevisionBackend {
     const ids = [...new Set(discovery.records.map(item => identifier(item.VisitID)))].sort((a, b) => Number(a) - Number(b));
     const fingerprint = hash(ids);
     if (offset && input.discovery !== fingerprint) throw new WorkflowError("revision_discovery_changed_restart", 409);
-    const evidence: NormalizedVisitEvidence[] = [];
-    for (const visitId of ids.slice(offset, offset + limit)) {
+    const selectedIds = ids.slice(offset, offset + limit), evidence: NormalizedVisitEvidence[] = [];
+    for (const visitId of selectedIds) {
       await scope.check();
       let source: OperationalRead | null = null, readError: string | undefined;
-      if (performance.now() - started >= 25000) {
-        evidence.push(this.adapt(null, visitId, serviceDate, ids, scope, "not_attempted_batch_time_budget")); continue;
-      }
+      // A deferred ID must remain at the head of the next bounded read. It is
+      // neither an evaluated visit nor progress that a monitor may checkpoint.
+      if (performance.now() - started >= 25000) break;
       try { source = await this.query({ operation: "GetVisitInfoV3", id: visitId }, actor.actorId); }
       catch (error) { if (error instanceof WorkflowError && [403, 423, 429].includes(error.status)) throw error; readError = "source_read_failed"; }
       evidence.push(this.adapt(source, visitId, serviceDate, ids, scope, readError));
     }
     await scope.check();
+    if (selectedIds.length && !evidence.length) throw new WorkflowError("revision_batch_time_budget_deferred", 429, 60);
+    const attemptedCount = evidence.length, nextOffset = offset + attemptedCount < ids.length ? offset + attemptedCount : null;
     const evaluatedAt = this.now().toISOString(), ruleVersion = this.ruleVersion(scope);
     const items = evidence.map(item => ({ evidence: item, diagnosis: evaluateVisit(item, { version: ruleVersion, earlyReminderMinutes: scope.policy.earlyReminderMinutes }, evaluatedAt,
       { overlaps: evidence.filter(peer => peer.visitId !== item.visitId && (peer.patientId === item.patientId && !!item.patientId || peer.caregiverId === item.caregiverId && !!item.caregiverId)).map(peer => ({ visit: peer, allowance: "unknown", policyReference: null })), overlapWindowComplete: false }) }));
     return { ok: true, mode: "live" as const, source: "hhaexchange", scope: { officeId: scope.officeId, date: serviceDate, timezone: scope.timezone },
-      evaluatedAt, items, nextOffset: offset + evidence.length < ids.length ? offset + evidence.length : null, discovery: fingerprint,
-      completeness: { complete: false, truncated: discovery.truncated, selectedCount: ids.length, evaluatedCount: evidence.length },
+      evaluatedAt, items, nextOffset, discovery: fingerprint,
+      completeness: { complete: false, truncated: discovery.truncated, selectedCount: ids.length, pageSelectedCount: selectedIds.length,
+        attemptedCount, evaluatedCount: evidence.length, deferredCount: selectedIds.length - attemptedCount },
       tokenSummary: summarizeMissingTokenDays(evidence, evaluatedAt), fence: scope.signature };
   }
   private ruleVersion(scope: Awaited<ReturnType<RevisionBackend["fence"]>>) { return `revision-v1:${scope.current.settings.revision}:${scope.policy.revision}:${scope.contract?.version ?? "pending"}`; }
@@ -142,13 +146,15 @@ export class RevisionBackend {
     const visitType = facts?.VisitType;
     const scheduleType = visitType && contract?.fixedVisitTypes.includes(visitType) ? "fixed" : visitType && contract?.variableVisitTypes.includes(visitType) ? "variable" : "unknown";
     const evidenceScope = { officeId: scope.officeId, date: serviceDate, timezone: scope.timezone, revision: scope.current.settings.revision };
-    return adaptVisitEvidence(source, { scope: evidenceScope, visitId, now: this.now().toISOString(), ...(readError ? { readError } : {}),
+    const evidence = adaptVisitEvidence(source, { scope: evidenceScope, visitId, now: this.now().toISOString(), ...(readError ? { readError } : {}),
       acceptance: contract ? { operation: "GetVisitInfoV3", version: contract.version, accepted: true, complete: true, scope: evidenceScope, visitIds: ids,
         maxAgeSeconds: contract.maxAgeSeconds, missingEvvMeansAbsent: contract.missingEvvMeansAbsent, serviceTimeBasis: contract.serviceTimeBasis } : null,
       scheduleType, variableScheduleAccepted: scheduleType === "variable", verification: "unknown",
       clockingMethod: contract?.clockingMethodField && facts?.[contract.clockingMethodField] && contract.tokenValues.includes(facts[contract.clockingMethodField]!) ? "token" : "unknown",
       clockingAttempt: contract?.clockingAttemptFromEvv ? evvStart || evvEnd ? "present" : "none" : "unknown",
       openState: contract?.nullEndMeansOpen && evvStart && !evvEnd && !facts?.VisitEndTime ? "open" : evvEnd ? "closed" : "unknown" });
+    const verificationReceipt = adaptVerificationReceipt(evidence, { scope: evidenceScope, visitId, now: this.now().toISOString(), acceptance: contract?.verificationReceipt ?? null });
+    return { ...evidence, verification: verificationReceipt.verification, verificationReceipt };
   }
   async records(actor: RevisionActor) {
     const { officeId } = await this.scope(actor);
@@ -392,9 +398,10 @@ export class RevisionBackend {
         }
       }
       await scope.check();
+      const state = result.completeness.deferredCount > 0 ? "partial_batch_time_budget" : "partial_window";
       await this.repository.change<MonitorCheckpoint>(collection, "checkpoint", lease.revision, actor.actorId, "monitor_completed", prior => ({ ...prior!, revision: lease.revision + 1, updatedAt: this.now().toISOString(), leaseUntil: new Date(0).toISOString(),
-        plan: advanceMonitorWindow(plan, result), tokenCursor: token.nextCursor, notificationCursor, lastRunState: result.completeness.truncated ? "partial_source" : "partial_window" }));
-      return { state: "partial_window", processed: result.items.length, sent, sourceTruncated: result.completeness.truncated };
+        plan: advanceMonitorWindow(plan, result), tokenCursor: token.nextCursor, notificationCursor, lastRunState: state === "partial_batch_time_budget" ? state : result.completeness.truncated ? "partial_source" : state }));
+      return { state, processed: result.completeness.attemptedCount, sent, sourceTruncated: result.completeness.truncated };
     } catch (error) {
       const changed = error instanceof WorkflowError && error.code === "revision_discovery_changed_restart";
       await this.repository.change<MonitorCheckpoint>(collection, "checkpoint", lease.revision, actor.actorId, "monitor_deferred", prior => ({ ...prior!, revision: lease.revision + 1, updatedAt: this.now().toISOString(), leaseUntil: new Date(0).toISOString(),
