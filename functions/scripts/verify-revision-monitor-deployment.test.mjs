@@ -59,6 +59,23 @@ test('Firebase CLI create/update target URLs and default or exact audiences rema
   assert.equal(validateMonitorDeployment(custom.job, custom.deployedFunction, expected).ok, true);
 });
 
+test('Scheduler root-slash canonicalization matches only the same trusted HTTPS origin', () => {
+  for (const declared of [uri, uri + '/']) for (const scheduled of [uri, uri + '/']) for (const audience of [undefined, uri, uri + '/']) {
+    const f = deployment(); f.deployedFunction.serviceConfig.uri = declared; f.job.httpTarget.uri = scheduled;
+    if (audience !== undefined) f.job.httpTarget.oidcToken.audience = audience;
+    assert.equal(validateMonitorDeployment(f.job, f.deployedFunction, expected).ok, true);
+  }
+  for (const changed of [uri + '//', uri + '/path', uri + '/path/..', uri + '/?key=value', uri + '?key=value',
+    uri.replace('primetimerevisionmonitor-', 'other-monitor-') + '/', functionUrl + '/']) {
+    const f = deployment(); f.job.httpTarget.uri = changed; f.job.httpTarget.oidcToken.audience = changed;
+    assert.throws(() => validateMonitorDeployment(f.job, f.deployedFunction, expected), /monitor_scheduler_target_mismatch/);
+  }
+  for (const changed of [uri + '/path', uri + '?key=value', uri.replace('primetimerevisionmonitor-', 'other-monitor-') + '/', functionUrl]) {
+    const f = deployment(); f.job.httpTarget.uri = uri + '/'; f.job.httpTarget.oidcToken.audience = changed;
+    assert.throws(() => validateMonitorDeployment(f.job, f.deployedFunction, expected), /monitor_scheduler_oidc_audience_mismatch/);
+  }
+});
+
 test('missing Scheduler job fails even when the deployed Function is active', async () => {
   const f = requests({ failureUrl: JOB_URL, status: 404, failureBody: secret });
   await assert.rejects(verifyRevisionMonitorDeployment({ source, fetcher: f.fetcher, getAccessToken: async () => secret }), /monitor_scheduler_job_missing/);
@@ -90,7 +107,7 @@ test('attempt deadline follows the source timeout and retry omissions retain pro
 });
 
 test('foreign URLs, methods, OAuth tokens, missing OIDC and wrong identity or audience fail', () => {
-  for (const patch of [{ uri: 'https://attacker.example/monitor' }, { uri: uri + '/' }, { uri: functionUrl.replace('primetimeRevisionMonitor', 'primetimeApi') },
+  for (const patch of [{ uri: 'https://attacker.example/monitor' }, { uri: uri + '/other' }, { uri: functionUrl.replace('primetimeRevisionMonitor', 'primetimeApi') },
     { httpMethod: 'GET' }, { oauthToken: { serviceAccountEmail: serviceAccount } }, { oidcToken: null },
     { oidcToken: { serviceAccountEmail: 'other@primetimehomehealthservices.iam.gserviceaccount.com' } },
     { oidcToken: { serviceAccountEmail: serviceAccount, audience: 'https://attacker.example/' } },

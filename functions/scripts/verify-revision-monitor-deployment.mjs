@@ -29,6 +29,12 @@ function validHttpsUrl(value) {
     return url.protocol === 'https:' && !url.username && !url.password && !url.hash && !url.search && !url.port;
   } catch { return false; }
 }
+function canonicalTarget(value) {
+  if (!validHttpsUrl(value)) return null;
+  // Scheduler can add the root slash to a bare HTTPS origin. Preserve every
+  // other character so paths, query strings and host aliases never normalize.
+  return value === new URL(value).origin ? value + '/' : value;
+}
 
 export function validateMonitorDeployment(job, deployedFunction, expected) {
   if (!object(expected) || expected.schedule !== '* * * * *' || typeof expected.timeZone !== 'string' || !/^\d+s$/u.test(expected.attemptDeadline) || expected.retryCount !== 0) fail('monitor_expected_configuration_invalid');
@@ -50,12 +56,14 @@ export function validateMonitorDeployment(job, deployedFunction, expected) {
   // from this authenticated, fixed-name Functions GET, never from caller input.
   const targets = [service.uri];
   if (validHttpsUrl(deployedFunction.url)) targets.push(deployedFunction.url);
-  if (!targets.includes(target.uri)) fail('monitor_scheduler_target_mismatch');
+  const targetUri = canonicalTarget(target.uri);
+  if (!targetUri || !targets.map(canonicalTarget).includes(targetUri)) fail('monitor_scheduler_target_mismatch');
   const oidc = target.oidcToken;
   if (!object(oidc) || oidc.serviceAccountEmail !== serviceAccount) fail('monitor_scheduler_oidc_identity_mismatch');
   // The CLI omits audience; Scheduler then uses the exact target URI. An
-  // explicit audience is valid only when it names that same deployed target.
-  if (oidc.audience !== undefined && oidc.audience !== target.uri) fail('monitor_scheduler_oidc_audience_mismatch');
+  // explicit audience must name that same target, allowing only the bare
+  // HTTPS origin's equivalent root slash.
+  if (oidc.audience !== undefined && canonicalTarget(oidc.audience) !== targetUri) fail('monitor_scheduler_oidc_audience_mismatch');
   return { ok: true, infrastructure: 'verified', automationAcceptance: 'separate' };
 }
 
