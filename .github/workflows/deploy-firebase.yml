@@ -89,6 +89,11 @@ jobs:
         env:
           GOOGLE_APPLICATION_CREDENTIALS: ${{ runner.temp }}/firebase-service-account.json
         run: firebase deploy --only functions --project primetimehomehealthservices --non-interactive
+      - name: Verify deployed revision monitor infrastructure
+        if: ${{ success() && steps.deploy_functions.outcome == 'success' }}
+        env:
+          GOOGLE_APPLICATION_CREDENTIALS: ${{ runner.temp }}/firebase-service-account.json
+        run: node functions/scripts/verify-revision-monitor-deployment.mjs
       - name: Verify anonymous API boundary independently
         if: ${{ !cancelled() && (steps.deploy_functions.outcome == 'success' || steps.deploy_functions.outcome == 'failure') }}
         run: node functions/scripts/verify-anonymous-deployment.mjs
