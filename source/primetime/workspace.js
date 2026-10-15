@@ -808,7 +808,7 @@
   document.querySelectorAll('[data-workflow]').forEach(control => control.addEventListener('click', () => {
     const workflow = control.dataset.workflow;
     if (workflow === 'audit') return action(loadAudit);
-    if (workflow === 'investigations') return action(loadInvestigations);
+    if (workflow === 'investigations') { if (dataApproved && window.primetimeDataMode?.isLive() === true) $('investigationStatusFilter')?.focus(); return action(loadInvestigations); }
     if (workflow === 'settings') { $('ownerForm').closest('details').open = true; $('ownerOffice').focus(); return; }
     selectRead(workflow);
     if (control.dataset.patientSource) {

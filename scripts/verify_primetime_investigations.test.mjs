@@ -16,10 +16,11 @@ async function harness(readQueue) {
   const node = (id = '') => ({ id, children: [], handlers: new Map(), options: [], value: '', hidden: id === 'appShell', dataset: {}, textContent: '',
     classList: { add() {}, remove() {}, toggle() {} }, addEventListener(event, handler) { this.handlers.set(event, handler); },
     append(...items) { this.children.push(...items); }, replaceChildren(...items) { this.children = items; }, querySelectorAll() { return []; },
-    querySelector() { return null; }, closest() { return { hidden: false }; }, reset() {}, focus() {}, setAttribute() {} });
+    querySelector() { return null; }, closest() { return { hidden: false }; }, reset() {}, focus() { this.focused = true; }, setAttribute() {} });
   const get = id => { if (!elements.has(id)) elements.set(id, node(id)); return elements.get(id); };
   const mode = { live: true, active: true, approved: true };
-  const document = { getElementById: get, querySelectorAll: () => [], createElement: () => node(), createTextNode: text => ({ textContent: text }), addEventListener(event, handler) { events.set(event, handler); } };
+  get('openInvestigationWorkflow').dataset.workflow = 'investigations';
+  const document = { getElementById: get, querySelectorAll: selector => selector === '[data-workflow]' ? [get('openInvestigationWorkflow')] : [], createElement: () => node(), createTextNode: text => ({ textContent: text }), addEventListener(event, handler) { events.set(event, handler); } };
   const window = { primetimeDataMode: { isLive: () => mode.live, isActive: () => mode.active }, async primetimeApiFetch(path, options) {
     calls.push({ path, options });
     const data = path.endsWith('/settings') ? { settings: { revision: 1, officeId: '12', enabledReads: [], policyReference: '' }, dataApproved: mode.approved, supportedReads: [] }
@@ -112,4 +113,13 @@ test('failed refresh clears previous records and invalid legacy follow-up dates 
   await app.filter('investigationFollowUpFilter', 'unknown'); assert.match(app.summary(), /Showing 2 of 2/);
   fail = true; await app.load(); assert.equal(app.get('investigationList').children.length, 0);
   assert.match(app.summary(), /Queue unavailable/);
+});
+
+test('the investigation workflow focuses its review filters and performs only a protected queue read', async () => {
+  const app = await harness(() => ({ investigations: [], nextCursor: null }));
+  await app.fire(app.get('openInvestigationWorkflow'));
+  assert.equal(app.get('investigationStatusFilter').focused, true);
+  assert.match(app.summary(), /Showing 0 of 0 loaded records/);
+  assert.equal(app.calls.filter(call => call.path.endsWith('/investigations')).length, 1);
+  assert.ok(app.calls.every(call => !call.options?.method || call.options.method === 'GET'));
 });
