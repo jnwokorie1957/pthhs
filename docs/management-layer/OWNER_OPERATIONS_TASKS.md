@@ -40,6 +40,17 @@ navigation acceptance does not close those items. Additional manual calendar
 captures require normal sign-in to the expired HHA browser tab. See
 [record-link acceptance](SOURCE_RECORD_LINKS_ACCEPTANCE_2026-10-15.md).
 
+October 15 role research: the investigation form already accepts a staff
+identifier, follow-up timestamp and history; the assignee field does not verify
+supervisor membership or deliver a notification. Before role-specific assignment
+or office-isolated exposure, identify the authoritative staff/account-to-office
+mapping. Before external patient/family or therapist release, supply the intended
+document-sharing scope and agency-approved therapist form, clinician reviewer
+and signature/retention authority. These dependencies do not block the next
+loaded-record triage improvements. See the dated research pass and P1-A/P1-B
+criteria in [role research](ROLE_WORKFLOW_RESEARCH.txt). Existing runtime field
+validation items remain open.
+
 ## Confirmed in the owner interview
 
 > **Completion attestation — 2026-09-22:** the developer explicitly confirmed that the Owner / Operations Lead completed all owner policy and decision items in this checklist. Items that require live imported HHA records or finished-feature acceptance remain runtime validation gates rather than policy decisions. Where an exact approved value is not written in this repository, implementation must use the owner-approved source record and must not infer or invent it.

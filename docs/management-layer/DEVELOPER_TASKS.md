@@ -22,15 +22,24 @@
 
 # Current checkpoint
 
+- [x] October 15 research reconciled the existing investigation implementation
+  with current primary documentation and normal UI form controls. Patient
+  schedules/document sharing, therapist caseload/documentation and office review
+  acceptance criteria are in [role research](ROLE_WORKFLOW_RESEARCH.txt), under
+  the dated 14:34 UTC research pass. No additional tenant HHA records were read.
 - [x] Connect live visit windows and Visit Preview to existing patient, caregiver
   and visit reads with exact source IDs, current-office checks, stale-context
   fencing and cleared prior query fields/results. All 136 frontend tests pass.
   Production patient and visit reads returned matching records; the caregiver
   owner gate stayed closed. See
   [record-link acceptance](SOURCE_RECORD_LINKS_ACCEPTANCE_2026-10-15.md).
-- [ ] Next unblocked implementation: extend the office review queue with
-  supervisor assignment/history/due dates from the research backlog, using
-  existing investigation and independent-review controls.
+- [ ] Next unblocked implementation (P1-A): add loaded-record status, assignment
+  and follow-up filters/counts to the existing investigation queue. Assignment
+  text, dates and history already exist. Preserve pagination, revision checks
+  and truthful partial scope; clear/fence late results on session/mode/scope changes.
+- [ ] P1-B prerequisite: verify office and supervisor membership in a versioned
+  queue model before office-isolated or external-role exposure. Legacy
+  investigations have no officeId; assignee text is not verified membership.
 
 - [x] Previous-page controls implemented for Overview and Visit Preview. The
   source cursor trail is shared across views and cleared for date/mode/session

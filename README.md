@@ -20,6 +20,15 @@ Operational/management decisions: EVV rules, visibility/escalation, correction a
 
 # 🚦 CURRENT MANAGEMENT-LAYER CHECKPOINT
 
+**October 15 role research refresh:** the current investigation queue already
+has assignment text, follow-up timestamps, status and append-only history.
+The next bounded implementation is loaded-record triage filters and counts.
+Verified supervisor membership and office-isolated queue exposure require a
+separate scope/identity migration; existing unscoped records must not be silently
+assigned to the selected office. Patient document sharing and therapist caseload,
+forms and signature acceptance criteria are now explicit in the cumulative
+[role research](docs/management-layer/ROLE_WORKFLOW_RESEARCH.txt).
+
 **October 15 connected source records:** live visit windows and Visit Preview
 rows now select existing patient, caregiver and visit reads using explicit source
 IDs and the current office. Prior query fields/results are cleared; selection
@@ -27,8 +36,8 @@ does not fetch data or enable permissions. All 136 frontend tests pass. Producti
 acceptance verified matching patient and visit reads and the retained caregiver
 owner gate. See
 [record-link acceptance](docs/management-layer/SOURCE_RECORD_LINKS_ACCEPTANCE_2026-10-15.md).
-Next: progress the office review queue and its supervisor/history/due-date
-requirements from the research backlog; external-role prerequisites remain open.
+Next: add loaded-record triage to the existing office review queue using its
+current fields; verified office/assignee and external-role prerequisites remain open.
 
 **October 15 source-page navigation:** Overview and Visit Preview now support
 previous-page navigation through the same bounded HHA source pages. Navigation
