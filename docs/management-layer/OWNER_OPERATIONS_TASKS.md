@@ -22,6 +22,17 @@
 
 # Current owner checkpoint
 
+## October 15 SEO follow-up
+
+The legacy submitted sitemap index now serves valid XML, with release and live
+checks passed. The read-only Search Console connection cannot submit changes.
+Use the normal authorized Search Console Sitemaps report to inspect the existing
+warnings and request reprocessing of the repaired index once, if needed. Optional
+field Core Web Vitals reporting requires an authorized CrUX API key in the
+existing GSC Wizard report; no key or permission was created automatically.
+Existing public service, payer, credential and location evidence remains the
+release authority. See [SEO evidence](../seo/2026-10-15-sitemap-review.md).
+
 ## October 15 source evidence available for owner validation
 
 The protected patient workbench now retains two dated HHA calendar snapshots,

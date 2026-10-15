@@ -6,7 +6,8 @@
 - [x] Add service/eligibility links to the eight already-promoted locations and areas hub, preserving content and logos.
 - [x] Inventory 65 location pages against 27 sitemap URLs (eight locations), without indexing changes. See [evidence](docs/seo/2026-10-01-content-review.md).
 - [x] Pass full site build, 14 existing tests, 24 desktop/mobile checks and independent review.
-- [ ] Establish Search Console query/page baseline and validate target keywords. Top-three positions remain an objective, not a guarantee or measured result.
+- [x] Establish the read-only Search Console query/page baseline. Actual returned dates and partial page-report coverage are recorded in the owner's private outputs; see [October 15 review](docs/seo/2026-10-15-sitemap-review.md).
+- [ ] Validate target keywords and measure outcomes over comparable settled windows. Top-three positions remain an objective, not a guarantee or measured result.
 - [ ] Verify community availability and useful unique content before promoting the other 57 location pages.
 - [ ] Verify this batch on live Hosting after publication; backend and PHI acceptance remain separate.
 
@@ -123,7 +124,7 @@ Unify the site, remove service-scope contradictions, verify payer/trust claims, 
 - [x] **58. [P2] Add Service schema selectively** for core PAS/attendant/respite/personal-care pages where supported by visible verified content. **When:** Sep 19–Oct 2. **Completed Sep 11:** added a minimal verified Service node to exactly five core non-medical service routes; omitted payer, area-served, offer, clinical, credential, review, and quantitative claims.
 - [x] **59. [P2] Add consistent visible breadcrumbs plus BreadcrumbList schema** to deep service/location/blog pages. **When:** Sep 19–Oct 2. **Completed Sep 11:** generated matching semantic breadcrumb navigation and BreadcrumbList schema for five service details, 65 location routes, and the retained information index.
 - [x] **60. [P1] Generate `sitemap.xml` from the canonical route set** rather than hand-maintaining it. The current sitemap lags the live Areas inventory. **When:** Sep 12–18. **Completed Sep 10:** a deterministic generator now publishes the 27 reviewed, indexable canonical routes and blocks noindex, redirected, missing, or alternate-host entries; unverified location expansion remains deliberately excluded.
-- [ ] **61. [P2] Add accurate sitemap `<lastmod>` values** only when reliable modification dates exist. **When:** Sep 19–Oct 2.
+- [x] **61. [P2] Add accurate sitemap `<lastmod>` values** only when reliable modification dates exist. **When:** Sep 19–Oct 2. **Verified Oct 15:** the dated evidence registry and validator generate reviewed content dates, omit unknown dates and pass four regression tests. No weekly date bump or fabricated index modification date is added.
 - [x] **62. [P1] Implement the already-mapped legacy 301 redirects** and expand coverage for old `.html`, WordPress, pagination, and renamed routes. **When:** Sep 12–18. **Completed Sep 10:** retained all migration redirects, added six documented historical location patterns, and generated explicit `.html` twins for every eligible permanent redirect.
 - [x] **63. [P1] Normalize internal links to canonical clean URLs** and eliminate mixed `.html`, relative, `www`, and non-`www` patterns. **When:** Sep 12–18. **Completed Sep 10:** verified 3,634 anchors contain no own-host absolute, `.html`, relative-dot, alternate-host, or redirect-chain targets and added CI enforcement.
 - [ ] **64. [P1] Run a full production crawl after migration** and fix redirect chains, 4xx/5xx pages, orphan pages, duplicate canonicals, and missing metadata. **When:** Sep 12–18, rerun after every migration batch.

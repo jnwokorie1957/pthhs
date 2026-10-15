@@ -5,6 +5,15 @@
 
 ## Completed controls
 
+**October 15 follow-up:** the generator and Batch B4 verifier now preserve the
+historical `sitemap_index.xml` submission as a valid index of the canonical
+27-route sitemap. Live 200/XML and www redirect checks passed. Read-only Search
+Console evidence is now available; Google reprocessing and optional CrUX setup
+remain distinct pending actions. Current verifiers report five existing Service
+nodes and 71 breadcrumb routes under the approved-facts controls; the inventory
+below records the September 10 state. This repair adds no schema or business
+claims. See [current evidence](docs/seo/2026-10-15-sitemap-review.md).
+
 - All 132 HTML files are checked for obsolete `meta keywords`; none remain.
 - Every one of the 84 indexable routes has a nonempty, unique title and meta description.
 - Every indexable route has one generated JSON-LD graph containing only `Organization`, `WebSite`, and `WebPage` nodes.

@@ -1,5 +1,20 @@
 # SEO weekly changelog
 
+## Week of October 12, 2026 — updated October 15
+
+Restored the historical submitted sitemap index after a live check found 404
+responses. The generated index references the existing canonical child sitemap;
+its 27 reviewed URLs and content dates are unchanged. Production now returns
+200 XML at the apex index and a www-to-apex 301. Homepage, services and contact
+artifacts match the tested files. Primetime noindex and anonymous API denial
+remain intact. See [technical evidence](2026-10-15-sitemap-review.md).
+
+Read-only Search Console baseline evidence is available in private owner outputs;
+the comparison period is insufficient for growth claims. Google reprocessing and
+detailed sitemap-warning review remain separate from the deployed HTTP repair.
+CrUX field data is unavailable pending an optional authorized API-key setup.
+Current public copy and owner-approved business/payer facts were retained.
+
 ## Week of September 28, 2026 — updated October 1
 
 ### Deployed and evidenced

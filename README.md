@@ -20,6 +20,15 @@ Operational/management decisions: EVV rules, visibility/escalation, correction a
 
 # 🚦 CURRENT MANAGEMENT-LAYER CHECKPOINT
 
+**October 15 SEO follow-up:** restored the submitted legacy sitemap index from
+404 to valid XML pointing at the existing 27-URL canonical sitemap. Production
+and release checks passed; public page artifacts and private Primetime
+noindex/authentication protection remain intact. Read-only Search Console
+baseline access and evidence-backed lastmod controls are reconciled in the plan.
+Google reprocessing, warning-detail review and optional CrUX setup remain separate
+from the deployed repair. See
+[SEO evidence](docs/seo/2026-10-15-sitemap-review.md).
+
 **October 15 investigation triage:** loaded-record status, assignment and
 follow-up filters now retain truthful active/overdue/unassigned counts,
 pagination, source read timestamps and stale-response protection. The workflow

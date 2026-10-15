@@ -22,6 +22,16 @@
 
 # Current checkpoint
 
+- [x] October 15 SEO repair: generated and verified the historical sitemap index
+  after its submitted URL returned 404. Production now serves canonical XML;
+  the existing sitemap publication set, public copy and private admin protections
+  are preserved. Search Console baseline access and implemented lastmod controls
+  are reconciled in the plan. See
+  [SEO evidence](../seo/2026-10-15-sitemap-review.md).
+- [ ] Recheck sitemap download/status after Google reprocesses the repaired
+  index; do not interpret the deprecated indexed counter as an indexing result.
+  Detailed warnings and optional CrUX-key setup require the owner's normal account.
+
 - [x] October 15 research reconciled the existing investigation implementation
   with current primary documentation and normal UI form controls. Patient
   schedules/document sharing, therapist caseload/documentation and office review
