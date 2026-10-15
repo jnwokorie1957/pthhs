@@ -51,6 +51,14 @@ loaded-record triage improvements. See the dated research pass and P1-A/P1-B
 criteria in [role research](ROLE_WORKFLOW_RESEARCH.txt). Existing runtime field
 validation items remain open.
 
+Loaded-record investigation triage is deployed. Production currently returned
+an empty queue; filters and navigation passed acceptance without creating test
+records. When an actual operational investigation exists, verify assignment,
+follow-up display, notes/history and revision-safe updates in the protected UI.
+This remains separate from source-field validation and the verified office/staff
+mapping prerequisites. See
+[triage acceptance](INVESTIGATION_TRIAGE_ACCEPTANCE_2026-10-15.md).
+
 ## Confirmed in the owner interview
 
 > **Completion attestation — 2026-09-22:** the developer explicitly confirmed that the Owner / Operations Lead completed all owner policy and decision items in this checklist. Items that require live imported HHA records or finished-feature acceptance remain runtime validation gates rather than policy decisions. Where an exact approved value is not written in this repository, implementation must use the owner-approved source record and must not infer or invent it.

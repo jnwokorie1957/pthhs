@@ -20,9 +20,21 @@ Operational/management decisions: EVV rules, visibility/escalation, correction a
 
 # 🚦 CURRENT MANAGEMENT-LAYER CHECKPOINT
 
+**October 15 investigation triage:** loaded-record status, assignment and
+follow-up filters now retain truthful active/overdue/unassigned counts,
+pagination, source read timestamps and stale-response protection. The workflow
+opens at the review filters. All 145 frontend tests pass; production verified the
+empty protected queue and normal navigation. Populated-record cases are tested
+with synthetic fixtures; legitimate-record operations acceptance remains open.
+Live chart values matched source rows, and Next/Previous returned the expected
+bounded pages. See
+[triage acceptance](docs/management-layer/INVESTIGATION_TRIAGE_ACCEPTANCE_2026-10-15.md).
+Next independent improvement: connect a selected live patient to protected saved
+calendar history, keeping manual snapshots distinct from current source reads.
+
 **October 15 role research refresh:** the current investigation queue already
 has assignment text, follow-up timestamps, status and append-only history.
-The next bounded implementation is loaded-record triage filters and counts.
+The resulting loaded-record triage improvement is implemented above.
 Verified supervisor membership and office-isolated queue exposure require a
 separate scope/identity migration; existing unscoped records must not be silently
 assigned to the selected office. Patient document sharing and therapist caseload,
@@ -36,8 +48,8 @@ does not fetch data or enable permissions. All 136 frontend tests pass. Producti
 acceptance verified matching patient and visit reads and the retained caregiver
 owner gate. See
 [record-link acceptance](docs/management-layer/SOURCE_RECORD_LINKS_ACCEPTANCE_2026-10-15.md).
-Next: add loaded-record triage to the existing office review queue using its
-current fields; verified office/assignee and external-role prerequisites remain open.
+Loaded-record triage uses the existing queue fields; verified office/assignee and
+external-role prerequisites remain open.
 
 **October 15 source-page navigation:** Overview and Visit Preview now support
 previous-page navigation through the same bounded HHA source pages. Navigation

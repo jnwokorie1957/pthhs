@@ -33,10 +33,18 @@
   Production patient and visit reads returned matching records; the caregiver
   owner gate stayed closed. See
   [record-link acceptance](SOURCE_RECORD_LINKS_ACCEPTANCE_2026-10-15.md).
-- [ ] Next unblocked implementation (P1-A): add loaded-record status, assignment
-  and follow-up filters/counts to the existing investigation queue. Assignment
-  text, dates and history already exist. Preserve pagination, revision checks
-  and truthful partial scope; clear/fence late results on session/mode/scope changes.
+- [x] P1-A loaded-record investigation triage implemented: status, assignment
+  and follow-up filters/counts retain truthful denominators, pagination, source
+  read time, existing revisions/history and stale-context guards. All 145
+  frontend tests pass. Normal-session production verified empty-queue reads,
+  composed filters and navigation focus. See
+  [triage acceptance](INVESTIGATION_TRIAGE_ACCEPTANCE_2026-10-15.md).
+- [ ] Verify the first legitimate populated investigation workflow when
+  operations has a real case; populated/race acceptance currently uses synthetic
+  fixtures. Do not create production test records against real patients.
+- [ ] Next independent implementation (P1-C): connect a selected live patient
+  to protected saved-calendar history through the existing patient workbench;
+  retain office verification and separate manual/live provenance.
 - [ ] P1-B prerequisite: verify office and supervisor membership in a versioned
   queue model before office-isolated or external-role exposure. Legacy
   investigations have no officeId; assignee text is not verified membership.
