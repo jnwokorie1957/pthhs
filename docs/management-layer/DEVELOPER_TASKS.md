@@ -22,6 +22,15 @@
 
 # Current checkpoint
 
+- [x] Protected patient calendar-snapshot storage and workbench implemented with
+  server-side patient/office checks, immutable content-addressed versions,
+  duplicate handling, safe source rendering and capture/import timestamps.
+  Backend tests include foreign-office denial, invalid dates and policy changes.
+- [ ] Verify the first manual calendar imports in production and reopen the saved
+  records; local code and tests do not establish production import acceptance.
+- [ ] Extend patient/family and therapist roles using the separate identity and
+  clinical-review prerequisites in [role research](ROLE_WORKFLOW_RESEARCH.txt).
+
 - [x] Phone/email sign-in code and persistent-session migration implemented with
   synthetic regression tests. Authorized phone: `+18324030094`; existing mailbox
   and claimed administrators remain supported. No tokens are revoked.

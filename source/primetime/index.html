@@ -53,6 +53,7 @@
         <button class="nav-item" data-view="revisions"><span class="nav-icon">☑</span><span>Visit review</span></button>
         <button class="nav-item" data-view="evv"><span class="nav-icon">✓</span><span>EVV Exceptions</span><span class="nav-badge" data-demo-badge="exceptions" hidden></span></button>
         <button class="nav-item" data-view="visits"><span class="nav-icon">◷</span><span>Visit Preview</span></button>
+        <button class="nav-item" data-view="patients"><span class="nav-icon">▤</span><span>Patient workbench</span></button>
         <button class="nav-item" data-view="messages"><span class="nav-icon">✉</span><span>Messages & Alerts</span><span class="nav-badge neutral" data-demo-badge="alerts" hidden></span></button>
         <button class="nav-item" data-view="staffing"><span class="nav-icon">◎</span><span>Staffing</span></button>
         <button class="nav-item" data-view="billing"><span class="nav-icon">$</span><span>Billing & AR</span></button>
@@ -87,6 +88,17 @@
           <div id="dashboardOverviewMetrics" class="metric-grid"></div>
           <div class="visit-pagination"><button id="dashboardOverviewNext" class="btn secondary" type="button" hidden>Next source page</button><small id="dashboardOverviewCompleteness"></small></div>
           <div class="dashboard-grid"><section class="panel span-2"><h3>Visit windows</h3><div id="dashboardTimeline"></div></section><section class="panel"><h3>Source field availability</h3><div id="dashboardEvidenceChart"></div></section><section class="panel span-2"><div class="panel-head"><h3 id="dashboardEvidenceTitle">EVV source evidence</h3><button class="text-button" data-view-jump="visits">View records →</button></div><div id="dashboardOverviewExceptions"></div></section><section class="panel"><h3 id="dashboardCoverageTitle">Caregiver assignment evidence</h3><div id="dashboardCoverage"></div></section><section class="panel"><h3 id="dashboardAlertsTitle">Source evidence gaps</h3><div id="dashboardAlerts"></div></section><section class="panel span-2"><h3>Source readiness</h3><p id="dashboardReadiness">Live source validation is pending.</p><button class="btn secondary" data-view-jump="hha">Integration details</button></section></div>
+        </section>
+        <section class="view" data-view-panel="patients">
+          <div class="section-heading"><div><p class="eyebrow">Patient source history</p><h2>Calendar imports</h2><p>Keep HHA calendar evidence alongside live reads, with its original date and source.</p></div><button class="btn secondary" data-view-jump="overview">Live overview</button></div>
+          <section class="panel" id="manualSnapshotPanel">
+            <p class="notice">Manual snapshots preserve what was visible when captured. Current HHA changes appear in live reads; these imports do not calculate payable hours or classify EVV exceptions.</p>
+            <form id="manualPatientForm" class="operational-form"><label>HHA patient ID<input id="manualPatientId" inputmode="numeric" pattern="[1-9][0-9]*" required></label><button class="btn primary" type="submit">Load patient imports</button></form>
+            <div class="connected-tools"><button class="btn secondary" type="button" data-view-jump="workbench" data-workflow="GetPatientDemographics" data-patient-source="manualPatientId">Live patient record</button><button class="btn secondary" type="button" data-view-jump="workbench" data-workflow="SearchPatientAuthorizations" data-patient-source="manualPatientId">Live authorizations</button></div>
+            <p id="manualSnapshotStatus" role="status" aria-live="polite">Enter a patient ID to load protected imports.</p><div id="manualSnapshotList" class="snapshot-list"></div>
+            <details class="snapshot-import"><summary>Import a captured HHA calendar</summary><p>Paste the version 1 calendar capture. The server checks the patient’s current office, validates dates and source IDs, and preserves a separate version when source facts change. Identical captures are deduplicated.</p><form id="manualSnapshotForm"><label for="manualSnapshotPayload">Captured calendar JSON</label><textarea id="manualSnapshotPayload" rows="7" maxlength="450000" required spellcheck="false" autocomplete="off"></textarea><button class="btn primary" type="submit">Save calendar snapshot</button></form></details>
+          </section>
+          <div id="manualSnapshotDetails"></div>
         </section>
         <section class="view" data-view-panel="evv">
           <section class="panel connected-tools"><h3>Operational tools</h3><button type="button" class="btn secondary" data-view-jump="workbench" data-workflow="SearchVisitsV2">Inspect source EVV evidence</button><button type="button" class="btn secondary" data-view-jump="workbench" data-workflow="investigations">Open investigation queue</button></section>

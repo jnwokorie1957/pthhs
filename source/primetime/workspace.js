@@ -21,6 +21,7 @@
   let readSequence = 0, readInputs = {}, availabilityWrites = [], pendingAvailabilityId = null;
   let generation = 0, writesEnabled = false, settings = null, investigations = [], intents = [], pendingIntentId = null, pendingRateId = null;
   const $ = id => document.getElementById(id);
+  let clearManualSnapshots = () => {};
   const message = text => { $('workspaceMessage').textContent = text; };
   const names = { "GetPatientContracts": "Patient contracts on selected date", "GetPatientDisciplines": "Patient disciplines", "GetPatientReferralInfo": "Patient referral status (optional for admission)", "GetPatientPreferences": "Patient staffing preferences", "GetPatientDeclinedCaregivers": "Patient declined caregivers", "GetCaregiverRates": "Caregiver pay rates", "GetCaregiverPayCodes": "Caregiver pay codes", "GetCaregiverInServices": "Caregiver training attendance", "GetCaregiverRestriction": "Caregiver restrictions", "GetCaregiverPreferences": "Caregiver staffing preferences", "SearchPayrollBatches": "Find payroll batches by date", "SearchPayrollBatchCaregivers": "Caregivers in selected batch (record ID = batch)", "GetVisitPayrollInfoV2": "Visit payroll facts", "SearchPatientPOC": "Patient care plans", "GetPatientPOCInfo": "Care plan tasks (record ID = plan)", SearchVisitsV2: 'Find visits by office and date', GetScheduleInfo: 'Schedule details', GetVisitInfoV3: 'Visit and EVV evidence', GetPatientDemographics: 'Patient overview', GetCaregiverDemographics: 'Caregiver overview', GetPatientAuthorizationInfo: 'Authorization units', GetVisitBillInfoV2: 'Visit billing facts', GetCaregiverPermanentWeekAvailability: 'Weekly availability', GetCaregiverSpecialAvailability: 'Special availability' };
   const inputIds = { id: 'readId', patientId: 'readPatient', officeId: 'readOffice', date: 'readDate', term: 'readTerm', status: 'readStatus', contractId: 'readContract', caregiverId: 'readCaregiver', excludeZeroAmount: 'readExcludeZero', groupByVisit: 'readGroupVisit', modifiedAfter: 'readModifiedAfter', page: 'readPage', complianceType: 'readComplianceType', sequence: 'readSequence', documentTypeId: 'readDocumentType', scheduleType: 'readScheduleType', appliesTo: 'readAppliesTo', caregiverStatus: 'readCaregiverStatus', modifiedAfterUtc: 'readModifiedUtc', lastId: 'readLastId', phone: 'readPhone', noteId: 'readNoteId', referralStatusId: 'readReferralStatus', referralSourceId: 'readReferralSource', salesStaffId: 'readSalesStaff' };
@@ -46,6 +47,8 @@
   function paragraph(text) { const p = document.createElement('p'); p.textContent = text; return p; }
   function setDataAccess(enabled) {
     dataApproved = enabled;
+    if ($('manualSnapshotPanel')) $('manualSnapshotPanel').inert = !enabled || window.primetimeDataMode?.isLive() !== true;
+    if (!enabled) clearManualSnapshots();
     for (const form of panel.querySelectorAll('form')) {
       if (form.id === 'ownerForm') continue;
       if (!enabled) form.reset();
@@ -55,7 +58,7 @@
   }
   setDataAccess(false);
   function reset() { linkedScheduleCreationWritesEnabled = false; pendingLinkedScheduleCreationId = null; setDataAccess(false); collectionNoteWritesEnabled = false; pendingCollectionNoteId = null; referralCreationWritesEnabled = false; pendingReferralCreationId = null; contractCreationWritesEnabled = false; pendingContractCreationId = null; caregiverPictureWritesEnabled = false; pendingCaregiverPictureId = null; documentCreationWrites = []; pendingDocumentCreationId = null; documentReplacementWrites = []; pendingDocumentReplacementId = null; medicalCreationWritesEnabled = false; pendingMedicalCreationId = null; patientClinicalWritesEnabled = false; pendingPatientClinicalId = null; documentMetadataWrites = []; pendingDocumentMetadataId = null; patientNoteWritesEnabled = false; pendingPatientNoteId = null; $("patientNoteForm").reset(); $("patientNoteChanges").replaceChildren(); availabilityCreationWrites = []; pendingAvailabilityCreationId = null; $("availabilityCreationForm").reset(); $("availabilityCreations").replaceChildren(); patientContractWritesEnabled = false; pendingPatientContractId = null; $("patientContractForm").reset(); $("patientContractChanges").replaceChildren(); rateCreationWritesEnabled = false; pendingRateCreationId = null; $("rateCreationForm").reset(); $("rateCreations").replaceChildren(); topicWritesEnabled = false; pendingTopicId = null; $("topicForm").reset(); $("topicChanges").replaceChildren(); documentTypeWritesEnabled = false; pendingDocumentTypeId = null; $("documentTypeForm").reset(); $("documentTypeChanges").replaceChildren(); generation++; readSequence++; readInputs = {}; writesEnabled = false; settings = null; investigations = []; intents = []; pendingIntentId = null; pendingRateId = null; $('rateProposalForm').reset(); $('staffingReviewForm').reset(); $('availabilityForm').reset(); availabilityWrites = []; pendingAvailabilityId = null; for (const id of ['availabilityChanges', 'staffingEvidence', 'readResults', 'investigationList', 'intentList', 'workspaceAudit']) $(id)?.replaceChildren(); $('investigationForm').reset(); $('intentForm').reset(); $('readForm').reset(); $('ownerForm').reset(); $('readPermissions').replaceChildren(); $('readPermissionSearch').value = ''; $('readPermissionSelectedOnly').checked = false; $('readPermissionCount').textContent = 'Sign in to load available reads.'; message('Sign in to load operational controls.'); }
-  document.addEventListener('primetime-signed-out', reset);
+  document.addEventListener('primetime-signed-out', () => { reset(); clearManualSnapshots(); if ($('manualPatientId')) $('manualPatientId').value = ''; });
   function applyMode() {
     const live = window.primetimeDataMode?.isLive() === true;
     panel.inert = !live;
@@ -69,6 +72,7 @@
   applyMode();
   document.addEventListener('primetime-data-mode-changed', () => {
     reset();
+    clearManualSnapshots();
     applyMode();
     if (window.primetimeDataMode?.isLive() && window.primetimeDataMode.isActive?.()) void action(loadSettings);
   });
@@ -732,8 +736,74 @@
     if (workflow === 'investigations') return action(loadInvestigations);
     if (workflow === 'settings') { $('ownerForm').closest('details').open = true; $('ownerOffice').focus(); return; }
     selectRead(workflow);
+    if (control.dataset.patientSource) {
+      const patient = $(control.dataset.patientSource)?.value || '';
+      $('readPatient').value = patient; $('readId').value = patient;
+      $('readOffice').value = settings?.officeId || '';
+    }
     if (workflow === 'SearchPatients' || workflow === 'SearchCaregivers') $('readTerm').focus(); else $('readDate').focus();
     message('Workflow selected. Supply the requested identifiers or date, then read source records.');
   }));
+  if ($('manualSnapshotForm')) {
+    let snapshotSequence = 0;
+    const status = value => { $('manualSnapshotStatus').textContent = value; };
+    const snapshotAction = work => action(async () => { const current = generation; try { await work(); } catch (error) { if (current === generation) status(error.message); throw error; } });
+    const element = (tag, value, className) => { const item = document.createElement(tag); if (value !== undefined) item.textContent = String(value); if (className) item.className = className; return item; };
+    const sourceTable = (headers, rows) => {
+      const wrap = element('div', undefined, 'snapshot-table'), table = element('table'), head = element('thead'), heading = element('tr');
+      headers.forEach(label => { const cell = element('th', label); cell.scope = 'col'; heading.append(cell); }); head.append(heading); table.append(head);
+      const body = element('tbody'); rows.forEach(row => { const tr = element('tr'); row.forEach(value => tr.append(element('td', value))); body.append(tr); });
+      table.append(body); wrap.append(table); return wrap;
+    };
+    function clearSnapshots() {
+      snapshotSequence++; $('manualSnapshotList').replaceChildren(); $('manualSnapshotDetails').replaceChildren();
+      $('manualSnapshotPayload').value = ''; $('manualSnapshotPanel').inert = !dataApproved || window.primetimeDataMode?.isLive() !== true;
+      status(window.primetimeDataMode?.isLive() ? 'Enter a patient ID to load protected imports.' : 'Switch Demo data off to use protected calendar imports.');
+    }
+    function showSnapshot(snapshot) {
+      const detail = $('manualSnapshotDetails'), panel = element('section', undefined, 'panel');
+      panel.append(element('p', 'Manual snapshot · source interpretation pending', 'eyebrow'), element('h2', `${snapshot.patientLabel} · ${snapshot.period}`),
+        element('p', `Office ${snapshot.officeId} · patient ${snapshot.patientId} · ${snapshot.visits.length} visit tiles · ${snapshot.authorizations.rows.length} authorization rows`),
+        element('p', `Captured ${snapshot.capturedAt} · imported ${snapshot.updatedAt}. Times below retain the HHA source display.`, 'source-metadata'));
+      const days = new Map(); snapshot.visits.forEach(visit => days.set(visit.date, (days.get(visit.date) || 0) + 1));
+      panel.append(element('h3', 'Recorded visit tiles by day'));
+      const chart = element('div', undefined, 'snapshot-days'), max = Math.max(1, ...days.values());
+      [...days].sort(([a], [b]) => a.localeCompare(b)).forEach(([date, count]) => { const row = element('div', undefined, 'snapshot-day'), bar = element('progress'); bar.max = max; bar.value = count; bar.setAttribute('aria-label', `${date}: ${count} recorded visit tiles`); row.append(element('span', date), bar, element('strong', count)); chart.append(row); });
+      panel.append(chart, element('h3', 'Authorization source rows'), sourceTable(snapshot.authorizations.columns, snapshot.authorizations.rows.map(row => row.cells)),
+        element('h3', 'Calendar source evidence'), sourceTable(['Date', 'HHA visit ID', 'Schedule, actual, billing and assigned caregiver source text'], snapshot.visits.map(visit => [visit.date, visit.id, visit.text])));
+      detail.replaceChildren(panel);
+    }
+    async function loadSnapshot(id) {
+      const sequence = ++snapshotSequence, patientId = $('manualPatientId').value;
+      status('Loading protected source snapshot…');
+      const result = await request('manual-snapshots?' + new URLSearchParams({ patientId, id }));
+      if (sequence !== snapshotSequence || patientId !== $('manualPatientId').value) return;
+      showSnapshot(result.snapshot); status('Saved manual snapshot loaded. Use live reads for current source records.');
+    }
+    async function loadSnapshots(cursor) {
+      const sequence = ++snapshotSequence, patientId = $('manualPatientId').value;
+      $('manualSnapshotDetails').replaceChildren(); status('Checking patient office and import history…');
+      const result = await request('manual-snapshots?' + new URLSearchParams({ patientId, ...(cursor ? { cursor } : {}) }));
+      if (sequence !== snapshotSequence || patientId !== $('manualPatientId').value) return;
+      const list = $('manualSnapshotList'); list.replaceChildren();
+      result.items.forEach(item => { const card = element('article', undefined, 'snapshot-card'); card.append(element('strong', `${item.period} · ${item.patientLabel}`), element('p', `${item.visitCount} visit tiles · ${item.authorizationCount} authorization rows · captured ${item.capturedAt}`)); const open = button('Open ' + item.period + ' snapshot', () => snapshotAction(() => loadSnapshot(item.id))); card.append(open); list.append(card); });
+      if (result.nextCursor) list.append(button('Older imports', () => snapshotAction(() => loadSnapshots(result.nextCursor))));
+      status(result.items.length ? `${result.items.length} saved source snapshot(s) on this page.` : 'No calendar snapshots saved for this patient.');
+    }
+    $('manualPatientId').addEventListener('input', clearSnapshots);
+    $('manualPatientForm').addEventListener('submit', event => { event.preventDefault(); snapshotAction(() => loadSnapshots()); });
+    $('manualSnapshotForm').addEventListener('submit', event => { event.preventDefault(); snapshotAction(async () => {
+      const sequence = ++snapshotSequence;
+      let capture; try { capture = JSON.parse($('manualSnapshotPayload').value); } catch { status('Enter valid captured-calendar JSON.'); return; }
+      status('Verifying patient office and saving calendar snapshot…');
+      const result = await request('manual-snapshots', capture);
+      if (sequence !== snapshotSequence) return;
+      $('manualPatientId').value = result.snapshot.patientId; $('manualSnapshotPayload').value = '';
+      await loadSnapshots(); showSnapshot(result.snapshot);
+      status(result.duplicate ? 'Identical source facts already saved. No duplicate import created.' : `Saved ${result.snapshot.visits.length} visit tiles and ${result.snapshot.authorizations.rows.length} authorization rows as a dated manual snapshot.`);
+    }); });
+    clearManualSnapshots = clearSnapshots;
+    clearSnapshots();
+  }
   if (!document.getElementById('appShell')?.hidden) action(loadSettings);
 })();

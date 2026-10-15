@@ -20,6 +20,14 @@ Operational/management decisions: EVV rules, visibility/escalation, correction a
 
 # 🚦 CURRENT MANAGEMENT-LAYER CHECKPOINT
 
+**October 14 patient source workbench:** a protected calendar-snapshot import and
+patient workbench preserve dated HHA UI evidence, authorization rows and visit
+tiles, with patient-office verification, immutable versions and content-based
+deduplication. The workbench links to existing live patient and authorization
+reads; manual snapshots remain separate from live overview charts. Local backend
+and frontend regression suites pass. Production import acceptance is recorded
+separately. See [role/workflow research](docs/management-layer/ROLE_WORKFLOW_RESEARCH.txt).
+
 **October 14 live read-only overview:** DEV-006/007/009 passed in the normal approved session. The owner requested actual HHA visit data; this release enables operational reads only and connects scoped source pages to overview charts. All HHA mutation, monitoring-source and SMS approvals remain closed. See [live HHA acceptance](docs/management-layer/LIVE_HHA_ACCEPTANCE_2026-10-14.md).
 
 **October 14 sign-in extension:** phone-code sign-in for the owner-authorized US

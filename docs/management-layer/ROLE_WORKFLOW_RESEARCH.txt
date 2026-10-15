@@ -1,0 +1,53 @@
+PRIMETIME ROLE AND WORKFLOW RESEARCH
+Updated: October 14, 2026, America/Chicago
+Scope: PTHHS /primetime, repository jnwokorie1957/pthhs.
+
+EVIDENCE AND CURRENT STATE
+The owner's authenticated HHA member calendar shows a patient summary, separate navigation for authorizations, visits, recurring schedules, documents and clinical records, and month navigation. Calendar tiles keep scheduled times, actual times, caregiver names and billed-hour evidence together. The visible authorization grid includes payer, dates, discipline, service codes, limits and weekday allowances. Calendar records are observations, not validated business rules. The reviewed source uses PCA discipline; it does not establish that those caregivers are physical therapists.
+
+The protected Primetime overview currently reads HHA through its backend. Office 503324 and America/Chicago were verified. Demo mode is off. A search returns a bounded 200-ID preview and ten visit details per page, with explicit truncation and source-validation labels. It is not an office-wide census or a durable import. September and October calendar captures contain 45 and 41 visit tiles respectively, and three authorization rows per capture. No private record values belong in this document or Git.
+
+PATIENT AND AUTHORIZED FAMILY EXPERIENCE (PROPOSED)
+Start with the patient's next visit and a day/week/month calendar. Show the assigned staff member, scheduled window, visit status as explicitly established by the source, agency contact, and a clear last-updated label. A patient should be able to submit a schedule-change request or concern to an office review queue. Requests must not silently change a confirmed schedule. Add an agency-approved documents view and visit-task summary when patient-specific authorization exists. Mobile layouts should use a simple visit list with large date controls.
+
+Use a patient-account membership record linking an authenticated user to one internal patient ID. An invited family representative requires an explicit relationship and revocable scope. Server checks must enforce that membership on every request; hiding administrator navigation is insufficient. Do not give patient accounts access to staff payroll, rates, other patients, or manager investigations. Public service and contact pages may link to a secure sign-in page; public pages must not contain portal records.
+
+THERAPIST AND FIELD STAFF EXPERIENCE (PROPOSED)
+Default to My day: assigned visits, travel sequence when approved location data exists, patient contact instructions and required tasks. Provide a caseload view and a visit detail page connected to the same patient, visit and plan identifiers used by office staff. A physical therapist workspace should add evaluation/reassessment, approved goals, objective measurements, intervention notes, patient response and next-visit plan. Those fields require clinician-authored records and clinical review, not automatic generation of medical judgments. Draft, signed, amended and reviewed states must preserve authorship and history.
+
+Use verified discipline and staff identity to enable therapist capabilities. PCA and other field staff should receive their approved task and EVV workflows rather than therapist documentation. Server queries must restrict staff to authorized assignments. Device clock actions need source time/timezone evidence, duplicate handling and offline-state disclosure before they can replace an existing EVV system. Availability and open-shift interest should go to office review; eligibility and assignment remain separate decisions.
+
+OFFICE MANAGER EXPERIENCE (PROPOSED)
+Start with an office/date selector and source freshness. Link an actionable visit row to patient summary, schedule/actual/EVV evidence, authorization, caregiver assignment, billing evidence and investigation history. Present work queues for missing evidence, schedule requests, authorization follow-up and unresolved investigations. Separate source facts from policy-classified exceptions. Preserve source values when reviewing discrepancies. The current owner's supervisor review, two pay periods per month, patient-choice staffing preference and investigation workflow are documented in OWNER_OPERATIONS_TASKS.md; exact thresholds still come from approved configuration.
+
+Add a patient workbench with a calendar/list view and authorization table. A source snapshot import should retain all visible calendar fields, source identifiers and capture time. The page must call it a manual snapshot, show the month and office, and distinguish it from the live API view. Reimporting identical content should return the existing import. Changed content should create a retained, auditable version rather than overwrite history. All import APIs require the existing administrator session and verify the patient belongs to the configured office through HHA.
+
+SHARED LINKS AND DATA CONTRACT
+Use internal patient, staff, visit and authorization identities with external HHA references. Keep imported snapshots in server-only storage, outside public assets. Live visits remain backend reads. Every displayed count must disclose its period, office, source type and partial coverage. A historical calendar snapshot can support audit/reconciliation and charts of recorded visit tiles; it cannot establish current EVV, payable hours, staffing eligibility or paid claims. Caregiver names in tiles are labels, not a safe identity match. Resolve source caregiver IDs before creating links to staff records.
+
+Patient/family requests should reference a patient and optional visit; office investigations reference the same visit. Therapy documentation references patient, assigned clinician, visit and plan version. Billing review links to original visit and authorization evidence without asserting payment from a Billed label. Record creator, timestamps, source hash, import actor and reconciliation status.
+
+PRIORITIZED IMPLEMENTATION AND ACCEPTANCE
+P0: Protected manual calendar snapshot import and patient workbench. Accept only bounded, validated JSON; verify office membership on the server; deduplicate immutable content; retain capture/import timestamps; render all source text safely. Reopen a saved snapshot after refresh and verify its visit/authorization counts. Deny anonymous and demo-mode requests and foreign-office records.
+P0: Retain truthful live-source charts and their existing scope/pagination. Test that importing a snapshot never substitutes for live data or changes EVV/billing policy classifications.
+P1: Patient workbench links into existing live patient, authorization, caregiver and visit reads. Each link must carry explicit source IDs and current office scope; unavailable identities remain unresolved.
+P1: Office request queue with supervisor assignment, history and due dates, connected to existing investigations and independent change review.
+P2: Dedicated patient/family and staff authentication/authorization; invitation, revocation and cross-account isolation tests are prerequisites to external access. Existing administrator sign-in must not be reused as a public patient role.
+P2: Therapist documentation with approved clinical fields, role checks, signatures/amendments and clinician acceptance. Dependencies: verified discipline, plan-of-care contract, retention policy and clinician reviewer.
+
+RESEARCH SOURCES (PRIMARY, REVIEWED OCTOBER 14, 2026)
+1. HHAeXchange Family Portal overview: connected family members can see permitted patient/visit/task data and communicate with the agency; agency controls access.
+https://knowledge.hhaexchange.com/enterprise/Content/Documentation/Patient/Pat-N-Family-Portal-Users-Overview-P.htm
+2. HHAeXchange Family Portal schedule: month/day/week navigation, schedule-change requests and concerns are part of the patient/family workflow.
+https://knowledge.hhaexchange.com/texas/Content/Documentation/Patient/Pat-N-Schedule-P.htm
+3. HHAeXchange Patient Profile: calendar, authorizations, recurring schedules, visit lists, documents, clinical records and caregiver history are connected sections; availability depends on portal/permissions.
+https://knowledge.hhaexchange.com/enterprise/Content/Documentation/Patient/Pat-N-Patient-Profile-P.htm
+4. HHAeXchange Mobile navigation: staff schedule, messages and clock actions are central mobile tasks.
+https://knowledge.hhaexchange.com/texas/Content/Documentation/Mobile/Mobi-CG-Navigate-Mobile-App-P.htm
+5. HHAeXchange Family Dashboard: office review connects patient/caregiver calendars to requests and concerns. Proposed Primetime queues should preserve review rather than copy automatic consequences without approval.
+https://knowledge.hhaexchange.com/enterprise/Content/Documentation/Admin/Admin-N-Patient-Visit-Family-Dashboard-P.htm
+6. CMS Medicare Benefit Policy Manual, chapter 7, sections 40.2.1 and 40.2.2: therapy documentation includes skilled services, response, progress and next steps; objective assessment supports PT records. This is a design reference for applicable Medicare workflows, not a determination of any patient's eligibility or an agency-wide billing rule.
+https://www.cms.gov/Regulations-and-Guidance/Guidance/Manuals/downloads/bp102c07.pdf
+
+IMPLEMENTATION STATUS
+Initial research completed. Protected snapshot import/workbench is next. Patient/family and therapist portals remain proposed, with no new external account access enabled.
