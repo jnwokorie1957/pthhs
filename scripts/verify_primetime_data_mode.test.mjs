@@ -742,3 +742,97 @@ test('failed paging discards cursor history and refresh starts from the first so
   assert.equal(app.element('dashboardOverviewPrevious').hidden, true);
   assert.match(nodeText(app.element('dashboardTimeline')), /900001/);
 });
+
+function descendants(node) { return [node, ...node.children.flatMap(child => child.children ? descendants(child) : [])]; }
+function recordButtons(app, host = 'dashboardTimeline') { return descendants(app.element(host)).filter(node => /^Open (patient|caregiver|visit) read$/.test(node.textContent)); }
+async function clickNode(node) { for (const callback of node.handlers.get('click') || []) await callback(new Event('click')); }
+function connectedWorkspace({ dataApproved = true, enabledReads = ['GetPatientDemographics', 'GetVisitInfoV3'], preview = livePreview } = {}) {
+  const settings = { revision: 1, officeId: '123', officeTimezone: 'America/Chicago', policyReference: '', enabledReads };
+  const app = harness({ storedDataMode: null, metadata: liveMetadata, fetchSource: (path, options) => {
+    if (path.endsWith('/settings')) return response({ ok: true, settings, dataApproved, supportedReads: [], readInputs: {
+      GetPatientDemographics: ['id'], GetCaregiverDemographics: ['id'], GetVisitInfoV3: ['id']
+    } });
+    if (path.includes('/views/visits?')) return response(preview(new URL(path, 'https://fixture.test').searchParams.get('date')));
+    if (path.endsWith('/workspace/read')) return response({ ok: true, operation: JSON.parse(options.body).operation, fetchedAt: '2026-10-10T08:00:00Z', records: [] });
+    return response({ ok: true });
+  } });
+  installDashboard(app); vm.runInContext(asset('workspace.js'), app.context);
+  return app;
+}
+
+test('live visit shortcuts select exact patient, caregiver and visit reads without fetching or granting access', async () => {
+  const app = connectedWorkspace(); await app.signIn(); await tick(); await tick();
+  for (const host of ['dashboardTimeline', 'dashboardVisitRows']) {
+    const controls = recordButtons(app, host);
+    assert.equal(controls.length, 3);
+    for (const [index, operation, id] of [[0, 'GetPatientDemographics', '5'], [1, 'GetCaregiverDemographics', '6'], [2, 'GetVisitInfoV3', '900001']]) {
+      for (const field of ['readId', 'readPatient', 'readCaregiver', 'readContract', 'readDate']) app.element(field).value = 'stale';
+      app.element('readResults').append({ textContent: 'prior subject facts' });
+      const before = app.calls.length;
+      await clickNode(controls[index]);
+      assert.equal(app.calls.length, before, 'selection must not fetch, write or enable any read');
+      assert.equal(app.element('readOperation').value, operation);
+      assert.equal(app.element('readId').value, id); assert.equal(app.element('readOffice').value, '123');
+      assert.equal(app.element('readPatient').value, index === 0 ? '5' : '');
+      assert.equal(app.element('readCaregiver').value, index === 1 ? '6' : '');
+      assert.equal(app.element('readContract').value, ''); assert.equal(app.element('readDate').value, '');
+      assert.equal(app.element('readResults').children.length, 0);
+      assert.equal(app.element('pageTitle').textContent, 'Advanced tools');
+      assert.equal(app.document.activeElement, app.element('readId'));
+      assert.match(app.element('workspaceMessage').textContent, index === 1 ? /requires owner enablement/ : /Choose Read source records/);
+    }
+  }
+  for (const callback of app.element('readForm').handlers.get('submit')) callback({ preventDefault() {} });
+  await tick();
+  const reads = app.calls.filter(call => call.path.endsWith('/workspace/read'));
+  assert.equal(reads.length, 1); assert.deepEqual(JSON.parse(reads[0].options.body), { operation: 'GetVisitInfoV3', id: '900001' });
+});
+
+test('unavailable details, invalid source IDs and Demo examples have no source record shortcuts', async () => {
+  const app = connectedWorkspace({ preview: date => {
+    const payload = livePreview(date);
+    payload.items.push({ id: '900002', patientId: '77', caregiverId: '88', state: 'unavailable' });
+    payload.items[0].patientId = '<script>'; payload.items[0].caregiverId = '0';
+    return payload;
+  } });
+  await app.signIn(); await tick(); await tick();
+  assert.deepEqual(recordButtons(app).map(node => node.textContent), ['Open visit read']);
+  assert.deepEqual(recordButtons(app, 'dashboardVisitRows').map(node => node.textContent), ['Open visit read']);
+  app.window.primetimeDataMode.setMode('demo');
+  assert.equal(recordButtons(app).length, 0); assert.equal(recordButtons(app, 'dashboardVisitRows').length, 0);
+});
+
+test('detached record shortcuts cannot reuse old date, office, mode or session context', async () => {
+  const app = connectedWorkspace(); await app.signIn(); await tick(); await tick();
+  const old = recordButtons(app)[0];
+  app.element('dashboardOverviewDate').value = '2026-10-09';
+  for (const callback of app.element('dashboardOverviewDate').handlers.get('change')) callback(new Event('change'));
+  await clickNode(old);
+  assert.equal(app.events.filter(event => event.type === 'primetime-source-record-selected').length, 0);
+  await tick(); await tick();
+  const beforeScope = recordButtons(app)[0];
+  app.window.primetimeDataMode.observeScope({ revision: 2, officeId: '999', officeTimezone: 'America/Chicago' });
+  await clickNode(beforeScope);
+  assert.equal(app.events.filter(event => event.type === 'primetime-source-record-selected').length, 0);
+  await tick(); await tick();
+  const beforeMode = recordButtons(app)[0]; app.window.primetimeDataMode.setMode('demo');
+  await clickNode(beforeMode);
+  assert.equal(app.events.filter(event => event.type === 'primetime-source-record-selected').length, 0);
+  await app.live(); await tick(); await tick();
+  const beforeSignOut = recordButtons(app)[0]; app.dispatch('primetime-signed-out');
+  await clickNode(beforeSignOut);
+  assert.equal(app.events.filter(event => event.type === 'primetime-source-record-selected').length, 0);
+});
+
+test('workspace rejects mismatched offices, malformed record kinds and locked access', async () => {
+  for (const dataApproved of [true, false]) {
+    const app = connectedWorkspace({ dataApproved }); await app.signIn(); await tick(); await tick();
+    app.element('readId').value = 'keep';
+    const selections = [{ kind: 'patient', id: '5', officeId: '999' }, { kind: '__proto__', id: '5', officeId: '123' }, { kind: 'visit', id: 'bad', officeId: '123' }];
+    if (!dataApproved) selections.push({ kind: 'patient', id: '5', officeId: '123' });
+    for (const detail of selections) app.document.dispatchEvent(new DetailEvent('primetime-source-record-selected', { detail }));
+    assert.equal(app.element('readId').value, 'keep');
+    assert.equal(app.events.filter(event => event.type === 'primetime-workbench-selected').length, 0);
+    assert.equal(app.calls.some(call => call.path.endsWith('/workspace/read')), false);
+  }
+});

@@ -142,6 +142,7 @@
     text('dashboardReadiness', detail);
   }
   function renderTimeline(view) {
+    const captured = context();
     const timeline = node('div', null, 'source-timeline');
     timeline.append(node('p', 'Source wall-clock positions, without timezone conversion. Bars require a valid same-day start and end; original values remain visible.'));
     const axis = node('div', null, 'source-timeline-axis');
@@ -170,6 +171,7 @@
         lane.append(track, node('small', `${from || 'Not supplied'} → ${to || 'Not supplied'}`));
         row.append(lane);
       }
+      row.append(sourceRecordTools(view, item, captured));
       timeline.append(row);
     }
     replace('dashboardTimeline', timeline);
@@ -226,7 +228,12 @@
     const body = node('tbody');
     for (const values of rows) {
       const row = node('tr');
-      values.forEach(value => row.append(node('td', value === null || value === undefined || value === '' ? 'Unavailable' : value)));
+      values.forEach(value => {
+        const cell = node('td');
+        if (typeof value === 'function') cell.append(value());
+        else cell.textContent = value === null || value === undefined || value === '' ? 'Unavailable' : String(value);
+        row.append(cell);
+      });
       body.append(row);
     }
     if (!rows.length) { const row = node('tr'); const cell = node('td', 'No records in this preview.'); cell.colSpan = headers.length; row.append(cell); body.append(row); }
@@ -331,8 +338,9 @@
       unavailable('dashboardEvidenceChart', 'Synthetic example mode', 'All records in this mode are generated examples. Switch Demo data off to load live HHA evidence.');
     }
     const pair = (start, end) => `${start || 'Unavailable'}\n${end || 'Unavailable'}`;
-    replace('dashboardVisitRows', table(['Visit', 'Patient ID', 'Caregiver ID', 'Scheduled start / end', 'Actual start / end', 'EVV start / end', 'Evidence state'],
-      view.items.map(item => [item.id, item.patientId, item.caregiverId, pair(item.scheduledStart, item.scheduledEnd), pair(item.actualStart, item.actualEnd), pair(item.evvStart, item.evvEnd), item.state === 'unavailable' ? 'Detail unavailable: ' + item.detailReason : view.mode === 'demo' ? 'Synthetic example' : 'Source unvalidated'])));
+    const captured = context();
+    replace('dashboardVisitRows', table(['Visit', 'Patient ID', 'Caregiver ID', 'Scheduled start / end', 'Actual start / end', 'EVV start / end', 'Evidence state', 'Source records'],
+      view.items.map(item => [item.id, item.patientId, item.caregiverId, pair(item.scheduledStart, item.scheduledEnd), pair(item.actualStart, item.actualEnd), pair(item.evvStart, item.evvEnd), item.state === 'unavailable' ? 'Detail unavailable: ' + item.detailReason : view.mode === 'demo' ? 'Synthetic example' : 'Source unvalidated', view.mode === 'demo' ? 'Synthetic record' : () => sourceRecordTools(view, item, captured)])));
     text('dashboardVisitStatus', view.mode === 'demo' ? 'Synthetic visit examples. No source request was made.' : view.state === 'partial' ? 'Partial source page returned. More pages, truncated search results or unavailable details are disclosed below.' : view.state === 'empty' ? 'No visit identifiers returned for this query. Complete office coverage is not established.' : 'Live HHA source page returned. Source fields are shown separately; operational classifications are pending.');
     text('dashboardVisitScope', `Office: ${view.scope.officeId || 'Unavailable'} · Date: ${view.scope.date} · Timezone: ${view.scope.timezone || 'Unconfigured'}`);
     text('dashboardVisitMetadata', view.mode === 'demo' ? 'Source: synthetic examples · values are not patient records.' : `Source: HHAeXchange · fetched: ${view.fetchedAt || 'Unavailable'} · source unvalidated · on-demand read, not a persisted visit import · source time values shown without conversion.`);
@@ -342,6 +350,20 @@
     previousPageButton(view.mode === 'demo' ? demoOffset > 0 : pagePosition > 0);
   }
   function context() { return { generation: controller.getGeneration(), mode: controller.getMode(), session, serial }; }
+  function sourceRecordTools(view, item, captured) {
+    const tools = node('div', null, 'source-record-tools');
+    if (view.mode !== 'live' || item.state === 'unavailable') return tools;
+    for (const [kind, id] of [['patient', item.patientId], ['caregiver', item.caregiverId], ['visit', item.id]]) {
+      if (typeof id !== 'string' || !/^[1-9]\d{0,9}$/.test(id)) continue;
+      const control = node('button', `Open ${kind} read`, 'btn secondary'); control.type = 'button';
+      control.addEventListener('click', () => {
+        if (!current(captured) || !controller.isLive() || metadata?.settings?.officeId !== view.scope.officeId) return;
+        document.dispatchEvent(new CustomEvent('primetime-source-record-selected', { detail: { kind, id, officeId: view.scope.officeId } }));
+      });
+      tools.append(control);
+    }
+    return tools;
+  }
   function current(captured) { return ready && captured.generation === controller.getGeneration() && captured.mode === controller.getMode() && captured.session === session && captured.serial === serial; }
   function blockedMessage(reason) {
     return ({ operational_data_release_not_approved: 'Live source access has not been approved.', office_timezone_not_configured: 'The owner must configure an office and office timezone.', visit_reads_not_owner_enabled: 'Required visit reads have not been enabled by the owner.', vendor_contract_blocked: 'The vendor contract for this read requires review.' })[reason] || 'Live visit source access is unavailable. Review owner controls and deployment approval.';

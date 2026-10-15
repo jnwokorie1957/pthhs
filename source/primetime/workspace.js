@@ -30,6 +30,22 @@
     for (const [field, id] of Object.entries(inputIds)) $(id).closest('label').hidden = fields ? !fields.includes(field) : false;
   }
   function selectRead(operation) { $('readOperation').value = operation; readSequence++; $('readResults').replaceChildren(); showReadInputs(); }
+  document.addEventListener('primetime-source-record-selected', event => {
+    const { kind, id, officeId } = event.detail || {};
+    const operation = kind === 'patient' ? 'GetPatientDemographics' : kind === 'caregiver' ? 'GetCaregiverDemographics' : kind === 'visit' ? 'GetVisitInfoV3' : null;
+    if (!operation || typeof id !== 'string' || !/^[1-9]\d{0,9}$/.test(id) || !dataApproved
+      || window.primetimeDataMode?.isLive() !== true || !settings?.officeId || officeId !== settings.officeId) return;
+    for (const field of Object.values(inputIds)) $(field).value = '';
+    $('readId').value = id; $('readOffice').value = officeId;
+    if (kind === 'patient') $('readPatient').value = id;
+    if (kind === 'caregiver') $('readCaregiver').value = id;
+    selectRead(operation);
+    document.dispatchEvent(new Event('primetime-workbench-selected'));
+    $('readId').focus();
+    message(settings.enabledReads.includes(operation)
+      ? `${kind[0].toUpperCase() + kind.slice(1)} source ID selected from the live visit page. Choose Read source records to fetch current evidence.`
+      : `${kind[0].toUpperCase() + kind.slice(1)} source ID selected. This read requires owner enablement after entitlement review.`);
+  });
   $('readOperation').addEventListener('change', () => selectRead($('readOperation').value));
   async function request(path, body, expectedGeneration = generation) {
     if (expectedGeneration !== generation) throw new Error('Session changed. Start this action again.');
