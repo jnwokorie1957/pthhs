@@ -1,5 +1,41 @@
 # First administrator handoff
 
+## Phone sign-in and persistent sessions — October 14, 2026
+
+The owner authorized US phone **`+1 832-403-0094`** in addition to the existing
+approved email address. The form accepts national digits, US country-code forms,
+spaces, parentheses, periods and hyphens, and sends canonical `+18324030094` to
+Firebase. A typed number alone grants no access: Firebase must verify its SMS
+code, and the API checks both the verified token phone and the current enabled
+account's phone. Email and existing administrator claims retain their access.
+No custom claims or Authentication users are rewritten or automatically linked.
+Email and phone may have different UIDs; audit history follows the signed-in UID.
+
+Firebase Phone sign-in was observed enabled in the existing project. Preserve
+the email-link provider, authorized domains and SMS region settings. This is an
+alternative sign-in method, not SMS multi-factor authentication. The scoped
+Primetime CSP permits only Google's documented reCAPTCHA script/frame/connect
+paths; the marketing site's CSP remains unchanged.
+
+The browser uses Firebase `LOCAL` persistence. Existing `SESSION` users migrate
+in place after server authorization, without signing out or revoking refresh
+tokens. The SDK obtains fresh ID tokens as needed. A temporary backend/network
+failure keeps the browser's sign-in and offers **Retry connection** while the
+workspace remains locked pending verification. A confirmed forbidden account
+still receives no access. Explicit sign-out continues to clear the session.
+Browsers that refuse persistent storage retain their usable current session.
+
+After release, the owner should test a normal SMS-code sign-in in a separate
+browser/profile while preserving the existing signed-in browser; then test
+reopening that browser, email-link fallback and explicit sign-out. Synthetic
+tests cover the flows, malformed/incorrect codes, stale completions, server
+rejection, persistence migration and temporary failure recovery. No real SMS
+code was requested, no current user was signed out, and no token was revoked by
+the development verification. Live SMS delivery remains owner acceptance.
+
+References: [Firebase phone sign-in](https://firebase.google.com/docs/auth/web/phone-auth),
+[session persistence](https://firebase.google.com/docs/auth/web/auth-state-persistence).
+
 ## Password-free sign-in — October 10, 2026
 
 The owner explicitly approved `jeremynwokorie@gmail.com` for Primetime administration and selected email-link sign-in. The server-approved email list is in `functions/src/auth/admin.ts`. That exact mailbox receives the application `admin` role only after a Firebase ID token proves email verification and the current enabled Firebase account still has the same verified email. Token revocation checks remain required. Existing administrator custom claims continue to work; no extra collection or scheduling reviewer roles are granted.

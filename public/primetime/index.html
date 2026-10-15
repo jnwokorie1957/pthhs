@@ -7,7 +7,7 @@
   <meta name="theme-color" content="#0d4f8f">
   <title>Primetime Operations</title>
   <link rel="icon" href="/assets/meta/favicon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="/primetime/primetime.css?v=51027630a64a">
+  <link rel="stylesheet" href="/primetime/primetime.css?v=d77492978c4e">
 </head>
 <body>
   <div class="auth-shell" id="authShell">
@@ -16,12 +16,30 @@
       <p class="eyebrow">Internal operations</p>
       <h1 id="authTitle">Sign in to Primetime</h1>
       <p class="auth-copy" id="authCopy">Enter your approved administrator email. We will email you a link to sign in.</p>
+      <div class="auth-methods" role="group" aria-label="Sign-in method">
+        <button id="emailMethod" class="btn secondary" type="button" aria-pressed="true">Email link</button>
+        <button id="phoneMethod" class="btn secondary" type="button" aria-pressed="false">Text message</button>
+      </div>
       <form id="loginForm" class="auth-form">
         <label for="loginEmail">Email</label>
         <input id="loginEmail" name="email" type="email" autocomplete="email" required>
         <button id="loginSubmit" class="btn primary full" type="submit">Send sign-in link</button>
         <button id="requestNewLink" class="btn secondary full" type="button" hidden>Request a new link</button>
       </form>
+      <form id="phoneLoginForm" class="auth-form" hidden>
+        <label for="loginPhone">US phone number</label>
+        <input id="loginPhone" name="phone" type="tel" autocomplete="tel" inputmode="tel" required>
+        <div id="phoneCodeFields" hidden>
+          <label for="phoneCode">Verification code</label>
+          <input id="phoneCode" name="code" type="text" autocomplete="one-time-code" inputmode="numeric" pattern="[0-9]{6}" maxlength="6">
+        </div>
+        <div id="phoneRecaptcha"></div>
+        <button id="phoneSubmit" class="btn primary full" type="submit">Send text code</button>
+        <button id="requestNewPhoneCode" class="btn secondary full" type="button" hidden>Send a new code</button>
+        <p class="auth-help">A verification text is sent through Firebase. Message and data rates may apply.</p>
+      </form>
+      <p class="auth-help">You stay signed in on this browser until you sign out. Use a trusted device.</p>
+      <button id="retrySession" class="btn secondary full" type="button" hidden>Retry connection</button>
       <p class="auth-message" id="authMessage" aria-live="polite"></p>
       <a class="auth-back" href="/">← Public website</a>
     </section>
@@ -128,7 +146,7 @@
   <script src="/primetime/demo-data.js?v=daf4470da486" defer></script>
   <script src="/primetime/dashboard.js?v=2b20fdc9de64" defer></script>
   <script src="/primetime/revisions.js?v=fb781135655a" defer></script>
-  <script src="/primetime/primetime.js?v=ea2c34ff88b8" defer></script>
+  <script src="/primetime/primetime.js?v=6c353488426e" defer></script>
   <script src="/primetime/workspace.js?v=975702a84f0f" defer></script>
 </body>
 </html>

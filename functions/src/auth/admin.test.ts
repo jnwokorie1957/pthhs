@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import type { DecodedIdToken, UserRecord } from "firebase-admin/auth";
-import { PrimetimeAuthError, requirePrimetimeAdmin } from "./admin.js";
+import { PrimetimeAuthError, requirePrimetimeAdmin, normalizeUsPhone } from "./admin.js";
 
 const email = "jeremynwokorie@gmail.com";
 const request = { get: (name: string) => name.toLowerCase() === "authorization" ? "Bearer fixture" : undefined };
@@ -80,3 +80,28 @@ test("missing bearer authorization never reaches Firebase", async () => {
   await assert.rejects(requirePrimetimeAdmin({ get: () => undefined }, mock.auth), error => error instanceof PrimetimeAuthError && error.statusCode === 401);
   assert.deepEqual(mock.checks, []);
 });
+
+for (const phone of ["8324030094", "832-403-0094", "(832) 403-0094", "832.403.0094", "1 832 403 0094", "+1 (832) 403-0094", "+18324030094"]) {
+  test(`the approved phone normalizes ${phone} and requires a matching enabled Firebase account`, async () => {
+    assert.equal(normalizeUsPhone(phone), "+18324030094");
+    const mock = fixture({ email: undefined, email_verified: false, phone_number: phone }, { email: undefined, emailVerified: false, phoneNumber: "+18324030094" });
+    assert.deepEqual(await requirePrimetimeAdmin(request, mock.auth), { uid: "approved-uid", roles: ["admin"], phoneNumber: "+18324030094" });
+    assert.deepEqual(mock.checks, [true]);
+    assert.deepEqual(mock.lookups, ["approved-uid"]);
+  });
+}
+
+for (const phone of [undefined, "", "+18324030095", "+448324030094", "8324030094 ext 1", "8324030094@example.com", "++18324030094"]) {
+  test(`phone authorization rejects unapproved or malformed token phone ${phone}`, async () => {
+    const mock = fixture({ email: undefined, email_verified: false, phone_number: phone }, { phoneNumber: "+18324030094" });
+    await assert.rejects(requirePrimetimeAdmin(request, mock.auth), error => error instanceof PrimetimeAuthError && error.statusCode === 403);
+    assert.deepEqual(mock.lookups, []);
+  });
+}
+
+for (const current of [{ disabled: true }, { phoneNumber: undefined }, { phoneNumber: "+18324030095" }, { uid: "someone-else" }]) {
+  test(`phone authorization rejects a stale or disabled current account ${JSON.stringify(current)}`, async () => {
+    const mock = fixture({ email: undefined, email_verified: false, phone_number: "+18324030094" }, { phoneNumber: "+18324030094", ...current });
+    await assert.rejects(requirePrimetimeAdmin(request, mock.auth), error => error instanceof PrimetimeAuthError && error.statusCode === 403);
+  });
+}

@@ -20,12 +20,20 @@ Operational/management decisions: EVV rules, visibility/escalation, correction a
 
 # 🚦 CURRENT MANAGEMENT-LAYER CHECKPOINT
 
+**October 14 sign-in extension:** phone-code sign-in for the owner-authorized US
+number `+18324030094` accompanies the existing email link. Firebase must verify the
+phone and the server rechecks the current enabled account. Existing sessions move
+to browser-local persistence without token revocation; temporary API failures
+offer a connection retry instead of automatic sign-out. See
+[sign-in setup and acceptance](docs/management-layer/FIRST_ADMIN_HANDOFF.md).
+Phone-code acceptance requires the owner's normal SMS verification after release.
+
 **October 14 live-mode incident resolved:** the four startup 503s shared a missing
 Firestore dependency. The default Native database now exists in `us-central1`
 (created `2026-10-14T23:54:54.991783Z`). The existing approved administrator session
 now loads owner controls and import history and reports **Reference API reachable**
 with demo mode off. Backend deployment now checks the database prerequisite and
-deploys server-only rules. Operational data approval remains closed. See
+retains operator-published server-only rules. Operational data approval remains closed. See
 [Firestore setup and acceptance](docs/management-layer/FIRESTORE_SETUP.md).
 
 **October 10 sign-in update:** the owner approved `jeremynwokorie@gmail.com` for administration and selected password-free email links. The server checks verified mailbox ownership and the current enabled account alongside existing admin claims. See [sign-in setup and acceptance](docs/management-layer/FIRST_ADMIN_HANDOFF.md). The next owner action is to open `/primetime`, request a link and complete normal sign-in; live session/HHA acceptance remains pending.

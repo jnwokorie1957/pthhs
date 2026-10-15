@@ -232,6 +232,7 @@ export const primetimeApi = onRequest(
         uid: principal.uid,
         roles: principal.roles,
         ...(principal.email ? { email: principal.email } : {}),
+        ...(principal.phoneNumber ? { phoneNumber: principal.phoneNumber } : {}),
       });
       return;
     }

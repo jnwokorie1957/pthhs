@@ -16,11 +16,23 @@ function startApp(session, health = { ok: true, status: 200, json: async () => (
     });
     return elements.get(id);
   };
-  const calls = { persistence: [], sends: [], completions: [], signOuts: 0 };
+  const calls = { persistence: [], sends: [], completions: [], signOuts: 0, phoneSends: [], phoneConfirmations: [], verifiers: 0, clears: 0 };
   const auth = {
     currentUser: null,
     isSignInWithEmailLink(href) { return href.includes('mode=signIn'); },
-    async setPersistence(value) { calls.persistence.push(value); },
+    async setPersistence(value) { calls.persistence.push(value); if (options.persistenceError) throw new Error('storage blocked'); },
+    async signInWithPhoneNumber(phone, verifier) {
+      calls.phoneSends.push({ phone, verifier });
+      if (options.phoneSend) await options.phoneSend(phone);
+      return { confirm: async code => {
+        calls.phoneConfirmations.push(code);
+        if (options.phoneComplete) return options.phoneComplete(code, auth);
+        const user = { uid: 'phone-user', phoneNumber: phone, getIdToken: async () => 'phone-token' };
+        auth.currentUser = user;
+        await auth.callback(user);
+        return { user };
+      } };
+    },
     async sendSignInLinkToEmail(email, settings) {
       calls.sends.push({ email, settings });
       if (options.send) await options.send(email, settings);
@@ -36,7 +48,8 @@ function startApp(session, health = { ok: true, status: 200, json: async () => (
     onAuthStateChanged(callback) { this.callback = callback; },
     async signOut() { calls.signOuts += 1; this.currentUser = null; await this.callback(null); }
   };
-  const firebase = { auth: Object.assign(() => auth, { Auth: { Persistence: { SESSION: 'session' } } }) };
+  const firebase = { auth: Object.assign(() => auth, { Auth: { Persistence: { LOCAL: 'local', SESSION: 'session' } },
+    RecaptchaVerifier: class { constructor() { calls.verifiers++; } clear() { calls.clears++; } } }) };
   const requests = [];
   const storage = new Map(options.storedEmail ? [['primetime.emailForSignIn', options.storedEmail]] : []);
   const localStorage = {
@@ -55,7 +68,7 @@ function startApp(session, health = { ok: true, status: 200, json: async () => (
     location, history: { replaceState(_state, _title, url) { historyChanges.push(url); location.href = new URL(url, location.href).href; } }, Headers, Event,
     fetch: async (path, options) => {
       requests.push({ path, options });
-      return path.endsWith('/session') ? session : path.endsWith('/hha/health') ? health : {
+      return path.endsWith('/session') ? (typeof session === 'function' ? session() : session) : path.endsWith('/hha/health') ? health : {
         ok: true, status: 200, json: async () => ({ ok: true })
       };
     }
@@ -63,7 +76,10 @@ function startApp(session, health = { ok: true, status: 200, json: async () => (
   return { auth, element, requests, window, calls, storage, historyChanges, events,
     submit: () => element('loginForm').handlers.submit({ preventDefault() {} }),
     requestNew: () => element('requestNewLink').handlers.click(),
-    signOut: () => element('signOutButton').handlers.click()
+    signOut: () => element('signOutButton').handlers.click(),
+    choosePhone: () => element('phoneMethod').handlers.click(),
+    submitPhone: () => element('phoneLoginForm').handlers.submit({ preventDefault() {} }),
+    retry: () => element('retrySession').handlers.click()
   };
 }
 
@@ -144,7 +160,7 @@ test('sending a sign-in link uses a fixed HTTPS return and never opens the works
   await app.auth.callback(null);
   app.element('loginEmail').value = ' jeremynwokorie@gmail.com ';
   await app.submit();
-  assert.equal(app.calls.persistence.join(), 'session');
+  assert.equal(app.calls.persistence.join(), 'local');
   assert.equal(app.calls.sends.length, 1);
   assert.equal(app.calls.sends[0].email, 'jeremynwokorie@gmail.com');
   assert.equal(app.calls.sends[0].settings.url, 'https://pthhs.net/primetime');
@@ -312,4 +328,163 @@ test('a pre-existing signed-in account cannot bypass confirmation of a new email
   assert.equal(app.requests.length, 0);
   assert.equal(app.element('appShell').hidden, true);
   assert.match(app.element('authMessage').textContent, /Confirm the email/);
+});
+
+for (const phone of ['8324030094', '832-403-0094', '(832) 403-0094', '832.403.0094', '1 832 403 0094', '+1 (832) 403-0094', '+18324030094']) {
+  test(`phone sign-in normalizes ${phone}, requires an SMS code and waits for server authorization`, async () => {
+    const app = startApp({ ok: true, status: 200, json: async () => ({ ok: true, roles: ['admin'], phoneNumber: '+18324030094' }) });
+    await app.auth.callback(null);
+    app.choosePhone();
+    app.element('loginPhone').value = phone;
+    await app.submitPhone();
+    assert.equal(app.calls.phoneSends.length, 1);
+    assert.equal(app.calls.phoneSends[0].phone, '+18324030094');
+    assert.equal(app.calls.verifiers, 1);
+    assert.equal(app.calls.persistence.join(), 'local');
+    assert.equal(app.requests.length, 0);
+    assert.equal(app.element('appShell').hidden, true);
+    assert.equal(app.element('phoneCodeFields').hidden, false);
+    app.element('phoneCode').value = '123456';
+    await app.submitPhone();
+    assert.equal(app.calls.phoneConfirmations.join(), '123456');
+    assert.equal(app.element('appShell').hidden, false);
+    assert.equal(app.element('signedInIdentity').textContent, '+18324030094');
+    assert.equal(app.calls.signOuts, 0);
+    assert.equal(app.calls.sends.length, 0);
+  });
+}
+
+test('unapproved numbers and malformed phone input never send SMS', async () => {
+  const app = startApp(approvedSession);
+  await app.auth.callback(null);
+  app.choosePhone();
+  for (const phone of ['', '+18324030095', '+448324030094', '8324030094 ext 1', '8324030094@example.com', '++18324030094']) {
+    app.element('loginPhone').value = phone;
+    await app.submitPhone();
+  }
+  assert.equal(app.calls.phoneSends.length, 0);
+  assert.equal(app.calls.verifiers, 0);
+});
+
+test('invalid codes stay closed and an incorrect code can be corrected without resending SMS', async () => {
+  let attempts = 0;
+  const app = startApp(approvedSession, undefined, { phoneComplete: async (_code, auth) => {
+    if (++attempts === 1) throw Object.assign(new Error('PRIVATE'), { code: 'auth/invalid-verification-code' });
+    const user = { uid: 'phone-user', getIdToken: async () => 'token' };
+    auth.currentUser = user;
+    await auth.callback(user);
+    return { user };
+  } });
+  await app.auth.callback(null);
+  app.choosePhone(); app.element('loginPhone').value = '8324030094';
+  await app.submitPhone();
+  for (const code of ['', '123', 'abcdef']) { app.element('phoneCode').value = code; await app.submitPhone(); }
+  assert.equal(app.calls.phoneConfirmations.length, 0);
+  app.element('phoneCode').value = '111111';
+  await app.submitPhone();
+  assert.match(app.element('authMessage').textContent, /incorrect/);
+  assert.equal(app.element('appShell').hidden, true);
+  app.element('phoneCode').value = '222222';
+  await app.submitPhone();
+  assert.equal(app.element('appShell').hidden, false);
+  assert.equal(app.calls.phoneSends.length, 1);
+});
+
+test('duplicate SMS sends are fenced and a late send after sign-out cannot expose a code form', async () => {
+  let release;
+  const app = startApp(approvedSession, undefined, { phoneSend: () => new Promise(resolve => { release = resolve; }) });
+  await app.auth.callback(null);
+  app.choosePhone(); app.element('loginPhone').value = '8324030094';
+  const sending = app.submitPhone();
+  await settle();
+  await app.submitPhone();
+  assert.equal(app.calls.phoneSends.length, 1);
+  await app.signOut();
+  release(); await sending;
+  assert.equal(app.element('phoneCodeFields').hidden, true);
+  assert.equal(app.requests.length, 0);
+});
+
+for (const transition of ['logout', 'account switch']) {
+  test(`a delayed phone confirmation cannot reopen the old session after ${transition}`, async () => {
+    let release;
+    const returned = { uid: 'phone-user', getIdToken: async () => 'old-token' };
+    const app = startApp(approvedSession, undefined, { phoneComplete: async (_code, auth) => {
+      await new Promise(resolve => { release = resolve; });
+      auth.currentUser = returned; await auth.callback(returned); return { user: returned };
+    } });
+    await app.auth.callback(null);
+    app.choosePhone(); app.element('loginPhone').value = '8324030094'; await app.submitPhone();
+    app.element('phoneCode').value = '123456';
+    const signingIn = app.submitPhone(); await settle();
+    if (transition === 'logout') await app.signOut();
+    else { app.auth.currentUser = { uid: 'other', getIdToken: async () => 'new-token' }; await app.auth.callback(app.auth.currentUser); }
+    release(); await signingIn;
+    assert.equal(app.element('appShell').hidden, true);
+    assert.equal(app.requests.length, 0);
+  });
+}
+
+test('server-rejected phone sign-in never reaches HHA or the workspace', async () => {
+  const app = startApp({ ok: false, status: 403 });
+  await app.auth.callback(null);
+  app.choosePhone(); app.element('loginPhone').value = '8324030094'; await app.submitPhone();
+  app.element('phoneCode').value = '123456'; await app.submitPhone();
+  assert.equal(app.element('appShell').hidden, true);
+  assert.equal(app.auth.currentUser, null);
+  assert.equal(app.requests.filter(r => r.path.endsWith('/hha/health')).length, 0);
+});
+
+test('existing signed-in users migrate to local persistence without signing out or forcing a token refresh', async () => {
+  const app = startApp(approvedSession);
+  const refreshes = [];
+  const user = { uid: 'existing', getIdToken: async force => { refreshes.push(force); return 'existing-token'; } };
+  app.auth.currentUser = user;
+  await app.auth.callback(user);
+  assert.equal(app.calls.persistence.join(), 'local');
+  assert.equal(app.calls.signOuts, 0);
+  assert.equal(app.auth.currentUser, user);
+  assert.equal(app.element('appShell').hidden, false);
+  assert.ok(refreshes.every(force => force !== true));
+});
+
+test('temporary API errors retain the signed-in user and Retry connection restores access without new credentials', async () => {
+  for (const failure of [401, 503, 'network']) {
+    let available = false;
+    const app = startApp(() => {
+      if (available) return approvedSession;
+      if (failure === 'network') throw new Error('network offline');
+      return { ok: false, status: failure };
+    });
+    const user = { uid: 'existing', getIdToken: async () => 'existing-token' };
+    app.auth.currentUser = user; await app.auth.callback(user);
+    assert.equal(app.calls.signOuts, 0);
+    assert.equal(app.auth.currentUser, user);
+    assert.equal(app.element('appShell').hidden, true);
+    assert.equal(app.element('retrySession').hidden, false);
+    available = true;
+    app.retry(); await settle();
+    assert.equal(app.element('appShell').hidden, false);
+    assert.equal(app.element('retrySession').hidden, true);
+    assert.equal(app.calls.sends.length + app.calls.phoneSends.length, 0);
+  }
+});
+
+test('a persistence storage failure preserves an existing valid session', async () => {
+  const app = startApp(approvedSession, undefined, { persistenceError: true });
+  const user = { uid: 'existing', getIdToken: async () => 'token' };
+  app.auth.currentUser = user; await app.auth.callback(user);
+  assert.equal(app.auth.currentUser, user);
+  assert.equal(app.calls.signOuts, 0);
+  assert.equal(app.element('appShell').hidden, false);
+});
+
+test('phone CAPTCHA origins are scoped to Primetime and leave the marketing CSP unchanged', () => {
+  const config = JSON.parse(readFileSync(new URL('../firebase.json', import.meta.url), 'utf8'));
+  const global = config.hosting.headers.find(rule => rule.source === '**').headers.find(h => h.key === 'Content-Security-Policy').value;
+  const local = config.hosting.headers.find(rule => rule.source === '/primetime{,/**}').headers.find(h => h.key === 'Content-Security-Policy').value;
+  assert.match(global, /frame-src 'none'/);
+  assert.doesNotMatch(global, /recaptcha/);
+  assert.match(local, /script-src 'self' 'unsafe-inline' https:\/\/www.google.com\/recaptcha\/ https:\/\/www.gstatic.com\/recaptcha\//);
+  assert.match(local, /frame-src https:\/\/www.google.com\/recaptcha\/ https:\/\/recaptcha.google.com\/recaptcha\//);
 });

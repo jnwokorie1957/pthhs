@@ -48,7 +48,11 @@ service account has the required Firestore document access if a 403 persists.
 
 The deployment preflight reads only database metadata using deployment
 credentials. It rejects a missing or Datastore-mode default database before
-deploying Functions, then the workflow publishes the committed rules. It neither
+deploying Functions. Rules are published separately by an authorized operator;
+the Functions deployer does not need Firebase Rules administration. The October
+14 deployment reached this check successfully but its attempted Rules publish
+returned HTTP 403. Keeping Rules publication separate preserves the existing
+locked rules without blocking an unrelated backend release. The preflight neither
 creates infrastructure automatically nor proves runtime service-account access.
 Run it locally only with existing approved Application Default Credentials:
 

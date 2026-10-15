@@ -22,6 +22,13 @@
 
 # Current checkpoint
 
+- [x] Phone/email sign-in code and persistent-session migration implemented with
+  synthetic regression tests. Authorized phone: `+18324030094`; existing mailbox
+  and claimed administrators remain supported. No tokens are revoked.
+- [ ] Verify the owner's normal SMS-code sign-in after deployment; provider is
+  already enabled. Browser restart, email-link fallback and existing-session
+  preservation remain live acceptance checks. See [sign-in handoff](FIRST_ADMIN_HANDOFF.md).
+
 **October 14 live-mode incident resolved:** the missing default Native Firestore
 database is now provisioned in `us-central1`. With demo mode off, the existing
 approved administrator's normal browser session loads owner controls and import

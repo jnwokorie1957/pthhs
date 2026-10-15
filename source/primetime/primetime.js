@@ -18,6 +18,14 @@
   const loginForm = document.getElementById('loginForm');
   const loginEmail = document.getElementById('loginEmail');
   const loginSubmit = document.getElementById('loginSubmit');
+  const emailMethod = document.getElementById('emailMethod');
+  const phoneMethod = document.getElementById('phoneMethod');
+  const phoneForm = document.getElementById('phoneLoginForm');
+  const loginPhone = document.getElementById('loginPhone');
+  const phoneCode = document.getElementById('phoneCode');
+  const phoneSubmit = document.getElementById('phoneSubmit');
+  const newPhoneCode = document.getElementById('requestNewPhoneCode');
+  const retrySession = document.getElementById('retrySession');
   const requestNewLink = document.getElementById('requestNewLink');
   const authCopy = document.getElementById('authCopy');
   const authMessage = document.getElementById('authMessage');
@@ -32,6 +40,10 @@
   let authBusy = false;
   let activeSignInAttempt = null;
   let handledAuthUser;
+  let signInMethod = 'email';
+  let phoneConfirmation = null;
+  let phoneVerifier = null;
+  let persistenceReady;
   const pendingEmailKey = 'primetime.emailForSignIn';
 
   function savedSignInEmail(action, email) {
@@ -46,6 +58,18 @@
   }
 
   function updateSignInForm() {
+    if (loginForm) loginForm.hidden = signInMethod !== 'email';
+    if (phoneForm) phoneForm.hidden = signInMethod !== 'phone';
+    for (const [button, method] of [[emailMethod, 'email'], [phoneMethod, 'phone']]) {
+      button?.setAttribute('aria-pressed', String(signInMethod === method));
+      if (button) button.disabled = authBusy || Boolean(pendingSignInLink);
+    }
+    if (loginPhone) loginPhone.disabled = authBusy || Boolean(phoneConfirmation);
+    if (phoneCode) { phoneCode.disabled = authBusy; phoneCode.required = Boolean(phoneConfirmation); }
+    const codeFields = document.getElementById('phoneCodeFields');
+    if (codeFields) codeFields.hidden = !phoneConfirmation;
+    if (phoneSubmit) { phoneSubmit.disabled = authBusy; phoneSubmit.textContent = phoneConfirmation ? 'Verify code' : 'Send text code'; }
+    if (newPhoneCode) { newPhoneCode.hidden = !phoneConfirmation; newPhoneCode.disabled = authBusy; }
     if (loginSubmit) {
       loginSubmit.disabled = authBusy;
       loginSubmit.textContent = pendingSignInLink ? 'Finish sign in' : 'Send sign-in link';
@@ -55,7 +79,9 @@
       requestNewLink.disabled = authBusy;
     }
     if (loginEmail) loginEmail.disabled = authBusy;
-    if (authCopy) authCopy.textContent = pendingSignInLink
+    if (authCopy) authCopy.textContent = signInMethod === 'phone'
+      ? phoneConfirmation ? 'Enter the six-digit code sent to your phone.' : 'Enter your approved US phone number to receive a sign-in code.'
+      : pendingSignInLink
       ? 'Confirm the email address that received this sign-in link, then finish signing in.'
       : 'Enter your approved administrator email. We will email you a link to sign in.';
   }
@@ -149,6 +175,38 @@
   }
 
   const auth = window.firebase.auth();
+  function persistSignIn() {
+    // Migrate existing SESSION users in place. Never clear or revoke a session
+    // to change persistence; a storage failure keeps the current SDK session.
+    if (!persistenceReady) persistenceReady = auth.setPersistence(window.firebase.auth.Auth.Persistence.LOCAL)
+      .catch(() => { persistenceReady = null; });
+    return persistenceReady;
+  }
+  function clearPhoneChallenge() {
+    phoneVerifier?.clear();
+    phoneVerifier = null;
+  }
+  function resetPhoneSignIn() {
+    phoneConfirmation = null;
+    if (phoneCode) phoneCode.value = '';
+    clearPhoneChallenge();
+  }
+  function selectSignInMethod(method) {
+    if (authBusy || pendingSignInLink) return;
+    resetPhoneSignIn();
+    signInMethod = method;
+    updateSignInForm();
+    setAuthMessage('');
+    (method === 'phone' ? loginPhone : loginEmail)?.focus();
+  }
+  emailMethod?.addEventListener('click', () => selectSignInMethod('email'));
+  phoneMethod?.addEventListener('click', () => selectSignInMethod('phone'));
+  newPhoneCode?.addEventListener('click', () => {
+    if (authBusy) return;
+    resetPhoneSignIn();
+    updateSignInForm();
+    setAuthMessage('Confirm your phone number and send a new code.');
+  });
   if (auth.isSignInWithEmailLink(initialSignInHref)) {
     pendingSignInLink = initialSignInHref;
     if (loginEmail) loginEmail.value = savedSignInEmail('read');
@@ -218,7 +276,7 @@
 
   async function verifyAdminSession(user) {
     const sequence = authSequence;
-    const token = await user.getIdToken(true);
+    const token = await user.getIdToken();
     if (sequence !== authSequence || auth.currentUser !== user) throw new Error('session_changed');
     const response = await fetch('/primetime/api/session', {
       headers: { Authorization: 'Bearer ' + token },
@@ -226,9 +284,7 @@
       credentials: 'same-origin'
     });
 
-    if (!response.ok) {
-      throw new Error(response.status === 403 ? 'forbidden' : 'unauthorized');
-    }
+    if (!response.ok) throw new Error(response.status === 403 ? 'forbidden' : response.status === 401 ? 'unauthorized' : 'session_unavailable');
 
     return response.json();
   }
@@ -354,7 +410,7 @@
     updateSignInForm();
     setAuthMessage(link ? 'Finishing sign in…' : 'Sending sign-in link…');
     try {
-      await auth.setPersistence(window.firebase.auth.Auth.Persistence.SESSION);
+      await persistSignIn();
       if (attempt?.cancelled || (!link && sequence !== authSequence)) return;
       if (!link) {
         await auth.sendSignInLinkToEmail(email, {
@@ -366,21 +422,7 @@
         setAuthMessage('Check your email for a sign-in link. Open it to finish signing in.');
       } else {
         const result = await auth.signInWithEmailLink(email, link);
-        const changed = attempt.cancelled || auth.currentUser !== result.user
-          || attempt.changes.some(user => user !== attempt.beforeUser && user !== result.user);
-        if (changed) {
-          // A late SDK completion must not reopen a signed-out or changed session.
-          if (auth.currentUser === result.user) await auth.signOut();
-          pendingSignInLink = '';
-          savedSignInEmail('clear');
-          if (activeSignInAttempt === attempt) showLogin('Sign-in changed before it finished. Request a new link.', true);
-          return;
-        }
-        pendingSignInLink = '';
-        savedSignInEmail('clear');
-        activeSignInAttempt = null;
-        handledAuthUser = undefined;
-        await handleAuthState(result.user);
+        await completeSignIn(result, attempt);
       }
     } catch (error) {
       if (attempt?.cancelled || (!link && sequence !== authSequence)) return;
@@ -400,10 +442,84 @@
     }
   });
 
+  async function completeSignIn(result, attempt) {
+    const changed = attempt.cancelled || auth.currentUser !== result.user
+      || attempt.changes.some(user => user !== attempt.beforeUser && user !== result.user);
+    if (changed) {
+      // Never sign out a different current user when a stale request finishes.
+      if (auth.currentUser === result.user) await auth.signOut();
+      pendingSignInLink = '';
+      savedSignInEmail('clear');
+      resetPhoneSignIn();
+      if (activeSignInAttempt === attempt) showLogin('Sign-in changed before it finished. Start sign in again.', true);
+      return;
+    }
+    pendingSignInLink = '';
+    savedSignInEmail('clear');
+    resetPhoneSignIn();
+    activeSignInAttempt = null;
+    handledAuthUser = undefined;
+    await handleAuthState(result.user);
+  }
+
+  function approvedUsPhone(value) {
+    if (typeof value !== 'string' || value.length > 40 || !/^\+?[\d\s().-]+$/.test(value.trim())) return null;
+    const digits = value.replace(/\D/g, '');
+    const national = digits.length === 11 && digits.startsWith('1') ? digits.slice(1) : digits;
+    return national === '8324030094' ? '+18324030094' : null;
+  }
+  phoneForm?.addEventListener('submit', async event => {
+    event.preventDefault();
+    if (authBusy || signInMethod !== 'phone') return;
+    const phone = approvedUsPhone(loginPhone?.value || '');
+    if (!phone) { setAuthMessage('Enter your approved US phone number.', true); return; }
+    const confirmation = phoneConfirmation;
+    const code = phoneCode?.value.trim() || '';
+    if (confirmation && !/^\d{6}$/.test(code)) { setAuthMessage('Enter the six-digit verification code.', true); return; }
+    const sequence = authSequence;
+    const attempt = confirmation ? { beforeUser: auth.currentUser, changes: [], cancelled: false } : null;
+    activeSignInAttempt = attempt;
+    authBusy = true;
+    updateSignInForm();
+    setAuthMessage(confirmation ? 'Verifying code…' : 'Sending verification code…');
+    try {
+      await persistSignIn();
+      if (attempt?.cancelled || (!confirmation && sequence !== authSequence)) return;
+      if (confirmation) {
+        await completeSignIn(await confirmation.confirm(code), attempt);
+      } else {
+        clearPhoneChallenge();
+        phoneVerifier = new window.firebase.auth.RecaptchaVerifier('phoneRecaptcha', { size: 'normal' });
+        const result = await auth.signInWithPhoneNumber(phone, phoneVerifier);
+        if (sequence !== authSequence) return;
+        phoneConfirmation = result;
+        clearPhoneChallenge();
+        setAuthMessage('Check your phone and enter the six-digit code.');
+      }
+    } catch (error) {
+      if (attempt?.cancelled || (!confirmation && sequence !== authSequence)) return;
+      if (!confirmation) clearPhoneChallenge();
+      const messages = {
+        'auth/invalid-verification-code': 'That code is incorrect. Check the text and try again.',
+        'auth/code-expired': 'That code expired. Send a new code.',
+        'auth/too-many-requests': 'Too many attempts. Wait before requesting another code.',
+        'auth/operation-not-allowed': 'Text-message sign-in is not configured yet. Use an email link.',
+        'auth/captcha-check-failed': 'Phone verification could not finish. Try the security check again.'
+      };
+      setAuthMessage(messages[error?.code] || 'Phone sign-in could not finish. Try again or use an email link.', true);
+    } finally {
+      if (activeSignInAttempt === attempt) activeSignInAttempt = null;
+      authBusy = false;
+      updateSignInForm();
+      if (phoneConfirmation && !confirmation) phoneCode?.focus();
+    }
+  });
+
   requestNewLink?.addEventListener('click', () => {
     if (authBusy) return;
     pendingSignInLink = '';
     savedSignInEmail('clear');
+    resetPhoneSignIn();
     updateSignInForm();
     showLogin('Enter your email to request a new sign-in link.');
     loginEmail?.focus();
@@ -414,6 +530,8 @@
     authSequence += 1;
     pendingSignInLink = '';
     savedSignInEmail('clear');
+    resetPhoneSignIn();
+    if (retrySession) retrySession.hidden = true;
     showLogin();
     if (syncDetails) syncDetails.textContent = '';
     updateSignInForm();
@@ -451,17 +569,29 @@
       if (sequence !== authSequence || auth.currentUser?.uid !== user.uid) return;
       if (session?.ok !== true || !session.roles?.includes('admin')) throw new Error('forbidden');
       if (signedInIdentity) {
-        signedInIdentity.textContent = session.email || 'Internal access · sign out';
+        signedInIdentity.textContent = session.email || session.phoneNumber || 'Internal access · sign out';
       }
+      await persistSignIn();
+      if (sequence !== authSequence || auth.currentUser !== user) return;
+      if (retrySession) retrySession.hidden = true;
       showApp();
       document.dispatchEvent?.(new Event('primetime-ready'));
       if (window.primetimeDataMode?.isLive()) void refreshIntegration();
-    } catch {
+    } catch (error) {
       if (sequence !== authSequence) return;
-      await auth.signOut();
-      showLogin('This account is not authorized for Primetime administration.', true);
+      if (error?.message === 'forbidden') {
+        await auth.signOut();
+        showLogin('This account is not authorized for Primetime administration.', true);
+      } else {
+        // A temporary network/backend failure must not discard a valid refresh
+        // token or make existing users request a new email link/SMS code.
+        handledAuthUser = undefined;
+        showLogin('Your sign-in is saved. We could not check access. Retry the connection.', true, true);
+        if (retrySession) retrySession.hidden = false;
+      }
     }
   }
+  retrySession?.addEventListener('click', () => { handledAuthUser = undefined; void handleAuthState(auth.currentUser); });
   auth.onAuthStateChanged(handleAuthState);
 
   window.primetimeApiFetch = apiFetch;

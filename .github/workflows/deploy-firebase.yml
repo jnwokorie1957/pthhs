@@ -88,10 +88,8 @@ jobs:
         env:
           GOOGLE_APPLICATION_CREDENTIALS: ${{ runner.temp }}/firebase-service-account.json
         run: node functions/scripts/verify-firestore-deployment.mjs
-      - name: Deploy server-only Firestore rules
-        env:
-          GOOGLE_APPLICATION_CREDENTIALS: ${{ runner.temp }}/firebase-service-account.json
-        run: firebase deploy --only firestore:rules --project primetimehomehealthservices --non-interactive
+      # Firestore rules are published separately by an authorized operator.
+      # The Functions deployer intentionally has no Firebase Rules admin access.
       - name: Deploy Primetime Functions
         id: deploy_functions
         env:

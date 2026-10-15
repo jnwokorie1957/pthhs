@@ -62,13 +62,13 @@ test('verification failure reports the setup guide without logging credentials o
   assert.doesNotMatch(messages.join('\n'), new RegExp(token));
 });
 
-test('backend deployment verifies storage and publishes server-only rules before Functions', () => {
+test('backend deployment verifies storage without requiring Rules administration', () => {
   const workflow = readFileSync(new URL('../../.github/workflows/deploy-firebase.yml', import.meta.url), 'utf8');
   const backend = workflow.split('  deploy_backend:')[1];
   const verify = backend.indexOf('run: node functions/scripts/verify-firestore-deployment.mjs');
-  const rules = backend.indexOf('run: firebase deploy --only firestore:rules');
   const functions = backend.indexOf('run: firebase deploy --only functions');
-  assert.ok(verify > 0 && verify < rules && rules < functions);
+  assert.ok(verify > 0 && verify < functions);
+  assert.doesNotMatch(backend, /run: firebase deploy --only firestore:rules/);
   const config = JSON.parse(readFileSync(new URL('../../firebase.json', import.meta.url), 'utf8'));
   assert.equal(config.firestore.rules, 'firestore.rules');
 });
