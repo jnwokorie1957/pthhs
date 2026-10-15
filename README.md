@@ -24,8 +24,10 @@ Operational/management decisions: EVV rules, visibility/escalation, correction a
 previous-page navigation through the same bounded HHA source pages. Navigation
 history is cleared on date, office/policy, mode and session changes and on failed
 requests. Charts continue to describe one source page, without implying an office
-total or a persisted import. Frontend regression verification passes 132 tests;
-normal-session production acceptance follows the release.
+total or a persisted import. All 132 frontend tests pass. Normal-session
+production acceptance verified source rows 1–10, then 11–20, then the identical
+first ten rows after navigating back. See
+[paging acceptance](docs/management-layer/SOURCE_PAGING_ACCEPTANCE_2026-10-15.md).
 
 **October 14 patient source workbench:** a protected calendar-snapshot import and
 patient workbench preserve dated HHA UI evidence, authorization rows and visit
