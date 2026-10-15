@@ -20,6 +20,8 @@ Operational/management decisions: EVV rules, visibility/escalation, correction a
 
 # 🚦 CURRENT MANAGEMENT-LAYER CHECKPOINT
 
+**October 14 live read-only overview:** DEV-006/007/009 passed in the normal approved session. The owner requested actual HHA visit data; this release enables operational reads only and connects scoped source pages to overview charts. All HHA mutation, monitoring-source and SMS approvals remain closed. See [live HHA acceptance](docs/management-layer/LIVE_HHA_ACCEPTANCE_2026-10-14.md).
+
 **October 14 sign-in extension:** phone-code sign-in for the owner-authorized US
 number `+18324030094` accompanies the existing email link. Firebase must verify the
 phone and the server rechecks the current enabled account. Existing sessions move

@@ -143,7 +143,7 @@ function harness(custom) {
   function descendants(item) { return item.children.flatMap(child => [child, ...descendants(child)]); }
   const element = id => { if (!elements.has(id)) elements.set(id, node(id === 'revisionRequirementForm' ? 'form' : 'div')); return elements.get(id); };
   const document = { getElementById: element, createElement: node, addEventListener(type, fn) { const list = listeners.get(type) || []; list.push(fn); listeners.set(type, list); }, dispatchEvent(event) { for (const fn of listeners.get(event.type) || []) fn(event); return true; } };
-  const window = { sessionStorage: { getItem() { return null; }, setItem() {}, removeItem() {} } };
+  const window = { sessionStorage: { getItem() { return 'demo'; }, setItem() {}, removeItem() {} } };
   window.primetimeApiFetch = async (path, options = {}) => {
     calls.push({ path, options });
     const customResponse = await custom?.(path, options);

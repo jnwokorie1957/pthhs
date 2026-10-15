@@ -7,7 +7,8 @@ const read = path => readFileSync(new URL(path, import.meta.url), 'utf8');
 const index = read('../src/index.ts');
 const config = read('../src/integrations/hhaexchange/config.ts');
 const wsdl = read('../../hharefs/hha-wdsl.xml');
-const closedRelease = () => JSON.parse(read('../deployment-approvals.json'));
+const checkedRelease = () => JSON.parse(read('../deployment-approvals.json'));
+const closedRelease = () => ({ version: 1, reviewReference: '', approvals: Object.fromEntries(READ_AND_REMINDER_APPROVALS.map(name => [name, false])) });
 const releaseWith = (...enabled) => ({ ...closedRelease(), reviewReference: enabled.length ? 'agency-review-2026-10-14' : '',
   approvals: Object.fromEntries(READ_AND_REMINDER_APPROVALS.map(name => [name, enabled.includes(name)])) });
 const data = 'PRIMETIME_OPERATIONAL_DATA_APPROVED', source = 'PRIMETIME_REVISION_SOURCE_APPROVED', monitor = 'PRIMETIME_REVISION_MONITOR_APPROVED';
@@ -32,7 +33,7 @@ test('unverified or missing HHA endpoint cannot be deployed', () => {
   assert.throws(() => deploymentEnvironment(index, config, ''), /endpoint/);
 });
 
-test('checked-in approval configuration preserves the default closed release', () => {
+test('explicit closed configuration preserves all closed defaults', () => {
   const release = closedRelease();
   assert.equal(release.version, 1);
   assert.equal(release.reviewReference, '');
@@ -103,4 +104,11 @@ test('SMS configuration requires capability and sending requires every other rev
     assert.throws(() => environment(releaseWith(...READ_AND_REMINDER_APPROVALS.filter(name => name !== omitted))), /dependencies/);
   }
   assert.equal(environment(releaseWith(...READ_AND_REMINDER_APPROVALS))[send], 'true');
+});
+
+test('owner-reviewed production release enables only operational reads', () => {
+  const release = checkedRelease(), values = environment(release);
+  assert.ok(release.reviewReference);
+  assert.equal(values[data], 'true');
+  for (const [name, value] of Object.entries(values)) if (name.startsWith('PRIMETIME_') && name !== data) assert.equal(value, 'false');
 });

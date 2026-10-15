@@ -88,6 +88,9 @@ const emailLink = 'https://pthhs.net/primetime?mode=signIn&oobCode=one-time-fixt
 const settle = () => new Promise(resolve => setImmediate(resolve));
 
 for (const [status, payload, expected] of [
+  [200, { ok: true, hhaConnection: 'reachable', operation: 'GetCollectionStatus', readiness: { authentication: 'accepted' } }, 'HHA authentication accepted; live reference read succeeded'],
+  [429, { ok: false, error: 'vendor_backoff_active' }, 'HHA reference check: vendor retry delay active; retry later'],
+  [503, { ok: false, error: 'hha_read_budget_storage_unavailable' }, 'HHA reference check: request-budget storage unavailable'],
   [200, { ok: true, hhaConnection: 'reachable', operation: 'GetCollectionStatus' }, 'HHA reference API: reachable; imports not verified'],
   [200, { ok: true }, 'HHA reference check: unverified response'],
   [200, { ok: true, hhaConnection: 'reachable', operation: 'Other' }, 'HHA reference check: unverified response'],

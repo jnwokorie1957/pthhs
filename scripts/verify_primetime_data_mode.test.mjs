@@ -31,7 +31,7 @@ function response(payload = { ok: true }) {
   };
 }
 
-function harness({ includeApp = true, metadata, fetchSource = () => response({ ok: true, records: [{ ID: '123', PatientID: 'LIVE-ONLY' }] }) } = {}) {
+function harness({ includeApp = true, storedDataMode = 'demo', metadata, fetchSource = () => response({ ok: true, records: [{ ID: '123', PatientID: 'LIVE-ONLY' }] }) } = {}) {
   const elements = new Map(), listeners = new Map(), calls = [], events = [];
   function node(id = '') {
     const classes = new Set();
@@ -56,7 +56,7 @@ function harness({ includeApp = true, metadata, fetchSource = () => response({ o
   const demoBadges = ['exceptions', 'alerts'].map(kind => { const item = element(`fixture-${kind}-badge`); item.dataset.demoBadge = kind; return item; });
   const document = {
     body: node('body'), documentElement: node('documentElement'), activeElement: null,
-    getElementById: element, createElement: () => node(), createTextNode: text => ({ textContent: text }),
+    getElementById: element, createElement: () => node(), createElementNS: () => node(), createTextNode: text => ({ textContent: text }),
     querySelectorAll(selector) { return selector === '[data-demo-badge]' ? demoBadges : selector === '[data-data-mode]' || selector === '[data-mode]' ? modeButtons : []; },
     addEventListener(type, fn) { const handlers = listeners.get(type) || []; handlers.push(fn); listeners.set(type, handlers); },
     dispatchEvent(event) { events.push(event); for (const fn of listeners.get(event.type) || []) fn(event); return true; }
@@ -70,11 +70,13 @@ function harness({ includeApp = true, metadata, fetchSource = () => response({ o
     async signOut() { this.currentUser = null; await this.callback?.(null); }
   };
   const storage = new Map();
+  const sessionStorage = new Map(storedDataMode ? [['primetime.dataMode', storedDataMode]] : []);
   const location = { hash: '', href: 'https://pthhs.net/primetime', origin: 'https://pthhs.net' };
   const window = {
     firebase: { auth: Object.assign(() => auth, { Auth: { Persistence: { SESSION: 'session' } } }) },
     innerWidth: 1200, location,
     localStorage: { getItem: key => storage.get(key) || null, setItem: (key, value) => storage.set(key, value), removeItem: key => storage.delete(key) },
+    sessionStorage: { getItem: key => sessionStorage.get(key) || null, setItem: (key, value) => sessionStorage.set(key, value), removeItem: key => sessionStorage.delete(key) },
     confirm: () => true
   };
   const context = vm.createContext({
@@ -107,20 +109,20 @@ function harness({ includeApp = true, metadata, fetchSource = () => response({ o
   };
 }
 
-test('mode controller starts in Demo and sign-out invalidates Live generation', async () => {
-  const app = harness({ includeApp: false });
+test('mode controller defaults to Live and sign-out invalidates source generation', async () => {
+  const app = harness({ includeApp: false, storedDataMode: null });
   const mode = app.window.primetimeDataMode;
-  assert.equal(mode.getMode(), 'demo');
-  assert.equal(mode.isLive(), false);
+  assert.equal(mode.getMode(), 'live');
+  assert.equal(mode.isLive(), true);
   app.dispatch('primetime-ready');
   await app.live();
   const liveGeneration = mode.getGeneration();
   app.dispatch('primetime-signed-out');
-  assert.equal(mode.getMode(), 'demo');
-  assert.equal(mode.isLive(), false);
+  assert.equal(mode.getMode(), 'live');
+  assert.equal(mode.isLive(), true);
   assert.ok(mode.getGeneration() > liveGeneration);
   const changed = app.events.filter(event => event.type === 'primetime-data-mode-changed').at(-1);
-  assert.equal(changed.detail.mode, 'demo');
+  assert.equal(changed.detail.mode, 'live');
   assert.equal(changed.detail.generation, mode.getGeneration());
 });
 
@@ -263,7 +265,7 @@ test('the global response API does not expose an unfenced raw body stream', asyn
   assert.throws(() => result.body, /api_response_stream_not_supported/);
 });
 
-test('sign-out resets Demo and rejects a pending Live response body', async () => {
+test('sign-out resets to Live and rejects a pending source response body', async () => {
   const body = deferred(), wire = response({ ok: true });
   wire.json = () => body.promise;
   const app = harness({ fetchSource: path => path === sourcePath ? wire : response({ ok: true }) });
@@ -272,7 +274,7 @@ test('sign-out resets Demo and rejects a pending Live response body', async () =
   const result = await app.window.primetimeApiFetch(sourcePath, sourceRequest);
   const rejected = assert.rejects(result.json());
   await app.auth.signOut();
-  assert.equal(app.window.primetimeDataMode.getMode(), 'demo');
+  assert.equal(app.window.primetimeDataMode.getMode(), 'live');
   assert.equal(app.element('appShell').hidden, true);
   body.resolve({ ok: true, records: [{ ID: 'LIVE-ONLY' }] });
   await rejected;
@@ -461,7 +463,7 @@ test('the same dashboard hosts clear Demo values in Live and show source failure
   assert.ok(app.calls.some(call => call.path.startsWith('/primetime/api/views/visits?')));
   assert.equal(nodeText(rows).includes('DEMO-'), false);
   assert.match(nodeText(rows), /unavailable/i);
-  assert.match(nodeText(metrics), /Unavailable/);
+  assert.match(nodeText(metrics), /unavailable/i);
   app.window.primetimeDataMode.setMode('demo');
   assert.equal(app.element('dashboardVisitRows'), rows, 'source switching must keep the dashboard layout');
   assert.match(nodeText(rows), /DEMO-V-/);
@@ -518,4 +520,96 @@ test('Demo visit pages advance, finish and restart without source calls', async 
   await app.click('dashboardVisitRefresh');
   assert.match(nodeText(app.element('dashboardVisitRows')), /DEMO-V-1048/);
   assert.equal(app.calls.filter(call => !call.path.endsWith('/session')).length, 0);
+});
+
+test('live evidence excludes unavailable detail fields and never classifies visit completion', () => {
+  const model = dashboardModel().primetimeDashboardModel, payload = livePreview('2026-10-10');
+  payload.state = 'partial';
+  payload.items[0].actualStart = '2026-10-10T08:04:00';
+  payload.items.push({ ...payload.items[0], id: '900002', state: 'unavailable', actualEnd: '2026-10-10T12:00:00', evvEnd: 'source string' });
+  const view = model.normalizeVisitPreview(payload, { mode: 'live', date: '2026-10-10', officeId: '123' });
+  assert.equal(view.items[1].actualStart, null);
+  const evidence = model.sourceEvidence(view.items);
+  assert.equal(evidence.records, 2); assert.equal(evidence.readable, 1); assert.equal(evidence.unavailable, 1);
+  assert.equal(evidence.assigned, 1); assert.equal(evidence.actualStartOnly, 1); assert.equal(evidence.actualPairs, 0); assert.equal(evidence.evvPairs, 0);
+  for (const field of ['completed', 'late', 'clockedInNow', 'coveragePercent', 'billableHours']) assert.equal(field in evidence, false);
+  assert.throws(() => model.normalizeVisitPreview({ ...payload, items: [payload.items[0], payload.items[0]] }, { mode: 'live', date: '2026-10-10' }));
+});
+
+test('source-clock timeline refuses cross-day, reversed, absent and mixed-offset intervals', () => {
+  const interval = dashboardModel().primetimeDashboardModel.sourceInterval, date = '2026-10-10';
+  const valid = interval(date + 'T06:00:00', date + 'T12:00:00', date);
+  assert.equal(valid.left, 25); assert.equal(valid.width, 25);
+  // HHA Enterprise v3.30 GetVisitInfoV3 documents YYYY-MM-DD HH:MM.
+  const documented = interval(date + ' 06:00', date + ' 12:00', date);
+  assert.equal(documented.left, 25); assert.equal(documented.width, 25);
+  for (const [start, end] of [[null, null], [date + 'T23:00:00', '2026-10-11T02:00:00'], [date + 'T12:00:00', date + 'T06:00:00'],
+    [date + 'T08:00:00Z', date + 'T10:00:00-05:00'], ['0001-01-01T00:00:00', date + 'T10:00:00'], [date + 'T25:00:00', date + 'T26:00:00']]) assert.equal(interval(start, end, date), null);
+});
+
+test('dashboard visualizations preserve the deployed CSP without inline styles', () => {
+  const script = asset('dashboard.js'), config = readFileSync(new URL('../firebase.json', import.meta.url), 'utf8');
+  assert.match(config, /style-src 'self'/);
+  assert.doesNotMatch(script, /setAttribute\(['"]style['"]|\.style\s*[.[]/);
+  assert.match(script, /createElementNS\(['"]http:\/\/www\.w3\.org\/2000\/svg['"]/);
+});
+
+test('live default renders source counts, timeline, EVV and assignment evidence for the same page', async () => {
+  const app = harness({ storedDataMode: null, metadata: liveMetadata, fetchSource: path => {
+    const date = new URL(path, 'https://fixture.test').searchParams.get('date'), payload = livePreview(date);
+    payload.discovery = { fingerprint: 'a'.repeat(64), selectedCount: 23, truncated: false };
+    payload.page = { offset: 0, selectedCount: 1, returnedCount: 1, unavailableCount: 0, nextOffset: 1 };
+    payload.state = 'partial'; payload.nextCursor = 'next-page';
+    return response(payload);
+  } });
+  installDashboard(app); await app.signIn(); await tick(); await tick();
+  assert.equal(app.window.primetimeDataMode.getMode(), 'live');
+  assert.equal(app.element('demoDataToggle').checked, false);
+  for (const id of ['dashboardTimeline', 'dashboardOverviewExceptions']) assert.match(nodeText(app.element(id)), /900001/);
+  assert.match(nodeText(app.element('dashboardOverviewMetrics')), /23/);
+  assert.match(nodeText(app.element('dashboardOverviewMetrics')), /not an operational total/);
+  assert.match(nodeText(app.element('dashboardCoverage')), /1 \/ 1/);
+  assert.match(nodeText(app.element('dashboardEvidenceChart')), /EVV start/);
+  assert.match(app.element('dashboardOverviewCompleteness').textContent, /1–1 of 23/);
+  assert.match(app.element('dashboardOverviewScope').textContent, /Office: 123.*Date:.*America\/Chicago/);
+  assert.equal(app.element('dashboardOverviewDate').value, app.element('dashboardVisitDate').value);
+  assert.equal(app.element('dashboardOverviewNext').hidden, false);
+  assert.equal(app.element('dashboardVisitNext').hidden, false);
+  assert.equal(nodeText(app.element('dashboardOverviewMetrics')).includes('DEMO'), false);
+});
+
+test('source-page navigation clears old overview charts immediately and an empty page shows zero records', async () => {
+  const pending = deferred(); let request = 0;
+  const app = harness({ metadata: liveMetadata, fetchSource: path => {
+    const date = new URL(path, 'https://fixture.test').searchParams.get('date'); request += 1;
+    if (request > 1) return pending.promise;
+    const payload = livePreview(date); payload.nextCursor = 'next-page'; payload.state = 'partial'; return response(payload);
+  } });
+  installDashboard(app); await app.signIn(); await app.live(); await tick();
+  assert.match(nodeText(app.element('dashboardTimeline')), /900001/);
+  await app.click('dashboardOverviewNext');
+  assert.equal(nodeText(app.element('dashboardTimeline')).includes('900001'), false);
+  assert.match(nodeText(app.element('dashboardOverviewMetrics')), /Loading live visits/);
+  const empty = livePreview(app.element('dashboardVisitDate').value); empty.items = []; empty.state = 'empty';
+  pending.resolve(response(empty)); await tick(); await tick();
+  assert.match(nodeText(app.element('dashboardOverviewMetrics')), /0 \/ 0/);
+  assert.match(nodeText(app.element('dashboardTimeline')), /No source visits/);
+  assert.match(app.element('dashboardOverviewStatus').textContent, /No visit identifiers returned/);
+  assert.equal(app.element('dashboardOverviewNext').hidden, true);
+});
+
+test('overview date change is shared with Visits and clears source records before the next response', async () => {
+  const pending = deferred(); let request = 0;
+  const app = harness({ metadata: liveMetadata, fetchSource: path => {
+    if (++request > 1) return pending.promise;
+    return response(livePreview(new URL(path, 'https://fixture.test').searchParams.get('date')));
+  } });
+  installDashboard(app); await app.signIn(); await app.live(); await tick();
+  app.element('dashboardOverviewDate').value = '2026-10-09';
+  for (const fn of app.element('dashboardOverviewDate').handlers.get('change') || []) fn(new Event('change'));
+  assert.equal(app.element('dashboardVisitDate').value, '2026-10-09');
+  assert.equal(nodeText(app.element('dashboardTimeline')).includes('900001'), false);
+  pending.resolve(response(livePreview('2026-10-09'))); await tick(); await tick();
+  assert.match(app.element('dashboardOverviewScope').textContent, /2026-10-09/);
+  assert.match(nodeText(app.element('dashboardTimeline')), /2026-10-09T08:00:00/);
 });

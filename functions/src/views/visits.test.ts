@@ -142,6 +142,41 @@ test("truncated discovery stays partial even on its last page and totals stay un
   const f = fixture(["77"], { read: async input => input.operation === "SearchVisitsV2" ? source(input.operation, [{ VisitID: "77" }], true) : detail("77") });
   const result = await visitPreview(f.service, { date: "2026-10-10" }, "owner");
   assert.equal(result.state, "partial"); assert.equal(result.completeness.truncated, true); assert.equal(result.nextCursor, null); assert.equal(result.totals, null);
+  assert.equal(result.completeness.sourceDiscoveryComplete, false);
+});
+
+test("source discovery and page metadata describe unique returned IDs without asserting operational coverage", async () => {
+  const f = fixture(["88", "77", "77"]);
+  const first = await visitPreview(f.service, { date: "2026-10-10", limit: "1" }, "owner");
+  assert.equal(first.discovery.selectedCount, 2); assert.equal(first.discovery.truncated, false);
+  assert.match(first.discovery.fingerprint, /^[a-f0-9]{64}$/);
+  assert.deepEqual(first.page, { offset: 0, selectedCount: 1, returnedCount: 1, unavailableCount: 0, nextOffset: 1 });
+  assert.equal(first.completeness.sourceDiscoveryComplete, true); assert.equal(first.completeness.detailsComplete, false);
+  const second = await visitPreview(f.service, { date: "2026-10-10", limit: "1", cursor: first.nextCursor! }, "owner");
+  assert.equal(second.discovery.fingerprint, first.discovery.fingerprint);
+  assert.deepEqual(second.page, { offset: 1, selectedCount: 1, returnedCount: 1, unavailableCount: 0, nextOffset: null });
+  assert.equal(second.completeness.detailsComplete, false); assert.equal(second.completeness.complete, false); assert.equal(second.totals, null);
+  const whole = await visitPreview(f.service, { date: "2026-10-10" }, "owner");
+  assert.equal(whole.completeness.detailsComplete, true); assert.equal(whole.completeness.complete, false);
+});
+
+test("visualization metadata counts unavailable detail rows without exposing their source facts", async () => {
+  const f = fixture(["77", "88"], { read: async input => input.operation === "SearchVisitsV2" ? source(input.operation, [{ VisitID: "77" }, { VisitID: "88" }])
+    : input.id === "77" ? detail("77") : source(input.operation, [{ ...detail("88").records[0]!, VisitDate: "2026-10-11", ActualHours: "foreign" }]) });
+  const result = await visitPreview(f.service, { date: "2026-10-10" }, "owner");
+  assert.deepEqual(result.page, { offset: 0, selectedCount: 2, returnedCount: 1, unavailableCount: 1, nextOffset: null });
+  assert.equal(result.completeness.detailsComplete, false); assert.equal(result.items[1]?.actualHours, null);
+  assert.doesNotMatch(JSON.stringify(result), /foreign/);
+});
+
+test("source hour, visit type, timezone and verification fields remain separate raw values", async () => {
+  const f = fixture(["77"], { read: async input => input.operation === "SearchVisitsV2" ? source(input.operation, [{ VisitID: "77" }])
+    : source(input.operation, [{ ...detail("77").records[0]!, VisitType: "raw-type", TimeZone: "EST", ActualHours: "4.17", PayHours: "4.25", BilledAmount: "100.01",
+      "Verification/VerifiedBy": "source reviewer", "Verification/VerifiedDate": "2026-10-10", "Verification/Notes": "private review notes" }]) });
+  const result = await visitPreview(f.service, { date: "2026-10-10" }, "owner"), item = result.items[0]!;
+  assert.equal(item.visitType, "raw-type"); assert.equal(item.sourceTimezone, "EST"); assert.equal(item.actualHours, "4.17"); assert.equal(item.payHours, "4.25");
+  assert.equal(item.billedAmount, "100.01"); assert.equal(item.verifiedBy, "source reviewer"); assert.equal(item.verifiedDate, "2026-10-10");
+  assert.doesNotMatch(JSON.stringify(result), /private review notes|verifiedStatus|billable|completed/);
 });
 
 test("extra, wrong-identity, changed-day and failed details return unavailable rows with no foreign facts", async () => {

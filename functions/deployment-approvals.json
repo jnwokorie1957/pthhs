@@ -1,8 +1,8 @@
 {
   "version": 1,
-  "reviewReference": "",
+  "reviewReference": "Owner request 2026-10-14: authenticated live HHA visits and overview; GetCollectionStatus accepted; DEV-006/007/009.",
   "approvals": {
-    "PRIMETIME_OPERATIONAL_DATA_APPROVED": false,
+    "PRIMETIME_OPERATIONAL_DATA_APPROVED": true,
     "PRIMETIME_REVISION_SOURCE_APPROVED": false,
     "PRIMETIME_REVISION_MONITOR_APPROVED": false,
     "PRIMETIME_SMS_CAPABILITY_APPROVED": false,

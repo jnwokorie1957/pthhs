@@ -300,7 +300,7 @@
       const payload = await response.json();
       if (!current()) return;
       if (response.ok && payload?.ok === true && payload.hhaConnection === 'reachable' && payload.operation === 'GetCollectionStatus') {
-        setHhaStatus('HHA reference API: reachable; imports not verified', true);
+        setHhaStatus(payload.readiness?.authentication === 'accepted' ? 'HHA authentication accepted; live reference read succeeded' : 'HHA reference API: reachable; imports not verified', true);
       } else if (response.status === 401 || response.status === 403) {
         setHhaStatus('HHA check: administrator session rejected; sign in again');
       } else {
@@ -309,7 +309,19 @@
           operation_failure: 'HHA reference check: operation failed; access not confirmed',
           unavailable_or_deferred: 'HHA reference check: unavailable or deferred; check backend, storage and throttle state'
         };
-        setHhaStatus(failures[payload?.hhaConnection] || 'HHA reference check: unverified response');
+        const diagnostics = {
+          hha_credentials_unavailable_or_invalid: 'HHA reference check: backend credentials unavailable or invalid',
+          vendor_backoff_active: 'HHA reference check: vendor retry delay active; retry later',
+          read_budget_exhausted_retry_next_minute: 'HHA reference check: shared read limit reached; retry next minute',
+          hha_read_budget_storage_unavailable: 'HHA reference check: request-budget storage unavailable',
+          hha_backoff_storage_unavailable: 'HHA reference check: retry-delay storage unavailable',
+          hha_authentication_rejected: 'HHA reference check: vendor authentication rejected',
+          hha_transport_unavailable: 'HHA reference check: vendor connection unavailable',
+          hha_application_rejected: 'HHA reference check: vendor rejected this operation; access not confirmed',
+          hha_soap_fault: 'HHA reference check: vendor SOAP fault; access not confirmed',
+          hha_response_not_accepted: 'HHA reference check: vendor response could not be verified'
+        };
+        setHhaStatus(diagnostics[payload?.error] || failures[payload?.hhaConnection] || 'HHA reference check: unverified response');
       }
     } catch {
       if (current()) setHhaStatus('HHA connection: unavailable');

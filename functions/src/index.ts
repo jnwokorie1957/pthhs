@@ -29,6 +29,7 @@ import {
   hhaCredentials,
 } from "./integrations/hhaexchange/config.js";
 import { HhaSoapClient } from "./integrations/hhaexchange/client.js";
+import { checkHhaHealth } from "./integrations/hhaexchange/health.js";
 import { SyncStateStore } from "./sync/state.js";
 import { defineString } from "firebase-functions/params";
 import { OperationsWorkspace, FirestoreWorkspaceRepository } from "./operations/workspace.js";
@@ -248,48 +249,15 @@ export const primetimeApi = onRequest(
     }
 
     if (request.method === "GET" && path === "/hha/health") {
-      try {
       const repository = new FirestoreWorkspaceRepository();
-      const client = new HhaSoapClient(
-        hhaBaseUrl.value(),
-        getHhaCredentials(),
-        { beforeRequest: () => repository.reserveRead(), defer: seconds => repository.deferReads(seconds) },
-      );
-      const result = await client.getCollectionStatuses("Active");
-
-      if (result.response.ok) {
-        response.status(200).json({
-          ok: true,
-          hhaConnection: "reachable",
-          operation: "GetCollectionStatus",
-          correlationId: result.response.correlationId,
-          referenceCount: result.statuses.length,
-          durationMs: result.response.durationMs,
-        });
-        return;
-      }
-
-      const statusCode = result.response.httpStatus === 0 ? 503 : 502;
-      response.status(statusCode).json({
-        ok: false,
-        hhaConnection:
-          result.response.httpStatus === 401 || result.response.httpStatus === 403
-            ? "auth_failure"
-            : "operation_failure",
-        operation: "GetCollectionStatus",
-        correlationId: result.response.correlationId,
-        httpStatus: result.response.httpStatus,
-        applicationStatus: result.response.status ?? "unknown",
-        errorKind: result.response.error?.kind ?? "unknown",
-        ...(result.response.error?.id !== undefined
-          ? { errorId: result.response.error.id }
-          : {}),
+      const result = await checkHhaHealth({
+        getCredentials: getHhaCredentials,
+        createClient: (credentials, budget) => new HhaSoapClient(hhaBaseUrl.value(), credentials, budget),
+        reserveRead: () => repository.reserveRead(),
+        deferReads: seconds => repository.deferReads(seconds),
       });
+      response.status(result.status).json(result.body);
       return;
-      } catch {
-        response.status(503).json({ ok: false, hhaConnection: "unavailable_or_deferred", operation: "GetCollectionStatus" });
-        return;
-      }
     }
 
     logger.info("Unhandled Primetime API route", {

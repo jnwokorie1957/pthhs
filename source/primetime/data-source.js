@@ -1,12 +1,12 @@
 (() => {
   const preferenceKey = 'primetime.dataMode';
-  let mode = 'demo';
+  let mode = 'live';
   let generation = 0;
   let active = false;
   let scope = null;
   const requests = new Set();
   try {
-    if (window.sessionStorage?.getItem(preferenceKey) === 'live') mode = 'live';
+    if (window.sessionStorage?.getItem(preferenceKey) === 'demo') mode = 'demo';
   } catch { /* Mode selection works without browser storage. */ }
 
   function invalidate() {
@@ -34,7 +34,7 @@
     active = false;
     scope = null;
     invalidate();
-    mode = 'demo';
+    mode = 'live';
     try { window.sessionStorage?.removeItem(preferenceKey); } catch { /* Optional. */ }
     announce();
   }

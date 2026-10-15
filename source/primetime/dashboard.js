@@ -11,23 +11,76 @@
       || (live && (payload.source !== 'hhaexchange' || payload.validation !== 'source_unvalidated' || payload.totals !== null))
       || (!live && (payload.source !== 'synthetic' || payload.validation !== 'synthetic'))
       || !['ready', 'empty', 'partial'].includes(payload.state)) throw new Error('invalid_visit_preview');
-    const value = field => typeof field === 'string' && field !== '' ? field : null;
+    const value = field => typeof field === 'string' && field.trim() !== '' ? field : null;
+    const detailReasons = {
+      not_attempted_batch_time_budget: 'Page time limit reached; retry this page',
+      not_attempted_after_batch_gate: 'Remaining details deferred after a source or read limit',
+      read_budget_exhausted_retry_next_minute: 'Shared read limit reached; retry next minute',
+      vendor_backoff_active: 'Vendor retry delay active',
+      visit_patient_office_mismatch: 'Patient office could not be verified',
+      visit_date_scope_mismatch: 'Source visit date differs from the selected day',
+      visit_not_uniquely_returned: 'Source did not return one matching visit'
+    };
+    const ids = new Set();
     const items = payload.items.map(item => {
       if (!item || typeof item.id !== 'string' || (live ? !/^[1-9]\d{0,9}$/.test(item.id) : !item.id.startsWith('DEMO-'))
-        || (live && !['source_unvalidated', 'unavailable'].includes(item.state))) throw new Error('invalid_visit_preview');
+        || ids.has(item.id) || (live && !['source_unvalidated', 'unavailable'].includes(item.state))) throw new Error('invalid_visit_preview');
+      ids.add(item.id);
+      // Never count fields from a detail read the server could not verify.
+      if (live && item.state === 'unavailable') return { id: item.id, state: 'unavailable', patientId: null, caregiverId: null,
+        scheduledStart: null, scheduledEnd: null, actualStart: null, actualEnd: null, evvStart: null, evvEnd: null,
+        detailReason: detailReasons[item.error] || 'Source detail could not be verified' };
       return Object.fromEntries(['id', 'patientId', 'caregiverId', 'scheduledStart', 'scheduledEnd', 'actualStart', 'actualEnd', 'evvStart', 'evvEnd', 'state'].map(key => [key, value(item[key])]));
     });
-    return { mode: expected.mode, state: payload.state, scope: payload.scope, fetchedAt: value(payload.fetchedAt), items,
+    let discovery = null, page = null;
+    if (live && payload.discovery !== undefined) {
+      const candidate = payload.discovery;
+      if (!candidate || !Number.isInteger(candidate.selectedCount) || candidate.selectedCount < items.length || candidate.selectedCount > 200
+        || typeof candidate.truncated !== 'boolean' || typeof candidate.fingerprint !== 'string' || !/^[a-f0-9]{64}$/.test(candidate.fingerprint)) throw new Error('invalid_visit_preview');
+      discovery = { selectedCount: candidate.selectedCount, truncated: candidate.truncated };
+    }
+    if (live && payload.page !== undefined) {
+      const candidate = payload.page;
+      if (!candidate || !discovery || !Number.isInteger(candidate.offset) || candidate.offset < 0
+        || candidate.returnedCount !== items.filter(item => item.state !== 'unavailable').length || candidate.selectedCount !== items.length
+        || candidate.unavailableCount !== items.filter(item => item.state === 'unavailable').length
+        || candidate.offset + items.length > discovery.selectedCount) throw new Error('invalid_visit_preview');
+      page = { offset: candidate.offset, selectedCount: candidate.selectedCount };
+    }
+    return { mode: expected.mode, state: payload.state, scope: payload.scope, fetchedAt: value(payload.fetchedAt), items, discovery, page,
       nextCursor: typeof payload.nextCursor === 'string' && payload.nextCursor ? payload.nextCursor : null,
       truncated: payload.completeness?.truncated === true, totals: null };
   }
-  window.primetimeDashboardModel = Object.freeze({ filterExceptions, normalizeVisitPreview });
+  function sourceEvidence(items) {
+    const readable = items.filter(item => item.state !== 'unavailable');
+    const count = predicate => readable.filter(predicate).length;
+    return { records: items.length, readable: readable.length, unavailable: items.length - readable.length,
+      assigned: count(item => Boolean(item.caregiverId)),
+      schedulePairs: count(item => Boolean(item.scheduledStart && item.scheduledEnd)),
+      actualPairs: count(item => Boolean(item.actualStart && item.actualEnd)),
+      evvPairs: count(item => Boolean(item.evvStart && item.evvEnd)),
+      actualStartOnly: count(item => Boolean(item.actualStart && !item.actualEnd)),
+      evvStartOnly: count(item => Boolean(item.evvStart && !item.evvEnd)),
+      fields: ['scheduledStart', 'scheduledEnd', 'actualStart', 'actualEnd', 'evvStart', 'evvEnd'].map(key => ({ key, count: count(item => Boolean(item[key])) })) };
+  }
+  function sourceInterval(start, end, date) {
+    // Position only same-day source wall times. No UTC conversion, duration,
+    // lateness, completion or overnight assumptions are made here.
+    const clock = value => {
+      if (typeof value !== 'string') return null;
+      const match = value.match(/^(\d{4}-\d{2}-\d{2})[ T]([01]\d|2[0-3]):([0-5]\d)(?::[0-5]\d(?:\.\d+)?)?(Z|[+-](?:0\d|1[0-4]):[0-5]\d)?$/);
+      return match && match[1] === date ? { minute: Number(match[2]) * 60 + Number(match[3]), zone: match[4] || '' } : null;
+    };
+    const from = clock(start), to = clock(end);
+    return from && to && from.zone === to.zone && to.minute > from.minute ? { left: from.minute / 14.4, width: (to.minute - from.minute) / 14.4 } : null;
+  }
+  window.primetimeDashboardModel = Object.freeze({ filterExceptions, normalizeVisitPreview, sourceEvidence, sourceInterval });
   if (typeof document === 'undefined') return;
   const controller = window.primetimeDataMode;
   const fixtures = window.primetimeDemoData;
   if (!controller || !fixtures) return;
   const get = id => document.getElementById(id);
-  const hosts = ['dashboardOverviewMetrics', 'dashboardOverviewExceptions', 'dashboardCoverage', 'dashboardAlerts',
+  const hosts = ['dashboardOverviewMetrics', 'dashboardOverviewExceptions', 'dashboardCoverage', 'dashboardAlerts', 'dashboardTimeline', 'dashboardEvidenceChart',
     'dashboardExceptions', 'dashboardVisitMetrics', 'dashboardVisitRows', 'dashboardMessages', 'dashboardStaffing',
     'dashboardBillingMetrics', 'dashboardBillingPipeline', 'dashboardAudit', 'dashboardSettings'];
   const dateInput = get('dashboardVisitDate');
@@ -44,13 +97,20 @@
     return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
   };
   if (dateInput) dateInput.value = localDay();
+  if (get('dashboardOverviewDate')) get('dashboardOverviewDate').value = dateInput?.value || localDay();
   function node(tag, text, className) {
     const element = document.createElement(tag);
     if (text !== undefined && text !== null) element.textContent = String(text);
     if (className) element.className = className;
     return element;
   }
-  function text(id, value) { const element = get(id); if (element) element.textContent = value; }
+  const overviewMirrors = { dashboardVisitStatus: 'dashboardOverviewStatus', dashboardVisitMetadata: 'dashboardOverviewMetadata', dashboardVisitScope: 'dashboardOverviewScope', dashboardVisitCompleteness: 'dashboardOverviewCompleteness' };
+  function text(id, value) {
+    const element = get(id); if (element) element.textContent = value;
+    if (overviewMirrors[id] && get(overviewMirrors[id])) get(overviewMirrors[id]).textContent = value;
+  }
+  function refreshDisabled(disabled) { ['dashboardVisitRefresh', 'dashboardOverviewRefresh'].forEach(id => { if (get(id)) get(id).disabled = disabled; }); }
+  function nextPageButton(visible) { ['dashboardVisitNext', 'dashboardOverviewNext'].forEach(id => { if (get(id)) { get(id).hidden = !visible; get(id).disabled = false; } }); }
   function replace(id, ...children) { get(id)?.replaceChildren(...children); }
   function unavailable(id, title, detail) {
     const box = node('div', null, 'dashboard-unavailable');
@@ -65,6 +125,92 @@
       else card.append(node('p', 'Unavailable', 'metric-unavailable'), node('small', 'Source and policy validation pending'));
       return card;
     }));
+  }
+  function evidenceMetrics(id, entries) {
+    replace(id, ...entries.map(([label, value, detail]) => {
+      const card = node('article', null, 'metric-card');
+      card.append(node('span', label), node('strong', value), node('small', detail));
+      return card;
+    }));
+  }
+  function liveOverviewState(title, detail) {
+    ['dashboardOverviewMetrics', 'dashboardVisitMetrics', 'dashboardOverviewExceptions', 'dashboardCoverage', 'dashboardAlerts', 'dashboardTimeline', 'dashboardEvidenceChart'].forEach(id => unavailable(id, title, detail));
+    text('dashboardReadiness', detail);
+  }
+  function renderTimeline(view) {
+    const timeline = node('div', null, 'source-timeline');
+    timeline.append(node('p', 'Source wall-clock positions, without timezone conversion. Bars require a valid same-day start and end; original values remain visible.'));
+    const axis = node('div', null, 'source-timeline-axis');
+    ['00:00', '06:00', '12:00', '18:00', '24:00'].forEach(label => axis.append(node('span', label)));
+    timeline.append(axis);
+    if (!view.items.length) timeline.append(node('p', 'No source visits returned for this page.'));
+    for (const item of view.items) {
+      const row = node('article', null, 'source-timeline-visit');
+      row.append(node('h4', `Visit ${item.id} · Caregiver ${item.caregiverId || 'unavailable'}`));
+      if (item.state === 'unavailable') row.append(node('p', 'Source detail unavailable. ' + item.detailReason));
+      else for (const [label, from, to, tone] of [['Schedule', item.scheduledStart, item.scheduledEnd, 'scheduled'], ['Actual', item.actualStart, item.actualEnd, 'actual'], ['EVV', item.evvStart, item.evvEnd, 'evv']]) {
+        const lane = node('div', null, 'source-timeline-lane');
+        lane.append(node('strong', label));
+        const track = node('div', null, 'source-timeline-track');
+        const interval = sourceInterval(from, to, view.scope.date);
+        if (interval) {
+          const drawing = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+          drawing.setAttribute('viewBox', '0 0 1440 19'); drawing.setAttribute('preserveAspectRatio', 'none');
+          drawing.setAttribute('role', 'img'); drawing.setAttribute('aria-label', `${label}: ${from} to ${to}, source values`);
+          const bar = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+          bar.setAttribute('x', String(interval.left * 14.4)); bar.setAttribute('y', '3');
+          bar.setAttribute('width', String(interval.width * 14.4)); bar.setAttribute('height', '13'); bar.setAttribute('rx', '3');
+          bar.setAttribute('class', 'source-timeline-bar ' + tone); drawing.append(bar);
+          track.append(drawing);
+        } else track.append(node('span', from || to ? 'See source values below' : 'Fields not supplied', 'source-timeline-no-bar'));
+        lane.append(track, node('small', `${from || 'Not supplied'} → ${to || 'Not supplied'}`));
+        row.append(lane);
+      }
+      timeline.append(row);
+    }
+    replace('dashboardTimeline', timeline);
+  }
+  function renderLiveOverview(view) {
+    const evidence = sourceEvidence(view.items), denominator = `${evidence.readable} readable source details`;
+    const sourceIds = view.discovery ? view.discovery.selectedCount : view.items.length;
+    evidenceMetrics('dashboardOverviewMetrics', [
+      [view.discovery ? 'Visit IDs returned by search' : 'Visits on this page', sourceIds, view.discovery?.truncated ? 'Search truncated · not an office total' : 'Source query only · not an operational total'],
+      ['Readable details on this page', `${evidence.readable} / ${evidence.records}`, 'Failed detail reads stay unavailable'],
+      ['Actual start / end fields supplied', `${evidence.actualPairs} / ${evidence.readable}`, 'Field presence · no completion decision'],
+      ['EVV start / end fields supplied', `${evidence.evvPairs} / ${evidence.readable}`, 'Field presence · no EVV exception decision']
+    ]);
+    evidenceMetrics('dashboardVisitMetrics', [
+      ['Schedule pairs supplied', evidence.schedulePairs, denominator], ['Actual pairs supplied', evidence.actualPairs, denominator],
+      ['Actual start without end', evidence.actualStartOnly, 'Source field presence · not current status'], ['Detail unavailable', evidence.unavailable, 'Excluded from field and assignment counts']
+    ]);
+    renderTimeline(view);
+    const chart = node('div', null, 'source-evidence-chart');
+    const labels = ['Scheduled start', 'Scheduled end', 'Actual start', 'Actual end', 'EVV start', 'EVV end'];
+    evidence.fields.forEach((field, index) => {
+      const row = node('div'); const label = node('p');
+      label.append(node('span', labels[index]), node('strong', `${field.count} / ${evidence.readable}`));
+      const bar = node('progress'); bar.max = evidence.readable || 1; bar.value = field.count;
+      bar.setAttribute('aria-label', `${labels[index]} supplied in ${field.count} of ${evidence.readable} readable details`);
+      row.append(label, bar); chart.append(row);
+    });
+    chart.append(node('small', `${evidence.unavailable} unavailable detail(s) excluded. A supplied value is not an approved visit status.`));
+    replace('dashboardEvidenceChart', chart);
+    replace('dashboardOverviewExceptions', table(['Visit', 'EVV start (source)', 'EVV end (source)', 'Source field evidence'], view.items.map(item => [item.id, item.evvStart, item.evvEnd,
+      item.state === 'unavailable' ? 'Detail unavailable: ' + item.detailReason : item.evvStart && item.evvEnd ? 'Both fields supplied' : item.evvStart || item.evvEnd ? 'One field supplied' : 'Neither field supplied'])));
+    const coverage = node('div');
+    const stat = node('div', null, 'coverage-stat'); stat.append(node('strong', `${evidence.assigned} / ${evidence.readable}`), node('span', 'caregiver IDs supplied')); coverage.append(stat);
+    const bar = node('progress'); bar.max = evidence.readable || 1; bar.value = evidence.assigned; bar.setAttribute('aria-label', `${evidence.assigned} of ${evidence.readable} readable visits have a caregiver ID`);
+    coverage.append(bar, node('p', `${evidence.readable - evidence.assigned} readable visit(s) have no caregiver ID. ${evidence.unavailable} detail(s) unavailable.`), node('small', 'Source assignment fields do not establish eligibility, availability or complete shift coverage.'));
+    replace('dashboardCoverage', coverage);
+    const gaps = node('div', null, 'mini-list');
+    [['Detail reads unavailable', evidence.unavailable], ['Schedule pair absent', evidence.readable - evidence.schedulePairs], ['Actual pair absent', evidence.readable - evidence.actualPairs], ['EVV pair absent', evidence.readable - evidence.evvPairs]].forEach(([label, count]) => {
+      const row = node('div'); row.append(node('span', label), node('strong', count)); gaps.append(row);
+    });
+    gaps.append(node('small', 'Missing fields describe source evidence only. No alerts have been sent; no late or missed visits are inferred.'));
+    replace('dashboardAlerts', gaps);
+    text('dataModeBadge', 'Live · HHA source');
+    text('environmentDetails', 'Live HHA visit source returned');
+    text('dashboardReadiness', `Authenticated HHAeXchange visit search returned for office ${view.scope.officeId} on ${view.scope.date}. Fetched ${view.fetchedAt || 'time unavailable'}. ${evidence.readable} readable detail(s), ${evidence.unavailable} unavailable. Policy classifications, office-wide coverage, billing and message delivery are not established by this source page.`);
   }
   function table(headers, rows, id) {
     const wrap = node('div', null, 'table-wrap');
@@ -102,8 +248,8 @@
     text('dashboardVisitMetadata', '');
     text('dashboardVisitCompleteness', '');
     text('dashboardVisitScope', 'Office not configured');
-    if (get('dashboardVisitNext')) get('dashboardVisitNext').hidden = true;
-    if (get('dashboardVisitRefresh')) get('dashboardVisitRefresh').disabled = !ready;
+    nextPageButton(false);
+    refreshDisabled(!ready);
     document.querySelectorAll('[data-demo-badge]').forEach(badge => { badge.textContent = ''; badge.hidden = true; });
   }
   function renderMode() {
@@ -111,6 +257,10 @@
     const live = controller.isLive();
     const date = dateInput?.value || localDay();
     const demo = !live;
+    text('dashboardEvidenceTitle', demo ? 'Example EVV exception queue' : 'EVV source evidence');
+    text('dashboardCoverageTitle', demo ? 'Example coverage' : 'Caregiver assignment evidence');
+    text('dashboardAlertsTitle', demo ? 'Example manager inbox' : 'Source evidence gaps');
+    text('dashboardOverviewRefresh', demo ? 'Refresh examples' : 'Refresh live data');
     if (get('demoDataToggle')) get('demoDataToggle').checked = demo;
     text('demoToggleState', demo ? 'On' : 'Off');
     text('dataModeBadge', demo ? 'Demo · synthetic' : 'Live · validation pending');
@@ -119,7 +269,7 @@
     text('environmentDetails', demo ? 'Synthetic preview records' : 'Source validation pending');
     text('dashboardModeNotice', demo
       ? 'Demo data is on. All preview records are synthetic; messages and HHA changes are disabled.'
-      : 'Demo data is off. Source previews require approved access. Unavailable panels show no example values; operational totals and policy classifications remain pending.');
+      : 'Live HHA source mode. Overview charts describe the selected source page; every view shows its office, service date and fetch time. Unavailable evidence is excluded from counts.');
     ['exceptionSearch', 'priorityFilter'].forEach(id => { if (get(id)) get(id).disabled = live; });
     text('dashboardReadiness', demo ? 'This preview uses synthetic records. Turn Demo data off to check live source availability.' : 'Source previews do not establish validated imports, complete counts, EVV exceptions, staffing eligibility or billable hours.');
     const model = fixtures.dashboard(date);
@@ -140,6 +290,7 @@
       unavailable('dashboardAudit', 'Dashboard audit feed unavailable', 'Use Operational tools to request persisted audit history.');
       unavailable('dashboardSettings', 'Settings preview unavailable', 'Use authenticated owner controls in Operational tools to review current preferences.');
       unavailable('dashboardVisitRows', 'Visit preview unavailable', ready ? 'Checking source access…' : 'Sign in with an approved administrator account.');
+      liveOverviewState(ready ? 'Loading live source' : 'Sign in required', ready ? 'Checking HHA visit access for the selected office and date…' : 'Sign in with an approved administrator account to load HHA visit data.');
       return;
     }
     document.querySelectorAll('[data-demo-badge]').forEach(badge => {
@@ -170,14 +321,20 @@
   function showVisitPreview(payload, expected) {
     const view = normalizeVisitPreview(payload, expected);
     nextCursor = view.nextCursor;
+    if (view.mode === 'live') renderLiveOverview(view);
+    else {
+      renderTimeline(view);
+      unavailable('dashboardEvidenceChart', 'Synthetic example mode', 'All records in this mode are generated examples. Switch Demo data off to load live HHA evidence.');
+    }
     const pair = (start, end) => `${start || 'Unavailable'}\n${end || 'Unavailable'}`;
     replace('dashboardVisitRows', table(['Visit', 'Patient ID', 'Caregiver ID', 'Scheduled start / end', 'Actual start / end', 'EVV start / end', 'Evidence state'],
-      view.items.map(item => [item.id, item.patientId, item.caregiverId, pair(item.scheduledStart, item.scheduledEnd), pair(item.actualStart, item.actualEnd), pair(item.evvStart, item.evvEnd), item.state === 'unavailable' ? 'Detail unavailable' : view.mode === 'demo' ? 'Synthetic example' : 'Source unvalidated'])));
-    text('dashboardVisitStatus', view.mode === 'demo' ? 'Synthetic visit examples. No source request was made.' : view.state === 'partial' ? 'Partial source preview. Some visit details are unavailable.' : view.state === 'empty' ? 'No visit identifiers returned for this query. Complete office coverage is not established.' : 'Source preview returned. Source interpretation is pending.');
+      view.items.map(item => [item.id, item.patientId, item.caregiverId, pair(item.scheduledStart, item.scheduledEnd), pair(item.actualStart, item.actualEnd), pair(item.evvStart, item.evvEnd), item.state === 'unavailable' ? 'Detail unavailable: ' + item.detailReason : view.mode === 'demo' ? 'Synthetic example' : 'Source unvalidated'])));
+    text('dashboardVisitStatus', view.mode === 'demo' ? 'Synthetic visit examples. No source request was made.' : view.state === 'partial' ? 'Partial source page returned. More pages, truncated search results or unavailable details are disclosed below.' : view.state === 'empty' ? 'No visit identifiers returned for this query. Complete office coverage is not established.' : 'Live HHA source page returned. Source fields are shown separately; operational classifications are pending.');
     text('dashboardVisitScope', `Office: ${view.scope.officeId || 'Unavailable'} · Date: ${view.scope.date} · Timezone: ${view.scope.timezone || 'Unconfigured'}`);
     text('dashboardVisitMetadata', view.mode === 'demo' ? 'Source: synthetic examples · values are not patient records.' : `Source: HHAeXchange · fetched: ${view.fetchedAt || 'Unavailable'} · source unvalidated · source time values shown without conversion.`);
-    text('dashboardVisitCompleteness', view.mode === 'demo' ? 'Example page only.' : `Bounded preview only. Completeness is not established; no totals are calculated.${view.truncated ? ' Source identifier results were truncated.' : ''}`);
-    if (get('dashboardVisitNext')) { get('dashboardVisitNext').hidden = !nextCursor; get('dashboardVisitNext').disabled = false; }
+    const pageScope = view.page && view.discovery ? `Showing source IDs ${view.items.length ? view.page.offset + 1 : 0}–${view.page.offset + view.items.length} of ${view.discovery.selectedCount} returned by search. ` : `${view.items.length} source record(s) on this page. `;
+    text('dashboardVisitCompleteness', view.mode === 'demo' ? 'Example page only.' : `${pageScope}Charts use this page only. Complete office coverage is not established.${view.truncated ? ' Source identifier results were truncated.' : ''}`);
+    nextPageButton(Boolean(nextCursor));
   }
   function context() { return { generation: controller.getGeneration(), mode: controller.getMode(), session, serial }; }
   function current(captured) { return ready && captured.generation === controller.getGeneration() && captured.mode === controller.getMode() && captured.session === session && captured.serial === serial; }
@@ -190,7 +347,8 @@
     abort?.abort();
     const captured = context();
     abort = new AbortController();
-    if (get('dashboardVisitRefresh')) get('dashboardVisitRefresh').disabled = true;
+    refreshDisabled(true);
+    liveOverviewState('Checking live source access', 'Loading the selected office settings and enabled HHA reads…');
     try {
       const response = await window.primetimeApiFetch('/primetime/api/data/status', { signal: abort.signal });
       if (!current(captured)) return;
@@ -201,23 +359,25 @@
       const settings = payload.settings || {};
       if (controller.observeScope?.(settings)) return;
       if (!dateChosen && settings.officeTimezone && dateInput) {
-        try { const parts = new Intl.DateTimeFormat('en', { timeZone: settings.officeTimezone, year: 'numeric', month: '2-digit', day: '2-digit' }).formatToParts(new Date()); dateInput.value = ['year', 'month', 'day'].map(type => parts.find(part => part.type === type)?.value).join('-'); } catch { /* A user-selected date remains available. */ }
+        try { const parts = new Intl.DateTimeFormat('en', { timeZone: settings.officeTimezone, year: 'numeric', month: '2-digit', day: '2-digit' }).formatToParts(new Date()); dateInput.value = ['year', 'month', 'day'].map(type => parts.find(part => part.type === type)?.value).join('-'); if (get('dashboardOverviewDate')) get('dashboardOverviewDate').value = dateInput.value; } catch { /* A user-selected date remains available. */ }
       }
       text('dashboardVisitScope', `Office: ${settings.officeId || 'Unconfigured'} · Timezone: ${settings.officeTimezone || 'Unconfigured'}`);
       if (payload.dataApproved !== true || payload.panels?.visits?.available !== true) {
         const detail = blockedMessage(payload.panels?.visits?.blockedReason);
         unavailable('dashboardVisitRows', 'Visit preview unavailable', detail);
+        liveOverviewState('Live visits unavailable', detail);
         text('dashboardVisitStatus', detail);
-        if (get('dashboardVisitRefresh')) get('dashboardVisitRefresh').disabled = false;
+        refreshDisabled(false);
         return;
       }
       await loadVisits();
     } catch {
       if (!current(captured)) return;
       unavailable('dashboardVisitRows', 'Visit preview unavailable', 'Source access status could not be loaded. Refresh to retry.');
+      liveOverviewState('Live visits unavailable', 'Source access status could not be loaded. Refresh to retry.');
       text('dashboardVisitStatus', 'Source access status unavailable. No example values are shown.');
     } finally {
-      if (current(captured) && get('dashboardVisitRefresh')) get('dashboardVisitRefresh').disabled = false;
+      if (current(captured)) refreshDisabled(false);
     }
   }
   async function loadVisits(cursor = null) {
@@ -230,17 +390,22 @@
     const date = dateInput?.value || '';
     nextCursor = null;
     unavailable('dashboardVisitRows', 'Loading visit preview', 'Previous page values have been cleared.');
+    liveOverviewState('Loading live visits', 'Waiting for the selected source page. Previous page values have been cleared.');
+    text('dataModeBadge', 'Live · loading');
+    text('environmentDetails', 'Loading HHA source data');
     text('dashboardVisitMetadata', '');
     text('dashboardVisitCompleteness', '');
     text('dashboardVisitStatus', 'Loading a bounded visit source preview…');
-    if (get('dashboardVisitNext')) get('dashboardVisitNext').hidden = true;
+    text('dashboardVisitScope', `Office: ${metadata.settings.officeId} · Date: ${date} · Timezone: ${metadata.settings.officeTimezone || 'Unconfigured'}`);
+    nextPageButton(false);
     if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
       text('dashboardVisitStatus', 'Choose a service date.');
       unavailable('dashboardVisitRows', 'Service date required', 'Choose a service date to preview source visits.');
-      if (get('dashboardVisitRefresh')) get('dashboardVisitRefresh').disabled = false;
+      liveOverviewState('Service date required', 'Choose a service date to load HHA source visits.');
+      refreshDisabled(false);
       return;
     }
-    if (get('dashboardVisitRefresh')) get('dashboardVisitRefresh').disabled = true;
+    refreshDisabled(true);
     try {
       const query = new URLSearchParams({ date, limit: '10', officeId: metadata.settings.officeId });
       if (cursor) query.set('cursor', cursor);
@@ -253,6 +418,7 @@
           metadata = null;
           const detail = response.status === 409 ? 'Source scope or visit evidence changed. Refresh to check access and restart from the first page.' : blockedMessage(payload?.error);
           unavailable('dashboardVisitRows', 'Visit preview unavailable', detail);
+          liveOverviewState('Live visits unavailable', detail);
           text('dashboardVisitStatus', detail);
           return;
         }
@@ -262,9 +428,12 @@
     } catch {
       if (!current(captured)) return;
       unavailable('dashboardVisitRows', 'Visit preview unavailable', 'The source request failed or its response could not be verified. Refresh to retry.');
+      liveOverviewState('Live visits unavailable', 'The HHA request failed or its response could not be verified. Refresh to retry.');
+      text('dataModeBadge', 'Live · unavailable');
+      text('environmentDetails', 'HHA visit source unavailable');
       text('dashboardVisitStatus', 'Visit source preview unavailable. No example values are shown.');
     } finally {
-      if (current(captured) && get('dashboardVisitRefresh')) get('dashboardVisitRefresh').disabled = false;
+      if (current(captured)) refreshDisabled(false);
     }
   }
   get('demoDataToggle')?.addEventListener('change', event => controller.setMode(event.target.checked ? 'demo' : 'live'));
@@ -272,16 +441,26 @@
   get('priorityFilter')?.addEventListener('change', renderExceptions);
   dateInput?.addEventListener('change', () => {
     dateChosen = true;
+    if (get('dashboardOverviewDate')) get('dashboardOverviewDate').value = dateInput.value;
     if (controller.isLive()) void loadVisits(); else { demoOffset = 0; renderMode(); }
   });
-  get('dashboardVisitRefresh')?.addEventListener('click', () => {
-    if (controller.isLive()) { clearSource(); void loadMetadata(); } else { demoOffset = 0; showVisitPreview(fixtures.visitPage(dateInput.value), { mode: 'demo', date: dateInput.value }); }
+  get('dashboardOverviewDate')?.addEventListener('change', () => {
+    dateChosen = true;
+    if (dateInput) dateInput.value = get('dashboardOverviewDate').value;
+    if (controller.isLive()) void loadVisits(); else { demoOffset = 0; renderMode(); }
   });
-  get('dashboardVisitNext')?.addEventListener('click', () => {
+  const refresh = () => {
+    if (controller.isLive()) { clearSource(); void loadMetadata(); } else { demoOffset = 0; showVisitPreview(fixtures.visitPage(dateInput.value), { mode: 'demo', date: dateInput.value }); }
+  };
+  get('dashboardVisitRefresh')?.addEventListener('click', refresh);
+  get('dashboardOverviewRefresh')?.addEventListener('click', refresh);
+  const advancePage = () => {
     if (!nextCursor) return;
     if (controller.isLive()) void loadVisits(nextCursor);
     else { demoOffset = Number(nextCursor); showVisitPreview(fixtures.visitPage(dateInput.value, demoOffset), { mode: 'demo', date: dateInput.value }); }
-  });
+  };
+  get('dashboardVisitNext')?.addEventListener('click', advancePage);
+  get('dashboardOverviewNext')?.addEventListener('click', advancePage);
   document.addEventListener('primetime-data-mode-changed', () => { renderMode(); if (ready && controller.isLive()) void loadMetadata(); });
   document.addEventListener('primetime-ready', () => { ready = true; session += 1; renderMode(); if (controller.isLive()) void loadMetadata(); });
   document.addEventListener('primetime-signed-out', () => { ready = false; session += 1; clearSource(); if (!controller.isLive()) renderMode(); });

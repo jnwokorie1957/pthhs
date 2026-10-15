@@ -63,11 +63,15 @@ export interface VisitPreviewItem {
   id: string; scheduledStart: string | null; scheduledEnd: string | null;
   actualStart: string | null; actualEnd: string | null; evvStart: string | null; evvEnd: string | null;
   patientId: string | null; caregiverId: string | null;
+  visitType: string | null; sourceTimezone: string | null;
+  actualHours: string | null; payHours: string | null; billedAmount: string | null;
+  verifiedBy: string | null; verifiedDate: string | null;
   state: "source_unvalidated" | "unavailable"; error?: string;
 }
 function unavailable(id: string, error: string): VisitPreviewItem {
   return { id, scheduledStart: null, scheduledEnd: null, actualStart: null, actualEnd: null,
-    evvStart: null, evvEnd: null, patientId: null, caregiverId: null, state: "unavailable", error };
+    evvStart: null, evvEnd: null, patientId: null, caregiverId: null, visitType: null, sourceTimezone: null,
+    actualHours: null, payHours: null, billedAmount: null, verifiedBy: null, verifiedDate: null, state: "unavailable", error };
 }
 function validateSource(source: OperationalRead, operation: "SearchVisitsV2" | "GetVisitInfoV3") {
   if (source.operation !== operation || source.source !== "hhaexchange" || !Array.isArray(source.records)
@@ -90,7 +94,9 @@ function detailItem(id: string, date: string, source: OperationalRead): VisitPre
   return { id, scheduledStart: field("ScheduleStartTime"), scheduledEnd: field("ScheduleEndTime"),
     actualStart: field("VisitStartTime"), actualEnd: field("VisitEndTime"),
     evvStart: field("EVVStartTime"), evvEnd: field("EVVEndTime"),
-    patientId: field("Patient/ID"), caregiverId: field("Caregiver/ID"), state: "source_unvalidated" };
+    patientId: field("Patient/ID"), caregiverId: field("Caregiver/ID"), visitType: field("VisitType"), sourceTimezone: field("TimeZone"),
+    actualHours: field("ActualHours"), payHours: field("PayHours"), billedAmount: field("BilledAmount"),
+    verifiedBy: field("Verification/VerifiedBy"), verifiedDate: field("Verification/VerifiedDate"), state: "source_unvalidated" };
 }
 
 export async function visitPreview(workspace: Workspace, value: unknown, actor: string, clock: () => number = () => performance.now()) {
@@ -152,11 +158,18 @@ export async function visitPreview(workspace: Workspace, value: unknown, actor: 
   const nextOffset = offset + page.length;
   const nextCursor = nextOffset < ids.length ? Buffer.from(JSON.stringify({ version: 1, scope, discovery: sourceFingerprint, offset: nextOffset } satisfies Cursor)).toString("base64url") : null;
   const partial = discovery.truncated || nextCursor !== null || items.some(item => item.state === "unavailable");
+  const unavailableCount = items.filter(item => item.state === "unavailable").length;
   return { ok: true, mode: "live" as const, source: "hhaexchange" as const,
     state: partial ? "partial" as const : items.length ? "ready" as const : "empty" as const,
     scope: { officeId, date, timezone }, fetchedAt: discovery.fetchedAt,
     validation: "source_unvalidated" as const, timezone: "source_values_unconverted" as const,
-    items, nextCursor, completeness: { complete: false as const, truncated: discovery.truncated }, totals: null };
+    items, nextCursor,
+    // Counts describe the bounded source response and detail page. They are not
+    // operational totals or an assertion of vendor coverage or field semantics.
+    discovery: { fingerprint: sourceFingerprint, selectedCount: ids.length, truncated: discovery.truncated },
+    page: { offset, selectedCount: page.length, returnedCount: items.length - unavailableCount, unavailableCount, nextOffset: nextCursor ? nextOffset : null },
+    completeness: { complete: false as const, truncated: discovery.truncated, sourceDiscoveryComplete: !discovery.truncated,
+      detailsComplete: offset === 0 && nextCursor === null && unavailableCount === 0 }, totals: null };
 }
 
 export async function viewRoute(workspace: Workspace, method: string, path: string, query: unknown, actor: string) {
