@@ -374,6 +374,14 @@ def generate_sitemap(indexable: set[str]) -> None:
         + "\n</urlset>\n"
     )
     (PUBLIC / "sitemap.xml").write_text(sitemap)
+    # Preserve the historical Search Console submission without widening the
+    # reviewed publication set or inventing a new modification date.
+    (PUBLIC / "sitemap_index.xml").write_text(
+        '<?xml version="1.0" encoding="UTF-8"?>\n'
+        '<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
+        f'  <sitemap><loc>{HOST}/sitemap.xml</loc></sitemap>\n'
+        '</sitemapindex>\n'
+    )
 
 
 def generate_robots() -> None:

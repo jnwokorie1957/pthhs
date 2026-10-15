@@ -172,6 +172,19 @@ for url in sitemap_urls:
 if len(sitemap_urls) != 27:
     errors.append(f"expected 27 reviewed sitemap URLs, found {len(sitemap_urls)}")
 
+try:
+    sitemap_index = ElementTree.parse(PUBLIC / "sitemap_index.xml").getroot()
+    namespace = "{http://www.sitemaps.org/schemas/sitemap/0.9}"
+    if sitemap_index.tag != namespace + "sitemapindex":
+        errors.append("legacy sitemap index has an invalid root/namespace")
+    if [node.tag for node in sitemap_index] != [namespace + "sitemap"]:
+        errors.append("legacy sitemap index must reference only the reviewed sitemap")
+    children = sitemap_index.findall(namespace + "sitemap/" + namespace + "loc")
+    if [node.text for node in children] != ["https://pthhs.net/sitemap.xml"]:
+        errors.append("legacy sitemap index must point to the canonical sitemap.xml")
+except (ElementTree.ParseError, OSError) as error:
+    errors.append(f"invalid sitemap_index.xml: {error}")
+
 for source, row in redirects.items():
     if any(token in source for token in ("*", ":")) or source.endswith(".html"):
         continue
