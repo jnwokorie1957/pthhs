@@ -131,6 +131,7 @@
   navItems.forEach(item => item.addEventListener('click', () => setView(item.dataset.view)));
   document.querySelectorAll('[data-view-jump]').forEach(item => item.addEventListener('click', () => setView(item.dataset.viewJump)));
   document.addEventListener('primetime-workbench-selected', () => { if (!appShell?.hidden) setView('workbench'); });
+  document.addEventListener('primetime-patient-history-selected', () => { if (!appShell?.hidden) setView('patients'); });
 
   menuButton?.addEventListener('click', () => {
     const open = sidebar?.classList.toggle('is-open') ?? false;

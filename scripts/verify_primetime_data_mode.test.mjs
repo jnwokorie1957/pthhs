@@ -56,7 +56,7 @@ function harness({ includeApp = true, storedDataMode = 'demo', metadata, fetchSo
   const demoBadges = ['exceptions', 'alerts'].map(kind => { const item = element(`fixture-${kind}-badge`); item.dataset.demoBadge = kind; return item; });
   const document = {
     body: node('body'), documentElement: node('documentElement'), activeElement: null,
-    getElementById: element, createElement: () => node(), createElementNS: () => node(), createTextNode: text => ({ textContent: text }),
+    getElementById: element, createElement: tag => Object.assign(node(), { tagName: tag.toUpperCase() }), createElementNS: () => node(), createTextNode: text => ({ textContent: text }),
     querySelectorAll(selector) { return selector === '[data-demo-badge]' ? demoBadges : selector === '[data-data-mode]' || selector === '[data-mode]' ? modeButtons : []; },
     addEventListener(type, fn) { const handlers = listeners.get(type) || []; handlers.push(fn); listeners.set(type, handlers); },
     dispatchEvent(event) { events.push(event); for (const fn of listeners.get(event.type) || []) fn(event); return true; }
@@ -746,7 +746,7 @@ test('failed paging discards cursor history and refresh starts from the first so
 function descendants(node) { return [node, ...node.children.flatMap(child => child.children ? descendants(child) : [])]; }
 function recordButtons(app, host = 'dashboardTimeline') { return descendants(app.element(host)).filter(node => /^Open (patient|caregiver|visit) read$/.test(node.textContent)); }
 async function clickNode(node) { for (const callback of node.handlers.get('click') || []) await callback(new Event('click')); }
-function connectedWorkspace({ dataApproved = true, enabledReads = ['GetPatientDemographics', 'GetVisitInfoV3'], preview = livePreview } = {}) {
+function connectedWorkspace({ dataApproved = true, enabledReads = ['GetPatientDemographics', 'GetVisitInfoV3'], preview = livePreview, history = () => response({ ok: true, items: [], nextCursor: null, source: 'manual_snapshot' }) } = {}) {
   const settings = { revision: 1, officeId: '123', officeTimezone: 'America/Chicago', policyReference: '', enabledReads };
   const app = harness({ storedDataMode: null, metadata: liveMetadata, fetchSource: (path, options) => {
     if (path.endsWith('/settings')) return response({ ok: true, settings, dataApproved, supportedReads: [], readInputs: {
@@ -754,6 +754,7 @@ function connectedWorkspace({ dataApproved = true, enabledReads = ['GetPatientDe
     } });
     if (path.includes('/views/visits?')) return response(preview(new URL(path, 'https://fixture.test').searchParams.get('date')));
     if (path.endsWith('/workspace/read')) return response({ ok: true, operation: JSON.parse(options.body).operation, fetchedAt: '2026-10-10T08:00:00Z', records: [] });
+    if (path.includes('/workspace/manual-snapshots')) return history(path, options);
     return response({ ok: true });
   } });
   installDashboard(app); vm.runInContext(asset('workspace.js'), app.context);
@@ -798,8 +799,11 @@ test('unavailable details, invalid source IDs and Demo examples have no source r
   await app.signIn(); await tick(); await tick();
   assert.deepEqual(recordButtons(app).map(node => node.textContent), ['Open visit read']);
   assert.deepEqual(recordButtons(app, 'dashboardVisitRows').map(node => node.textContent), ['Open visit read']);
+  assert.equal(descendants(app.element('dashboardTimeline')).some(node => node.textContent === 'Saved calendar history'), false);
+  assert.equal(descendants(app.element('dashboardVisitRows')).some(node => node.textContent === 'Saved calendar history'), false);
   app.window.primetimeDataMode.setMode('demo');
   assert.equal(recordButtons(app).length, 0); assert.equal(recordButtons(app, 'dashboardVisitRows').length, 0);
+  assert.equal(descendants(app.element('dashboardTimeline')).some(node => node.textContent === 'Saved calendar history'), false);
 });
 
 test('detached record shortcuts cannot reuse old date, office, mode or session context', async () => {
@@ -834,5 +838,104 @@ test('workspace rejects mismatched offices, malformed record kinds and locked ac
     assert.equal(app.element('readId').value, 'keep');
     assert.equal(app.events.filter(event => event.type === 'primetime-workbench-selected').length, 0);
     assert.equal(app.calls.some(call => call.path.endsWith('/workspace/read')), false);
+  }
+});
+
+const historyButtons = (app, host = 'dashboardTimeline') => descendants(app.element(host)).filter(node => node.textContent === 'Saved calendar history');
+const historyRows = (patientId = '5') => ({ ok: true, source: 'manual_snapshot', nextCursor: 'older', items: [{ id: 'a'.repeat(64), patientId, patientLabel: 'Synthetic saved patient', period: '2026-09', capturedAt: '2026-10-01T10:00:00.000Z', visitCount: 3, authorizationCount: 1 }] });
+const historySnapshot = () => ({ ...historyRows().items[0], officeId: '123', updatedAt: '2026-10-01T10:01:00.000Z', authorizations: { columns: ['Source'], rows: [{ cells: ['Synthetic authorization'] }] }, visits: [
+  { id: '11', date: '2026-09-01', text: 'Synthetic visit one' }, { id: '12', date: '2026-09-01', text: 'Synthetic visit two' }, { id: '13', date: '2026-09-02', text: 'Synthetic visit three' }
+] });
+const historyReads = app => app.calls.filter(call => call.path.includes('/workspace/manual-snapshots'));
+
+test('live patient history shortcuts load exact protected history from both source views using GET only', async () => {
+  const app = connectedWorkspace({ history: () => response(historyRows()) }); await app.signIn(); await tick(); await tick();
+  for (const host of ['dashboardTimeline', 'dashboardVisitRows']) {
+    app.element('manualPatientId').value = '99'; app.element('manualSnapshotPayload').value = 'prior capture';
+    app.element('manualSnapshotDetails').append({ textContent: 'prior patient' });
+    await clickNode(historyButtons(app, host)[0]); await tick(); await tick();
+    assert.equal(app.element('manualPatientId').value, '5'); assert.equal(app.element('manualSnapshotPayload').value, '');
+    assert.equal(app.element('manualSnapshotDetails').children.length, 0);
+    assert.equal(app.element('pageTitle').textContent, 'Patient workbench');
+    assert.equal(app.document.activeElement, app.element('manualPatientId'));
+    assert.match(nodeText(app.element('manualSnapshotList')), /3 visit tiles.*1 authorization rows.*captured 2026-10-01/);
+    assert.equal(new URL(historyReads(app).at(-1).path, 'https://fixture.test').searchParams.get('patientId'), '5');
+  }
+  assert.equal(historyReads(app).length, 2);
+  assert.ok(historyReads(app).every(call => !call.options.method || call.options.method === 'GET'));
+  assert.equal(app.window.primetimeDataMode.isLive(), true);
+});
+
+test('saved history opens dated manual evidence and its chart without replacing live source rows', async () => {
+  const app = connectedWorkspace({ history: path => response(new URL(path, 'https://fixture.test').searchParams.has('id') ? { ok: true, snapshot: historySnapshot() } : historyRows()) });
+  await app.signIn(); await tick(); await tick();
+  const liveRows = nodeText(app.element('dashboardVisitRows'));
+  await clickNode(historyButtons(app)[0]); await tick(); await tick();
+  await clickNode(descendants(app.element('manualSnapshotList')).find(node => node.textContent === 'Open 2026-09 snapshot')); await tick(); await tick();
+  const detail = nodeText(app.element('manualSnapshotDetails'));
+  assert.match(detail, /Manual snapshot · source interpretation pending/);
+  assert.match(detail, /Captured 2026-10-01T10:00:00.000Z · imported 2026-10-01T10:01:00.000Z/);
+  assert.deepEqual(descendants(app.element('manualSnapshotDetails')).filter(node => node.tagName === 'PROGRESS').map(node => node.value), [2, 1]);
+  assert.match(app.element('manualSnapshotStatus').textContent, /Saved manual snapshot loaded.*Use live reads/);
+  assert.equal(nodeText(app.element('dashboardVisitRows')), liveRows);
+});
+
+test('a changed source page clears selected history and fences late responses and detached shortcuts', async () => {
+  const pending = deferred();
+  const app = connectedWorkspace({ history: () => pending.promise }); await app.signIn(); await tick(); await tick();
+  const oldShortcut = historyButtons(app)[0];
+  await clickNode(oldShortcut); await tick();
+  app.element('dashboardOverviewDate').value = '2026-10-09';
+  for (const fn of app.element('dashboardOverviewDate').handlers.get('change')) fn(new Event('change'));
+  const count = historyReads(app).length;
+  await clickNode(oldShortcut); pending.resolve(response(historyRows())); await tick(); await tick();
+  assert.equal(historyReads(app).length, count);
+  assert.equal(app.element('manualPatientId').value, '');
+  assert.equal(app.element('manualSnapshotList').children.length, 0);
+  assert.equal(app.element('manualSnapshotDetails').children.length, 0);
+  assert.match(app.element('manualSnapshotStatus').textContent, /Live source context changed/);
+});
+
+test('cross-patient selection fences late errors and detached saved-version and pagination buttons', async () => {
+  const late = deferred(); let hold = false;
+  const app = connectedWorkspace({ history: () => hold ? late.promise : response(historyRows()) }); await app.signIn(); await tick(); await tick();
+  await clickNode(historyButtons(app)[0]); await tick(); await tick();
+  const controls = descendants(app.element('manualSnapshotList'));
+  const open = controls.find(node => node.textContent === 'Open 2026-09 snapshot'), older = controls.find(node => node.textContent === 'Older imports');
+  hold = true; const opening = clickNode(open); await tick();
+  app.element('manualPatientId').value = '6';
+  for (const fn of app.element('manualPatientId').handlers.get('input')) fn(new Event('input'));
+  const count = historyReads(app).length;
+  await clickNode(open); await clickNode(older);
+  late.resolve(response({ ok: false, error: 'snapshot_not_found' })); await opening; await tick(); await tick();
+  assert.equal(historyReads(app).length, count, 'detached controls must not issue a read for a different patient');
+  assert.equal(app.element('manualPatientId').value, '6');
+  assert.equal(app.element('manualSnapshotList').children.length, 0); assert.equal(app.element('manualSnapshotDetails').children.length, 0);
+  assert.equal(app.element('manualSnapshotStatus').textContent, 'Enter a patient ID to load protected imports.');
+});
+
+test('lost history access clears previously loaded evidence and stays distinct from an empty history', async () => {
+  let allowed = true;
+  const app = connectedWorkspace({ history: () => response(allowed ? historyRows() : { ok: false, error: 'patient_office_mismatch' }) }); await app.signIn(); await tick(); await tick();
+  await clickNode(historyButtons(app)[0]); await tick(); await tick();
+  assert.ok(app.element('manualSnapshotList').children.length);
+  allowed = false; await clickNode(historyButtons(app)[0]); await tick(); await tick();
+  assert.equal(app.element('manualSnapshotList').children.length, 0); assert.equal(app.element('manualSnapshotDetails').children.length, 0);
+  assert.match(app.element('manualSnapshotStatus').textContent, /patient office mismatch/);
+  assert.doesNotMatch(app.element('manualSnapshotStatus').textContent, /No calendar snapshots/);
+  assert.ok(historyReads(app).every(call => !call.options.method || call.options.method === 'GET'));
+});
+
+test('history selection rejects foreign offices, malformed IDs, locked access and stale mode/session contexts', async () => {
+  for (const dataApproved of [true, false]) {
+    const app = connectedWorkspace({ dataApproved }); await app.signIn(); await tick(); await tick();
+    const old = historyButtons(app)[0];
+    for (const detail of [{ kind: 'patient-history', id: '5', officeId: '999' }, { kind: 'patient-history', id: 'bad', officeId: '123' }, ...(!dataApproved ? [{ kind: 'patient-history', id: '5', officeId: '123' }] : [])]) app.document.dispatchEvent(new DetailEvent('primetime-source-record-selected', { detail }));
+    assert.equal(historyReads(app).length, 0);
+    app.window.primetimeDataMode.setMode('demo'); await clickNode(old);
+    assert.equal(historyReads(app).length, 0);
+    await app.live(); await tick(); await tick();
+    const beforeSignOut = historyButtons(app)[0]; app.dispatch('primetime-signed-out'); await clickNode(beforeSignOut);
+    assert.equal(historyReads(app).length, 0);
   }
 });

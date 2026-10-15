@@ -247,8 +247,12 @@
     replace('dashboardExceptions', table(['Visit', 'Example exception', 'Scheduled start', 'Scheduled end', 'Example visibility', 'Example priority'],
       rows.map(item => [item.id, item.issue, item.scheduledStart, item.scheduledEnd, item.visibility, item.priority]), 'exceptionTable'));
   }
-  function clearSource() {
+  function invalidateSourceContext() {
     serial += 1;
+    document.dispatchEvent(new Event('primetime-source-context-cleared'));
+  }
+  function clearSource() {
+    invalidateSourceContext();
     abort?.abort();
     abort = null;
     metadata = null;
@@ -353,9 +357,9 @@
   function sourceRecordTools(view, item, captured) {
     const tools = node('div', null, 'source-record-tools');
     if (view.mode !== 'live' || item.state === 'unavailable') return tools;
-    for (const [kind, id] of [['patient', item.patientId], ['caregiver', item.caregiverId], ['visit', item.id]]) {
+    for (const [kind, id] of [['patient', item.patientId], ['caregiver', item.caregiverId], ['visit', item.id], ['patient-history', item.patientId]]) {
       if (typeof id !== 'string' || !/^[1-9]\d{0,9}$/.test(id)) continue;
-      const control = node('button', `Open ${kind} read`, 'btn secondary'); control.type = 'button';
+      const control = node('button', kind === 'patient-history' ? 'Saved calendar history' : `Open ${kind} read`, 'btn secondary'); control.type = 'button';
       control.addEventListener('click', () => {
         if (!current(captured) || !controller.isLive() || metadata?.settings?.officeId !== view.scope.officeId) return;
         document.dispatchEvent(new CustomEvent('primetime-source-record-selected', { detail: { kind, id, officeId: view.scope.officeId } }));
@@ -370,7 +374,7 @@
   }
   async function loadMetadata() {
     if (!ready || !controller.isLive()) return;
-    serial += 1;
+    invalidateSourceContext();
     abort?.abort();
     const captured = context();
     abort = new AbortController();
@@ -410,7 +414,7 @@
   async function loadVisits(cursor = null, trail = [null], position = 0) {
     if (!ready || !controller.isLive()) return;
     if (metadata?.dataApproved !== true || metadata?.panels?.visits?.available !== true) { await loadMetadata(); return; }
-    serial += 1;
+    invalidateSourceContext();
     abort?.abort();
     abort = new AbortController();
     const captured = context();

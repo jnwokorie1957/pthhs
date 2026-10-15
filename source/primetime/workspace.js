@@ -820,9 +820,21 @@
     message('Workflow selected. Supply the requested identifiers or date, then read source records.');
   }));
   if ($('manualSnapshotForm')) {
-    let snapshotSequence = 0;
+    let snapshotSequence = 0, snapshotSelection = 0, sourcePatientSelected = false;
     const status = value => { $('manualSnapshotStatus').textContent = value; };
-    const snapshotAction = work => action(async () => { const current = generation; try { await work(); } catch (error) { if (current === generation) status(error.message); throw error; } });
+    const snapshotAction = work => action(work);
+    const snapshotContext = () => ({ selection: snapshotSelection, patientId: $('manualPatientId').value, officeId: settings?.officeId, generation });
+    const snapshotCurrent = captured => captured.selection === snapshotSelection && captured.patientId === $('manualPatientId').value
+      && captured.officeId === settings?.officeId && captured.generation === generation && dataApproved && window.primetimeDataMode?.isLive() === true;
+    async function snapshotRequest(path, body, sequence, captured) {
+      try {
+        const result = await request(path, body);
+        return sequence === snapshotSequence && snapshotCurrent(captured) ? result : null;
+      } catch (error) {
+        if (sequence !== snapshotSequence || !snapshotCurrent(captured)) return null;
+        status(error.message); throw error;
+      }
+    }
     const element = (tag, value, className) => { const item = document.createElement(tag); if (value !== undefined) item.textContent = String(value); if (className) item.className = className; return item; };
     const sourceTable = (headers, rows) => {
       const wrap = element('div', undefined, 'snapshot-table'), table = element('table'), head = element('thead'), heading = element('tr');
@@ -831,7 +843,8 @@
       table.append(body); wrap.append(table); return wrap;
     };
     function clearSnapshots() {
-      snapshotSequence++; $('manualSnapshotList').replaceChildren(); $('manualSnapshotDetails').replaceChildren();
+      snapshotSequence++; snapshotSelection++; sourcePatientSelected = false;
+      $('manualSnapshotList').replaceChildren(); $('manualSnapshotDetails').replaceChildren();
       $('manualSnapshotPayload').value = ''; $('manualSnapshotPanel').inert = !dataApproved || window.primetimeDataMode?.isLive() !== true;
       status(window.primetimeDataMode?.isLive() ? 'Enter a patient ID to load protected imports.' : 'Switch Demo data off to use protected calendar imports.');
     }
@@ -848,32 +861,50 @@
         element('h3', 'Calendar source evidence'), sourceTable(['Date', 'HHA visit ID', 'Schedule, actual, billing and assigned caregiver source text'], snapshot.visits.map(visit => [visit.date, visit.id, visit.text])));
       detail.replaceChildren(panel);
     }
-    async function loadSnapshot(id) {
-      const sequence = ++snapshotSequence, patientId = $('manualPatientId').value;
+    async function loadSnapshot(id, captured) {
+      if (!snapshotCurrent(captured)) return;
+      const sequence = ++snapshotSequence, patientId = captured.patientId;
+      $('manualSnapshotDetails').replaceChildren();
       status('Loading protected source snapshot…');
-      const result = await request('manual-snapshots?' + new URLSearchParams({ patientId, id }));
-      if (sequence !== snapshotSequence || patientId !== $('manualPatientId').value) return;
+      const result = await snapshotRequest('manual-snapshots?' + new URLSearchParams({ patientId, id }), undefined, sequence, captured);
+      if (!result) return;
       showSnapshot(result.snapshot); status('Saved manual snapshot loaded. Use live reads for current source records.');
     }
-    async function loadSnapshots(cursor) {
-      const sequence = ++snapshotSequence, patientId = $('manualPatientId').value;
-      $('manualSnapshotDetails').replaceChildren(); status('Checking patient office and import history…');
-      const result = await request('manual-snapshots?' + new URLSearchParams({ patientId, ...(cursor ? { cursor } : {}) }));
-      if (sequence !== snapshotSequence || patientId !== $('manualPatientId').value) return;
+    async function loadSnapshots(cursor, previous) {
+      if (previous && !snapshotCurrent(previous)) return;
+      snapshotSelection++;
+      const sequence = ++snapshotSequence, captured = snapshotContext(), patientId = captured.patientId;
+      $('manualSnapshotList').replaceChildren(); $('manualSnapshotDetails').replaceChildren(); status('Checking patient office and import history…');
+      const result = await snapshotRequest('manual-snapshots?' + new URLSearchParams({ patientId, ...(cursor ? { cursor } : {}) }), undefined, sequence, captured);
+      if (!result) return;
       const list = $('manualSnapshotList'); list.replaceChildren();
-      result.items.forEach(item => { const card = element('article', undefined, 'snapshot-card'); card.append(element('strong', `${item.period} · ${item.patientLabel}`), element('p', `${item.visitCount} visit tiles · ${item.authorizationCount} authorization rows · captured ${item.capturedAt}`)); const open = button('Open ' + item.period + ' snapshot', () => snapshotAction(() => loadSnapshot(item.id))); card.append(open); list.append(card); });
-      if (result.nextCursor) list.append(button('Older imports', () => snapshotAction(() => loadSnapshots(result.nextCursor))));
+      result.items.forEach(item => { const card = element('article', undefined, 'snapshot-card'); card.append(element('strong', `${item.period} · ${item.patientLabel}`), element('p', `${item.visitCount} visit tiles · ${item.authorizationCount} authorization rows · captured ${item.capturedAt}`)); const open = button('Open ' + item.period + ' snapshot', () => snapshotAction(() => loadSnapshot(item.id, captured))); card.append(open); list.append(card); });
+      if (result.nextCursor) list.append(button('Older imports', () => snapshotAction(() => loadSnapshots(result.nextCursor, captured))));
       status(result.items.length ? `${result.items.length} saved source snapshot(s) on this page.` : 'No calendar snapshots saved for this patient.');
       return true;
     }
+    document.addEventListener('primetime-source-record-selected', event => {
+      const { kind, id, officeId } = event.detail || {};
+      if (kind !== 'patient-history' || typeof id !== 'string' || !/^[1-9]\d{0,9}$/.test(id) || !dataApproved
+        || window.primetimeDataMode?.isLive() !== true || !settings?.officeId || officeId !== settings.officeId) return;
+      clearSnapshots(); $('manualPatientId').value = id; sourcePatientSelected = true;
+      document.dispatchEvent(new Event('primetime-patient-history-selected'));
+      $('manualPatientId').focus();
+      snapshotAction(() => loadSnapshots());
+    });
+    document.addEventListener('primetime-source-context-cleared', () => {
+      if (!sourcePatientSelected) return;
+      clearSnapshots(); $('manualPatientId').value = '';
+      status('Live source context changed. Select a patient again to load saved manual history.');
+    });
     $('manualPatientId').addEventListener('input', clearSnapshots);
     $('manualPatientForm').addEventListener('submit', event => { event.preventDefault(); snapshotAction(() => loadSnapshots()); });
     $('manualSnapshotForm').addEventListener('submit', event => { event.preventDefault(); snapshotAction(async () => {
-      const sequence = ++snapshotSequence;
+      const sequence = ++snapshotSequence, captured = snapshotContext();
       let capture; try { capture = JSON.parse($('manualSnapshotPayload').value); } catch { status('Enter valid captured-calendar JSON.'); return; }
       status('Verifying patient office and saving calendar snapshot…');
-      const result = await request('manual-snapshots', capture);
-      if (sequence !== snapshotSequence) return;
+      const result = await snapshotRequest('manual-snapshots', capture, sequence, captured);
+      if (!result) return;
       $('manualPatientId').value = result.snapshot.patientId; $('manualSnapshotPayload').value = '';
       if (!await loadSnapshots()) return;
       showSnapshot(result.snapshot);
