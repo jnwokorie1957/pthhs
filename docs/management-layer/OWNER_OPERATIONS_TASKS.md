@@ -22,6 +22,19 @@
 
 # Current owner checkpoint
 
+## October 15 connected patient history
+
+Selected live patients now open their protected saved-calendar history from
+Overview or Visit Preview. Normal-session acceptance verified exact targeting,
+an empty history, source-refresh clearing and the two existing saved months:
+chart totals matched 41 October and 36 September visit tiles, with three
+authorization rows each. Manual-source labels and capture/import times remain
+visible. This navigation acceptance does not close source interpretation or
+external-role prerequisites. The next owner action remains representative-field
+validation using the existing approved rules; further browser capture requires
+normal HHA sign-in. See
+[history acceptance](PATIENT_HISTORY_LINKS_ACCEPTANCE_2026-10-15.md).
+
 ## October 15 authorization and role evidence follow-up
 
 The 17:29 UTC research pass found that authorization discovery supplies IDs and

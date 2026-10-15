@@ -20,13 +20,24 @@ Operational/management decisions: EVV rules, visibility/escalation, correction a
 
 # 🚦 CURRENT MANAGEMENT-LAYER CHECKPOINT
 
+**October 15 connected patient history, 19:01 UTC:** live Overview and Visit
+Preview rows now open the exact patient's protected saved-calendar history.
+Source-context changes clear prior history; late responses and detached controls
+cannot repaint another patient. All 151 frontend tests pass. Production verified
+both entry points and retained saved versions, with October/September chart
+totals matching 41/36 source visit tiles. Manual labels and capture/import
+timestamps remain separate from live reads. See
+[history acceptance](docs/management-layer/PATIENT_HISTORY_LINKS_ACCEPTANCE_2026-10-15.md).
+Next independent feature: P1-D bounded authorization discovery through existing
+read gates, without derived utilization or eligibility decisions.
+
 **October 15 role research, 17:29 UTC:** added concrete authorization-source
 limits, family multi-patient selection and staff network/document-state
 acceptance contracts. Current source joins already leave authorization limits
 unvalidated; discovery IDs and raw units cannot support a remaining-hours chart
 without verified period, unit and usage semantics. P1-C saved-history navigation
-remains next, followed by bounded P1-D authorization discovery. External roles
-and clinical workflows remain proposed. See the dated
+is implemented above; bounded P1-D authorization discovery remains next.
+External roles and clinical workflows remain proposed. See the dated
 [research delta](docs/management-layer/ROLE_WORKFLOW_RESEARCH.txt).
 
 **October 15 SEO follow-up:** restored the submitted legacy sitemap index from
@@ -47,8 +58,8 @@ with synthetic fixtures; legitimate-record operations acceptance remains open.
 Live chart values matched source rows, and Next/Previous returned the expected
 bounded pages. See
 [triage acceptance](docs/management-layer/INVESTIGATION_TRIAGE_ACCEPTANCE_2026-10-15.md).
-Next independent improvement: connect a selected live patient to protected saved
-calendar history, keeping manual snapshots distinct from current source reads.
+The subsequent patient-history implementation is recorded above; manual
+snapshots remain distinct from current source reads.
 
 **October 15 role research refresh:** the current investigation queue already
 has assignment text, follow-up timestamps, status and append-only history.

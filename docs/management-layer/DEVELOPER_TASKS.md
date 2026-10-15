@@ -27,8 +27,8 @@
   staff network/document-state contracts and explicit shared-record permissions.
   This is research acceptance, not external-role or calculation release. See
   [research delta](ROLE_WORKFLOW_RESEARCH.txt).
-- [ ] After P1-C, add bounded patient authorization discovery/detail navigation
-  (P1-D) through existing reads and gates. Preserve exact IDs, unknown units,
+- [ ] Next independent implementation: bounded patient authorization
+  discovery/detail navigation (P1-D) through existing reads and gates. Preserve exact IDs, unknown units,
   period/basis and completeness; no derived utilization or eligibility verdict.
 
 - [x] October 15 SEO repair: generated and verified the historical sitemap index
@@ -61,9 +61,12 @@
 - [ ] Verify the first legitimate populated investigation workflow when
   operations has a real case; populated/race acceptance currently uses synthetic
   fixtures. Do not create production test records against real patients.
-- [ ] Next independent implementation (P1-C): connect a selected live patient
-  to protected saved-calendar history through the existing patient workbench;
-  retain office verification and separate manual/live provenance.
+- [x] P1-C connects selected live patients to protected saved-calendar history
+  from Overview and Visit Preview, with exact IDs, current-office verification
+  and stale-context guards. All 151 frontend tests pass. Production verified
+  both links, empty history, source-refresh clearing and both retained monthly
+  versions with chart/table count agreement. Manual/live provenance stays
+  separate. See [history acceptance](PATIENT_HISTORY_LINKS_ACCEPTANCE_2026-10-15.md).
 - [ ] P1-B prerequisite: verify office and supervisor membership in a versioned
   queue model before office-isolated or external-role exposure. Legacy
   investigations have no officeId; assignee text is not verified membership.
