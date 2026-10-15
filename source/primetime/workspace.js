@@ -20,7 +20,9 @@
   let documentTypeWritesEnabled = false, pendingDocumentTypeId = null;
   let readSequence = 0, readInputs = {}, availabilityWrites = [], pendingAvailabilityId = null;
   let generation = 0, writesEnabled = false, settings = null, investigations = [], intents = [], pendingIntentId = null, pendingRateId = null;
+  let investigationSequence = 0, investigationCursor = null, investigationsLoaded = false, investigationsLoading = false, investigationReadAt = null;
   const $ = id => document.getElementById(id);
+  const investigationFilters = ['investigationStatusFilter', 'investigationAssignmentFilter', 'investigationFollowUpFilter'];
   let clearManualSnapshots = () => {};
   const message = text => { $('workspaceMessage').textContent = text; };
   const names = { "GetPatientContracts": "Patient contracts on selected date", "GetPatientDisciplines": "Patient disciplines", "GetPatientReferralInfo": "Patient referral status (optional for admission)", "GetPatientPreferences": "Patient staffing preferences", "GetPatientDeclinedCaregivers": "Patient declined caregivers", "GetCaregiverRates": "Caregiver pay rates", "GetCaregiverPayCodes": "Caregiver pay codes", "GetCaregiverInServices": "Caregiver training attendance", "GetCaregiverRestriction": "Caregiver restrictions", "GetCaregiverPreferences": "Caregiver staffing preferences", "SearchPayrollBatches": "Find payroll batches by date", "SearchPayrollBatchCaregivers": "Caregivers in selected batch (record ID = batch)", "GetVisitPayrollInfoV2": "Visit payroll facts", "SearchPatientPOC": "Patient care plans", "GetPatientPOCInfo": "Care plan tasks (record ID = plan)", SearchVisitsV2: 'Find visits by office and date', GetScheduleInfo: 'Schedule details', GetVisitInfoV3: 'Visit and EVV evidence', GetPatientDemographics: 'Patient overview', GetCaregiverDemographics: 'Caregiver overview', GetPatientAuthorizationInfo: 'Authorization units', GetVisitBillInfoV2: 'Visit billing facts', GetCaregiverPermanentWeekAvailability: 'Weekly availability', GetCaregiverSpecialAvailability: 'Special availability' };
@@ -63,6 +65,8 @@
   function paragraph(text) { const p = document.createElement('p'); p.textContent = text; return p; }
   function setDataAccess(enabled) {
     dataApproved = enabled;
+    if ($('investigationFilters')) $('investigationFilters').inert = !enabled || window.primetimeDataMode?.isLive() !== true;
+    if (!enabled) clearInvestigations();
     if ($('manualSnapshotPanel')) $('manualSnapshotPanel').inert = !enabled || window.primetimeDataMode?.isLive() !== true;
     if (!enabled) clearManualSnapshots();
     for (const form of panel.querySelectorAll('form')) {
@@ -691,20 +695,75 @@
     }
     message(`Staffing evidence ${data.state}. Review unresolved evidence before making an assignment in the source system.`);
   }); });
-  async function loadInvestigations(cursor) {
-    const result = await request('investigations' + (cursor ? '?cursor=' + encodeURIComponent(cursor) : '')); investigations = cursor ? [...investigations, ...result.investigations] : result.investigations;
-    const target = $('investigationList'); if (!cursor) target.replaceChildren(); else target.querySelector('[data-more]')?.remove();
-    if (!cursor) target.append(paragraph('Investigations load 100 per page. Follow-up dates identify overdue work; no automatic escalation is enabled. Refresh to include recent changes.'));
-    for (const item of result.investigations) {
-      const card = document.createElement('article'); card.className = 'panel';
-      card.append(paragraph(`${item.title} · Visit ${item.visitId} · ${item.status} · Assigned: ${item.assignee || 'Unassigned'}${item.followUpAt ? ` · Follow-up ${item.followUpAt}${Date.parse(item.followUpAt) < Date.now() && item.status !== 'resolved' ? ' (overdue)' : ''}` : ''}`));
-      for (const e of item.events) card.append(paragraph(`${e.at} · ${e.actor} · ${e.action}: ${e.note}`));
-      card.append(button('Update investigation', async () => { $('investigationId').value = item.id; $('investigationRevision').value = item.revision; $('investigationVisit').value = item.visitId; $('investigationTitle').value = item.title; $('investigationAssignee').value = item.assignee; $('investigationStatus').value = item.status; $('investigationFollowUp').value = item.followUpAt || ''; $('investigationNote').value = ''; $('investigationTitle').focus(); })); target.append(card);
-    }
-    if (!investigations.length) target.append(paragraph('No investigations recorded.'));
-    if (result.nextCursor) { const more = button('Load older investigations', () => loadInvestigations(result.nextCursor)); more.dataset.more = ''; target.append(more); }
-    message('Investigation queue loaded.');
+  function clearInvestigations() {
+    investigationSequence++; investigationCursor = null; investigationReadAt = null;
+    investigations = []; investigationsLoaded = false; investigationsLoading = false;
+    investigationFilters.forEach(id => { if ($(id)) $(id).value = 'all'; });
+    $('investigationList')?.replaceChildren();
+    if ($('investigationSummary')) $('investigationSummary').textContent = 'Load queue to review saved investigations.';
   }
+  function followUpInstant(value) {
+    const match = typeof value === 'string' && value.match(/^(\d{4}-\d{2}-\d{2})T(?:[01]\d|2[0-3]):[0-5]\d(?::[0-5]\d(?:\.\d+)?)?(?:Z|[+-](?:[01]\d|2[0-3]):[0-5]\d)$/);
+    if (!match) return null;
+    const day = Date.parse(match[1] + 'T00:00:00Z');
+    if (!Number.isFinite(day) || new Date(day).toISOString().slice(0, 10) !== match[1]) return null;
+    const instant = Date.parse(value); return Number.isFinite(instant) ? instant : null;
+  }
+  function renderInvestigations() {
+    const target = $('investigationList'); target.replaceChildren();
+    if (!investigationsLoaded) {
+      $('investigationSummary').textContent = investigationsLoading ? 'Loading saved investigations…' : 'Load queue to review saved investigations.';
+      return;
+    }
+    const now = Date.now(), sequence = investigationSequence;
+    const status = $('investigationStatusFilter').value || 'all', assignment = $('investigationAssignmentFilter').value || 'all', followUp = $('investigationFollowUpFilter').value || 'all';
+    const rows = investigations.map(item => {
+      const active = item.status === 'open' || item.status === 'in_progress', at = followUpInstant(item.followUpAt);
+      return { item, active, assigned: typeof item.assignee === 'string' && item.assignee.trim() !== '', at, overdue: active && at !== null && at < now };
+    });
+    const visible = rows.filter(row => (status === 'all' || (status === 'active' ? row.active : row.item.status === status))
+      && (assignment === 'all' || (assignment === 'assigned' ? row.assigned : !row.assigned))
+      && (followUp === 'all' || (followUp === 'overdue' ? row.overdue : followUp === 'upcoming' ? row.active && row.at !== null && row.at >= now : row.at === null)));
+    $('investigationSummary').textContent = `Showing ${visible.length} of ${rows.length} loaded records · Active ${rows.filter(row => row.active).length} · Overdue ${rows.filter(row => row.overdue).length} · Active unassigned ${rows.filter(row => row.active && !row.assigned).length}. Counts use loaded records before filters, as of ${new Date(now).toISOString()}. Queue last read ${investigationReadAt}.${investigationsLoading ? ' Loading older records…' : ''}`;
+    for (const { item, at, overdue } of visible) {
+      const card = document.createElement('article'); card.className = 'panel';
+      card.append(paragraph(`${item.title} · Visit ${item.visitId} · ${item.status} · Assigned: ${item.assignee?.trim() || 'Unassigned'} · Follow-up ${at === null ? 'Unknown / not supplied' : item.followUpAt}${overdue ? ' (overdue)' : ''}`));
+      for (const e of item.events) card.append(paragraph(`${e.at} · ${e.actor} · ${e.action}: ${e.note}`));
+      card.append(button('Update investigation', async () => {
+        if (sequence !== investigationSequence || !dataApproved || window.primetimeDataMode?.isLive() !== true) return;
+        $('investigationId').value = item.id; $('investigationRevision').value = item.revision; $('investigationVisit').value = item.visitId; $('investigationTitle').value = item.title; $('investigationAssignee').value = item.assignee; $('investigationStatus').value = item.status; $('investigationFollowUp').value = item.followUpAt || ''; $('investigationNote').value = ''; $('investigationTitle').focus();
+      })); target.append(card);
+    }
+    if (!visible.length) target.append(paragraph(rows.length ? 'No loaded investigations match these filters. Older records may still be available.' : 'No investigations returned by this read.'));
+    if (investigationCursor) {
+      const cursor = investigationCursor;
+      const more = button('Load older investigations', () => { if (sequence === investigationSequence && cursor === investigationCursor) return loadInvestigations(cursor); });
+      more.disabled = investigationsLoading; more.dataset.more = ''; target.append(more);
+    }
+  }
+  async function loadInvestigations(cursor) {
+    if (cursor && (investigationsLoading || cursor !== investigationCursor)) return;
+    const sequence = ++investigationSequence;
+    if (!cursor) { investigations = []; investigationCursor = null; investigationsLoaded = false; investigationReadAt = null; }
+    investigationsLoading = true; renderInvestigations();
+    try {
+      const result = await request('investigations' + (cursor ? '?cursor=' + encodeURIComponent(cursor) : ''));
+      if (sequence !== investigationSequence) return;
+      const unique = new Map();
+      for (const item of [...(cursor ? investigations : []), ...result.investigations]) {
+        const prior = unique.get(item.id); if (!prior || item.revision >= prior.revision) unique.set(item.id, item);
+      }
+      investigations = [...unique.values()]; investigationCursor = result.nextCursor || null;
+      investigationReadAt = new Date().toISOString(); investigationsLoaded = true; investigationsLoading = false;
+      renderInvestigations(); message('Investigation queue loaded. Filters and counts cover loaded records only.');
+    } catch (error) {
+      if (sequence !== investigationSequence) return;
+      investigationsLoading = false; renderInvestigations();
+      if (!investigationsLoaded) $('investigationSummary').textContent = 'Queue unavailable. Retry Load queue.';
+      throw error;
+    }
+  }
+  investigationFilters.forEach(id => $(id)?.addEventListener('change', () => { if (dataApproved && window.primetimeDataMode?.isLive() === true) renderInvestigations(); }));
   $('loadInvestigations').addEventListener('click', () => action(loadInvestigations));
   $('newInvestigation').addEventListener('click', () => { $('investigationForm').reset(); $('investigationRevision').value = 0; });
   $('investigationForm').addEventListener('submit', event => { event.preventDefault(); action(async () => {
