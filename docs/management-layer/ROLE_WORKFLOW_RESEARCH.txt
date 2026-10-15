@@ -1,11 +1,11 @@
 PRIMETIME ROLE AND WORKFLOW RESEARCH
-Updated: October 14, 2026, America/Chicago
+Updated: October 15, 2026, America/Chicago
 Scope: PTHHS /primetime, repository jnwokorie1957/pthhs.
 
 EVIDENCE AND CURRENT STATE
 The owner's authenticated HHA member calendar shows a patient summary, separate navigation for authorizations, visits, recurring schedules, documents and clinical records, and month navigation. Calendar tiles keep scheduled times, actual times, caregiver names and billed-hour evidence together. The visible authorization grid includes payer, dates, discipline, service codes, limits and weekday allowances. Calendar records are observations, not validated business rules. The reviewed source uses PCA discipline; it does not establish that those caregivers are physical therapists.
 
-The protected Primetime overview currently reads HHA through its backend. Office 503324 and America/Chicago were verified. Demo mode is off. A search returns a bounded 200-ID preview and ten visit details per page, with explicit truncation and source-validation labels. It is not an office-wide census or a durable import. September and October calendar captures contain 45 and 41 visit tiles respectively, and three authorization rows per capture. No private record values belong in this document or Git.
+The protected Primetime overview currently reads HHA through its backend. Office 503324 and America/Chicago were verified. Demo mode is off. A search returns a bounded 200-ID preview and ten visit details per page, with explicit truncation and source-validation labels. It is not an office-wide census or a durable import. September and October calendar captures retain 36 and 41 readable visit tiles respectively; nine empty September placeholders were excluded, and three authorization rows per capture. No private record values belong in this document or Git.
 
 PATIENT AND AUTHORIZED FAMILY EXPERIENCE (PROPOSED)
 Start with the patient's next visit and a day/week/month calendar. Show the assigned staff member, scheduled window, visit status as explicitly established by the source, agency contact, and a clear last-updated label. A patient should be able to submit a schedule-change request or concern to an office review queue. Requests must not silently change a confirmed schedule. Add an agency-approved documents view and visit-task summary when patient-specific authorization exists. Mobile layouts should use a simple visit list with large date controls.
@@ -50,4 +50,4 @@ https://knowledge.hhaexchange.com/enterprise/Content/Documentation/Admin/Admin-N
 https://www.cms.gov/Regulations-and-Guidance/Guidance/Manuals/downloads/bp102c07.pdf
 
 IMPLEMENTATION STATUS
-Initial research completed. Protected snapshot import/workbench is next. Patient/family and therapist portals remain proposed, with no new external account access enabled.
+Initial research and protected snapshot workbench completed. Production verified 77 readable visit tiles, three authorization rows per monthly capture, reload persistence, duplicate protection and the October daily source-count chart. Live authorization reads returned ten records. Patient/family and therapist portals remain proposed, with no new external account access enabled.

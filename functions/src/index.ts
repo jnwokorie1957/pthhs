@@ -145,6 +145,7 @@ export const primetimeApi = onRequest(
   },
   async (request, response) => {
     response.set("Cache-Control", "no-store");
+    response.set("X-Robots-Tag", "noindex, nofollow, noarchive");
 
     const path = apiPath(request.path);
     if (path === "/revisions/sms/status") {

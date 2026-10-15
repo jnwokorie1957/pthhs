@@ -22,6 +22,16 @@
 
 # Current owner checkpoint
 
+## October 15 source evidence available for owner validation
+
+The protected patient workbench now retains two dated HHA calendar snapshots,
+including readable visit tiles and authorization rows. Persistence and duplicate
+handling passed normal-session acceptance. Current patient authorization reads
+also returned HHA records. These checks establish access and preservation, not
+approved field interpretation. The matching, clock, authorization and billing
+validation items below remain open for the owner's representative-record review.
+See [manual source acceptance](MANUAL_SOURCE_IMPORT_ACCEPTANCE_2026-10-15.md).
+
 ## Confirmed in the owner interview
 
 > **Completion attestation — 2026-09-22:** the developer explicitly confirmed that the Owner / Operations Lead completed all owner policy and decision items in this checklist. Items that require live imported HHA records or finished-feature acceptance remain runtime validation gates rather than policy decisions. Where an exact approved value is not written in this repository, implementation must use the owner-approved source record and must not infer or invent it.

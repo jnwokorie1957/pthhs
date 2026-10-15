@@ -26,8 +26,10 @@
   server-side patient/office checks, immutable content-addressed versions,
   duplicate handling, safe source rendering and capture/import timestamps.
   Backend tests include foreign-office denial, invalid dates and policy changes.
-- [ ] Verify the first manual calendar imports in production and reopen the saved
-  records; local code and tests do not establish production import acceptance.
+- [x] First manual calendar imports verified in production October 15: two monthly
+  snapshots retain 77 readable visit tiles and three authorization rows per
+  capture. Reopened after reload; identical source replay produced no duplicate.
+  See [source import acceptance](MANUAL_SOURCE_IMPORT_ACCEPTANCE_2026-10-15.md).
 - [ ] Extend patient/family and therapist roles using the separate identity and
   clinical-review prerequisites in [role research](ROLE_WORKFLOW_RESEARCH.txt).
 
