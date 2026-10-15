@@ -50,7 +50,7 @@ The Hosting content security policy permits the exact legacy Identity Toolkit pa
 
 Deployment artifact cleanup was configured and saved through the owner's Google Cloud session on October 10: repository `gcf-artifacts` in `us-central1` has policy `firebase-functions-cleanup`, deleting build images older than seven days. These retained build images are separate from deployed function runtime copies. CI uses normal Functions deployment and the existing policy; it does not force policy writes or require broader repository administration permissions for the deployment service account.
 
-Publication and provider setup do not establish the owner's completed sign-in or HHA acceptance. DEV-006/007/009 remain pending until normal-session checks succeed. Firestore/privacy readiness and operational/write approvals remain separate.
+Publication and provider setup alone do not establish completed sign-in or HHA acceptance. Normal email-link sign-in, protected storage/routing and the reference HHA read passed DEV-006/007/009 on October 14; see [acceptance evidence](LIVE_HHA_ACCEPTANCE_2026-10-14.md). SMS-code sign-in acceptance and operational source validation remain separate. The default Firestore database exists; the reviewed release enables operational reads only, with the other 28 capability gates closed.
 
 ## Historical claim-based handoff
 

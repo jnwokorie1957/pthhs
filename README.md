@@ -35,14 +35,14 @@ Firestore dependency. The default Native database now exists in `us-central1`
 (created `2026-10-14T23:54:54.991783Z`). The existing approved administrator session
 now loads owner controls and import history and reports **Reference API reachable**
 with demo mode off. Backend deployment now checks the database prerequisite and
-retains operator-published server-only rules. Operational data approval remains closed. See
+retains operator-published server-only rules. Operational reads were subsequently enabled by the read-only release; source acceptance and the other 28 gates remain closed. See
 [Firestore setup and acceptance](docs/management-layer/FIRESTORE_SETUP.md).
 
-**October 10 sign-in update:** the owner approved `jeremynwokorie@gmail.com` for administration and selected password-free email links. The server checks verified mailbox ownership and the current enabled account alongside existing admin claims. See [sign-in setup and acceptance](docs/management-layer/FIRST_ADMIN_HANDOFF.md). The next owner action is to open `/primetime`, request a link and complete normal sign-in; live session/HHA acceptance remains pending.
+**October 10 sign-in update:** the owner approved `jeremynwokorie@gmail.com` for administration and selected password-free email links. The server checks verified mailbox ownership and the current enabled account alongside existing admin claims. See [sign-in setup and acceptance](docs/management-layer/FIRST_ADMIN_HANDOFF.md). Normal email-link sign-in, protected backend/storage and the reference HHA call passed acceptance on October 14; SMS-code sign-in and operational source validation remain separate checks.
 
-**Last updated:** 2026-09-30
+**Last updated:** 2026-10-15
 
-See the [September 30 implementation review](docs/management-layer/IMPLEMENTATION_REVIEW_2026-09-30.md) and [222-operation API coverage matrix](docs/management-layer/HHA_CAPABILITY_MATRIX.md). Local code adds 144 protected workspace reads (141 release-eligible, three vendor-blocked), 23 typed/prepared mutation workflows (22 default-disabled gated dispatch paths plus one independently blocked partial linked-schedule workflow), persistent owner preferences/investigations/change-review/audit workflows, truthful integration health and replay/evidence protections. Production data remains default-locked; full 222-operation execution is not complete.
+See the [September 30 implementation review](docs/management-layer/IMPLEMENTATION_REVIEW_2026-09-30.md) and [222-operation API coverage matrix](docs/management-layer/HHA_CAPABILITY_MATRIX.md). Local code adds 144 protected workspace reads (141 release-eligible, three vendor-blocked), 23 typed/prepared mutation workflows (22 default-disabled gated dispatch paths plus one independently blocked partial linked-schedule workflow), persistent owner preferences/investigations/change-review/audit workflows, truthful integration health and replay/evidence protections. The default capability values remain fail-closed, while the reviewed release enables operational reads only. Full 222-operation execution is not complete.
 
 ## Developer status
 
@@ -51,17 +51,17 @@ See the [September 30 implementation review](docs/management-layer/IMPLEMENTATIO
 - [x] `DEV-003` — runtime HHA configuration contract created: `HHAEXCHANGE_CREDENTIALS` secret + `HHAEXCHANGE_BASE_URL` config.
 - [x] `DEV-004` — initial vendor-neutral management schema created in `functions/src/domain/models.ts`.
 - [x] `DEV-005A` — live Firebase project confirmed as **`primetimehomehealthservices`**.
-- [x] `/primetime` admin shell has been merged to `main`; it is still a scaffold until auth + live backend data are connected.
+- [x] `/primetime` admin shell is on `main` with accepted administrator authentication, backend storage and bounded live source views. Source validation remains pending.
 - [x] Repository-wide maintenance pass completed without changing tracked files under `public/`.
 - [x] Marketing generators and verifiers now preserve the separate `/primetime` application byte-for-byte.
 - [x] Deterministic root/Functions dependencies, pull-request QA, and whole-repository integrity checks are in place.
 - [x] `DEV-005B` — developer confirmed `HHAEXCHANGE_CREDENTIALS` is set in Secret Manager for `primetimehomehealthservices`.
-- [ ] **`DEV-006` — CURRENT ACCEPTANCE ACTION:** enable Firebase email-link sign-in and verify `jeremynwokorie@gmail.com` through its normal mailbox sign-in. The server-approved verified-email path does not require a claim bootstrap; existing claimed administrators remain supported. CI does not sign in for the owner.
-- [ ] `DEV-007` — Functions source, Hosting rewrite, and backend-first deployment workflow are configured. Verify the protected API routes in production; repository configuration is not proof of a successful deployment.
+- [x] **`DEV-006` — Accepted October 14:** the approved owner completed normal email-link sign-in and the protected server session opened the workspace. SMS-code acceptance is tracked separately.
+- [x] `DEV-007` — Accepted October 14: the normal administrator session loaded protected owner controls and integration health, saved/reloaded a preference, and exercised persistent request budgeting.
 - [x] `DEV-008` — SOAP parsing/error normalization, retries, correlation IDs, metadata-only telemetry, and sanitized tests are implemented and pass CI.
-- [ ] `DEV-009` — verify the read-only `GetCollectionStatus` HHA connectivity call once an approved admin is available.
+- [x] `DEV-009` — Accepted October 14: protected `GetCollectionStatus` succeeded and the UI reported Reference API reachable. This does not establish visit-source acceptance.
 
-The September 23 review removed automatic first-user admin promotion. Deployment verifies invalid tokens are rejected; if no approved admin exists, the authenticated and HHA checks report **PENDING**, not complete. The operations workspace still displays demonstration metrics and visits.
+The September 23 review removed automatic first-user admin promotion. Deployment verifies invalid tokens are rejected; if no approved admin exists, the authenticated and HHA checks report **PENDING**, not complete. Live mode now displays bounded on-demand source pages; Demo remains an explicit synthetic option. Source-page reads do not persist a visit import, advance import history or establish office totals.
 
 ### Firebase project status
 
@@ -71,7 +71,7 @@ Current runtime status:
 - GitHub CI service account: `firebase-adminsdk-fbsvc@primetimehomehealthservices.iam.gserviceaccount.com`.
 - October 14 [workflow 38639779585](https://github.com/jnwokorie1957/pthhs/actions/runs/38639779585) completed Hosting and Functions deployment successfully; the September 30 Cloud Build blocker is historical.
 - The approved administrator's normal signed-in browser session loads the live owner controls and HHA reference check.
-- The default Native Firestore database is provisioned in `us-central1`. Office preferences, operational data release and live-record validation remain pending.
+- The default Native Firestore database is provisioned in `us-central1`. Operational reads are enabled by the reviewed release; each read still requires configured office scope and owner enablement. Live-record validation remains pending.
 
 ### Secret-storage decision
 

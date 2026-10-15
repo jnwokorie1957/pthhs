@@ -346,7 +346,7 @@
         const states = { never_synced: 'No successful import recorded', running: 'Import running', success: 'Last import succeeded', partial: 'Partial import — replay required', failed: 'Import failed — replay required', unknown: 'Latest import outcome unknown' };
         const lockStatus = sync.singleFlight?.state === 'held_worker_status_requires_verification' ? ' Import lock held: verify the worker status before recovery; no automatic takeover.' : sync.singleFlight?.state === 'available' ? ' Import lock available.' : '';
         const last = sync.lastSuccessfulAt ? new Date(sync.lastSuccessfulAt).toLocaleString() : 'None';
-        if (syncDetails) syncDetails.textContent = `${states[sync.state] || states.unknown}. Last successful import: ${last}. Records processed in latest run: ${sync.processedCount}. Rejected: ${sync.deadLetterCount}. Freshness schedule and source validation are pending. Connection checks do not import visits.${lockStatus}`;
+        if (syncDetails) syncDetails.textContent = `${states[sync.state] || states.unknown}. Last successful import: ${last}. Records processed in latest run: ${sync.processedCount}. Rejected: ${sync.deadLetterCount}. Freshness schedule and source validation are pending. Connection checks and on-demand source pages do not import visits or advance this history.${lockStatus}`;
       } catch {
         if (current() && syncDetails) syncDetails.textContent = 'Import history unavailable. No current-data claim can be made. Check backend deployment and Firestore setup, then retry.';
       }
@@ -360,7 +360,7 @@
   document.addEventListener('primetime-data-mode-changed', () => {
     if (refreshButton) refreshButton.disabled = !window.primetimeDataMode?.isLive();
     setHhaStatus(window.primetimeDataMode?.isLive() ? 'HHA connection: not checked' : 'Demo mode: HHA checks paused');
-    if (syncDetails) syncDetails.textContent = window.primetimeDataMode?.isLive() ? 'Select Refresh to check reference connectivity and import history.' : 'Demo mode uses sample data. No live import or HHA check runs.';
+    if (syncDetails) syncDetails.textContent = window.primetimeDataMode?.isLive() ? 'Select Check connection and history to read reference connectivity and persisted import history. This does not start an import.' : 'Demo mode uses sample data. No live import or HHA check runs.';
   });
 
   // This is a contract inventory, not an arbitrary SOAP console. Only the

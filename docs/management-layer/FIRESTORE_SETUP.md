@@ -19,7 +19,7 @@ After provisioning, the approved administrator's existing normal browser session
 was reloaded with Demo data off. The live UI showed loaded owner controls,
 unconfigured-office readiness rather than a status-loading error, import history
 with no successful sync, and **Reference API reachable**. No new warning/error
-console entries were captured. No operational data release was enabled.
+console entries were captured. Provisioning itself did not enable operational data. The subsequent [read-only release](LIVE_HHA_ACCEPTANCE_2026-10-14.md) enabled operational reads only; the other 28 capability gates remain closed.
 
 ## One-time owner action
 
@@ -72,8 +72,10 @@ Demo data off. Check the four responses in the browser's Network panel:
   vendor/credential/throttle error must be diagnosed separately; database creation
   does not prove HHA connectivity.
 
-All existing deployment approvals stay false. Provisioning storage does not
-approve operational data imports, HHA writes, source validation or SMS delivery.
+Provisioning storage does not change deployment approvals. The reviewed release
+now enables operational reads only; source acceptance, monitoring, SMS and all
+HHA mutation gates remain closed. Storage availability does not prove a persisted
+visit import, source validation or SMS delivery.
 Never mint an administrator token or disable authentication for verification.
 
 References: [database management](https://firebase.google.com/docs/firestore/manage-databases),

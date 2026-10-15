@@ -613,3 +613,51 @@ test('overview date change is shared with Visits and clears source records befor
   assert.match(app.element('dashboardOverviewScope').textContent, /2026-10-09/);
   assert.match(nodeText(app.element('dashboardTimeline')), /2026-10-09T08:00:00/);
 });
+
+test('source read controls and persisted import history describe separate actions', () => {
+  const html = asset('index.html');
+  for (const id of ['dashboardOverviewRefresh', 'dashboardVisitRefresh']) {
+    assert.match(html, new RegExp(`id="${id}"[^>]*>Read source now</button>`));
+  }
+  assert.match(html, /Persisted import history/);
+  assert.match(html, /Check connection and history/);
+  assert.match(html, /CSV upload and starting an import are not available/);
+});
+
+for (const state of ['ready', 'partial', 'empty']) {
+  test(`on-demand ${state} source pages retain unknown totals and do not advance import history`, async () => {
+    const app = harness({ storedDataMode: null, metadata: liveMetadata, fetchSource: path => {
+      if (path.endsWith('/integration/health')) return response({ ok: true, sync: { state: 'never_synced', lastSuccessfulAt: null, processedCount: 0, deadLetterCount: 0 } });
+      if (!path.startsWith('/primetime/api/views/visits?')) return response({ ok: true });
+      const payload = livePreview(new URL(path, 'https://fixture.test').searchParams.get('date'));
+      payload.state = state;
+      if (state === 'partial') payload.completeness.truncated = true;
+      if (state === 'empty') { payload.items = []; payload.fetchedAt = null; }
+      return response(payload);
+    } });
+    installDashboard(app); await app.signIn(); await tick(); await tick();
+    const history = app.element('integrationSyncDetails').textContent;
+    assert.match(history, /No successful import recorded/);
+    assert.match(history, /on-demand source pages do not import visits or advance this history/);
+    for (const id of ['dashboardOverviewRefresh', 'dashboardVisitRefresh']) {
+      assert.equal(app.element(id).textContent, 'Read source now');
+      await app.click(id); await tick(); await tick();
+    }
+    assert.equal(app.element('integrationSyncDetails').textContent, history);
+    for (const prefix of ['dashboardOverview', 'dashboardVisit']) {
+      assert.match(app.element(prefix + 'Metadata').textContent, /on-demand read, not a persisted visit import/);
+      assert.match(app.element(prefix + 'Metadata').textContent, /source unvalidated/);
+      assert.match(app.element(prefix + 'Metadata').textContent, state === 'empty' ? /fetched: Unavailable/ : /fetched: 2026-10-10T08:00:00Z/);
+      assert.match(app.element(prefix + 'Completeness').textContent, /Office totals are unknown/);
+      assert.match(app.element(prefix + 'Completeness').textContent, /200 source IDs, 10 details per page and a 25-second detail-read budget/);
+      if (state === 'partial') assert.match(app.element(prefix + 'Completeness').textContent, /results were truncated/);
+      assert.equal(app.element(prefix + 'Next').hidden, true, 'no next cursor must not imply a complete office dataset');
+    }
+    assert.match(app.element('dashboardModeNotice').textContent, /does not save a visit import or start background synchronization/);
+    assert.ok(app.calls.filter(call => call.path.startsWith('/primetime/api/views/visits?')).length >= 3);
+    assert.ok(app.calls.every(call => !call.options.method || call.options.method === 'GET'), 'source refresh must not dispatch an import or other mutation');
+    app.window.primetimeDataMode.setMode('demo');
+    for (const id of ['dashboardOverviewRefresh', 'dashboardVisitRefresh']) assert.equal(app.element(id).textContent, 'Refresh examples');
+    assert.doesNotMatch(app.element('dashboardVisitMetadata').textContent, /on-demand read/);
+  });
+}

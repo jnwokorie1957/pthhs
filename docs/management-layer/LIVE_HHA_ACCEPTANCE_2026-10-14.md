@@ -51,3 +51,21 @@ responses, including removal of previous chart bars after a source failure.
 
 Production visit-read acceptance and the final release/CI references are recorded
 after deployment; synthetic fixtures are not production visit evidence.
+
+## October 15 release reconciliation
+
+Commit [`8009c24`](https://github.com/jnwokorie1957/pthhs/commit/8009c2416b2c9fb22e9e35321bfd7b0c21721feb)
+was deployed by [run 38659517419](https://github.com/jnwokorie1957/pthhs/actions/runs/38659517419).
+The reviewed deployment configuration enables operational reads only. Source
+acceptance, revision monitoring, SMS and all HHA mutation gates remain closed
+(28 closed gates). The default Native Firestore database exists in `us-central1`;
+see [storage evidence](FIRESTORE_SETUP.md).
+
+The Overview and Visits controls perform on-demand source reads. They do not
+persist a visit import or advance the separate persisted import history. No CSV
+upload or import-run endpoint is deployed. The view remains bounded to 200 source
+IDs, 10 details per page and a 25-second detail-read budget, with unknown office
+totals, `complete=false` and `source_unvalidated`. Reaching the last source page,
+receiving no identifiers or passing CI does not establish full office coverage or
+source acceptance. Keep any patient-level acceptance evidence in the protected
+agency system, outside this repository.

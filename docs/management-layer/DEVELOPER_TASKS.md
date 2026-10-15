@@ -34,7 +34,7 @@ database is now provisioned in `us-central1`. With demo mode off, the existing
 approved administrator's normal browser session loads owner controls and import
 history and reports **Reference API reachable**, with no captured console errors.
 Database preflight and server-only rules prevent backend releases from overlooking
-this prerequisite. Operational data release remains closed. See [Firestore setup](FIRESTORE_SETUP.md).
+this prerequisite. The subsequent read-only release enables operational reads only; the other 28 capability gates remain closed. See [Firestore setup](FIRESTORE_SETUP.md).
 
 - [x] **DEV-001 — Management namespace fixed at `/primetime`.** Admin UI remains under `/primetime/*`; management API is intended under `/primetime/api/*`.
 - [x] **DEV-002 — Server-side backend/HHA module scaffolded.** Firebase Functions code is under `functions/`; HHA adapter is isolated under `functions/src/integrations/hhaexchange/`.
@@ -52,9 +52,9 @@ this prerequisite. Operational data release remains closed. See [Firestore setup
 
 **September 30 code-ahead review:** [Implementation, validation and remaining full-coverage work](IMPLEMENTATION_REVIEW_2026-09-30.md); [all 222 contract operations](HHA_CAPABILITY_MATRIX.md). Import safety fixes with durable single-flight fencing, 144 protected workspace reads (141 release-eligible), 23 typed/prepared mutation workflows (22 default-disabled dispatch paths and one independently blocked partial workflow), audited crash/unknown-outcome recovery, saved owner preferences, persistent investigations, independent change-request review and audit views are implemented with synthetic tests. Data-bearing routes default to locked; automated EVV decisions and HHA writes remain disabled. The inventory is not full execution coverage. DEV-006/007/009 passed normal-session acceptance on October 14; operational source validation remains separate.
 
-**Next milestone:** DEV-009 succeeds from the `/primetime` backend without exposing HHA credentials or PHI.
+**Next milestone:** validate bounded visit source records against agency-approved evidence in the protected system. DEV-006/007/009 are complete; reference connectivity does not establish source acceptance, office-wide totals or a persisted import.
 
-**Code-ahead progress:** Firestore persistence, sync checkpoints/dead letters, `GetVisitChangesV5`, targeted `GetScheduleInfo`, caregiver/patient change wrappers, authorization/availability/service-code reads, schedule-vs-actual comparison, configurable EVV evaluation, internal notification planning, and audit generation are implemented. Backend CI has passed the persistence/sync/rules stack **and the full read-only wrapper surface**. Current red deployment runs fail only at the external Firebase Functions IAM gate, not at repository QA, TypeScript compilation, or backend tests. Runtime use remains gated by Firebase IAM/Auth visibility, Firestore provisioning, and live-record validation.
+**Code-ahead progress:** Firestore persistence, sync checkpoints/dead letters, `GetVisitChangesV5`, targeted `GetScheduleInfo`, caregiver/patient change wrappers, authorization/availability/service-code reads, schedule-vs-actual comparison, configurable EVV evaluation, internal notification planning, and audit generation are implemented. Backend CI has passed the persistence/sync/rules stack **and the full read-only wrapper surface**. The earlier Firebase Functions IAM/deployment blocker is historical: [release 38659517419](https://github.com/jnwokorie1957/pthhs/actions/runs/38659517419) completed on October 15. The default Firestore database exists and normal administrator/reference checks passed. Live-record validation remains separate from these completed prerequisites.
 
 ---
 
@@ -157,7 +157,7 @@ Initial interfaces are created:
 
 Persistence work:
 
-- [x] Firestore selected as the initial management persistence target; actual database provisioning is still a runtime/project setup gate.
+- [x] Firestore selected as the initial management persistence target; the default Native database was provisioned in `us-central1` on October 14. See [verified storage setup](FIRESTORE_SETUP.md).
 - [x] Initial Firestore collection repository implemented for the vendor-neutral domain entities.
 - [x] Preserve HHA IDs in a separate hashed external-reference registry rather than using them as PTHHS primary IDs.
 - [x] Store source-update timestamps where available.

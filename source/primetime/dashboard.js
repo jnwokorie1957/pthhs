@@ -260,7 +260,7 @@
     text('dashboardEvidenceTitle', demo ? 'Example EVV exception queue' : 'EVV source evidence');
     text('dashboardCoverageTitle', demo ? 'Example coverage' : 'Caregiver assignment evidence');
     text('dashboardAlertsTitle', demo ? 'Example manager inbox' : 'Source evidence gaps');
-    text('dashboardOverviewRefresh', demo ? 'Refresh examples' : 'Refresh live data');
+    ['dashboardOverviewRefresh', 'dashboardVisitRefresh'].forEach(id => text(id, demo ? 'Refresh examples' : 'Read source now'));
     if (get('demoDataToggle')) get('demoDataToggle').checked = demo;
     text('demoToggleState', demo ? 'On' : 'Off');
     text('dataModeBadge', demo ? 'Demo · synthetic' : 'Live · validation pending');
@@ -269,7 +269,7 @@
     text('environmentDetails', demo ? 'Synthetic preview records' : 'Source validation pending');
     text('dashboardModeNotice', demo
       ? 'Demo data is on. All preview records are synthetic; messages and HHA changes are disabled.'
-      : 'Live HHA source mode. Overview charts describe the selected source page; every view shows its office, service date and fetch time. Unavailable evidence is excluded from counts.');
+      : 'Live HHA source mode. Read source now requests an on-demand source page; it does not save a visit import or start background synchronization. Charts describe this page only. Unavailable evidence is excluded from counts.');
     ['exceptionSearch', 'priorityFilter'].forEach(id => { if (get(id)) get(id).disabled = live; });
     text('dashboardReadiness', demo ? 'This preview uses synthetic records. Turn Demo data off to check live source availability.' : 'Source previews do not establish validated imports, complete counts, EVV exceptions, staffing eligibility or billable hours.');
     const model = fixtures.dashboard(date);
@@ -331,9 +331,9 @@
       view.items.map(item => [item.id, item.patientId, item.caregiverId, pair(item.scheduledStart, item.scheduledEnd), pair(item.actualStart, item.actualEnd), pair(item.evvStart, item.evvEnd), item.state === 'unavailable' ? 'Detail unavailable: ' + item.detailReason : view.mode === 'demo' ? 'Synthetic example' : 'Source unvalidated'])));
     text('dashboardVisitStatus', view.mode === 'demo' ? 'Synthetic visit examples. No source request was made.' : view.state === 'partial' ? 'Partial source page returned. More pages, truncated search results or unavailable details are disclosed below.' : view.state === 'empty' ? 'No visit identifiers returned for this query. Complete office coverage is not established.' : 'Live HHA source page returned. Source fields are shown separately; operational classifications are pending.');
     text('dashboardVisitScope', `Office: ${view.scope.officeId || 'Unavailable'} · Date: ${view.scope.date} · Timezone: ${view.scope.timezone || 'Unconfigured'}`);
-    text('dashboardVisitMetadata', view.mode === 'demo' ? 'Source: synthetic examples · values are not patient records.' : `Source: HHAeXchange · fetched: ${view.fetchedAt || 'Unavailable'} · source unvalidated · source time values shown without conversion.`);
+    text('dashboardVisitMetadata', view.mode === 'demo' ? 'Source: synthetic examples · values are not patient records.' : `Source: HHAeXchange · fetched: ${view.fetchedAt || 'Unavailable'} · source unvalidated · on-demand read, not a persisted visit import · source time values shown without conversion.`);
     const pageScope = view.page && view.discovery ? `Showing source IDs ${view.items.length ? view.page.offset + 1 : 0}–${view.page.offset + view.items.length} of ${view.discovery.selectedCount} returned by search. ` : `${view.items.length} source record(s) on this page. `;
-    text('dashboardVisitCompleteness', view.mode === 'demo' ? 'Example page only.' : `${pageScope}Charts use this page only. Complete office coverage is not established.${view.truncated ? ' Source identifier results were truncated.' : ''}`);
+    text('dashboardVisitCompleteness', view.mode === 'demo' ? 'Example page only.' : `${pageScope}Charts use this page only. Office totals are unknown; complete office coverage is not established. Read limits: up to 200 source IDs, 10 details per page and a 25-second detail-read budget.${view.truncated ? ' Source identifier results were truncated.' : ''}`);
     nextPageButton(Boolean(nextCursor));
   }
   function context() { return { generation: controller.getGeneration(), mode: controller.getMode(), session, serial }; }
