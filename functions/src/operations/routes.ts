@@ -1,8 +1,10 @@
 import { OperationsWorkspace } from "./workspace.js";
 import { WorkflowError } from "./reads.js";
+import { patientAuthorizationRead } from "./patientAuthorizations.js";
 
 export async function workspaceRoute(service: OperationsWorkspace, method: string, path: string, body: unknown, actor: string): Promise<{ status: number; body: unknown } | null> {
   const paths = ["/workspace/settings", "/workspace/read", "/workspace/investigations", "/workspace/intents", "/workspace/audit", "/workspace/rate-proposals", "/workspace/rate-proposals/recheck", "/workspace/visit-review", "/workspace/rate-proposals/execute", "/workspace/rate-proposals/reconcile", "/workspace/staffing-review", "/workspace/availability-proposals", "/workspace/availability-proposals/recheck", "/workspace/availability-proposals/review", "/workspace/availability-proposals/execute", "/workspace/availability-proposals/reconcile", "/workspace/write-recovery/prepare", "/workspace/write-recovery/approve"];
+  paths.push("/workspace/patient-authorizations");
   const availabilityCreationAction = path.match(/^\/workspace\/availability-creations(?:\/(prepare|recheck|review|execute|reconcile))?$/)?.[1];
   const patientNoteAction = path.match(/^\/workspace\/patient-notes(?:\/(prepare|recheck|review|execute|reconcile))?$/)?.[1];
   const documentMetadataAction = path.match(/^\/workspace\/document-metadata(?:\/(prepare|recheck|review|execute|reconcile))?$/)?.[1];
@@ -23,6 +25,7 @@ export async function workspaceRoute(service: OperationsWorkspace, method: strin
   try {
     let result: unknown;
     if (method === "POST" && path === "/workspace/schedule-review") result = await service.reviewSchedule(body, actor);
+    else if (method === "POST" && path === "/workspace/patient-authorizations") result = await patientAuthorizationRead(service, body, actor);
     else if (method === "POST" && pictureAction) result = { change: await service.caregiverPicture(pictureAction as "prepare" | "recheck" | "review" | "execute" | "reconcile", body, actor) };
     else if (method === "POST" && collectionNoteAction) result = { change: await service.collectionNote(collectionNoteAction as "prepare" | "recheck" | "review" | "execute" | "reconcile", body, actor) };
     else if (method === "GET" && path === "/workspace/collection-notes") { const page = await service.page("collectionNoteChanges", body); result = { changes: page.items, nextCursor: page.nextCursor }; }

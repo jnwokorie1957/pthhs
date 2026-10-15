@@ -18,7 +18,7 @@
   let patientClinicalWritesEnabled = false, pendingPatientClinicalId = null;
   let patientContractWritesEnabled = false, pendingPatientContractId = null;
   let documentTypeWritesEnabled = false, pendingDocumentTypeId = null;
-  let readSequence = 0, readInputs = {}, availabilityWrites = [], pendingAvailabilityId = null;
+  let readSequence = 0, readInputs = {}, authorizationSelection = null, availabilityWrites = [], pendingAvailabilityId = null;
   let generation = 0, writesEnabled = false, settings = null, investigations = [], intents = [], pendingIntentId = null, pendingRateId = null;
   let investigationSequence = 0, investigationCursor = null, investigationsLoaded = false, investigationsLoading = false, investigationReadAt = null;
   const $ = id => document.getElementById(id);
@@ -31,24 +31,26 @@
     const fields = readInputs[$('readOperation').value];
     for (const [field, id] of Object.entries(inputIds)) $(id).closest('label').hidden = fields ? !fields.includes(field) : false;
   }
-  function selectRead(operation) { $('readOperation').value = operation; readSequence++; $('readResults').replaceChildren(); showReadInputs(); }
+  function selectRead(operation) { authorizationSelection = null; $('readOperation').value = operation; readSequence++; $('readResults').replaceChildren(); showReadInputs(); }
   document.addEventListener('primetime-source-record-selected', event => {
     const { kind, id, officeId } = event.detail || {};
-    const operation = kind === 'patient' ? 'GetPatientDemographics' : kind === 'caregiver' ? 'GetCaregiverDemographics' : kind === 'visit' ? 'GetVisitInfoV3' : null;
+    const operation = kind === 'patient' ? 'GetPatientDemographics' : kind === 'patient-authorizations' ? 'SearchPatientAuthorizations' : kind === 'caregiver' ? 'GetCaregiverDemographics' : kind === 'visit' ? 'GetVisitInfoV3' : null;
     if (!operation || typeof id !== 'string' || !/^[1-9]\d{0,9}$/.test(id) || !dataApproved
       || window.primetimeDataMode?.isLive() !== true || !settings?.officeId || officeId !== settings.officeId) return;
     for (const field of Object.values(inputIds)) $(field).value = '';
     $('readId').value = id; $('readOffice').value = officeId;
-    if (kind === 'patient') $('readPatient').value = id;
+    if (kind === 'patient' || kind === 'patient-authorizations') $('readPatient').value = id;
     if (kind === 'caregiver') $('readCaregiver').value = id;
     selectRead(operation);
     document.dispatchEvent(new Event('primetime-workbench-selected'));
     $('readId').focus();
+    const label = kind === 'patient-authorizations' ? 'Patient authorization discovery' : kind[0].toUpperCase() + kind.slice(1);
     message(settings.enabledReads.includes(operation)
-      ? `${kind[0].toUpperCase() + kind.slice(1)} source ID selected from the live visit page. Choose Read source records to fetch current evidence.`
-      : `${kind[0].toUpperCase() + kind.slice(1)} source ID selected. This read requires owner enablement after entitlement review.`);
+      ? `${label} source ID selected from the live visit page. Choose Read source records to fetch current evidence.`
+      : `${label} source ID selected. This read requires owner enablement after entitlement review.`);
   });
   $('readOperation').addEventListener('change', () => selectRead($('readOperation').value));
+  for (const id of Object.values(inputIds)) $(id).addEventListener('input', () => { readSequence++; authorizationSelection = null; $('readResults').replaceChildren(); });
   async function request(path, body, expectedGeneration = generation) {
     if (expectedGeneration !== generation) throw new Error('Session changed. Start this action again.');
     if (window.primetimeDataMode?.isLive() !== true) throw new Error('Demo mode uses sample data. Switch Demo data off to load operational controls.');
@@ -66,7 +68,7 @@
   function setDataAccess(enabled) {
     dataApproved = enabled;
     if ($('investigationFilters')) $('investigationFilters').inert = !enabled || window.primetimeDataMode?.isLive() !== true;
-    if (!enabled) clearInvestigations();
+    if (!enabled) { authorizationSelection = null; clearInvestigations(); }
     if ($('manualSnapshotPanel')) $('manualSnapshotPanel').inert = !enabled || window.primetimeDataMode?.isLive() !== true;
     if (!enabled) clearManualSnapshots();
     for (const form of panel.querySelectorAll('form')) {
@@ -147,9 +149,21 @@
     if (!fields) throw new Error('Load owner controls before requesting source data.');
     const input = { operation };
     for (const field of fields) input[field] = $(inputIds[field]).value;
-    const data = await request('read', input);
+    const authorizationRead = operation === 'SearchPatientAuthorizations' || operation === 'GetPatientAuthorizationInfo';
+    const readGeneration = generation, officeId = settings?.officeId;
+    if (authorizationRead) {
+      input.officeId = officeId;
+      if (operation === 'GetPatientAuthorizationInfo' && authorizationSelection?.id === input.id && authorizationSelection?.patientId === input.patientId
+        && authorizationSelection.officeId === officeId && authorizationSelection.generation === generation) input.contractId = authorizationSelection.contractId;
+    }
+    let data;
+    try { data = await request(authorizationRead ? 'patient-authorizations' : 'read', input); }
+    catch (error) { if (sequence !== readSequence) return; throw error; }
     if (sequence !== readSequence) return;
+    if (authorizationRead && (data.operation !== operation || data.source !== 'hhaexchange' || data.scope?.patientId !== input.patientId
+      || data.scope?.officeId !== officeId || data.interpretation !== 'authorization_limits_unvalidated')) throw new Error('Authorization source context could not be verified.');
     const target = $('readResults'); target.append(paragraph(`${names[data.operation] || data.operation}: Fetched ${new Date(data.fetchedAt).toLocaleString()} from HHA. Source timestamps are not converted. Field interpretation is pending validation. ${data.truncated ? 'Only the first 200 rows are shown; narrow the request.' : ''}`));
+    if (authorizationRead) target.append(paragraph(`Patient ${input.patientId} · office ${officeId} · fetched ${data.fetchedAt}. ${data.operation === 'SearchPatientAuthorizations' ? `${data.records.length} authorization discovery row(s) returned${data.truncated ? ' · truncated; not a complete list' : ' for this request'}.` : 'Raw authorization detail fields.'} Source dates and values are preserved. Unit conversion, balance period, usage basis and limits remain unvalidated. This evidence does not establish scheduling eligibility, billable services or remaining hours.`));
     if (data.attachment) {
       const file = data.attachment;
       target.append(paragraph(`Attachment ready: ${file.filename}, ${file.byteLength} bytes. The file is not rendered in this page.`));
@@ -192,6 +206,22 @@
       const dl = document.createElement('dl');
       for (const [key, value] of Object.entries(record)) { const dt = document.createElement('dt'), dd = document.createElement('dd'); dt.textContent = key; dd.textContent = value === null ? 'Not supplied / unknown' : String(value); dl.append(dt, dd); }
       card.append(dl);
+      if (data.operation === 'SearchPatientAuthorizations') {
+        const validId = value => typeof value === 'string' && /^[1-9]\d{0,9}$/.test(value) && Number(value) <= 2147483647;
+        if (validId(record.ID) && validId(record.ContractID) && data.records.filter(row => row.ID === record.ID).length === 1) card.append(button('Select authorization detail', async () => {
+          if (sequence !== readSequence || generation !== readGeneration || !dataApproved || window.primetimeDataMode?.isLive() !== true
+            || settings?.officeId !== officeId || $('readOperation').value !== operation || $('readPatient').value !== input.patientId) return;
+          for (const id of Object.values(inputIds)) $(id).value = '';
+          $('readId').value = record.ID; $('readPatient').value = input.patientId; $('readOffice').value = officeId;
+          selectRead('GetPatientAuthorizationInfo');
+          authorizationSelection = { id: record.ID, patientId: input.patientId, officeId, contractId: record.ContractID, generation };
+          $('readId').focus();
+          message(settings.enabledReads.includes('GetPatientAuthorizationInfo')
+            ? 'Authorization detail selected by exact source IDs. Choose Read source records to fetch current evidence.'
+            : 'Authorization detail selected by exact source IDs. This read requires owner enablement after entitlement review.');
+        }));
+        else card.append(paragraph('Detail selection unavailable: authorization/contract identity is missing, invalid or ambiguous.'));
+      }
       if (['GetScheduleInfo', 'GetLinkedScheduleInfo'].includes(data.operation)) card.append(button('Review schedule preservation evidence', async () => {
         const review = await request('schedule-review', { visitId: record.ID, kind: data.operation === 'GetLinkedScheduleInfo' ? 'linked' : 'standard' });
         const section = document.createElement('section'); section.className = 'panel';

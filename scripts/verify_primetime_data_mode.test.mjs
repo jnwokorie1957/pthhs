@@ -746,15 +746,16 @@ test('failed paging discards cursor history and refresh starts from the first so
 function descendants(node) { return [node, ...node.children.flatMap(child => child.children ? descendants(child) : [])]; }
 function recordButtons(app, host = 'dashboardTimeline') { return descendants(app.element(host)).filter(node => /^Open (patient|caregiver|visit) read$/.test(node.textContent)); }
 async function clickNode(node) { for (const callback of node.handlers.get('click') || []) await callback(new Event('click')); }
-function connectedWorkspace({ dataApproved = true, enabledReads = ['GetPatientDemographics', 'GetVisitInfoV3'], preview = livePreview, history = () => response({ ok: true, items: [], nextCursor: null, source: 'manual_snapshot' }) } = {}) {
+function connectedWorkspace({ dataApproved = true, enabledReads = ['GetPatientDemographics', 'GetVisitInfoV3'], preview = livePreview, history = () => response({ ok: true, items: [], nextCursor: null, source: 'manual_snapshot' }), authorizations = () => response({ ok: false, error: 'read_not_owner_enabled' }) } = {}) {
   const settings = { revision: 1, officeId: '123', officeTimezone: 'America/Chicago', policyReference: '', enabledReads };
   const app = harness({ storedDataMode: null, metadata: liveMetadata, fetchSource: (path, options) => {
     if (path.endsWith('/settings')) return response({ ok: true, settings, dataApproved, supportedReads: [], readInputs: {
-      GetPatientDemographics: ['id'], GetCaregiverDemographics: ['id'], GetVisitInfoV3: ['id']
+      GetPatientDemographics: ['id'], GetCaregiverDemographics: ['id'], GetVisitInfoV3: ['id'], SearchPatientAuthorizations: ['patientId'], GetPatientAuthorizationInfo: ['patientId', 'id']
     } });
     if (path.includes('/views/visits?')) return response(preview(new URL(path, 'https://fixture.test').searchParams.get('date')));
     if (path.endsWith('/workspace/read')) return response({ ok: true, operation: JSON.parse(options.body).operation, fetchedAt: '2026-10-10T08:00:00Z', records: [] });
     if (path.includes('/workspace/manual-snapshots')) return history(path, options);
+    if (path.endsWith('/workspace/patient-authorizations')) return authorizations(path, options);
     return response({ ok: true });
   } });
   installDashboard(app); vm.runInContext(asset('workspace.js'), app.context);
@@ -937,5 +938,93 @@ test('history selection rejects foreign offices, malformed IDs, locked access an
     await app.live(); await tick(); await tick();
     const beforeSignOut = historyButtons(app)[0]; app.dispatch('primetime-signed-out'); await clickNode(beforeSignOut);
     assert.equal(historyReads(app).length, 0);
+  }
+});
+
+const authorizationButtons = (app, host = 'dashboardTimeline') => descendants(app.element(host)).filter(node => node.textContent === 'Open patient authorizations');
+const detailButtons = app => descendants(app.element('readResults')).filter(node => node.textContent === 'Select authorization detail');
+const authorizationCalls = app => app.calls.filter(call => call.path.endsWith('/workspace/patient-authorizations'));
+const authSource = (input, changes = {}) => ({ ok: true, operation: input.operation, scope: { officeId: input.officeId, patientId: input.patientId }, source: 'hhaexchange', interpretation: 'authorization_limits_unvalidated', fetchedAt: '2026-10-15T19:16:00.000Z', truncated: true, records: [
+  { ID: '71', ContractID: '81', ContractName: 'Same synthetic name', StartDate: '2026-10-01', StopDate: '2026-10-31' },
+  { ID: '72', ContractID: '82', ContractName: 'Same synthetic name', StartDate: '2026-10-01', StopDate: '2026-10-31' }
+], ...changes });
+async function submitRead(app) { for (const fn of app.element('readForm').handlers.get('submit')) fn({ preventDefault() {} }); await tick(); await tick(); }
+async function startAuthorizationRead(app, host) { await clickNode(authorizationButtons(app, host)[0]); await submitRead(app); }
+
+test('both live source views select exact patient authorization discovery without fetching or granting reads', async () => {
+  const app = connectedWorkspace(); await app.signIn(); await tick(); await tick();
+  for (const host of ['dashboardTimeline', 'dashboardVisitRows']) {
+    const before = app.calls.length;
+    await clickNode(authorizationButtons(app, host)[0]);
+    assert.equal(app.calls.length, before); assert.equal(app.element('readOperation').value, 'SearchPatientAuthorizations');
+    assert.equal(app.element('readPatient').value, '5'); assert.equal(app.element('readOffice').value, '123');
+    assert.match(app.element('workspaceMessage').textContent, /requires owner enablement/);
+  }
+  app.window.primetimeDataMode.setMode('demo');
+  assert.equal(authorizationButtons(app).length, 0);
+});
+
+test('authorization discovery retains same-name IDs, source dates, freshness and explicit truncation', async () => {
+  const app = connectedWorkspace({ enabledReads: ['GetPatientDemographics', 'SearchPatientAuthorizations'], authorizations: (_path, options) => response(authSource(JSON.parse(options.body))) });
+  await app.signIn(); await tick(); await tick(); await startAuthorizationRead(app);
+  assert.deepEqual(JSON.parse(authorizationCalls(app)[0].options.body), { operation: 'SearchPatientAuthorizations', patientId: '5', officeId: '123' });
+  const shown = nodeText(app.element('readResults'));
+  assert.match(shown, /2 authorization discovery row\(s\) returned · truncated; not a complete list/);
+  assert.match(shown, /2026-10-15T19:16:00.000Z/); assert.match(shown, /2026-10-01/); assert.match(shown, /usage basis and limits remain unvalidated/);
+  assert.equal(detailButtons(app).length, 2);
+  const before = authorizationCalls(app).length;
+  await clickNode(detailButtons(app)[1]);
+  assert.equal(app.element('readOperation').value, 'GetPatientAuthorizationInfo'); assert.equal(app.element('readId').value, '72');
+  assert.equal(app.element('readPatient').value, '5'); assert.equal(app.element('readResults').children.length, 0);
+  assert.equal(authorizationCalls(app).length, before, 'detail selection cannot auto-fetch or enable its gate');
+  assert.match(app.element('workspaceMessage').textContent, /requires owner enablement/);
+});
+
+test('explicit detail read sends the selected source contract and preserves raw unavailable, blank, zero and negative values', async () => {
+  const app = connectedWorkspace({ enabledReads: ['GetPatientDemographics', 'SearchPatientAuthorizations', 'GetPatientAuthorizationInfo'], authorizations: (_path, options) => {
+    const input = JSON.parse(options.body);
+    return response(authSource(input, input.operation === 'GetPatientAuthorizationInfo' ? { truncated: false, records: [{ AuthorizationID: input.id, 'Patient/ID': input.patientId, 'Contract/ID': input.contractId, MaxUnits: '0', RemainingUnits: '--', BankedHours: '', WeeklyMaxAuthorization: '-1' }] } : {}));
+  } });
+  await app.signIn(); await tick(); await tick(); await startAuthorizationRead(app);
+  await clickNode(detailButtons(app)[1]); await submitRead(app);
+  assert.deepEqual(JSON.parse(authorizationCalls(app)[1].options.body), { operation: 'GetPatientAuthorizationInfo', patientId: '5', id: '72', officeId: '123', contractId: '82' });
+  const values = descendants(app.element('readResults')).filter(node => node.tagName === 'DD').map(node => node.textContent);
+  for (const value of ['0', '--', '', '-1']) assert.ok(values.includes(value));
+  assert.match(nodeText(app.element('readResults')), /Raw authorization detail fields/);
+  assert.doesNotMatch(nodeText(app.element('readResults')), /Utilization:/);
+});
+
+test('input changes fence late authorization results/errors and detached detail selectors', async () => {
+  for (const fail of [false, true]) {
+    const late = deferred(); let hold = false;
+    const app = connectedWorkspace({ enabledReads: ['GetPatientDemographics', 'SearchPatientAuthorizations'], authorizations: (_path, options) => hold ? late.promise : response(authSource(JSON.parse(options.body))) });
+    await app.signIn(); await tick(); await tick(); await startAuthorizationRead(app);
+    const old = detailButtons(app)[0]; hold = true; await submitRead(app);
+    app.element('readPatient').value = '6'; for (const fn of app.element('readPatient').handlers.get('input')) fn(new Event('input'));
+    const count = authorizationCalls(app).length; await clickNode(old);
+    late.resolve(response(fail ? { ok: false, error: 'patient_office_mismatch' } : authSource({ operation: 'SearchPatientAuthorizations', patientId: '5', officeId: '123' })));
+    await tick(); await tick();
+    assert.equal(authorizationCalls(app).length, count); assert.equal(app.element('readPatient').value, '6');
+    assert.equal(app.element('readResults').children.length, 0); assert.doesNotMatch(app.element('workspaceMessage').textContent, /patient office mismatch/);
+  }
+});
+
+test('ambiguous or invalid authorization identities have no actionable detail selection', async () => {
+  const app = connectedWorkspace({ enabledReads: ['GetPatientDemographics', 'SearchPatientAuthorizations'], authorizations: (_path, options) => response(authSource(JSON.parse(options.body), { records: [
+    { ID: '71', ContractID: '81' }, { ID: '71', ContractID: '82' }, { ID: '<script>', ContractID: '83' }, { ID: '72', ContractID: '' }
+  ] })) });
+  await app.signIn(); await tick(); await tick(); await startAuthorizationRead(app);
+  assert.equal(detailButtons(app).length, 0); assert.match(nodeText(app.element('readResults')), /identity is missing, invalid or ambiguous/);
+});
+
+test('empty authorization evidence, denied access and unverifiable context remain distinct', async () => {
+  for (const mode of ['empty', 'denied', 'wrong_scope']) {
+    const app = connectedWorkspace({ enabledReads: ['GetPatientDemographics', 'SearchPatientAuthorizations'], authorizations: (_path, options) => {
+      const input = JSON.parse(options.body);
+      return response(mode === 'denied' ? { ok: false, error: 'patient_office_mismatch' } : authSource(input, { records: [], truncated: false, ...(mode === 'wrong_scope' ? { scope: { patientId: '99', officeId: '123' } } : {}) }));
+    } });
+    await app.signIn(); await tick(); await tick(); await startAuthorizationRead(app);
+    if (mode === 'empty') { assert.match(nodeText(app.element('readResults')), /0 authorization discovery row/); assert.match(nodeText(app.element('readResults')), /not a zero census or a zero balance/); }
+    else { assert.equal(app.element('readResults').children.length, 0); assert.match(app.element('workspaceMessage').textContent, mode === 'denied' ? /patient office mismatch/ : /could not be verified/); }
   }
 });
