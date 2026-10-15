@@ -789,6 +789,7 @@
       result.items.forEach(item => { const card = element('article', undefined, 'snapshot-card'); card.append(element('strong', `${item.period} · ${item.patientLabel}`), element('p', `${item.visitCount} visit tiles · ${item.authorizationCount} authorization rows · captured ${item.capturedAt}`)); const open = button('Open ' + item.period + ' snapshot', () => snapshotAction(() => loadSnapshot(item.id))); card.append(open); list.append(card); });
       if (result.nextCursor) list.append(button('Older imports', () => snapshotAction(() => loadSnapshots(result.nextCursor))));
       status(result.items.length ? `${result.items.length} saved source snapshot(s) on this page.` : 'No calendar snapshots saved for this patient.');
+      return true;
     }
     $('manualPatientId').addEventListener('input', clearSnapshots);
     $('manualPatientForm').addEventListener('submit', event => { event.preventDefault(); snapshotAction(() => loadSnapshots()); });
@@ -799,7 +800,8 @@
       const result = await request('manual-snapshots', capture);
       if (sequence !== snapshotSequence) return;
       $('manualPatientId').value = result.snapshot.patientId; $('manualSnapshotPayload').value = '';
-      await loadSnapshots(); showSnapshot(result.snapshot);
+      if (!await loadSnapshots()) return;
+      showSnapshot(result.snapshot);
       status(result.duplicate ? 'Identical source facts already saved. No duplicate import created.' : `Saved ${result.snapshot.visits.length} visit tiles and ${result.snapshot.authorizations.rows.length} authorization rows as a dated manual snapshot.`);
     }); });
     clearManualSnapshots = clearSnapshots;
