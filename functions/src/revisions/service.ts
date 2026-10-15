@@ -10,6 +10,8 @@ import type { SmsFactoryConfig } from "./sms.js";
 import { buildTokenGroups } from "./tokenGroups.js";
 import { chooseMonitorWindow, advanceMonitorWindow, resetMonitorWindow, type MonitorPlanState } from "./monitorPlan.js";
 import { adaptVerificationReceipt } from "./verification.js";
+import { loadMemberContext, type MemberContextResult } from "./memberContext.js";
+import { OverlapScanner, overlapContext, reviewedOverlapCandidate, type OverlapWindow } from "./overlap.js";
 
 type Workspace = Pick<OperationsWorkspace, "settings" | "query">;
 export interface RevisionApprovals { data: boolean; source: boolean; monitor: boolean; smsCapability: boolean; smsConfiguration: boolean; smsSend: boolean; }
@@ -17,6 +19,7 @@ export interface RevisionActor { actorId: string; roles: readonly string[]; mode
 interface NotificationFact extends Versioned {
   officeId: string; date: string; rule: NotificationRule; visitId: string; occurrenceId: string;
   kind: VisitDiagnosisIssue["kind"]; relatedVisitId: string | null; detectedAt: string; policyFingerprint: string;
+  relatedVisitDate?: string | null;
   tokenRosterId?: string;
 }
 interface TokenRoster extends Versioned { officeId: string; caregiverId: string; visits: { visitId: string; date: string }[]; policyFingerprint: string; coverage: "accepted_input_only"; }
@@ -82,6 +85,8 @@ export class RevisionBackend {
       return { ok: true, mode: "live", officeId, source: "primetime", dataApproved: data, policy,
         workspaceScope: { officeId, officeTimezone: current.settings.officeTimezone, revision: current.settings.revision },
       capabilities: { diagnosis: data && sourceReady, records: data && !!officeId && timezoneReady, monitoring: data && sourceReady && this.approvals.monitor && policy?.monitoringEnabled === true,
+        memberContext: data && sourceReady && contract?.memberContext?.accepted === true && ["GetScheduleInfo", "GetPatientContracts", "SearchPatientAuthorizations", "GetPatientAuthorizationInfo"].every(operation => current.settings.enabledReads.includes(operation)),
+        overlapChecks: data && sourceReady && !!contract?.overlapCoverage && contract.overlapCoverage.timezone === current.settings.officeTimezone,
         sms: data && sourceReady && this.approvals.monitor && policy?.monitoringEnabled === true && this.approvals.smsCapability && this.approvals.smsConfiguration && this.approvals.smsSend && !!policy?.smsPolicyReference && !!policy.quietHours },
       sourceAcceptance: contract ? { version: contract.version, reference: contract.reviewReference, validUntil: contract.validUntil } : null,
       earlyReminderConfigured: policy?.earlyReminderMinutes !== null && policy?.earlyReminderMinutes !== undefined,
@@ -117,7 +122,12 @@ export class RevisionBackend {
     const ids = [...new Set(discovery.records.map(item => identifier(item.VisitID)))].sort((a, b) => Number(a) - Number(b));
     const fingerprint = hash(ids);
     if (offset && input.discovery !== fingerprint) throw new WorkflowError("revision_discovery_changed_restart", 409);
-    const selectedIds = ids.slice(offset, offset + limit), evidence: NormalizedVisitEvidence[] = [];
+    // Rich source joins use a smaller page so each visit has a bounded chance
+    // to load its context rather than repeatedly starving the page's tail.
+    const memberReadsReady = ["GetPatientDemographics", "GetScheduleInfo", "GetPatientContracts", "SearchPatientAuthorizations", "GetPatientAuthorizationInfo"].every(operation => scope.current.settings.enabledReads.includes(operation));
+    const richContext = !!scope.contract?.memberContext && memberReadsReady;
+    const selectedIds = ids.slice(offset, offset + (richContext ? Math.min(limit, 2) : limit)), evidence: NormalizedVisitEvidence[] = [];
+    const memberContexts = new Map<string, MemberContextResult>();
     for (const visitId of selectedIds) {
       await scope.check();
       let source: OperationalRead | null = null, readError: string | undefined;
@@ -126,14 +136,56 @@ export class RevisionBackend {
       if (performance.now() - started >= 25000) break;
       try { source = await this.query({ operation: "GetVisitInfoV3", id: visitId }, actor.actorId); }
       catch (error) { if (error instanceof WorkflowError && [403, 423, 429].includes(error.status)) throw error; readError = "source_read_failed"; }
-      evidence.push(this.adapt(source, visitId, serviceDate, ids, scope, readError));
+      const visit = this.adapt(source, visitId, serviceDate, ids, scope, readError);
+      evidence.push(visit);
+      if (scope.contract?.memberContext && memberReadsReady) {
+        memberContexts.set(visitId, await loadMemberContext({ visit, query: input => this.query(input, actor.actorId), fence: scope.check,
+          now: () => this.now().toISOString(), acceptance: scope.contract.memberContext, maxQueries: 7, maxAuthorizationDetails: 3,
+          timeBudgetMs: Math.max(1, Math.min(20000, Math.floor(25000 - (performance.now() - started)))) }));
+      }
     }
     await scope.check();
     if (selectedIds.length && !evidence.length) throw new WorkflowError("revision_batch_time_budget_deferred", 429, 60);
     const attemptedCount = evidence.length, nextOffset = offset + attemptedCount < ids.length ? offset + attemptedCount : null;
+    let window: OverlapWindow | null = null;
+    if (scope.contract?.overlapCoverage && scope.contract.overlapCoverage.timezone === scope.timezone) {
+      const contract = scope.contract, phaseLimit = Number.isFinite(this.deadline) ? 45000 : 25000;
+      const scanner = new OverlapScanner(this.repository, {
+        discover: async date => {
+          const result = await this.query({ operation: "SearchVisitsV2", officeId: scope.officeId, date }, actor.actorId);
+          if (result.operation !== "SearchVisitsV2" || result.source !== "hhaexchange") throw new WorkflowError("invalid_overlap_discovery", 502);
+          return { visitIds: result.records.map(row => identifier(row.VisitID)), fetchedAt: result.fetchedAt, truncated: result.truncated };
+        },
+        read: async (id, date, discoveredIds) => this.adapt(await this.query({ operation: "GetVisitInfoV3", id }, actor.actorId), id, date, [...discoveredIds], scope),
+        checkFence: scope.check, canContinue: () => performance.now() - started < phaseLimit && performance.now() < this.deadline && Date.parse(contract.overlapCoverage!.validUntil) > this.now().getTime(),
+      }, () => this.now());
+      window = await scanner.scan({ officeId: scope.officeId, date: serviceDate, timezone: scope.timezone, revision: scope.current.settings.revision,
+        fence: scope.signature, acceptanceVersion: contract.version, maxAgeSeconds: contract.maxAgeSeconds, coverageAcceptance: contract.overlapCoverage ?? null },
+      { actorId: actor.actorId, maxDetailReads: 2, maxDiscoveryReads: 3 });
+    }
+    await scope.check();
     const evaluatedAt = this.now().toISOString(), ruleVersion = this.ruleVersion(scope);
-    const items = evidence.map(item => ({ evidence: item, diagnosis: evaluateVisit(item, { version: ruleVersion, earlyReminderMinutes: scope.policy.earlyReminderMinutes }, evaluatedAt,
-      { overlaps: evidence.filter(peer => peer.visitId !== item.visitId && (peer.patientId === item.patientId && !!item.patientId || peer.caregiverId === item.caregiverId && !!item.caregiverId)).map(peer => ({ visit: peer, allowance: "unknown", policyReference: null })), overlapWindowComplete: false }) }));
+    const changedObservation = !!window && evidence.some(current => window.observations.some(cached => cached.visitId === current.visitId && cached.scope.date === current.scope.date && cached.provenance?.sourceRevision !== current.provenance?.sourceRevision));
+    const items = evidence.map(item => {
+      const member = memberContexts.get(item.visitId), related = window ? overlapContext(window, item, evaluatedAt, scope.contract?.overlapAllowances) : null;
+      const fallback = evidence.filter(peer => peer.visitId !== item.visitId && (peer.patientId === item.patientId && !!item.patientId || peer.caregiverId === item.caregiverId && !!item.caregiverId)).map(peer => reviewedOverlapCandidate(item, peer, evaluatedAt, scope.contract?.overlapAllowances));
+      const peerKey = (peer: NormalizedVisitEvidence) => peer.scope.date + ":" + peer.visitId;
+      const peers = new Map(fallback.map(candidate => [peerKey(candidate.visit), candidate]));
+      let changedPeer = changedObservation;
+      for (const candidate of related?.overlaps ?? []) {
+        const current = peers.get(peerKey(candidate.visit));
+        if (current) { if (current.visit.provenance?.sourceRevision !== candidate.visit.provenance?.sourceRevision) changedPeer = true; }
+        else peers.set(peerKey(candidate.visit), candidate);
+      }
+      const candidates = [...peers.values()], capped = candidates.length > 20;
+      const coverage = related ? { ...related.coverage, complete: related.overlapWindowComplete && !changedPeer && !capped,
+        reasons: [...new Set([...related.coverage.reasons, ...(changedPeer ? ["current_page_source_changed"] : []), ...(capped ? ["candidate_limit_reached"] : [])])] } : null;
+      return { evidence: item, diagnosis: evaluateVisit(item, { version: ruleVersion, earlyReminderMinutes: scope.policy.earlyReminderMinutes }, evaluatedAt,
+        { ...member?.context, overlaps: candidates.slice(0, 20), overlapWindowComplete: coverage?.complete ?? false }),
+      memberContext: member ? { scope: item.scope, visitId: item.visitId, patientId: item.patientId, authorizationWindow: member.authorizationWindow, recordedEligibility: member.recordedEligibility, completeness: member.completeness,
+        sources: member.sources.map(({ operation, state, reason, fetchedAt, sourceRevision }) => ({ operation, state, reason, fetchedAt, sourceRevision })) } : null,
+      overlapCoverage: coverage };
+    });
     return { ok: true, mode: "live" as const, source: "hhaexchange", scope: { officeId: scope.officeId, date: serviceDate, timezone: scope.timezone },
       evaluatedAt, items, nextOffset, discovery: fingerprint,
       completeness: { complete: false, truncated: discovery.truncated, selectedCount: ids.length, pageSelectedCount: selectedIds.length,
@@ -251,12 +303,15 @@ export class RevisionBackend {
     const visit = this.adapt(await this.query({ operation: "GetVisitInfoV3", id: request.visitId }, actor.actorId), request.visitId, fact.date, [request.visitId], scope);
     let peer: NormalizedVisitEvidence | null = null;
     if (fact.relatedVisitId) {
-      if (!discovery.records.some(item => item.VisitID === fact.relatedVisitId)) throw new WorkflowError("notification_related_visit_unavailable", 409);
+      const peerDate = date(fact.relatedVisitDate ?? fact.date);
+      if (Math.abs(Date.parse(peerDate + "T00:00:00Z") - Date.parse(fact.date + "T00:00:00Z")) > 86400000) throw new WorkflowError("notification_related_visit_unavailable", 409);
+      const peerDiscovery = peerDate === fact.date ? discovery : await this.query({ operation: "SearchVisitsV2", officeId, date: peerDate }, actor.actorId);
+      if (peerDiscovery.operation !== "SearchVisitsV2" || peerDiscovery.source !== "hhaexchange" || !peerDiscovery.records.some(item => item.VisitID === fact.relatedVisitId)) throw new WorkflowError("notification_related_visit_unavailable", 409);
       await scope.check();
-      peer = this.adapt(await this.query({ operation: "GetVisitInfoV3", id: fact.relatedVisitId }, actor.actorId), fact.relatedVisitId, fact.date, [fact.relatedVisitId], scope);
+      peer = this.adapt(await this.query({ operation: "GetVisitInfoV3", id: fact.relatedVisitId }, actor.actorId), fact.relatedVisitId, peerDate, [fact.relatedVisitId], scope);
     }
     const diagnosis = evaluateVisit(visit, { version: this.ruleVersion(scope), earlyReminderMinutes: scope.policy.earlyReminderMinutes }, this.now().toISOString(),
-      { overlaps: peer ? [{ visit: peer, allowance: "unknown", policyReference: null }] : [] });
+      { overlaps: peer ? [reviewedOverlapCandidate(visit, peer, this.now().toISOString(), scope.contract?.overlapAllowances)] : [] });
     const issue = diagnosis.issues.find(item => item.kind === fact.kind && (item.facts.relatedVisitId ?? null) === fact.relatedVisitId);
     let active = !!issue && (request.rule.startsWith("supervisor_") ? issue.officeFollowUp : issue.caregiverReminder);
     const tokenSummary = summarizeMissingTokenDays([visit], this.now().toISOString());
@@ -264,7 +319,7 @@ export class RevisionBackend {
     if (visit.state !== "ready" || !visit.provenance) throw new WorkflowError("notification_source_unaccepted", 423);
     await scope.check();
     return { officeId, visitId: request.visitId, rule: request.rule, occurrenceId: request.occurrenceId, source: "server_verified", validation: "validated",
-      sourceRevision: visit.provenance.sourceRevision, ruleVersion: this.ruleVersion(scope), observedAt: visit.provenance.fetchedAt, detectedAt: fact.detectedAt,
+      sourceRevision: peer ? hash([visit.provenance.sourceRevision, peer.provenance?.sourceRevision]) : visit.provenance.sourceRevision, ruleVersion: this.ruleVersion(scope), observedAt: peer?.provenance ? [visit.provenance.fetchedAt, peer.provenance.fetchedAt].sort()[0]! : visit.provenance.fetchedAt, detectedAt: fact.detectedAt,
       conditionActive: active, eligibleRecipientRefs: request.rule.startsWith("supervisor_") ? scope.policy.supervisorRecipientRefs : visit.caregiverId ? ["caregiver_" + visit.caregiverId] : [],
       ...(visit.times.scheduledEnd ? { scheduledEnd: this.timeLabel(visit.times.scheduledEnd.iso, scope.timezone) } : {}),
       ...((visit.serviceTimeBasis === "evv" ? visit.times.evvEnd : visit.times.actualEnd) ? { actualEnd: this.timeLabel((visit.serviceTimeBasis === "evv" ? visit.times.evvEnd : visit.times.actualEnd)!.iso, scope.timezone) } : {}),
@@ -300,9 +355,11 @@ export class RevisionBackend {
       if (issue.officeFollowUp && ["open_after_end", "recorded_overage"].includes(issue.kind)) rules.push("supervisor_overage");
       if (issue.officeFollowUp && issue.kind.startsWith("overlap_") && issue.facts.relatedVisitId) rules.push("supervisor_overlap");
       for (const rule of rules) {
-        const occurrenceId = `${serviceDate}:${issue.kind}:${issue.facts.relatedVisitId ?? "single"}`, factId = hash([visitId, rule, occurrenceId]), factCollection = "revisionNotificationFacts_office_" + scope.officeId;
+        const occurrenceKind = issue.kind.startsWith("overlap_") ? "overlap" : issue.kind;
+        const occurrenceId = `${serviceDate}:${occurrenceKind}:${issue.facts.relatedVisitId ?? "single"}`, factId = hash([visitId, rule, occurrenceId]), factCollection = "revisionNotificationFacts_office_" + scope.officeId;
         await this.rememberNotificationFact(actor, factCollection, factId, { officeId: scope.officeId, date: serviceDate,
-          rule, visitId, occurrenceId, kind: issue.kind, relatedVisitId: typeof issue.facts.relatedVisitId === "string" ? issue.facts.relatedVisitId : null, detectedAt: this.now().toISOString(), policyFingerprint: fingerprint });
+          rule, visitId, occurrenceId, kind: issue.kind, relatedVisitId: typeof issue.facts.relatedVisitId === "string" ? issue.facts.relatedVisitId : null,
+          relatedVisitDate: typeof issue.facts.relatedServiceDate === "string" ? date(issue.facts.relatedServiceDate) : null, detectedAt: this.now().toISOString(), policyFingerprint: fingerprint });
         const refs = rule.startsWith("supervisor_") ? scope.policy.supervisorRecipientRefs : item.evidence.caregiverId ? ["caregiver_" + item.evidence.caregiverId] : [];
         for (const recipientRef of refs) {
           try { const { box, context } = await this.outbox(actor); await box.queue({ rule, visitId, occurrenceId, recipientRef }, context); }
@@ -313,11 +370,18 @@ export class RevisionBackend {
   }
   private async rememberNotificationFact(actor: RevisionActor, collection: string, id: string, values: Omit<NotificationFact, "id" | "revision" | "updatedAt">) {
     const prior = await this.repository.get<NotificationFact>(collection, id);
-    if (prior?.policyFingerprint === values.policyFingerprint) return;
-    // Keep the same occurrence and original detection time across a reviewed policy change.
+    if (prior) {
+      if (prior.id !== id || prior.officeId !== values.officeId || prior.date !== values.date || prior.rule !== values.rule
+        || prior.visitId !== values.visitId || prior.occurrenceId !== values.occurrenceId) throw new WorkflowError("notification_condition_identity_mismatch", 409);
+      // The same occurrence may be rediscovered on an adjacent peer date or a
+      // refreshed roster without any owner-policy change. Recheck metadata too.
+      if (prior.policyFingerprint === values.policyFingerprint && prior.kind === values.kind && prior.relatedVisitId === values.relatedVisitId
+        && (prior.relatedVisitDate ?? null) === (values.relatedVisitDate ?? null) && (prior.tokenRosterId ?? null) === (values.tokenRosterId ?? null)) return;
+    }
+    // Keep the same occurrence and original detection time across policy or source-metadata changes.
     // The outbox's stable occurrence key prevents this refresh from creating a second delivery.
     await this.repository.change<NotificationFact>(collection, id, prior?.revision ?? 0, actor.actorId, prior ? "notification_condition_refreshed" : "notification_condition_detected", () => ({
-      ...values, id, revision: (prior?.revision ?? 0) + 1, updatedAt: this.now().toISOString(), detectedAt: prior?.detectedAt ?? values.detectedAt
+      ...values, id, occurrenceId: prior?.occurrenceId ?? values.occurrenceId, revision: (prior?.revision ?? 0) + 1, updatedAt: this.now().toISOString(), detectedAt: prior?.detectedAt ?? values.detectedAt
     }));
   }
   private timeLabel(instant: string, timezone: string) {

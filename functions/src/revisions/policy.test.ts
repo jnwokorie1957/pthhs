@@ -4,6 +4,8 @@ import type { Versioned, WorkspaceRepository } from "../operations/workspace.js"
 import { WorkflowError } from "../operations/reads.js";
 import { RevisionConfiguration, defaultRevisionPolicy, type SourceContract } from "./policy.js";
 import type { VerificationReceiptAcceptance } from "./verification.js";
+import type { MemberContextAcceptance } from "./memberContext.js";
+import type { OverlapCoverageAcceptance, ReviewedOverlapAllowance } from "./overlap.js";
 
 class Repository implements Pick<WorkspaceRepository, "get" | "page" | "change"> {
   records = new Map<string, Versioned>(); actions: string[] = [];
@@ -96,4 +98,71 @@ test("stored policy/contact scope mismatch is rejected rather than returned in a
   const wrongOffice = { ...contact(), id: "caregiver_6", officeId: "124", recipientRef: "caregiver_6", revision: 1, updatedAt: NOW };
   repo.records.set("revisionContacts_office_123/caregiver_6", wrongOffice);
   await assert.rejects(configuration.contact("caregiver_6"), /office_scope_mismatch/);
+});
+
+function memberProfile(): MemberContextAcceptance {
+  return { accepted: true, version: "synthetic-member-v1", sourceVersion: contract().version, reviewReference: "Synthetic member/source mapping review",
+    scheduleOperation: "GetScheduleInfo", billTo: "primary", calendarDateEncoding: "iso_date_or_midnight", dateBounds: "inclusive", authorizationListComplete: true, contractListComplete: true };
+}
+function overlapProfile(): OverlapCoverageAcceptance {
+  return { officeId: "123", timezone: "America/Chicago", sourceAcceptanceVersion: contract().version, reference: "Synthetic bounded interval and discovery review",
+    validUntil: "2026-11-01T00:00:00Z", maxVisitDurationMinutes: 720, serviceDateSemantics: "service_interval_start_office_date", adjacentDatesCoverMaximumDuration: true };
+}
+function allowanceProfile(): ReviewedOverlapAllowance {
+  return { officeId: "123", visitId: "77", visitDate: "2026-10-10", sourceRevision: "a".repeat(64), relatedVisitId: "78", relatedDate: "2026-10-09", relatedSourceRevision: "b".repeat(64),
+    decision: "allowed", reference: "Synthetic exact-pair documented review", reviewedBy: "synthetic-supervisor", reviewedAt: "2026-10-10T16:00:00Z", validUntil: "2026-11-01T00:00:00Z" };
+}
+test("member joins and overlap semantics remain protected source profiles and cannot be enabled through browser policy", async () => {
+  const f = setup();
+  for (const patch of [{ memberContext: memberProfile() }, { overlapCoverage: overlapProfile() }, { overlapAllowances: [allowanceProfile()] }])
+    await assert.rejects(f.configuration.savePolicy(policy(patch), "owner"), /unsupported_revision_field/);
+  assert.equal(f.repo.records.size, 0); assert.equal(f.repo.actions.length, 0);
+  f.repo.records.set("revisionSourceAcceptance_office_123/owner", contract());
+  const legacy = await f.configuration.sourceContract();
+  assert.ok(legacy); assert.equal(legacy.memberContext, undefined); assert.equal(legacy.overlapCoverage, undefined); assert.equal(legacy.overlapAllowances, undefined);
+  const accepted = { ...contract(), memberContext: memberProfile(), overlapCoverage: overlapProfile(), overlapAllowances: [allowanceProfile()] };
+  f.repo.records.set("revisionSourceAcceptance_office_123/owner", accepted);
+  assert.deepEqual(await f.configuration.sourceContract(), accepted); assert.equal(f.repo.actions.length, 0);
+});
+
+test("an expired overlap child disables only that child and never rewrites protected records or revives an expired parent", async () => {
+  for (const validUntil of [NOW, "2026-10-10T17:19:59.999Z"]) {
+    const f = setup(), stored = { ...contract(), memberContext: memberProfile(), overlapCoverage: { ...overlapProfile(), validUntil }, overlapAllowances: [allowanceProfile()] };
+    f.repo.records.set("revisionSourceAcceptance_office_123/owner", stored);
+    const accepted = await f.configuration.sourceContract();
+    assert.ok(accepted); assert.equal(accepted.version, stored.version); assert.equal(accepted.overlapCoverage, null);
+    assert.deepEqual(accepted.memberContext, stored.memberContext); assert.deepEqual(accepted.overlapAllowances, stored.overlapAllowances);
+    assert.deepEqual(f.repo.records.get("revisionSourceAcceptance_office_123/owner"), stored); assert.equal(f.repo.actions.length, 0);
+  }
+  const f = setup(); f.repo.records.set("revisionSourceAcceptance_office_123/owner", { ...contract(), validUntil: NOW, overlapCoverage: overlapProfile() } as SourceContract);
+  assert.equal(await f.configuration.sourceContract(), null);
+});
+
+test("overlap coverage rejects foreign office, parent-version mismatch, unsupported semantics and extra fields", async () => {
+  for (const patch of [{ officeId: "124" }, { sourceAcceptanceVersion: "another-source-version" }, { maxVisitDurationMinutes: 1441 },
+    { serviceDateSemantics: "written_vendor_wall_time" }, { adjacentDatesCoverMaximumDuration: false }, { reference: "" }, { timezone: "Unknown/Zone" }, { authorizationApproved: true }]) {
+    const f = setup(); f.repo.records.set("revisionSourceAcceptance_office_123/owner", { ...contract(), overlapCoverage: { ...overlapProfile(), ...patch } } as unknown as SourceContract);
+    assert.equal(await f.configuration.sourceContract(), null); assert.equal(f.repo.actions.length, 0);
+  }
+});
+
+test("exact-pair allowances stay office-scoped, strictly bounded and separate from a universal overlap approval", async () => {
+  for (const value of [[{ ...allowanceProfile(), officeId: "124" }], [{ ...allowanceProfile(), sourceRevision: "not-a-source-hash" }],
+    [{ ...allowanceProfile(), decision: "approve_all" }], [{ ...allowanceProfile(), reference: "" }], [{ ...allowanceProfile(), extra: true }], Array(26).fill(allowanceProfile())]) {
+    const f = setup(); f.repo.records.set("revisionSourceAcceptance_office_123/owner", { ...contract(), overlapAllowances: value } as unknown as SourceContract);
+    assert.equal(await f.configuration.sourceContract(), null); assert.equal(f.repo.actions.length, 0);
+  }
+  const f = setup(), expired = { ...allowanceProfile(), validUntil: "2026-10-10T17:00:00Z" };
+  f.repo.records.set("revisionSourceAcceptance_office_123/owner", { ...contract(), overlapAllowances: [expired] } as SourceContract);
+  assert.ok(await f.configuration.sourceContract(), "Expired pair decisions remain historical metadata; the pair evaluator must ignore them without disabling unrelated source reads");
+});
+
+test("member-context acceptance binds to the exact protected parent version and validates every source mapping field", async () => {
+  for (const patch of [{ sourceVersion: "another-source-version" }, { accepted: "true" }, { contractListComplete: "true" }, { authorizationListComplete: "true" },
+    { scheduleOperation: "GetVisitInfoV3" }, { billTo: "any" }, { dateBounds: "guess" }, { calendarDateEncoding: "local_wall_time" }, { reviewReference: "" }, { approval: "verified" }]) {
+    const f = setup(); f.repo.records.set("revisionSourceAcceptance_office_123/owner", { ...contract(), memberContext: { ...memberProfile(), ...patch } } as unknown as SourceContract);
+    assert.equal(await f.configuration.sourceContract(), null); assert.equal(f.repo.actions.length, 0);
+  }
+  const f = setup(); f.repo.records.set("revisionSourceAcceptance_office_123/owner", { ...contract(), memberContext: { ...memberProfile(), accepted: false } } as SourceContract);
+  assert.equal((await f.configuration.sourceContract())?.memberContext?.accepted, false, "An unaccepted profile must never be promoted by storage validation");
 });

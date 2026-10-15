@@ -156,7 +156,7 @@ export function evaluateVisit(visit: NormalizedVisitEvidence, policy: DiagnosisP
     const peerStart = peer.serviceTimeBasis === "actual" ? peer.times.actualStart : peer.times.evvStart,
       peerEnd = peer.serviceTimeBasis === "actual" ? peer.times.actualEnd : peer.times.evvEnd;
     if (!evidenceReady(peer, now) || !start || !end || !peerStart || !peerEnd || !sameCaregiver && !samePatient) {
-      add("overlap_unknown", "unknown", "Related interval evidence is insufficient to evaluate an overlap.", "Refresh both visits and validate their member/caregiver relationship and service intervals.", { facts: { relatedVisitId: peer.visitId } }); continue;
+      add("overlap_unknown", "unknown", "Related interval evidence is insufficient to evaluate an overlap.", "Refresh both visits and validate their member/caregiver relationship and service intervals.", { facts: { relatedVisitId: peer.visitId, relatedServiceDate: peer.scope.date } }); continue;
     }
     const intersection = Math.min(end.epochMs, peerEnd.epochMs) - Math.max(start.epochMs, peerStart.epochMs);
     if (intersection <= 0) continue;
@@ -164,7 +164,7 @@ export function evaluateVisit(visit: NormalizedVisitEvidence, policy: DiagnosisP
     add(`overlap_${allowance}` as DiagnosisKind, allowance === "allowed" ? "information" : "review",
       allowance === "allowed" ? "The overlapping intervals have an accepted allowance." : allowance === "conflict" ? "The overlapping intervals conflict with the reviewed program rule." : "The intervals overlap; program allowance remains unknown.",
       "Review both visits, applicable authorizations and the recorded program decision; preserve the source intervals.",
-      { facts: { relatedVisitId: peer.visitId, overlapMinutes: intersection / 60000, relation: sameCaregiver && samePatient ? "same_caregiver_and_patient" : sameCaregiver ? "same_caregiver" : "same_patient", policyReference: candidate.policyReference },
+      { facts: { relatedVisitId: peer.visitId, relatedServiceDate: peer.scope.date, overlapMinutes: intersection / 60000, relation: sameCaregiver && samePatient ? "same_caregiver_and_patient" : sameCaregiver ? "same_caregiver" : "same_patient", policyReference: candidate.policyReference },
         officeFollowUp: allowance !== "allowed", officeTargetHours: allowance !== "allowed" ? 24 : null, reasonCodeCandidates: allowance === "allowed" ? ["110D"] : [] });
   }
   if (context.overlapWindowComplete !== true) add("overlap_unknown", "unknown", "Complete related-visit discovery is not established.", "Complete the accepted overlapping-window discovery before claiming no conflicting visits.", { facts: { relatedVisitId: null } });

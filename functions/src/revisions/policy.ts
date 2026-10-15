@@ -3,6 +3,8 @@ import type { Versioned, WorkspaceRepository } from "../operations/workspace.js"
 import { normalizedInstant } from "./evidence.js";
 import { normalizeUsPhone, type NotificationContact } from "./notifications.js";
 import { validVerificationReceiptAcceptance, type VerificationReceiptAcceptance } from "./verification.js";
+import { validMemberContextAcceptance, type MemberContextAcceptance } from "./memberContext.js";
+import { validateOverlapCoverageAcceptance, validateReviewedOverlapAllowance, type OverlapCoverageAcceptance, type ReviewedOverlapAllowance } from "./overlap.js";
 
 export interface RevisionPolicy extends Versioned {
   officeId: string; monitoringEnabled: boolean; earlyReminderMinutes: number | null;
@@ -21,6 +23,9 @@ export interface SourceContract extends Versioned {
   clockingMethodField: string | null; tokenValues: string[];
   callsAccepted: boolean; maxAgeSeconds: number;
   verificationReceipt?: VerificationReceiptAcceptance;
+  memberContext?: MemberContextAcceptance;
+  overlapCoverage?: OverlapCoverageAcceptance | null;
+  overlapAllowances?: ReviewedOverlapAllowance[];
 }
 export interface ContactRecord extends Versioned, NotificationContact { reviewedBy: string; reviewReference: string; }
 type Repository = Pick<WorkspaceRepository, "get" | "page" | "change">;
@@ -85,7 +90,17 @@ export class RevisionConfiguration {
         || ![item.missingEvvMeansAbsent, item.nullEndMeansOpen, item.clockingAttemptFromEvv, item.callsAccepted].every(value => typeof value === "boolean")
         || (item.clockingMethodField !== null && !["VisitType"].includes(item.clockingMethodField))) return null;
       if (item.verificationReceipt !== undefined && !validVerificationReceiptAcceptance(item.verificationReceipt, item.version)) return null;
+      if (item.memberContext !== undefined && !validMemberContextAcceptance(item.memberContext, item.version)) return null;
+      if (item.overlapCoverage !== undefined && item.overlapCoverage !== null) {
+        const coverage = validateOverlapCoverageAcceptance(item.overlapCoverage);
+        if (coverage.officeId !== this.officeId || coverage.sourceAcceptanceVersion !== item.version) return null;
+      }
+      if (item.overlapAllowances !== undefined) {
+        if (!Array.isArray(item.overlapAllowances) || item.overlapAllowances.length > 25) return null;
+        for (const profile of item.overlapAllowances) if (validateReviewedOverlapAllowance(profile).officeId !== this.officeId) return null;
+      }
       if (normalizedInstant(item.validUntil).epochMs <= this.now().getTime()) return null;
+      if (item.overlapCoverage && normalizedInstant(item.overlapCoverage.validUntil).epochMs <= this.now().getTime()) return { ...item, overlapCoverage: null };
     } catch { return null; }
     return item;
   }

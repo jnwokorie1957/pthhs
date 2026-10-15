@@ -31,6 +31,31 @@
         || evidence.patientId !== null && evidence.patientId !== undefined && !sourceId(evidence.patientId)
         || evidence.caregiverId !== null && evidence.caregiverId !== undefined && !sourceId(evidence.caregiverId)) throw new Error('invalid_revision_visits');
       const times = Object.fromEntries(['scheduledStart', 'scheduledEnd', 'actualStart', 'actualEnd', 'evvStart', 'evvEnd'].map(key => [key, evidence.times?.[key] ? { raw: short(evidence.times[key].raw, 128), iso: short(evidence.times[key].iso, 40) } : null]));
+      let memberContext = null, overlapCoverage = null;
+      if (item.memberContext) {
+        const value = item.memberContext, authorization = value.authorizationWindow, eligibility = value.recordedEligibility;
+        const states = ['ready', 'unavailable', 'unaccepted', 'stale', 'incomplete', 'failed'];
+        if (value.visitId !== evidence.visitId || value.patientId !== evidence.patientId || value.scope?.officeId !== expected.officeId || value.scope?.date !== expected.date || value.scope?.timezone !== payload.scope.timezone || value.scope?.revision !== evidence.scope.revision
+          || !authorization || !states.includes(authorization.state) || !['matched', 'missing', 'outside_period', 'contract_missing', 'unknown'].includes(authorization.relation)
+          || authorization.approval !== 'not_established' || authorization.limitsValidation !== 'not_validated' || !Array.isArray(authorization.authorizationIds) || authorization.authorizationIds.length > 5 || authorization.authorizationIds.some(id => !sourceId(id))
+          || authorization.contractId !== null && !sourceId(authorization.contractId) || authorization.serviceCodeId !== null && !sourceId(authorization.serviceCodeId)
+          || !eligibility || !states.includes(eligibility.state) || eligibility.payerVerified !== false) throw new Error('invalid_revision_visits');
+        const periods = {};
+        for (const key of ['medicaid', 'managedCare']) {
+          const period = eligibility[key];
+          if (!period || !['within_recorded_period', 'outside_recorded_period', 'unavailable', 'invalid', 'unaccepted'].includes(period.relation)
+            || period.startDate !== null && !validDay(period.startDate) || period.endDate !== null && !validDay(period.endDate)) throw new Error('invalid_revision_visits');
+          periods[key] = { relation: period.relation, startDate: period.startDate, endDate: period.endDate, rawStartDate: short(period.rawStartDate, 128), rawEndDate: short(period.rawEndDate, 128) };
+        }
+        memberContext = { authorization: { state: authorization.state, relation: authorization.relation, contractId: authorization.contractId, serviceCodeId: authorization.serviceCodeId, authorizationIds: authorization.authorizationIds.slice(), reason: short(authorization.reason, 128) },
+          eligibility: { state: eligibility.state, ...periods }, deferred: value.completeness?.deferred === true };
+      }
+      if (item.overlapCoverage) {
+        const value = item.overlapCoverage;
+        if (typeof value.complete !== 'boolean' || !Array.isArray(value.dates) || value.dates.length !== 3 || new Set(value.dates).size !== 3 || !value.dates.includes(expected.date) || value.dates.some(date => !validDay(date) || Math.abs(Date.parse(date) - Date.parse(expected.date)) > 86400000)
+          || !Number.isInteger(value.discoveredCount) || value.discoveredCount < 0 || value.discoveredCount > 600 || !Number.isInteger(value.observedCount) || value.observedCount < 0 || value.observedCount > value.discoveredCount || !Array.isArray(value.reasons) || value.reasons.length > 30) throw new Error('invalid_revision_visits');
+        overlapCoverage = { complete: value.complete, dates: value.dates.slice(), discoveredCount: value.discoveredCount, observedCount: value.observedCount, reasons: value.reasons.map(reason => short(reason, 128)).filter(Boolean) };
+      }
       let verificationReceipt = null;
       if (evidence.verificationReceipt !== undefined) {
         const value = evidence.verificationReceipt;
@@ -52,7 +77,7 @@
         rawTimes: Object.fromEntries(['ScheduleStartTime', 'ScheduleEndTime', 'VisitStartTime', 'VisitEndTime', 'EVVStartTime', 'EVVEndTime'].map(key => [key, short(evidence.raw?.[key], 128)])),
         reasons: Array.isArray(evidence.reasons) ? evidence.reasons.map(value => short(value)).filter(Boolean).slice(0, 30) : [],
         provenance: evidence.provenance ? { operation: short(evidence.provenance.operation, 128), fetchedAt: short(evidence.provenance.fetchedAt, 40), sourceRevision: short(evidence.provenance.sourceRevision, 128), acceptanceVersion: short(evidence.provenance.acceptanceVersion, 128) } : null, verificationReceipt },
-      diagnosis: { state: diagnosis.state, verification: diagnosis.verification, issues, metrics: Object.fromEntries(['scheduledMinutes', 'actualMinutes', 'evvMinutes', 'varianceMinutes'].map(key => [key, number(diagnosis.metrics?.[key])])) } };
+      diagnosis: { state: diagnosis.state, verification: diagnosis.verification, issues, metrics: Object.fromEntries(['scheduledMinutes', 'actualMinutes', 'evvMinutes', 'varianceMinutes'].map(key => [key, number(diagnosis.metrics?.[key])])) }, memberContext, overlapCoverage };
     });
     if (new Set(items.map(item => item.evidence.visitId)).size !== items.length) throw new Error('invalid_revision_visits');
     return { items, scope: { ...payload.scope }, evaluatedAt: short(payload.evaluatedAt, 40), nextOffset: payload.nextOffset, discovery: payload.discovery, truncated: payload.completeness.truncated === true, deferredCount: payload.completeness.deferredCount || 0 };
@@ -257,6 +282,19 @@
     }
     if (item.evidence.reasons.length) box.append(node('p', item.evidence.reasons.map(human).join('; '), 'source-metadata'));
     const provenance = item.evidence.provenance;
+    if (item.memberContext) {
+      const { authorization, eligibility, deferred } = item.memberContext;
+      const names = { matched: 'Matching service period found; limits still need verification', missing: 'No matching service authorization found', outside_period: 'Authorization dates do not cover this visit', contract_missing: 'No matching contract and service period found', unknown: 'Authorization review pending' };
+      const period = value => `${value.startDate || value.rawStartDate || 'Unavailable'} → ${value.endDate || value.rawEndDate || 'Unavailable'} (${human(value.relation)})`;
+      const panel = details('Authorization and coverage dates', labels([['Authorization', authorization.state === 'ready' ? names[authorization.relation] : `Source ${human(authorization.state)}`], ['Contract reference', authorization.contractId], ['Service reference', authorization.serviceCodeId], ['Authorization references', authorization.authorizationIds.join(', ') || null], ['Recorded Medicaid period', period(eligibility.medicaid)], ['Recorded managed-care period', period(eligibility.managedCare)]]));
+      panel.append(node('p', 'Recorded dates do not confirm current payer eligibility. Authorization limits and units still need verification.', 'source-metadata'));
+      if (deferred) panel.append(node('p', 'Some source checks were deferred. Refresh this page to retry.'));
+      box.append(panel);
+    }
+    if (item.overlapCoverage) {
+      const value = item.overlapCoverage;
+      box.append(details('Related-visit coverage', labels([['Visits checked', `${value.observedCount} of ${value.discoveredCount} discovered visits`], ['Service dates', value.dates.join(', ')], ['Coverage', value.complete ? 'Accepted window complete' : 'Partial; additional checks remain'], ['Pending checks', value.reasons.map(human).join('; ') || 'None in this accepted window']])));
+    }
     if (item.evidence.verificationReceipt) {
       const value = item.evidence.verificationReceipt, receipt = value.receipt;
       const panel = details('HHA verification receipt', labels([['Receipt interpretation', value.state === 'ready' ? 'Accepted source receipt' : 'Interpretation pending'], ['Verified by (source)', receipt.verifiedBy], ['Verified date (source)', receipt.verifiedDate], ['Verified time (source)', receipt.verifiedTime], ['Supervisor (source)', receipt.supervisorName], ['Receipt notes', receipt.notes], ['Receipt acceptance version', value.acceptanceVersion]]));
@@ -330,7 +368,7 @@
       if (!current(ticket)) return;
       visitPage = result; visitRetry = null;
       text('revisionScope', `Office ${result.scope.officeId} · ${result.scope.date} · ${result.scope.timezone} · Reviewed ${result.evaluatedAt || 'time unavailable'}`);
-      text('revisionCompleteness', `Bounded source page. Complete office counts and cross-page overlap are not established.${result.truncated ? ' Source discovery was truncated.' : ''}${result.deferredCount ? ` ${result.deferredCount} visits deferred to the next page.` : ''}`);
+      text('revisionCompleteness', `A page is not a complete office report. Related-visit checks show their own coverage.${result.truncated ? ' Source discovery was truncated.' : ''}${result.deferredCount ? ` ${result.deferredCount} visits deferred to the next page.` : ''}`);
       renderVisits();
     } catch (error) {
       if (current(ticket) && !clearRevokedAccess(error)) {

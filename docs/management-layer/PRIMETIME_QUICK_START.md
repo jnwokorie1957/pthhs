@@ -21,6 +21,8 @@ The status text and next action explain the issue alongside its color. Resolving
 
 The collapsed **HHA verification receipt** shows the source reviewer and date when available. A receipt can be recorded while other checks remain unresolved; it does not make every part of the visit approved.
 
+When approved source context is enabled, **Authorization and coverage dates** shows the matching service and date periods. Recorded coverage dates still need payer confirmation; matching dates do not approve authorization limits. **Related-visit coverage** shows how much of the surrounding three-day window has been checked, including visits on other pages and across midnight. Partial coverage does not establish that no other overlaps exist.
+
 ## Use Demo and Live
 
 **Demo** provides clearly labeled sample visits for learning the workflow. It cannot change operational records or send reminders. **Live** clears the sample data and uses approved office-scoped source reads. If a source is unavailable or still awaiting approval, the screen explains that condition and leaves the real-data panel empty.
@@ -44,3 +46,5 @@ Automatic monitoring and SMS stay disabled until the source evidence, office pre
 Current texts are follow-ups to recorded events. Interactive confirmation before clock-out belongs to the future caregiver platform. Location, eligibility, authorization and source verification remain unknown where an accepted data adapter is not available.
 
 For the detailed endpoints, storage contracts and activation checklist, see [Revision backend and rollout](REVISION_BACKEND_IMPLEMENTATION.md). The interview decisions are preserved in [the dashboard revision specification](PRIMETIME_ADMIN_DASHBOARD_REVISION_SPEC.md).
+
+The exact business-texting and live-data setup requirements are in [Live data and texts setup](LIVE_DATA_AND_TEXTS_SETUP.md).

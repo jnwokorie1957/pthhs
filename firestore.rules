@@ -1,8 +1,11 @@
 rules_version = '2';
+
+// Prototype: every collection is server-owned, including settings, source
+// acceptance, contacts, visit evidence, outbox attempts and audit history.
+// Browser clients use the authenticated API. No direct client access is allowed.
+// Firebase Admin SDK operations use server IAM and bypass these client rules.
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Primetime accesses storage through its authenticated server API only.
-    // The Admin SDK uses IAM; browsers must never read these collections directly.
     match /{document=**} {
       allow read, write: if false;
     }

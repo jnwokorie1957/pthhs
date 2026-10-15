@@ -64,6 +64,33 @@ function withReceipt() {
     acceptanceVersion: 'receipt-v1', verifiedAt: { iso: '2026-10-11T14:00:00Z' }, reasons: [], receipt: { verifiedBy: '<b>Source reviewer</b>', verifiedDate: '2026-10-11T14:00:00Z', verifiedTime: '14:00', supervisorName: 'Source supervisor', notes: 'Source receipt only' } };
   return value;
 }
+function withMemberContext() {
+  const value = visits();
+  const period = { rawStartDate: '2026-01-01', rawEndDate: '2026-12-31', startDate: '2026-01-01', endDate: '2026-12-31', relation: 'within_recorded_period' };
+  value.items[0].memberContext = { scope: { ...scope }, patientId: '77', visitId: '55', authorizationWindow: { state: 'ready', relation: 'matched', contractId: '12', serviceCodeId: '13', authorizationIds: ['14'], approval: 'not_established', limitsValidation: 'not_validated', reason: 'recorded_service_contract_period_present_limits_unvalidated' },
+    recordedEligibility: { state: 'ready', payerVerified: false, medicaid: { ...period }, managedCare: { ...period } }, completeness: { deferred: false } };
+  value.items[0].overlapCoverage = { complete: false, dates: ['2026-10-11', '2026-10-10', '2026-10-12'], discoveredCount: 12, observedCount: 2, reasons: ['details_pending'] };
+  return value;
+}
+test('member joins and overlap progress preserve uncertainty and reject foreign or fabricated approval claims', () => {
+  const model = pure(), normalized = model.normalizeVisits(withMemberContext(), { ...scope, offset: 0 });
+  assert.equal(normalized.items[0].memberContext.authorization.relation, 'matched');
+  assert.equal(normalized.items[0].overlapCoverage.complete, false);
+  for (const mutate of [value => value.items[0].memberContext.patientId = '999', value => value.items[0].memberContext.scope.officeId = '999', value => value.items[0].memberContext.authorizationWindow.approval = 'approved',
+    value => value.items[0].memberContext.recordedEligibility.payerVerified = true, value => value.items[0].overlapCoverage.observedCount = 13, value => value.items[0].overlapCoverage.dates = ['2026-10-11', '2026-10-09', '2026-10-12']]) {
+    const value = withMemberContext(); mutate(value); assert.throws(() => model.normalizeVisits(value, { ...scope, offset: 0 }));
+  }
+});
+test('visit details explain source periods and partial overlap coverage without claiming payer approval', async () => {
+  const app = harness(path => path.includes('/visits?') ? { ok: true, json: async () => {
+    const value = withMemberContext(), date = app.element('revisionDate').value;
+    value.scope.date = date; value.items[0].evidence.scope.date = date; value.items[0].diagnosis.scope.date = date; value.items[0].memberContext.scope.date = date;
+    value.items[0].overlapCoverage.dates = [date, new Date(Date.parse(date) - 86400000).toISOString().slice(0, 10), new Date(Date.parse(date) + 86400000).toISOString().slice(0, 10)]; return value;
+  } } : null);
+  await app.openLive(); const text = app.text('revisionDetail');
+  for (const expected of ['Authorization and coverage dates', 'limits still need verification', '2026-01-01', 'do not confirm current payer eligibility', '2 of 12 discovered visits', 'Partial; additional checks remain']) assert.ok(text.includes(expected));
+  assert.ok(!app.calls.some(call => call.options.method === 'POST'));
+});
 test('a scoped source receipt stays separate from overall verification and rejects unrelated receipt evidence', () => {
   const model = pure(), value = withReceipt(), normalized = model.normalizeVisits(value, { ...scope, offset: 0 });
   assert.equal(normalized.items[0].diagnosis.verification, 'blocked');

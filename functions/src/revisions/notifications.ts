@@ -35,7 +35,7 @@ export interface NotificationConfig {
 }
 export interface NotificationOutboxRecord extends Versioned, NotificationRequest {
   officeId: string; ruleVersion: string; sourceRevision: string; sourceObservedAt: string;
-  detectedAt: string; plannedSendAt: string; deadlineAt: string | null; templateVersion: "friendly-v1";
+  detectedAt: string; plannedSendAt: string; deadlineAt: string | null; templateVersion: "friendly-v1" | "friendly-v2";
   state: DeliveryState; attemptCount: number; attemptId: string | null; leaseExpiresAt: string | null;
   providerId: string | null; providerErrorCode: string | null; recipientFingerprint: string;
   acceptedAt: string | null; deliveredAt: string | null;
@@ -130,12 +130,15 @@ function validateRequest(request: NotificationRequest): NotificationRequest {
   return { rule: request.rule, visitId: id(request.visitId), occurrenceId: id(request.occurrenceId), recipientRef: id(request.recipientRef) };
 }
 export function friendlySms(evidence: NotificationEvidence, contact: NotificationContact): string {
+  return smsBody(evidence, contact) + " Reply STOP to opt out. For help, contact the Primetime office.";
+}
+function smsBody(evidence: NotificationEvidence, contact: NotificationContact): string {
   const name = display(contact.firstName, 50);
   switch (evidence.rule) {
     case "missing_clock_out": return `Hi ${name}, this is Primetime. Your visit was scheduled to end at ${display(evidence.scheduledEnd)}, and we have not received a clock-out. If you have finished, please use your approved clock-out method. If care is still in progress or you need help recording the end, please contact the office. Thank you.`;
     case "early_ended": {
       if (!Number.isInteger(evidence.remainingMinutes) || evidence.remainingMinutes! <= 0 || evidence.remainingMinutes! > 1440) throw new WorkflowError("invalid_notification_template_value");
-      return `Hi ${name}, we received your clock-out at ${display(evidence.actualEnd)}. Your scheduled end was ${display(evidence.scheduledEnd)}, with ${evidence.remainingMinutes} minutes remaining. Was ending early intentional? If care was complete or the member asked you to leave, that is okay. Please contact the office to confirm or if the record needs review.`;
+      return `Hi ${name}, this is Primetime. We received your clock-out at ${display(evidence.actualEnd)}. Your scheduled end was ${display(evidence.scheduledEnd)}, with ${evidence.remainingMinutes} minutes remaining. Was ending early intentional? If care was complete or the member asked you to leave, that is okay. Please contact the office to confirm or if the record needs review.`;
     }
     case "missing_token_days": {
       if (!Array.isArray(evidence.missingServiceDates) || !evidence.missingServiceDates.length || evidence.missingServiceDates.length > 366) throw new WorkflowError("invalid_notification_token_dates");
@@ -216,7 +219,7 @@ export class NotificationOutbox {
     const record: NotificationOutboxRecord = { ...request, id: outboxId, officeId: context.officeId, revision: 1, updatedAt: now,
       ruleVersion: evidence.ruleVersion, sourceRevision: evidence.sourceRevision, sourceObservedAt: evidence.observedAt,
       detectedAt: evidence.detectedAt, plannedSendAt: now, deadlineAt: request.rule.startsWith("supervisor_") ? new Date(instant(evidence.detectedAt) + 24 * 3_600_000).toISOString() : null,
-      templateVersion: "friendly-v1", state: evidence.conditionActive ? "queued" : "suppressed", attemptCount: 0, attemptId: null, leaseExpiresAt: null,
+      templateVersion: "friendly-v2", state: evidence.conditionActive ? "queued" : "suppressed", attemptCount: 0, attemptId: null, leaseExpiresAt: null,
       providerId: null, providerErrorCode: null, recipientFingerprint: createHash("sha256").update(contact.phone).digest("hex"), acceptedAt: null, deliveredAt: null, acknowledgement: null,
       suppression: evidence.conditionActive ? null : { at: now, reason: "condition_resolved" } };
     try { return await this.repository.change(this.collection(context.officeId), outboxId, 0, context.actorId, "notification_queued", () => record); }
@@ -263,7 +266,7 @@ export class NotificationOutbox {
       if (!await this.config.canSend!(context.officeId, record.rule, new Date(this.clock()).toISOString())) return await this.mutate(record, context, "notification_policy_deferred", { state: "queued", leaseExpiresAt: null });
       this.guard(context, true); this.validateEvidence(evidence, record, context);
       if (instant(record.leaseExpiresAt) <= this.clock()) return await this.mutate(record, context, "notification_claim_expired_before_dispatch", { state: "unknown", leaseExpiresAt: null, providerErrorCode: "claim_expired_reconciliation_required" });
-      record = await this.mutate(record, context, "notification_dispatch_evidence_checked", { sourceRevision: evidence.sourceRevision, sourceObservedAt: evidence.observedAt, recipientFingerprint: createHash("sha256").update(contact.phone).digest("hex") });
+      record = await this.mutate(record, context, "notification_dispatch_evidence_checked", { sourceRevision: evidence.sourceRevision, sourceObservedAt: evidence.observedAt, templateVersion: "friendly-v2", recipientFingerprint: createHash("sha256").update(contact.phone).digest("hex") });
       this.guard(context, true); this.validateEvidence(evidence, record, context);
       if (instant(record.leaseExpiresAt) <= this.clock()) return await this.mutate(record, context, "notification_claim_expired_before_dispatch", { state: "unknown", leaseExpiresAt: null, providerErrorCode: "claim_expired_reconciliation_required" });
     } catch (error) {

@@ -1,0 +1,12 @@
+{
+  "version": 1,
+  "reviewReference": "",
+  "approvals": {
+    "PRIMETIME_OPERATIONAL_DATA_APPROVED": false,
+    "PRIMETIME_REVISION_SOURCE_APPROVED": false,
+    "PRIMETIME_REVISION_MONITOR_APPROVED": false,
+    "PRIMETIME_SMS_CAPABILITY_APPROVED": false,
+    "PRIMETIME_SMS_CONFIGURATION_APPROVED": false,
+    "PRIMETIME_SMS_SEND_APPROVED": false
+  }
+}

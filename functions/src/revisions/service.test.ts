@@ -51,12 +51,12 @@ function setup(options: { approvals?: Partial<RevisionApprovals>; workspaceData?
   repo.records.set("workspaceSettings/owner", settings);
   repo.records.set("revisionPolicies_office_123/owner", { ...defaultRevisionPolicy("123"), revision: 1, updatedAt: NOW, monitoringEnabled: options.monitoring ?? false } as RevisionPolicy);
   if (options.accepted !== false) repo.records.set("revisionSourceAcceptance_office_123/owner", contract());
-  let now = new Date(NOW), sends = 0, patientOffice = "123";
+  let now = new Date(NOW), sends = 0, patientOffice = "123", patientFields: Record<string, string | null> = {};
   let handler: (input: ReadInput) => Promise<OperationalRead> = async input => input.operation === "SearchVisitsV2" ? source(input.operation, [{ VisitID: "77" }])
     : input.operation === "GetVisitInfoV3" ? detail(input.id!) : source("GetCallDashBoardData", [{ CallDashboardID: "33", "Patient/ID": "5", "Caregiver/ID": "6", CallTime: "2026-10-10T08:00:00-05:00", CallType: "synthetic-in", CallStatus: "synthetic-status" }]);
-  const workspace = new OperationsWorkspace(repo, async input => { readRequest(input); calls.push(structuredClone(input)); return input.operation === "GetPatientDemographics" ? source(input.operation, [{ PatientID: input.id!, OfficeID: patientOffice }]) : handler(input); }, options.workspaceData ?? true);
+  const workspace = new OperationsWorkspace(repo, async input => { readRequest(input); calls.push(structuredClone(input)); return input.operation === "GetPatientDemographics" ? source(input.operation, [{ PatientID: input.id!, OfficeID: patientOffice, ...patientFields }]) : handler(input); }, options.workspaceData ?? true);
   const backend = new RevisionBackend(repo, workspace, approvals, { submit: async () => { sends++; return { state: "unknown", providerId: null }; }, reconcile: async () => ({ state: "unknown", providerId: null }) }, () => now);
-  return { setPatientOffice: (office: string) => { patientOffice = office; }, repo, backend, calls, settings, approvals, sends: () => sends, clock: () => new Date(now), setClock: (value: string) => { now = new Date(value); }, setRead: (read: typeof handler) => { handler = read; }, advance: (ms: number) => { now = new Date(now.getTime() + ms); } };
+  return { setPatientOffice: (office: string) => { patientOffice = office; }, setPatientFields: (fields: Record<string, string | null>) => { patientFields = { ...fields }; }, repo, backend, calls, settings, approvals, sends: () => sends, clock: () => new Date(now), setClock: (value: string) => { now = new Date(value); }, setRead: (read: typeof handler) => { handler = read; }, advance: (ms: number) => { now = new Date(now.getTime() + ms); } };
 }
 const prepare = { id: "synthetic-match", revision: 0, date: "2026-10-10", visitId: "77", lastId: "0", note: "Synthetic matching evidence" };
 const decide = { id: "synthetic-match", revision: 1, officeId: "123", action: "match", callId: "33", reason: "Synthetic human review" };
@@ -524,4 +524,257 @@ test("revision visit diagnosis and call matching reject a returned patient outsi
   await assert.rejects(f.backend.visits(actor, { date: "2026-10-10" }), /visit_patient_office_mismatch/);
   assert.equal(f.sends(), 0);
   assert.equal(f.repo.audit.some(row => row.collection.startsWith("revisionExceptions")), false);
+});
+
+const memberReads = ["GetPatientDemographics", "GetScheduleInfo", "GetPatientContracts", "SearchPatientAuthorizations", "GetPatientAuthorizationInfo"] as const;
+function memberProfile(): NonNullable<SourceContract["memberContext"]> {
+  return { accepted: true, version: "synthetic-member-v1", sourceVersion: contract().version, reviewReference: "Synthetic standard schedule/service/date acceptance",
+    scheduleOperation: "GetScheduleInfo", billTo: "primary", calendarDateEncoding: "iso_date_or_midnight", dateBounds: "inclusive", authorizationListComplete: true, contractListComplete: true };
+}
+function memberSource(input: ReadInput, ids = ["77", "78", "79"]): OperationalRead {
+  if (input.operation === "SearchVisitsV2") return source(input.operation, ids.map(VisitID => ({ VisitID })));
+  if (input.operation === "GetVisitInfoV3") return detail(input.id!);
+  if (input.operation === "GetScheduleInfo") return source(input.operation, [{ ID: input.id!, "Patient/ID": "5", "Caregiver/ID": "6", VisitDate: "2026-10-10",
+    ScheduleStartTime: "2026-10-10T08:00:00-05:00", ScheduleEndTime: "2026-10-10T12:00:00-05:00", "PrimaryBillTo/Contract/ID": "8", "PrimaryBillTo/ServiceCode/ID": "9" }]);
+  if (input.operation === "GetPatientContracts") return source(input.operation, [{ PlacementID: "10", "Contract/ID": "8", "ServiceCode/ID": "9", ServiceStartDate: "2026-10-01", DischargeDate: "2026-10-31" }]);
+  if (input.operation === "SearchPatientAuthorizations") return source(input.operation, [{ ID: "11", ContractID: "8", StartDate: "2026-10-01", StopDate: "2026-10-31" }]);
+  if (input.operation === "GetPatientAuthorizationInfo") return source(input.operation, [{ AuthorizationID: input.id!, "Patient/ID": input.patientId!, "Contract/ID": "8", "ServiceCode/ID": "9",
+    StartDate: "2026-10-01", StopDate: "2026-10-31", MaxUnits: "100", RemainingUnits: "80", WeeklyMaxAuthorization: "20" }]);
+  throw new Error("Unexpected synthetic member read: " + input.operation);
+}
+function memberFixture() {
+  const f = setup();
+  f.settings.enabledReads.push(...memberReads.filter(operation => !f.settings.enabledReads.includes(operation)));
+  const accepted: SourceContract = { ...contract(), memberContext: memberProfile() };
+  f.repo.records.set("revisionSourceAcceptance_office_123/owner", accepted);
+  f.setPatientFields({ PayerID: "8", PatientStatusName: "Active", MedicaidStartDate: "2026-10-01", MedicaidEndDate: "2026-10-31",
+    ManagedCareStartDate: "2026-10-01T00:00:00", ManagedCareEndDate: "2026-10-31T00:00:00" });
+  f.setRead(async input => memberSource(input));
+  return f;
+}
+
+test("protected member context joins two visits to recorded service dates without approving units or payer eligibility", async () => {
+  const f = memberFixture(), status = await f.backend.status(actor);
+  assert.equal(status.capabilities.memberContext, true); assert.equal(f.calls.length, 0);
+  const result = await f.backend.visits(actor, { date: "2026-10-10", limit: "10" });
+  assert.deepEqual(result.items.map(item => item.evidence.visitId), ["77", "78"]);
+  assert.equal(result.completeness.selectedCount, 3); assert.equal(result.completeness.pageSelectedCount, 2); assert.equal(result.nextOffset, 2);
+  for (const item of result.items) {
+    const context = item.memberContext!;
+    assert.deepEqual(context.scope, item.evidence.scope); assert.equal(context.visitId, item.evidence.visitId); assert.equal(context.patientId, "5");
+    assert.equal(context.authorizationWindow.state, "ready"); assert.equal(context.authorizationWindow.relation, "matched");
+    assert.equal(context.authorizationWindow.contractId, "8"); assert.equal(context.authorizationWindow.serviceCodeId, "9");
+    assert.deepEqual(context.authorizationWindow.authorizationIds, ["11"]);
+    assert.equal(context.authorizationWindow.limitsValidation, "not_validated"); assert.equal(context.authorizationWindow.approval, "not_established");
+    assert.equal(context.recordedEligibility.medicaid.relation, "within_recorded_period"); assert.equal(context.recordedEligibility.medicaid.startDate, "2026-10-01");
+    assert.equal(context.recordedEligibility.managedCare.rawStartDate, "2026-10-01T00:00:00"); assert.equal(context.recordedEligibility.payerVerified, false);
+    assert.equal(context.completeness.queries, 5); assert.equal(context.completeness.complete, false); assert.equal(context.completeness.limitsValidated, false);
+    assert.deepEqual(context.sources.map(value => value.operation), memberReads);
+    assert.ok(context.sources.every(value => value.state === "ready" && value.sourceRevision && !Object.hasOwn(value, "records") && !Object.hasOwn(value, "request")));
+    assert.equal(item.diagnosis.issues.find(issue => issue.kind === "authorization_unknown")?.facts.reason, "authorization_limits_and_units_not_validated");
+    assert.equal(item.diagnosis.issues.find(issue => issue.kind === "eligibility_unknown")?.facts.reason, "recorded_coverage_dates_are_not_payer_verified_eligibility");
+    assert.equal(item.diagnosis.verification, "unknown"); assert.equal(item.diagnosis.earlyReminderConfigured, false);
+  }
+  assert.equal(f.calls.length, 15); // Discovery + two detail/office checks + five contextual reads per visit.
+  assert.deepEqual(f.calls.filter(call => call.operation === "GetScheduleInfo").map(call => call.id), ["77", "78"]);
+  assert.ok(f.calls.filter(call => call.operation === "GetPatientContracts").every(call => call.patientId === "5" && call.date === "2026-10-10"));
+  const tail = await f.backend.visits(actor, { date: "2026-10-10", offset: String(result.nextOffset), discovery: result.discovery });
+  assert.deepEqual(tail.items.map(item => item.evidence.visitId), ["79"]); assert.equal(tail.items[0]!.memberContext?.authorizationWindow.relation, "matched");
+  assert.equal(tail.nextOffset, null); assert.equal(f.sends(), 0);
+});
+
+test("member reads require both a protected profile and enabled contextual operations", async () => {
+  for (const missing of ["profile", "read", "source_approval"] as const) {
+    const f = memberFixture();
+    if (missing === "profile") f.repo.records.set("revisionSourceAcceptance_office_123/owner", contract());
+    if (missing === "read") f.settings.enabledReads = f.settings.enabledReads.filter(operation => operation !== "GetPatientAuthorizationInfo");
+    if (missing === "source_approval") f.approvals.source = false;
+    assert.equal((await f.backend.status(actor)).capabilities.memberContext, false);
+    const result = await f.backend.visits(actor, { date: "2026-10-10" });
+    assert.equal(result.items.length, 3); assert.ok(result.items.every(item => item.memberContext === null && item.overlapCoverage === null));
+    assert.deepEqual(f.calls.map(call => call.operation), ["SearchVisitsV2", "GetVisitInfoV3", "GetPatientDemographics", "GetVisitInfoV3", "GetPatientDemographics", "GetVisitInfoV3", "GetPatientDemographics"]);
+    assert.equal(f.repo.audit.some(entry => entry.collection.startsWith("revisionOverlapWindows_")), false); assert.equal(f.sends(), 0);
+  }
+});
+
+test("a member profile tied to another source version cannot expose accepted context", async () => {
+  const f = memberFixture(), invalid: SourceContract = { ...contract(), memberContext: { ...memberProfile(), sourceVersion: "synthetic-other-parent" } };
+  f.repo.records.set("revisionSourceAcceptance_office_123/owner", invalid);
+  assert.equal((await f.backend.status(actor)).capabilities.memberContext, false);
+  const result = await f.backend.visits(actor, { date: "2026-10-10" });
+  assert.ok(result.items.every(item => item.memberContext === null && item.evidence.state === "unaccepted" && item.diagnosis.verification === "unknown"));
+  assert.equal(f.calls.some(call => memberReads.slice(1).some(operation => operation === call.operation)), false); assert.equal(f.sends(), 0);
+});
+
+test("member source identity and office mismatches reject the response before publishing contextual facts", async () => {
+  for (const mismatch of ["office", "authorization_patient", "schedule_date"] as const) {
+    const f = memberFixture();
+    if (mismatch === "office") f.setPatientOffice("124");
+    f.setRead(async input => {
+      const value = memberSource(input);
+      if (mismatch === "authorization_patient" && input.operation === "GetPatientAuthorizationInfo") value.records[0]!["Patient/ID"] = "999";
+      if (mismatch === "schedule_date" && input.operation === "GetScheduleInfo") value.records[0]!.VisitDate = "2026-10-11";
+      return value;
+    });
+    await assert.rejects(f.backend.visits(actor, { date: "2026-10-10" }), error => error instanceof WorkflowError && error.status === 403);
+    assert.ok(f.repo.audit.every(entry => entry.collection === "readRequests")); assert.equal(f.sends(), 0);
+    if (mismatch === "office") assert.deepEqual(f.calls.map(call => call.operation), ["SearchVisitsV2", "GetVisitInfoV3", "GetPatientDemographics"]);
+  }
+});
+
+test("quota failures and changed policy fences cannot become successful member-context previews", async () => {
+  for (const stop of ["quota", "policy", "office", "source"] as const) {
+    const f = memberFixture();
+    f.setRead(async input => {
+      if (input.operation === "GetPatientContracts" && stop === "quota") throw new WorkflowError("synthetic_member_quota", 429, 60);
+      if (input.operation === "GetScheduleInfo") {
+        if (stop === "policy") f.repo.records.set("revisionPolicies_office_123/owner", { ...defaultRevisionPolicy("123"), revision: 2, updatedAt: NOW });
+        if (stop === "office") f.repo.records.set("workspaceSettings/owner", { ...f.settings, officeId: "124", revision: 3 } as Settings);
+        if (stop === "source") {
+          const changed: SourceContract = { ...contract(), revision: 2, memberContext: { ...memberProfile(), version: "synthetic-member-v2" } };
+          f.repo.records.set("revisionSourceAcceptance_office_123/owner", changed);
+        }
+      }
+      return memberSource(input);
+    });
+    await assert.rejects(f.backend.visits(actor, { date: "2026-10-10" }), error => error instanceof WorkflowError
+      && (stop === "quota" ? error.status === 429 && error.retryAfterSeconds === 60 : error.status === 409 && error.code === "revision_policy_changed_restart"));
+    assert.equal(f.calls.some(call => call.operation === "SearchPatientAuthorizations"), false);
+    assert.ok(f.repo.audit.every(entry => entry.collection === "readRequests")); assert.equal(f.sends(), 0);
+  }
+});
+
+function overlapServiceFixture() {
+  const f = setup(), ids = Array.from({ length: 12 }, (_, index) => String(77 + index));
+  f.setClock("2026-10-12T18:00:00.000Z");
+  const accepted: SourceContract = { ...contract(), overlapCoverage: { officeId: "123", timezone: "America/Chicago", sourceAcceptanceVersion: contract().version,
+    reference: "Synthetic bounded service-start-date discovery review", validUntil: "2027-01-01T00:00:00Z", maxVisitDurationMinutes: 1440,
+    serviceDateSemantics: "service_interval_start_office_date", adjacentDatesCoverMaximumDuration: true } };
+  f.repo.records.set("revisionSourceAcceptance_office_123/owner", accepted);
+  const intervals = new Map<string, { date: string; start: string; end: string; patientId: string; caregiverId: string }>(ids.map(id => [id,
+    { date: "2026-10-10", start: "2026-10-10T10:00:00-05:00", end: "2026-10-10T11:00:00-05:00", patientId: String(1000 + Number(id)), caregiverId: String(2000 + Number(id)) }]));
+  intervals.set("77", { date: "2026-10-10", start: "2026-10-10T00:00:00-05:00", end: "2026-10-10T01:00:00-05:00", patientId: "5", caregiverId: "6" });
+  intervals.set("1", { date: "2026-10-09", start: "2026-10-09T23:30:00-05:00", end: "2026-10-10T00:30:00-05:00", patientId: "5", caregiverId: "6" });
+  for (const id of ["78", "87", "88"]) intervals.set(id, { date: "2026-10-10", start: "2026-10-10T08:00:00-05:00", end: "2026-10-10T12:00:00-05:00", patientId: "7", caregiverId: "8" });
+  intervals.set("2", { date: "2026-10-11", start: "2026-10-11T00:00:00-05:00", end: "2026-10-11T01:00:00-05:00", patientId: "9", caregiverId: "10" });
+  f.setRead(async input => {
+    if (input.operation === "SearchVisitsV2") return { ...source(input.operation, (input.date === "2026-10-09" ? ["1"] : input.date === "2026-10-11" ? ["2"] : ids).map(VisitID => ({ VisitID }))), fetchedAt: f.clock().toISOString() };
+    assert.equal(input.operation, "GetVisitInfoV3"); const row = intervals.get(input.id!)!;
+    return { ...detail(input.id!, { VisitDate: row.date, "Patient/ID": row.patientId, "Caregiver/ID": row.caregiverId,
+      ScheduleStartTime: row.start, ScheduleEndTime: row.end, VisitStartTime: row.start, VisitEndTime: row.end, EVVStartTime: row.start, EVVEndTime: row.end }), fetchedAt: f.clock().toISOString() };
+  });
+  return { ...f, ids };
+}
+
+test("partial overlap cache preserves fresh same-page positives on a later visit page", async () => {
+  const f = overlapServiceFixture();
+  const result = await f.backend.visits(actor, { date: "2026-10-10", offset: "10", discovery: discoveryHash(f.ids), limit: "2" });
+  assert.deepEqual(result.items.map(item => item.evidence.visitId), ["87", "88"]);
+  for (const item of result.items) {
+    const peerId = item.evidence.visitId === "87" ? "88" : "87";
+    assert.equal(item.overlapCoverage?.complete, false); assert.equal(item.overlapCoverage?.observedCount, 2);
+    assert.ok(item.diagnosis.issues.some(issue => issue.kind === "overlap_unknown" && issue.facts.relatedVisitId === peerId && issue.facts.overlapMinutes === 240 && issue.officeFollowUp));
+    assert.equal(item.diagnosis.verification, "unknown");
+  }
+  assert.deepEqual(f.calls.filter(call => call.operation === "GetVisitInfoV3").map(call => call.id), ["87", "88", "77", "78"]);
+  assert.equal(f.sends(), 0);
+});
+
+test("overnight reminder evidence is rediscovered on its own service date and an accepted allowance suppresses dispatch", async () => {
+  const f = overlapServiceFixture();
+  Object.assign(f.approvals, { smsCapability: true, smsConfiguration: true, smsSend: true });
+  f.repo.records.set("revisionPolicies_office_123/owner", { ...defaultRevisionPolicy("123"), revision: 1, updatedAt: f.clock().toISOString(), monitoringEnabled: true,
+    quietHours: { startHour: 20, endHour: 8 }, smsPolicyReference: "Synthetic approved policy", supervisorRecipientRefs: ["supervisor-office"] } as RevisionPolicy);
+  const contact = { id: "supervisor-office", recipientRef: "supervisor-office", revision: 1, updatedAt: f.clock().toISOString(), officeId: "123", kind: "supervisor", phone: "+18325550100", firstName: "Synthetic supervisor", smsAllowed: true, optedOut: false, validatedAt: f.clock().toISOString() };
+  f.repo.records.set("revisionContacts_office_123/supervisor-office", contact);
+  const initial = await f.backend.visits(actor, { date: "2026-10-10", limit: "1" });
+  const request = { rule: "supervisor_overlap" as const, visitId: "77", occurrenceId: "synthetic-overnight", recipientRef: "supervisor-office" };
+  const factId = createHash("sha256").update(JSON.stringify([request.visitId, request.rule, request.occurrenceId])).digest("hex");
+  const fact = { id: factId, revision: 1, updatedAt: f.clock().toISOString(), officeId: "123", date: "2026-10-10", rule: request.rule, visitId: "77", occurrenceId: request.occurrenceId,
+    kind: "overlap_unknown", relatedVisitId: "1", relatedVisitDate: "2026-10-09", detectedAt: f.clock().toISOString(), policyFingerprint: initial.fence };
+  f.repo.records.set("revisionNotificationFacts_office_123/" + factId, fact);
+  const before = f.calls.length, { box, context } = await f.backend.outbox(actor), queued = await box.queue(request, context);
+  assert.equal(queued.state, "queued");
+  assert.deepEqual(f.calls.slice(before).filter(call => call.operation === "SearchVisitsV2").map(call => call.date), ["2026-10-10", "2026-10-09"]);
+  assert.deepEqual(f.calls.slice(before).filter(call => call.operation === "GetVisitInfoV3").map(call => call.id), ["77", "1"]);
+  const after = f.calls.length; assert.equal((await box.queue(request, context)).id, queued.id); assert.equal(f.calls.length, after);
+  const peer = detail("1", { VisitDate: "2026-10-09", "Patient/ID": "5", "Caregiver/ID": "6", ScheduleStartTime: "2026-10-09T23:30:00-05:00", ScheduleEndTime: "2026-10-10T00:30:00-05:00", VisitStartTime: "2026-10-09T23:30:00-05:00", VisitEndTime: "2026-10-10T00:30:00-05:00", EVVStartTime: "2026-10-09T23:30:00-05:00", EVVEndTime: "2026-10-10T00:30:00-05:00" }).records[0]!;
+  const accepted = f.repo.records.get("revisionSourceAcceptance_office_123/owner") as SourceContract;
+  f.repo.records.set("revisionSourceAcceptance_office_123/owner", { ...accepted, revision: 2, overlapAllowances: [{ officeId: "123", visitId: "77", visitDate: "2026-10-10", sourceRevision: initial.items[0]!.evidence.provenance!.sourceRevision,
+    relatedVisitId: "1", relatedDate: "2026-10-09", relatedSourceRevision: createHash("sha256").update(JSON.stringify(Object.entries(peer).sort(([a], [b]) => a.localeCompare(b)))).digest("hex"), decision: "allowed", reference: "Synthetic program allowance", reviewedBy: "Synthetic operator", reviewedAt: f.clock().toISOString(), validUntil: "2027-01-01T00:00:00Z" }] } as SourceContract);
+  const current = await f.backend.visits(actor, { date: "2026-10-10", limit: "1" });
+  const refreshedFact = { ...fact, revision: 2, policyFingerprint: current.fence };
+  f.repo.records.set("revisionNotificationFacts_office_123/" + factId, refreshedFact);
+  const suppressed = await box.send(queued.id, context);
+  assert.equal(suppressed.state, "suppressed"); assert.equal(suppressed.suppression?.reason, "condition_resolved"); assert.equal(f.sends(), 0);
+});
+
+test("bounded service overlap resumptions find peers beyond the first page and real overnight intersections", async () => {
+  const f = overlapServiceFixture();
+  assert.equal((await f.backend.status(actor)).capabilities.overlapChecks, true); assert.equal(f.calls.length, 0);
+  let result = await f.backend.visits(actor, { date: "2026-10-10", limit: "2" });
+  assert.equal(result.items[0]!.overlapCoverage?.complete, false); assert.equal(result.items[0]!.overlapCoverage?.observedCount, 2);
+  assert.equal(result.items[1]!.diagnosis.issues.some(issue => issue.facts.relatedVisitId === "88"), false);
+  for (let run = 1; run < 7; run++) result = await f.backend.visits(actor, { date: "2026-10-10", limit: "2" });
+  assert.deepEqual(result.items.map(item => item.evidence.visitId), ["77", "78"]);
+  for (const item of result.items) {
+    assert.equal(item.overlapCoverage?.complete, true); assert.equal(item.overlapCoverage?.discoveredCount, 14); assert.equal(item.overlapCoverage?.observedCount, 14);
+    assert.deepEqual(item.overlapCoverage?.dates, ["2026-10-10", "2026-10-09", "2026-10-11"]);
+    assert.equal(Object.hasOwn(item.overlapCoverage!, "observations"), false); assert.equal(Object.hasOwn(item.overlapCoverage!, "discovery"), false);
+    assert.equal(item.diagnosis.verification, "unknown");
+  }
+  const overnight = result.items[0]!.diagnosis.issues.find(issue => issue.facts.relatedVisitId === "1")!;
+  assert.equal(overnight.kind, "overlap_unknown"); assert.equal(overnight.facts.relatedServiceDate, "2026-10-09"); assert.equal(overnight.facts.overlapMinutes, 30);
+  assert.equal(overnight.officeFollowUp, true);
+  assert.ok(result.items[1]!.diagnosis.issues.some(issue => issue.kind === "overlap_unknown" && issue.facts.relatedVisitId === "88" && issue.facts.overlapMinutes === 240));
+  assert.ok(["2026-10-09", "2026-10-10", "2026-10-11"].every(date => f.calls.some(call => call.operation === "SearchVisitsV2" && call.date === date)));
+  const cache = [...f.repo.records.entries()].filter(([key]) => key.startsWith("revisionOverlapWindows_office_123/"));
+  assert.equal(cache.length, 1); assert.doesNotMatch(JSON.stringify(result), /revisionOverlapWindows|"observations"|"detailIndex"|"discoveryIndex"/);
+  assert.doesNotMatch(JSON.stringify(cache[0]![1]), /ScheduleStartTime|"raw"|Verification\/Notes/);
+  assert.equal(f.sends(), 0);
+});
+
+test("rediscovered adjacent peer dates refresh replay metadata without changing the occurrence or dispatching a duplicate", async () => {
+  const f = setup({ monitoring: true, approvals: { smsCapability: true, smsConfiguration: true, smsSend: true } });
+  f.setClock("2026-10-12T18:00:00.000Z");
+  const accepted: SourceContract = { ...contract(), overlapCoverage: { officeId: "123", timezone: "America/Chicago", sourceAcceptanceVersion: contract().version,
+    reference: "Synthetic bounded overnight source review", validUntil: "2027-01-01T00:00:00Z", maxVisitDurationMinutes: 1440,
+    serviceDateSemantics: "service_interval_start_office_date", adjacentDatesCoverMaximumDuration: true } };
+  f.repo.records.set("revisionSourceAcceptance_office_123/owner", accepted);
+  // Queue during quiet hours, then exercise the same record's real replay path later.
+  f.repo.records.set("revisionPolicies_office_123/owner", { ...defaultRevisionPolicy("123"), revision: 1, updatedAt: f.clock().toISOString(), monitoringEnabled: true,
+    quietHours: { startHour: 0, endHour: 23 }, smsPolicyReference: "Synthetic SMS approval", supervisorRecipientRefs: ["supervisor_office"] } as RevisionPolicy);
+  await f.backend.contacts(actor, { id: "supervisor_office", revision: 0, kind: "supervisor", phone: "8324030094", firstName: "Synthetic", smsAllowed: true, optedOut: false, reviewReference: "Synthetic supervisor contact approval" });
+  let peerDate = "2026-10-10";
+  f.setRead(async input => {
+    if (input.operation === "SearchVisitsV2") return { ...source(input.operation, [
+      ...(input.date === "2026-10-10" ? [{ VisitID: "77" }] : []), ...(input.date === peerDate ? [{ VisitID: "78" }] : [])
+    ]), fetchedAt: f.clock().toISOString() };
+    assert.equal(input.operation, "GetVisitInfoV3");
+    const serviceDate = input.id === "77" ? "2026-10-10" : peerDate;
+    const start = input.id === "77" ? "2026-10-10T23:30:00-05:00" : peerDate === "2026-10-10" ? "2026-10-10T23:45:00-05:00" : "2026-10-11T00:00:00-05:00";
+    const end = input.id === "77" ? "2026-10-11T00:30:00-05:00" : "2026-10-11T00:15:00-05:00";
+    return { ...detail(input.id!, { VisitDate: serviceDate, ScheduleStartTime: start, ScheduleEndTime: end, VisitStartTime: start, VisitEndTime: end, EVVStartTime: start, EVVEndTime: end }), fetchedAt: f.clock().toISOString() };
+  });
+  const selectSameHistoryDay = () => seedMonitor(f, monitorState({ currentDate: "2026-10-12", turn: 3, backfillDayOffset: 2 }));
+  const target = (collection: string) => [...f.repo.records.entries()].filter(([key, item]) => key.startsWith(collection + "/")
+    && (item as Versioned & { visitId?: string; rule?: string }).visitId === "77" && (item as Versioned & { rule?: string }).rule === "supervisor_overlap");
+  selectSameHistoryDay(); await f.backend.monitor();
+  const initialFacts = target("revisionNotificationFacts_office_123"), initialMessages = target("revisionNotificationOutbox_123");
+  assert.equal(initialFacts.length, 1); assert.equal(initialMessages.length, 1); assert.equal(f.sends(), 0);
+  const before = initialFacts[0]![1] as Versioned & { relatedVisitDate: string; detectedAt: string; occurrenceId: string; policyFingerprint: string };
+  assert.equal(before.relatedVisitDate, "2026-10-10");
+  peerDate = "2026-10-11"; f.advance(60000); selectSameHistoryDay(); await f.backend.monitor();
+  const currentFacts = target("revisionNotificationFacts_office_123"), currentMessages = target("revisionNotificationOutbox_123");
+  const refreshed = currentFacts[0]![1] as typeof before;
+  assert.equal(currentFacts.length, 1); assert.equal(currentMessages.length, 1); assert.equal(currentFacts[0]![0], initialFacts[0]![0]);
+  assert.equal(refreshed.relatedVisitDate, "2026-10-11"); assert.equal(refreshed.revision, before.revision + 1);
+  assert.equal(refreshed.policyFingerprint, before.policyFingerprint); assert.equal(refreshed.detectedAt, before.detectedAt); assert.equal(refreshed.occurrenceId, before.occurrenceId);
+  assert.equal(currentMessages[0]![1].id, initialMessages[0]![1].id); assert.equal(f.sends(), 0);
+  f.setClock("2026-10-13T04:30:00.000Z"); // 11:30 PM in the configured office; quiet hours have ended.
+  const callBoundary = f.calls.length, { box, context } = await f.backend.outbox(actor), messageId = currentMessages[0]![1].id;
+  const dispatched = await box.send(messageId, context);
+  assert.equal(dispatched.state, "unknown"); assert.equal(f.sends(), 1);
+  assert.ok(f.calls.slice(callBoundary).some(call => call.operation === "SearchVisitsV2" && call.date === "2026-10-11"));
+  await box.send(messageId, context); assert.equal(f.sends(), 1, "The same stable occurrence must never cause a second provider POST");
 });

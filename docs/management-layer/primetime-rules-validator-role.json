@@ -1,0 +1,8 @@
+{
+  "title": "Primetime Rules Validator",
+  "description": "Validate Firebase Security Rules sources for reviewed Primetime deployments. Adds no Rules publication, deletion, document, IAM or secret access.",
+  "stage": "GA",
+  "includedPermissions": [
+    "firebaserules.rulesets.test"
+  ]
+}

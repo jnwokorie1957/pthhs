@@ -250,6 +250,10 @@ test("templates count distinct dates and never promise prevention, approval or u
   const tokens = friendlySms({ ...f.evidence, rule: "missing_token_days", missingServiceDates: ["2026-10-08", "2026-10-08", "2026-10-09"], verifiedVendorInstructions: "the approved office workflow" }, f.contact);
   assert.match(tokens, /for 2 visit days/); assert.throws(() => friendlySms({ ...f.evidence, rule: "missing_token_days", missingServiceDates: ["2026-02-30"], verifiedVendorInstructions: "office" }, f.contact));
   assert.match(friendlySms({ ...f.evidence, rule: "supervisor_overlap" }, { ...f.contact, kind: "supervisor" }), /Some overlaps may be allowed/);
+  for (const rule of ["missing_clock_out", "early_ended", "missing_token_days", "supervisor_overage", "supervisor_overlap"] as const) {
+    const body = friendlySms({ ...f.evidence, rule, actualEnd: "11:30 AM", remainingMinutes: 30, missingServiceDates: ["2026-10-09"], verifiedVendorInstructions: "approved office workflow" }, f.contact);
+    assert.match(body, /Primetime/); assert.match(body, /Reply STOP to opt out/); assert.ok(body.length <= 1600);
+  }
 });
 
 test("supervisor deadlines begin at verified detection and caregiver messages have no invented deadline", async () => {
