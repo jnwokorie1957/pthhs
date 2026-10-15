@@ -20,6 +20,16 @@ Operational/management decisions: EVV rules, visibility/escalation, correction a
 
 # 🚦 CURRENT MANAGEMENT-LAYER CHECKPOINT
 
+**October 15 connected source records:** live visit windows and Visit Preview
+rows now select existing patient, caregiver and visit reads using explicit source
+IDs and the current office. Prior query fields/results are cleared; selection
+does not fetch data or enable permissions. All 136 frontend tests pass. Production
+acceptance verified matching patient and visit reads and the retained caregiver
+owner gate. See
+[record-link acceptance](docs/management-layer/SOURCE_RECORD_LINKS_ACCEPTANCE_2026-10-15.md).
+Next: progress the office review queue and its supervisor/history/due-date
+requirements from the research backlog; external-role prerequisites remain open.
+
 **October 15 source-page navigation:** Overview and Visit Preview now support
 previous-page navigation through the same bounded HHA source pages. Navigation
 history is cleared on date, office/policy, mode and session changes and on failed

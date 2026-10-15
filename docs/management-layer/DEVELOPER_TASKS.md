@@ -22,6 +22,16 @@
 
 # Current checkpoint
 
+- [x] Connect live visit windows and Visit Preview to existing patient, caregiver
+  and visit reads with exact source IDs, current-office checks, stale-context
+  fencing and cleared prior query fields/results. All 136 frontend tests pass.
+  Production patient and visit reads returned matching records; the caregiver
+  owner gate stayed closed. See
+  [record-link acceptance](SOURCE_RECORD_LINKS_ACCEPTANCE_2026-10-15.md).
+- [ ] Next unblocked implementation: extend the office review queue with
+  supervisor assignment/history/due dates from the research backlog, using
+  existing investigation and independent-review controls.
+
 - [x] Previous-page controls implemented for Overview and Visit Preview. The
   source cursor trail is shared across views and cleared for date/mode/session
   changes or failed reads; regression tests cover pending and late responses.

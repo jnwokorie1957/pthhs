@@ -32,6 +32,14 @@ approved field interpretation. The matching, clock, authorization and billing
 validation items below remain open for the owner's representative-record review.
 See [manual source acceptance](MANUAL_SOURCE_IMPORT_ACCEPTANCE_2026-10-15.md).
 
+Live visit pages now carry exact patient, caregiver and visit IDs into the
+existing source read tools. Production verified patient and visit reads while
+retaining the caregiver owner-enablement gate. The next owner action remains
+representative-record validation of identity, source fields and interpretation;
+navigation acceptance does not close those items. Additional manual calendar
+captures require normal sign-in to the expired HHA browser tab. See
+[record-link acceptance](SOURCE_RECORD_LINKS_ACCEPTANCE_2026-10-15.md).
+
 ## Confirmed in the owner interview
 
 > **Completion attestation — 2026-09-22:** the developer explicitly confirmed that the Owner / Operations Lead completed all owner policy and decision items in this checklist. Items that require live imported HHA records or finished-feature acceptance remain runtime validation gates rather than policy decisions. Where an exact approved value is not written in this repository, implementation must use the owner-approved source record and must not infer or invent it.
