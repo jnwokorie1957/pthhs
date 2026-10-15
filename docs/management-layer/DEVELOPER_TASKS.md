@@ -22,6 +22,15 @@
 
 # Current checkpoint
 
+- [x] October 15 17:29 UTC role research compared authorization projections
+  with current primary documentation and added family multi-patient selection,
+  staff network/document-state contracts and explicit shared-record permissions.
+  This is research acceptance, not external-role or calculation release. See
+  [research delta](ROLE_WORKFLOW_RESEARCH.txt).
+- [ ] After P1-C, add bounded patient authorization discovery/detail navigation
+  (P1-D) through existing reads and gates. Preserve exact IDs, unknown units,
+  period/basis and completeness; no derived utilization or eligibility verdict.
+
 - [x] October 15 SEO repair: generated and verified the historical sitemap index
   after its submitted URL returned 404. Production now serves canonical XML;
   the existing sitemap publication set, public copy and private admin protections

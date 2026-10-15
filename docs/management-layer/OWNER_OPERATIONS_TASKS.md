@@ -22,6 +22,21 @@
 
 # Current owner checkpoint
 
+## October 15 authorization and role evidence follow-up
+
+The 17:29 UTC research pass found that authorization discovery supplies IDs and
+dates, while detail fields do not establish unit conversion or balance-period
+meaning. During the existing representative-record validation, compare source
+labels, applicable period and contract allocation settings with SOAP fields;
+retain the mapping and exceptions in protected acceptance evidence. Do not
+derive remaining hours or utilization from the bounded visit preview.
+Family accounts may need multiple independently scoped patient memberships;
+confirm the intended document-sharing scope per patient. Staff network status,
+submission, review and signing must remain separate states, using the existing
+approved form, identity and retention authority. These checks do not reopen
+completed policy decisions or block P1-C history navigation. See the dated
+[research delta](ROLE_WORKFLOW_RESEARCH.txt).
+
 ## October 15 SEO follow-up
 
 The legacy submitted sitemap index now serves valid XML, with release and live

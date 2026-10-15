@@ -20,6 +20,15 @@ Operational/management decisions: EVV rules, visibility/escalation, correction a
 
 # 🚦 CURRENT MANAGEMENT-LAYER CHECKPOINT
 
+**October 15 role research, 17:29 UTC:** added concrete authorization-source
+limits, family multi-patient selection and staff network/document-state
+acceptance contracts. Current source joins already leave authorization limits
+unvalidated; discovery IDs and raw units cannot support a remaining-hours chart
+without verified period, unit and usage semantics. P1-C saved-history navigation
+remains next, followed by bounded P1-D authorization discovery. External roles
+and clinical workflows remain proposed. See the dated
+[research delta](docs/management-layer/ROLE_WORKFLOW_RESEARCH.txt).
+
 **October 15 SEO follow-up:** restored the submitted legacy sitemap index from
 404 to valid XML pointing at the existing 27-URL canonical sitemap. Production
 and release checks passed; public page artifacts and private Primetime
