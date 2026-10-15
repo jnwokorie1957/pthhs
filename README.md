@@ -20,6 +20,14 @@ Operational/management decisions: EVV rules, visibility/escalation, correction a
 
 # 🚦 CURRENT MANAGEMENT-LAYER CHECKPOINT
 
+**October 14 live-mode incident resolved:** the four startup 503s shared a missing
+Firestore dependency. The default Native database now exists in `us-central1`
+(created `2026-10-14T23:54:54.991783Z`). The existing approved administrator session
+now loads owner controls and import history and reports **Reference API reachable**
+with demo mode off. Backend deployment now checks the database prerequisite and
+deploys server-only rules. Operational data approval remains closed. See
+[Firestore setup and acceptance](docs/management-layer/FIRESTORE_SETUP.md).
+
 **October 10 sign-in update:** the owner approved `jeremynwokorie@gmail.com` for administration and selected password-free email links. The server checks verified mailbox ownership and the current enabled account alongside existing admin claims. See [sign-in setup and acceptance](docs/management-layer/FIRST_ADMIN_HANDOFF.md). The next owner action is to open `/primetime`, request a link and complete normal sign-in; live session/HHA acceptance remains pending.
 
 **Last updated:** 2026-09-30
@@ -49,11 +57,11 @@ The September 23 review removed automatic first-user admin promotion. Deployment
 
 The live management/site Firebase project is confirmed as **`primetimehomehealthservices`**. The deployment workflow and `.firebaserc` both target this project.
 
-Current runtime blockers:
+Current runtime status:
 - GitHub CI service account: `firebase-adminsdk-fbsvc@primetimehomehealthservices.iam.gserviceaccount.com`.
-- September 30 workflow 36658534189 fails because Cloud Build API is disabled and CI cannot enable it. A project owner must approve/enable `cloudbuild.googleapis.com`; do not grant blanket roles based on the superseded error.
-- The live Firebase Admin SDK currently reports **0 Authentication users**, despite the developer reporting an admin user was created. Verify the user appears under Authentication → Users in the `primetimehomehealthservices` project before admin-claim verification.
-- Firestore code is prepared, but the production Firestore database/location still needs to be provisioned before persistent HHA imports are enabled.
+- October 14 [workflow 38639779585](https://github.com/jnwokorie1957/pthhs/actions/runs/38639779585) completed Hosting and Functions deployment successfully; the September 30 Cloud Build blocker is historical.
+- The approved administrator's normal signed-in browser session loads the live owner controls and HHA reference check.
+- The default Native Firestore database is provisioned in `us-central1`. Office preferences, operational data release and live-record validation remain pending.
 
 ### Secret-storage decision
 
