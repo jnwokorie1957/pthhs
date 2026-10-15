@@ -20,6 +20,13 @@ Operational/management decisions: EVV rules, visibility/escalation, correction a
 
 # 🚦 CURRENT MANAGEMENT-LAYER CHECKPOINT
 
+**October 15 source-page navigation:** Overview and Visit Preview now support
+previous-page navigation through the same bounded HHA source pages. Navigation
+history is cleared on date, office/policy, mode and session changes and on failed
+requests. Charts continue to describe one source page, without implying an office
+total or a persisted import. Frontend regression verification passes 132 tests;
+normal-session production acceptance follows the release.
+
 **October 14 patient source workbench:** a protected calendar-snapshot import and
 patient workbench preserve dated HHA UI evidence, authorization rows and visit
 tiles, with patient-office verification, immutable versions and content-based

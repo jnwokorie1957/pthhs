@@ -22,6 +22,13 @@
 
 # Current checkpoint
 
+- [x] Previous-page controls implemented for Overview and Visit Preview. The
+  source cursor trail is shared across views and cleared for date/mode/session
+  changes or failed reads; regression tests cover pending and late responses.
+- [ ] Verify forward/back source paging in the normal production admin session
+  after this release. HHA browser calendar capture is separately waiting for the
+  owner to complete a normal HHAeXchange sign-in again.
+
 - [x] Protected patient calendar-snapshot storage and workbench implemented with
   server-side patient/office checks, immutable content-addressed versions,
   duplicate handling, safe source rendering and capture/import timestamps.

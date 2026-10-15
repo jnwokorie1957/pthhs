@@ -512,9 +512,15 @@ for (const changed of [{ officeId: '456', officeTimezone: 'America/Chicago', rev
 
 test('Demo visit pages advance, finish and restart without source calls', async () => {
   const app = harness(); installDashboard(app); await app.signIn();
+  assert.equal(app.element('dashboardOverviewPrevious').hidden, true);
   assert.match(nodeText(app.element('dashboardVisitRows')), /DEMO-V-1048/);
   await app.click('dashboardVisitNext');
   assert.match(nodeText(app.element('dashboardVisitRows')), /DEMO-V-1058/);
+  assert.equal(app.element('dashboardOverviewPrevious').hidden, false);
+  await app.click('dashboardOverviewPrevious');
+  assert.match(nodeText(app.element('dashboardVisitRows')), /DEMO-V-1048/);
+  assert.equal(app.element('dashboardVisitPrevious').hidden, true);
+  await app.click('dashboardOverviewNext');
   for (let i=0;i<3;i++) await app.click('dashboardVisitNext');
   assert.equal(app.element('dashboardVisitNext').hidden, true);
   await app.click('dashboardVisitRefresh');
@@ -661,3 +667,78 @@ for (const state of ['ready', 'partial', 'empty']) {
     assert.doesNotMatch(app.element('dashboardVisitMetadata').textContent, /on-demand read/);
   });
 }
+
+function numberedSourcePage(path) {
+  const query = new URL(path, 'https://fixture.test').searchParams, cursor = query.get('cursor');
+  const index = cursor === 'page-three' ? 2 : cursor === 'page-two' ? 1 : 0;
+  const payload = livePreview(query.get('date'));
+  payload.items[0].id = String(900001 + index);
+  payload.discovery = { fingerprint: 'a'.repeat(64), selectedCount: 3, truncated: false };
+  payload.page = { offset: index, selectedCount: 1, returnedCount: 1, unavailableCount: 0, nextOffset: index < 2 ? index + 1 : null };
+  payload.nextCursor = index === 0 ? 'page-two' : index === 1 ? 'page-three' : null;
+  payload.state = 'partial';
+  return payload;
+}
+
+test('Live previous-page navigation reuses scoped source cursors across both dashboard views', async () => {
+  const seen = [];
+  const app = harness({ metadata: liveMetadata, fetchSource: path => { seen.push(new URL(path, 'https://fixture.test').searchParams.get('cursor')); return response(numberedSourcePage(path)); } });
+  installDashboard(app); await app.signIn(); await app.live(); await tick();
+  assert.equal(app.element('dashboardOverviewPrevious').hidden, true);
+  for (const control of ['dashboardOverviewNext', 'dashboardVisitNext']) { await app.click(control); await tick(); await tick(); }
+  assert.match(nodeText(app.element('dashboardTimeline')), /900003/);
+  assert.equal(app.element('dashboardOverviewNext').hidden, true);
+  assert.equal(app.element('dashboardOverviewPrevious').hidden, false);
+  await app.click('dashboardOverviewPrevious'); await tick(); await tick();
+  assert.match(nodeText(app.element('dashboardVisitRows')), /900002/);
+  assert.match(app.element('dashboardOverviewCompleteness').textContent, /2–2 of 3/);
+  await app.click('dashboardVisitPrevious'); await tick(); await tick();
+  assert.match(nodeText(app.element('dashboardTimeline')), /900001/);
+  assert.equal(app.element('dashboardVisitPrevious').hidden, true);
+  assert.equal(app.element('dashboardOverviewPrevious').hidden, true);
+  assert.deepEqual(seen, [null, 'page-two', 'page-three', 'page-two', null]);
+  assert.ok(app.calls.every(call => !call.options.method || call.options.method === 'GET'));
+});
+
+test('source navigation history clears on date and mode changes and cannot be restored by a late response', async () => {
+  const pending = deferred(); let hold = false;
+  const app = harness({ metadata: liveMetadata, fetchSource: path => hold ? pending.promise : response(numberedSourcePage(path)) });
+  installDashboard(app); await app.signIn(); await app.live(); await tick();
+  await app.click('dashboardVisitNext'); await tick(); await tick();
+  assert.equal(app.element('dashboardVisitPrevious').hidden, false);
+  app.element('dashboardOverviewDate').value = '2026-10-09';
+  for (const fn of app.element('dashboardOverviewDate').handlers.get('change')) fn(new Event('change'));
+  assert.equal(app.element('dashboardVisitPrevious').hidden, true);
+  await tick(); await tick();
+  const latest = app.calls.filter(call => call.path.includes('/views/visits?')).at(-1);
+  assert.equal(new URL(latest.path, 'https://fixture.test').searchParams.has('cursor'), false);
+  await app.click('dashboardVisitNext'); await tick(); await tick();
+  hold = true; await app.click('dashboardOverviewNext');
+  assert.equal(app.element('dashboardOverviewPrevious').hidden, true, 'pending pages cannot navigate with the old trail');
+  app.window.primetimeDataMode.setMode('demo');
+  pending.resolve(response(numberedSourcePage('/primetime/api/views/visits?date=2026-10-09&cursor=page-three')));
+  await tick(); await tick();
+  assert.equal(app.element('dashboardVisitPrevious').hidden, true);
+  assert.match(nodeText(app.element('dashboardVisitRows')), /DEMO-V-1048/);
+  assert.equal(nodeText(app.element('dashboardTimeline')).includes('900003'), false);
+});
+
+test('failed paging discards cursor history and refresh starts from the first source page', async () => {
+  let fail = false;
+  const app = harness({ metadata: liveMetadata, fetchSource: path => {
+    if (!fail) return response(numberedSourcePage(path));
+    const result = response({ ok: false, error: 'unavailable' }); result.ok = false; result.status = 503; return result;
+  } });
+  installDashboard(app); await app.signIn(); await app.live(); await tick();
+  await app.click('dashboardVisitNext'); await tick(); await tick();
+  fail = true; await app.click('dashboardVisitNext'); await tick(); await tick();
+  assert.equal(app.element('dashboardVisitPrevious').hidden, true);
+  assert.equal(app.element('dashboardVisitNext').hidden, true);
+  const calls = app.calls.length; await app.click('dashboardVisitPrevious');
+  assert.equal(app.calls.length, calls);
+  fail = false; await app.click('dashboardOverviewRefresh'); await tick(); await tick();
+  const latest = app.calls.filter(call => call.path.includes('/views/visits?')).at(-1);
+  assert.equal(new URL(latest.path, 'https://fixture.test').searchParams.has('cursor'), false);
+  assert.equal(app.element('dashboardOverviewPrevious').hidden, true);
+  assert.match(nodeText(app.element('dashboardTimeline')), /900001/);
+});

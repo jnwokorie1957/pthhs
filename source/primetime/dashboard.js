@@ -90,6 +90,8 @@
   let abort;
   let metadata = null;
   let nextCursor = null;
+  let pageTrail = [null];
+  let pagePosition = 0;
   let demoOffset = 0;
   let dateChosen = false;
   const localDay = () => {
@@ -111,6 +113,8 @@
   }
   function refreshDisabled(disabled) { ['dashboardVisitRefresh', 'dashboardOverviewRefresh'].forEach(id => { if (get(id)) get(id).disabled = disabled; }); }
   function nextPageButton(visible) { ['dashboardVisitNext', 'dashboardOverviewNext'].forEach(id => { if (get(id)) { get(id).hidden = !visible; get(id).disabled = false; } }); }
+  function previousPageButton(visible) { ['dashboardVisitPrevious', 'dashboardOverviewPrevious'].forEach(id => { if (get(id)) { get(id).hidden = !visible; get(id).disabled = false; } }); }
+  function resetPaging() { nextCursor = null; pageTrail = [null]; pagePosition = 0; nextPageButton(false); previousPageButton(false); }
   function replace(id, ...children) { get(id)?.replaceChildren(...children); }
   function unavailable(id, title, detail) {
     const box = node('div', null, 'dashboard-unavailable');
@@ -241,7 +245,7 @@
     abort?.abort();
     abort = null;
     metadata = null;
-    nextCursor = null;
+    resetPaging();
     demoOffset = 0;
     hosts.forEach(id => replace(id));
     text('dashboardVisitStatus', 'Live visit preview unavailable until source access is checked.');
@@ -335,6 +339,7 @@
     const pageScope = view.page && view.discovery ? `Showing source IDs ${view.items.length ? view.page.offset + 1 : 0}–${view.page.offset + view.items.length} of ${view.discovery.selectedCount} returned by search. ` : `${view.items.length} source record(s) on this page. `;
     text('dashboardVisitCompleteness', view.mode === 'demo' ? 'Example page only.' : `${pageScope}Charts use this page only. Office totals are unknown; complete office coverage is not established. Read limits: up to 200 source IDs, 10 details per page and a 25-second detail-read budget.${view.truncated ? ' Source identifier results were truncated.' : ''}`);
     nextPageButton(Boolean(nextCursor));
+    previousPageButton(view.mode === 'demo' ? demoOffset > 0 : pagePosition > 0);
   }
   function context() { return { generation: controller.getGeneration(), mode: controller.getMode(), session, serial }; }
   function current(captured) { return ready && captured.generation === controller.getGeneration() && captured.mode === controller.getMode() && captured.session === session && captured.serial === serial; }
@@ -380,7 +385,7 @@
       if (current(captured)) refreshDisabled(false);
     }
   }
-  async function loadVisits(cursor = null) {
+  async function loadVisits(cursor = null, trail = [null], position = 0) {
     if (!ready || !controller.isLive()) return;
     if (metadata?.dataApproved !== true || metadata?.panels?.visits?.available !== true) { await loadMetadata(); return; }
     serial += 1;
@@ -388,7 +393,7 @@
     abort = new AbortController();
     const captured = context();
     const date = dateInput?.value || '';
-    nextCursor = null;
+    resetPaging();
     unavailable('dashboardVisitRows', 'Loading visit preview', 'Previous page values have been cleared.');
     liveOverviewState('Loading live visits', 'Waiting for the selected source page. Previous page values have been cleared.');
     text('dataModeBadge', 'Live · loading');
@@ -425,8 +430,12 @@
         throw new Error('visit_preview_unavailable');
       }
       showVisitPreview(payload, { mode: 'live', date, officeId: metadata.settings?.officeId });
+      pageTrail = trail;
+      pagePosition = position;
+      previousPageButton(pagePosition > 0);
     } catch {
       if (!current(captured)) return;
+      resetPaging();
       unavailable('dashboardVisitRows', 'Visit preview unavailable', 'The source request failed or its response could not be verified. Refresh to retry.');
       liveOverviewState('Live visits unavailable', 'The HHA request failed or its response could not be verified. Refresh to retry.');
       text('dataModeBadge', 'Live · unavailable');
@@ -456,11 +465,21 @@
   get('dashboardOverviewRefresh')?.addEventListener('click', refresh);
   const advancePage = () => {
     if (!nextCursor) return;
-    if (controller.isLive()) void loadVisits(nextCursor);
+    if (controller.isLive()) void loadVisits(nextCursor, [...pageTrail.slice(0, pagePosition + 1), nextCursor], pagePosition + 1);
     else { demoOffset = Number(nextCursor); showVisitPreview(fixtures.visitPage(dateInput.value, demoOffset), { mode: 'demo', date: dateInput.value }); }
   };
   get('dashboardVisitNext')?.addEventListener('click', advancePage);
   get('dashboardOverviewNext')?.addEventListener('click', advancePage);
+  const previousPage = () => {
+    if (controller.isLive()) {
+      if (pagePosition > 0) void loadVisits(pageTrail[pagePosition - 1], pageTrail.slice(0, pagePosition), pagePosition - 1);
+    } else if (demoOffset > 0) {
+      demoOffset = Math.max(0, demoOffset - 10);
+      showVisitPreview(fixtures.visitPage(dateInput.value, demoOffset), { mode: 'demo', date: dateInput.value });
+    }
+  };
+  get('dashboardVisitPrevious')?.addEventListener('click', previousPage);
+  get('dashboardOverviewPrevious')?.addEventListener('click', previousPage);
   document.addEventListener('primetime-data-mode-changed', () => { renderMode(); if (ready && controller.isLive()) void loadMetadata(); });
   document.addEventListener('primetime-ready', () => { ready = true; session += 1; renderMode(); if (controller.isLive()) void loadMetadata(); });
   document.addEventListener('primetime-signed-out', () => { ready = false; session += 1; clearSource(); if (!controller.isLive()) renderMode(); });
