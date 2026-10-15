@@ -22,6 +22,19 @@
 
 # Current owner checkpoint
 
+## October 15 connected authorization evidence
+
+Live visit rows now select patient authorization discovery. Normal-session
+production returned 12 rows after current patient-office verification, and a row
+selected exact detail identifiers. The detail read remained disabled and its
+explicit request was correctly blocked; no permission changed. Review
+`GetPatientAuthorizationInfo` entitlement and enable it in normal owner controls
+only if approved, then compare representative detail fields with source period,
+unit and contract allocation labels under existing approved rules. Keep private
+acceptance mappings protected. This navigation does not validate remaining
+hours, utilization, eligibility or billing. See
+[authorization acceptance](PATIENT_AUTHORIZATION_LINKS_ACCEPTANCE_2026-10-15.md).
+
 ## October 15 connected patient history
 
 Selected live patients now open their protected saved-calendar history from

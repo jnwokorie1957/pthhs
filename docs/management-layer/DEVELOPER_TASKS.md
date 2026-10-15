@@ -27,9 +27,18 @@
   staff network/document-state contracts and explicit shared-record permissions.
   This is research acceptance, not external-role or calculation release. See
   [research delta](ROLE_WORKFLOW_RESEARCH.txt).
-- [ ] Next independent implementation: bounded patient authorization
-  discovery/detail navigation (P1-D) through existing reads and gates. Preserve exact IDs, unknown units,
-  period/basis and completeness; no derived utilization or eligibility verdict.
+- [x] P1-D bounded patient authorization discovery/detail selection now uses
+  current-office/patient checks, existing read gates, exact IDs and guarded
+  source context. All 157 frontend and 464 backend tests pass. Production
+  discovery returned 12 rows; detail selection matched exact IDs and its
+  disabled owner gate remained closed. See
+  [authorization acceptance](PATIENT_AUTHORIZATION_LINKS_ACCEPTANCE_2026-10-15.md).
+- [ ] Verify representative detail fields/contract mapping in production after
+  owner-approved detail entitlement; unit/period/usage interpretation remains
+  unvalidated. Synthetic detail tests do not close that acceptance.
+- [ ] Next independent implementation (P1-E): connect saved-calendar visit IDs
+  to current visit evidence, verifying current patient/office identity on the
+  server and preserving dated manual provenance and existing read gates.
 
 - [x] October 15 SEO repair: generated and verified the historical sitemap index
   after its submitted URL returned 404. Production now serves canonical XML;

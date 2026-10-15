@@ -20,6 +20,19 @@ Operational/management decisions: EVV rules, visibility/escalation, correction a
 
 # 🚦 CURRENT MANAGEMENT-LAYER CHECKPOINT
 
+**October 15 connected authorization evidence, 19:16 UTC:** live Overview and
+Visit Preview now select patient authorization discovery through a protected
+current-office/patient check. Discovery retains exact IDs, dates, fetched time
+and truncation; detail selection preserves the existing owner gate. All 157
+frontend and 464 backend tests pass. Production returned 12 discovery rows,
+verified exact detail selection and the disabled detail gate. Live source
+paging and all six field-presence charts passed fresh row/count comparisons.
+Raw detail/contract-change edge cases remain synthetic until approved detail
+access. No unit conversion, utilization or eligibility decision was added. See
+[authorization acceptance](docs/management-layer/PATIENT_AUTHORIZATION_LINKS_ACCEPTANCE_2026-10-15.md).
+Next independent work: P1-E saved-calendar visit links with current
+patient/office verification and preserved manual provenance.
+
 **October 15 connected patient history, 19:01 UTC:** live Overview and Visit
 Preview rows now open the exact patient's protected saved-calendar history.
 Source-context changes clear prior history; late responses and detached controls
@@ -28,16 +41,16 @@ both entry points and retained saved versions, with October/September chart
 totals matching 41/36 source visit tiles. Manual labels and capture/import
 timestamps remain separate from live reads. See
 [history acceptance](docs/management-layer/PATIENT_HISTORY_LINKS_ACCEPTANCE_2026-10-15.md).
-Next independent feature: P1-D bounded authorization discovery through existing
-read gates, without derived utilization or eligibility decisions.
+The subsequent authorization-navigation implementation is recorded above;
+unit/period/usage interpretation and approved detail-source acceptance remain open.
 
 **October 15 role research, 17:29 UTC:** added concrete authorization-source
 limits, family multi-patient selection and staff network/document-state
 acceptance contracts. Current source joins already leave authorization limits
 unvalidated; discovery IDs and raw units cannot support a remaining-hours chart
 without verified period, unit and usage semantics. P1-C saved-history navigation
-is implemented above; bounded P1-D authorization discovery remains next.
-External roles and clinical workflows remain proposed. See the dated
+and P1-D authorization navigation are implemented above. Unit/period/usage
+interpretation, external roles and clinical workflows remain open. See the dated
 [research delta](docs/management-layer/ROLE_WORKFLOW_RESEARCH.txt).
 
 **October 15 SEO follow-up:** restored the submitted legacy sitemap index from
