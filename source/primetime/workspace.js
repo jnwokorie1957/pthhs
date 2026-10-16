@@ -850,12 +850,12 @@
     message('Workflow selected. Supply the requested identifiers or date, then read source records.');
   }));
   if ($('manualSnapshotForm')) {
-    let snapshotSequence = 0, snapshotSelection = 0, sourcePatientSelected = false;
+    let snapshotSequence = 0, snapshotSelection = 0, snapshotView = 0, sourcePatientSelected = false;
     const status = value => { $('manualSnapshotStatus').textContent = value; };
     const snapshotAction = work => action(work);
-    const snapshotContext = () => ({ selection: snapshotSelection, patientId: $('manualPatientId').value, officeId: settings?.officeId, generation });
+    const snapshotContext = () => ({ selection: snapshotSelection, patientId: $('manualPatientId').value, officeId: settings?.officeId, revision: settings?.revision, generation });
     const snapshotCurrent = captured => captured.selection === snapshotSelection && captured.patientId === $('manualPatientId').value
-      && captured.officeId === settings?.officeId && captured.generation === generation && dataApproved && window.primetimeDataMode?.isLive() === true;
+      && captured.officeId === settings?.officeId && captured.revision === settings?.revision && captured.generation === generation && dataApproved && window.primetimeDataMode?.isLive() === true;
     async function snapshotRequest(path, body, sequence, captured) {
       try {
         const result = await request(path, body);
@@ -866,20 +866,50 @@
       }
     }
     const element = (tag, value, className) => { const item = document.createElement(tag); if (value !== undefined) item.textContent = String(value); if (className) item.className = className; return item; };
-    const sourceTable = (headers, rows) => {
+    const sourceTable = (headers, rows, actions) => {
       const wrap = element('div', undefined, 'snapshot-table'), table = element('table'), head = element('thead'), heading = element('tr');
       headers.forEach(label => { const cell = element('th', label); cell.scope = 'col'; heading.append(cell); }); head.append(heading); table.append(head);
-      const body = element('tbody'); rows.forEach(row => { const tr = element('tr'); row.forEach(value => tr.append(element('td', value))); body.append(tr); });
+      const body = element('tbody'); rows.forEach((row, index) => { const tr = element('tr'); row.forEach(value => tr.append(element('td', value))); if (actions) { const cell = element('td'); cell.append(actions[index]); tr.append(cell); } body.append(tr); });
       table.append(body); wrap.append(table); return wrap;
     };
     function clearSnapshots() {
-      snapshotSequence++; snapshotSelection++; sourcePatientSelected = false;
+      snapshotSequence++; snapshotSelection++; snapshotView++; sourcePatientSelected = false;
       $('manualSnapshotList').replaceChildren(); $('manualSnapshotDetails').replaceChildren();
       $('manualSnapshotPayload').value = ''; $('manualSnapshotPanel').inert = !dataApproved || window.primetimeDataMode?.isLive() !== true;
       status(window.primetimeDataMode?.isLive() ? 'Enter a patient ID to load protected imports.' : 'Switch Demo data off to use protected calendar imports.');
     }
     function showSnapshot(snapshot) {
       const detail = $('manualSnapshotDetails'), panel = element('section', undefined, 'panel');
+      const captured = snapshotContext(), view = ++snapshotView, currentEvidence = element('section', undefined, 'panel');
+      const viewCurrent = () => view === snapshotView && snapshotCurrent(captured);
+      const validId = value => typeof value === 'string' && /^[1-9]\d{0,9}$/.test(value) && Number(value) <= 2147483647;
+      const visitActions = snapshot.visits.map(visit => {
+        if (!validId(visit.id) || snapshot.visits.filter(row => row.id === visit.id).length !== 1) return element('span', 'Unique source visit ID unavailable.');
+        if (snapshot.patientId !== captured.patientId || snapshot.officeId !== captured.officeId) return element('span', 'Snapshot scope does not match the selected patient and office.');
+        if (!['GetVisitInfoV3', 'GetPatientDemographics'].every(operation => settings?.enabledReads.includes(operation))) return element('span', 'Current visit read requires existing owner read permissions.');
+        return button('Read current visit ' + visit.id, async () => {
+          if (!viewCurrent()) return;
+          const sequence = ++snapshotSequence;
+          currentEvidence.replaceChildren(element('p', 'Checking current visit, patient and office…'));
+          status('Reading current visit evidence; the saved snapshot is unchanged.');
+          try {
+            const data = await snapshotRequest('patient-visit', { visitId: visit.id, patientId: captured.patientId, officeId: captured.officeId }, sequence, captured);
+            if (!data || !viewCurrent()) return;
+            if (data.operation !== 'GetVisitInfoV3' || data.source !== 'hhaexchange' || data.scope?.visitId !== visit.id || data.scope?.patientId !== captured.patientId
+              || data.scope?.officeId !== captured.officeId || data.interpretation !== 'visit_source_unvalidated' || data.truncated || data.records?.length !== 1
+              || data.records[0].ID !== visit.id || data.records[0]['Patient/ID'] !== captured.patientId) throw new Error('Current visit source context could not be verified.');
+            const fields = element('dl');
+            for (const [key, value] of Object.entries(data.records[0])) fields.append(element('dt', key), element('dd', value === null ? 'Not supplied / unknown' : String(value)));
+            currentEvidence.replaceChildren(element('h3', 'Current HHA visit evidence'),
+              element('p', `Visit ${visit.id} · fetched ${data.fetchedAt} · patient office checked ${data.membershipCheckedAt}. Independent source reads; source values and timestamps are unconverted and interpretation remains unvalidated.`),
+              element('p', `The saved capture from ${snapshot.capturedAt} is unchanged. Current evidence does not establish clinical, EVV, payroll or billing acceptance.`), fields);
+            status('Current visit evidence loaded separately from the saved manual snapshot.');
+          } catch (error) {
+            if (!viewCurrent() || sequence !== snapshotSequence) return;
+            currentEvidence.replaceChildren(); status(error.message); throw error;
+          }
+        });
+      });
       panel.append(element('p', 'Manual snapshot · source interpretation pending', 'eyebrow'), element('h2', `${snapshot.patientLabel} · ${snapshot.period}`),
         element('p', `Office ${snapshot.officeId} · patient ${snapshot.patientId} · ${snapshot.visits.length} visit tiles · ${snapshot.authorizations.rows.length} authorization rows`),
         element('p', `Captured ${snapshot.capturedAt} · imported ${snapshot.updatedAt}. Times below retain the HHA source display.`, 'source-metadata'));
@@ -888,12 +918,14 @@
       const chart = element('div', undefined, 'snapshot-days'), max = Math.max(1, ...days.values());
       [...days].sort(([a], [b]) => a.localeCompare(b)).forEach(([date, count]) => { const row = element('div', undefined, 'snapshot-day'), bar = element('progress'); bar.max = max; bar.value = count; bar.setAttribute('aria-label', `${date}: ${count} recorded visit tiles`); row.append(element('span', date), bar, element('strong', count)); chart.append(row); });
       panel.append(chart, element('h3', 'Authorization source rows'), sourceTable(snapshot.authorizations.columns, snapshot.authorizations.rows.map(row => row.cells)),
-        element('h3', 'Calendar source evidence'), sourceTable(['Date', 'HHA visit ID', 'Schedule, actual, billing and assigned caregiver source text'], snapshot.visits.map(visit => [visit.date, visit.id, visit.text])));
+        element('h3', 'Calendar source evidence'), element('p', 'Use an explicit current read to check a saved visit ID against its current patient and office. Saved source text remains dated manual evidence.'),
+        sourceTable(['Date', 'HHA visit ID', 'Schedule, actual, billing and assigned caregiver source text', 'Current source evidence'], snapshot.visits.map(visit => [visit.date, visit.id, visit.text]), visitActions), currentEvidence);
       detail.replaceChildren(panel);
     }
     async function loadSnapshot(id, captured) {
       if (!snapshotCurrent(captured)) return;
       const sequence = ++snapshotSequence, patientId = captured.patientId;
+      snapshotView++;
       $('manualSnapshotDetails').replaceChildren();
       status('Loading protected source snapshot…');
       const result = await snapshotRequest('manual-snapshots?' + new URLSearchParams({ patientId, id }), undefined, sequence, captured);
@@ -903,6 +935,7 @@
     async function loadSnapshots(cursor, previous) {
       if (previous && !snapshotCurrent(previous)) return;
       snapshotSelection++;
+      snapshotView++;
       const sequence = ++snapshotSequence, captured = snapshotContext(), patientId = captured.patientId;
       $('manualSnapshotList').replaceChildren(); $('manualSnapshotDetails').replaceChildren(); status('Checking patient office and import history…');
       const result = await snapshotRequest('manual-snapshots?' + new URLSearchParams({ patientId, ...(cursor ? { cursor } : {}) }), undefined, sequence, captured);
