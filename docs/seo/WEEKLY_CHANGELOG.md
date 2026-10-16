@@ -2,6 +2,14 @@
 
 ## Week of October 12, 2026 — updated October 15
 
+October 16 follow-up: all 132 marketing source routes reached HTTP 200 with no
+multi-hop redirects or indexable metadata/canonical defects. Shared footer links
+now expose the two existing policy pages. The active SEO playbooks replace
+guessed ranks, unverified claims and retired rich-result tactics with a measured
+private review. Comparable outcome data, other route-reachability decisions and
+owner evidence dependencies remain open. Normal publication acceptance is
+pending. See [October 16 evidence](2026-10-16-seo-review.md).
+
 Restored the historical submitted sitemap index after a live check found 404
 responses. The generated index references the existing canonical child sitemap;
 its 27 reviewed URLs and content dates are unchanged. Production now returns

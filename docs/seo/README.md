@@ -7,11 +7,16 @@ facts, payer evidence, or claim-release controls.
   sitemap index, live verification, available read-only Search Console evidence
   and remaining reprocessing/field-performance dependencies.
 
-- `PTHHS_COMPETITOR_REVERSE_ENGINEERING.md` — competitor patterns and gaps.
-- `PTHHS_KEYWORD_TO_PAGE_MAP.md` — keyword ownership by canonical page.
-- `PTHHS_LOCATION_PAGES_DEPLOYMENT.md` — location rollout evidence.
-- `PTHHS_MONEY_PAGES_STRENGTHENING.md` — priority-page recommendations.
-- `PTHHS_STRIKING_DISTANCE_KEYWORDS.md` — framework awaiting real GSC data.
+- [October 16 navigation and strategy review](2026-10-16-seo-review.md) —
+  full public-route HTTP/metadata inventory, shared policy-footer repair,
+  current Google guidance and measurement limits.
+
+- `PTHHS_COMPETITOR_REVERSE_ENGINEERING.md` — historical competitor hypotheses.
+- `PTHHS_KEYWORD_TO_PAGE_MAP.md` — historical proposed ownership map.
+- `PTHHS_LOCATION_PAGES_DEPLOYMENT.md` — historical location inventory.
+- `PTHHS_MONEY_PAGES_STRENGTHENING.md` — current evidence and page decisions.
+- `PTHHS_STRIKING_DISTANCE_KEYWORDS.md` — measured private GSC review method;
+  baseline access works, while outcome and query-to-page validation remain open.
 - `county-hubs.csv`, `county-hubs.json`, and `county-hubs.md` — the same county
   planning dataset in tabular, machine-readable, and narrative formats.
 

@@ -1,4 +1,11 @@
 # PTHHS Competitor Reverse-Engineering Report
+
+> Historical August hypotheses, reviewed October 16: the estimated positions and
+> causal explanations below are not a current reproducible ranking baseline.
+> Competitor wording does not verify PTHHS service, payer or location claims.
+> Use the [current measured method](PTHHS_STRIKING_DISTANCE_KEYWORDS.md) and
+> [page review](PTHHS_MONEY_PAGES_STRENGTHENING.md) before implementation.
+
 **Date:** 2026-08-19  
 **Focus:** Houston Top 10 for 5 Primary Keyword Clusters
 

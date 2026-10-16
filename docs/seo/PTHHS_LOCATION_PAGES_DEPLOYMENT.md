@@ -1,4 +1,12 @@
 # PTHHS Location Pages Deployment Report
+
+> Historical August inventory, reviewed October 16: file existence does not
+> establish service availability, Google indexing or approval for promotion.
+> Earlier schema/rating recommendations are superseded by the
+> [current page review](PTHHS_MONEY_PAGES_STRENGTHENING.md). The publication set
+> remains eight promoted locations among 27 sitemap URLs; the other 57 location
+> files need availability and useful-content review.
+
 **Date:** 2026-08-19  
 **Status:** Validation of existing location pages + recommendations for 8 primary locations
 

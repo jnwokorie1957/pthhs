@@ -88,6 +88,10 @@ for path in marketing_html_files(PUBLIC):
     relative = path.relative_to(PUBLIC).as_posix()
     route = route_for(path)
     text = path.read_text(errors="strict")
+    footer = re.search(r"<footer\b[^>]*>(.*?)</footer>", text, re.I | re.S)
+    legal = re.search(r'<nav\b[^>]*aria-label="Legal"[^>]*>(.*?)</nav>', footer.group(1), re.I | re.S) if footer else None
+    if not legal or any(f'href="{target}"' not in legal.group(1) for target in ("/privacy-policy", "/terms-of-use")):
+        ERRORS.append(f"missing public footer policy navigation: {relative}")
     blocks = re.findall(r'<script\b[^>]*type=["\']application/ld\+json["\'][^>]*>([\s\S]*?)</script>', text, re.I)
     graphs = []
     for block in blocks:

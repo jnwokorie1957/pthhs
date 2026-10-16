@@ -5,6 +5,11 @@
 
 ## Selective Service schema
 
+October 16 addition: every marketing footer includes a Legal navigation linking
+directly to the existing canonical Privacy Policy and Terms of Use. The shared
+shell preserves the links and the navigation gate requires them on all 132
+marketing artifacts. Private Primetime assets are outside this shell.
+
 Exactly five verified non-medical routes receive a minimal `Service` node:
 
 - Personal assistance service overview

@@ -1,4 +1,11 @@
 # PTHHS Keyword-to-Page Mapping
+
+> Historical August planning map, reviewed October 16: proposed titles, routes,
+> rankings and program copy below are not current page inventory or approved
+> business facts. Do not create duplicates or assert coverage from this map.
+> Use the [current measured method](PTHHS_STRIKING_DISTANCE_KEYWORDS.md) and
+> [page review](PTHHS_MONEY_PAGES_STRENGTHENING.md) before implementation.
+
 **Date:** 2026-08-19  
 **Purpose:** Assign each primary keyword cluster to a dominant target URL to prevent cannibalization and maximize ranking potential.
 
