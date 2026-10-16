@@ -63,10 +63,11 @@ interpretation, external roles and clinical workflows remain open. See the dated
 
 **October 16 SEO review:** crawled all 132 public marketing routes and repaired
 the missing shared-footer links to the existing privacy/terms pages. Metadata,
-canonical, claim, accessibility and asset checks passed locally; normal release
-and production acceptance are pending. Updated the SEO playbooks using current
+canonical, claim, accessibility and asset checks passed; both normal release
+jobs and production acceptance passed. Updated the SEO playbooks using current
 Google guidance and actual GSC coverage, retaining incomplete outcome/location
-tasks. See [review](docs/seo/2026-10-16-seo-review.md).
+tasks. Returned page-report pagination is now exhausted in private evidence;
+outcome validation remains open. See [review](docs/seo/2026-10-16-seo-review.md).
 
 **October 15 SEO follow-up:** restored the submitted legacy sitemap index from
 404 to valid XML pointing at the existing 27-URL canonical sitemap. Production

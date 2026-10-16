@@ -28,8 +28,12 @@ necessary navigation changes are verified.
 
 The two active keyword/priority-page playbooks now replace assumed rankings,
 difficulty/conversion weights and promised traffic gains with a measured private
-query-to-page review. Read-only GSC baseline access is established; the saved
-page extract remains partial. The older competitor, mapping and location reports
+query-to-page review. Read-only GSC baseline access is established. A fresh
+single-request October 16 extract returned all 40 available page rows for
+September 15–October 12 with pagination exhausted. The original partial extract
+is retained; this improves returned-report coverage, not search/indexing census
+coverage. The payload remains in private owner outputs.
+The older competitor, mapping and location reports
 are marked historical hypotheses so future work does not treat their suggested
 program, payer or county language as current business evidence.
 
@@ -74,6 +78,16 @@ Local claim, route-migration, shared-shell, metadata/schema/sitemap, structured
 navigation, accessibility, performance, frontend-control, exact payer-image and
 private-asset checks passed; all four sitemap-date tests passed. The navigation
 gate now requires both canonical policy links in every marketing footer.
-Repository/whitespace review and normal release checks complete the publication
-gate. Production acceptance will verify the served footer, both policy pages,
-the unchanged sitemap and private noindex/anonymous-API protection.
+Repository and whitespace checks passed. Release
+`cf053b5a7d690bd58c4642c0eff6081798d1f41f` passed both normal jobs in
+[workflow 38911117420](https://github.com/jnwokorie1957/pthhs/actions/runs/38911117420).
+
+The post-release 132-route crawl again passed HTTP/metadata/canonical checks.
+Every distinct final page links both policies, and both are reachable from the
+homepage. Other initial-HTML reachability findings remain (39 pages). Served
+homepage, policies, services and contact bytes match the tested artifacts; the
+27-URL sitemap, legacy index and robots bytes match unchanged local files.
+Browser clicks opened both correct policy headings and canonical URLs, and the
+footer layout was visually checked. Primetime still returns
+noindex/nofollow/noarchive; anonymous session API access still returns 401 with
+the same protection. No HHA or patient/staff data was used by this SEO change.

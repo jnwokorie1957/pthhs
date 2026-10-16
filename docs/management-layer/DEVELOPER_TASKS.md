@@ -22,6 +22,16 @@
 
 # Current checkpoint
 
+- [x] October 16 SEO/public navigation pass verified all 132 marketing routes,
+  deployed shared-footer links to the existing privacy/terms pages and corrected
+  obsolete planning guidance. Both normal workflow jobs and production
+  acceptance passed; private noindex/anonymous-API protections remain intact.
+  Returned GSC page pagination is exhausted in private evidence. This does not
+  close growth, location promotion or operational acceptance. See
+  [SEO evidence](../seo/2026-10-16-seo-review.md).
+- [ ] Next independent administrator implementation remains P1-E; retain the
+  existing current-office/patient checks and immutable saved-source evidence.
+
 - [x] October 16 role research (queued October 15, 20:37 UTC) clarified
   per-patient family view/manage capabilities, request receipts versus source
   application, native clinical document states and distinct billing hold stages.

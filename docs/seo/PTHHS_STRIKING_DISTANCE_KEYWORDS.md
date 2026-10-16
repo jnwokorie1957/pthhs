@@ -6,7 +6,8 @@ conversion weights and improvement forecasts.
 ## Evidence and method
 
 Read-only Search Console access works. The owner's private baseline contains the
-returned query table with pagination exhausted; the saved page report is partial.
+returned query table with pagination exhausted. A fresh October 16 extract also
+exhausted page-report pagination; the original first-30-row file stays unchanged.
 Keep raw queries and account evidence outside this repository. An exhausted
 response is not a census: Google's [Search Analytics API](https://developers.google.com/webmaster-tools/v1/searchanalytics/query)
 can omit rows, and date reports omit days with no returned data.

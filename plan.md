@@ -4,8 +4,8 @@
 
 October 16 follow-up: all 132 public marketing routes reached HTTP 200 with
 no multi-hop redirects or indexable metadata/canonical defects. The shared
-footer now links the existing Privacy Policy and Terms of Use; publication
-acceptance is pending the normal release. Initial-HTML reachability findings
+footer now links the existing Privacy Policy and Terms of Use; both normal
+release jobs and production acceptance passed. Initial-HTML reachability findings
 for other pages require content/promotion review, so item 64 remains partial.
 Current keyword guidance replaces estimated ranks and retired rich-result
 tactics. See [evidence and remaining actions](docs/seo/2026-10-16-seo-review.md).
@@ -14,7 +14,7 @@ tactics. See [evidence and remaining actions](docs/seo/2026-10-16-seo-review.md)
 - [x] Add service/eligibility links to the eight already-promoted locations and areas hub, preserving content and logos.
 - [x] Inventory 65 location pages against 27 sitemap URLs (eight locations), without indexing changes. See [evidence](docs/seo/2026-10-01-content-review.md).
 - [x] Pass full site build, 14 existing tests, 24 desktop/mobile checks and independent review.
-- [x] Establish the read-only Search Console query/page baseline. Actual returned dates and partial page-report coverage are recorded in the owner's private outputs; see [October 15 review](docs/seo/2026-10-15-sitemap-review.md).
+- [x] Establish the read-only Search Console query/page baseline. Actual dates and coverage remain in private outputs. October 16 exhausted returned page-report pagination with a fresh 40-row extract; this is not a complete search/indexing census. See [current review](docs/seo/2026-10-16-seo-review.md).
 - [ ] Validate target keywords and measure outcomes over comparable settled windows. Top-three positions remain an objective, not a guarantee or measured result.
 - [ ] Verify community availability and useful unique content before promoting the other 57 location pages.
 - [ ] Verify this batch on live Hosting after publication; backend and PHI acceptance remain separate.
@@ -135,7 +135,7 @@ Unify the site, remove service-scope contradictions, verify payer/trust claims, 
 - [x] **61. [P2] Add accurate sitemap `<lastmod>` values** only when reliable modification dates exist. **When:** Sep 19–Oct 2. **Verified Oct 15:** the dated evidence registry and validator generate reviewed content dates, omit unknown dates and pass four regression tests. No weekly date bump or fabricated index modification date is added.
 - [x] **62. [P1] Implement the already-mapped legacy 301 redirects** and expand coverage for old `.html`, WordPress, pagination, and renamed routes. **When:** Sep 12–18. **Completed Sep 10:** retained all migration redirects, added six documented historical location patterns, and generated explicit `.html` twins for every eligible permanent redirect.
 - [x] **63. [P1] Normalize internal links to canonical clean URLs** and eliminate mixed `.html`, relative, `www`, and non-`www` patterns. **When:** Sep 12–18. **Completed Sep 10:** verified 3,634 anchors contain no own-host absolute, `.html`, relative-dot, alternate-host, or redirect-chain targets and added CI enforcement.
-- [ ] **64. [P1] Run a full production crawl after migration** and fix redirect chains, 4xx/5xx pages, orphan pages, duplicate canonicals, and missing metadata. **When:** Sep 12–18, rerun after every migration batch. October 16: 132-route HTTP/metadata crawl passed; policy footer repair prepared. Other initial-HTML reachability findings need page-purpose/location review; not all routes are approved for promotion. See [review](docs/seo/2026-10-16-seo-review.md).
+- [ ] **64. [P1] Run a full production crawl after migration** and fix redirect chains, 4xx/5xx pages, orphan pages, duplicate canonicals, and missing metadata. **When:** Sep 12–18, rerun after every migration batch. October 16: 132-route HTTP/metadata crawl and live policy footer repair passed. Other initial-HTML reachability findings need page-purpose/location review; not all routes are approved for promotion. See [review](docs/seo/2026-10-16-seo-review.md).
 - [x] **65. [P1] Exclude internal audit artifacts/logs/legacy snapshots from the deployed `public/` output** instead of relying only on `noindex`. **When:** Sep 12–18.
 - [x] **66. [P2] Create a modern custom 404 page** with real HTTP 404 status, useful navigation, and a contact CTA. **When:** Sep 19–Oct 2. **Completed Sep 11:** verified the modern noindex `public/404.html` contract, useful Home/Services/Areas/Contact paths, and Firebase's documented unmatched-route 404 behavior without a catch-all rewrite.
 - [x] **67. [P2] Align `robots.txt` with the chosen canonical host** and keep one correct sitemap directive. **When:** Sep 19–Oct 2. **Completed Sep 11:** the SEO generator now writes one root-level UTF-8 robots policy that allows crawling and advertises exactly `https://pthhs.net/sitemap.xml`; the release gate rejects alternate hosts or duplicate sitemap directives.
