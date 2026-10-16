@@ -20,6 +20,14 @@ Operational/management decisions: EVV rules, visibility/escalation, correction a
 
 # 🚦 CURRENT MANAGEMENT-LAYER CHECKPOINT
 
+**October 16 role research (October 15 queued trigger):** separated family
+view/manage permissions and request receipts from source application, native
+clinical completion/review/signing states, and configurable billing hold stages.
+New cross-role acceptance criteria are documented with current primary sources;
+these are proposals, not new permissions or clinical/billing decisions. P1-E
+saved-calendar visit links remain the next independent implementation. See
+[role research](docs/management-layer/ROLE_WORKFLOW_RESEARCH.txt).
+
 **October 15 connected authorization evidence, 19:16 UTC:** live Overview and
 Visit Preview now select patient authorization discovery through a protected
 current-office/patient check. Discovery retains exact IDs, dates, fetched time

@@ -22,6 +22,16 @@
 
 # Current checkpoint
 
+- [x] October 16 role research (queued October 15, 20:37 UTC) clarified
+  per-patient family view/manage capabilities, request receipts versus source
+  application, native clinical document states and distinct billing hold stages.
+  Current clinical-profile/attachment code does not establish therapist forms
+  or signing. Cross-role acceptance criteria and five current primary sources
+  are recorded in [role research](ROLE_WORKFLOW_RESEARCH.txt).
+- [ ] For external-role work, preserve native document/request/EVV/billing
+  state dimensions and verify account-patient/staff capabilities server-side.
+  P1-E remains the next independent implementation; these are P2 design gates.
+
 - [x] October 15 17:29 UTC role research compared authorization projections
   with current primary documentation and added family multi-patient selection,
   staff network/document-state contracts and explicit shared-record permissions.

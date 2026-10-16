@@ -22,6 +22,18 @@
 
 # Current owner checkpoint
 
+## October 16 workflow-state evidence
+
+Research distinguishes family schedule viewing from per-member/per-patient
+request capabilities, clinical required-field completion from review/signing,
+and prebilling from later export/print review holds. When external roles are
+prepared, identify those capability scopes, the applicable document module/form
+and clinician reviewer, and the contract validation stage from existing approved
+records. Keep tenant-specific mappings protected; no access, hold, schedule or
+contract setting was changed. Authorization-detail entitlement and representative
+field validation remain open. These evidence dependencies do not block P1-E.
+See the October 16 pass in [role research](ROLE_WORKFLOW_RESEARCH.txt).
+
 ## October 15 connected authorization evidence
 
 Live visit rows now select patient authorization discovery. Normal-session
