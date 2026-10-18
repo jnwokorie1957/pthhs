@@ -882,13 +882,14 @@
       const detail = $('manualSnapshotDetails'), panel = element('section', undefined, 'panel');
       const captured = snapshotContext(), view = ++snapshotView, currentEvidence = element('section', undefined, 'panel');
       const viewCurrent = () => view === snapshotView && snapshotCurrent(captured);
+      let filterRevision = 0;
       const validId = value => typeof value === 'string' && /^[1-9]\d{0,9}$/.test(value) && Number(value) <= 2147483647;
-      const visitActions = snapshot.visits.map(visit => {
+      const visitAction = (visit, renderedRevision) => {
         if (!validId(visit.id) || snapshot.visits.filter(row => row.id === visit.id).length !== 1) return element('span', 'Unique source visit ID unavailable.');
         if (snapshot.patientId !== captured.patientId || snapshot.officeId !== captured.officeId) return element('span', 'Snapshot scope does not match the selected patient and office.');
         if (!['GetVisitInfoV3', 'GetPatientDemographics'].every(operation => settings?.enabledReads.includes(operation))) return element('span', 'Current visit read requires existing owner read permissions.');
         return button('Read current visit ' + visit.id, async () => {
-          if (!viewCurrent()) return;
+          if (!viewCurrent() || renderedRevision !== filterRevision) return;
           const sequence = ++snapshotSequence;
           currentEvidence.replaceChildren(element('p', 'Checking current visit, patient and office…'));
           status('Reading current visit evidence; the saved snapshot is unchanged.');
@@ -909,17 +910,44 @@
             currentEvidence.replaceChildren(); status(error.message); throw error;
           }
         });
+      };
+      const filters = element('fieldset', undefined, 'operational-form snapshot-filters'), matched = element('p', undefined, 'source-metadata'), rows = element('div');
+      filters.append(element('legend', 'Filter loaded saved visits'));
+      const dateFilter = element('input'), idFilter = element('input'), textFilter = element('input');
+      dateFilter.type = 'date'; idFilter.type = 'search'; idFilter.inputMode = 'numeric'; idFilter.maxLength = 10;
+      textFilter.type = 'search'; textFilter.maxLength = 256;
+      for (const [name, control] of [['Saved visit date', dateFilter], ['Exact saved visit ID', idFilter], ['Saved source text', textFilter]]) {
+        const label = element('label', name); label.append(control); filters.append(label);
+        control.addEventListener('input', () => renderSavedRows(true));
+      }
+      const clearFilters = element('button', 'Clear saved filters', 'btn secondary'); clearFilters.type = 'button';
+      clearFilters.addEventListener('click', () => {
+        if (!viewCurrent()) return;
+        dateFilter.value = ''; idFilter.value = ''; textFilter.value = ''; renderSavedRows(true); dateFilter.focus();
       });
+      filters.append(clearFilters);
+      function renderSavedRows(changed = false) {
+        if (!viewCurrent()) return;
+        const revision = ++filterRevision;
+        if (changed) { snapshotSequence++; currentEvidence.replaceChildren(); }
+        const date = dateFilter.value || '', id = (idFilter.value || '').trim(), term = (textFilter.value || '').trim().toLowerCase();
+        const visible = snapshot.visits.filter(visit => (!date || visit.date === date) && (!id || visit.id === id) && (!term || visit.text.toLowerCase().includes(term)));
+        matched.textContent = `Showing ${visible.length} of ${snapshot.visits.length} saved visit tiles in this loaded capture. The chart above still shows all ${snapshot.visits.length} saved tiles.`;
+        rows.replaceChildren(sourceTable(['Date', 'HHA visit ID', 'Schedule, actual, billing and assigned caregiver source text', 'Current source evidence'], visible.map(visit => [visit.date, visit.id, visit.text]), visible.map(visit => visitAction(visit, revision))));
+        if (!visible.length) rows.append(element('p', 'No saved visit tiles match these filters. Clear filters to show the full loaded capture.'));
+        if (changed) status(matched.textContent + ' Current evidence cleared; use an explicit read for the selected saved visit.');
+      }
+      renderSavedRows();
       panel.append(element('p', 'Manual snapshot · source interpretation pending', 'eyebrow'), element('h2', `${snapshot.patientLabel} · ${snapshot.period}`),
         element('p', `Office ${snapshot.officeId} · patient ${snapshot.patientId} · ${snapshot.visits.length} visit tiles · ${snapshot.authorizations.rows.length} authorization rows`),
         element('p', `Captured ${snapshot.capturedAt} · imported ${snapshot.updatedAt}. Times below retain the HHA source display.`, 'source-metadata'));
       const days = new Map(); snapshot.visits.forEach(visit => days.set(visit.date, (days.get(visit.date) || 0) + 1));
-      panel.append(element('h3', 'Recorded visit tiles by day'));
+      panel.append(element('h3', 'Recorded visit tiles by day · full saved capture'));
       const chart = element('div', undefined, 'snapshot-days'), max = Math.max(1, ...days.values());
       [...days].sort(([a], [b]) => a.localeCompare(b)).forEach(([date, count]) => { const row = element('div', undefined, 'snapshot-day'), bar = element('progress'); bar.max = max; bar.value = count; bar.setAttribute('aria-label', `${date}: ${count} recorded visit tiles`); row.append(element('span', date), bar, element('strong', count)); chart.append(row); });
       panel.append(chart, element('h3', 'Authorization source rows'), sourceTable(snapshot.authorizations.columns, snapshot.authorizations.rows.map(row => row.cells)),
         element('h3', 'Calendar source evidence'), element('p', 'Use an explicit current read to check a saved visit ID against its current patient and office. Saved source text remains dated manual evidence.'),
-        sourceTable(['Date', 'HHA visit ID', 'Schedule, actual, billing and assigned caregiver source text', 'Current source evidence'], snapshot.visits.map(visit => [visit.date, visit.id, visit.text]), visitActions), currentEvidence);
+        filters, matched, rows, currentEvidence);
       detail.replaceChildren(panel);
     }
     async function loadSnapshot(id, captured) {

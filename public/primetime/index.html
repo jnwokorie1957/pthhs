@@ -7,7 +7,7 @@
   <meta name="theme-color" content="#0d4f8f">
   <title>Primetime Operations</title>
   <link rel="icon" href="/assets/meta/favicon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="/primetime/primetime.css?v=e92127730d24">
+  <link rel="stylesheet" href="/primetime/primetime.css?v=be004cfcab6f">
 </head>
 <body>
   <div class="auth-shell" id="authShell">
@@ -95,6 +95,7 @@
             <p class="notice">Manual snapshots preserve what was visible when captured. Current HHA changes appear in live reads; these imports do not calculate payable hours or classify EVV exceptions.</p>
             <form id="manualPatientForm" class="operational-form"><label>HHA patient ID<input id="manualPatientId" inputmode="numeric" pattern="[1-9][0-9]*" required></label><button class="btn primary" type="submit">Load patient imports</button></form>
             <div class="connected-tools"><button class="btn secondary" type="button" data-view-jump="workbench" data-workflow="GetPatientDemographics" data-patient-source="manualPatientId">Live patient record</button><button class="btn secondary" type="button" data-view-jump="workbench" data-workflow="SearchPatientAuthorizations" data-patient-source="manualPatientId">Live authorizations</button></div>
+            <p class="source-metadata">Open a saved month to filter its captured visits or read current HHA evidence separately.</p>
             <p id="manualSnapshotStatus" role="status" aria-live="polite">Enter a patient ID to load protected imports.</p><div id="manualSnapshotList" class="snapshot-list"></div>
             <details class="snapshot-import"><summary>Import a captured HHA calendar</summary><p>Paste the version 1 calendar capture. The server checks the patient’s current office, validates dates and source IDs, and preserves a separate version when source facts change. Identical captures are deduplicated.</p><form id="manualSnapshotForm"><label for="manualSnapshotPayload">Captured calendar JSON</label><textarea id="manualSnapshotPayload" rows="7" maxlength="450000" required spellcheck="false" autocomplete="off"></textarea><button class="btn primary" type="submit">Save calendar snapshot</button></form></details>
           </section>
@@ -165,6 +166,6 @@
   <script src="/primetime/dashboard.js?v=ad5128cb4d84" defer></script>
   <script src="/primetime/revisions.js?v=fbc58b7bee5f" defer></script>
   <script src="/primetime/primetime.js?v=38f4350a3847" defer></script>
-  <script src="/primetime/workspace.js?v=113b40702b99" defer></script>
+  <script src="/primetime/workspace.js?v=c938d756e5c5" defer></script>
 </body>
 </html>
