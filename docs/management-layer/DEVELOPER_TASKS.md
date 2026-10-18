@@ -22,6 +22,15 @@
 
 # Current checkpoint
 
+- [x] P1-E connects saved-calendar visits to explicit current evidence through
+  current visit/patient/office verification and existing read gates. All 163
+  frontend and 471 backend tests pass. Fresh October 18 production reads matched
+  selected identities, retained saved 41/36 chart totals and passed source
+  paging/chart comparisons. See [acceptance](SAVED_VISIT_LINKS_ACCEPTANCE_2026-10-18.md).
+- [ ] P1-F proposed independent improvement: filter loaded saved-calendar rows
+  by date/visit ID/source text with truthful matched/loaded counts and reset;
+  preserve immutable capture facts, full chart and existing source read gates.
+
 - [x] October 16 SEO/public navigation pass verified all 132 marketing routes,
   deployed shared-footer links to the existing privacy/terms pages and corrected
   obsolete planning guidance. Both normal workflow jobs and production
@@ -29,8 +38,8 @@
   Returned GSC page pagination is exhausted in private evidence. This does not
   close growth, location promotion or operational acceptance. See
   [SEO evidence](../seo/2026-10-16-seo-review.md).
-- [ ] Next independent administrator implementation remains P1-E; retain the
-  existing current-office/patient checks and immutable saved-source evidence.
+- [x] P1-E administrator implementation completed with current-office/patient
+  checks and immutable saved-source evidence; see current acceptance above.
 
 - [x] October 16 role research (queued October 15, 20:37 UTC) clarified
   per-patient family view/manage capabilities, request receipts versus source
@@ -40,7 +49,7 @@
   are recorded in [role research](ROLE_WORKFLOW_RESEARCH.txt).
 - [ ] For external-role work, preserve native document/request/EVV/billing
   state dimensions and verify account-patient/staff capabilities server-side.
-  P1-E remains the next independent implementation; these are P2 design gates.
+  P1-E is implemented above; these remain P2 design gates.
 
 - [x] October 15 17:29 UTC role research compared authorization projections
   with current primary documentation and added family multi-patient selection,
@@ -56,7 +65,7 @@
 - [ ] Verify representative detail fields/contract mapping in production after
   owner-approved detail entitlement; unit/period/usage interpretation remains
   unvalidated. Synthetic detail tests do not close that acceptance.
-- [ ] Next independent implementation (P1-E): connect saved-calendar visit IDs
+- [x] P1-E: connect saved-calendar visit IDs
   to current visit evidence, verifying current patient/office identity on the
   server and preserving dated manual provenance and existing read gates.
 

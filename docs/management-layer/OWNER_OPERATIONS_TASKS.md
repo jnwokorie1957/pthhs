@@ -22,6 +22,17 @@
 
 # Current owner checkpoint
 
+## October 18 saved/current visit evidence
+
+Existing saved-calendar rows now open current visit evidence only after current
+visit/patient and patient/office checks. Normal-session acceptance matched exact
+selected identities, retained saved capture facts and 41/36 chart totals, and
+showed current fetch/office-check times separately. This does not validate source
+time, EVV, payroll, billing or authorization interpretation. No operational rule,
+record, permission or import changed. Continue representative-field validation
+under the existing approved rules; normal HHA sign-in is required for additional
+browser capture. See [acceptance](SAVED_VISIT_LINKS_ACCEPTANCE_2026-10-18.md).
+
 ## October 16 workflow-state evidence
 
 Research distinguishes family schedule viewing from per-member/per-patient

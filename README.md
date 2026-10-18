@@ -20,12 +20,22 @@ Operational/management decisions: EVV rules, visibility/escalation, correction a
 
 # 🚦 CURRENT MANAGEMENT-LAYER CHECKPOINT
 
+**October 18 saved/current visit acceptance (October 16 heartbeat):** saved
+calendar visits now open explicit current HHA evidence with current visit,
+patient and office verification through existing gates. The immutable captures
+and 41/36 chart totals are retained. All 163 frontend and 471 backend tests pass;
+both release jobs, fresh production lookups, source paging and all six chart
+comparisons passed. P1-E is complete in the administrator read-only scope.
+P1-F loaded saved-calendar filtering is proposed next; operational interpretation,
+membership/clinical and normal HHA sign-in dependencies remain open. See
+[acceptance](docs/management-layer/SAVED_VISIT_LINKS_ACCEPTANCE_2026-10-18.md).
+
 **October 16 role research (October 15 queued trigger):** separated family
 view/manage permissions and request receipts from source application, native
 clinical completion/review/signing states, and configurable billing hold stages.
 New cross-role acceptance criteria are documented with current primary sources;
 these are proposals, not new permissions or clinical/billing decisions. P1-E
-saved-calendar visit links remain the next independent implementation. See
+saved-calendar links are implemented in the acceptance above. See
 [role research](docs/management-layer/ROLE_WORKFLOW_RESEARCH.txt).
 
 **October 15 connected authorization evidence, 19:16 UTC:** live Overview and
@@ -38,7 +48,7 @@ paging and all six field-presence charts passed fresh row/count comparisons.
 Raw detail/contract-change edge cases remain synthetic until approved detail
 access. No unit conversion, utilization or eligibility decision was added. See
 [authorization acceptance](docs/management-layer/PATIENT_AUTHORIZATION_LINKS_ACCEPTANCE_2026-10-15.md).
-Next independent work: P1-E saved-calendar visit links with current
+P1-E saved-calendar visit links are implemented above with current
 patient/office verification and preserved manual provenance.
 
 **October 15 connected patient history, 19:01 UTC:** live Overview and Visit
