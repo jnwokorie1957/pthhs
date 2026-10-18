@@ -20,6 +20,15 @@ Operational/management decisions: EVV rules, visibility/escalation, correction a
 
 # 🚦 CURRENT MANAGEMENT-LAYER CHECKPOINT
 
+**October 18 role research, 22:07 UTC:** added proposed document-origin/action
+permissions, therapist template-versus-encounter states, native visit allocation
+and separate timesheet approval/hold evidence, overnight visit context and
+conditional family invoice access. Five new primary references and a rechecked
+Forms guide support screen contracts and acceptance cases. Tenant activation
+and field mappings remain unverified; HHA requires normal sign-in. P1-G loaded
+saved-row pagination remains next. See
+[research](docs/management-layer/ROLE_WORKFLOW_RESEARCH.txt).
+
 **October 18 loaded-calendar filtering, 21:55 UTC:** P1-F adds date/exact-ID and
 case-insensitive source-text filters with matched/loaded counts and reset.
 Full-capture charts and provenance stay unchanged; filter changes fence current

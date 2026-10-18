@@ -22,6 +22,18 @@
 
 # Current checkpoint
 
+- [x] October 18 role research, 22:07 UTC, compared current administrator
+  projections with primary documentation. Added proposed document-origin/action
+  grants, therapist template/encounter states, allocation versus discovery,
+  timesheet upload/approval/hold separation and overnight identity checks.
+  Conditional family invoice scope remains a separate permission. Five new
+  sources and the rechecked Forms guide support acceptance criteria in
+  [role research](ROLE_WORKFLOW_RESEARCH.txt); no external-role release is claimed.
+- [ ] Before exposing these state dimensions, validate source coverage and
+  tenant mappings, enforce role/action/record scopes server-side and test unknown,
+  revoked, cross-patient/office, stale/version and overnight cases. P1-B migration
+  and clinical form/signature prerequisites remain open. P1-G below can proceed.
+
 - [x] P1-F loaded saved-calendar filters implemented with exact date/ID and
   case-insensitive source text, matched/loaded counts and reset. Full capture
   charts/provenance and guarded current reads are preserved. All 170 frontend

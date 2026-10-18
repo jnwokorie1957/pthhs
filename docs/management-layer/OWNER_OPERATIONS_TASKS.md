@@ -22,6 +22,23 @@
 
 # Current owner checkpoint
 
+## October 18 document and visit-state research
+
+The latest [role research](ROLE_WORKFLOW_RESEARCH.txt) separates document origin
+and action permissions, form publication from encounter review/signing, visit
+authorization allocation from discovery, and timesheet upload from approval and
+hold clearance. Overnight context retains one source visit identity. Family
+invoice viewing requires its own approved scope. These are proposed requirements,
+not newly enabled tenant capabilities or operational decisions.
+
+Next evidence action: sign into HHA normally for further authorized UI review.
+Use protected representative records to identify document origins and action
+rights, applicable form/office/visit configuration and reviewer authority,
+allocation mode/contract labels and timesheet approval/hold fields under existing
+approved rules. Keep private mappings out of repository research. Existing detail
+entitlement and unit/period validation remain open; P1-G local pagination can
+proceed independently.
+
 ## October 18 loaded-calendar filtering
 
 Saved calendar filters now narrow only the selected loaded capture and report
