@@ -20,6 +20,15 @@ Operational/management decisions: EVV rules, visibility/escalation, correction a
 
 # 🚦 CURRENT MANAGEMENT-LAYER CHECKPOINT
 
+**October 18 SEO and owner-task pass, 22:30 UTC:** the home-care guide now
+offers useful routes to existing approved information. Resources -> guide ->
+care explainer fixes two core-page reachability gaps; 37 remaining location
+findings retain owner review. Both normal jobs, the 132-route crawl, artifact
+and browser checks passed. Private explicit-window Search Console/query-page
+evidence is refreshed; no growth is established. Article retirement, approved
+payer displays, 27 sitemap URLs and private protections are retained. See
+[SEO acceptance](docs/seo/2026-10-18-seo-review.md).
+
 **October 18 saved-calendar pagination, 22:15 UTC:** P1-G now pages loaded
 matching tiles ten at a time with visible-range/matched/loaded counts. Page and
 filter changes clear current evidence and fence detached controls; full-capture

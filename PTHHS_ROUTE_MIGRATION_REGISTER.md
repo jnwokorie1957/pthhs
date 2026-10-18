@@ -8,7 +8,7 @@
 | Contact / Get Started | `/home-care-contact-us` | One canonical lead route | Published on modern shell |
 | Legacy Set an Appointment | `/home-care-contact-us` | Permanent redirect; static fallback is `noindex,nofollow` | Retired |
 | Careers | `/home-care-careers` | Current general-interest instructions only; no unsupported opening claims | Published on modern shell |
-| Blog / information hub | `/home-care-blog` | Use verified service and official-resource links | Published on modern shell |
+| Blog / information hub | `/home-care-blog` | Visitor guide to existing approved service, eligibility, checklist and contact pages; zero retained articles | Published on modern shell; October 18 navigation acceptance |
 | Imported articles | `/home-care-blog` | All 24 imported posts remain quarantined | Zero retained posts |
 | Blog pagination | `/home-care-blog` | Four obsolete pagination routes redirect to the current hub | Retired |
 | Author/archive routes | None in repository | No route retained without reviewed content | Not published |

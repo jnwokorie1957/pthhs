@@ -73,7 +73,24 @@ CrUX configuration and comparable conversion/outcome evidence remain open.
 Local claim and route-migration gates passed, including the retained article
 noindex/redirect and zero-retained-post decision checks. Shared-shell,
 metadata/schema/sitemap, structured navigation, accessibility, performance,
-frontend-control and exact payer-logo checks passed. All four sitemap-date tests
-passed. No public/source Primetime artifact changed. Production acceptance
-follows the existing GitHub/Firebase release workflow and remains pending here
-until the deployed pages and link graph are checked.
+frontend-control and exact payer-logo checks passed. All four sitemap-date tests,
+repository and whitespace checks passed. No public/source Primetime artifact
+changed. Release `c4a7e9cdf6d51d897ae4827d66d2d4e4544070c5` passed both normal jobs
+in [workflow 39173214006](https://github.com/jnwokorie1957/pthhs/actions/runs/39173214006).
+
+The post-release 132-route crawl again passed HTTP/metadata/canonical checks.
+The guide and care explainer are now reachable from the homepage. Remaining
+initial-HTML reachability findings fell from 39 to 37 and all are location
+routes; their publication decisions remain separate. Every final page retains
+both policy links. Served guide/resources/explainer, homepage, services, contact,
+policies, sitemap/index and robots match the tested Git-normalized artifacts.
+The sitemap retains 27 URLs; only the two evidenced content dates changed.
+Primetime and anonymous session responses retain noindex/nofollow/noarchive,
+with the session returning 401.
+
+Browser acceptance followed Resources -> guide -> non-medical care explainer
+and back, checking the correct headings/canonical URLs and retained service
+distinction. The guide's title, description and website Open Graph type are
+served correctly. All four question cards and their named links fit the current
+1280px viewport without horizontal overflow. The screenshot was visually checked.
+No health records, account changes, source communications or new access were used.

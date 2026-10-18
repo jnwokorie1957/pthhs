@@ -22,6 +22,16 @@
 
 # Current checkpoint
 
+- [x] October 18 SEO/navigation pass replaced public archive-review notices
+  with a guide to existing approved pages and added contextual Resources access.
+  Both core-page graph gaps are fixed. Local gates, both normal jobs, production
+  132-route/byte checks and browser acceptance passed. Updated exact-window
+  private Search Console/query-page evidence; no ranking/growth claim. See
+  [SEO review](../seo/2026-10-18-seo-review.md).
+- [ ] Continue location availability/useful-content review and later comparable
+  outcome measurement. The legacy index's Google reprocessing remains unverified;
+  owner Search Console warning/error inspection remains required.
+
 - [x] P1-G loaded saved-calendar pagination implemented with ten-row local
   pages, visible-range/matched/loaded counts, filter/version resets, focused
   status and guarded detached page/current-read controls. All 178 frontend

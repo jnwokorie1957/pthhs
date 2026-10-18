@@ -1,5 +1,5 @@
 # PTHHS measured keyword review
-**Reviewed:** October 16, 2026
+**Reviewed:** October 18, 2026
 **Status:** Replaces the August 19 template's assumed positions, difficulty scores,
 conversion weights and improvement forecasts.
 
@@ -59,7 +59,14 @@ top-three results.
   Additional locality pages need useful verified content.
   [People-first guidance](https://developers.google.com/search/docs/fundamentals/creating-helpful-content)
 
-Next: validate a relevant shortlist against query-plus-page evidence. Preserve
+October 18: an explicit September 19–October 16 private refresh exhausted the
+returned page/query reports and both query-plus-page pages. A first PAS-themed
+candidate review is retained privately; it does not validate new services,
+locations or fixed ranks. An equally sized prior window returned no rows. The
+guide/navigation change addresses a separately demonstrated crawl gap, not an
+assumed query ranking gain. See [review](2026-10-18-seo-review.md).
+
+Next: continue candidate intent review and compare later settled outcomes. Preserve
 the 27 reviewed sitemap URLs and eight promoted locations. The other 57 location
 files require availability and useful-content review before further promotion.
 Outcome validation remains open pending comparable evidence.

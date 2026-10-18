@@ -1,6 +1,16 @@
 # SEO weekly changelog
 
-## Week of October 12, 2026 — updated October 16
+## Week of October 12, 2026 — updated October 18
+
+October 18: the existing information hub now guides visitors to approved service,
+eligibility, call-preparation and contact pages. Resources links to that guide,
+which links to the existing non-medical care explainer. Both previously
+unreachable core pages are now connected in the initial-HTML homepage graph;
+37 remaining location findings still need owner review. All 132 routes, release
+gates, both normal jobs and browser/production acceptance passed. Article
+quarantine, payer displays, 27 sitemap URLs and private protections are retained.
+Pinned Search Console/query-page evidence is private; no growth is established.
+See [October 18 evidence](2026-10-18-seo-review.md).
 
 October 16 follow-up: all 132 marketing source routes reached HTTP 200 with no
 multi-hop redirects or indexable metadata/canonical defects. Shared footer links

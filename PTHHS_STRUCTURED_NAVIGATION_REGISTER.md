@@ -5,6 +5,14 @@
 
 ## Selective Service schema
 
+October 18 addition: Resources now links to the existing home-care guide; the
+guide links to the existing non-medical care explainer and approved service,
+eligibility, checklist and contact routes. Both core pages are now reachable
+in the homepage HTML graph. The guide's metadata describes its visitor purpose
+and uses website Open Graph type; existing WebPage/BreadcrumbList contracts,
+article retirement, sitemap publication set and private app boundary remain.
+See [acceptance](docs/seo/2026-10-18-seo-review.md).
+
 October 16 addition: every marketing footer includes a Legal navigation linking
 directly to the existing canonical Privacy Policy and Terms of Use. The shared
 shell preserves the links and the navigation gate requires them on all 132

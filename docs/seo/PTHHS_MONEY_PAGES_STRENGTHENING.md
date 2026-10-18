@@ -1,5 +1,5 @@
 # PTHHS priority public-page review
-**Reviewed:** October 16, 2026
+**Reviewed:** October 18, 2026
 **Status:** Supersedes the August 19 assumed ranks, unverified network/county copy,
 FAQ rich-result tactics and page-creation instructions.
 
@@ -12,6 +12,7 @@ FAQ rich-result tactics and page-creation instructions.
 | Insurance and eligibility | Existing information and confirmation guidance | Preserve approved logos; avoid blanket coverage/eligibility claims |
 | Eight promoted locations and areas hub | Reviewed service/eligibility links exist | Retain them; verify another community before further promotion |
 | Privacy Policy and Terms of Use | Published canonical pages in sitemap | Shared footer links added October 16; policy content unchanged |
+| Home-care guide and care explainer | Resources -> guide -> explainer verified October 18 | Preserve useful question-led navigation and current approved scope |
 
 The October 16 crawl reached 132 marketing source routes at HTTP 200 with no more
 than one redirect. All 84 distinct indexable final pages had present, unique
@@ -57,8 +58,11 @@ Record user purpose, page, evidence, exact scope and acceptance for each change.
 Verify claims, metadata, navigation, accessibility, assets, private protections
 and production output through the existing release workflow.
 
-The footer repair addresses two navigation gaps. Blog/about-style landing
-discoverability and the remaining location inventory need page-purpose review.
+The footer repair addresses two policy navigation gaps. October 18 clarified the
+guide's visitor purpose and connected it and the existing care explainer through
+Resources. Both are now homepage-reachable; the 37 remaining graph findings are
+location routes. See [current evidence](2026-10-18-seo-review.md). The remaining
+location inventory still needs availability and useful-content review.
 Sitemap warning details/reprocessing and optional CrUX configuration remain
 owner actions. No growth is established; private HHA/admin acceptance remains
 in the management checklists.

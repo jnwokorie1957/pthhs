@@ -22,6 +22,24 @@
 
 # Current owner checkpoint
 
+## October 18 public guide and search evidence
+
+Resources now links to a visitor guide to existing approved information; that
+guide connects the non-medical care explainer, services, eligibility, checklist
+and contact pages. Both core pages are homepage-reachable. All 132 public routes
+and production/browser checks passed. No new service, location, payer or clinical
+claim was approved. Current exact-window Search Console/query-page evidence is
+private; the comparison has no observations, so no growth is claimed. See
+[SEO acceptance](../seo/2026-10-18-seo-review.md).
+
+Next owner action: inspect the detailed sitemap warning/error reasons in normal
+Search Console and request reprocessing of the repaired legacy index once if
+still needed. Its old reported crawl/errors do not establish a new failure or
+successful reprocessing. The 37 remaining HTML graph findings are locations;
+confirm current availability and useful unique content before further promotion.
+Optional field-performance setup and comparable outcome evidence remain open.
+HHA sign-in/source interpretation and private-role acceptance remain separate.
+
 ## October 18 loaded-calendar pagination
 
 Saved calendars now page only loaded matches, ten at a time, with separate
