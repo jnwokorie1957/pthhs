@@ -22,6 +22,17 @@
 
 # Current checkpoint
 
+- [x] P1-G loaded saved-calendar pagination implemented with ten-row local
+  pages, visible-range/matched/loaded counts, filter/version resets, focused
+  status and guarded detached page/current-read controls. All 178 frontend
+  tests, both normal release jobs and production acceptance passed. Full chart,
+  source order, authorization rows and provenance are retained. See
+  [pagination acceptance](SAVED_CALENDAR_PAGES_ACCEPTANCE_2026-10-18.md).
+- [ ] P1-H proposed independent follow-up: select a full saved-chart day through
+  an accessible control into the existing date filter, with selected-date
+  feedback, reset and stale-control guards. Preserve full-capture counts/chart
+  and current-read fences; add no source query or interpretation.
+
 - [x] October 18 role research, 22:07 UTC, compared current administrator
   projections with primary documentation. Added proposed document-origin/action
   grants, therapist template/encounter states, allocation versus discovery,
@@ -32,14 +43,14 @@
 - [ ] Before exposing these state dimensions, validate source coverage and
   tenant mappings, enforce role/action/record scopes server-side and test unknown,
   revoked, cross-patient/office, stale/version and overnight cases. P1-B migration
-  and clinical form/signature prerequisites remain open. P1-G below can proceed.
+  and clinical form/signature prerequisites remain open. P1-G is accepted above.
 
 - [x] P1-F loaded saved-calendar filters implemented with exact date/ID and
   case-insensitive source text, matched/loaded counts and reset. Full capture
   charts/provenance and guarded current reads are preserved. All 170 frontend
   tests, normal release and production acceptance passed. See
   [filter acceptance](SAVED_CALENDAR_FILTERS_ACCEPTANCE_2026-10-18.md).
-- [ ] P1-G proposed independent improvement: paginate loaded matching calendar
+- [x] P1-G implemented independent improvement: paginate loaded matching calendar
   rows with visible-range/matched/loaded counts and reset/fenced controls;
   preserve full-capture chart, provenance and existing current-read gates.
 

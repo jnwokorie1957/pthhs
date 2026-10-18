@@ -60,11 +60,10 @@ permission, source write, new import or communication was introduced.
 
 ## Remaining work
 
-P1-F is complete within this local administrator workflow. P1-G is a proposed
-independent follow-up: paginate the loaded matching calendar rows, disclose the
-visible range/matched/loaded counts, reset the page when filters/version change
-and fence detached page/current-read controls. Preserve the full chart and
-manual/current distinction; no new source requests or agency totals are implied.
+P1-F is complete within this local administrator workflow. Its subsequent P1-G
+loaded-row pagination is implemented with separate visible/matched/loaded counts
+and page/reset guards. See [pagination acceptance](SAVED_CALENDAR_PAGES_ACCEPTANCE_2026-10-18.md).
+The observations above retain their original filter-release scope and date.
 
 P1-B office/supervisor migration, external-role/form/signature prerequisites,
 representative source-field/unit/period validation and approved detail-read

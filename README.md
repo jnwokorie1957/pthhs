@@ -20,13 +20,23 @@ Operational/management decisions: EVV rules, visibility/escalation, correction a
 
 # 🚦 CURRENT MANAGEMENT-LAYER CHECKPOINT
 
+**October 18 saved-calendar pagination, 22:15 UTC:** P1-G now pages loaded
+matching tiles ten at a time with visible-range/matched/loaded counts. Page and
+filter changes clear current evidence and fence detached controls; full-capture
+charts/provenance stay unchanged. All 178 frontend tests, both normal release
+jobs and production acceptance passed, including 41/36-row traversal, filtered
+paging, resets and an exact current read from the last page. P1-H chart-day
+selection into the existing date filter is proposed next. Operational and
+external-role dependencies remain open. See
+[acceptance](docs/management-layer/SAVED_CALENDAR_PAGES_ACCEPTANCE_2026-10-18.md).
+
 **October 18 role research, 22:07 UTC:** added proposed document-origin/action
 permissions, therapist template-versus-encounter states, native visit allocation
 and separate timesheet approval/hold evidence, overnight visit context and
 conditional family invoice access. Five new primary references and a rechecked
 Forms guide support screen contracts and acceptance cases. Tenant activation
 and field mappings remain unverified; HHA requires normal sign-in. P1-G loaded
-saved-row pagination remains next. See
+saved-row pagination is accepted above. See
 [research](docs/management-layer/ROLE_WORKFLOW_RESEARCH.txt).
 
 **October 18 loaded-calendar filtering, 21:55 UTC:** P1-F adds date/exact-ID and
@@ -35,7 +45,7 @@ Full-capture charts and provenance stay unchanged; filter changes fence current
 evidence and detached controls. All 170 frontend tests, normal release and
 production checks passed, including 41/36 saved totals, expected/empty matches,
 reset and an exact filtered current read. No new imports or grants were added.
-P1-G local loaded-row pagination is proposed next; operational dependencies
+P1-G local loaded-row pagination is implemented above; operational dependencies
 remain open. See [acceptance](docs/management-layer/SAVED_CALENDAR_FILTERS_ACCEPTANCE_2026-10-18.md).
 
 **October 18 saved/current visit acceptance (October 16 heartbeat):** saved

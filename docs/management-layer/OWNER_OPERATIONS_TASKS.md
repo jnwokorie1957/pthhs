@@ -22,6 +22,20 @@
 
 # Current owner checkpoint
 
+## October 18 loaded-calendar pagination
+
+Saved calendars now page only loaded matches, ten at a time, with separate
+visible-range, matched and loaded counts. Full saved charts, authorizations and
+provenance remain intact. Production traversed October's 41 and September's 36
+tiles, verified filter/reset/version behavior and an exact current read from the
+last page; page changes clear current evidence. No operational rule, source
+record, permission or import changed. See
+[pagination acceptance](SAVED_CALENDAR_PAGES_ACCEPTANCE_2026-10-18.md).
+
+Normal HHA sign-in and protected representative-field validation remain the next
+owner evidence actions. P1-H chart-day filtering can proceed independently;
+external account/discipline/form/reviewer and P1-B scope prerequisites remain open.
+
 ## October 18 document and visit-state research
 
 The latest [role research](ROLE_WORKFLOW_RESEARCH.txt) separates document origin
@@ -36,8 +50,8 @@ Use protected representative records to identify document origins and action
 rights, applicable form/office/visit configuration and reviewer authority,
 allocation mode/contract labels and timesheet approval/hold fields under existing
 approved rules. Keep private mappings out of repository research. Existing detail
-entitlement and unit/period validation remain open; P1-G local pagination can
-proceed independently.
+entitlement and unit/period validation remain open; P1-G local pagination is
+implemented in the acceptance above.
 
 ## October 18 loaded-calendar filtering
 
