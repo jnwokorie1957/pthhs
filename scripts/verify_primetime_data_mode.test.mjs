@@ -1048,7 +1048,7 @@ test('saved filters compose locally with exact IDs, clear reset and full capture
   inputSavedFilter(date, '2026-09-01'); assert.equal(savedTableRows(app).length, 2);
   inputSavedFilter(id, ' 12 '); assert.equal(savedTableRows(app).length, 1);
   inputSavedFilter(text, 'TWO'); assert.equal(savedTableRows(app).length, 1);
-  assert.match(nodeText(app.element('manualSnapshotDetails')), /Showing 1 of 3 saved visit tiles in this loaded capture/);
+  assert.match(nodeText(app.element('manualSnapshotDetails')), /Showing 1–1 of 1 matched saved visit tiles · 3 loaded in this capture/);
   assert.match(app.element('manualSnapshotStatus').textContent, /chart above still shows all 3 saved tiles/);
   inputSavedFilter(text, 'one'); assert.equal(savedTableRows(app).length, 0);
   assert.match(nodeText(app.element('manualSnapshotDetails')), /No saved visit tiles match these filters/);
@@ -1066,7 +1066,7 @@ test('exact saved IDs and literal source search distinguish no match from no sav
   inputSavedFilter(id, ''); inputSavedFilter(text, '.*'); assert.equal(savedTableRows(app).length, 0);
   inputSavedFilter(text, 'SYNTHETIC VISIT'); assert.equal(savedTableRows(app).length, 3);
   inputSavedFilter(date, '2026-10-01'); assert.equal(savedTableRows(app).length, 0);
-  assert.match(nodeText(app.element('manualSnapshotDetails')), /Showing 0 of 3 saved visit tiles/);
+  assert.match(nodeText(app.element('manualSnapshotDetails')), /Showing 0 of 0 matched saved visit tiles · 3 loaded/);
   assert.doesNotMatch(app.element('manualSnapshotStatus').textContent, /No calendar snapshots saved/);
   assert.equal(currentVisitCalls(app).length, 0);
 });
@@ -1135,6 +1135,123 @@ test('detached filter callbacks cannot cancel an in-flight saved-version load', 
   pending.resolve(response({ok:true,snapshot:historySnapshot()})); await opening; await tick();
   assert.equal(savedTableRows(app).length,3); assert.deepEqual(savedFilterControls(app).inputs.map(input=>input.value),['','','']);
   assert.match(app.element('manualSnapshotStatus').textContent,/Saved manual snapshot loaded/);
+});
+
+const savedPageControls = app => {
+  const nav = descendants(app.element('manualSnapshotDetails')).find(node => node.tagName === 'NAV');
+  return { previous: nav.children[0], next: nav.children[1], summary: nav.children[2] };
+};
+const savedCells = app => savedTableRows(app).map(row => row.children.slice(0, 3).map(cell => cell.textContent));
+const pagedSavedSnapshot = (count = 23) => ({ ...historySnapshot(), visits: Array.from({ length: count }, (_, index) => ({
+  id: String(100 + index), date: index % 2 ? '2026-09-02' : '2026-09-01', text: `Synthetic paged visit ${index + 1} ${index % 2 ? 'ODD' : 'EVEN'}`
+})) });
+
+test('saved pages retain all ordered source cells, full charts and provenance without extra reads', async () => {
+  const snapshot = pagedSavedSnapshot(), original = JSON.stringify(snapshot), app = connectedWorkspace({ history: savedHistory(snapshot) });
+  await openSavedHistory(app); const calls = app.calls.length;
+  const chart = () => descendants(app.element('manualSnapshotDetails')).filter(node => node.tagName === 'PROGRESS').map(node => node.value);
+  const fullChart = chart(), first = savedCells(app), collected = [...first];
+  assert.equal(first.length, 10); assert.equal(savedPageControls(app).previous.disabled, true);
+  assert.match(nodeText(app.element('manualSnapshotDetails')), /Showing 1–10 of 23 matched saved visit tiles · 23 loaded/);
+  await clickNode(savedPageControls(app).next); collected.push(...savedCells(app));
+  assert.equal(savedTableRows(app).length, 10); assert.match(savedPageControls(app).summary.textContent, /Page 2 of 3/);
+  assert.equal(app.document.activeElement.textContent.startsWith('Showing 11–20'), true);
+  await clickNode(savedPageControls(app).next); collected.push(...savedCells(app));
+  assert.equal(savedTableRows(app).length, 3); assert.equal(savedPageControls(app).next.disabled, true);
+  assert.match(nodeText(app.element('manualSnapshotDetails')), /Showing 21–23 of 23 matched saved visit tiles/);
+  assert.deepEqual(collected, snapshot.visits.map(visit => [visit.date, visit.id, visit.text]));
+  await clickNode(savedPageControls(app).next); assert.equal(savedTableRows(app).length, 3);
+  await clickNode(savedPageControls(app).previous); await clickNode(savedPageControls(app).previous);
+  assert.deepEqual(savedCells(app), first); await clickNode(savedPageControls(app).previous); assert.deepEqual(savedCells(app), first);
+  assert.deepEqual(chart(), fullChart); assert.equal(chart().reduce((a,b) => a + b, 0), 23);
+  assert.equal(JSON.stringify(snapshot), original); assert.equal(app.calls.length, calls);
+  assert.match(nodeText(app.element('manualSnapshotDetails')), /Captured 2026-10-01/);
+});
+
+test('saved pagination resets for composed filters, empty matches and clear without changing the loaded denominator', async () => {
+  const app = connectedWorkspace({ history: savedHistory(pagedSavedSnapshot()) }); await openSavedHistory(app);
+  await clickNode(savedPageControls(app).next);
+  const { inputs: [,id,text], reset } = savedFilterControls(app);
+  inputSavedFilter(text, 'EVEN'); assert.match(savedPageControls(app).summary.textContent, /Page 1 of 2/);
+  assert.match(nodeText(app.element('manualSnapshotDetails')), /Showing 1–10 of 12 matched saved visit tiles · 23 loaded/);
+  await clickNode(savedPageControls(app).next); assert.equal(savedTableRows(app).length, 2);
+  inputSavedFilter(id, '122'); assert.equal(savedTableRows(app).length, 1); assert.match(savedPageControls(app).summary.textContent, /Page 1 of 1/);
+  inputSavedFilter(text, 'ODD'); assert.equal(savedTableRows(app).length, 0);
+  assert.match(nodeText(app.element('manualSnapshotDetails')), /Showing 0 of 0 matched saved visit tiles · 23 loaded/);
+  assert.equal(savedPageControls(app).previous.disabled, true); assert.equal(savedPageControls(app).next.disabled, true);
+  assert.match(nodeText(app.element('manualSnapshotDetails')), /chart above still shows all 23 saved tiles/);
+  await clickNode(reset); assert.equal(savedTableRows(app).length, 10); assert.match(savedPageControls(app).summary.textContent, /Page 1 of 3/);
+  assert.deepEqual(savedFilterControls(app).inputs.map(input => input.value), ['', '', '']);
+});
+
+test('saved pagination boundaries handle exact page sizes and a final single row', async () => {
+  for (const count of [1,10,11]) {
+    const app = connectedWorkspace({ history: savedHistory(pagedSavedSnapshot(count)) }); await openSavedHistory(app);
+    assert.equal(savedTableRows(app).length, Math.min(10,count)); assert.equal(savedPageControls(app).next.disabled, count <= 10);
+    if (count === 11) { await clickNode(savedPageControls(app).next); assert.equal(savedTableRows(app).length, 1); assert.match(nodeText(app.element('manualSnapshotDetails')), /Showing 11–11 of 11 matched/); }
+  }
+});
+
+test('saved page changes clear current evidence and fence late successes, errors and detached controls', async () => {
+  for (const failure of [false,true]) {
+    const pending = deferred(); let wait = false;
+    const app = connectedWorkspace({ history: savedHistory(pagedSavedSnapshot()), patientVisit: (_path, options) => wait ? pending.promise : response(currentVisitSource(JSON.parse(options.body))) });
+    await openSavedHistory(app); await clickNode(currentVisitButtons(app)[0]); await tick();
+    assert.match(nodeText(app.element('manualSnapshotDetails')), /Current HHA visit evidence/);
+    const oldRow = currentVisitButtons(app)[0], oldPage = savedPageControls(app).next;
+    wait = true; const reading = clickNode(oldRow); await tick(); await clickNode(oldPage);
+    const calls = app.calls.length, status = app.element('manualSnapshotStatus').textContent, cells = savedCells(app);
+    await clickNode(oldRow); await clickNode(oldPage); assert.equal(app.calls.length, calls); assert.deepEqual(savedCells(app), cells);
+    pending.resolve(response(failure ? {ok:false,error:'patient_office_mismatch'} : currentVisitSource({visitId:'100',patientId:'5',officeId:'123'})));
+    await reading; await tick(); assert.doesNotMatch(nodeText(app.element('manualSnapshotDetails')), /Current HHA visit evidence/);
+    assert.equal(app.element('manualSnapshotStatus').textContent, status); assert.match(savedPageControls(app).summary.textContent, /Page 2 of 3/);
+  }
+});
+
+test('detached saved page controls cannot alter a different version, patient, office, mode or session', async () => {
+  for (const mode of ['version','patient','office','demo','session','filter']) {
+    const app = connectedWorkspace({ history: savedHistory(pagedSavedSnapshot()) }); await openSavedHistory(app);
+    const old = savedPageControls(app).next;
+    if (mode === 'version') { await clickNode(descendants(app.element('manualSnapshotList')).find(node => node.textContent === 'Open 2026-09 snapshot')); await tick(); }
+    if (mode === 'patient') { app.element('manualPatientId').value = '99'; for (const fn of app.element('manualPatientId').handlers.get('input')) fn(new Event('input')); }
+    if (mode === 'office') app.window.primetimeDataMode.observeScope({revision:2,officeId:'999',officeTimezone:'America/Chicago'});
+    if (mode === 'demo') app.window.primetimeDataMode.setMode('demo');
+    if (mode === 'session') app.dispatch('primetime-signed-out');
+    if (mode === 'filter') inputSavedFilter(savedFilterControls(app).inputs[1], '100');
+    await tick(); const before = nodeText(app.element('manualSnapshotDetails')), status = app.element('manualSnapshotStatus').textContent, calls = app.calls.length;
+    await clickNode(old); assert.equal(nodeText(app.element('manualSnapshotDetails')), before, mode);
+    assert.equal(app.element('manualSnapshotStatus').textContent, status, mode); assert.equal(app.calls.length, calls, mode);
+  }
+});
+
+test('detached page controls cannot cancel a saved-version load and reopening starts at page one', async () => {
+  const pending = deferred(); let hold = false;
+  const app = connectedWorkspace({ history: path => new URL(path,'https://fixture.test').searchParams.has('id') && hold ? pending.promise : savedHistory(pagedSavedSnapshot())(path) });
+  await openSavedHistory(app); await clickNode(savedPageControls(app).next); const old = savedPageControls(app).next; hold = true;
+  const opening = clickNode(descendants(app.element('manualSnapshotList')).find(node => node.textContent === 'Open 2026-09 snapshot')); await tick();
+  await clickNode(old); pending.resolve(response({ok:true,snapshot:pagedSavedSnapshot(11)})); await opening; await tick();
+  assert.match(savedPageControls(app).summary.textContent, /Page 1 of 2/); assert.equal(savedTableRows(app).length, 10);
+  assert.match(app.element('manualSnapshotStatus').textContent, /Saved manual snapshot loaded/);
+});
+
+test('duplicate source IDs on different saved pages never become actionable', async () => {
+  const snapshot = pagedSavedSnapshot(); snapshot.visits[20].id = snapshot.visits[0].id;
+  const app = connectedWorkspace({ history: savedHistory(snapshot) }); await openSavedHistory(app);
+  assert.equal(currentVisitButtons(app).some(node => node.textContent === 'Read current visit 100'), false);
+  await clickNode(savedPageControls(app).next); await clickNode(savedPageControls(app).next);
+  assert.equal(currentVisitButtons(app).some(node => node.textContent === 'Read current visit 100'), false);
+  inputSavedFilter(savedFilterControls(app).inputs[2], 'visit 21 '); assert.equal(savedTableRows(app).length, 1);
+  assert.equal(currentVisitButtons(app).length, 0); assert.equal(currentVisitCalls(app).length, 0);
+});
+
+test('a later saved page reads the exact selected visit and navigating clears its current evidence', async () => {
+  const app = connectedWorkspace({ history: savedHistory(pagedSavedSnapshot()), patientVisit: (_path,options) => response(currentVisitSource(JSON.parse(options.body))) });
+  await openSavedHistory(app); await clickNode(savedPageControls(app).next);
+  await clickNode(currentVisitButtons(app)[0]); await tick();
+  assert.deepEqual(JSON.parse(currentVisitCalls(app)[0].options.body), {visitId:'110',patientId:'5',officeId:'123'});
+  assert.match(nodeText(app.element('manualSnapshotDetails')), /Visit 110 · fetched/);
+  await clickNode(savedPageControls(app).previous); assert.doesNotMatch(nodeText(app.element('manualSnapshotDetails')), /Current HHA visit evidence/);
+  assert.match(savedPageControls(app).summary.textContent, /Page 1 of 3/);
 });
 
 const authorizationButtons = (app, host = 'dashboardTimeline') => descendants(app.element(host)).filter(node => node.textContent === 'Open patient authorizations');

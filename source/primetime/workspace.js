@@ -882,14 +882,15 @@
       const detail = $('manualSnapshotDetails'), panel = element('section', undefined, 'panel');
       const captured = snapshotContext(), view = ++snapshotView, currentEvidence = element('section', undefined, 'panel');
       const viewCurrent = () => view === snapshotView && snapshotCurrent(captured);
-      let filterRevision = 0;
+      let rowsRevision = 0;
+      const pageSize = 10;
       const validId = value => typeof value === 'string' && /^[1-9]\d{0,9}$/.test(value) && Number(value) <= 2147483647;
       const visitAction = (visit, renderedRevision) => {
         if (!validId(visit.id) || snapshot.visits.filter(row => row.id === visit.id).length !== 1) return element('span', 'Unique source visit ID unavailable.');
         if (snapshot.patientId !== captured.patientId || snapshot.officeId !== captured.officeId) return element('span', 'Snapshot scope does not match the selected patient and office.');
         if (!['GetVisitInfoV3', 'GetPatientDemographics'].every(operation => settings?.enabledReads.includes(operation))) return element('span', 'Current visit read requires existing owner read permissions.');
         return button('Read current visit ' + visit.id, async () => {
-          if (!viewCurrent() || renderedRevision !== filterRevision) return;
+          if (!viewCurrent() || renderedRevision !== rowsRevision) return;
           const sequence = ++snapshotSequence;
           currentEvidence.replaceChildren(element('p', 'Checking current visit, patient and office…'));
           status('Reading current visit evidence; the saved snapshot is unchanged.');
@@ -912,6 +913,8 @@
         });
       };
       const filters = element('fieldset', undefined, 'operational-form snapshot-filters'), matched = element('p', undefined, 'source-metadata'), rows = element('div');
+      const pagination = element('nav', undefined, 'visit-pagination');
+      pagination.setAttribute('aria-label', 'Loaded saved visits pages'); matched.tabIndex = -1;
       filters.append(element('legend', 'Filter loaded saved visits'));
       const dateFilter = element('input'), idFilter = element('input'), textFilter = element('input');
       dateFilter.type = 'date'; idFilter.type = 'search'; idFilter.inputMode = 'numeric'; idFilter.maxLength = 10;
@@ -926,15 +929,27 @@
         dateFilter.value = ''; idFilter.value = ''; textFilter.value = ''; renderSavedRows(true); dateFilter.focus();
       });
       filters.append(clearFilters);
-      function renderSavedRows(changed = false) {
+      function renderSavedRows(changed = false, requestedPage = 0) {
         if (!viewCurrent()) return;
-        const revision = ++filterRevision;
+        const revision = ++rowsRevision;
         if (changed) { snapshotSequence++; currentEvidence.replaceChildren(); }
         const date = dateFilter.value || '', id = (idFilter.value || '').trim(), term = (textFilter.value || '').trim().toLowerCase();
-        const visible = snapshot.visits.filter(visit => (!date || visit.date === date) && (!id || visit.id === id) && (!term || visit.text.toLowerCase().includes(term)));
-        matched.textContent = `Showing ${visible.length} of ${snapshot.visits.length} saved visit tiles in this loaded capture. The chart above still shows all ${snapshot.visits.length} saved tiles.`;
+        const matching = snapshot.visits.filter(visit => (!date || visit.date === date) && (!id || visit.id === id) && (!term || visit.text.toLowerCase().includes(term)));
+        const pages = Math.max(1, Math.ceil(matching.length / pageSize)), page = Math.min(Math.max(0, requestedPage), pages - 1), start = page * pageSize;
+        const visible = matching.slice(start, start + pageSize), range = visible.length ? `${start + 1}–${start + visible.length}` : '0';
+        matched.textContent = `Showing ${range} of ${matching.length} matched saved visit tiles · ${snapshot.visits.length} loaded in this capture. The chart above still shows all ${snapshot.visits.length} saved tiles.`;
         rows.replaceChildren(sourceTable(['Date', 'HHA visit ID', 'Schedule, actual, billing and assigned caregiver source text', 'Current source evidence'], visible.map(visit => [visit.date, visit.id, visit.text]), visible.map(visit => visitAction(visit, revision))));
-        if (!visible.length) rows.append(element('p', 'No saved visit tiles match these filters. Clear filters to show the full loaded capture.'));
+        if (!visible.length) rows.append(element('p', 'No saved visit tiles match these filters. Clear filters to browse all loaded saved tiles.'));
+        const pageControl = (label, target, disabled) => {
+          const control = element('button', label, 'btn secondary'); control.type = 'button'; control.disabled = disabled;
+          control.addEventListener('click', () => {
+            if (disabled || !viewCurrent() || revision !== rowsRevision) return;
+            renderSavedRows(true, target); matched.focus();
+          });
+          return control;
+        };
+        pagination.replaceChildren(pageControl('Previous saved visits', page - 1, page === 0), pageControl('Next saved visits', page + 1, page === pages - 1),
+          element('small', `Page ${page + 1} of ${pages} · up to ${pageSize} saved tiles per page. Local pages of this loaded capture; no additional source records are fetched.`));
         if (changed) status(matched.textContent + ' Current evidence cleared; use an explicit read for the selected saved visit.');
       }
       renderSavedRows();
@@ -947,7 +962,7 @@
       [...days].sort(([a], [b]) => a.localeCompare(b)).forEach(([date, count]) => { const row = element('div', undefined, 'snapshot-day'), bar = element('progress'); bar.max = max; bar.value = count; bar.setAttribute('aria-label', `${date}: ${count} recorded visit tiles`); row.append(element('span', date), bar, element('strong', count)); chart.append(row); });
       panel.append(chart, element('h3', 'Authorization source rows'), sourceTable(snapshot.authorizations.columns, snapshot.authorizations.rows.map(row => row.cells)),
         element('h3', 'Calendar source evidence'), element('p', 'Use an explicit current read to check a saved visit ID against its current patient and office. Saved source text remains dated manual evidence.'),
-        filters, matched, rows, currentEvidence);
+        filters, matched, pagination, rows, currentEvidence);
       detail.replaceChildren(panel);
     }
     async function loadSnapshot(id, captured) {
