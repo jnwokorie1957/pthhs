@@ -59,8 +59,8 @@ const coreMeta = {
     description: 'Use maintained official Texas and federal resources for Medicaid, benefits, long-term supports and community assistance information.'
   },
   '/home-care-blog': {
-    title: 'Home Care Information | Primetime Houston',
-    description: 'Use verified Primetime service information and maintained official resources while the imported article archive remains under review.'
+    title: 'Home Care Guide | Primetime Houston',
+    description: 'Explore non-medical personal assistance, understand eligibility questions, and prepare for a call with Primetime using our home care guide.'
   }
 };
 
@@ -245,7 +245,7 @@ function removeHeadTag(html, regex) {
 function injectMeta(html, route, meta) {
   const canonical = canonicalForRoute(route);
   const ogImage = ogImageForRoute(route);
-  const ogType = route.includes('blog') || (!route.startsWith('/home-care-') && route !== '/' && route !== '/404') ? 'article' : 'website';
+  const ogType = route !== '/home-care-blog' && (route.includes('blog') || (!route.startsWith('/home-care-') && route !== '/' && route !== '/404')) ? 'article' : 'website';
 
   html = removeHeadTag(html, /<title>[\s\S]*?<\/title>/i);
   html = removeHeadTag(html, /<meta\s+name=["']description["'][^>]*>/gi);

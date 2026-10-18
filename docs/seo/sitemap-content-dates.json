@@ -52,8 +52,12 @@
     "evidence": "Office follow-up content edit; docs/seo/2026-10-01-followup-review.md. Publish this date only with the corresponding content."
   },
   "/home-care-resources": {
-    "lastmod": "2026-10-12",
-    "evidence": "Content and contextual link review: docs/seo/2026-10-12-eligibility-links-review.md"
+    "lastmod": "2026-10-18",
+    "evidence": "Added contextual home-care guide navigation: docs/seo/2026-10-18-seo-review.md"
+  },
+  "/home-care-blog": {
+    "lastmod": "2026-10-18",
+    "evidence": "Replaced archive-review notices with a visitor guide to existing approved pages: docs/seo/2026-10-18-seo-review.md"
   },
   "/": {
     "lastmod": "2026-10-12",

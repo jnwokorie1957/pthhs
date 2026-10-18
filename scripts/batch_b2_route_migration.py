@@ -13,22 +13,25 @@ PUBLIC = ROOT / "public"
 
 
 blog_body = section(
-    '''<div class="grid grid-2">
-<article class="card"><h2>Article review underway</h2><p>The imported article archive is withheld while each post is reviewed for current sources, accurate non-medical service scope, privacy, and approved terminology.</p><p>No imported article is currently retained for publication.</p></article>
-<article class="card"><h2>Use verified information</h2><p>For current information about Primetime, use the service, eligibility, location, and official-resource pages or call the Houston office.</p><p><a class="btn-primary" href="/home-care-services">View Services</a></p></article>
+    '''<!-- No imported article is currently retained for publication. -->
+<div class="grid grid-2">
+<article class="card"><h2>What kind of help do you need?</h2><p>Start with the distinction between non-medical personal assistance and skilled home health before choosing your next step.</p><p><a class="btn-secondary" href="/home-health-agency-in-houston-texas">Understand non-medical home care</a></p></article>
+<article class="card"><h2>How can support fit daily routines?</h2><p>Explore assistance with everyday activities. Tasks and hours depend on the applicable program, authorization and current availability.</p><p><a class="btn-secondary" href="/home-care-services">Explore personal assistance services</a></p></article>
 </div>'''
 ) + section(
-    '''<div class="grid grid-2"><article class="card"><h2>Official public resources</h2><p>Start with maintained Texas and federal sources for program and benefits information.</p><p><a class="btn-primary" href="/home-care-resources">Browse Resources</a></p></article><article class="card"><h2>Questions about Primetime?</h2><p>Ask about non-medical personal assistance, service-area availability, or agency onboarding after eligibility and authorization are confirmed.</p><p><a class="btn-secondary" href="tel:7139777721">Call 713-977-7721</a></p></article></div>''',
+    '''<div class="grid grid-2"><article class="card"><h2>Who confirms eligibility and authorization?</h2><p>Your program or plan determines its requirements. Review the distinctions and questions to discuss before confirming a service arrangement.</p><p><a class="btn-secondary" href="/home-care-insurance">Review eligibility and program information</a></p></article><article class="card"><h2>What should you have ready for a call?</h2><p>Use the practical checklist and official public resources. Keep health records and member IDs out of public forms and ordinary email.</p><p><a class="btn-secondary" href="/home-care-resources">Use the before-you-call checklist</a></p></article></div>''',
     soft=True,
+) + section(
+    '''<div class="content-wrap"><h2>Ask Primetime about your next step</h2><p>Call to discuss non-medical personal assistance, current service-area and staffing availability, and the information needed for agency onboarding.</p><p><a class="btn-secondary" href="tel:7139777721">Call 713-977-7721</a> <a class="btn-primary" href="/home-care-contact-us">Get Started</a></p></div>'''
 )
 (PUBLIC / "home-care-blog.html").write_text(
     render_page(
-        title="Home Care Information | Primetime Houston",
-        description="Use verified Primetime service information and maintained official resources while the imported article archive remains under review.",
+        title="Home Care Guide | Primetime Houston",
+        description="Explore non-medical personal assistance, understand eligibility questions, and prepare for a call with Primetime using our home care guide.",
         path="/home-care-blog",
-        eyebrow="Verified Information",
-        heading="Home care information you can verify",
-        lead="The imported article archive remains unpublished until every retained item passes source, scope, privacy, and terminology review.",
+        eyebrow="Home Care Guide",
+        heading="Find the next step for home care",
+        lead="Choose the question that fits your situation. These pages explain non-medical personal assistance and the information to confirm before services can begin.",
         body=blog_body,
     )
 )

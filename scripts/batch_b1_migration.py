@@ -51,7 +51,13 @@ profile_body = section(
     )
 )
 
-resources_body = section(
+guide_body = section(
+    '''<div class="content-wrap"><h2>Not sure where to start?</h2><p>Our home care guide connects the questions about non-medical support, service options, eligibility and preparing for a call.</p><p><a class="btn-secondary" href="/home-care-blog">Find your next step with the home care guide</a></p></div>''',
+    soft=True,
+    section_id="home-care-guide",
+)
+
+resources_body = guide_body + section(
     '''<div class="section-heading"><h2 class="section-title">Official starting points</h2><p class="section-lead">These public agencies maintain the linked program and benefits information. Links were reviewed September 10, 2026; program details can change.</p></div>
 <div class="grid grid-3 article-grid">
 <article class="card text-card"><p class="resource-domain">Texas Health and Human Services</p><h3>Medicaid &amp; CHIP</h3><p>State information about Texas Medicaid and CHIP programs.</p><a class="card-link" href="https://www.hhs.texas.gov/services/health/medicaid-chip" target="_blank" rel="noopener noreferrer">Open official resource <span aria-hidden="true">↗</span><span class="sr-only"> (opens in a new tab)</span></a></article>
