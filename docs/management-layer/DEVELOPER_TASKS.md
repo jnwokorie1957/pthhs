@@ -22,12 +22,21 @@
 
 # Current checkpoint
 
+- [x] P1-F loaded saved-calendar filters implemented with exact date/ID and
+  case-insensitive source text, matched/loaded counts and reset. Full capture
+  charts/provenance and guarded current reads are preserved. All 170 frontend
+  tests, normal release and production acceptance passed. See
+  [filter acceptance](SAVED_CALENDAR_FILTERS_ACCEPTANCE_2026-10-18.md).
+- [ ] P1-G proposed independent improvement: paginate loaded matching calendar
+  rows with visible-range/matched/loaded counts and reset/fenced controls;
+  preserve full-capture chart, provenance and existing current-read gates.
+
 - [x] P1-E connects saved-calendar visits to explicit current evidence through
   current visit/patient/office verification and existing read gates. All 163
   frontend and 471 backend tests pass. Fresh October 18 production reads matched
   selected identities, retained saved 41/36 chart totals and passed source
   paging/chart comparisons. See [acceptance](SAVED_VISIT_LINKS_ACCEPTANCE_2026-10-18.md).
-- [ ] P1-F proposed independent improvement: filter loaded saved-calendar rows
+- [x] P1-F: filter loaded saved-calendar rows
   by date/visit ID/source text with truthful matched/loaded counts and reset;
   preserve immutable capture facts, full chart and existing source read gates.
 

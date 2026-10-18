@@ -22,6 +22,16 @@
 
 # Current owner checkpoint
 
+## October 18 loaded-calendar filtering
+
+Saved calendar filters now narrow only the selected loaded capture and report
+matched/loaded counts. Full-capture charts and provenance stay unchanged;
+explicit current reads retain existing office/patient checks. Production
+verified expected matches, no matches, reset and version changes. These controls
+do not validate source interpretation or change an operational rule or record.
+Existing representative-field and HHA sign-in dependencies remain open. See
+[filter acceptance](SAVED_CALENDAR_FILTERS_ACCEPTANCE_2026-10-18.md).
+
 ## October 18 saved/current visit evidence
 
 Existing saved-calendar rows now open current visit evidence only after current

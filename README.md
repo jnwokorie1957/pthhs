@@ -20,13 +20,22 @@ Operational/management decisions: EVV rules, visibility/escalation, correction a
 
 # 🚦 CURRENT MANAGEMENT-LAYER CHECKPOINT
 
+**October 18 loaded-calendar filtering, 21:55 UTC:** P1-F adds date/exact-ID and
+case-insensitive source-text filters with matched/loaded counts and reset.
+Full-capture charts and provenance stay unchanged; filter changes fence current
+evidence and detached controls. All 170 frontend tests, normal release and
+production checks passed, including 41/36 saved totals, expected/empty matches,
+reset and an exact filtered current read. No new imports or grants were added.
+P1-G local loaded-row pagination is proposed next; operational dependencies
+remain open. See [acceptance](docs/management-layer/SAVED_CALENDAR_FILTERS_ACCEPTANCE_2026-10-18.md).
+
 **October 18 saved/current visit acceptance (October 16 heartbeat):** saved
 calendar visits now open explicit current HHA evidence with current visit,
 patient and office verification through existing gates. The immutable captures
 and 41/36 chart totals are retained. All 163 frontend and 471 backend tests pass;
 both release jobs, fresh production lookups, source paging and all six chart
 comparisons passed. P1-E is complete in the administrator read-only scope.
-P1-F loaded saved-calendar filtering is proposed next; operational interpretation,
+P1-F loaded saved-calendar filtering is implemented above; operational interpretation,
 membership/clinical and normal HHA sign-in dependencies remain open. See
 [acceptance](docs/management-layer/SAVED_VISIT_LINKS_ACCEPTANCE_2026-10-18.md).
 

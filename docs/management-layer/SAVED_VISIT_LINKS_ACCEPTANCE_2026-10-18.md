@@ -71,7 +71,7 @@ entitlement, P1-B office/supervisor migration and external-role/clinical gates
 remain open. Normal HHA sign-in is the next owner action for further UI capture;
 existing protected representative-record validation is still needed.
 
-P1-F is a proposed independent follow-up: filter loaded saved-calendar rows by
-date, visit ID or source text, show matched/loaded counts and a clear-filter
-action, and preserve the full capture/chart and source provenance. It needs no
-new source permissions and must not imply complete agency coverage.
+P1-F filtering was subsequently implemented and verified in the
+[filter acceptance](SAVED_CALENDAR_FILTERS_ACCEPTANCE_2026-10-18.md). Local
+loaded-row pagination is proposed next; it must preserve the full chart,
+provenance, existing read gates and truthful coverage labels.
