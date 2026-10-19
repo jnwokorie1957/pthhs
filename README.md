@@ -20,6 +20,15 @@ Operational/management decisions: EVV rules, visibility/escalation, correction a
 
 # 🚦 CURRENT MANAGEMENT-LAYER CHECKPOINT
 
+**October 19 20:40 UTC role research:** six new primary references distinguish
+recurring plans/generated visits, placeholder staffing, missing confirmations/
+missed/deleted visits, order/certification versions and aggregator stages. Compared
+current read projections and retained UI; HHA still needs normal sign-in. Added
+proposed role screens, exact record links, permissions and acceptance cases in
+[research](docs/management-layer/ROLE_WORKFLOW_RESEARCH.txt). No application or
+external role changed. P1-L fetch-age display remains the next independent task;
+source/configuration validation and P1-B/external-role prerequisites remain open.
+
 **October 19 20:24 UTC dashboard pass:** P1-K adds a native keyboard disclosure
 for every returned current-source field and its count, with caregiver navigation
 before the disclosure. All 203 frontend tests, both normal jobs and production

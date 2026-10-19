@@ -22,6 +22,19 @@
 
 # Current checkpoint
 
+- [x] October 19 20:40 UTC role research compared current projections/UI and six
+  new primary references for recurrence/generated visits, temporary staffing,
+  confirmation/missed/deleted states, order/certification versions and aggregation
+  history. Added proposed screens, explicit source joins, role/action boundaries
+  and unknown/revoked/version acceptance in [research](ROLE_WORKFLOW_RESEARCH.txt).
+  No application asset, source operation or role permission changed.
+- [ ] Before implementing these role/status views, validate effective source/
+  configuration mappings and current enabled reads; add server account/assignment/
+  office/action scopes before wiring bounded results. Do not use missing time,
+  positive caregiver ID, tile color, task POC or billed flag as another state's
+  authority. Keep P1-B and external clinical/account prerequisites open. P1-L is
+  the next independent administrator presentation task below.
+
 - [x] P1-K completed for October 19 20:24 UTC: native closed raw-field disclosure,
   exact returned-field count and caregiver navigation before it. All 203 frontend
   tests, both normal jobs and production keyboard/value/context acceptance passed.

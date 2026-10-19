@@ -22,6 +22,22 @@
 
 # Current owner checkpoint
 
+## October 19 20:40 UTC role and source-state research
+
+The [research](ROLE_WORKFLOW_RESEARCH.txt) adds six primary references and proposed
+patient/staff/office screens that keep recurrence, actual visits, placeholder
+staffing, missing confirmation, missed/deleted evidence, order versions and
+aggregation stages separate. Product documentation does not establish this
+tenant's settings, approval rules or permissions. No role or source action changed.
+
+Next evidence action: sign in normally in the retained HHA tab for authorized
+read-only review. Keep representative recurrence/generated-visit, real/placeholder
+assignment, confirmation/missed/deleted, order/certification/version and relevant
+contract/aggregation mappings in protected acceptance records. Unknown mappings
+remain open. Do not change HHA, enable rights or make clinical/financial decisions
+to satisfy the research. P1-B and external account/form/reviewer/signature gates
+remain; P1-L fetch-age display stays the next independent developer task.
+
 ## October 19 current-source disclosure and live verification
 
 All returned raw current fields now open in a native keyboard disclosure with
