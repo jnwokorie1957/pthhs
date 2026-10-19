@@ -22,12 +22,23 @@
 
 # Current checkpoint
 
+- [x] P1-K completed for October 19 20:24 UTC: native closed raw-field disclosure,
+  exact returned-field count and caregiver navigation before it. All 203 frontend
+  tests, both normal jobs and production keyboard/value/context acceptance passed.
+  Fresh live first/next/previous pages and all six source-chart comparisons passed;
+  bounded/on-demand/source-unvalidated labels remain. See
+  [acceptance](CURRENT_SOURCE_DISCLOSURE_ACCEPTANCE_2026-10-19.md).
+- [ ] P1-L proposed independent task: show elapsed on-demand fetch age beside its
+  raw ISO timestamp, with transparent display-clock and unknown/future handling.
+  Test accessible updates and timer cleanup; add no thresholds, source polling,
+  persisted data, permission or operational classification.
+
 - [x] P1-J implemented and accepted October 19, 20:09 UTC: named current
   Schedule/Actual/EVV groups retain exact raw values, source timezone, complete
   returned fields and unknown/empty/zero distinctions. All 199 frontend tests,
   both normal jobs and production source/identity/reset/1280/615px checks passed.
   See [acceptance](CURRENT_VISIT_SOURCE_GROUPS_ACCEPTANCE_2026-10-19.md).
-- [ ] P1-K proposed: native raw-field disclosure with returned-field count and
+- [x] P1-K implemented above: native raw-field disclosure with returned-field count and
   source navigation beside the grouped evidence. Preserve every value and
   current-request/context lifetime, native keyboard behavior and owner gates;
   no new fetch, storage preference or operational interpretation.

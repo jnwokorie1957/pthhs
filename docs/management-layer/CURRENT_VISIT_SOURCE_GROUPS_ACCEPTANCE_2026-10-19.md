@@ -74,7 +74,7 @@ migration and external identity/discipline/form/reviewer/signature gates remain.
 Normal HHA sign-in and protected representative field/unit/period validation are
 still owner evidence actions; no new rule or role was established.
 
-Proposed P1-K: place the complete raw current-field list in a native keyboard
-disclosure with its returned-field count, and keep source navigation near the
-grouped evidence. Preserve every field/value, current request lifetime, unknown
-states, explicit fetch intent and owner gates; add no persistence or source call.
+P1-K is now implemented and accepted in the separately dated
+[current-source disclosure report](CURRENT_SOURCE_DISCLOSURE_ACCEPTANCE_2026-10-19.md).
+It retains the complete raw list/count, request lifetime, unknown states, explicit
+fetch intent and owner gates, with no persistence or source call on disclosure.

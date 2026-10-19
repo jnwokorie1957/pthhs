@@ -20,13 +20,22 @@ Operational/management decisions: EVV rules, visibility/escalation, correction a
 
 # 🚦 CURRENT MANAGEMENT-LAYER CHECKPOINT
 
+**October 19 20:24 UTC dashboard pass:** P1-K adds a native keyboard disclosure
+for every returned current-source field and its count, with caregiver navigation
+before the disclosure. All 203 frontend tests, both normal jobs and production
+keyboard/retention/reset checks passed. Fresh live first/next/previous pages and
+all six chart calculations matched source fields; partial/on-demand/unvalidated
+labels remain. HHA needs normal sign-in; no new capture/import occurred. P1-L
+fetch-age display is proposed. See
+[acceptance](docs/management-layer/CURRENT_SOURCE_DISCLOSURE_ACCEPTANCE_2026-10-19.md).
+
 **October 19 20:09 UTC implementation pass:** P1-J groups current Schedule,
 Actual and EVV source fields with explicit unknown/empty values, source timezone
 and the complete raw-field list. All 199 frontend tests, both normal jobs and
 production pair/raw-field, refresh/reset, caregiver-link and 1280/615px checks
 passed. Saved 41/36-tile charts/provenance remain separate. No source rule,
 permission or external-role release changed. P1-K raw-field disclosure is
-proposed next. See
+now implemented above. See
 [acceptance](docs/management-layer/CURRENT_VISIT_SOURCE_GROUPS_ACCEPTANCE_2026-10-19.md).
 
 **October 19 13:07 UTC implementation pass:** P1-I now opens the existing

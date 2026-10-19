@@ -22,6 +22,23 @@
 
 # Current owner checkpoint
 
+## October 19 current-source disclosure and live verification
+
+All returned raw current fields now open in a native keyboard disclosure with
+their returned-field count. Source groups and the caregiver control remain easy
+to reach. Production verified Enter/Space/Tab, exact field retention and refresh/
+version clearing, preserving the separate 41/36-tile saved charts. Fresh live
+first/next/previous pages and all six chart calculations matched source fields;
+these remain partial on-demand reads, not a durable import or office census. See
+[acceptance](CURRENT_SOURCE_DISCLOSURE_ACCEPTANCE_2026-10-19.md).
+
+Next owner evidence action: sign in normally in the retained HHA login tab for
+further authorized read-only UI observation. No new capture/import was possible
+while signed out. Keep representative field/unit/period/identity/office/discipline/
+document/form/reviewer mappings protected. Existing entitlement, P1-B migration
+and external account/signature dependencies remain open. Proposed P1-L only adds
+transparent fetch-age display; it will not define an operational freshness rule.
+
 ## October 19 current source-field groups
 
 Current visit Schedule, Actual and EVV pairs are now readable groups, with the
@@ -34,8 +51,8 @@ See [acceptance](CURRENT_VISIT_SOURCE_GROUPS_ACCEPTANCE_2026-10-19.md).
 Normal HHA sign-in and protected representative field/unit/period, identity,
 office/discipline/document and clinical form/reviewer validation remain owner
 evidence actions. Existing entitlement and P1-B/external-role prerequisites remain
-open. P1-K proposes a native raw-field disclosure as an independent reading
-improvement; it does not enable a source operation or interpret unknown values.
+open. P1-K's native raw-field disclosure is accepted above as an independent
+reading improvement; it does not enable a source operation or interpret unknown values.
 
 ## October 19 current-visit caregiver handoff
 
