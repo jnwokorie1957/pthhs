@@ -20,13 +20,22 @@ Operational/management decisions: EVV rules, visibility/escalation, correction a
 
 # 🚦 CURRENT MANAGEMENT-LAYER CHECKPOINT
 
+**October 19 20:09 UTC implementation pass:** P1-J groups current Schedule,
+Actual and EVV source fields with explicit unknown/empty values, source timezone
+and the complete raw-field list. All 199 frontend tests, both normal jobs and
+production pair/raw-field, refresh/reset, caregiver-link and 1280/615px checks
+passed. Saved 41/36-tile charts/provenance remain separate. No source rule,
+permission or external-role release changed. P1-K raw-field disclosure is
+proposed next. See
+[acceptance](docs/management-layer/CURRENT_VISIT_SOURCE_GROUPS_ACCEPTANCE_2026-10-19.md).
+
 **October 19 13:07 UTC implementation pass:** P1-I now opens the existing
 caregiver read from an exact ID in separately verified current-visit evidence.
 Same-visit refresh and stale-context guards retain saved charts/provenance.
 All 193 frontend tests, both normal jobs and production keyboard/identity/reset
 acceptance passed. The explicit caregiver fetch correctly retained its owner
 entitlement denial; no permission or external-role release changed. P1-J source
-field grouping is proposed next. See
+field grouping is now implemented in the acceptance above. See
 [acceptance](docs/management-layer/CURRENT_VISIT_CAREGIVER_ACCEPTANCE_2026-10-19.md).
 
 **October 19 01:20 UTC role research (October 18 local):** added multi-office,

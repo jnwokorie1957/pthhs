@@ -22,6 +22,21 @@
 
 # Current owner checkpoint
 
+## October 19 current source-field groups
+
+Current visit Schedule, Actual and EVV pairs are now readable groups, with the
+source timezone and complete raw fields retained. Production compared all six
+values with two current raw lists, verified explicit unknowns and narrow layout,
+and retained separate saved chart/provenance evidence. No time conversion,
+completion/eligibility/billing decision, permission or source mutation occurred.
+See [acceptance](CURRENT_VISIT_SOURCE_GROUPS_ACCEPTANCE_2026-10-19.md).
+
+Normal HHA sign-in and protected representative field/unit/period, identity,
+office/discipline/document and clinical form/reviewer validation remain owner
+evidence actions. Existing entitlement and P1-B/external-role prerequisites remain
+open. P1-K proposes a native raw-field disclosure as an independent reading
+improvement; it does not enable a source operation or interpret unknown values.
+
 ## October 19 current-visit caregiver handoff
 
 The current-visit panel now opens the existing caregiver read using the exact
@@ -35,8 +50,8 @@ If caregiver details are needed, review entitlement in normal owner controls and
 enable only when approved. For further tenant UI evidence, reopen HHA and sign
 in normally; keep representative identity/office/discipline/document and unit/
 period mappings protected. P1-B migration and external account/form/reviewer/
-signature prerequisites remain open. P1-J source-field grouping is proposed as
-an independent presentation improvement, with no operational rule changes.
+signature prerequisites remain open. P1-J source-field grouping is accepted
+above as a presentation improvement, with no operational rule changes.
 
 ## October 19 01:20 UTC role research (October 18 local)
 

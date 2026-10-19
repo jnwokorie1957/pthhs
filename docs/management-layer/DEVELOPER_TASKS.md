@@ -22,13 +22,23 @@
 
 # Current checkpoint
 
+- [x] P1-J implemented and accepted October 19, 20:09 UTC: named current
+  Schedule/Actual/EVV groups retain exact raw values, source timezone, complete
+  returned fields and unknown/empty/zero distinctions. All 199 frontend tests,
+  both normal jobs and production source/identity/reset/1280/615px checks passed.
+  See [acceptance](CURRENT_VISIT_SOURCE_GROUPS_ACCEPTANCE_2026-10-19.md).
+- [ ] P1-K proposed: native raw-field disclosure with returned-field count and
+  source navigation beside the grouped evidence. Preserve every value and
+  current-request/context lifetime, native keyboard behavior and owner gates;
+  no new fetch, storage preference or operational interpretation.
+
 - [x] P1-I implemented and accepted October 19, 13:07 UTC: exact current
   caregiver read selection, native keyboard/focus behavior and successful-read
   sequencing plus saved-context guards. All 193 frontend tests, both normal jobs
   and production identity/refresh/reset checks passed; the existing owner gate
   correctly denied an explicit caregiver fetch. See
   [acceptance](CURRENT_VISIT_CAREGIVER_ACCEPTANCE_2026-10-19.md).
-- [ ] P1-J proposed: group current visit Schedule/Actual/EVV fields for reading,
+- [x] P1-J implemented: group current visit Schedule/Actual/EVV fields for reading,
   preserving raw values, null/empty/zero distinctions, independent timestamps and
   existing stale-context/read gates. No conversions, derived units, completion
   status or operational interpretation; test partial/unknown evidence explicitly.

@@ -69,7 +69,6 @@ Representative field/unit/period validation, approved authorization-detail
 entitlement, P1-B office/supervisor migration and external identity/discipline/
 form/reviewer/signature prerequisites remain open.
 
-Proposed P1-J: group current visit source fields into readable Schedule, Actual
-and EVV sections while retaining all raw fields, unknown/empty/zero distinctions,
-independent source timestamps and context fences. No time conversion, unit
-calculation, completeness claim or operational classification is implied.
+Subsequent P1-J source grouping is now implemented with retained raw evidence:
+[source-group acceptance](CURRENT_VISIT_SOURCE_GROUPS_ACCEPTANCE_2026-10-19.md).
+The caregiver-selection observations above retain their original scope and date.
