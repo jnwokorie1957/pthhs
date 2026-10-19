@@ -73,7 +73,6 @@ protected representative field/unit/period validation under existing approved
 rules. Approved detail entitlement, P1-B office/supervisor migration and external
 identity/discipline/form/signature prerequisites remain open.
 
-Proposed P1-I: select an existing caregiver read from verified current-visit
-evidence using its exact `Caregiver/ID`. Retain owner gates, explicit read intent
-and context fences; missing/invalid IDs remain unresolved. Do not match tile
-names, grant access, infer therapist roles or fetch automatically.
+Subsequent P1-I caregiver selection is now implemented under existing gates:
+[current-visit caregiver acceptance](CURRENT_VISIT_CAREGIVER_ACCEPTANCE_2026-10-19.md).
+The chart-day observations above retain their original release scope and date.

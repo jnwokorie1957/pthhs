@@ -22,12 +22,23 @@
 
 # Current checkpoint
 
+- [x] P1-I implemented and accepted October 19, 13:07 UTC: exact current
+  caregiver read selection, native keyboard/focus behavior and successful-read
+  sequencing plus saved-context guards. All 193 frontend tests, both normal jobs
+  and production identity/refresh/reset checks passed; the existing owner gate
+  correctly denied an explicit caregiver fetch. See
+  [acceptance](CURRENT_VISIT_CAREGIVER_ACCEPTANCE_2026-10-19.md).
+- [ ] P1-J proposed: group current visit Schedule/Actual/EVV fields for reading,
+  preserving raw values, null/empty/zero distinctions, independent timestamps and
+  existing stale-context/read gates. No conversions, derived units, completion
+  status or operational interpretation; test partial/unknown evidence explicitly.
+
 - [x] October 19 01:20 UTC role research (October 18 local) checked current
   code/UI and six new primary references for primary/secondary office, action
   permissions, mixed disciplines, work history, calendar visibility and staff
   documents. Recorded precise P1-I implementation/acceptance in
   [role research](ROLE_WORKFLOW_RESEARCH.txt); no application or role release.
-- [ ] Implement P1-I only from the separately verified current-visit panel.
+- [x] Implemented P1-I only from the separately verified current-visit panel.
   Prepare the existing caregiver read from exact bounded `Caregiver/ID`, with
   explicit fetch intent and existing gates. Fence the successful read request
   itself, including two successive reads of the same visit, plus row/filter/page,
@@ -43,7 +54,7 @@
   All 185 frontend tests, both normal jobs and production acceptance passed;
   fresh live paging and all six source-chart comparisons also passed. See
   [acceptance](SAVED_CHART_DAY_FILTER_ACCEPTANCE_2026-10-18.md).
-- [ ] P1-I proposed: select the existing caregiver read from verified current
+- [x] P1-I implemented: select the existing caregiver read from verified current
   visit evidence using exact `Caregiver/ID`, explicit intent, existing gates and
   stale-context guards. Missing/invalid identity remains unresolved; no tile-name
   matching, automatic fetch, therapist-role inference or access grant.

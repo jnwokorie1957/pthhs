@@ -20,6 +20,15 @@ Operational/management decisions: EVV rules, visibility/escalation, correction a
 
 # 🚦 CURRENT MANAGEMENT-LAYER CHECKPOINT
 
+**October 19 13:07 UTC implementation pass:** P1-I now opens the existing
+caregiver read from an exact ID in separately verified current-visit evidence.
+Same-visit refresh and stale-context guards retain saved charts/provenance.
+All 193 frontend tests, both normal jobs and production keyboard/identity/reset
+acceptance passed. The explicit caregiver fetch correctly retained its owner
+entitlement denial; no permission or external-role release changed. P1-J source
+field grouping is proposed next. See
+[acceptance](docs/management-layer/CURRENT_VISIT_CAREGIVER_ACCEPTANCE_2026-10-19.md).
+
 **October 19 01:20 UTC role research (October 18 local):** added multi-office,
 historical-assignment, mixed-discipline and staff-document permission boundaries
 from six primary sources. Current caregiver projections do not identify the
@@ -34,7 +43,7 @@ state and toggle/reset behavior. Full 41/36-tile charts/provenance remain intact
 All 185 frontend tests, both normal jobs and production acceptance passed.
 Fresh live first/next/previous pages and all six chart counts also matched source
 fields; manual and current evidence remain separate. P1-I exact caregiver-read
-selection from verified current visits is proposed next. See
+selection is now implemented in the acceptance above. See
 [acceptance](docs/management-layer/SAVED_CHART_DAY_FILTER_ACCEPTANCE_2026-10-18.md).
 
 **October 18 SEO and owner-task pass, 22:30 UTC:** the home-care guide now

@@ -22,6 +22,22 @@
 
 # Current owner checkpoint
 
+## October 19 current-visit caregiver handoff
+
+The current-visit panel now opens the existing caregiver read using the exact
+returned ID. Production verified Enter/Space, focus, same-visit refresh, filter/
+version clearing and unchanged 41/36-tile saved charts. The normal explicit
+caregiver fetch correctly returned its existing owner entitlement denial. No
+operation was enabled, source record/import changed or staff role granted. See
+[acceptance](CURRENT_VISIT_CAREGIVER_ACCEPTANCE_2026-10-19.md).
+
+If caregiver details are needed, review entitlement in normal owner controls and
+enable only when approved. For further tenant UI evidence, reopen HHA and sign
+in normally; keep representative identity/office/discipline/document and unit/
+period mappings protected. P1-B migration and external account/form/reviewer/
+signature prerequisites remain open. P1-J source-field grouping is proposed as
+an independent presentation improvement, with no operational rule changes.
+
 ## October 19 01:20 UTC role research (October 18 local)
 
 The [role research](ROLE_WORKFLOW_RESEARCH.txt) now separates primary/secondary
