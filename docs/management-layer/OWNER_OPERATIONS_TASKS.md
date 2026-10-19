@@ -22,6 +22,22 @@
 
 # Current owner checkpoint
 
+## October 18 local / October 19 UTC saved-chart controls
+
+Saved day charts now select or clear the existing date filter while retaining
+other filters, full-capture counts, authorization rows and provenance. Production
+verified Enter/Space, exact saved/current identities and 41/36-tile monthly
+evidence. Fresh live paging/chart comparisons passed separately and retain
+partial/on-demand/unvalidated labels. No source record, import, permission or
+operational rule changed. See
+[acceptance](SAVED_CHART_DAY_FILTER_ACCEPTANCE_2026-10-18.md).
+
+The HHA browser still needs normal sign-in for additional UI captures. Protected
+representative field/unit/period validation, approved detail entitlement, P1-B
+scope/supervisor mapping and external identity/form/signature requirements remain
+open. P1-I proposes exact caregiver-read selection within existing administrator
+gates; it does not establish therapist/staff external access.
+
 ## October 18 public guide and search evidence
 
 Resources now links to a visitor guide to existing approved information; that
@@ -51,7 +67,7 @@ record, permission or import changed. See
 [pagination acceptance](SAVED_CALENDAR_PAGES_ACCEPTANCE_2026-10-18.md).
 
 Normal HHA sign-in and protected representative-field validation remain the next
-owner evidence actions. P1-H chart-day filtering can proceed independently;
+owner evidence actions. P1-H chart-day filtering is accepted above;
 external account/discipline/form/reviewer and P1-B scope prerequisites remain open.
 
 ## October 18 document and visit-state research

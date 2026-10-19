@@ -20,6 +20,15 @@ Operational/management decisions: EVV rules, visibility/escalation, correction a
 
 # 🚦 CURRENT MANAGEMENT-LAYER CHECKPOINT
 
+**October 18 local / October 19 00:30 UTC dashboard pass:** P1-H connects full
+saved-chart days to exact-date filtering with native keyboard controls, selected
+state and toggle/reset behavior. Full 41/36-tile charts/provenance remain intact.
+All 185 frontend tests, both normal jobs and production acceptance passed.
+Fresh live first/next/previous pages and all six chart counts also matched source
+fields; manual and current evidence remain separate. P1-I exact caregiver-read
+selection from verified current visits is proposed next. See
+[acceptance](docs/management-layer/SAVED_CHART_DAY_FILTER_ACCEPTANCE_2026-10-18.md).
+
 **October 18 SEO and owner-task pass, 22:30 UTC:** the home-care guide now
 offers useful routes to existing approved information. Resources -> guide ->
 care explainer fixes two core-page reachability gaps; 37 remaining location

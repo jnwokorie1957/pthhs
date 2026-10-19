@@ -64,10 +64,10 @@ communication changed.
 
 ## Remaining work
 
-P1-G is complete in the protected administrator presentation scope. Proposed
-P1-H: let a full-capture day-chart control select the existing saved-date filter,
-with keyboard operation, explicit selected-date feedback and stale-control
-guards. Preserve the full chart, loaded denominator and current-read fences.
+P1-G is complete in the protected administrator presentation scope. Its subsequent
+P1-H chart-day filtering is implemented with keyboard controls and preserved
+full-capture evidence. See [day-filter acceptance](SAVED_CHART_DAY_FILTER_ACCEPTANCE_2026-10-18.md).
+Observations above retain their original pagination-release scope and date.
 
 P1-B office/supervisor migration, external identity/form/signature prerequisites,
 representative field/unit/period validation and approved detail entitlement remain

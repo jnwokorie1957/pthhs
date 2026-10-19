@@ -22,6 +22,17 @@
 
 # Current checkpoint
 
+- [x] P1-H saved chart-day filtering completed for the October 19 00:30 UTC
+  heartbeat (October 18 local). Native keyboard/pressed-state controls compose
+  with existing filters, reset paging and retain the full chart/provenance.
+  All 185 frontend tests, both normal jobs and production acceptance passed;
+  fresh live paging and all six source-chart comparisons also passed. See
+  [acceptance](SAVED_CHART_DAY_FILTER_ACCEPTANCE_2026-10-18.md).
+- [ ] P1-I proposed: select the existing caregiver read from verified current
+  visit evidence using exact `Caregiver/ID`, explicit intent, existing gates and
+  stale-context guards. Missing/invalid identity remains unresolved; no tile-name
+  matching, automatic fetch, therapist-role inference or access grant.
+
 - [x] October 18 SEO/navigation pass replaced public archive-review notices
   with a guide to existing approved pages and added contextual Resources access.
   Both core-page graph gaps are fixed. Local gates, both normal jobs, production
@@ -38,7 +49,7 @@
   tests, both normal release jobs and production acceptance passed. Full chart,
   source order, authorization rows and provenance are retained. See
   [pagination acceptance](SAVED_CALENDAR_PAGES_ACCEPTANCE_2026-10-18.md).
-- [ ] P1-H proposed independent follow-up: select a full saved-chart day through
+- [x] P1-H implemented independent follow-up: select a full saved-chart day through
   an accessible control into the existing date filter, with selected-date
   feedback, reset and stale-control guards. Preserve full-capture counts/chart
   and current-read fences; add no source query or interpretation.
