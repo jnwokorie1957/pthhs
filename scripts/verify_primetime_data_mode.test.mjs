@@ -1481,6 +1481,110 @@ test('a detached caregiver action cannot interrupt a pending saved-version load'
   assert.equal(currentCaregiverButtons(app).length,0); assert.match(app.element('manualSnapshotStatus').textContent,/Saved manual snapshot loaded/);
 });
 
+const currentSourceGroups = app => descendants(app.element('manualSnapshotDetails')).filter(node => node.className === 'current-visit-group');
+const groupSourceValues = group => descendants(group).filter(node => node.tagName === 'DD').map(node => node.textContent);
+const currentRawFields = app => {
+  const dl=descendants(app.element('manualSnapshotDetails')).find(node=>node.className==='current-visit-fields');
+  return dl ? Object.fromEntries(dl.children.filter(node=>node.tagName==='DT').map((node,index)=>[node.textContent,dl.children[index*2+1].textContent])) : {};
+};
+
+test('current source groups map exact pairs with accessible sections and retain all raw fields and saved evidence', async () => {
+  const data=currentCaregiverSource({visitId:'11',patientId:'5',officeId:'123'},'61');
+  Object.assign(data.records[0],{ScheduleStartTime:'2300',ScheduleEndTime:'0100',VisitStartTime:'2026-11-01T01:17:00-05:00',VisitEndTime:'2026-11-01T01:12:00-06:00',EVVStartTime:'source EVV start',EVVEndTime:'source EVV end',TimeZone:'America/Chicago',ExtraSourceField:'retained'});
+  const original=JSON.stringify(data), app=connectedWorkspace({history:savedHistory(),patientVisit:()=>response(data)});
+  await openSavedHistory(app); assert.equal(currentSourceGroups(app).length,0);
+  const cells=savedCells(app), chart=descendants(app.element('manualSnapshotDetails')).filter(n=>n.tagName==='PROGRESS').map(n=>n.value);
+  await clickNode(currentVisitButtons(app)[0]); await tick();
+  const groups=currentSourceGroups(app);
+  assert.deepEqual(groups.map(g=>g.children[0].textContent),['Schedule','Actual','EVV']);
+  assert.deepEqual(groups.map(groupSourceValues),[['2300','0100'],['2026-11-01T01:17:00-05:00','2026-11-01T01:12:00-06:00'],['source EVV start','source EVV end']]);
+  for(const group of groups) {
+    assert.equal(group.tagName,'SECTION'); assert.equal(group.children[0].tagName,'H4');
+    assert.equal(group['aria-labelledby'],group.children[0].id); assert.ok(group.children[0].id);
+    assert.deepEqual(descendants(group).filter(n=>n.tagName==='DT').map(n=>n.textContent),['Start','End']);
+  }
+  assert.deepEqual(currentRawFields(app),Object.fromEntries(Object.entries(data.records[0]).map(([k,v])=>[k,v===null?'Not supplied / unknown':v===''?'Empty source value':String(v)])));
+  assert.match(nodeText(app.element('manualSnapshotDetails')),/Source timezone: America\/Chicago\. No time conversion is applied/);
+  assert.match(nodeText(app.element('manualSnapshotDetails')),/All returned source fields/);
+  assert.deepEqual(savedCells(app),cells); assert.deepEqual(descendants(app.element('manualSnapshotDetails')).filter(n=>n.tagName==='PROGRESS').map(n=>n.value),chart);
+  assert.equal(JSON.stringify(data),original); assert.equal(currentVisitCalls(app).length,1);
+  assert.equal(app.calls.some(c=>c.path.endsWith('/workspace/read')),false);
+  assert.equal(currentCaregiverButtons(app).length,1);
+});
+
+test('current source groups distinguish absent/null, empty, whitespace and numeric/string zero without inventing raw keys', async () => {
+  const data=currentCaregiverSource({visitId:'11',patientId:'5',officeId:'123'},'61');
+  Object.assign(data.records[0],{ScheduleStartTime:null,ScheduleEndTime:'',VisitStartTime:0,VisitEndTime:'0',EVVStartTime:'  ',TimeZone:''});
+  delete data.records[0].EVVEndTime;
+  const app=connectedWorkspace({history:savedHistory(),patientVisit:()=>response(data)});
+  await openSavedHistory(app); await clickNode(currentVisitButtons(app)[0]); await tick();
+  assert.deepEqual(currentSourceGroups(app).map(groupSourceValues),[['Not supplied / unknown','Empty source value'],['0','0'],['  ','Not supplied / unknown']]);
+  const raw=currentRawFields(app); assert.equal(raw.ScheduleStartTime,'Not supplied / unknown'); assert.equal(raw.ScheduleEndTime,'Empty source value');
+  assert.equal(raw.VisitStartTime,'0'); assert.equal(raw.VisitEndTime,'0'); assert.equal(raw.EVVStartTime,'  '); assert.equal(Object.hasOwn(raw,'EVVEndTime'),false);
+  assert.equal(raw.TimeZone,'Empty source value');
+  assert.match(nodeText(app.element('manualSnapshotDetails')),/Source timezone: Empty source value/);
+});
+
+test('source groups preserve unparseable and markup-like values and unknown timezone without conversion or status inference', async () => {
+  const data=currentCaregiverSource({visitId:'11',patientId:'5',officeId:'123'},'61');
+  Object.assign(data.records[0],{ScheduleStartTime:'<img src=x onerror=alert(1)>',ScheduleEndTime:'overnight source text',VisitStartTime:'not a parsed date',VisitEndTime:'',EVVStartTime:'0',EVVEndTime:null});
+  const app=connectedWorkspace({history:savedHistory(),patientVisit:()=>response(data)});
+  await openSavedHistory(app); await clickNode(currentVisitButtons(app)[0]); await tick();
+  assert.deepEqual(currentSourceGroups(app).map(groupSourceValues),[['<img src=x onerror=alert(1)>','overnight source text'],['not a parsed date','Empty source value'],['0','Not supplied / unknown']]);
+  assert.equal(currentRawFields(app).ScheduleStartTime,'<img src=x onerror=alert(1)>');
+  assert.equal(descendants(app.element('manualSnapshotDetails')).some(n=>n.tagName==='IMG'),false);
+  assert.match(nodeText(app.element('manualSnapshotDetails')),/Source timezone: Not supplied \/ unknown/);
+  assert.ok(currentSourceGroups(app).every(g=>descendants(g).filter(n=>n.tagName==='DD').length===2));
+});
+
+test('a current-visit refresh removes source groups while pending and only restores a successful current response', async () => {
+  for(const failure of [false,true]) {
+    const pending=deferred(); let hold=false;
+    const source=(input,value)=>{const data=currentCaregiverSource(input,'61');data.records[0].VisitStartTime=value;return data;};
+    const app=connectedWorkspace({history:savedHistory(),patientVisit:(_path,options)=>hold?pending.promise:response(source(JSON.parse(options.body),'original raw time'))});
+    await openSavedHistory(app); const visit=currentVisitButtons(app)[0]; await clickNode(visit); await tick();
+    assert.equal(currentSourceGroups(app).length,3); hold=true; const reading=clickNode(visit); await tick();
+    assert.equal(currentSourceGroups(app).length,0); assert.deepEqual(currentRawFields(app),{});
+    pending.resolve(response(failure?{ok:false,error:'patient_office_mismatch'}:source({visitId:'11',patientId:'5',officeId:'123'},'refreshed raw time')));
+    await reading; await tick();
+    if(failure) {assert.equal(currentSourceGroups(app).length,0); assert.deepEqual(currentRawFields(app),{});}
+    else {assert.equal(groupSourceValues(currentSourceGroups(app)[1])[0],'refreshed raw time'); assert.equal(currentCaregiverButtons(app).length,1);}
+  }
+});
+
+test('source groups and raw fields cannot return from a late read after saved or live context changes', async () => {
+  for(const change of ['day','page','version','patient','source','office','policy','demo','session']) for(const failure of [false,true]) {
+    const pending=deferred();
+    const app=connectedWorkspace({history:savedHistory(pagedSavedSnapshot()),patientVisit:()=>pending.promise});
+    await openSavedHistory(app); const reading=clickNode(currentVisitButtons(app)[0]); await tick();
+    if(change==='day')await clickNode(savedDay(app,'2026-09-02'));
+    if(change==='page')await clickNode(savedPageControls(app).next);
+    if(change==='version')await clickNode(descendants(app.element('manualSnapshotList')).find(n=>n.textContent==='Open 2026-09 snapshot'));
+    if(change==='patient'){app.element('manualPatientId').value='99';for(const fn of app.element('manualPatientId').handlers.get('input'))fn(new Event('input'));}
+    if(change==='source'){app.element('dashboardOverviewDate').value='2026-10-09';for(const fn of app.element('dashboardOverviewDate').handlers.get('change'))fn(new Event('change'));}
+    if(change==='office'||change==='policy')app.window.primetimeDataMode.observeScope({revision:2,officeId:change==='office'?'999':'123',officeTimezone:'America/Chicago'});
+    if(change==='demo')app.window.primetimeDataMode.setMode('demo');if(change==='session')app.dispatch('primetime-signed-out');
+    await tick();await tick();const status=app.element('manualSnapshotStatus').textContent;
+    pending.resolve(response(failure?{ok:false,error:'patient_office_mismatch'}:currentCaregiverSource({visitId:'100',patientId:'5',officeId:'123'},'61')));
+    await reading;await tick();
+    assert.equal(currentSourceGroups(app).length,0,change);assert.deepEqual(currentRawFields(app),{},change);assert.equal(app.element('manualSnapshotStatus').textContent,status,change);
+  }
+});
+
+test('out-of-order current responses cannot replace the latest grouped or raw source values', async () => {
+  for(const failure of [false,true]) {
+    const pending=[deferred(),deferred()];let index=0;
+    const app=connectedWorkspace({history:savedHistory(),patientVisit:()=>pending[index++].promise});
+    await openSavedHistory(app);const visit=currentVisitButtons(app)[0],first=clickNode(visit);await tick();const second=clickNode(visit);await tick();
+    const source=value=>{const data=currentCaregiverSource({visitId:'11',patientId:'5',officeId:'123'},'61');data.records[0].ScheduleStartTime=value;return data;};
+    pending[1].resolve(response(source('latest source value')));await second;await tick();
+    const raw=currentRawFields(app),groups=currentSourceGroups(app).map(groupSourceValues);
+    pending[0].resolve(response(failure?{ok:false,error:'patient_office_mismatch'}:source('older source value')));await first;await tick();
+    assert.deepEqual(currentRawFields(app),raw);assert.deepEqual(currentSourceGroups(app).map(groupSourceValues),groups);
+    assert.equal(groups[0][0],'latest source value');
+  }
+});
+
 const authorizationButtons = (app, host = 'dashboardTimeline') => descendants(app.element(host)).filter(node => node.textContent === 'Open patient authorizations');
 const detailButtons = app => descendants(app.element('readResults')).filter(node => node.textContent === 'Select authorization detail');
 const authorizationCalls = app => app.calls.filter(call => call.path.endsWith('/workspace/patient-authorizations'));

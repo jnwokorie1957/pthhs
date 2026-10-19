@@ -900,12 +900,23 @@
             if (data.operation !== 'GetVisitInfoV3' || data.source !== 'hhaexchange' || data.scope?.visitId !== visit.id || data.scope?.patientId !== captured.patientId
               || data.scope?.officeId !== captured.officeId || data.interpretation !== 'visit_source_unvalidated' || data.truncated || data.records?.length !== 1
               || data.records[0].ID !== visit.id || data.records[0]['Patient/ID'] !== captured.patientId) throw new Error('Current visit source context could not be verified.');
-            const fields = element('dl');
-            for (const [key, value] of Object.entries(data.records[0])) fields.append(element('dt', key), element('dd', value === null ? 'Not supplied / unknown' : String(value)));
+            const record = data.records[0];
+            const sourceValue = value => value === null || value === undefined ? 'Not supplied / unknown' : value === '' ? 'Empty source value' : String(value);
+            const groups = element('div', undefined, 'current-visit-groups');
+            for (const [name, start, end] of [['Schedule', 'ScheduleStartTime', 'ScheduleEndTime'], ['Actual', 'VisitStartTime', 'VisitEndTime'], ['EVV', 'EVVStartTime', 'EVVEndTime']]) {
+              const group = element('section', undefined, 'current-visit-group'), heading = element('h4', name), pair = element('dl');
+              heading.id = `currentVisit${name}Heading`; group.setAttribute('aria-labelledby', heading.id);
+              pair.append(element('dt', 'Start'), element('dd', sourceValue(record[start])), element('dt', 'End'), element('dd', sourceValue(record[end])));
+              group.append(heading, pair); groups.append(group);
+            }
+            const fields = element('dl', undefined, 'current-visit-fields');
+            for (const [key, value] of Object.entries(record)) fields.append(element('dt', key), element('dd', sourceValue(value)));
             currentEvidence.replaceChildren(element('h3', 'Current HHA visit evidence'),
               element('p', `Visit ${visit.id} · fetched ${data.fetchedAt} · patient office checked ${data.membershipCheckedAt}. Independent source reads; source values and timestamps are unconverted and interpretation remains unvalidated.`),
-              element('p', `The saved capture from ${snapshot.capturedAt} is unchanged. Current evidence does not establish clinical, EVV, payroll or billing acceptance.`), fields);
-            const caregiverId = data.records[0]['Caregiver/ID'];
+              element('p', `The saved capture from ${snapshot.capturedAt} is unchanged. Current evidence does not establish clinical, EVV, payroll or billing acceptance.`),
+              element('p', `Source timezone: ${sourceValue(record.TimeZone)}. No time conversion is applied.`, 'source-metadata'),
+              groups, element('h4', 'All returned source fields'), fields);
+            const caregiverId = record['Caregiver/ID'];
             if (validId(caregiverId)) {
               const control = element('button', 'Open caregiver read', 'btn secondary'); control.type = 'button';
               control.addEventListener('click', () => {
