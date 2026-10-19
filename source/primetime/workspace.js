@@ -46,7 +46,7 @@
     $('readId').focus();
     const label = kind === 'patient-authorizations' ? 'Patient authorization discovery' : kind[0].toUpperCase() + kind.slice(1);
     message(settings.enabledReads.includes(operation)
-      ? `${label} source ID selected from the live visit page. Choose Read source records to fetch current evidence.`
+      ? `${label} source ID selected from source evidence. Choose Read source records to fetch current evidence.`
       : `${label} source ID selected. This read requires owner enablement after entitlement review.`);
   });
   $('readOperation').addEventListener('change', () => selectRead($('readOperation').value));
@@ -905,6 +905,15 @@
             currentEvidence.replaceChildren(element('h3', 'Current HHA visit evidence'),
               element('p', `Visit ${visit.id} · fetched ${data.fetchedAt} · patient office checked ${data.membershipCheckedAt}. Independent source reads; source values and timestamps are unconverted and interpretation remains unvalidated.`),
               element('p', `The saved capture from ${snapshot.capturedAt} is unchanged. Current evidence does not establish clinical, EVV, payroll or billing acceptance.`), fields);
+            const caregiverId = data.records[0]['Caregiver/ID'];
+            if (validId(caregiverId)) {
+              const control = element('button', 'Open caregiver read', 'btn secondary'); control.type = 'button';
+              control.addEventListener('click', () => {
+                if (!viewCurrent() || renderedRevision !== rowsRevision || sequence !== snapshotSequence) return;
+                document.dispatchEvent(new CustomEvent('primetime-source-record-selected', { detail: { kind: 'caregiver', id: caregiverId, officeId: captured.officeId } }));
+              });
+              currentEvidence.append(control);
+            } else currentEvidence.append(element('p', 'Current source caregiver ID unavailable.'));
             status('Current visit evidence loaded separately from the saved manual snapshot.');
           } catch (error) {
             if (!viewCurrent() || sequence !== snapshotSequence) return;

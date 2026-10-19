@@ -1347,6 +1347,140 @@ test('chart-filtered current reads retain exact identity and chart controls stay
   assert.match(savedPageControls(app).summary.textContent,/Page 1 of 3/);
 });
 
+const currentCaregiverButtons = app => descendants(app.element('manualSnapshotDetails')).filter(node => node.tagName === 'BUTTON' && node.textContent === 'Open caregiver read');
+const currentCaregiverSource = (input, caregiverId, changes = {}) => {
+  const data = currentVisitSource(input);
+  return { ...data, records: [{ ...data.records[0], 'Caregiver/ID': caregiverId }], ...changes };
+};
+
+test('verified current caregiver selection prepares an exact existing read without changing or fetching source evidence', async () => {
+  const snapshot = historySnapshot(), original = JSON.stringify(snapshot);
+  const app = connectedWorkspace({ enabledReads: ['GetPatientDemographics', 'GetVisitInfoV3', 'GetCaregiverDemographics'],
+    history: savedHistory(snapshot), patientVisit: (_path, options) => response(currentCaregiverSource(JSON.parse(options.body), '61')) });
+  await openSavedHistory(app);
+  assert.equal(currentCaregiverButtons(app).length, 0, 'a saved caregiver label alone provides no action');
+  await clickNode(currentVisitButtons(app)[0]); await tick();
+  const before = nodeText(app.element('manualSnapshotDetails')), calls = app.calls.length;
+  for (const id of ['readId', 'readPatient', 'readCaregiver', 'readContract', 'readDate']) app.element(id).value = 'old';
+  app.element('readResults').append({textContent:'prior subject'});
+  await clickNode(currentCaregiverButtons(app)[0]);
+  assert.equal(app.calls.length, calls, 'selection must not fetch, write, enable a read or persist a preference');
+  assert.deepEqual(JSON.parse(JSON.stringify(app.events.filter(e => e.type === 'primetime-source-record-selected').at(-1).detail)), {kind:'caregiver',id:'61',officeId:'123'});
+  assert.equal(app.element('readOperation').value, 'GetCaregiverDemographics'); assert.equal(app.element('readId').value, '61');
+  assert.equal(app.element('readCaregiver').value, '61'); assert.equal(app.element('readOffice').value, '123');
+  for (const id of ['readPatient','readContract','readDate']) assert.equal(app.element(id).value, '');
+  assert.equal(app.element('readResults').children.length, 0); assert.equal(app.document.activeElement, app.element('readId'));
+  assert.equal(app.element('pageTitle').textContent, 'Advanced tools');
+  assert.match(app.element('workspaceMessage').textContent, /source evidence.*Choose Read source records/);
+  assert.equal(nodeText(app.element('manualSnapshotDetails')), before); assert.equal(JSON.stringify(snapshot), original);
+  for (const fn of app.element('readForm').handlers.get('submit')) fn({preventDefault(){}});
+  await tick(); await tick();
+  assert.deepEqual(JSON.parse(app.calls.filter(c => c.path.endsWith('/workspace/read')).at(-1).options.body), {operation:'GetCaregiverDemographics',id:'61'});
+});
+
+test('current caregiver actions require a bounded exact returned string ID and retain unknown states', async () => {
+  for (const id of [undefined, null, '', '0', '-1', '01', '61x', '<script>', '2147483648', '99999999999', 61]) {
+    const app = connectedWorkspace({history:savedHistory(),patientVisit:(_path,options)=>response(currentCaregiverSource(JSON.parse(options.body),id))});
+    await openSavedHistory(app); await clickNode(currentVisitButtons(app)[0]); await tick();
+    assert.equal(currentCaregiverButtons(app).length,0,String(id));
+    assert.match(nodeText(app.element('manualSnapshotDetails')),/Current source caregiver ID unavailable/);
+    assert.equal(app.calls.some(c=>c.path.endsWith('/workspace/read')),false);
+  }
+  const app = connectedWorkspace({history:savedHistory(),patientVisit:(_path,options)=>response(currentCaregiverSource(JSON.parse(options.body),'2147483647'))});
+  await openSavedHistory(app); await clickNode(currentVisitButtons(app)[0]); await tick(); await clickNode(currentCaregiverButtons(app)[0]);
+  assert.equal(app.element('readId').value,'2147483647');
+});
+
+test('current caregiver selection retains the owner read gate and does not imply permission', async () => {
+  const app=connectedWorkspace({history:savedHistory(),patientVisit:(_path,options)=>response(currentCaregiverSource(JSON.parse(options.body),'61'))});
+  await openSavedHistory(app); await clickNode(currentVisitButtons(app)[0]); await tick();
+  const count=app.calls.length; await clickNode(currentCaregiverButtons(app)[0]);
+  assert.equal(app.calls.length,count); assert.equal(app.element('readId').value,'61');
+  assert.match(app.element('workspaceMessage').textContent,/requires owner enablement after entitlement review/);
+  assert.equal(app.calls.some(c=>c.path.endsWith('/workspace/read')||c.path.endsWith('/workspace/settings')&&c.options.method==='POST'),false);
+});
+
+test('a same-visit refresh immediately invalidates the former caregiver action through pending, failure and reassignment', async () => {
+  for(const failure of [false,true]) {
+    const pending=deferred(); let hold=false;
+    const app=connectedWorkspace({history:savedHistory(),patientVisit:(_path,options)=>hold?pending.promise:response(currentCaregiverSource(JSON.parse(options.body),'61'))});
+    await openSavedHistory(app); const visit=currentVisitButtons(app)[0]; await clickNode(visit); await tick();
+    const old=currentCaregiverButtons(app)[0]; hold=true; const reading=clickNode(visit); await tick();
+    assert.equal(currentCaregiverButtons(app).length,0); const calls=app.calls.length,events=app.events.length;
+    await clickNode(old); assert.equal(app.calls.length,calls); assert.equal(app.events.length,events);
+    pending.resolve(response(failure?{ok:false,error:'patient_office_mismatch'}:currentCaregiverSource({visitId:'11',patientId:'5',officeId:'123'},'62')));
+    await reading; await tick();
+    const after=app.events.length; await clickNode(old); assert.equal(app.events.length,after);
+    if(failure) {assert.equal(currentCaregiverButtons(app).length,0); assert.match(app.element('manualSnapshotStatus').textContent,/patient office mismatch/);}
+    else {await clickNode(currentCaregiverButtons(app)[0]); assert.equal(app.element('readId').value,'62');}
+  }
+});
+
+test('detached current caregiver actions cannot survive saved filters, paging, patient/version, source, office/policy or session changes', async () => {
+  for(const change of ['day','date','id','text','clear','page','version','patient','source','office','policy','demo','session']) {
+    const app=connectedWorkspace({history:savedHistory(pagedSavedSnapshot()),patientVisit:(_path,options)=>response(currentCaregiverSource(JSON.parse(options.body),'61'))});
+    await openSavedHistory(app); await clickNode(currentVisitButtons(app)[0]); await tick();
+    const old=currentCaregiverButtons(app)[0], controls=savedFilterControls(app);
+    if(change==='day') await clickNode(savedDay(app,'2026-09-02'));
+    if(change==='date') inputSavedFilter(controls.inputs[0],'2026-09-02');
+    if(change==='id') inputSavedFilter(controls.inputs[1],'101');
+    if(change==='text') inputSavedFilter(controls.inputs[2],'not present');
+    if(change==='clear') await clickNode(controls.reset);
+    if(change==='page') await clickNode(savedPageControls(app).next);
+    if(change==='version') await clickNode(descendants(app.element('manualSnapshotList')).find(n=>n.textContent==='Open 2026-09 snapshot'));
+    if(change==='patient') {app.element('manualPatientId').value='99';for(const fn of app.element('manualPatientId').handlers.get('input'))fn(new Event('input'));}
+    if(change==='source') {app.element('dashboardOverviewDate').value='2026-10-09';for(const fn of app.element('dashboardOverviewDate').handlers.get('change'))fn(new Event('change'));}
+    if(change==='office'||change==='policy')app.window.primetimeDataMode.observeScope({revision:2,officeId:change==='office'?'999':'123',officeTimezone:'America/Chicago'});
+    if(change==='demo')app.window.primetimeDataMode.setMode('demo'); if(change==='session')app.dispatch('primetime-signed-out');
+    await tick(); await tick();
+    const before={calls:app.calls.length,events:app.events.length,id:app.element('readId').value,message:app.element('workspaceMessage').textContent,page:app.element('pageTitle').textContent};
+    await clickNode(old); assert.deepEqual({calls:app.calls.length,events:app.events.length,id:app.element('readId').value,message:app.element('workspaceMessage').textContent,page:app.element('pageTitle').textContent},before,change);
+    assert.equal(currentCaregiverButtons(app).length,0,change);
+  }
+});
+
+test('unverified current visit responses never expose a caregiver action', async () => {
+  for(const changes of [
+    {operation:'GetVisitInfoV2'}, {source:'manual_snapshot'}, {interpretation:'validated'}, {truncated:true},
+    {scope:{visitId:'11',patientId:'99',officeId:'123'}},
+    {records:[{ID:'12','Patient/ID':'5','Caregiver/ID':'61'}]},
+    {records:[{ID:'11','Patient/ID':'99','Caregiver/ID':'61'}]},
+    {records:[{ID:'11','Patient/ID':'5','Caregiver/ID':'61'},{ID:'11','Patient/ID':'5','Caregiver/ID':'62'}]}
+  ]) {
+    const app=connectedWorkspace({history:savedHistory(),patientVisit:(_path,options)=>response(currentCaregiverSource(JSON.parse(options.body),'61',changes))});
+    await openSavedHistory(app); await clickNode(currentVisitButtons(app)[0]); await tick();
+    assert.equal(currentCaregiverButtons(app).length,0); assert.match(app.element('manualSnapshotStatus').textContent,/could not be verified/);
+  }
+});
+
+test('only the latest same-visit request can provide a caregiver action after late success or error', async () => {
+  for(const failure of [false,true]) {
+    const pending=[deferred(),deferred()]; let index=0;
+    const app=connectedWorkspace({history:savedHistory(),patientVisit:()=>pending[index++].promise});
+    await openSavedHistory(app); const visit=currentVisitButtons(app)[0];
+    const first=clickNode(visit); await tick(); const second=clickNode(visit); await tick();
+    pending[1].resolve(response(currentCaregiverSource({visitId:'11',patientId:'5',officeId:'123'},'62'))); await second; await tick();
+    const control=currentCaregiverButtons(app)[0],text=nodeText(app.element('manualSnapshotDetails')),status=app.element('manualSnapshotStatus').textContent;
+    pending[0].resolve(response(failure?{ok:false,error:'patient_office_mismatch'}:currentCaregiverSource({visitId:'11',patientId:'5',officeId:'123'},'61')));
+    await first; await tick();
+    assert.equal(currentCaregiverButtons(app)[0],control); assert.equal(nodeText(app.element('manualSnapshotDetails')),text); assert.equal(app.element('manualSnapshotStatus').textContent,status);
+    await clickNode(control); assert.equal(app.element('readId').value,'62');
+  }
+});
+
+test('a detached caregiver action cannot interrupt a pending saved-version load', async () => {
+  const pending=deferred(); let hold=false;
+  const app=connectedWorkspace({history:path=>hold&&new URL(path,'https://fixture.test').searchParams.has('id')?pending.promise:savedHistory()(path),
+    patientVisit:(_path,options)=>response(currentCaregiverSource(JSON.parse(options.body),'61'))});
+  await openSavedHistory(app); await clickNode(currentVisitButtons(app)[0]); await tick();
+  const old=currentCaregiverButtons(app)[0]; hold=true;
+  const opening=clickNode(descendants(app.element('manualSnapshotList')).find(n=>n.textContent==='Open 2026-09 snapshot')); await tick();
+  const calls=app.calls.length,events=app.events.length; await clickNode(old);
+  assert.equal(app.calls.length,calls); assert.equal(app.events.length,events);
+  pending.resolve(response({ok:true,snapshot:historySnapshot()})); await opening; await tick();
+  assert.equal(currentCaregiverButtons(app).length,0); assert.match(app.element('manualSnapshotStatus').textContent,/Saved manual snapshot loaded/);
+});
+
 const authorizationButtons = (app, host = 'dashboardTimeline') => descendants(app.element(host)).filter(node => node.textContent === 'Open patient authorizations');
 const detailButtons = app => descendants(app.element('readResults')).filter(node => node.textContent === 'Select authorization detail');
 const authorizationCalls = app => app.calls.filter(call => call.path.endsWith('/workspace/patient-authorizations'));
