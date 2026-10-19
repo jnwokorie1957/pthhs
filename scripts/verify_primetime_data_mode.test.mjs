@@ -1585,6 +1585,75 @@ test('out-of-order current responses cannot replace the latest grouped or raw so
   }
 });
 
+const currentRawDisclosures = app => descendants(app.element('manualSnapshotDetails')).filter(n=>n.className==='current-source-fields');
+
+test('current raw evidence uses a closed native disclosure with exact returned-field count and values', async () => {
+  const data=currentCaregiverSource({visitId:'11',patientId:'5',officeId:'123'},'61');
+  Object.assign(data.records[0],{ExtraSourceField:'retained',ZeroSourceField:0,EmptySourceField:'',UnknownSourceField:null});
+  const original=JSON.stringify(data),app=connectedWorkspace({history:savedHistory(),patientVisit:()=>response(data)});
+  await openSavedHistory(app);await clickNode(currentVisitButtons(app)[0]);await tick();
+  const details=currentRawDisclosures(app)[0],summary=details.children[0];
+  assert.equal(details.tagName,'DETAILS');assert.notEqual(details.open,true);
+  assert.equal(summary.tagName,'SUMMARY');assert.equal(summary.textContent,'All returned source fields ('+Object.keys(data.records[0]).length+')');
+  assert.equal(details.children[1].className,'current-visit-fields');
+  assert.equal(Object.keys(currentRawFields(app)).length,Object.keys(data.records[0]).length);
+  assert.equal(currentRawFields(app).ExtraSourceField,'retained');assert.equal(currentRawFields(app).ZeroSourceField,'0');
+  assert.equal(currentRawFields(app).EmptySourceField,'Empty source value');assert.equal(currentRawFields(app).UnknownSourceField,'Not supplied / unknown');
+  assert.equal(JSON.stringify(data),original);assert.equal(currentSourceGroups(app).length,3);
+  assert.equal(currentVisitCalls(app).length,1);assert.equal(app.calls.some(c=>c.path.endsWith('/workspace/read')),false);
+});
+
+test('caregiver navigation precedes the raw disclosure and retains explicit selection and unknown states', async () => {
+  for(const caregiver of ['61',null]) {
+    const app=connectedWorkspace({history:savedHistory(),patientVisit:(_path,options)=>response(currentCaregiverSource(JSON.parse(options.body),caregiver))});
+    await openSavedHistory(app);await clickNode(currentVisitButtons(app)[0]);await tick();
+    const details=currentRawDisclosures(app)[0],panel=descendants(app.element('manualSnapshotDetails')).find(n=>n.children?.includes(details));
+    const navigation=caregiver?currentCaregiverButtons(app)[0]:panel.children.find(n=>n.textContent==='Current source caregiver ID unavailable.');
+    assert.ok(panel.children.indexOf(navigation)<panel.children.indexOf(details));
+    if(caregiver) {
+      const count=app.calls.length;await clickNode(navigation);assert.equal(app.calls.length,count);
+      assert.equal(app.element('readId').value,'61');assert.equal(app.document.activeElement,app.element('readId'));
+      assert.match(app.element('workspaceMessage').textContent,/requires owner enablement/);
+    } else assert.equal(currentCaregiverButtons(app).length,0);
+    assert.notEqual(details.open,true);
+  }
+});
+
+test('refresh clears expanded raw evidence while pending and resets a successful disclosure and its count', async () => {
+  for(const failure of [false,true]) {
+    const pending=deferred();let hold=false;
+    const app=connectedWorkspace({history:savedHistory(),patientVisit:(_path,options)=>hold?pending.promise:response(currentCaregiverSource(JSON.parse(options.body),'61'))});
+    await openSavedHistory(app);const visit=currentVisitButtons(app)[0];await clickNode(visit);await tick();
+    const old=currentRawDisclosures(app)[0];old.open=true;hold=true;
+    const reading=clickNode(visit);await tick();assert.equal(currentRawDisclosures(app).length,0);
+    const fresh=currentCaregiverSource({visitId:'11',patientId:'5',officeId:'123'},'61');Object.assign(fresh.records[0],{NewField:'new source value',AnotherField:''});
+    pending.resolve(response(failure?{ok:false,error:'patient_office_mismatch'}:fresh));await reading;await tick();
+    if(failure)assert.equal(currentRawDisclosures(app).length,0);
+    else {
+      const current=currentRawDisclosures(app)[0];assert.notEqual(current,old);assert.notEqual(current.open,true);
+      assert.equal(current.children[0].textContent,'All returned source fields ('+Object.keys(fresh.records[0]).length+')');
+      assert.equal(currentRawFields(app).NewField,'new source value');assert.equal(currentRawFields(app).AnotherField,'Empty source value');
+    }
+  }
+});
+
+test('expanded current disclosures and their source navigation cannot survive scope changes', async () => {
+  for(const change of ['filter','page','version','patient','office','policy','demo','session']) {
+    const app=connectedWorkspace({history:savedHistory(pagedSavedSnapshot()),patientVisit:(_path,options)=>response(currentCaregiverSource(JSON.parse(options.body),'61'))});
+    await openSavedHistory(app);await clickNode(currentVisitButtons(app)[0]);await tick();
+    const old=currentRawDisclosures(app)[0],navigation=currentCaregiverButtons(app)[0];old.open=true;
+    if(change==='filter')inputSavedFilter(savedFilterControls(app).inputs[2],'not present');
+    if(change==='page')await clickNode(savedPageControls(app).next);
+    if(change==='version')await clickNode(descendants(app.element('manualSnapshotList')).find(n=>n.textContent==='Open 2026-09 snapshot'));
+    if(change==='patient'){app.element('manualPatientId').value='99';for(const fn of app.element('manualPatientId').handlers.get('input'))fn(new Event('input'));}
+    if(change==='office'||change==='policy')app.window.primetimeDataMode.observeScope({revision:2,officeId:change==='office'?'999':'123',officeTimezone:'America/Chicago'});
+    if(change==='demo')app.window.primetimeDataMode.setMode('demo');if(change==='session')app.dispatch('primetime-signed-out');
+    await tick();await tick();assert.equal(currentRawDisclosures(app).length,0,change);
+    const calls=app.calls.length,events=app.events.length,id=app.element('readId').value;await clickNode(navigation);
+    assert.equal(app.calls.length,calls,change);assert.equal(app.events.length,events,change);assert.equal(app.element('readId').value,id,change);
+  }
+});
+
 const authorizationButtons = (app, host = 'dashboardTimeline') => descendants(app.element(host)).filter(node => node.textContent === 'Open patient authorizations');
 const detailButtons = app => descendants(app.element('readResults')).filter(node => node.textContent === 'Select authorization detail');
 const authorizationCalls = app => app.calls.filter(call => call.path.endsWith('/workspace/patient-authorizations'));

@@ -911,11 +911,13 @@
             }
             const fields = element('dl', undefined, 'current-visit-fields');
             for (const [key, value] of Object.entries(record)) fields.append(element('dt', key), element('dd', sourceValue(value)));
+            const rawDisclosure = element('details', undefined, 'current-source-fields');
+            rawDisclosure.append(element('summary', `All returned source fields (${Object.keys(record).length})`), fields);
             currentEvidence.replaceChildren(element('h3', 'Current HHA visit evidence'),
               element('p', `Visit ${visit.id} · fetched ${data.fetchedAt} · patient office checked ${data.membershipCheckedAt}. Independent source reads; source values and timestamps are unconverted and interpretation remains unvalidated.`),
               element('p', `The saved capture from ${snapshot.capturedAt} is unchanged. Current evidence does not establish clinical, EVV, payroll or billing acceptance.`),
               element('p', `Source timezone: ${sourceValue(record.TimeZone)}. No time conversion is applied.`, 'source-metadata'),
-              groups, element('h4', 'All returned source fields'), fields);
+              groups);
             const caregiverId = record['Caregiver/ID'];
             if (validId(caregiverId)) {
               const control = element('button', 'Open caregiver read', 'btn secondary'); control.type = 'button';
@@ -925,6 +927,7 @@
               });
               currentEvidence.append(control);
             } else currentEvidence.append(element('p', 'Current source caregiver ID unavailable.'));
+            currentEvidence.append(rawDisclosure);
             status('Current visit evidence loaded separately from the saved manual snapshot.');
           } catch (error) {
             if (!viewCurrent() || sequence !== snapshotSequence) return;
