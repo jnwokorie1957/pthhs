@@ -22,6 +22,21 @@
 
 # Current checkpoint
 
+- [x] October 19 01:20 UTC role research (October 18 local) checked current
+  code/UI and six new primary references for primary/secondary office, action
+  permissions, mixed disciplines, work history, calendar visibility and staff
+  documents. Recorded precise P1-I implementation/acceptance in
+  [role research](ROLE_WORKFLOW_RESEARCH.txt); no application or role release.
+- [ ] Implement P1-I only from the separately verified current-visit panel.
+  Prepare the existing caregiver read from exact bounded `Caregiver/ID`, with
+  explicit fetch intent and existing gates. Fence the successful read request
+  itself, including two successive reads of the same visit, plus row/filter/page,
+  patient/version, office/policy and mode/session changes. No history/name match,
+  automatic fetch, new permission or inferred therapist/primary-office authority.
+- [ ] External roles still require per-patient/action grants, staff-account and
+  effective-assignment mapping, authoritative primary-office context and approved
+  encounter/form/reviewer/signature contracts. P1-B migration remains open.
+
 - [x] P1-H saved chart-day filtering completed for the October 19 00:30 UTC
   heartbeat (October 18 local). Native keyboard/pressed-state controls compose
   with existing filters, reset paging and retain the full chart/provenance.

@@ -22,6 +22,22 @@
 
 # Current owner checkpoint
 
+## October 19 01:20 UTC role research (October 18 local)
+
+The [role research](ROLE_WORKFLOW_RESEARCH.txt) now separates primary/secondary
+caregiver offices, historical patient association, visit-specific discipline and
+document-action authority. Six new primary references support proposed screens
+and P1-I acceptance; none establishes this tenant's activation or a new role.
+Current caregiver office IDs do not identify the primary office. Administrator
+caregiver selection will not establish therapist access or scheduling eligibility.
+
+Next evidence action: complete normal HHA sign-in for authorized read-only
+calendar/record review. Keep representative current/former assignments, source
+caregiver IDs, visit discipline/service and primary/secondary/document authority
+in protected acceptance records. Unavailable mappings remain open. No new office,
+role permission or source change is requested. Existing detail/unit/period,
+P1-B migration and external account/form/reviewer/signature dependencies remain.
+
 ## October 18 local / October 19 UTC saved-chart controls
 
 Saved day charts now select or clear the existing date filter while retaining

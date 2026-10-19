@@ -20,6 +20,14 @@ Operational/management decisions: EVV rules, visibility/escalation, correction a
 
 # 🚦 CURRENT MANAGEMENT-LAYER CHECKPOINT
 
+**October 19 01:20 UTC role research (October 18 local):** added multi-office,
+historical-assignment, mixed-discipline and staff-document permission boundaries
+from six primary sources. Current caregiver projections do not identify the
+primary office. P1-I now has exact-current-ID selection, same-visit refresh and
+stale-control acceptance criteria; it remains an administrator navigation task.
+Family grants, therapist encounter authority and office-isolated roles remain
+proposed. See [cumulative research](docs/management-layer/ROLE_WORKFLOW_RESEARCH.txt).
+
 **October 18 local / October 19 00:30 UTC dashboard pass:** P1-H connects full
 saved-chart days to exact-date filtering with native keyboard controls, selected
 state and toggle/reset behavior. Full 41/36-tile charts/provenance remain intact.
