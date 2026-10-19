@@ -1254,6 +1254,99 @@ test('a later saved page reads the exact selected visit and navigating clears it
   assert.match(savedPageControls(app).summary.textContent, /Page 1 of 3/);
 });
 
+const savedDayButtons = app => descendants(app.element('manualSnapshotDetails')).filter(node => node.className === 'snapshot-day-filter');
+const savedDay = (app,date) => savedDayButtons(app).find(node => node.textContent === date);
+
+test('saved chart days filter and toggle locally while retaining full counts, source facts and provenance', async () => {
+  const snapshot=pagedSavedSnapshot(), original=JSON.stringify(snapshot), app=connectedWorkspace({history:savedHistory(snapshot)});
+  await openSavedHistory(app); const calls=app.calls.length, first=savedCells(app);
+  const bars=()=>descendants(app.element('manualSnapshotDetails')).filter(node=>node.tagName==='PROGRESS').map(node=>[node.value,node.max]);
+  const fullChart=bars(); await clickNode(savedPageControls(app).next);
+  const day=savedDay(app,'2026-09-01'); assert.equal(day.type,'button'); assert.equal(day['aria-controls'],'manualSavedVisitRows');
+  await clickNode(day); assert.equal(savedFilterControls(app).inputs[0].value,'2026-09-01');
+  assert.equal(day['aria-pressed'],'true'); assert.equal(savedDay(app,'2026-09-02')['aria-pressed'],'false');
+  assert.match(savedPageControls(app).summary.textContent,/Page 1 of 2/);
+  assert.match(nodeText(app.element('manualSnapshotDetails')),/Showing 1–10 of 12 matched saved visit tiles · 23 loaded/);
+  assert.deepEqual(savedCells(app),snapshot.visits.filter(v=>v.date==='2026-09-01').slice(0,10).map(v=>[v.date,v.id,v.text]));
+  await clickNode(day); assert.equal(day['aria-pressed'],'false'); assert.equal(savedFilterControls(app).inputs[0].value,'');
+  assert.deepEqual(savedCells(app),first); assert.deepEqual(bars(),fullChart); assert.equal(JSON.stringify(snapshot),original);
+  assert.equal(app.calls.length,calls,'chart selection/toggle must not request source/storage');
+});
+
+test('chart selection composes with other filters and manual date/reset keeps selected-day feedback accurate', async () => {
+  const app=connectedWorkspace({history:savedHistory(pagedSavedSnapshot())}); await openSavedHistory(app);
+  const {inputs:[date,id,text],reset}=savedFilterControls(app);
+  inputSavedFilter(id,'100'); inputSavedFilter(text,'EVEN'); await clickNode(savedDay(app,'2026-09-02'));
+  assert.equal(savedTableRows(app).length,0); assert.deepEqual([date.value,id.value,text.value],['2026-09-02','100','EVEN']);
+  assert.match(app.element('manualSnapshotStatus').textContent,/Saved date filter: 2026-09-02/);
+  await clickNode(savedDay(app,'2026-09-02')); assert.equal(savedTableRows(app).length,1);
+  assert.deepEqual([date.value,id.value,text.value],['','100','EVEN']);
+  inputSavedFilter(date,'2026-09-01'); assert.equal(savedDay(app,'2026-09-01')['aria-pressed'],'true');
+  inputSavedFilter(date,'2026-09-03'); assert.ok(savedDayButtons(app).every(node=>node['aria-pressed']==='false'));
+  assert.equal(savedTableRows(app).length,0); assert.match(app.element('manualSnapshotStatus').textContent,/Saved date filter: 2026-09-03/);
+  await clickNode(reset); assert.ok(savedDayButtons(app).every(node=>node['aria-pressed']==='false'));
+  assert.match(nodeText(app.element('manualSnapshotDetails')),/Saved date filter: all dates/);
+  assert.equal(app.document.activeElement,date); assert.equal(savedTableRows(app).length,10);
+});
+
+test('chart selection clears current evidence and fences late success/errors plus detached row/page controls', async () => {
+  for(const failure of [false,true]) {
+    const pending=deferred(); let wait=false;
+    const app=connectedWorkspace({history:savedHistory(pagedSavedSnapshot()),patientVisit:(_path,options)=>wait?pending.promise:response(currentVisitSource(JSON.parse(options.body)))});
+    await openSavedHistory(app); await clickNode(currentVisitButtons(app)[0]); await tick();
+    assert.match(nodeText(app.element('manualSnapshotDetails')),/Current HHA visit evidence/);
+    const oldRow=currentVisitButtons(app)[0], oldPage=savedPageControls(app).next;
+    wait=true; const reading=clickNode(oldRow); await tick(); await clickNode(savedDay(app,'2026-09-02'));
+    const cells=savedCells(app),calls=app.calls.length,status=app.element('manualSnapshotStatus').textContent;
+    await clickNode(oldRow); await clickNode(oldPage); assert.equal(app.calls.length,calls); assert.deepEqual(savedCells(app),cells);
+    pending.resolve(response(failure?{ok:false,error:'patient_office_mismatch'}:currentVisitSource({visitId:'100',patientId:'5',officeId:'123'})));
+    await reading; await tick(); assert.doesNotMatch(nodeText(app.element('manualSnapshotDetails')),/Current HHA visit evidence/);
+    assert.equal(app.element('manualSnapshotStatus').textContent,status);
+  }
+});
+
+test('detached chart controls cannot change another saved version, patient, office, policy, mode or session', async () => {
+  for(const mode of ['version','patient','office','policy','demo','session']) {
+    const app=connectedWorkspace({history:savedHistory(pagedSavedSnapshot())}); await openSavedHistory(app);
+    const old=savedDay(app,'2026-09-02');
+    if(mode==='version') {await clickNode(descendants(app.element('manualSnapshotList')).find(node=>node.textContent==='Open 2026-09 snapshot')); await tick();}
+    if(mode==='patient') {app.element('manualPatientId').value='99';for(const fn of app.element('manualPatientId').handlers.get('input'))fn(new Event('input'));}
+    if(mode==='office'||mode==='policy')app.window.primetimeDataMode.observeScope({revision:2,officeId:mode==='office'?'999':'123',officeTimezone:'America/Chicago'});
+    if(mode==='demo')app.window.primetimeDataMode.setMode('demo'); if(mode==='session')app.dispatch('primetime-signed-out');
+    await tick(); const before=nodeText(app.element('manualSnapshotDetails')),status=app.element('manualSnapshotStatus').textContent,calls=app.calls.length;
+    await clickNode(old); assert.equal(nodeText(app.element('manualSnapshotDetails')),before,mode);
+    assert.equal(app.element('manualSnapshotStatus').textContent,status,mode); assert.equal(app.calls.length,calls,mode);
+  }
+});
+
+test('detached chart controls cannot cancel a pending saved-version load and selected dates reset on reopen', async () => {
+  const pending=deferred(); let hold=false;
+  const app=connectedWorkspace({history:path=>new URL(path,'https://fixture.test').searchParams.has('id')&&hold?pending.promise:savedHistory(pagedSavedSnapshot())(path)});
+  await openSavedHistory(app); const old=savedDay(app,'2026-09-02'); await clickNode(old); hold=true;
+  const opening=clickNode(descendants(app.element('manualSnapshotList')).find(node=>node.textContent==='Open 2026-09 snapshot')); await tick();
+  await clickNode(old); pending.resolve(response({ok:true,snapshot:pagedSavedSnapshot()})); await opening; await tick();
+  assert.equal(savedFilterControls(app).inputs[0].value,''); assert.ok(savedDayButtons(app).every(node=>node['aria-pressed']==='false'));
+  assert.match(savedPageControls(app).summary.textContent,/Page 1 of 3/); assert.match(app.element('manualSnapshotStatus').textContent,/Saved manual snapshot loaded/);
+});
+
+test('chart selection cannot make globally duplicate saved IDs actionable or enable disabled current reads', async () => {
+  for(const disabled of [false,true]) {
+    const snapshot=pagedSavedSnapshot(); if(!disabled)snapshot.visits[1].id='100';
+    const app=connectedWorkspace({history:savedHistory(snapshot),...(disabled?{enabledReads:['GetPatientDemographics']}:{})}); await openSavedHistory(app);
+    inputSavedFilter(savedFilterControls(app).inputs[1],'100'); await clickNode(savedDay(app,'2026-09-01'));
+    assert.equal(savedTableRows(app).length,1); assert.equal(currentVisitButtons(app).length,0); assert.equal(currentVisitCalls(app).length,0);
+  }
+});
+
+test('chart-filtered current reads retain exact identity and chart controls stay usable after local paging', async () => {
+  const app=connectedWorkspace({history:savedHistory(pagedSavedSnapshot()),patientVisit:(_path,options)=>response(currentVisitSource(JSON.parse(options.body)))});
+  await openSavedHistory(app); const day=savedDay(app,'2026-09-01'); await clickNode(day); await clickNode(savedPageControls(app).next);
+  await clickNode(currentVisitButtons(app)[0]); await tick();
+  assert.deepEqual(JSON.parse(currentVisitCalls(app)[0].options.body),{visitId:'120',patientId:'5',officeId:'123'});
+  await clickNode(day); assert.equal(day['aria-pressed'],'false'); assert.doesNotMatch(nodeText(app.element('manualSnapshotDetails')),/Current HHA visit evidence/);
+  assert.match(savedPageControls(app).summary.textContent,/Page 1 of 3/);
+});
+
 const authorizationButtons = (app, host = 'dashboardTimeline') => descendants(app.element(host)).filter(node => node.textContent === 'Open patient authorizations');
 const detailButtons = app => descendants(app.element('readResults')).filter(node => node.textContent === 'Select authorization detail');
 const authorizationCalls = app => app.calls.filter(call => call.path.endsWith('/workspace/patient-authorizations'));

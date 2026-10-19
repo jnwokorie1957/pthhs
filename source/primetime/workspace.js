@@ -913,6 +913,8 @@
         });
       };
       const filters = element('fieldset', undefined, 'operational-form snapshot-filters'), matched = element('p', undefined, 'source-metadata'), rows = element('div');
+      const daySelection = element('p', undefined, 'source-metadata'), dayButtons = new Map();
+      rows.id = 'manualSavedVisitRows';
       const pagination = element('nav', undefined, 'visit-pagination');
       pagination.setAttribute('aria-label', 'Loaded saved visits pages'); matched.tabIndex = -1;
       filters.append(element('legend', 'Filter loaded saved visits'));
@@ -934,6 +936,8 @@
         const revision = ++rowsRevision;
         if (changed) { snapshotSequence++; currentEvidence.replaceChildren(); }
         const date = dateFilter.value || '', id = (idFilter.value || '').trim(), term = (textFilter.value || '').trim().toLowerCase();
+        daySelection.textContent = `Saved date filter: ${date || 'all dates'}.`;
+        dayButtons.forEach((control, day) => control.setAttribute('aria-pressed', String(day === date)));
         const matching = snapshot.visits.filter(visit => (!date || visit.date === date) && (!id || visit.id === id) && (!term || visit.text.toLowerCase().includes(term)));
         const pages = Math.max(1, Math.ceil(matching.length / pageSize)), page = Math.min(Math.max(0, requestedPage), pages - 1), start = page * pageSize;
         const visible = matching.slice(start, start + pageSize), range = visible.length ? `${start + 1}–${start + visible.length}` : '0';
@@ -950,16 +954,27 @@
         };
         pagination.replaceChildren(pageControl('Previous saved visits', page - 1, page === 0), pageControl('Next saved visits', page + 1, page === pages - 1),
           element('small', `Page ${page + 1} of ${pages} · up to ${pageSize} saved tiles per page. Local pages of this loaded capture; no additional source records are fetched.`));
-        if (changed) status(matched.textContent + ' Current evidence cleared; use an explicit read for the selected saved visit.');
+        if (changed) status(daySelection.textContent + ' ' + matched.textContent + ' Current evidence cleared; use an explicit read for the selected saved visit.');
       }
       renderSavedRows();
       panel.append(element('p', 'Manual snapshot · source interpretation pending', 'eyebrow'), element('h2', `${snapshot.patientLabel} · ${snapshot.period}`),
         element('p', `Office ${snapshot.officeId} · patient ${snapshot.patientId} · ${snapshot.visits.length} visit tiles · ${snapshot.authorizations.rows.length} authorization rows`),
         element('p', `Captured ${snapshot.capturedAt} · imported ${snapshot.updatedAt}. Times below retain the HHA source display.`, 'source-metadata'));
       const days = new Map(); snapshot.visits.forEach(visit => days.set(visit.date, (days.get(visit.date) || 0) + 1));
-      panel.append(element('h3', 'Recorded visit tiles by day · full saved capture'));
+      panel.append(element('h3', 'Recorded visit tiles by day · full saved capture'),
+        element('p', 'Select a day to filter the saved table. Select it again to clear the date; other filters stay applied.'), daySelection);
       const chart = element('div', undefined, 'snapshot-days'), max = Math.max(1, ...days.values());
-      [...days].sort(([a], [b]) => a.localeCompare(b)).forEach(([date, count]) => { const row = element('div', undefined, 'snapshot-day'), bar = element('progress'); bar.max = max; bar.value = count; bar.setAttribute('aria-label', `${date}: ${count} recorded visit tiles`); row.append(element('span', date), bar, element('strong', count)); chart.append(row); });
+      [...days].sort(([a], [b]) => a.localeCompare(b)).forEach(([date, count]) => {
+        const row = element('div', undefined, 'snapshot-day'), bar = element('progress'), control = element('button', date, 'snapshot-day-filter');
+        control.type = 'button'; control.setAttribute('aria-label', `Filter saved visits on ${date}`); control.setAttribute('aria-controls', rows.id);
+        control.setAttribute('aria-pressed', 'false'); dayButtons.set(date, control);
+        control.addEventListener('click', () => {
+          if (!viewCurrent()) return;
+          dateFilter.value = dateFilter.value === date ? '' : date; renderSavedRows(true);
+        });
+        bar.max = max; bar.value = count; bar.setAttribute('aria-label', `${date}: ${count} recorded visit tiles`);
+        row.append(control, bar, element('strong', count)); chart.append(row);
+      });
       panel.append(chart, element('h3', 'Authorization source rows'), sourceTable(snapshot.authorizations.columns, snapshot.authorizations.rows.map(row => row.cells)),
         element('h3', 'Calendar source evidence'), element('p', 'Use an explicit current read to check a saved visit ID against its current patient and office. Saved source text remains dated manual evidence.'),
         filters, matched, pagination, rows, currentEvidence);
