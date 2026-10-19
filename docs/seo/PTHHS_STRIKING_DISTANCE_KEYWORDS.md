@@ -1,11 +1,18 @@
 # PTHHS measured keyword review
-**Reviewed:** October 18, 2026
+**Reviewed:** October 19, 2026
 **Status:** Replaces the August 19 template's assumed positions, difficulty scores,
 conversion weights and improvement forecasts.
 
 ## Evidence and method
 
-Read-only Search Console access works. The owner's private baseline contains the
+October 19 access update: the automated reporting connector is unavailable;
+normal Search Console browser reads work. Its active custom date controls showed
+October 4–16 even after an attempted earlier start. Store that actual UI scope
+with its rounded display values; do not label it a fresh 28-day API extract or
+complete query/page report. No comparable growth claim follows. See
+[current review](2026-10-19-seo-review.md). Prior API observations below remain dated.
+
+The owner's private baseline contains the
 returned query table with pagination exhausted. A fresh October 16 extract also
 exhausted page-report pagination; the original first-30-row file stays unchanged.
 Keep raw queries and account evidence outside this repository. An exhausted

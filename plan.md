@@ -1,5 +1,15 @@
 # PTHHS Website Improvement Plan
 
+## SEO checkpoint - October 19, 2026
+
+Normal Search Console browser access diagnosed the legacy index's historical
+404/HTML errors. One refresh of the verified repaired XML now reports a successful
+October 19 sitemap-index read. All 132 public routes, static gates, public
+artifacts and private indexing/authentication boundaries passed. No public app
+code or sitemap dates changed. Discovery/indexing/outcomes and field/static
+performance remain separate. Location review and comparable outcome measurement
+stay open. See [current evidence](docs/seo/2026-10-19-seo-review.md).
+
 ## SEO checkpoint - October 18, 2026
 
 October 18: the existing home-care guide now answers visitor navigation questions,

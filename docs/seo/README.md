@@ -3,6 +3,10 @@
 These files remain useful for planning, but they do not override current public
 facts, payer evidence, or claim-release controls.
 
+- [October 19 sitemap reprocessing and SEO review](2026-10-19-seo-review.md) —
+  diagnosed legacy 404/HTML errors, one successful Google reprocessing request,
+  fresh public checks, actual browser reporting limits and unavailable field data.
+
 - [October 18 guide and SEO review](2026-10-18-seo-review.md) — visitor guide,
   contextual navigation, verified core-page reachability, explicit-window private
   Search Console/query-page evidence and remaining location/reprocessing actions.

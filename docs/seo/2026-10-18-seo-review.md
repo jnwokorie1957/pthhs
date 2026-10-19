@@ -1,5 +1,11 @@
 # October 18 home-care guide and SEO review
 
+October 19 follow-up: the separately dated
+[reprocessing review](2026-10-19-seo-review.md) closes the warning/error inspection
+and refresh task below. One request through normal Search Console browser access
+now reports a successful October 19 sitemap-index read. The dated observations
+and measurement limits in this October 18 report remain unchanged.
+
 ## Observed problem and bounded change
 
 A fresh public crawl reached all 132 marketing routes at HTTP 200 after no more

@@ -22,6 +22,17 @@
 
 # Current checkpoint
 
+- [x] October 19 SEO follow-up diagnosed the legacy sitemap's historical 404/
+  HTML errors in normal Search Console. One refresh of the verified repaired
+  index now reports October 19 read / Sitemap index / Success. All 132 public
+  routes, static SEO/accessibility/performance/claim checks and live artifact/
+  private boundaries passed. No public app code changed. See
+  [SEO evidence](../seo/2026-10-19-seo-review.md).
+- [ ] Continue later settled outcome measurement and owner-approved location
+  review. Automated reporting access is unavailable; browser access works.
+  Observe normal sitemap updates without repeated unchanged submissions. Core
+  Web Vitals currently lacks sufficient field data; static checks are separate.
+
 - [x] October 19 20:40 UTC role research compared current projections/UI and six
   new primary references for recurrence/generated visits, temporary staffing,
   confirmation/missed/deleted states, order/certification versions and aggregation
@@ -100,8 +111,8 @@
   private Search Console/query-page evidence; no ranking/growth claim. See
   [SEO review](../seo/2026-10-18-seo-review.md).
 - [ ] Continue location availability/useful-content review and later comparable
-  outcome measurement. The legacy index's Google reprocessing remains unverified;
-  owner Search Console warning/error inspection remains required.
+  outcome measurement. The legacy index's error inspection and Google reprocessing
+  are now completed in the October 19 evidence above.
 
 - [x] P1-G loaded saved-calendar pagination implemented with ten-row local
   pages, visible-range/matched/loaded counts, filter/version resets, focused

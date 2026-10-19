@@ -20,6 +20,14 @@ Operational/management decisions: EVV rules, visibility/escalation, correction a
 
 # 🚦 CURRENT MANAGEMENT-LAYER CHECKPOINT
 
+**October 19 SEO follow-up, 20:46 UTC trigger:** normal Search Console browser
+access identified the legacy sitemap's historical 404/HTML errors. One refresh
+of the verified repaired index is now read by Google as Sitemap index / Success,
+dated October 19. All 132 public routes, static release checks and live artifact/
+private-boundary checks passed. Discovery is separate from indexing/outcomes;
+location and measurement prerequisites remain open. No public application code
+changed. See [review](docs/seo/2026-10-19-seo-review.md).
+
 **October 19 20:40 UTC role research:** six new primary references distinguish
 recurring plans/generated visits, placeholder staffing, missing confirmations/
 missed/deleted visits, order/certification versions and aggregator stages. Compared

@@ -1,5 +1,15 @@
 # SEO weekly changelog
 
+## Week of October 19, 2026
+
+October 19: normal Search Console browser access exposed the legacy index's
+historical 404/HTML errors. After verifying current XML and www redirects, sent
+one refresh request. Google now reports Sitemap index / Success, last read today.
+This closes reprocessing, without claiming indexing or traffic gains. All 132
+public routes, static gates and served artifact/private-boundary checks passed;
+no public app code or sitemap dates changed. Browser reporting and field-data
+limits remain explicit. See [evidence](2026-10-19-seo-review.md).
+
 ## Week of October 12, 2026 — updated October 18
 
 October 18: the existing information hub now guides visitors to approved service,

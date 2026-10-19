@@ -5,6 +5,15 @@
 
 ## Completed controls
 
+**October 19 follow-up:** current public HTTP/XML/redirect/metadata and private
+indexing boundaries passed. Normal Search Console browser access identified
+the historical index's 404/HTML errors and accepted one refresh of the repaired
+file. Google now reports Sitemap index / Success, last read October 19. This
+resolves the earlier reprocessing dependency; discovery counts do not establish
+indexing gains. Automated reporting access is unavailable; browser reads work.
+Core Web Vitals currently has insufficient field usage data. See
+[current evidence](docs/seo/2026-10-19-seo-review.md).
+
 **October 15 follow-up:** the generator and Batch B4 verifier now preserve the
 historical `sitemap_index.xml` submission as a valid index of the canonical
 27-route sitemap. Live 200/XML and www redirect checks passed. Read-only Search
