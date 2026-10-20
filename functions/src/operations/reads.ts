@@ -1,4 +1,5 @@
 import { extractExactElementText } from "../integrations/hhaexchange/parser.js";
+import { XMLParser, XMLValidator } from "fast-xml-parser";
 import type { HhaSoapClient } from "../integrations/hhaexchange/client.js";
 import { extractElementBodies, extractElementBody, extractElementText } from "../integrations/hhaexchange/parser.js";
 
@@ -525,6 +526,98 @@ function verificationReceiptFields(xml: string): Record<string, string | null> {
   if (entries.some(entry => entry.elements.length > 1)) return empty;
   return Object.fromEntries(entries.map(({ name, elements }) => ["Verification/" + name, elements.length ? extractExactElementText(elements[0]!, name) ?? null : null]));
 }
+// Dashboard discovery must not silently skip empty IDs or borrow nested IDs.
+// The captured contract permits an absent/empty Visits collection, but IDs
+// themselves must be direct scalar children and valid identifiers.
+function dashboardVisitIds(xml: string): Record<string, string | null>[] {
+  const invalid = (): never => { throw new WorkflowError("invalid_visit_discovery_response", 502); };
+  // Validate the entire result fragment, including absent collections and trailing
+  // syntax. DTDs are not part of this contract; never expand declared entities.
+  const wrapped = "<DiscoveryResult>" + xml + "</DiscoveryResult>";
+  if (XMLValidator.validate(wrapped) !== true) invalid();
+  try {
+    // The decoder runs only on XML text/attributes, never literal CDATA.
+    // Decode once: &amp;#55; must remain literal &#55;, not become a digit.
+    const predefined: Record<string, string> = { amp: "&", lt: "<", gt: ">", quot: '"', apos: "'" };
+    const entityDecoder = {
+      reset() {}, setXmlVersion() {},
+      setExternalEntities(entities: Record<string, string>) { if (Object.keys(entities).length) invalid(); },
+      addInputEntities() { invalid(); },
+      decode(text: string) {
+        return text.replace(/&(#x[0-9a-fA-F]+|#[0-9]+|amp|lt|gt|quot|apos);/g, (_match, entity: string) => {
+          if (!entity.startsWith("#")) return predefined[entity]!;
+          const code = entity.startsWith("#x") ? Number.parseInt(entity.slice(2), 16) : Number(entity.slice(1));
+          if (!(code === 9 || code === 10 || code === 13 || (code >= 0x20 && code <= 0xD7FF) ||
+            (code >= 0xE000 && code <= 0xFFFD) || (code >= 0x10000 && code <= 0x10FFFF))) invalid();
+          return String.fromCodePoint(code);
+        });
+      },
+    };
+    const parser = new XMLParser({ preserveOrder: true, ignoreAttributes: false, parseTagValue: false, trimValues: false, entityDecoder });
+    const localName = (name: string) => name.split(":").pop();
+    const records: Record<string, string | null>[] = [];
+    const stack: string[] = [];
+    let collectionSeen = false, idStart = -1;
+    const addId = (fragment: string) => {
+      // Parse one scalar at a time, never materialize the entire result tree.
+      const node = parser.parse(fragment)[0], key = Object.keys(node).find(key => key !== ":@")!;
+      const attrs = node[":@"] as Record<string, string> | undefined;
+      if (Object.entries(attrs ?? {}).some(([name, value]) => localName(name.replace(/^@_/, "")) === "nil" &&
+        /^(true|1)$/i.test(String(value).replace(/[ \t\r\n]+/g, " ").trim()))) invalid();
+      const value = (node[key] as Record<string, unknown>[]).map(part => String(part["#text"] ?? "")).join("");
+      records.push({ VisitID: identifier(value.trim()) });
+    };
+    // Forward-only token spans, after full lexical validation. Quoted attributes,
+    // comments, CDATA and PI are consumed once; no global backtracking scan.
+    for (let i = 0; i < xml.length;) {
+      const inCollection = stack.length === 1 && localName(stack[0]!) === "Visits";
+      if (xml[i] !== "<") {
+        const next = xml.indexOf("<", i), end = next < 0 ? xml.length : next;
+        if (inCollection && entityDecoder.decode(xml.slice(i, end)).trim()) invalid();
+        i = end; continue;
+      }
+      const tokenStart = i;
+      if (xml.startsWith("<!--", i) || xml.startsWith("<![CDATA[", i) || xml.startsWith("<?", i)) {
+        const cdata = xml.startsWith("<![CDATA[", i), comment = xml.startsWith("<!--", i);
+        const prefix = cdata ? 9 : comment ? 4 : 2, suffix = cdata ? "]]>" : comment ? "-->" : "?>";
+        const end = xml.indexOf(suffix, i + prefix);
+        if (end < 0) invalid();
+        if (cdata && inCollection && xml.slice(i + prefix, end).trim()) invalid();
+        i = end + suffix.length; continue;
+      }
+      if (xml.startsWith("<!", i)) invalid(); // DTD/custom declarations forbidden.
+      let quote = "", end = i + 1;
+      for (; end < xml.length; end++) {
+        const ch = xml[end]!;
+        if (quote) { if (ch === quote) quote = ""; }
+        else if (ch === '"' || ch === "'") quote = ch;
+        else if (ch === ">") break;
+      }
+      if (end === xml.length) invalid();
+      const token = xml.slice(i, end + 1), closing = token.startsWith("</"), selfClosing = token.endsWith("/>");
+      const name = /^<\/?([^\s/>]+)/.exec(token)?.[1];
+      if (!name) invalid();
+      const local = localName(name!);
+      if (closing) {
+        if (stack.pop() !== name) invalid();
+        if (local === "VisitID") { addId(xml.slice(idStart, end + 1)); idStart = -1; }
+      } else {
+        if (local === "Visits") { if (stack.length || collectionSeen) invalid(); collectionSeen = true; }
+        else if (local === "VisitID") { if (!inCollection) invalid(); idStart = tokenStart; }
+        else if (inCollection || idStart >= 0) invalid();
+        if (selfClosing) { if (local === "VisitID") addId(token); }
+        else { stack.push(name!); if (stack.length > 100) invalid(); }
+      }
+      i = end + 1;
+    }
+    if (stack.length) invalid();
+    return records;
+  } catch (error) {
+    if (error instanceof WorkflowError) throw error;
+    return invalid();
+  }
+}
+
 export interface OperationalRead { operation: ReadOperation; fetchedAt: string; source: "hhaexchange"; validation: "source_unvalidated"; timezone: "source_values_unconverted"; records: Record<string, string | null>[]; truncated: boolean; attachment?: { filename: string; byteLength: number; base64: string; contentType: "application/octet-stream" }; changePreview?: { timeBasis: "vendor_EST_wall_time_unconverted" | "UTC"; modifiedAfter: string; page: string | null; completeness: "not_inferred"; checkpointAdvanced: false }; }
 export function boundedAttachment(record: Record<string, string | null>, identity: string, expected: string) {
   if (record[identity] !== expected) throw new WorkflowError("download_identity_mismatch", 502);
@@ -553,7 +646,9 @@ export async function operationalRead(client: Pick<HhaSoapClient, "call">, input
   if (input.operation === "SearchVisitsV2" || input.operation === "SearchPatients" || input.operation === "SearchCaregivers") {
     const [container, field] = input.operation === "SearchVisitsV2" ? ["Visits", "VisitID"] : input.operation === "SearchPatients" ? ["Patients", "PatientID"] : ["Caregivers", "CaregiverID"];
     const values = extractElementBody(response.resultXml, container!) ?? "";
-    records = extractElementBodies(values, field!).map(value => ({ [field!]: identifier(value.trim()) }));
+    records = input.operation === "SearchVisitsV2" && projectionScope === "visit_discovery"
+      ? dashboardVisitIds(response.resultXml)
+      : extractElementBodies(values, field!).map(value => ({ [field!]: identifier(value.trim()) }));
   } else {
     const projection = projections[input.operation];
     let bodies = projection.record === "$result" ? [response.resultXml] : extractElementBodies(response.resultXml, projection.record);

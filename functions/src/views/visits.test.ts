@@ -3,6 +3,7 @@ import test from "node:test";
 import { assertLiveDataMode, dataStatus, visitPreview, viewRoute } from "./visits.js";
 import { OperationsWorkspace, type WorkspaceRepository, type Versioned, type Settings } from "../operations/workspace.js";
 import { WorkflowError, operationalRead, type ReadInput, type OperationalRead } from "../operations/reads.js";
+import { parseHhaSoapResponse } from "../integrations/hhaexchange/parser.js";
 import { HhaSoapClient, boundedSoapText } from "../integrations/hhaexchange/client.js";
 
 test("large discovery keeps SOAP byte ceiling and strict identifiers", async () => {
@@ -35,6 +36,60 @@ test("dashboard discovery retains 200, 201, 1500 and 1601 received IDs without c
     const all = await operationalRead(client, input, "visit_discovery"), preview = await operationalRead(client, input);
     assert.equal(all.records.length, count); assert.equal(all.truncated, false);
     assert.equal(preview.records.length, Math.min(count, 200)); assert.equal(preview.truncated, count > 200);
+  }
+});
+
+test("dashboard discovery refuses empty, nested or ambiguous source IDs instead of silently dropping them", async () => {
+  for (const xml of [
+    "<Visits><VisitID>77</VisitID><VisitID/></Visits>",
+    '<Visits><VisitID xsi:nil="true"/></Visits>',
+    "<Visits><VisitID>77</VisitID></Visits><Visits><VisitID>88</VisitID></Visits>",
+    "<Visits><Unexpected><VisitID>77</VisitID></Unexpected></Visits>",
+    "<Visits><VisitID>77</Visits>",
+    "<Visits>77</Visits>",
+    "<Visits><Unexpected>77</Unexpected></Visits>",
+    "<Visits><VisitID=77/></Visits>",
+    "<Visits><VisitID>77</VisitID>88</Visits>",
+    "<Visits><VisitID>77</VisitID><Unexpected/></Visits>",
+    "<Visits/><bad",
+    "<Visits=broken>77</Visits=broken>", "<Visits", "<Visits/><VisitID=88/>",
+    "<Visits><VisitID>77</VisitID></Visits><VisitID=88/>",
+    "<Visits/><bad>",
+    '<!DOCTYPE Visits [<!ENTITY id "77">]><Visits><VisitID>&id;</VisitID></Visits>',
+    "<Details><Visits/></Details>", "<VisitID>77</VisitID><Visits/>",
+    "<Visits><VisitID><Unexpected>77</Unexpected></VisitID></Visits>",
+    "<Visits/><!-- unfinished",
+    "<Visits/><?unfinished",
+    "<Visits/><![CDATA[unfinished",
+    '<Visits><VisitID invalid>77</VisitID></Visits>',
+  ]) {
+    const client = { call: async () => ({ ok: true, resultXml: xml }) } as unknown as HhaSoapClient;
+    await assert.rejects(operationalRead(client, { operation: "SearchVisitsV2", officeId: "123", date: "2026-10-10" }, "visit_discovery"));
+  }
+});
+
+test("dashboard discovery preserves contract empty forms, namespaces, comments and scalar IDs", async () => {
+  for (const xml of ["", "<Visits/>", "<Visits></Visits>", "<Visits><![CDATA[]]></Visits>", "<Visits><![CDATA[ \n ]]></Visits>"]) {
+    const client = { call: async () => ({ ok: true, resultXml: xml }) } as unknown as HhaSoapClient;
+    // A successful parser supplies result XML; use a Result sibling for absent Visits.
+    const actual = xml || '<Result Status="Success"/>';
+    client.call = async () => ({ ok: true, resultXml: actual }) as any;
+    assert.deepEqual((await operationalRead(client, { operation: "SearchVisitsV2", officeId: "123", date: "2026-10-10" }, "visit_discovery")).records, []);
+  }
+  const client = { call: async () => ({ ok: true, resultXml: '<n:Visits xmlns:n="urn:synthetic"><!-- ignored <VisitID/> --><n:VisitID> 77 </n:VisitID><n:VisitID>88</n:VisitID></n:Visits>' }) } as unknown as HhaSoapClient;
+  assert.deepEqual((await operationalRead(client, { operation: "SearchVisitsV2", officeId: "123", date: "2026-10-10" }, "visit_discovery")).records, [{ VisitID: "77" }, { VisitID: "88" }]);
+});
+
+test("discovery ignores tag-looking CDATA and processing instructions outside IDs", async () => {
+  for (const xml of [
+    "<Visits><VisitID>7<!-- ignore -->7</VisitID></Visits>",
+    "<Details><![CDATA[<VisitID>]]></Details><Visits><VisitID>77</VisitID></Visits>",
+    "<?message <VisitID> ?><Visits><VisitID>77</VisitID></Visits>",
+    "<Visits><?message <VisitID> ?><VisitID><![CDATA[77]]></VisitID><!-- <VisitID/> --></Visits>",
+    "<Visits><!-- <VisitID>77</VisitID> --><VisitID>77</VisitID></Visits>",
+  ]) {
+    const client = { call: async () => ({ ok: true, resultXml: xml }) } as unknown as HhaSoapClient;
+    assert.deepEqual((await operationalRead(client, { operation: "SearchVisitsV2", officeId: "123", date: "2026-10-10" }, "visit_discovery")).records, [{ VisitID: "77" }]);
   }
 });
 
@@ -329,4 +384,57 @@ test("transport retry reserves each actual dispatch once and never repeats a den
     await assert.rejects(client.call("GetCollectionStatus", "<Status>Active</Status>"), /read_budget_exhausted/);
     assert.equal(sends, 2); assert.equal(reservations, 3);
   } finally { globalThis.fetch = original; }
+});
+
+
+test("discovery validates complete result fragments accepted by the SOAP envelope parser", async () => {
+  for (const fragment of ["<Visits/><bad", "<Visits", "<Visits=broken>77</Visits=broken>",
+    "<Visits/><VisitID=88/>", "<Visits><VisitID>77</VisitID></Visits><VisitID=88/>"]) {
+    const response = parseHhaSoapResponse("SearchVisitsV2", 200, true,
+      '<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/"><soap:Body><SearchVisitsV2Response><SearchVisitsV2Result><Result Status="Success"/>' + fragment + '</SearchVisitsV2Result></SearchVisitsV2Response></soap:Body></soap:Envelope>');
+    assert.equal(response.ok, true);
+    const client = { call: async () => response } as unknown as HhaSoapClient;
+    await assert.rejects(operationalRead(client, { operation: "SearchVisitsV2", officeId: "123", date: "2026-10-10" }, "visit_discovery"), /invalid_visit_discovery_response/);
+  }
+});
+
+
+test("discovery decodes XML numeric references once without decoding literal CDATA", async () => {
+  const read = (value: string) => operationalRead({ call: async () => ({ ok: true,
+    resultXml: "<Visits><VisitID>" + value + "</VisitID></Visits>" }) } as unknown as HhaSoapClient,
+    { operation: "SearchVisitsV2", officeId: "123", date: "2026-10-10" }, "visit_discovery");
+  for (const value of ["&#55;&#x37;", "&#55;&#55;", "&#x37;&#x37;", "&#00055;&#x00037;", "<![CDATA[7]]>&#55;", "&#55;<!-- ignore -->&#x37;"]) {
+    assert.deepEqual((await read(value)).records, [{ VisitID: "77" }]);
+  }
+  for (const value of ["<![CDATA[&#55;&#x37;]]>", "&amp;#55;&amp;#x37;", "&custom;", "&#0;", "&#xD800;", "&#x110000;"]) {
+    await assert.rejects(read(value));
+  }
+});
+
+
+test("discovery rejects nil IDs after XML Schema boolean whitespace normalization", async () => {
+  for (const nil of ["true", " true ", " 1 ", "&#32;true&#32;", "&#x20;1&#x9;", "\ttrue\n"]) {
+    const client = { call: async () => ({ ok: true,
+      resultXml: '<Visits><VisitID xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:nil="' + nil + '">77</VisitID></Visits>' }) } as unknown as HhaSoapClient;
+    await assert.rejects(operationalRead(client, { operation: "SearchVisitsV2", officeId: "123", date: "2026-10-10" }, "visit_discovery"), /invalid_visit_discovery_response/);
+  }
+});
+
+
+test("discovery rejects large unterminated comment sequences without quadratic scanning", async () => {
+  for (const count of [16384, 65536, 262144]) {
+    const client = { call: async () => ({ ok: true, resultXml: "<Visits/>" + "<!--".repeat(count) }) } as unknown as HhaSoapClient;
+    const started = performance.now();
+    await assert.rejects(operationalRead(client, { operation: "SearchVisitsV2", officeId: "123", date: "2026-10-10" }, "visit_discovery"), /invalid_visit_discovery_response/);
+    assert.ok(performance.now() - started < 2000, "bounded malformed fragment must reject promptly");
+  }
+});
+
+test("discovery projects a near-byte-ceiling collection without a complete XML object tree", async () => {
+  const xml = "<Visits>" + "<VisitID>123456</VisitID>".repeat(200000) + "</Visits>";
+  assert.ok(Buffer.byteLength(xml) < 5 * 1024 * 1024);
+  const client = { call: async () => ({ ok: true, resultXml: xml }) } as unknown as HhaSoapClient;
+  const result = await operationalRead(client, { operation: "SearchVisitsV2", officeId: "123", date: "2026-10-10" }, "visit_discovery");
+  assert.equal(result.records.length, 200000); assert.equal(result.truncated, false);
+  assert.deepEqual(result.records[199999], { VisitID: "123456" });
 });
