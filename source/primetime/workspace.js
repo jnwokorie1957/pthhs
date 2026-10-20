@@ -732,7 +732,7 @@
     $('investigationList')?.replaceChildren();
     if ($('investigationSummary')) $('investigationSummary').textContent = 'Load queue to review saved investigations.';
   }
-  function followUpInstant(value) {
+  function timestampInstant(value) {
     const match = typeof value === 'string' && value.match(/^(\d{4}-\d{2}-\d{2})T(?:[01]\d|2[0-3]):[0-5]\d(?::[0-5]\d(?:\.\d+)?)?(?:Z|[+-](?:[01]\d|2[0-3]):[0-5]\d)$/);
     if (!match) return null;
     const day = Date.parse(match[1] + 'T00:00:00Z');
@@ -748,7 +748,7 @@
     const now = Date.now(), sequence = investigationSequence;
     const status = $('investigationStatusFilter').value || 'all', assignment = $('investigationAssignmentFilter').value || 'all', followUp = $('investigationFollowUpFilter').value || 'all';
     const rows = investigations.map(item => {
-      const active = item.status === 'open' || item.status === 'in_progress', at = followUpInstant(item.followUpAt);
+      const active = item.status === 'open' || item.status === 'in_progress', at = timestampInstant(item.followUpAt);
       return { item, active, assigned: typeof item.assignee === 'string' && item.assignee.trim() !== '', at, overdue: active && at !== null && at < now };
     });
     const visible = rows.filter(row => (status === 'all' || (status === 'active' ? row.active : row.item.status === status))
@@ -851,6 +851,7 @@
   }));
   if ($('manualSnapshotForm')) {
     let snapshotSequence = 0, snapshotSelection = 0, snapshotView = 0, sourcePatientSelected = false;
+    let clearFetchAge = () => {};
     const status = value => { $('manualSnapshotStatus').textContent = value; };
     const snapshotAction = work => action(work);
     const snapshotContext = () => ({ selection: snapshotSelection, patientId: $('manualPatientId').value, officeId: settings?.officeId, revision: settings?.revision, generation });
@@ -866,6 +867,37 @@
       }
     }
     const element = (tag, value, className) => { const item = document.createElement(tag); if (value !== undefined) item.textContent = String(value); if (className) item.className = className; return item; };
+    function currentFetchAge(fetchedAt, isCurrent) {
+      clearFetchAge();
+      const age = element('p', undefined, 'source-metadata current-fetch-age'), fetched = timestampInstant(fetchedAt);
+      age.setAttribute('aria-live', 'off');
+      let timer = null, active = true;
+      const stop = () => {
+        if (!active) return;
+        active = false; age.hidden = true;
+        if (timer !== null) clearInterval(timer);
+      };
+      clearFetchAge = stop;
+      const update = () => {
+        if (!active) return;
+        if (!isCurrent()) { stop(); return; }
+        const now = Date.now();
+        let elapsed = 'unavailable (missing or invalid fetch timestamp)';
+        if (fetched !== null) {
+          if (!Number.isFinite(now)) elapsed = 'unavailable (invalid device clock)';
+          else if (now < fetched) elapsed = 'unavailable (fetch timestamp is ahead of this device clock)';
+          else {
+            const minutes = Math.floor((now - fetched) / 60_000), hours = Math.floor(minutes / 60), days = Math.floor(hours / 24);
+            elapsed = minutes === 0 ? 'less than 1 min' : days ? `${days} d ${hours % 24} h ${minutes % 60} min` : hours ? `${hours} h ${minutes % 60} min` : `${minutes} min`;
+          }
+        }
+        const text = `Approximate fetch age: ${elapsed}. Uses this device clock; age updates locally each minute. Source refresh requires an explicit read.`;
+        if (age.textContent !== text) age.textContent = text;
+      };
+      update();
+      if (fetched !== null && active) timer = setInterval(update, 60_000);
+      return age;
+    }
     const sourceTable = (headers, rows, actions) => {
       const wrap = element('div', undefined, 'snapshot-table'), table = element('table'), head = element('thead'), heading = element('tr');
       headers.forEach(label => { const cell = element('th', label); cell.scope = 'col'; heading.append(cell); }); head.append(heading); table.append(head);
@@ -873,12 +905,14 @@
       table.append(body); wrap.append(table); return wrap;
     };
     function clearSnapshots() {
+      clearFetchAge();
       snapshotSequence++; snapshotSelection++; snapshotView++; sourcePatientSelected = false;
       $('manualSnapshotList').replaceChildren(); $('manualSnapshotDetails').replaceChildren();
       $('manualSnapshotPayload').value = ''; $('manualSnapshotPanel').inert = !dataApproved || window.primetimeDataMode?.isLive() !== true;
       status(window.primetimeDataMode?.isLive() ? 'Enter a patient ID to load protected imports.' : 'Switch Demo data off to use protected calendar imports.');
     }
     function showSnapshot(snapshot) {
+      clearFetchAge();
       const detail = $('manualSnapshotDetails'), panel = element('section', undefined, 'panel');
       const captured = snapshotContext(), view = ++snapshotView, currentEvidence = element('section', undefined, 'panel');
       const viewCurrent = () => view === snapshotView && snapshotCurrent(captured);
@@ -892,6 +926,7 @@
         return button('Read current visit ' + visit.id, async () => {
           if (!viewCurrent() || renderedRevision !== rowsRevision) return;
           const sequence = ++snapshotSequence;
+          clearFetchAge();
           currentEvidence.replaceChildren(element('p', 'Checking current visit, patient and office…'));
           status('Reading current visit evidence; the saved snapshot is unchanged.');
           try {
@@ -915,6 +950,7 @@
             rawDisclosure.append(element('summary', `All returned source fields (${Object.keys(record).length})`), fields);
             currentEvidence.replaceChildren(element('h3', 'Current HHA visit evidence'),
               element('p', `Visit ${visit.id} · fetched ${data.fetchedAt} · patient office checked ${data.membershipCheckedAt}. Independent source reads; source values and timestamps are unconverted and interpretation remains unvalidated.`),
+              currentFetchAge(data.fetchedAt, () => viewCurrent() && renderedRevision === rowsRevision && sequence === snapshotSequence),
               element('p', `The saved capture from ${snapshot.capturedAt} is unchanged. Current evidence does not establish clinical, EVV, payroll or billing acceptance.`),
               element('p', `Source timezone: ${sourceValue(record.TimeZone)}. No time conversion is applied.`, 'source-metadata'),
               groups);
@@ -931,6 +967,7 @@
             status('Current visit evidence loaded separately from the saved manual snapshot.');
           } catch (error) {
             if (!viewCurrent() || sequence !== snapshotSequence) return;
+            clearFetchAge();
             currentEvidence.replaceChildren(); status(error.message); throw error;
           }
         });
@@ -957,7 +994,7 @@
       function renderSavedRows(changed = false, requestedPage = 0) {
         if (!viewCurrent()) return;
         const revision = ++rowsRevision;
-        if (changed) { snapshotSequence++; currentEvidence.replaceChildren(); }
+        if (changed) { snapshotSequence++; clearFetchAge(); currentEvidence.replaceChildren(); }
         const date = dateFilter.value || '', id = (idFilter.value || '').trim(), term = (textFilter.value || '').trim().toLowerCase();
         daySelection.textContent = `Saved date filter: ${date || 'all dates'}.`;
         dayButtons.forEach((control, day) => control.setAttribute('aria-pressed', String(day === date)));
@@ -1005,6 +1042,7 @@
     }
     async function loadSnapshot(id, captured) {
       if (!snapshotCurrent(captured)) return;
+      clearFetchAge();
       const sequence = ++snapshotSequence, patientId = captured.patientId;
       snapshotView++;
       $('manualSnapshotDetails').replaceChildren();
@@ -1015,6 +1053,7 @@
     }
     async function loadSnapshots(cursor, previous) {
       if (previous && !snapshotCurrent(previous)) return;
+      clearFetchAge();
       snapshotSelection++;
       snapshotView++;
       const sequence = ++snapshotSequence, captured = snapshotContext(), patientId = captured.patientId;
@@ -1044,6 +1083,7 @@
     $('manualPatientId').addEventListener('input', clearSnapshots);
     $('manualPatientForm').addEventListener('submit', event => { event.preventDefault(); snapshotAction(() => loadSnapshots()); });
     $('manualSnapshotForm').addEventListener('submit', event => { event.preventDefault(); snapshotAction(async () => {
+      clearFetchAge();
       const sequence = ++snapshotSequence, captured = snapshotContext();
       let capture; try { capture = JSON.parse($('manualSnapshotPayload').value); } catch { status('Enter valid captured-calendar JSON.'); return; }
       status('Verifying patient office and saving calendar snapshot…');

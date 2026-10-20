@@ -33,6 +33,7 @@ function response(payload = { ok: true }) {
 
 function harness({ includeApp = true, storedDataMode = 'demo', metadata, fetchSource = () => response({ ok: true, records: [{ ID: '123', PatientID: 'LIVE-ONLY' }] }) } = {}) {
   const elements = new Map(), listeners = new Map(), calls = [], events = [];
+  const intervals = new Map(); let intervalId = 0;
   function node(id = '') {
     const classes = new Set();
     const item = {
@@ -82,6 +83,8 @@ function harness({ includeApp = true, storedDataMode = 'demo', metadata, fetchSo
   const context = vm.createContext({
     document, window, location, Headers, URL, URLSearchParams, Event, CustomEvent: DetailEvent, AbortController,
     Blob, TextEncoder, console, setTimeout, clearTimeout, crypto: { randomUUID: () => 'fixture-proposal' },
+    setInterval(callback, delay) { const id = ++intervalId; intervals.set(id, { callback, delay }); return id; },
+    clearInterval(id) { intervals.delete(id); },
     history: { replaceState(_state, _title, url) { location.href = new URL(url, location.href).href; } },
     fetch: async (path, options = {}) => {
       calls.push({ path, options });
@@ -94,7 +97,7 @@ function harness({ includeApp = true, storedDataMode = 'demo', metadata, fetchSo
   vm.runInContext(asset('data-source.js'), context);
   if (includeApp) vm.runInContext(asset('primetime.js'), context);
   return {
-    window, document, element, calls, events, auth, context,
+    window, document, element, calls, events, auth, context, intervals,
     dispatch(type) { document.dispatchEvent(new Event(type)); },
     async click(id) { for (const fn of element(id).handlers.get('click') || []) await fn(new Event('click')); },
     async signIn() {
@@ -1651,6 +1654,110 @@ test('expanded current disclosures and their source navigation cannot survive sc
     await tick();await tick();assert.equal(currentRawDisclosures(app).length,0,change);
     const calls=app.calls.length,events=app.events.length,id=app.element('readId').value;await clickNode(navigation);
     assert.equal(app.calls.length,calls,change);assert.equal(app.events.length,events,change);assert.equal(app.element('readId').value,id,change);
+  }
+});
+
+const currentFetchAges = app => descendants(app.element('manualSnapshotDetails')).filter(n=>n.className==='source-metadata current-fetch-age' && !n.hidden);
+function deviceClock(app, initial) {
+  const clock = { now: Date.parse(initial) };
+  app.context.Date = class extends Date {
+    constructor(...args) { super(...(args.length ? args : [clock.now])); }
+    static now() { return clock.now; }
+  };
+  return { set(value) { clock.now = typeof value === 'number' ? value : Date.parse(value); }, run() { for(const {callback} of [...app.intervals.values()])callback(); } };
+}
+
+test('current fetch age advances locally with explicit device-clock scope and unchanged source evidence', async () => {
+  const data=currentCaregiverSource({visitId:'11',patientId:'5',officeId:'123'},'61');data.fetchedAt='2026-10-19T18:18:00-05:00';
+  const original=JSON.stringify(data),app=connectedWorkspace({history:savedHistory(),patientVisit:()=>response(data)});
+  const clock=deviceClock(app,'2026-10-19T23:18:30Z');await openSavedHistory(app);
+  const cells=savedCells(app);await clickNode(currentVisitButtons(app)[0]);await tick();
+  const age=currentFetchAges(app)[0],raw=currentRawFields(app),focus=app.document.activeElement;
+  assert.match(age.textContent,/Approximate fetch age: less than 1 min/);assert.equal(age['aria-live'],'off');assert.equal(age.role,undefined);
+  assert.match(age.textContent,/Uses this device clock.*locally each minute.*explicit read/);
+  assert.match(nodeText(app.element('manualSnapshotDetails')),/fetched 2026-10-19T18:18:00-05:00/);
+  assert.equal(app.intervals.size,1);assert.equal([...app.intervals.values()][0].delay,60_000);
+  const calls=app.calls.length,events=app.events.length,status=app.element('manualSnapshotStatus').textContent;
+  let writes=0;app.window.localStorage.setItem=app.window.sessionStorage.setItem=()=>{writes++;};
+  for(const [now,expected] of [['2026-10-19T23:19:00Z','1 min'],['2026-10-20T00:19:00Z','1 h 1 min'],['2026-10-21T01:20:00Z','1 d 2 h 2 min']]) {
+    clock.set(now);clock.run();assert.ok(age.textContent.startsWith('Approximate fetch age: '+expected+'.'));
+  }
+  assert.equal(app.calls.length,calls);assert.equal(app.events.length,events);assert.equal(writes,0);
+  assert.equal(app.document.activeElement,focus);assert.equal(app.element('manualSnapshotStatus').textContent,status);
+  assert.deepEqual(savedCells(app),cells);assert.deepEqual(currentRawFields(app),raw);assert.equal(JSON.stringify(data),original);
+  assert.notEqual(currentRawDisclosures(app)[0].open,true);
+});
+
+test('missing, malformed and ambiguous fetch timestamps stay unknown without a timer or source-time substitution', async () => {
+  for(const fetchedAt of [undefined,null,'','not a timestamp','2026-10-19T23:18:00','2026-02-31T23:18:00Z',0]) {
+    const data=currentCaregiverSource({visitId:'11',patientId:'5',officeId:'123'},'61');data.fetchedAt=fetchedAt;
+    data.records[0].ScheduleStartTime='2026-10-19T23:18:00Z';
+    const app=connectedWorkspace({history:savedHistory(),patientVisit:()=>response(data)});deviceClock(app,'2026-10-19T23:19:00Z');
+    await openSavedHistory(app);await clickNode(currentVisitButtons(app)[0]);await tick();
+    assert.match(currentFetchAges(app)[0].textContent,/unavailable \(missing or invalid fetch timestamp\)/);
+    assert.equal(app.intervals.size,0);assert.equal(currentRawFields(app).ScheduleStartTime,'2026-10-19T23:18:00Z');
+    assert.equal(currentVisitCalls(app).length,1);
+  }
+});
+
+test('future fetches and invalid or changed device clocks are explicit and recover without refetching', async () => {
+  const data=currentCaregiverSource({visitId:'11',patientId:'5',officeId:'123'},'61');data.fetchedAt='2026-10-19T23:18:00Z';
+  const app=connectedWorkspace({history:savedHistory(),patientVisit:()=>response(data)}),clock=deviceClock(app,'2026-10-19T23:17:59Z');
+  await openSavedHistory(app);await clickNode(currentVisitButtons(app)[0]);await tick();const age=currentFetchAges(app)[0],calls=app.calls.length;
+  assert.match(age.textContent,/unavailable \(fetch timestamp is ahead of this device clock\)/);
+  clock.set(NaN);clock.run();assert.match(age.textContent,/unavailable \(invalid device clock\)/);
+  clock.set('2026-10-19T23:18:00Z');clock.run();assert.match(age.textContent,/less than 1 min/);
+  clock.set('2026-10-19T23:20:00Z');clock.run();assert.match(age.textContent,/fetch age: 2 min/);
+  clock.set('2026-10-19T23:17:00Z');clock.run();assert.match(age.textContent,/ahead of this device clock/);
+  assert.equal(app.calls.length,calls);assert.equal(app.intervals.size,1);
+});
+
+test('pending and failed current refreshes cancel the age timer and a success owns a new timer', async () => {
+  for(const failure of [false,true]) {
+    const pending=deferred();let hold=false;
+    const source=at=>({...currentCaregiverSource({visitId:'11',patientId:'5',officeId:'123'},'61'),fetchedAt:at});
+    const app=connectedWorkspace({history:savedHistory(),patientVisit:()=>hold?pending.promise:response(source('2026-10-19T23:18:00Z'))});
+    const clock=deviceClock(app,'2026-10-19T23:20:00Z');await openSavedHistory(app);const visit=currentVisitButtons(app)[0];
+    await clickNode(visit);await tick();const old=currentFetchAges(app)[0],lateTick=[...app.intervals.values()][0].callback;hold=true;
+    const reading=clickNode(visit);await tick();assert.equal(currentFetchAges(app).length,0);assert.equal(app.intervals.size,0);assert.equal(old.hidden,true);
+    const text=old.textContent;clock.set('2026-10-19T23:21:00Z');lateTick();assert.equal(old.textContent,text);
+    pending.resolve(response(failure?{ok:false,error:'patient_office_mismatch'}:source('2026-10-19T23:20:00Z')));await reading;await tick();
+    if(failure){assert.equal(currentFetchAges(app).length,0);assert.equal(app.intervals.size,0);}
+    else {const fresh=currentFetchAges(app)[0];assert.notEqual(fresh,old);assert.match(fresh.textContent,/fetch age: 1 min/);assert.equal(app.intervals.size,1);lateTick();assert.equal(app.intervals.size,1);}
+  }
+});
+
+test('fetch-age timers and detached ticks clear across all saved and live context changes', async () => {
+  for(const change of ['filter','page','version','patient','source','office','policy','demo','session','history','import']) {
+    const app=connectedWorkspace({history:savedHistory(pagedSavedSnapshot()),patientVisit:(_path,options)=>response({...currentCaregiverSource(JSON.parse(options.body),'61'),fetchedAt:'2026-10-19T23:18:00Z'})});
+    const clock=deviceClock(app,'2026-10-19T23:20:00Z');await openSavedHistory(app);await clickNode(currentVisitButtons(app)[0]);await tick();
+    const old=currentFetchAges(app)[0],lateTick=[...app.intervals.values()][0].callback;
+    if(change==='filter')inputSavedFilter(savedFilterControls(app).inputs[2],'not present');
+    if(change==='page')await clickNode(savedPageControls(app).next);
+    if(change==='version')await clickNode(descendants(app.element('manualSnapshotList')).find(n=>n.textContent==='Open 2026-09 snapshot'));
+    if(change==='patient'){app.element('manualPatientId').value='99';for(const fn of app.element('manualPatientId').handlers.get('input'))fn(new Event('input'));}
+    if(change==='source'){app.element('dashboardOverviewDate').value='2026-10-09';for(const fn of app.element('dashboardOverviewDate').handlers.get('change'))fn(new Event('change'));}
+    if(change==='office'||change==='policy')app.window.primetimeDataMode.observeScope({revision:2,officeId:change==='office'?'999':'123',officeTimezone:'America/Chicago'});
+    if(change==='demo')app.window.primetimeDataMode.setMode('demo');if(change==='session')app.dispatch('primetime-signed-out');
+    if(change==='history')for(const fn of app.element('manualPatientForm').handlers.get('submit'))fn(new Event('submit'));
+    if(change==='import'){app.element('manualSnapshotPayload').value='invalid fixture JSON';for(const fn of app.element('manualSnapshotForm').handlers.get('submit'))fn(new Event('submit'));}
+    await tick();await tick();assert.equal(currentFetchAges(app).length,0,change);assert.equal(app.intervals.size,0,change);assert.equal(old.hidden,true,change);
+    const calls=app.calls.length,events=app.events.length,status=app.element('manualSnapshotStatus').textContent,text=old.textContent;
+    clock.set('2026-10-19T23:22:00Z');lateTick();assert.equal(old.textContent,text,change);assert.equal(app.calls.length,calls,change);assert.equal(app.events.length,events,change);assert.equal(app.element('manualSnapshotStatus').textContent,status,change);
+  }
+});
+
+test('late same-visit success or error cannot replace or cancel the latest fetch-age timer', async () => {
+  for(const failure of [false,true]) {
+    const pending=[deferred(),deferred()];let index=0;
+    const app=connectedWorkspace({history:savedHistory(),patientVisit:()=>pending[index++].promise}),clock=deviceClock(app,'2026-10-19T23:20:00Z');
+    await openSavedHistory(app);const visit=currentVisitButtons(app)[0],first=clickNode(visit);await tick();const second=clickNode(visit);await tick();
+    const source=at=>({...currentCaregiverSource({visitId:'11',patientId:'5',officeId:'123'},'61'),fetchedAt:at});
+    pending[1].resolve(response(source('2026-10-19T23:19:00Z')));await second;await tick();const latest=currentFetchAges(app)[0];
+    assert.match(latest.textContent,/fetch age: 1 min/);assert.equal(app.intervals.size,1);
+    pending[0].resolve(response(failure?{ok:false,error:'patient_office_mismatch'}:source('2026-10-19T23:18:00Z')));await first;await tick();
+    assert.equal(currentFetchAges(app)[0],latest);assert.equal(app.intervals.size,1);
+    clock.set('2026-10-19T23:21:00Z');clock.run();assert.match(latest.textContent,/fetch age: 2 min/);
   }
 });
 
