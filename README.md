@@ -25,7 +25,9 @@ local fetch-age updates across live pages and current-visit evidence. Paused
 values are labeled; resume recalculates from original receipts. Context clearing,
 source values and explicit-read behavior remain unchanged. All 233 frontend
 tests, the local release gate and synthetic keyboard/layout checks passed.
-Real authenticated source acceptance remains separate. See
+Both normal jobs and authenticated production pause/hold/resume/minute-tick,
+current-visit, paging/chart and clear checks passed in the 17:16 UTC heartbeat.
+Broader source/operational/role acceptance remains open. See
 [verification](docs/management-layer/AUTOMATIC_AGE_CONTROL_ACCEPTANCE_2026-10-20.md).
 
 **October 20 04:22 UTC dashboard heartbeat; accepted October 20:** P1-O adds

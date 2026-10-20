@@ -25,10 +25,13 @@
 - [x] October 20 automatic fetch-age display control implemented and locally
   verified: shared session-only pause/resume, original receipts, independent
   timer lifetimes and immediate context clearing. All 233 frontend tests, the
-  local release gate and synthetic keyboard/layout checks passed. See
+  local release gate and synthetic keyboard/layout checks passed. Both normal
+  jobs and 17:16 UTC heartbeat authenticated production pause/hold/resume/tick,
+  current-visit, paging/chart and clear checks passed. See
   [verification](AUTOMATIC_AGE_CONTROL_ACCEPTANCE_2026-10-20.md).
-- [ ] Real authenticated source and broader operational acceptance remain
-  separate from this local display-control verification.
+- [ ] Broader representative source/operational/role acceptance remains separate
+  from this administrator display-control verification. Normal HHA sign-in and
+  existing source/identity/office/discipline/document prerequisites remain open.
 
 - [x] P1-O completed for October 20 04:22 UTC heartbeat: explicit source-preview
   clearing in both live views, guarded pending/late responses, timer/cursor reset,
