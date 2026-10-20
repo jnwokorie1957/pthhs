@@ -20,6 +20,14 @@ Operational/management decisions: EVV rules, visibility/escalation, correction a
 
 # 🚦 CURRENT MANAGEMENT-LAYER CHECKPOINT
 
+**October 20 automatic age display control:** a session-only checkbox pauses
+local fetch-age updates across live pages and current-visit evidence. Paused
+values are labeled; resume recalculates from original receipts. Context clearing,
+source values and explicit-read behavior remain unchanged. All 233 frontend
+tests, the local release gate and synthetic keyboard/layout checks passed.
+Real authenticated source acceptance remains separate. See
+[verification](docs/management-layer/AUTOMATIC_AGE_CONTROL_ACCEPTANCE_2026-10-20.md).
+
 **October 20 04:22 UTC dashboard heartbeat; accepted October 20:** P1-O adds
 explicit Clear source page controls to both live views. Clearing removes preview
 rows/charts/receipts/age and cursor history, fences pending responses, preserves

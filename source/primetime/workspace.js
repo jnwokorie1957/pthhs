@@ -736,7 +736,7 @@
     $('investigationList')?.replaceChildren();
     if ($('investigationSummary')) $('investigationSummary').textContent = 'Load queue to review saved investigations.';
   }
-  const { timestampInstant, fetchAgeText } = window.primetimeSourceTime;
+  const { timestampInstant, watchFetchAge } = window.primetimeSourceTime;
   function renderInvestigations() {
     const target = $('investigationList'); target.replaceChildren();
     if (!investigationsLoaded) {
@@ -869,21 +869,9 @@
       clearFetchAge();
       const age = element('p', undefined, 'source-metadata current-fetch-age'), fetched = timestampInstant(fetchedAt);
       age.setAttribute('aria-live', 'off');
-      let timer = null, active = true;
-      const stop = () => {
-        if (!active) return;
-        active = false; age.hidden = true;
-        if (timer !== null) clearInterval(timer);
-      };
-      clearFetchAge = stop;
-      const update = () => {
-        if (!active) return;
-        if (!isCurrent()) { stop(); return; }
-        const text = fetchAgeText(fetched);
-        if (age.textContent !== text) age.textContent = text;
-      };
-      update();
-      if (fetched !== null && active) timer = setInterval(update, 60_000);
+      clearFetchAge = watchFetchAge(fetched, isCurrent,
+        text => { if (age.textContent !== text) age.textContent = text; },
+        () => { age.hidden = true; });
       return age;
     }
     const sourceTable = (headers, rows, actions) => {

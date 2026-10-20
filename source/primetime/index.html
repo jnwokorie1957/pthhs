@@ -78,6 +78,10 @@
           <button class="profile-button" id="signOutButton" aria-label="Sign out of Primetime"><span class="avatar">PT</span><span class="profile-copy"><strong>Administrator</strong><small id="signedInIdentity">Internal access · sign out</small></span></button>
         </div>
       </header>
+      <section id="fetchAgeControl" class="fetch-age-control" aria-label="Fetch age display" hidden>
+        <label for="automaticAgeUpdates"><input id="automaticAgeUpdates" type="checkbox" checked disabled aria-describedby="fetchAgeUpdateStatus"> Automatic age updates</label>
+        <p id="fetchAgeUpdateStatus" class="source-metadata" aria-live="polite"></p>
+      </section>
       <main id="workspace" class="workspace" tabindex="-1">
         <div class="notice" id="dashboardModeNotice" role="note">Live HHA data requires an approved administrator session. Checking source access…</div>
         <section class="view is-active" data-view-panel="overview">

@@ -384,24 +384,13 @@
     clearPageFetchAge();
     if (view.mode !== 'live') return;
     const nodes = ['dashboardOverviewFetchAge', 'dashboardVisitFetchAge'].map(get).filter(Boolean);
-    const { timestampInstant, fetchAgeText } = window.primetimeSourceTime;
+    const { timestampInstant, watchFetchAge } = window.primetimeSourceTime;
     const fetched = timestampInstant(view.fetchedAt);
-    let timer = null, active = true;
-    const stop = () => {
-      if (!active) return;
-      active = false;
-      nodes.forEach(item => { item.hidden = true; item.textContent = ''; });
-      if (timer !== null) clearInterval(timer);
-    };
-    clearPageFetchAge = stop;
-    const update = () => {
-      if (!active) return;
-      if (!current(captured) || !controller.isLive() || dateInput?.value !== view.scope.date || metadata?.settings?.officeId !== view.scope.officeId) { stop(); return; }
-      const value = fetchAgeText(fetched);
-      nodes.forEach(item => { item.hidden = false; if (item.textContent !== value) item.textContent = value; });
-    };
-    update();
-    if (fetched !== null && active && nodes.length) timer = setInterval(update, 60_000);
+    if (!nodes.length) return;
+    clearPageFetchAge = watchFetchAge(fetched,
+      () => current(captured) && controller.isLive() && dateInput?.value === view.scope.date && metadata?.settings?.officeId === view.scope.officeId,
+      value => nodes.forEach(item => { item.hidden = false; if (item.textContent !== value) item.textContent = value; }),
+      () => nodes.forEach(item => { item.hidden = true; item.textContent = ''; }));
   }
   function context() { return { generation: controller.getGeneration(), mode: controller.getMode(), session, serial }; }
   function sourceRecordTools(view, item, captured) {

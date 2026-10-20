@@ -22,6 +22,17 @@
 
 # Current owner checkpoint
 
+## October 20 automatic age display control
+
+Automatic age updates can now be paused for the current page session. The
+display identifies paused values; resume recalculates from the same original
+fetch receipts. Explicit new reads show an initial age even while paused.
+Clearing or changing context still removes evidence immediately. This changes
+only the age display and adds no operational freshness rule or source request.
+Local tests and synthetic keyboard/layout checks passed; real authenticated
+source acceptance remains separate. See
+[verification](AUTOMATIC_AGE_CONTROL_ACCEPTANCE_2026-10-20.md).
+
 ## October 20 explicit source-preview clearing
 
 Overview and Visit Preview now offer Clear source page. It removes the current

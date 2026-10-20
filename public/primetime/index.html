@@ -7,7 +7,7 @@
   <meta name="theme-color" content="#0d4f8f">
   <title>Primetime Operations</title>
   <link rel="icon" href="/assets/meta/favicon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="/primetime/primetime.css?v=c71ed6202de0">
+  <link rel="stylesheet" href="/primetime/primetime.css?v=4d1408672d13">
 </head>
 <body>
   <div class="auth-shell" id="authShell">
@@ -78,6 +78,10 @@
           <button class="profile-button" id="signOutButton" aria-label="Sign out of Primetime"><span class="avatar">PT</span><span class="profile-copy"><strong>Administrator</strong><small id="signedInIdentity">Internal access · sign out</small></span></button>
         </div>
       </header>
+      <section id="fetchAgeControl" class="fetch-age-control" aria-label="Fetch age display" hidden>
+        <label for="automaticAgeUpdates"><input id="automaticAgeUpdates" type="checkbox" checked disabled aria-describedby="fetchAgeUpdateStatus"> Automatic age updates</label>
+        <p id="fetchAgeUpdateStatus" class="source-metadata" aria-live="polite"></p>
+      </section>
       <main id="workspace" class="workspace" tabindex="-1">
         <div class="notice" id="dashboardModeNotice" role="note">Live HHA data requires an approved administrator session. Checking source access…</div>
         <section class="view is-active" data-view-panel="overview">
@@ -161,11 +165,11 @@
   <script src="/__/firebase/8.10.1/firebase-app.js" defer></script>
   <script src="/__/firebase/8.10.1/firebase-auth.js" defer></script>
   <script src="/__/firebase/init.js" defer></script>
-  <script src="/primetime/data-source.js?v=8d2267a47f38" defer></script>
+  <script src="/primetime/data-source.js?v=859382bfc76e" defer></script>
   <script src="/primetime/demo-data.js?v=daf4470da486" defer></script>
-  <script src="/primetime/dashboard.js?v=9130ee2408d6" defer></script>
+  <script src="/primetime/dashboard.js?v=97365dd5d84e" defer></script>
   <script src="/primetime/revisions.js?v=fbc58b7bee5f" defer></script>
   <script src="/primetime/primetime.js?v=38f4350a3847" defer></script>
-  <script src="/primetime/workspace.js?v=5d79f721c94d" defer></script>
+  <script src="/primetime/workspace.js?v=38fbcf42b9a7" defer></script>
 </body>
 </html>
