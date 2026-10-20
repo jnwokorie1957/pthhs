@@ -20,6 +20,13 @@ Operational/management decisions: EVV rules, visibility/escalation, correction a
 
 # 🚦 CURRENT MANAGEMENT-LAYER CHECKPOINT
 
+**October 20 checklist reconciliation:** stale setup/dependency wording in the
+developer sequence now points to existing October 14 DEV-006/007/009 and storage
+acceptance, with the October 15 release reconciliation. This documentation-only
+correction adds no new runtime acceptance; visit/schedule imports and representative
+source/operational validation remain open. See the
+[developer checklist](docs/management-layer/DEVELOPER_TASKS.md#immediate-developer-sequence).
+
 **October 20 automatic age display control:** a session-only checkbox pauses
 local fetch-age updates across live pages and current-visit evidence. Paused
 values are labeled; resume recalculates from original receipts. Context clearing,

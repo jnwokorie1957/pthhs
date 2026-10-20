@@ -355,7 +355,7 @@ this prerequisite. The subsequent read-only release enables operational reads on
 - [x] **DEV-005B — HHA runtime secret created.** Developer explicitly confirmed `HHAEXCHANGE_CREDENTIALS` is set in project `primetimehomehealthservices`.
 - [x] **DEV-006 — Authentication and authorization verified October 14.** The approved owner completed normal email-link sign-in and the protected server session opened the workspace. No test administrator token was minted.
 - [x] **DEV-007 — Protected backend routing and storage verified October 14.** The normal administrator session loaded owner controls and integration health, saved and reloaded a preference, and exercised the persistent HHA request budget.
-- [x] **DEV-008 — HHA SOAP parser/error/retry layer complete and CI-verified.** Parser, application/SOAP/transport normalization, bounded retries, correlation IDs, metadata-only telemetry, and sanitized tests compile and pass in GitHub Actions. Real HHA response validation moves to DEV-009.
+- [x] **DEV-008 — HHA SOAP parser/error/retry layer complete and CI-verified.** Parser, application/SOAP/transport normalization, bounded retries, correlation IDs, metadata-only telemetry, and sanitized tests compile and pass in GitHub Actions. DEV-009 reference-read acceptance completed October 14; representative operational-response validation remains separate.
 - [x] **DEV-009 — First harmless authenticated HHA call verified October 14.** Protected GetCollectionStatus returned the expected successful operation and hhaConnection reachable. The production UI reported Reference API reachable. Visit-read entitlement is verified separately.
 
 **September 30 code-ahead review:** [Implementation, validation and remaining full-coverage work](IMPLEMENTATION_REVIEW_2026-09-30.md); [all 222 contract operations](HHA_CAPABILITY_MATRIX.md). Import safety fixes with durable single-flight fencing, 144 protected workspace reads (141 release-eligible), 23 typed/prepared mutation workflows (22 default-disabled dispatch paths and one independently blocked partial workflow), audited crash/unknown-outcome recovery, saved owner preferences, persistent investigations, independent change-request review and audit views are implemented with synthetic tests. Data-bearing routes default to locked; automated EVV decisions and HHA writes remain disabled. The inventory is not full execution coverage. DEV-006/007/009 passed normal-session acceptance on October 14; operational source validation remains separate.
@@ -482,12 +482,12 @@ Persistence work:
 - [x] Idempotent imports through internal IDs + external-reference resolution.
 - [x] Manual resync/reconciliation support through checkpoint overrides and replay-safe upserts.
 - [x] Dead-letter/error state for normalization failures.
-- [x] Authorized metadata-only integration-health API and dashboard view implemented with synthetic checks; production verification remains DEV-007. Connection reachability is separate from successful import age, partial/replay state and unknown freshness.
+- [x] Authorized metadata-only integration-health API and dashboard view implemented with synthetic checks; DEV-007 protected controls/storage verification completed October 14 (see [dated acceptance](LIVE_HHA_ACCEPTANCE_2026-10-14.md)). Connection reachability is separate from successful import age, partial/replay state and unknown freshness.
 - [ ] Periodic targeted/full reconciliation schedule.
 
 Import order:
 
-1. [x] visit changes — `GetVisitChangesV5` paging/checkpoint adapter is code-complete; live execution pending DEV-009 and Firestore provisioning. Visit-info enrichment remains later.
+1. [x] visit changes — `GetVisitChangesV5` paging/checkpoint adapter is code-complete; DEV-009 reference connectivity and [Firestore provisioning](FIRESTORE_SETUP.md) completed October 14. Live visit-change import execution/validation and visit-info enrichment remain pending; bounded source-page reads do not establish a persisted import.
 2. [ ] schedule info — targeted `GetScheduleInfo` wrapper is code-complete, but a safe source of schedule IDs/bulk discovery still needs live-contract validation.
 3. [ ] caregiver info
 4. [ ] patient info
@@ -619,11 +619,11 @@ Do not begin until Owner / Operations has defined and approved correction workfl
 - [x] Initial internal schema.
 - [x] Confirm live Firebase project = `primetimehomehealthservices`.
 - [x] `HHAEXCHANGE_CREDENTIALS` created in the live project.
-- [ ] **NOW: enable Firebase email-link sign-in and verify the owner's approved `jeremynwokorie@gmail.com` normal sign-in.**
+- [x] Email-link sign-in and the approved owner's normal session accepted October 14 (DEV-006; [dated evidence](LIVE_HHA_ACCEPTANCE_2026-10-14.md)). SMS-code acceptance remains separate.
 - [x] Wire the `/primetime` login UI to the protected session endpoint.
-- [ ] Verify Functions + Hosting rewrite/deployment with the approved administrator.
+- [x] Protected routing/storage accepted October 14 (DEV-007); Functions + Hosting release reconciled October 15 in the [dated acceptance record](LIVE_HHA_ACCEPTANCE_2026-10-14.md#october-15-release-reconciliation).
 - [x] Verify SOAP parser/error handling in CI.
-- [ ] First read-only authenticated HHA call.
+- [x] First authenticated HHA reference call accepted October 14 (DEV-009, GetCollectionStatus; [dated evidence](LIVE_HHA_ACCEPTANCE_2026-10-14.md)). This does not establish visit-source interpretation or import acceptance.
 - [ ] Visit-change sync.
 - [ ] Schedule sync.
 - [ ] Owner validates schedule-vs-actual records.
@@ -631,6 +631,6 @@ Do not begin until Owner / Operations has defined and approved correction workfl
 **Sprint stop condition:** no employee messaging or automated HHA/EVV corrections until the corresponding owner checklist decisions are complete.
 
 
-September 30 continuation: limited CreateLinkedSchedule workflow now has independent scheduling review, explicit field scope, office serialization and partial source reconciliation. Persisted ScheduleType is absent from readback; keep the lock: applied recovery and production dispatch are server-blocked until a supported independent persisted-type evidence verifier exists. An attestation, case reference or checkbox cannot unlock it. Gate stays false. Remaining ordinary implementations are listed in HHA_REMAINING_CATEGORIES.md; this checkpoint does not close them or production DEV006/007/009 gates.
+September 30 continuation: limited CreateLinkedSchedule workflow now has independent scheduling review, explicit field scope, office serialization and partial source reconciliation. Persisted ScheduleType is absent from readback; keep the lock: applied recovery and production dispatch are server-blocked until a supported independent persisted-type evidence verifier exists. An attestation, case reference or checkbox cannot unlock it. Gate stays false. Remaining ordinary implementations are listed in HHA_REMAINING_CATEGORIES.md; the September 30 checkpoint did not close those categories or DEV-006/007/009. The latter prerequisites were subsequently accepted October 14 in the [dated evidence](LIVE_HHA_ACCEPTANCE_2026-10-14.md); remaining source/operational validation and linked-schedule gates stay open.
 
 October 1 usability review: owner read preferences now support text filtering, selected-only display and selection counts without changing hidden selections or release gates. Remaining automated queues, financial calculations, retention/archival and role expansion still require validated source mappings or owner policy; the exact operation prerequisites remain in HHA_REMAINING_CATEGORIES.md.
