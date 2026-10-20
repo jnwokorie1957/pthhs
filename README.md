@@ -20,6 +20,14 @@ Operational/management decisions: EVV rules, visibility/escalation, correction a
 
 # 🚦 CURRENT MANAGEMENT-LAYER CHECKPOINT
 
+**October 20 02:08 UTC role research, October 19 local:** compared current source
+links/read projections with patient POC, attachment-origin and clinical-form
+references. Proposed P1-N prepares exact-patient care-plan/document discovery
+under existing administrator gates, with no automatic read or role grant. Broader
+patient/therapist/office document sharing, version and workflow prerequisites stay
+open. HHA still needs normal sign-in. See
+[research](docs/management-layer/ROLE_WORKFLOW_RESEARCH.txt).
+
 **October 20 01:52 UTC implementation heartbeat, October 19 local:** P1-M extends
 approximate device-clock fetch age to live Overview and Visit Preview with one
 page-owned timer, unchanged raw receipts and immediate context cleanup. All 217

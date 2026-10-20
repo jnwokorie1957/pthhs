@@ -22,6 +22,22 @@
 
 # Current owner checkpoint
 
+## October 20 02:08 UTC / October 19 local document-link research
+
+The [research](ROLE_WORKFLOW_RESEARCH.txt) separates duty-list POC tasks, attachment
+origin/action evidence and clinical form/version/review state across proposed
+patient, therapist and office screens. Existing administrator reads are building
+blocks, not external-role or patient-office authorization. Proposed P1-N only
+prepares exact-patient POC/document discovery under current gates; it adds no
+automatic read, document access or clinical authority.
+
+Next evidence action: sign in normally in the retained HHA tab for authorized
+read-only review of a task POC, applicable clinical form/version and attachment
+origins/actions. Validate reader/editor/reviewer/signer roles, office/visit/form
+availability and patient/family sharing independently in protected acceptance
+records. Do not enable permissions or change source records for this research.
+Existing entitlement, P1-B and external role/form/signature prerequisites remain.
+
 ## October 20 UTC / October 19 local live-page fetch age
 
 Live Overview and Visit Preview now show the same device-clock age beside the

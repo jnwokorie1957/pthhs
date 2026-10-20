@@ -22,6 +22,18 @@
 
 # Current checkpoint
 
+- [x] October 20 02:08 UTC role research compared current source links and read
+  projections with task-plan, attachment-origin and clinical-form references.
+  Recorded role screens, exact joins, action/office/account boundaries and tests
+  in [research](ROLE_WORKFLOW_RESEARCH.txt). No runtime or permission changed.
+- [ ] P1-N proposed: prepare SearchPatientPOC / SearchPatientDocument from exact
+  current readable source-patient identity, with visible-input focus, cleared
+  unrelated filters/results and existing entitlement gates. Selection adds no
+  request/download/import. Fence detached actions across source/context/session
+  changes; do not preselect a plan/document or claim patient-office isolation.
+  Richer result/byte access and external roles require the separately scoped
+  parent/membership/action checks documented in research.
+
 - [x] P1-M completed October 20 01:52 UTC heartbeat (October 19 local): shared
   fetch-age semantics for live Overview/Visit Preview; one guarded page timer,
   unchanged receipts/scope and immediate pending/context cleanup. All 217 frontend
