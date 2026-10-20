@@ -22,12 +22,30 @@
 
 # Current owner checkpoint
 
+## October 20 02:49 UTC / October 19 local SEO and discovery links
+
+Public SEO checks passed; both Search Console sitemap rows report Success and
+27 discovered pages. Discovery is not indexing or outcome growth, and no repeat
+submission occurred. Location evidence and comparable outcome measurement stay
+open. See [SEO review](../seo/2026-10-20-seo-review.md).
+
+P1-N prepares exact-patient care-plan/document discovery from live source controls,
+retaining the existing owner-enablement message. No read, download, import, role
+grant or source mutation was performed by selection. All 221 frontend tests and
+normal release/production checks passed. See
+[acceptance](PATIENT_DISCOVERY_LINKS_ACCEPTANCE_2026-10-20.md).
+
+Next owner action remains normal HHA sign-in for protected representative source,
+office/identity/unit/period/discipline/document validation. Review read entitlement
+through existing controls when evidence supports it; no enablement was made for
+acceptance. P1-B and external account/sharing/form/reviewer/signature gates remain.
+
 ## October 20 02:08 UTC / October 19 local document-link research
 
 The [research](ROLE_WORKFLOW_RESEARCH.txt) separates duty-list POC tasks, attachment
 origin/action evidence and clinical form/version/review state across proposed
 patient, therapist and office screens. Existing administrator reads are building
-blocks, not external-role or patient-office authorization. Proposed P1-N only
+blocks, not external-role or patient-office authorization. Implemented P1-N only
 prepares exact-patient POC/document discovery under current gates; it adds no
 automatic read, document access or clinical authority.
 

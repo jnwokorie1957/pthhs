@@ -1,5 +1,14 @@
 # PTHHS Website Improvement Plan
 
+## SEO and owner-task checkpoint - October 20, 2026 UTC / October 19 local
+
+Fresh public/static checks passed; both Search Console sitemaps remain successful
+and now show 27 discovered pages. No indexing/outcome gain or public-content/date
+change is claimed. Completed queued P1-N administrator discovery-form links with
+221 frontend tests, both normal jobs and production acceptance. Read entitlement
+and broader source/role prerequisites remain open. See
+[SEO evidence](docs/seo/2026-10-20-seo-review.md).
+
 ## SEO checkpoint - October 19, 2026
 
 Normal Search Console browser access diagnosed the legacy index's historical

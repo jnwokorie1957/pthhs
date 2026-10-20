@@ -3,6 +3,10 @@
 These files remain useful for planning, but they do not override current public
 facts, payer evidence, or claim-release controls.
 
+- [October 20 SEO and owner-task review](2026-10-20-seo-review.md) — healthy fresh
+  public checks, successful normal sitemap reads, retained outcome/owner limits
+  and bounded P1-N administrator discovery navigation acceptance.
+
 - [October 19 sitemap reprocessing and SEO review](2026-10-19-seo-review.md) —
   diagnosed legacy 404/HTML errors, one successful Google reprocessing request,
   fresh public checks, actual browser reporting limits and unavailable field data.

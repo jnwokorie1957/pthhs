@@ -22,11 +22,24 @@
 
 # Current checkpoint
 
+- [x] October 20 02:49 UTC SEO/owner pass: public crawl/artifacts, static claim/
+  metadata/navigation/accessibility/performance/payer/sitemap-date checks and private
+  boundaries passed. Both Search Console sitemap rows remain successful; discovery
+  is not indexing growth. See [SEO review](../seo/2026-10-20-seo-review.md).
+- [x] P1-N completed: exact-patient care-plan/document discovery preparation from
+  both live representations, with cleared fields/results and visible-input focus.
+  All 221 frontend tests, both normal jobs and production selection/receipt checks
+  passed. Existing owner gates remain; no plan/document read or file access was
+  submitted. See [acceptance](PATIENT_DISCOVERY_LINKS_ACCEPTANCE_2026-10-20.md).
+- [ ] Continue source/office/parent/action validation before richer patient result
+  or byte links and external roles. Existing owner entitlement, P1-B and clinical
+  form/version/reviewer/signature prerequisites remain open.
+
 - [x] October 20 02:08 UTC role research compared current source links and read
   projections with task-plan, attachment-origin and clinical-form references.
   Recorded role screens, exact joins, action/office/account boundaries and tests
   in [research](ROLE_WORKFLOW_RESEARCH.txt). No runtime or permission changed.
-- [ ] P1-N proposed: prepare SearchPatientPOC / SearchPatientDocument from exact
+- [x] P1-N implemented above: prepare SearchPatientPOC / SearchPatientDocument from exact
   current readable source-patient identity, with visible-input focus, cleared
   unrelated filters/results and existing entitlement gates. Selection adds no
   request/download/import. Fence detached actions across source/context/session
