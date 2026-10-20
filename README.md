@@ -20,13 +20,20 @@ Operational/management decisions: EVV rules, visibility/escalation, correction a
 
 # 🚦 CURRENT MANAGEMENT-LAYER CHECKPOINT
 
+**October 20 01:52 UTC implementation heartbeat, October 19 local:** P1-M extends
+approximate device-clock fetch age to live Overview and Visit Preview with one
+page-owned timer, unchanged raw receipts and immediate context cleanup. All 217
+frontend tests, both normal jobs and production minute-tick/paging/refresh/chart
+checks passed. HHA still needs normal sign-in; no new capture/import occurred. See
+[acceptance](docs/management-layer/LIVE_PAGE_FETCH_AGE_ACCEPTANCE_2026-10-20.md).
+
 **October 19 23:17 UTC dashboard heartbeat; accepted October 20 UTC:** P1-L adds
 approximate device-clock age to explicit current-visit reads, retaining raw fetch
 timestamps and cancelling local timers with read/context changes. All 209 frontend
 tests, both normal jobs and production minute-tick/source-retention/reset checks
 passed. Fresh live paging and all six chart calculations matched source fields.
-HHA still requires normal sign-in; no new import occurred. P1-M proposes the same
-age treatment for live-page views. See
+HHA still requires normal sign-in; no new import occurred. P1-M live-page age
+treatment is now accepted above. See
 [acceptance](docs/management-layer/CURRENT_FETCH_AGE_ACCEPTANCE_2026-10-19.md).
 
 **October 19 SEO follow-up, 20:46 UTC trigger:** normal Search Console browser

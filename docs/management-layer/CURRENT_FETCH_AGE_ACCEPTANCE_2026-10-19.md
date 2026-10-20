@@ -83,8 +83,7 @@ sign-in and protected representative unit/period/identity/office/discipline/
 document validation, approved detail entitlement, P1-B office/supervisor migration
 and external account/form/reviewer/signature prerequisites remain open.
 
-Proposed P1-M: extend transparent local fetch-age display to the live Overview
-and Visit Preview. Preserve raw timestamps, bounded page/chart scope, explicit
-source reads and current/saved distinctions. Reuse tested clock semantics and
-cancel timers across pending/failure/page/date/office/policy/mode/session changes;
-add no polling, persistence, threshold or operational classification.
+P1-M live Overview/Visit Preview fetch age is implemented and accepted in the
+[separately dated report](LIVE_PAGE_FETCH_AGE_ACCEPTANCE_2026-10-20.md). It shares
+these timestamp/clock semantics, retaining raw receipts and bounded scope with
+independent timer lifetimes and explicit source reads.

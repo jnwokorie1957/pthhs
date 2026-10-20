@@ -22,6 +22,20 @@
 
 # Current owner checkpoint
 
+## October 20 UTC / October 19 local live-page fetch age
+
+Live Overview and Visit Preview now show the same device-clock age beside the
+original fetch receipt, clearing both immediately during refresh/paging/context
+changes. A real age tick retained source rows/charts/scope/focus; fresh first/next/
+previous and explicit-refresh pages matched all six chart calculations. All 217
+frontend tests and both normal jobs passed. See
+[acceptance](LIVE_PAGE_FETCH_AGE_ACCEPTANCE_2026-10-20.md).
+
+Next evidence action remains normal HHA sign-in for protected representative
+source/configuration validation. No new UI capture/import or expanded role/access
+was introduced. Existing entitlement, P1-B and external account/form/reviewer/
+signature prerequisites remain open; approximate age defines no care/billing rule.
+
 ## October 19 heartbeat / October 20 UTC current-visit fetch age
 
 Current-visit evidence now shows approximate time since its explicit source read,
@@ -35,8 +49,8 @@ source polling, import, permission or operational freshness rule. See
 Next owner evidence action remains normal sign-in in the retained HHA tab for
 further authorized read-only captures and representative field/unit/period/
 identity/office/discipline/document validation. Existing entitlement, P1-B and
-external account/form/reviewer/signature gates remain open. P1-M proposes similar
-local age display for live-page views; it will not determine care or billing status.
+external account/form/reviewer/signature gates remain open. P1-M live-page age
+display is accepted above; it does not determine care or billing status.
 
 ## October 19 SEO reprocessing accepted by Google
 
@@ -67,7 +81,7 @@ assignment, confirmation/missed/deleted, order/certification/version and relevan
 contract/aggregation mappings in protected acceptance records. Unknown mappings
 remain open. Do not change HHA, enable rights or make clinical/financial decisions
 to satisfy the research. P1-B and external account/form/reviewer/signature gates
-remain; P1-L is accepted above and P1-M live-page age display is proposed next.
+remain; P1-L and P1-M fetch-age displays are accepted above.
 
 ## October 19 current-source disclosure and live verification
 
