@@ -95,6 +95,7 @@
   let demoOffset = 0;
   let dateChosen = false;
   let clearPageFetchAge = () => {};
+  let sourceClearable = false;
   const localDay = () => {
     const now = new Date();
     return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
@@ -113,6 +114,12 @@
     if (overviewMirrors[id] && get(overviewMirrors[id])) get(overviewMirrors[id]).textContent = value;
   }
   function refreshDisabled(disabled) { ['dashboardVisitRefresh', 'dashboardOverviewRefresh'].forEach(id => { if (get(id)) get(id).disabled = disabled; }); }
+  function sourceClearControls(clearable) {
+    sourceClearable = clearable;
+    ['dashboardOverviewClear', 'dashboardVisitClear'].forEach(id => {
+      if (get(id)) { get(id).hidden = !controller.isLive(); get(id).disabled = !clearable || !ready || !controller.isLive(); }
+    });
+  }
   function nextPageButton(visible) { ['dashboardVisitNext', 'dashboardOverviewNext'].forEach(id => { if (get(id)) { get(id).hidden = !visible; get(id).disabled = false; } }); }
   function previousPageButton(visible) { ['dashboardVisitPrevious', 'dashboardOverviewPrevious'].forEach(id => { if (get(id)) { get(id).hidden = !visible; get(id).disabled = false; } }); }
   function resetPaging() { nextCursor = null; pageTrail = [null]; pagePosition = 0; nextPageButton(false); previousPageButton(false); }
@@ -254,6 +261,7 @@
     document.dispatchEvent(new Event('primetime-source-context-cleared'));
   }
   function clearSource() {
+    sourceClearControls(false);
     invalidateSourceContext();
     abort?.abort();
     abort = null;
@@ -268,6 +276,22 @@
     nextPageButton(false);
     refreshDisabled(!ready);
     document.querySelectorAll('[data-demo-badge]').forEach(badge => { badge.textContent = ''; badge.hidden = true; });
+  }
+  function clearLoadedPage() {
+    if (!ready || !controller.isLive() || !sourceClearable) return false;
+    invalidateSourceContext();
+    abort?.abort(); abort = null; metadata = null;
+    resetPaging(); sourceClearControls(false);
+    const detail = 'No current source page is loaded. Read source now checks access and loads the selected day. Saved calendar imports remain stored separately.';
+    liveOverviewState('Source page cleared', detail);
+    unavailable('dashboardVisitRows', 'Source page cleared', detail);
+    text('dashboardVisitStatus', 'Source page cleared from both live views. Choose Read source now to load a source page.');
+    text('dashboardVisitMetadata', ''); text('dashboardVisitCompleteness', '');
+    text('dashboardVisitScope', 'No source page loaded. Office access will be checked on the next read.');
+    text('dataModeBadge', 'Live · no source page');
+    text('environmentDetails', 'No source page loaded');
+    refreshDisabled(!ready);
+    return true;
   }
   function renderMode() {
     clearSource();
@@ -406,6 +430,7 @@
     abort?.abort();
     const captured = context();
     abort = new AbortController();
+    sourceClearControls(true);
     refreshDisabled(true);
     liveOverviewState('Checking live source access', 'Loading the selected office settings and enabled HHA reads…');
     try {
@@ -447,6 +472,7 @@
     abort = new AbortController();
     const captured = context();
     const date = dateInput?.value || '';
+    sourceClearControls(true);
     resetPaging();
     unavailable('dashboardVisitRows', 'Loading visit preview', 'Previous page values have been cleared.');
     liveOverviewState('Loading live visits', 'Waiting for the selected source page. Previous page values have been cleared.');
@@ -517,6 +543,9 @@
   };
   get('dashboardVisitRefresh')?.addEventListener('click', refresh);
   get('dashboardOverviewRefresh')?.addEventListener('click', refresh);
+  for (const [clear, read] of [['dashboardOverviewClear', 'dashboardOverviewRefresh'], ['dashboardVisitClear', 'dashboardVisitRefresh']]) {
+    get(clear)?.addEventListener('click', () => { if (clearLoadedPage()) get(read)?.focus(); });
+  }
   const advancePage = () => {
     if (!nextCursor) return;
     if (controller.isLive()) void loadVisits(nextCursor, [...pageTrail.slice(0, pagePosition + 1), nextCursor], pagePosition + 1);

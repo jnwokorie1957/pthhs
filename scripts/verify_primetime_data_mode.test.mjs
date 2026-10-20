@@ -1940,6 +1940,91 @@ test('page and current-visit timers have independent lifetimes over saved filter
   assert.equal(pageAgeNodes(app)[0].textContent,pageText);clock.set('2026-10-19T23:21:00Z');clock.run();for(const age of pageAgeNodes(app))assert.match(age.textContent,/fetch age: 3 min/);
 });
 
+function assertSourcePageCleared(app) {
+  assertPageAgeCleared(app);
+  for(const id of ['dashboardVisitMetadata','dashboardOverviewMetadata','dashboardVisitCompleteness','dashboardOverviewCompleteness'])assert.equal(app.element(id).textContent,'',id);
+  for(const id of ['dashboardVisitRows','dashboardOverviewMetrics','dashboardVisitMetrics','dashboardOverviewExceptions','dashboardCoverage','dashboardAlerts','dashboardTimeline','dashboardEvidenceChart']) {
+    assert.match(nodeText(app.element(id)),/Source page cleared/);assert.doesNotMatch(nodeText(app.element(id)),/900001|900002|DEMO-V-/);
+  }
+  assert.equal(descendants(app.element('dashboardEvidenceChart')).filter(n=>n.tagName==='PROGRESS').length,0);
+  for(const prefix of ['dashboardOverview','dashboardVisit']){assert.equal(app.element(prefix+'Clear').disabled,true);assert.equal(app.element(prefix+'Refresh').disabled,false);assert.equal(app.element(prefix+'Next').hidden,true);assert.equal(app.element(prefix+'Previous').hidden,true);}
+  assert.match(app.element('dashboardVisitScope').textContent,/No source page loaded/);
+  assert.equal(app.element('dataModeBadge').textContent,'Live · no source page');
+}
+
+test('explicit clear removes both source views and timers without fetching, changing mode/date or deleting saved data', async () => {
+  for(const prefix of ['dashboardOverview','dashboardVisit']) {
+    const app=harness({storedDataMode:null,metadata:liveMetadata,fetchSource:path=>response(agedPage(path))});
+    const clock=deviceClock(app,'2026-10-19T23:20:00Z');installDashboard(app);await app.signIn();await tick();await tick();
+    const lateTick=[...app.intervals.values()][0].callback,date=app.element('dashboardVisitDate').value,calls=app.calls.length;
+    let writes=0;app.window.localStorage.setItem=app.window.sessionStorage.setItem=()=>{writes++;};
+    await app.click(prefix+'Clear');assertSourcePageCleared(app);assert.equal(app.intervals.size,0);assert.equal(app.calls.length,calls);assert.equal(writes,0);
+    assert.equal(app.window.primetimeDataMode.getMode(),'live');assert.equal(app.element('dashboardVisitDate').value,date);assert.equal(app.element('dashboardOverviewDate').value,date);
+    assert.equal(app.document.activeElement,app.element(prefix+'Refresh'));assert.match(nodeText(app.element('dashboardVisitRows')),/Saved calendar imports remain stored separately/);
+    const events=app.events.length;clock.set('2026-10-19T23:22:00Z');lateTick();await app.click(prefix+'Clear');
+    assert.equal(app.events.length,events);assert.equal(app.calls.length,calls);assertSourcePageCleared(app);
+  }
+  const html=asset('index.html');for(const prefix of ['dashboardOverview','dashboardVisit'])assert.match(html,new RegExp(`id="${prefix}Clear"[^>]*type="button"[^>]*disabled>Clear source page</button>`));
+});
+
+test('clearing a pending page fences its late success/error and leaves an explicit new read in charge', async () => {
+  for(const failure of [false,true]) {
+    const pending=deferred();let hold=false;
+    const app=harness({storedDataMode:null,metadata:liveMetadata,fetchSource:path=>hold?pending.promise:response(agedPage(path))});
+    deviceClock(app,'2026-10-19T23:20:00Z');installDashboard(app);await app.signIn();await tick();await tick();
+    await app.click('dashboardVisitNext');await tick();await tick();
+    const oldTick=[...app.intervals.values()][0].callback;hold=true;await app.click('dashboardOverviewNext');await tick();
+    assert.equal(app.element('dashboardOverviewClear').disabled,false);const calls=app.calls.length;await app.click('dashboardOverviewClear');assertSourcePageCleared(app);
+    if(failure)pending.reject(new Error('old source failed'));else pending.resolve(response(agedPage('/primetime/api/views/visits?date='+app.element('dashboardVisitDate').value+'&cursor=page-three')));
+    await tick();await tick();assertSourcePageCleared(app);assert.equal(app.calls.length,calls);assert.equal(app.intervals.size,0);
+    hold=false;await app.click('dashboardOverviewRefresh');await tick();await tick();
+    assert.match(nodeText(app.element('dashboardVisitRows')),/900001/);assert.equal(app.intervals.size,1);oldTick();assert.equal(app.intervals.size,1);
+  }
+});
+
+test('a pending access-status body cannot start a source read or restore controls after clear', async () => {
+  const app=harness({storedDataMode:null,metadata:liveMetadata,fetchSource:path=>response(agedPage(path))});
+  deviceClock(app,'2026-10-19T23:20:00Z');installDashboard(app);await app.signIn();await tick();await tick();
+  const body=deferred(),wire=response(liveMetadata),original=app.window.primetimeApiFetch;wire.json=()=>body.promise;let hold=true;
+  app.window.primetimeApiFetch=(path,options)=>hold&&path.endsWith('/data/status')?Promise.resolve(wire):original(path,options);
+  await app.click('dashboardVisitRefresh');await tick();assert.equal(app.element('dashboardVisitClear').disabled,false);
+  await app.click('dashboardVisitClear');const calls=app.calls.length;body.resolve(liveMetadata);await tick();await tick();
+  assertSourcePageCleared(app);assert.equal(app.calls.length,calls);assert.equal(app.intervals.size,0);
+  hold=false;await app.click('dashboardVisitRefresh');await tick();await tick();assert.equal(app.element('dashboardVisitClear').disabled,false);assert.equal(app.intervals.size,1);
+});
+
+test('clear drops cursor history and detached navigation; explicit reread checks access and restarts the first page', async () => {
+  const app=connectedWorkspace({preview:date=>({...livePreview(date),nextCursor:'next-page',state:'partial'})});await app.signIn();await tick();await tick();
+  await app.click('dashboardVisitNext');await tick();await tick();const old=[...recordButtons(app),...patientDiscoveryButtons(app),...descendants(app.element('dashboardTimeline')).filter(n=>n.textContent==='Saved calendar history')];
+  await app.click('dashboardVisitClear');assertSourcePageCleared(app);const calls=app.calls.length,events=app.events.filter(e=>e.type==='primetime-source-record-selected').length;
+  for(const button of old)await clickNode(button);await app.click('dashboardVisitPrevious');await app.click('dashboardOverviewNext');
+  assert.equal(app.calls.length,calls);assert.equal(app.events.filter(e=>e.type==='primetime-source-record-selected').length,events);
+  const metadataCalls=app.calls.filter(c=>c.path.endsWith('/data/status')).length;
+  await app.click('dashboardVisitRefresh');await tick();await tick();
+  assert.equal(app.calls.filter(c=>c.path.endsWith('/data/status')).length,metadataCalls+1);
+  const query=new URL(app.calls.filter(c=>c.path.includes('/views/visits?')).at(-1).path,'https://fixture.test').searchParams;
+  assert.equal(query.has('cursor'),false);assert.equal(app.element('dashboardVisitPrevious').hidden,true);assert.equal(app.element('dashboardVisitClear').disabled,false);
+});
+
+test('clearing source context can clear source-linked history display without changing the saved capture or issuing a write', async () => {
+  const snapshot=pagedSavedSnapshot(),unchanged=JSON.stringify(snapshot),app=connectedWorkspace({history:savedHistory(snapshot)});
+  await openSavedHistory(app);assert.ok(savedCells(app).length);const calls=app.calls.length;
+  await app.click('dashboardOverviewClear');assertSourcePageCleared(app);assert.equal(app.calls.length,calls);assert.equal(JSON.stringify(snapshot),unchanged);
+  assert.equal(app.element('manualPatientId').value,'');assert.equal(app.element('manualSnapshotDetails').children.length,0);
+  assert.match(app.element('manualSnapshotStatus').textContent,/Live source context changed/);
+});
+
+test('source clear is disabled when signed out or already cleared and hidden in Demo without changing examples', async () => {
+  const app=harness({storedDataMode:null,metadata:liveMetadata,fetchSource:path=>response(agedPage(path))});installDashboard(app);
+  for(const prefix of ['dashboardOverview','dashboardVisit'])assert.equal(app.element(prefix+'Clear').disabled,true);
+  const initialCalls=app.calls.length;await app.click('dashboardVisitClear');assert.equal(app.calls.length,initialCalls);
+  await app.signIn();await tick();await tick();assert.equal(app.element('dashboardVisitClear').disabled,false);
+  app.window.primetimeDataMode.setMode('demo');const demo=nodeText(app.element('dashboardVisitRows')),calls=app.calls.length;
+  for(const prefix of ['dashboardOverview','dashboardVisit']){assert.equal(app.element(prefix+'Clear').hidden,true);assert.equal(app.element(prefix+'Clear').disabled,true);await app.click(prefix+'Clear');}
+  assert.equal(nodeText(app.element('dashboardVisitRows')),demo);assert.equal(app.calls.length,calls);
+  app.dispatch('primetime-signed-out');assert.equal(app.element('dashboardVisitClear').disabled,true);const signedOutCalls=app.calls.length;await app.click('dashboardOverviewClear');assert.equal(app.calls.length,signedOutCalls);
+});
+
 const authorizationButtons = (app, host = 'dashboardTimeline') => descendants(app.element(host)).filter(node => node.textContent === 'Open patient authorizations');
 const detailButtons = app => descendants(app.element('readResults')).filter(node => node.textContent === 'Select authorization detail');
 const authorizationCalls = app => app.calls.filter(call => call.path.endsWith('/workspace/patient-authorizations'));
