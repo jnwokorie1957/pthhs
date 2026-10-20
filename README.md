@@ -30,6 +30,12 @@ current-visit, paging/chart and clear checks passed in the 17:16 UTC heartbeat.
 Broader source/operational/role acceptance remains open. See
 [verification](docs/management-layer/AUTOMATIC_AGE_CONTROL_ACCEPTANCE_2026-10-20.md).
 
+**October 20 17:30 UTC role research:** compared shared reading controls and
+action feedback with W3C pause/status guidance. Proposed patient, therapist and
+office screens retain separate display, request/document and source states.
+Existing role/source prerequisites remain open; no runtime or permission changed.
+See [research](docs/management-layer/ROLE_WORKFLOW_RESEARCH.txt).
+
 **October 20 04:22 UTC dashboard heartbeat; accepted October 20:** P1-O adds
 explicit Clear source page controls to both live views. Clearing removes preview
 rows/charts/receipts/age and cursor history, fences pending responses, preserves

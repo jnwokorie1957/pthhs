@@ -22,6 +22,13 @@
 
 # Current checkpoint
 
+- [x] October 20 17:30 UTC research compared shared age controls and action
+  feedback with current W3C pause/status guidance. Recorded proposed patient,
+  therapist and office reading behavior and acceptance cases in
+  [research](ROLE_WORKFLOW_RESEARCH.txt). Static semantics and dated keyboard
+  evidence are not a full assistive-technology/conformance assessment. Runtime
+  permissions and existing role/source prerequisites remain unchanged.
+
 - [x] October 20 automatic fetch-age display control implemented and locally
   verified: shared session-only pause/resume, original receipts, independent
   timer lifetimes and immediate context clearing. All 233 frontend tests, the

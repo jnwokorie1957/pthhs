@@ -36,6 +36,12 @@ the source preview is cleared. Broader source interpretation and role acceptance
 remain open; no new HHA capture/import occurred. See
 [verification](AUTOMATIC_AGE_CONTROL_ACCEPTANCE_2026-10-20.md).
 
+The 17:30 UTC [role research](ROLE_WORKFLOW_RESEARCH.txt) extends this reading
+control contract to proposed patient, therapist and office screens: holding an
+age display must not suppress an action result or imply a request, draft,
+clinical review or billing state changed. This adds no operational rule or
+role permission; the existing source/identity/sharing prerequisites remain.
+
 ## October 20 explicit source-preview clearing
 
 Overview and Visit Preview now offer Clear source page. It removes the current
