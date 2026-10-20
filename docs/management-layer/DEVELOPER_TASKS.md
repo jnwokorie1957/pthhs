@@ -22,6 +22,16 @@
 
 # Current checkpoint
 
+- [x] P1-O completed for October 20 04:22 UTC heartbeat: explicit source-preview
+  clearing in both live views, guarded pending/late responses, timer/cursor reset,
+  corresponding Read source now focus and explicit no-page state. Stored imports
+  remain separate. All 227 frontend tests, both normal jobs and production fresh
+  first/next/chart, clear/pending/79-second-idle/reread checks passed. See
+  [acceptance](SOURCE_PAGE_CLEAR_ACCEPTANCE_2026-10-20.md).
+- [ ] Continue protected source/office/identity/unit/period/discipline/document
+  validation and existing entitlement/P1-B/external-role prerequisites. Clearing
+  a display does not establish broader operational or clinical acceptance.
+
 - [x] October 20 02:49 UTC SEO/owner pass: public crawl/artifacts, static claim/
   metadata/navigation/accessibility/performance/payer/sitemap-date checks and private
   boundaries passed. Both Search Console sitemap rows remain successful; discovery

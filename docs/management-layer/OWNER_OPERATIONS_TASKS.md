@@ -22,6 +22,21 @@
 
 # Current owner checkpoint
 
+## October 20 explicit source-preview clearing
+
+Overview and Visit Preview now offer Clear source page. It removes the current
+shared preview and age, including while a read is pending, keeps the selected day
+and waits for Read source now. Saved imports remain stored separately; existing
+source-linked history display may require reselection. This does not delete HHA
+records, grant access or make a care/billing decision. All 227 frontend tests and
+normal release/production clear/idle/reread/chart checks passed. See
+[acceptance](SOURCE_PAGE_CLEAR_ACCEPTANCE_2026-10-20.md).
+
+Next owner evidence action remains normal HHA sign-in for authorized read-only
+source/office/identity/unit/period/discipline/document validation in protected
+records. Read entitlement, P1-B and external account/assignment/sharing/form/
+reviewer/signature prerequisites remain open; no new import occurred.
+
 ## October 20 02:49 UTC / October 19 local SEO and discovery links
 
 Public SEO checks passed; both Search Console sitemap rows report Success and

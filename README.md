@@ -20,6 +20,14 @@ Operational/management decisions: EVV rules, visibility/escalation, correction a
 
 # 🚦 CURRENT MANAGEMENT-LAYER CHECKPOINT
 
+**October 20 04:22 UTC dashboard heartbeat; accepted October 20:** P1-O adds
+explicit Clear source page controls to both live views. Clearing removes preview
+rows/charts/receipts/age and cursor history, fences pending responses, preserves
+stored imports and waits for an explicit reread. All 227 frontend tests, both
+normal jobs and production clear/pending/idle/first-page/chart checks passed.
+HHA still needs sign-in; no new import occurred. See
+[acceptance](docs/management-layer/SOURCE_PAGE_CLEAR_ACCEPTANCE_2026-10-20.md).
+
 **October 20 02:49 UTC SEO/owner pass, October 19 local:** fresh public SEO checks
 passed and both Search Console sitemaps remain successful; no public copy or
 sitemap date change was supported. Completed P1-N patient care-plan/document
