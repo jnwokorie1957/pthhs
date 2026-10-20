@@ -1,5 +1,7 @@
 # PTHHS Management Layer — Developer Checklist
 
+October 20 visit discovery candidate: the dashboard retains received SearchVisitsV2 IDs beyond 200 and pages at most 10 details under the existing time and office checks. Vendor completeness and operational totals remain unknown. See [discovery acceptance](VISIT_DISCOVERY_ACCEPTANCE_2026-10-20.md).
+
 > **Primary owner:** Developer
 >
 > **Boundary:** Own architecture, code, integrations, security, deployment, testing, data models, and observability. Do **not** invent medical, EVV, billing, compliance, staffing, or management rules; those come from the Owner / Operations checklist.

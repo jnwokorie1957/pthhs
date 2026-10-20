@@ -35,13 +35,13 @@
     let discovery = null, page = null;
     if (live && payload.discovery !== undefined) {
       const candidate = payload.discovery;
-      if (!candidate || !Number.isInteger(candidate.selectedCount) || candidate.selectedCount < items.length || candidate.selectedCount > 200
+      if (!candidate || !Number.isSafeInteger(candidate.selectedCount) || candidate.selectedCount < items.length
         || typeof candidate.truncated !== 'boolean' || typeof candidate.fingerprint !== 'string' || !/^[a-f0-9]{64}$/.test(candidate.fingerprint)) throw new Error('invalid_visit_preview');
       discovery = { selectedCount: candidate.selectedCount, truncated: candidate.truncated };
     }
     if (live && payload.page !== undefined) {
       const candidate = payload.page;
-      if (!candidate || !discovery || !Number.isInteger(candidate.offset) || candidate.offset < 0
+      if (!candidate || !discovery || !Number.isSafeInteger(candidate.offset) || candidate.offset < 0
         || candidate.returnedCount !== items.filter(item => item.state !== 'unavailable').length || candidate.selectedCount !== items.length
         || candidate.unavailableCount !== items.filter(item => item.state === 'unavailable').length
         || candidate.offset + items.length > discovery.selectedCount) throw new Error('invalid_visit_preview');
@@ -379,7 +379,7 @@
     text('dashboardVisitScope', `Office: ${view.scope.officeId || 'Unavailable'} · Date: ${view.scope.date} · Timezone: ${view.scope.timezone || 'Unconfigured'}`);
     text('dashboardVisitMetadata', view.mode === 'demo' ? 'Source: synthetic examples · values are not patient records.' : `Source: HHAeXchange · fetched: ${view.fetchedAt || 'Unavailable'} · source unvalidated · on-demand read, not a persisted visit import · source time values shown without conversion.`);
     const pageScope = view.page && view.discovery ? `Showing source IDs ${view.items.length ? view.page.offset + 1 : 0}–${view.page.offset + view.items.length} of ${view.discovery.selectedCount} returned by search. ` : `${view.items.length} source record(s) on this page. `;
-    text('dashboardVisitCompleteness', view.mode === 'demo' ? 'Example page only.' : `${pageScope}Charts use this page only. Office totals are unknown; complete office coverage is not established. Read limits: up to 200 source IDs, 10 details per page and a 25-second detail-read budget.${view.truncated ? ' Source identifier results were truncated.' : ''}`);
+    text('dashboardVisitCompleteness', view.mode === 'demo' ? 'Example page only.' : `${pageScope}Charts use this page only. Office totals are unknown; complete office coverage is not established. Read limits: received search IDs retained; 10 details per page and a 25-second detail-read budget.${view.truncated ? ' Source identifier results were truncated.' : ''}`);
     nextPageButton(Boolean(nextCursor));
     previousPageButton(view.mode === 'demo' ? demoOffset > 0 : pagePosition > 0);
     pageFetchAge(view, captured);

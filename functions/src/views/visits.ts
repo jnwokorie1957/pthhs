@@ -54,7 +54,7 @@ function parseCursor(value: unknown): Cursor | null {
     if (Object.keys(cursor).sort().join(",") !== "discovery,offset,scope,version" || cursor.version !== 1
       || typeof cursor.scope !== "string" || !/^[a-f0-9]{64}$/.test(cursor.scope)
       || typeof cursor.discovery !== "string" || !/^[a-f0-9]{64}$/.test(cursor.discovery)
-      || !Number.isInteger(cursor.offset) || Number(cursor.offset) < 1 || Number(cursor.offset) >= 200) throw new Error();
+      || !Number.isSafeInteger(cursor.offset) || Number(cursor.offset) < 1) throw new Error();
     return cursor as unknown as Cursor;
   } catch { throw new WorkflowError("invalid_visit_cursor"); }
 }
@@ -75,7 +75,7 @@ function unavailable(id: string, error: string): VisitPreviewItem {
 }
 function validateSource(source: OperationalRead, operation: "SearchVisitsV2" | "GetVisitInfoV3") {
   if (source.operation !== operation || source.source !== "hhaexchange" || !Array.isArray(source.records)
-    || typeof source.truncated !== "boolean" || source.records.length > 200) throw new WorkflowError("invalid_visit_source_response", 502);
+    || typeof source.truncated !== "boolean" || (operation !== "SearchVisitsV2" && source.records.length > 200)) throw new WorkflowError("invalid_visit_source_response", 502);
 }
 function detailItem(id: string, date: string, source: OperationalRead): VisitPreviewItem {
   validateSource(source, "GetVisitInfoV3");
@@ -119,10 +119,10 @@ export async function visitPreview(workspace: Workspace, value: unknown, actor: 
     if (scopeFingerprint(await workspace.settings()) !== scope) throw new WorkflowError("visit_preview_policy_changed_restart", 409);
   };
   if (cursor && cursor.scope !== scope) throw new WorkflowError("visit_cursor_scope_mismatch", 409);
-  const discovery = await workspace.query({ operation: "SearchVisitsV2", officeId, date }, actor);
+  const discovery = await workspace.query({ operation: "SearchVisitsV2", officeId, date }, actor, "visit_discovery");
   validateSource(discovery, "SearchVisitsV2");
   let ids: string[];
-  try { ids = [...new Set(discovery.records.map(row => identifier(row.VisitID)))].sort((a, b) => Number(a) - Number(b)); }
+  try { ids = [...new Set(discovery.records.map(row => identifier(row.VisitID)))].sort((a, b) => a.length - b.length || (a < b ? -1 : a > b ? 1 : 0)); }
   catch { throw new WorkflowError("invalid_visit_discovery_response", 502); }
   if (discovery.truncated && ids.length === 0) throw new WorkflowError("invalid_visit_discovery_response", 502);
   const sourceFingerprint = fingerprint(ids);
@@ -166,9 +166,9 @@ export async function visitPreview(workspace: Workspace, value: unknown, actor: 
     items, nextCursor,
     // Counts describe the bounded source response and detail page. They are not
     // operational totals or an assertion of vendor coverage or field semantics.
-    discovery: { fingerprint: sourceFingerprint, selectedCount: ids.length, truncated: discovery.truncated },
+    discovery: { fingerprint: sourceFingerprint, selectedCount: ids.length, totalReceived: discovery.records.length, discoveryCompleteness: "unknown" as const, truncated: discovery.truncated },
     page: { offset, selectedCount: page.length, returnedCount: items.length - unavailableCount, unavailableCount, nextOffset: nextCursor ? nextOffset : null },
-    completeness: { complete: false as const, truncated: discovery.truncated, sourceDiscoveryComplete: !discovery.truncated,
+    completeness: { complete: false as const, truncated: discovery.truncated, sourceDiscoveryComplete: false as const,
       detailsComplete: offset === 0 && nextCursor === null && unavailableCount === 0 }, totals: null };
 }
 

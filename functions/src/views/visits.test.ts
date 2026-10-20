@@ -3,7 +3,85 @@ import test from "node:test";
 import { assertLiveDataMode, dataStatus, visitPreview, viewRoute } from "./visits.js";
 import { OperationsWorkspace, type WorkspaceRepository, type Versioned, type Settings } from "../operations/workspace.js";
 import { WorkflowError, operationalRead, type ReadInput, type OperationalRead } from "../operations/reads.js";
-import { HhaSoapClient } from "../integrations/hhaexchange/client.js";
+import { HhaSoapClient, boundedSoapText } from "../integrations/hhaexchange/client.js";
+
+test("large discovery keeps SOAP byte ceiling and strict identifiers", async () => {
+  await assert.rejects(boundedSoapText(new Response("oversized", { headers: { "Content-Length": String(5 * 1024 * 1024 + 1) } })));
+  await assert.rejects(boundedSoapText(new Response("x".repeat(5 * 1024 * 1024 + 1))));
+  for (const id of ["0", "-1", "2147483648", "1.5"]) {
+    const client = { call: async () => ({ ok: true, resultXml: "<Visits><VisitID>" + id + "</VisitID></Visits>" }) } as unknown as HhaSoapClient;
+    await assert.rejects(operationalRead(client, { operation: "SearchVisitsV2", officeId: "123", date: "2026-10-10" }, "visit_discovery"), /invalid_identifier/);
+  }
+});
+
+test("dashboard alone requests retained ID projection through unchanged workspace scope gates", async () => {
+  const f = fixture(), scopes: (string | undefined)[] = [];
+  const service = new OperationsWorkspace(f.repository, async (input, projection) => {
+    scopes.push(projection);
+    return input.operation === "SearchVisitsV2" ? source(input.operation, [{ VisitID: "77" }])
+      : input.operation === "GetPatientDemographics" ? source(input.operation, [{ PatientID: "5", OfficeID: "123" }]) : detail(input.id!);
+  }, true);
+  await visitPreview(service, { date: "2026-10-10" }, "owner");
+  assert.deepEqual(scopes, ["visit_discovery", undefined, undefined]);
+  await assert.rejects(service.query({ operation: "SearchVisitsV2", officeId: "999", date: "2026-10-10" }, "owner", "visit_discovery"), /office_scope_mismatch/);
+  assert.equal(scopes.length, 3);
+});
+
+test("dashboard discovery retains 200, 201, 1500 and 1601 received IDs without changing other previews", async () => {
+  for (const count of [0, 200, 201, 1500, 1601]) {
+    const xml = "<Visits>" + Array.from({ length: count }, (_, i) => "<VisitID>" + (i + 1) + "</VisitID>").join("") + "</Visits>";
+    const client = { call: async () => ({ ok: true, resultXml: xml }) } as unknown as HhaSoapClient;
+    const input: ReadInput = { operation: "SearchVisitsV2", officeId: "123", date: "2026-10-10" };
+    const all = await operationalRead(client, input, "visit_discovery"), preview = await operationalRead(client, input);
+    assert.equal(all.records.length, count); assert.equal(all.truncated, false);
+    assert.equal(preview.records.length, Math.min(count, 200)); assert.equal(preview.truncated, count > 200);
+  }
+});
+
+test("every retained ID is reachable through bounded pages beyond offset 200", async () => {
+  for (const count of [200, 201, 1500, 1601]) {
+    const ids = Array.from({ length: count }, (_, i) => String(i + 1));
+    const f = fixture([...ids].reverse().concat(ids[0]!)), seen: string[] = [];
+    let cursor: string | undefined;
+    do {
+      const before = f.calls.length;
+      const page = await visitPreview(f.service, { date: "2026-10-10", ...(cursor ? { cursor } : {}) }, "owner");
+      assert.ok(f.calls.length - before <= 21);
+      assert.equal(page.discovery.totalReceived, count + 1);
+      assert.equal(page.discovery.selectedCount, count);
+      assert.equal(page.discovery.discoveryCompleteness, "unknown");
+      assert.equal(page.completeness.sourceDiscoveryComplete, false);
+      assert.equal(page.totals, null);
+      seen.push(...page.items.map(item => item.id));
+      cursor = page.nextCursor ?? undefined;
+    } while (cursor);
+    assert.deepEqual(seen, ids);
+  }
+});
+
+test("large discovery cursor rejects unsafe offsets, changed source and preserves failed-page retry", async () => {
+  const ids = Array.from({ length: 201 }, (_, i) => String(i + 1)), f = fixture(ids);
+  const first = await visitPreview(f.service, { date: "2026-10-10" }, "owner");
+  const decoded = JSON.parse(Buffer.from(first.nextCursor!, "base64url").toString());
+  for (const offset of [-1, 0, 1.5, Number.MAX_SAFE_INTEGER + 1]) {
+    const cursor = Buffer.from(JSON.stringify({ ...decoded, offset })).toString("base64url");
+    await assert.rejects(visitPreview(f.service, { date: "2026-10-10", cursor }, "owner"), /invalid_visit_cursor/);
+  }
+  const cursor = Buffer.from(JSON.stringify({ ...decoded, offset: 200 })).toString("base64url");
+  const tail = await visitPreview(f.service, { date: "2026-10-10", cursor }, "owner");
+  assert.deepEqual(tail.items.map(item => item.id), ["201"]); assert.equal(tail.nextCursor, null);
+  ids.push("202");
+  await assert.rejects(visitPreview(f.service, { date: "2026-10-10", cursor }, "owner"), /visit_preview_changed_restart/);
+  let fail = true;
+  const retry = fixture(ids, { read: async input => input.operation === "SearchVisitsV2" ? source(input.operation, ids.map(VisitID => ({ VisitID }))) : fail ? (() => { throw new WorkflowError("vendor_backoff_active", 429, 60); })() : detail(input.id!) });
+  const start = await visitPreview(retry.service, { date: "2026-10-10" }, "owner");
+  const failed = await visitPreview(retry.service, { date: "2026-10-10", cursor: start.nextCursor! }, "owner");
+  assert.ok(failed.items.every(item => item.state === "unavailable"));
+  fail = false;
+  const recovered = await visitPreview(retry.service, { date: "2026-10-10", cursor: start.nextCursor! }, "owner");
+  assert.deepEqual(recovered.items.map(item => item.id), failed.items.map(item => item.id));
+  assert.ok(recovered.items.every(item => item.state === "source_unvalidated"));
+});
 
 class Repository implements WorkspaceRepository {
   records = new Map<string, Versioned>(); reservations = 0; deferred = 0;
@@ -151,7 +229,7 @@ test("source discovery and page metadata describe unique returned IDs without as
   assert.equal(first.discovery.selectedCount, 2); assert.equal(first.discovery.truncated, false);
   assert.match(first.discovery.fingerprint, /^[a-f0-9]{64}$/);
   assert.deepEqual(first.page, { offset: 0, selectedCount: 1, returnedCount: 1, unavailableCount: 0, nextOffset: 1 });
-  assert.equal(first.completeness.sourceDiscoveryComplete, true); assert.equal(first.completeness.detailsComplete, false);
+  assert.equal(first.completeness.sourceDiscoveryComplete, false); assert.equal(first.completeness.detailsComplete, false);
   const second = await visitPreview(f.service, { date: "2026-10-10", limit: "1", cursor: first.nextCursor! }, "owner");
   assert.equal(second.discovery.fingerprint, first.discovery.fingerprint);
   assert.deepEqual(second.page, { offset: 1, selectedCount: 1, returnedCount: 1, unavailableCount: 0, nextOffset: null });

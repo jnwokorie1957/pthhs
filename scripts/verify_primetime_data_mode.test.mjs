@@ -634,7 +634,7 @@ test('dashboard visualizations preserve the deployed CSP without inline styles',
 test('live default renders source counts, timeline, EVV and assignment evidence for the same page', async () => {
   const app = harness({ storedDataMode: null, metadata: liveMetadata, fetchSource: path => {
     const date = new URL(path, 'https://fixture.test').searchParams.get('date'), payload = livePreview(date);
-    payload.discovery = { fingerprint: 'a'.repeat(64), selectedCount: 23, truncated: false };
+    payload.discovery = { fingerprint: 'a'.repeat(64), selectedCount: 1601, truncated: false };
     payload.page = { offset: 0, selectedCount: 1, returnedCount: 1, unavailableCount: 0, nextOffset: 1 };
     payload.state = 'partial'; payload.nextCursor = 'next-page';
     return response(payload);
@@ -643,11 +643,11 @@ test('live default renders source counts, timeline, EVV and assignment evidence 
   assert.equal(app.window.primetimeDataMode.getMode(), 'live');
   assert.equal(app.element('demoDataToggle').checked, false);
   for (const id of ['dashboardTimeline', 'dashboardOverviewExceptions']) assert.match(nodeText(app.element(id)), /900001/);
-  assert.match(nodeText(app.element('dashboardOverviewMetrics')), /23/);
+  assert.match(nodeText(app.element('dashboardOverviewMetrics')), /1601/);
   assert.match(nodeText(app.element('dashboardOverviewMetrics')), /not an operational total/);
   assert.match(nodeText(app.element('dashboardCoverage')), /1 \/ 1/);
   assert.match(nodeText(app.element('dashboardEvidenceChart')), /EVV start/);
-  assert.match(app.element('dashboardOverviewCompleteness').textContent, /1–1 of 23/);
+  assert.match(app.element('dashboardOverviewCompleteness').textContent, /1–1 of 1601/);
   assert.match(app.element('dashboardOverviewScope').textContent, /Office: 123.*Date:.*America\/Chicago/);
   assert.equal(app.element('dashboardOverviewDate').value, app.element('dashboardVisitDate').value);
   assert.equal(app.element('dashboardOverviewNext').hidden, false);
@@ -726,7 +726,7 @@ for (const state of ['ready', 'partial', 'empty']) {
       assert.match(app.element(prefix + 'Metadata').textContent, /source unvalidated/);
       assert.match(app.element(prefix + 'Metadata').textContent, state === 'empty' ? /fetched: Unavailable/ : /fetched: 2026-10-10T08:00:00Z/);
       assert.match(app.element(prefix + 'Completeness').textContent, /Office totals are unknown/);
-      assert.match(app.element(prefix + 'Completeness').textContent, /200 source IDs, 10 details per page and a 25-second detail-read budget/);
+      assert.match(app.element(prefix + 'Completeness').textContent, /received search IDs retained; 10 details per page and a 25-second detail-read budget/);
       if (state === 'partial') assert.match(app.element(prefix + 'Completeness').textContent, /results were truncated/);
       assert.equal(app.element(prefix + 'Next').hidden, true, 'no next cursor must not imply a complete office dataset');
     }

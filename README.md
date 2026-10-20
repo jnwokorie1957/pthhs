@@ -1,5 +1,7 @@
 # PTHHS
 
+October 20 visit discovery candidate: the dashboard retains received SearchVisitsV2 IDs beyond 200 and pages at most 10 details under the existing time and office checks. Vendor completeness and operational totals remain unknown. See [discovery acceptance](docs/management-layer/VISIT_DISCOVERY_ACCEPTANCE_2026-10-20.md).
+
 ## 🚨 START HERE — MANAGEMENT LAYER BUILD
 
 The HHAeXchange / internal-management work is tracked as two live checklists. **Read this checkpoint first, then open the checklist for the person currently working.**

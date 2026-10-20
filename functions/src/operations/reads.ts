@@ -536,7 +536,7 @@ export function boundedAttachment(record: Record<string, string | null>, identit
   const filename = original.replace(/[<>:"/\\|?*\x00-\x1f\x7f]/g, "_").replace(/^[. ]+|[. ]+$/g, "").slice(0, 100) || "document.bin";
   return { filename, byteLength: bytes.length, base64: encoded, contentType: "application/octet-stream" as const };
 }
-export async function operationalRead(client: Pick<HhaSoapClient, "call">, input: ReadInput, projectionScope?: "document_metadata" | "clinical_review" | "medical_review" | "write_recovery"): Promise<OperationalRead> {
+export async function operationalRead(client: Pick<HhaSoapClient, "call">, input: ReadInput, projectionScope?: "document_metadata" | "clinical_review" | "medical_review" | "write_recovery" | "visit_discovery"): Promise<OperationalRead> {
   const body = readRequest(input);
   // One attempt per owner-requested read; shared server quota controls requests.
   const response = await client.call(input.operation, body, 1);
@@ -598,5 +598,8 @@ export async function operationalRead(client: Pick<HhaSoapClient, "call">, input
     delete records[0]!.StreamData;
     records[0]!.FileName = attachment.filename;
   }
-  return { operation: input.operation, fetchedAt: new Date().toISOString(), source: "hhaexchange", validation: "source_unvalidated", timezone: "source_values_unconverted", records: records.slice(0, 200), ...(attachment ? { attachment } : {}), truncated: records.length > 200, ...([...EST_CHANGE_READS, ...UTC_CHANGE_READS].includes(input.operation) ? { changePreview: { timeBasis: UTC_CHANGE_READS.includes(input.operation) ? "UTC" as const : "vendor_EST_wall_time_unconverted" as const, modifiedAfter: UTC_CHANGE_READS.includes(input.operation) ? input.modifiedAfterUtc! : input.modifiedAfter!, page: input.operation === "GetVisitChangesV4" ? input.page || "1" : null, completeness: "not_inferred" as const, checkpointAdvanced: false as const } } : {}) };
+  // Only the bounded dashboard ID discovery retains every received identifier.
+  // Other operational previews preserve their existing projection limit.
+  const retainVisitIds = input.operation === "SearchVisitsV2" && projectionScope === "visit_discovery";
+  return { operation: input.operation, fetchedAt: new Date().toISOString(), source: "hhaexchange", validation: "source_unvalidated", timezone: "source_values_unconverted", records: retainVisitIds ? records : records.slice(0, 200), ...(attachment ? { attachment } : {}), truncated: !retainVisitIds && records.length > 200, ...([...EST_CHANGE_READS, ...UTC_CHANGE_READS].includes(input.operation) ? { changePreview: { timeBasis: UTC_CHANGE_READS.includes(input.operation) ? "UTC" as const : "vendor_EST_wall_time_unconverted" as const, modifiedAfter: UTC_CHANGE_READS.includes(input.operation) ? input.modifiedAfterUtc! : input.modifiedAfter!, page: input.operation === "GetVisitChangesV4" ? input.page || "1" : null, completeness: "not_inferred" as const, checkpointAdvanced: false as const } } : {}) };
 }
