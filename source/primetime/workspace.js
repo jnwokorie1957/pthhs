@@ -732,13 +732,7 @@
     $('investigationList')?.replaceChildren();
     if ($('investigationSummary')) $('investigationSummary').textContent = 'Load queue to review saved investigations.';
   }
-  function timestampInstant(value) {
-    const match = typeof value === 'string' && value.match(/^(\d{4}-\d{2}-\d{2})T(?:[01]\d|2[0-3]):[0-5]\d(?::[0-5]\d(?:\.\d+)?)?(?:Z|[+-](?:[01]\d|2[0-3]):[0-5]\d)$/);
-    if (!match) return null;
-    const day = Date.parse(match[1] + 'T00:00:00Z');
-    if (!Number.isFinite(day) || new Date(day).toISOString().slice(0, 10) !== match[1]) return null;
-    const instant = Date.parse(value); return Number.isFinite(instant) ? instant : null;
-  }
+  const { timestampInstant, fetchAgeText } = window.primetimeSourceTime;
   function renderInvestigations() {
     const target = $('investigationList'); target.replaceChildren();
     if (!investigationsLoaded) {
@@ -881,17 +875,7 @@
       const update = () => {
         if (!active) return;
         if (!isCurrent()) { stop(); return; }
-        const now = Date.now();
-        let elapsed = 'unavailable (missing or invalid fetch timestamp)';
-        if (fetched !== null) {
-          if (!Number.isFinite(now)) elapsed = 'unavailable (invalid device clock)';
-          else if (now < fetched) elapsed = 'unavailable (fetch timestamp is ahead of this device clock)';
-          else {
-            const minutes = Math.floor((now - fetched) / 60_000), hours = Math.floor(minutes / 60), days = Math.floor(hours / 24);
-            elapsed = minutes === 0 ? 'less than 1 min' : days ? `${days} d ${hours % 24} h ${minutes % 60} min` : hours ? `${hours} h ${minutes % 60} min` : `${minutes} min`;
-          }
-        }
-        const text = `Approximate fetch age: ${elapsed}. Uses this device clock; age updates locally each minute. Source refresh requires an explicit read.`;
+        const text = fetchAgeText(fetched);
         if (age.textContent !== text) age.textContent = text;
       };
       update();

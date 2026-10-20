@@ -20,6 +20,9 @@ test('switching patients while post-import history loads cannot repaint the prio
     else { historyStarted = true; result = await new Promise(resolve => { releaseHistory = resolve; }); }
     return { ok: true, json: async () => ({ ok: true, ...result }) };
   } };
+  const isolatedMode = window.primetimeDataMode;
+  vm.runInNewContext(readFileSync(new URL('../public/primetime/data-source.js', import.meta.url), 'utf8'), { document, window, Event });
+  window.primetimeDataMode = isolatedMode;
   vm.runInNewContext(readFileSync(new URL('../public/primetime/workspace.js', import.meta.url), 'utf8'), { document, window, URLSearchParams, console });
   const tick = () => new Promise(resolve => setImmediate(resolve));
   events.get('primetime-ready')(); await tick();

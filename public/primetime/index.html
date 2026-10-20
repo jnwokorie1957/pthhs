@@ -84,7 +84,7 @@
           <section class="panel connected-tools"><h3>Operational tools</h3><button type="button" class="btn secondary" data-view-jump="workbench" data-workflow="SearchPatients">Find patient records</button><button type="button" class="btn secondary" data-view-jump="workbench" data-workflow="SearchCaregivers">Find caregiver records</button><button type="button" class="btn secondary" data-view-jump="workbench" data-workflow="SearchPayrollBatches">Review payroll batches</button></section>
           <div class="section-heading"><div><p class="eyebrow">Selected office and day</p><h2>Live visit overview</h2><p>Every visualization uses the same source page. Office totals and policy classifications require validated evidence.</p></div><div class="heading-actions"><button id="dashboardOverviewRefresh" type="button" class="btn secondary">Read source now</button><button class="btn secondary" data-view-jump="visits">Source records</button></div></div>
           <div class="filter-bar visit-controls"><label for="dashboardOverviewDate">Service date<input id="dashboardOverviewDate" type="date" required></label><p id="dashboardOverviewScope" class="scope-copy">Office not configured</p></div>
-          <p id="dashboardOverviewStatus" role="status" aria-live="polite"></p><p id="dashboardOverviewMetadata" class="source-metadata"></p>
+          <p id="dashboardOverviewStatus" role="status" aria-live="polite"></p><p id="dashboardOverviewMetadata" class="source-metadata"></p><p id="dashboardOverviewFetchAge" class="source-metadata" aria-live="off" hidden></p>
           <div id="dashboardOverviewMetrics" class="metric-grid"></div>
           <div class="visit-pagination"><button id="dashboardOverviewPrevious" class="btn secondary" type="button" hidden>Previous source page</button><button id="dashboardOverviewNext" class="btn secondary" type="button" hidden>Next source page</button><small id="dashboardOverviewCompleteness"></small></div>
           <div class="dashboard-grid"><section class="panel span-2"><h3>Visit windows</h3><div id="dashboardTimeline"></div></section><section class="panel"><h3>Source field availability</h3><div id="dashboardEvidenceChart"></div></section><section class="panel span-2"><div class="panel-head"><h3 id="dashboardEvidenceTitle">EVV source evidence</h3><button class="text-button" data-view-jump="visits">View records →</button></div><div id="dashboardOverviewExceptions"></div></section><section class="panel"><h3 id="dashboardCoverageTitle">Caregiver assignment evidence</h3><div id="dashboardCoverage"></div></section><section class="panel"><h3 id="dashboardAlertsTitle">Source evidence gaps</h3><div id="dashboardAlerts"></div></section><section class="panel span-2"><h3>Source readiness</h3><p id="dashboardReadiness">Live source validation is pending.</p><button class="btn secondary" data-view-jump="hha">Integration details</button></section></div>
@@ -111,7 +111,7 @@
           <div class="section-heading"><div><p class="eyebrow">Selected office and day</p><h2>Visit source preview</h2><p>Scheduled, actual and EVV values remain separate. Source interpretation is pending.</p></div><button id="dashboardVisitRefresh" type="button" class="btn secondary">Read source now</button></div>
           <div class="filter-bar visit-controls"><label for="dashboardVisitDate">Service date<input id="dashboardVisitDate" type="date" required></label><p id="dashboardVisitScope" class="scope-copy">Office not configured</p></div>
           <div id="dashboardVisitMetrics" class="metric-grid compact-grid"></div>
-          <section class="panel"><p id="dashboardVisitStatus" role="status" aria-live="polite">Select a date to preview visits.</p><p id="dashboardVisitMetadata" class="source-metadata"></p><div id="dashboardVisitRows"></div><div class="visit-pagination"><button id="dashboardVisitPrevious" class="btn secondary" type="button" hidden>Previous source page</button><button id="dashboardVisitNext" class="btn secondary" type="button" hidden>Next page</button><small id="dashboardVisitCompleteness"></small></div></section>
+          <section class="panel"><p id="dashboardVisitStatus" role="status" aria-live="polite">Select a date to preview visits.</p><p id="dashboardVisitMetadata" class="source-metadata"></p><p id="dashboardVisitFetchAge" class="source-metadata" aria-live="off" hidden></p><div id="dashboardVisitRows"></div><div class="visit-pagination"><button id="dashboardVisitPrevious" class="btn secondary" type="button" hidden>Previous source page</button><button id="dashboardVisitNext" class="btn secondary" type="button" hidden>Next page</button><small id="dashboardVisitCompleteness"></small></div></section>
         </section>
         <section class="view" data-view-panel="revisions" id="revisionWorkspace">
           <div class="section-heading"><div><p class="eyebrow">Office & caregiver follow-up</p><h2>Visit review</h2><p>Review original times, understand the next step, and keep office follow-up together.</p></div><button class="btn secondary" id="revisionRefresh" type="button">Refresh review</button></div>
@@ -161,11 +161,11 @@
   <script src="/__/firebase/8.10.1/firebase-app.js" defer></script>
   <script src="/__/firebase/8.10.1/firebase-auth.js" defer></script>
   <script src="/__/firebase/init.js" defer></script>
-  <script src="/primetime/data-source.js?v=afb91f7ee928" defer></script>
+  <script src="/primetime/data-source.js?v=8d2267a47f38" defer></script>
   <script src="/primetime/demo-data.js?v=daf4470da486" defer></script>
-  <script src="/primetime/dashboard.js?v=ad5128cb4d84" defer></script>
+  <script src="/primetime/dashboard.js?v=28b12085b35a" defer></script>
   <script src="/primetime/revisions.js?v=fbc58b7bee5f" defer></script>
   <script src="/primetime/primetime.js?v=38f4350a3847" defer></script>
-  <script src="/primetime/workspace.js?v=a14c26e09e42" defer></script>
+  <script src="/primetime/workspace.js?v=873f11eef5df" defer></script>
 </body>
 </html>

@@ -94,6 +94,7 @@
   let pagePosition = 0;
   let demoOffset = 0;
   let dateChosen = false;
+  let clearPageFetchAge = () => {};
   const localDay = () => {
     const now = new Date();
     return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
@@ -248,6 +249,7 @@
       rows.map(item => [item.id, item.issue, item.scheduledStart, item.scheduledEnd, item.visibility, item.priority]), 'exceptionTable'));
   }
   function invalidateSourceContext() {
+    clearPageFetchAge();
     serial += 1;
     document.dispatchEvent(new Event('primetime-source-context-cleared'));
   }
@@ -352,6 +354,30 @@
     text('dashboardVisitCompleteness', view.mode === 'demo' ? 'Example page only.' : `${pageScope}Charts use this page only. Office totals are unknown; complete office coverage is not established. Read limits: up to 200 source IDs, 10 details per page and a 25-second detail-read budget.${view.truncated ? ' Source identifier results were truncated.' : ''}`);
     nextPageButton(Boolean(nextCursor));
     previousPageButton(view.mode === 'demo' ? demoOffset > 0 : pagePosition > 0);
+    pageFetchAge(view, captured);
+  }
+  function pageFetchAge(view, captured) {
+    clearPageFetchAge();
+    if (view.mode !== 'live') return;
+    const nodes = ['dashboardOverviewFetchAge', 'dashboardVisitFetchAge'].map(get).filter(Boolean);
+    const { timestampInstant, fetchAgeText } = window.primetimeSourceTime;
+    const fetched = timestampInstant(view.fetchedAt);
+    let timer = null, active = true;
+    const stop = () => {
+      if (!active) return;
+      active = false;
+      nodes.forEach(item => { item.hidden = true; item.textContent = ''; });
+      if (timer !== null) clearInterval(timer);
+    };
+    clearPageFetchAge = stop;
+    const update = () => {
+      if (!active) return;
+      if (!current(captured) || !controller.isLive() || dateInput?.value !== view.scope.date || metadata?.settings?.officeId !== view.scope.officeId) { stop(); return; }
+      const value = fetchAgeText(fetched);
+      nodes.forEach(item => { item.hidden = false; if (item.textContent !== value) item.textContent = value; });
+    };
+    update();
+    if (fetched !== null && active && nodes.length) timer = setInterval(update, 60_000);
   }
   function context() { return { generation: controller.getGeneration(), mode: controller.getMode(), session, serial }; }
   function sourceRecordTools(view, item, captured) {

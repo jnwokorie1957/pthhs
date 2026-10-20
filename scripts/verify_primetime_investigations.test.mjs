@@ -27,6 +27,9 @@ async function harness(readQueue) {
       : await readQueue(path, options);
     return { ok: data.ok !== false, json: async () => ({ ok: true, ...data }) };
   } };
+  const isolatedMode = window.primetimeDataMode;
+  vm.runInNewContext(readFileSync(new URL('../public/primetime/data-source.js', import.meta.url), 'utf8'), { document, window, Event, Date: FixtureDate });
+  window.primetimeDataMode = isolatedMode;
   vm.runInNewContext(readFileSync(new URL('../public/primetime/workspace.js', import.meta.url), 'utf8'), { document, window, URLSearchParams, Date: FixtureDate, console });
   const emit = async event => { events.get(event)?.(); await tick(); await tick(); };
   const fire = async control => { control.handlers.get('click')?.({}); await tick(); await tick(); };
