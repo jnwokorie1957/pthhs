@@ -753,7 +753,8 @@ function connectedWorkspace({ dataApproved = true, enabledReads = ['GetPatientDe
   const settings = { revision: 1, officeId: '123', officeTimezone: 'America/Chicago', policyReference: '', enabledReads };
   const app = harness({ storedDataMode: null, metadata: liveMetadata, fetchSource: (path, options) => {
     if (path.endsWith('/settings')) return response({ ok: true, settings, dataApproved, supportedReads: [], readInputs: {
-      GetPatientDemographics: ['id'], GetCaregiverDemographics: ['id'], GetVisitInfoV3: ['id'], SearchPatientAuthorizations: ['patientId'], GetPatientAuthorizationInfo: ['patientId', 'id']
+      GetPatientDemographics: ['id'], GetCaregiverDemographics: ['id'], GetVisitInfoV3: ['id'], SearchPatientAuthorizations: ['patientId'], GetPatientAuthorizationInfo: ['patientId', 'id'],
+      SearchPatientPOC: ['patientId'], SearchPatientDocument: ['patientId', 'documentTypeId', 'id', 'date']
     } });
     if (path.includes('/views/visits?')) return response(preview(new URL(path, 'https://fixture.test').searchParams.get('date')));
     if (path.endsWith('/workspace/read')) return response({ ok: true, operation: JSON.parse(options.body).operation, fetchedAt: '2026-10-10T08:00:00Z', records: [] });
@@ -765,6 +766,69 @@ function connectedWorkspace({ dataApproved = true, enabledReads = ['GetPatientDe
   installDashboard(app); vm.runInContext(asset('workspace.js'), app.context);
   return app;
 }
+
+const patientDiscoveryButtons = (app, host = 'dashboardTimeline') => descendants(app.element(host)).filter(node => ['Find patient care plans','Find patient documents'].includes(node.textContent));
+
+test('care-plan and document shortcuts prepare exact patient discovery with visible-input focus and no request', async () => {
+  const app=connectedWorkspace({enabledReads:['GetPatientDemographics','GetVisitInfoV3','SearchPatientPOC','SearchPatientDocument'],preview:date=>{
+    const page=livePreview(date);page.items[0].name='Same synthetic patient';page.items.push({...page.items[0],id:'900002',patientId:'7'});return page;
+  }});await app.signIn();await tick();await tick();
+  for(const host of ['dashboardTimeline','dashboardVisitRows']) {
+    const controls=patientDiscoveryButtons(app,host);assert.equal(controls.length,4);
+    for(const [index,operation,patient] of [[0,'SearchPatientPOC','5'],[1,'SearchPatientDocument','5'],[2,'SearchPatientPOC','7'],[3,'SearchPatientDocument','7']]) {
+      for(const id of ['readId','readPatient','readCaregiver','readContract','readDate','readTerm','readDocumentType'])app.element(id).value='stale';
+      app.element('readResults').append({textContent:'prior subject results'});const calls=app.calls.length;
+      await clickNode(controls[index]);
+      assert.equal(app.element('readOperation').value,operation);assert.equal(app.element('readPatient').value,patient);assert.equal(app.element('readOffice').value,'123');
+      for(const id of ['readId','readCaregiver','readContract','readDate','readTerm','readDocumentType'])assert.equal(app.element(id).value,'',id);
+      assert.equal(app.element('readResults').children.length,0);assert.equal(app.document.activeElement,app.element('readPatient'));
+      assert.equal(app.calls.length,calls,'selection must not fetch, download, import or enable anything');assert.match(app.element('workspaceMessage').textContent,/Choose Read source records/);
+    }
+  }
+});
+
+test('patient discovery shortcuts omit malformed or unavailable identities and never appear for Demo records', async () => {
+  for(const patientId of [null,'','0','01','bad-id','99999999999']) {
+    const app=connectedWorkspace({preview:date=>{const page=livePreview(date);page.items[0].patientId=patientId;page.items.push({id:'900002',patientId:'8',state:'unavailable'});return page;}});
+    await app.signIn();await tick();await tick();
+    for(const host of ['dashboardTimeline','dashboardVisitRows'])assert.equal(patientDiscoveryButtons(app,host).length,0);
+    app.window.primetimeDataMode.setMode('demo');for(const host of ['dashboardTimeline','dashboardVisitRows'])assert.equal(patientDiscoveryButtons(app,host).length,0);
+  }
+});
+
+test('new patient discovery selections retain owner entitlement, release and office gates', async () => {
+  const app=connectedWorkspace();await app.signIn();await tick();await tick();
+  for(const control of patientDiscoveryButtons(app)){const calls=app.calls.length;await clickNode(control);assert.equal(app.calls.length,calls);assert.match(app.element('workspaceMessage').textContent,/requires owner enablement/);}
+  for(const kind of ['patient-care-plans','patient-documents']) {
+    app.element('readPatient').value='unchanged';const calls=app.calls.length;
+    app.document.dispatchEvent(new DetailEvent('primetime-source-record-selected',{detail:{kind,id:'5',officeId:'999'}}));
+    assert.equal(app.element('readPatient').value,'unchanged');assert.equal(app.calls.length,calls);
+    app.document.dispatchEvent(new DetailEvent('primetime-source-record-selected',{detail:{kind,id:'bad',officeId:'123'}}));assert.equal(app.element('readPatient').value,'unchanged');
+  }
+  const locked=connectedWorkspace({dataApproved:false});await locked.signIn();await tick();await tick();locked.element('readPatient').value='unchanged';
+  const lockedControls=patientDiscoveryButtons(locked);assert.equal(lockedControls.length,2);
+  for(const control of lockedControls){await clickNode(control);assert.equal(locked.element('readPatient').value,'unchanged');}
+});
+
+test('detached patient discovery controls cannot reuse refreshed, paged, dated, office, policy, mode or session context', async () => {
+  for(const change of ['refresh','next','previous','date','office','policy','demo','session']) {
+    const app=connectedWorkspace({preview:date=>({...livePreview(date),nextCursor:'next-page',state:'partial'})});await app.signIn();await tick();await tick();
+    if(change==='previous'){await app.click('dashboardVisitNext');await tick();await tick();}
+    const old=[...patientDiscoveryButtons(app),...patientDiscoveryButtons(app,'dashboardVisitRows')];assert.equal(old.length,4,change);
+    if(change==='refresh')await app.click('dashboardOverviewRefresh');
+    if(change==='next')await app.click('dashboardVisitNext');if(change==='previous')await app.click('dashboardVisitPrevious');
+    if(change==='date'){app.element('dashboardOverviewDate').value='2026-10-09';for(const fn of app.element('dashboardOverviewDate').handlers.get('change'))fn(new Event('change'));}
+    if(change==='office'||change==='policy')app.window.primetimeDataMode.observeScope({revision:2,officeId:change==='office'?'999':'123',officeTimezone:'America/Chicago'});
+    if(change==='demo')app.window.primetimeDataMode.setMode('demo');if(change==='session')app.dispatch('primetime-signed-out');
+    for(const phase of ['pending','settled']) {
+      if(phase==='settled'){await tick();await tick();}
+      const calls=app.calls.length,events=app.events.filter(e=>e.type==='primetime-source-record-selected').length;
+      // Dispatch synchronously so an independent in-flight refresh is not counted as a shortcut request.
+      for(const control of old)for(const callback of control.handlers.get('click')||[])callback(new Event('click'));
+      assert.equal(app.calls.length,calls,change+' '+phase);assert.equal(app.events.filter(e=>e.type==='primetime-source-record-selected').length,events,change+' '+phase);
+    }
+  }
+});
 
 test('live visit shortcuts select exact patient, caregiver and visit reads without fetching or granting access', async () => {
   const app = connectedWorkspace(); await app.signIn(); await tick(); await tick();

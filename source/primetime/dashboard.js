@@ -383,9 +383,10 @@
   function sourceRecordTools(view, item, captured) {
     const tools = node('div', null, 'source-record-tools');
     if (view.mode !== 'live' || item.state === 'unavailable') return tools;
-    for (const [kind, id] of [['patient', item.patientId], ['caregiver', item.caregiverId], ['visit', item.id], ['patient-history', item.patientId], ['patient-authorizations', item.patientId]]) {
+    for (const [kind, id] of [['patient', item.patientId], ['caregiver', item.caregiverId], ['visit', item.id], ['patient-history', item.patientId], ['patient-authorizations', item.patientId], ['patient-care-plans', item.patientId], ['patient-documents', item.patientId]]) {
       if (typeof id !== 'string' || !/^[1-9]\d{0,9}$/.test(id)) continue;
-      const label = kind === 'patient-history' ? 'Saved calendar history' : kind === 'patient-authorizations' ? 'Open patient authorizations' : `Open ${kind} read`;
+      const label = kind === 'patient-history' ? 'Saved calendar history' : kind === 'patient-authorizations' ? 'Open patient authorizations'
+        : kind === 'patient-care-plans' ? 'Find patient care plans' : kind === 'patient-documents' ? 'Find patient documents' : `Open ${kind} read`;
       const control = node('button', label, 'btn secondary'); control.type = 'button';
       control.addEventListener('click', () => {
         if (!current(captured) || !controller.isLive() || metadata?.settings?.officeId !== view.scope.officeId) return;

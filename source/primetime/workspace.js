@@ -34,17 +34,21 @@
   function selectRead(operation) { authorizationSelection = null; $('readOperation').value = operation; readSequence++; $('readResults').replaceChildren(); showReadInputs(); }
   document.addEventListener('primetime-source-record-selected', event => {
     const { kind, id, officeId } = event.detail || {};
-    const operation = kind === 'patient' ? 'GetPatientDemographics' : kind === 'patient-authorizations' ? 'SearchPatientAuthorizations' : kind === 'caregiver' ? 'GetCaregiverDemographics' : kind === 'visit' ? 'GetVisitInfoV3' : null;
+    const patientDiscovery = kind === 'patient-care-plans' || kind === 'patient-documents';
+    const operation = kind === 'patient' ? 'GetPatientDemographics' : kind === 'patient-authorizations' ? 'SearchPatientAuthorizations'
+      : kind === 'patient-care-plans' ? 'SearchPatientPOC' : kind === 'patient-documents' ? 'SearchPatientDocument'
+      : kind === 'caregiver' ? 'GetCaregiverDemographics' : kind === 'visit' ? 'GetVisitInfoV3' : null;
     if (!operation || typeof id !== 'string' || !/^[1-9]\d{0,9}$/.test(id) || !dataApproved
       || window.primetimeDataMode?.isLive() !== true || !settings?.officeId || officeId !== settings.officeId) return;
     for (const field of Object.values(inputIds)) $(field).value = '';
-    $('readId').value = id; $('readOffice').value = officeId;
-    if (kind === 'patient' || kind === 'patient-authorizations') $('readPatient').value = id;
+    $('readId').value = patientDiscovery ? '' : id; $('readOffice').value = officeId;
+    if (kind === 'patient' || kind === 'patient-authorizations' || patientDiscovery) $('readPatient').value = id;
     if (kind === 'caregiver') $('readCaregiver').value = id;
     selectRead(operation);
     document.dispatchEvent(new Event('primetime-workbench-selected'));
-    $('readId').focus();
-    const label = kind === 'patient-authorizations' ? 'Patient authorization discovery' : kind[0].toUpperCase() + kind.slice(1);
+    $(patientDiscovery ? 'readPatient' : 'readId').focus();
+    const label = kind === 'patient-authorizations' ? 'Patient authorization discovery'
+      : kind === 'patient-care-plans' ? 'Patient care-plan discovery' : kind === 'patient-documents' ? 'Patient document discovery' : kind[0].toUpperCase() + kind.slice(1);
     message(settings.enabledReads.includes(operation)
       ? `${label} source ID selected from source evidence. Choose Read source records to fetch current evidence.`
       : `${label} source ID selected. This read requires owner enablement after entitlement review.`);
