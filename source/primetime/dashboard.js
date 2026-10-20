@@ -268,6 +268,10 @@
     metadata = null;
     resetPaging();
     demoOffset = 0;
+    if (controller.isLive()) {
+      text('dataModeBadge', ready ? 'Live · access not checked' : 'Live · sign in required');
+      text('environmentDetails', ready ? 'Source access not checked' : 'Sign in required');
+    }
     hosts.forEach(id => replace(id));
     text('dashboardVisitStatus', 'Live visit preview unavailable until source access is checked.');
     text('dashboardVisitMetadata', '');
@@ -422,6 +426,8 @@
     sourceClearControls(true);
     refreshDisabled(true);
     liveOverviewState('Checking live source access', 'Loading the selected office settings and enabled HHA reads…');
+    text('dataModeBadge', 'Live · checking access');
+    text('environmentDetails', 'Checking HHA source access');
     try {
       const response = await window.primetimeApiFetch('/primetime/api/data/status', { signal: abort.signal });
       if (!current(captured)) return;
@@ -437,6 +443,8 @@
       text('dashboardVisitScope', `Office: ${settings.officeId || 'Unconfigured'} · Timezone: ${settings.officeTimezone || 'Unconfigured'}`);
       if (payload.dataApproved !== true || payload.panels?.visits?.available !== true) {
         const detail = blockedMessage(payload.panels?.visits?.blockedReason);
+        text('dataModeBadge', 'Live · unavailable');
+        text('environmentDetails', 'HHA visit source access unavailable');
         unavailable('dashboardVisitRows', 'Visit preview unavailable', detail);
         liveOverviewState('Live visits unavailable', detail);
         text('dashboardVisitStatus', detail);
@@ -449,6 +457,8 @@
       unavailable('dashboardVisitRows', 'Visit preview unavailable', 'Source access status could not be loaded. Refresh to retry.');
       liveOverviewState('Live visits unavailable', 'Source access status could not be loaded. Refresh to retry.');
       text('dashboardVisitStatus', 'Source access status unavailable. No example values are shown.');
+      text('dataModeBadge', 'Live · unavailable');
+      text('environmentDetails', 'Source access status unavailable');
     } finally {
       if (current(captured)) refreshDisabled(false);
     }
@@ -474,6 +484,8 @@
     nextPageButton(false);
     if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
       text('dashboardVisitStatus', 'Choose a service date.');
+      text('dataModeBadge', 'Live · date required');
+      text('environmentDetails', 'Choose a service date');
       unavailable('dashboardVisitRows', 'Service date required', 'Choose a service date to preview source visits.');
       liveOverviewState('Service date required', 'Choose a service date to load HHA source visits.');
       refreshDisabled(false);
@@ -490,6 +502,8 @@
       if (!response.ok) {
         if (response.status === 409 || response.status === 423) {
           metadata = null;
+          text('dataModeBadge', response.status === 409 ? 'Live · refresh required' : 'Live · unavailable');
+          text('environmentDetails', response.status === 409 ? 'Source scope or evidence changed' : 'HHA visit source access unavailable');
           const detail = response.status === 409 ? 'Source scope or visit evidence changed. Refresh to check access and restart from the first page.' : blockedMessage(payload?.error);
           unavailable('dashboardVisitRows', 'Visit preview unavailable', detail);
           liveOverviewState('Live visits unavailable', detail);

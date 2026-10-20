@@ -22,6 +22,13 @@
 
 # Current checkpoint
 
+- [x] October 20 source-status labels locally verified: access checking and
+  terminal outcomes replace obsolete loading/success labels. All 238 frontend
+  tests and the local release gate passed; request and permission behavior is
+  unchanged. See [verification](SOURCE_STATUS_LABELS_ACCEPTANCE_2026-10-20.md).
+- [ ] Authenticated production acceptance of these label transitions remains
+  pending; broader source/role/operational gates are unchanged.
+
 - [x] October 20 17:30 UTC research compared shared age controls and action
   feedback with current W3C pause/status guidance. Recorded proposed patient,
   therapist and office reading behavior and acceptance cases in

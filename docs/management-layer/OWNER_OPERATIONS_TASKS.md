@@ -22,6 +22,14 @@
 
 # Current owner checkpoint
 
+## October 20 source-status labels
+
+The Live badge now distinguishes access checking, unavailable access, a required
+service date and a refresh-required result. Prior returned-source labels no
+longer remain after these transitions. Local synthetic checks passed; real-session
+acceptance remains pending. This display correction adds no source interpretation
+or operational decision. See [verification](SOURCE_STATUS_LABELS_ACCEPTANCE_2026-10-20.md).
+
 ## October 20 automatic age display control
 
 Automatic age updates can now be paused for the current page session. The

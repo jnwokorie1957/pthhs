@@ -441,6 +441,74 @@ function installDashboard(app) {
 function nodeText(node) { return [node.textContent || '', ...node.children.map(child => child.children ? nodeText(child) : child.textContent || '')].join(' '); }
 const liveMetadata = { ok: true, mode: 'live', dataApproved: true, settings: { officeId: '123', officeTimezone: 'America/Chicago' }, panels: { visits: { available: true } } };
 
+const sourceLabels = app => [app.element('dataModeBadge').textContent, app.element('environmentDetails').textContent];
+async function loadedLabelFixture() {
+  const app = harness({ storedDataMode:null, metadata:liveMetadata, fetchSource:path => response(numberedSourcePage(path)) });
+  installDashboard(app); await app.signIn(); await tick(); await tick();
+  assert.deepEqual(sourceLabels(app), ['Live · HHA source', 'Live HHA visit source returned']);
+  return app;
+}
+test('source labels replace prior success after access failure, malformed status or blocked access and recover on retry', async () => {
+  for (const result of ['failure', 'malformed', 'blocked']) {
+    const app = await loadedLabelFixture(), original = app.window.primetimeApiFetch;
+    const before = app.calls.filter(c => c.path.includes('/views/visits?')).length;
+    app.window.primetimeApiFetch = async (path, options) => {
+      if (!path.endsWith('/data/status')) return original(path, options);
+      if (result === 'failure') throw new Error('synthetic access failure');
+      return response(result === 'malformed' ? {ok:true,mode:'wrong'} : {...liveMetadata,dataApproved:false});
+    };
+    await app.click('dashboardVisitRefresh'); await tick(); await tick();
+    assert.deepEqual(sourceLabels(app), ['Live · unavailable', result === 'blocked' ? 'HHA visit source access unavailable' : 'Source access status unavailable']);
+    assert.equal(app.calls.filter(c => c.path.includes('/views/visits?')).length, before);
+    assert.equal(app.element('dashboardVisitMetadata').textContent, '');
+    app.window.primetimeApiFetch = original;
+    await app.click('dashboardVisitRefresh'); await tick(); await tick();
+    assert.deepEqual(sourceLabels(app), ['Live · HHA source', 'Live HHA visit source returned']);
+  }
+});
+test('invalid service date leaves terminal labels and issues no visit request', async () => {
+  const app = await loadedLabelFixture(), count = app.calls.length;
+  app.element('dashboardVisitDate').value = '';
+  for (const fn of app.element('dashboardVisitDate').handlers.get('change')) fn(new Event('change'));
+  assert.deepEqual(sourceLabels(app), ['Live · date required', 'Choose a service date']);
+  assert.equal(app.calls.length, count);
+  assert.equal(app.element('dashboardVisitMetadata').textContent, '');
+});
+test('409 and 423 visit responses replace loading labels and explicit retry restores source labels', async () => {
+  for (const status of [409,423]) {
+    const app = await loadedLabelFixture(), original = app.window.primetimeApiFetch;
+    app.window.primetimeApiFetch = async () => ({...response({ok:false,error:'visit_reads_not_owner_enabled'}),ok:false,status});
+    await app.click('dashboardVisitNext'); await tick(); await tick();
+    assert.deepEqual(sourceLabels(app), status === 409 ? ['Live · refresh required', 'Source scope or evidence changed'] : ['Live · unavailable', 'HHA visit source access unavailable']);
+    assert.equal(app.element('dashboardVisitMetadata').textContent, '');
+    app.window.primetimeApiFetch = original;
+    await app.click('dashboardOverviewRefresh'); await tick(); await tick();
+    assert.deepEqual(sourceLabels(app), ['Live · HHA source', 'Live HHA visit source returned']);
+  }
+});
+test('pending metadata labels describe access checking and stale failure cannot overwrite a newer successful read', async () => {
+  const app = await loadedLabelFixture(), original = app.window.primetimeApiFetch, pending = deferred();
+  app.window.primetimeApiFetch = path => path.endsWith('/data/status') ? pending.promise : original(path);
+  await app.click('dashboardOverviewRefresh'); await tick();
+  assert.deepEqual(sourceLabels(app), ['Live · checking access', 'Checking HHA source access']);
+  app.window.primetimeApiFetch = original;
+  await app.click('dashboardOverviewRefresh'); await tick(); await tick();
+  pending.reject(new Error('obsolete status')); await tick(); await tick();
+  assert.deepEqual(sourceLabels(app), ['Live · HHA source', 'Live HHA visit source returned']);
+});
+test('late metadata and terminal visit responses cannot replace Demo labels', async () => {
+  for (const kind of ['metadata','visit']) {
+    const app = await loadedLabelFixture(), pending = deferred();
+    app.window.primetimeApiFetch = () => pending.promise;
+    await app.click(kind === 'metadata' ? 'dashboardOverviewRefresh' : 'dashboardVisitNext'); await tick();
+    app.window.primetimeDataMode.setMode('demo');
+    pending.resolve(kind === 'metadata' ? response({...liveMetadata,dataApproved:false}) : {...response({ok:false}),ok:false,status:409});
+    await tick(); await tick();
+    assert.deepEqual(sourceLabels(app), ['Demo · synthetic', 'Synthetic preview records']);
+    assert.match(nodeText(app.element('dashboardVisitRows')), /DEMO-V-/);
+  }
+});
+
 test('the same dashboard hosts clear Demo values in Live and show source failures without samples', async () => {
   const app = harness({ metadata: liveMetadata, fetchSource: path => {
     const result = response({ ok: false, error: 'synthetic source failure' });

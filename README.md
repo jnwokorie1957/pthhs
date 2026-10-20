@@ -20,6 +20,12 @@ Operational/management decisions: EVV rules, visibility/escalation, correction a
 
 # 🚦 CURRENT MANAGEMENT-LAYER CHECKPOINT
 
+**October 20 source-status labels:** access checks and terminal unavailable,
+refresh-required and missing-date outcomes now replace prior loading/success
+labels. All 238 frontend tests and the local release gate passed. Authenticated
+production acceptance remains pending; source/operational gates are unchanged.
+See [verification](docs/management-layer/SOURCE_STATUS_LABELS_ACCEPTANCE_2026-10-20.md).
+
 **October 20 checklist reconciliation:** stale setup/dependency wording in the
 developer sequence now points to existing October 14 DEV-006/007/009 and storage
 acceptance, with the October 15 release reconciliation. This documentation-only
