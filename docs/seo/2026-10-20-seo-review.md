@@ -74,3 +74,28 @@ validation before further promotion. Comparable settled outcomes and optional
 automated-reporting recovery remain open. Observe normal sitemap processing;
 do not resubmit unchanged successful files. Separate HHA sign-in, source mapping,
 entitlement, P1-B and external role/form/signature prerequisites remain open.
+
+## 13:24 UTC follow-up
+
+At 13:25:40 UTC, eleven public artifacts again matched the current Git-normalized
+files. Both apex sitemaps remain 200 XML with the same 27 canonical URLs; both
+www forms redirect once with 301. Private `/primetime` and anonymous session
+responses retain noindex/nofollow/noarchive, with session 401. This bounded check
+does not replace or redate the full crawl above.
+
+Reloading the normal Search Console Sitemaps report retained both Success rows
+and 27 discovered pages, with the same October 19 index and October 15 child
+read dates. No submission or account change occurred. Public-facts, terminology,
+payer approval and claim gates are unchanged. Rechecked Google sitemap/noindex
+guidance linked above supports the existing controls; no new public-page repair
+or marketing claim was justified.
+
+Reconciled the stale October 15 checklist and owner/README handoff: warning review
+and reprocessing were already completed October 19. The current next SEO actions
+remain verified location availability/useful content and comparable settled
+search/field-performance evidence. No new growth or field-CWV result is claimed.
+Previously unavailable automated reporting was not retried or upgraded.
+
+Private evidence: `primetime-seo-live-check-2026-10-20-1324.json` and
+`primetime-seo-review-2026-10-20-1324.txt`. Documentation only; runtime/public
+artifacts and sitemap dates remain unchanged.

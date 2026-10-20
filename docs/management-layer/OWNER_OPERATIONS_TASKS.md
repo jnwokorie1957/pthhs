@@ -336,12 +336,15 @@ completed policy decisions or block P1-C history navigation. See the dated
 
 ## October 15 SEO follow-up
 
-The legacy submitted sitemap index now serves valid XML, with release and live
-checks passed. The read-only Search Console connection cannot submit changes.
-Use the normal authorized Search Console Sitemaps report to inspect the existing
-warnings and request reprocessing of the repaired index once, if needed. Optional
-field Core Web Vitals reporting requires an authorized CrUX API key in the
-existing GSC Wizard report; no key or permission was created automatically.
+The legacy submitted sitemap index serves valid XML. The originally pending
+warning review and one-time reprocessing completed October 19; normal Search
+Console again showed both rows as Success with 27 discovered pages on October 20
+13:25 UTC. Do not repeat submission of these unchanged successful files.
+Discovery does not establish indexing or outcome growth. Comparable settled
+search outcomes and sufficient field Core Web Vitals evidence remain open;
+optional CrUX/reporting setup stays separate, with no key, subscription or
+permission change made automatically. See the
+[current review](../seo/2026-10-20-seo-review.md).
 Existing public service, payer, credential and location evidence remains the
 release authority. See [SEO evidence](../seo/2026-10-15-sitemap-review.md).
 

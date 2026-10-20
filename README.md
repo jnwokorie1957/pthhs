@@ -223,9 +223,12 @@ outcome validation remains open. See [review](docs/seo/2026-10-16-seo-review.md)
 and release checks passed; public page artifacts and private Primetime
 noindex/authentication protection remain intact. Read-only Search Console
 baseline access and evidence-backed lastmod controls are reconciled in the plan.
-Google reprocessing, warning-detail review and optional CrUX setup remain separate
-from the deployed repair. See
-[SEO evidence](docs/seo/2026-10-15-sitemap-review.md).
+The originally pending warning review and one-time Google reprocessing completed
+October 19; October 20 13:25 UTC checks retain successful XML and Search Console
+processing. The old checklist entry is reconciled. Comparable search outcomes and
+sufficient field Core Web Vitals evidence remain open; do not resubmit unchanged
+successful sitemaps. See [original repair](docs/seo/2026-10-15-sitemap-review.md)
+and [current evidence](docs/seo/2026-10-20-seo-review.md).
 
 **October 15 investigation triage:** loaded-record status, assignment and
 follow-up filters now retain truthful active/overdue/unassigned counts,

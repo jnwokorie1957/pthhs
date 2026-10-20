@@ -254,9 +254,14 @@
   are preserved. Search Console baseline access and implemented lastmod controls
   are reconciled in the plan. See
   [SEO evidence](../seo/2026-10-15-sitemap-review.md).
-- [ ] Recheck sitemap download/status after Google reprocesses the repaired
-  index; do not interpret the deprecated indexed counter as an indexing result.
-  Detailed warnings and optional CrUX-key setup require the owner's normal account.
+- [x] Recheck repaired sitemap download and Google processing: October 19
+  reprocessing succeeded; October 20 13:25 UTC public XML/redirect checks and
+  normal Search Console rows retain Success and 27 discovered pages. This is
+  processing/discovery evidence, not indexing or growth. Do not resubmit unchanged
+  successful files. See [current review](../seo/2026-10-20-seo-review.md).
+- [ ] Obtain comparable settled search outcomes and sufficient field Core Web
+  Vitals evidence. Optional CrUX-key/reporting setup remains separate; no key,
+  subscription or permission change was made.
 
 - [x] October 15 research reconciled the existing investigation implementation
   with current primary documentation and normal UI form controls. Patient
