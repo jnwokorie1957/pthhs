@@ -22,6 +22,17 @@
 
 # Current checkpoint
 
+- [x] P1-L completed for the October 19 23:17 UTC heartbeat, production accepted
+  October 20 UTC: approximate device-clock current-visit fetch age, unchanged raw
+  receipt/source context and guarded local-timer cleanup. All 209 frontend tests,
+  both normal jobs and production minute-tick/focus/retention/refresh/reset checks
+  passed. Fresh live paging and all six chart calculations matched source fields.
+  See [acceptance](CURRENT_FETCH_AGE_ACCEPTANCE_2026-10-19.md).
+- [ ] P1-M proposed: extend the same transparent age treatment to live Overview/
+  Visit Preview. Keep explicit reads, partial page/chart scope, original receipts
+  and current/saved separation; cancel across request/page/date/office/policy/mode/
+  session changes. Add no polling, stored preference, threshold or classification.
+
 - [x] October 19 SEO follow-up diagnosed the legacy sitemap's historical 404/
   HTML errors in normal Search Console. One refresh of the verified repaired
   index now reports October 19 read / Sitemap index / Success. All 132 public
@@ -44,7 +55,7 @@
   office/action scopes before wiring bounded results. Do not use missing time,
   positive caregiver ID, tile color, task POC or billed flag as another state's
   authority. Keep P1-B and external clinical/account prerequisites open. P1-L is
-  the next independent administrator presentation task below.
+  accepted above; P1-M is the next proposed administrator presentation task.
 
 - [x] P1-K completed for October 19 20:24 UTC: native closed raw-field disclosure,
   exact returned-field count and caregiver navigation before it. All 203 frontend
@@ -52,7 +63,7 @@
   Fresh live first/next/previous pages and all six source-chart comparisons passed;
   bounded/on-demand/source-unvalidated labels remain. See
   [acceptance](CURRENT_SOURCE_DISCLOSURE_ACCEPTANCE_2026-10-19.md).
-- [ ] P1-L proposed independent task: show elapsed on-demand fetch age beside its
+- [x] P1-L implemented above: show elapsed current-visit fetch age beside its
   raw ISO timestamp, with transparent display-clock and unknown/future handling.
   Test accessible updates and timer cleanup; add no thresholds, source polling,
   persisted data, permission or operational classification.

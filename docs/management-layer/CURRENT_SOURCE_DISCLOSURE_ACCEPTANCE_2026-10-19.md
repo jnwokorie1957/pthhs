@@ -87,9 +87,8 @@ document and form/reviewer validation remain owner evidence actions. Caregiver/
 authorization detail entitlement, P1-B office/supervisor migration and external
 account/form/signature prerequisites remain open.
 
-Proposed P1-L: add a clearly labelled elapsed age of the on-demand fetch alongside
-its unchanged ISO fetch timestamp. Use the display clock transparently; unknown,
-invalid or future-clock cases remain explicit. Add no freshness threshold,
-clinical/operational status, automatic source polling, grant or persisted data.
-Test clock changes, invalid/future timestamps, accessible restrained updates and
-timer cleanup on read/context/session changes. This remains a proposal.
+P1-L current-visit fetch age is implemented and accepted in the separately dated
+[fetch-age report](CURRENT_FETCH_AGE_ACCEPTANCE_2026-10-19.md). It retains raw
+receipts and source context, makes device-clock/unknown states explicit and
+cancels local timers with read/context changes, without source polling,
+persistence, permissions or operational freshness classifications.

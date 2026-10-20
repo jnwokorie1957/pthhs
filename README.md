@@ -20,6 +20,15 @@ Operational/management decisions: EVV rules, visibility/escalation, correction a
 
 # 🚦 CURRENT MANAGEMENT-LAYER CHECKPOINT
 
+**October 19 23:17 UTC dashboard heartbeat; accepted October 20 UTC:** P1-L adds
+approximate device-clock age to explicit current-visit reads, retaining raw fetch
+timestamps and cancelling local timers with read/context changes. All 209 frontend
+tests, both normal jobs and production minute-tick/source-retention/reset checks
+passed. Fresh live paging and all six chart calculations matched source fields.
+HHA still requires normal sign-in; no new import occurred. P1-M proposes the same
+age treatment for live-page views. See
+[acceptance](docs/management-layer/CURRENT_FETCH_AGE_ACCEPTANCE_2026-10-19.md).
+
 **October 19 SEO follow-up, 20:46 UTC trigger:** normal Search Console browser
 access identified the legacy sitemap's historical 404/HTML errors. One refresh
 of the verified repaired index is now read by Google as Sitemap index / Success,
@@ -34,7 +43,7 @@ missed/deleted visits, order/certification versions and aggregator stages. Compa
 current read projections and retained UI; HHA still needs normal sign-in. Added
 proposed role screens, exact record links, permissions and acceptance cases in
 [research](docs/management-layer/ROLE_WORKFLOW_RESEARCH.txt). No application or
-external role changed. P1-L fetch-age display remains the next independent task;
+external role changed. P1-L current-visit fetch-age display is accepted above;
 source/configuration validation and P1-B/external-role prerequisites remain open.
 
 **October 19 20:24 UTC dashboard pass:** P1-K adds a native keyboard disclosure
@@ -43,7 +52,7 @@ before the disclosure. All 203 frontend tests, both normal jobs and production
 keyboard/retention/reset checks passed. Fresh live first/next/previous pages and
 all six chart calculations matched source fields; partial/on-demand/unvalidated
 labels remain. HHA needs normal sign-in; no new capture/import occurred. P1-L
-fetch-age display is proposed. See
+current-visit fetch-age display is now implemented above. See
 [acceptance](docs/management-layer/CURRENT_SOURCE_DISCLOSURE_ACCEPTANCE_2026-10-19.md).
 
 **October 19 20:09 UTC implementation pass:** P1-J groups current Schedule,

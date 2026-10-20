@@ -22,6 +22,22 @@
 
 # Current owner checkpoint
 
+## October 19 heartbeat / October 20 UTC current-visit fetch age
+
+Current-visit evidence now shows approximate time since its explicit source read,
+using this device clock. Production observed a real minute tick with all raw
+fields, original fetch context, saved evidence and focus retained. Refresh/page/
+month changes reset or clear it; separate saved charts remain 41/36. Fresh live
+paging and all six field-presence charts matched source fields. This adds no
+source polling, import, permission or operational freshness rule. See
+[acceptance](CURRENT_FETCH_AGE_ACCEPTANCE_2026-10-19.md).
+
+Next owner evidence action remains normal sign-in in the retained HHA tab for
+further authorized read-only captures and representative field/unit/period/
+identity/office/discipline/document validation. Existing entitlement, P1-B and
+external account/form/reviewer/signature gates remain open. P1-M proposes similar
+local age display for live-page views; it will not determine care or billing status.
+
 ## October 19 SEO reprocessing accepted by Google
 
 The previously pending sitemap error review and one-time reprocessing action are
@@ -51,7 +67,7 @@ assignment, confirmation/missed/deleted, order/certification/version and relevan
 contract/aggregation mappings in protected acceptance records. Unknown mappings
 remain open. Do not change HHA, enable rights or make clinical/financial decisions
 to satisfy the research. P1-B and external account/form/reviewer/signature gates
-remain; P1-L fetch-age display stays the next independent developer task.
+remain; P1-L is accepted above and P1-M live-page age display is proposed next.
 
 ## October 19 current-source disclosure and live verification
 
@@ -67,7 +83,7 @@ Next owner evidence action: sign in normally in the retained HHA login tab for
 further authorized read-only UI observation. No new capture/import was possible
 while signed out. Keep representative field/unit/period/identity/office/discipline/
 document/form/reviewer mappings protected. Existing entitlement, P1-B migration
-and external account/signature dependencies remain open. Proposed P1-L only adds
+and external account/signature dependencies remain open. Accepted P1-L only adds
 transparent fetch-age display; it will not define an operational freshness rule.
 
 ## October 19 current source-field groups
