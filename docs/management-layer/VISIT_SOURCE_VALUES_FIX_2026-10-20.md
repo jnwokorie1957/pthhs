@@ -20,8 +20,13 @@ and displays HHA schedule duration and `ActualHours` independently of diagnosis.
 Visit Preview retains the same three duration fields and has explicit expected/
 actual hours columns. Values are rendered as text and labelled HHA. A supplied
 zero remains zero; empty values and missing components remain explicit. Accepted
-calculated duration is only a labelled fallback when no source duration was
-supplied. Payroll/billing values and EVV differences never substitute for HHA
+calculated duration is a labelled fallback when no source duration was supplied.
+When neither source duration nor an accepted metric is available, a complete
+written start/end pair can supply a separately labelled source clock span. This
+is calendar/clock arithmetic, not elapsed, payable or billable time. Invalid or
+reversed dates, mixed offsets, missing ends and spans over 48 hours are withheld;
+an overnight end date or DST offset is never invented. Payroll/billing values and
+EVV differences never substitute for HHA
 `ActualHours`.
 
 This fixes a read/projection/display path, not a durable import or source write.
@@ -34,10 +39,11 @@ the source disclosure without timezone inference or rewriting source timestamps.
 
 ## Verification scope
 
-All 485 backend tests and 254 frontend/tooling tests passed. New regressions cover
+All 485 backend tests and 256 frontend/tooling tests passed. New regressions cover
 the V3 XML-to-preview duration projection, unaccepted review values, true missing
 end times, zero/empty/missing source hours, withholding unavailable detail fields,
-and avoiding payroll/EVV substitution. Existing evidence normalization continues
+labelled clock spans, invalid/overnight/DST cases, and avoiding payroll/EVV
+substitution. Existing evidence normalization continues
 to leave unaccepted diagnosis times/metrics unknown; that gate was not relaxed.
 Site/asset/repository checks are run through the existing release controls. Normal
 GitHub/Firebase jobs and dated authenticated production observations are recorded

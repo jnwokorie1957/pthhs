@@ -184,9 +184,9 @@
   }
   function sourceHours(item, actual = false) {
     if (item.demo) return duration(item.diagnosis.metrics[actual ? 'actualMinutes' : 'scheduledMinutes']);
-    const raw = item.evidence.rawDurations || {}, { sourceActualHours, sourceScheduleHours } = window.primetimeSourceTime;
-    return actual ? sourceActualHours(raw.ActualHours, item.diagnosis.metrics.actualMinutes)
-      : sourceScheduleHours(raw['ScheduleDuration/ScheduleDurationHours'], raw['ScheduleDuration/ScheduleDurationMinutes'], item.diagnosis.metrics.scheduledMinutes);
+    const raw = item.evidence.rawDurations || {}, times = item.evidence.rawTimes || {}, { sourceActualHours, sourceScheduleHours } = window.primetimeSourceTime;
+    return actual ? sourceActualHours(raw.ActualHours, item.diagnosis.metrics.actualMinutes, times.VisitStartTime, times.VisitEndTime)
+      : sourceScheduleHours(raw['ScheduleDuration/ScheduleDurationHours'], raw['ScheduleDuration/ScheduleDurationMinutes'], item.diagnosis.metrics.scheduledMinutes, times.ScheduleStartTime, times.ScheduleEndTime);
   }
   function labels(entries) { const list = node('dl', null, 'revision-facts'); for (const [title, value] of entries) list.append(node('dt', title), node('dd', value || 'Unavailable')); return list; }
   function statePill(item) {
@@ -313,7 +313,7 @@
       box.append(panel);
     }
     if (item.evidence.rawTimes) box.append(details(item.evidence.state === 'ready' ? 'Original source values' : 'Original source values · interpretation pending', labels(Object.entries({ ...item.evidence.rawTimes, ...item.evidence.rawDurations }).map(([key, value]) => [key, value]))));
-    if (!item.demo) box.append(node('p', 'HHA times and duration fields are displayed even while interpretation is pending. Missing end times or durations remain missing; these values do not mark a visit verified or billable.', 'source-metadata'));
+    if (!item.demo) box.append(node('p', 'HHA times and duration fields are displayed even while interpretation is pending. A source clock span uses complete written start/end times; it is not elapsed, payable or billable time. Missing end times remain missing. These values do not mark a visit verified or billable.', 'source-metadata'));
     box.append(details('Source references', labels([['Visit reference', item.evidence.visitId], ['Member reference', item.evidence.patientId], ['Caregiver reference', item.evidence.caregiverId], ['Evidence state', human(item.evidence.state)], ['Source operation', provenance?.operation], ['Fetched at', provenance?.fetchedAt], ['Source revision', provenance?.sourceRevision], ['Acceptance version', provenance?.acceptanceVersion]])));
     box.append(node('p', 'Office follow-up and suggestions do not establish HHA verification or change recorded work times.', 'source-metadata'));
     if (window.matchMedia?.('(max-width: 1000px)').matches) box.append(button('Back to visits', () => get('revisionVisits')?.scrollIntoView({ behavior: 'smooth', block: 'start' })));

@@ -42,7 +42,9 @@ completeness and operational totals remain unknown.
 
 - [x] Correct the source-value display path in Visit Review and Visit Preview:
   retain V3 schedule-duration components and actual hours; show original times
-  while diagnosis acceptance is pending. All 485 backend and 254 frontend/tooling
+  while diagnosis acceptance is pending. Missing source hours can use a labelled
+  complete source-clock span; no end date or DST offset is inferred.
+  All 485 backend and 256 frontend/tooling
   tests pass. Source acceptance and clinical/financial decisions are unchanged.
   See [implementation and verification scope](VISIT_SOURCE_VALUES_FIX_2026-10-20.md).
 

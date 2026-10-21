@@ -417,6 +417,19 @@ test('HHA source hours preserve zero, empty and missing components separately fr
   assert.equal(schedule(undefined, null), 'Not supplied by HHA');
 });
 
+test('missing source hours use a labelled complete clock span without guessing missing ends, dates or DST offsets', () => {
+  const { sourceClockSpan: span, sourceActualHours: actual, sourceScheduleHours: schedule } = dashboardModel().primetimeSourceTime;
+  const start = '2026-10-10 08:00', end = '2026-10-10 12:15';
+  assert.equal(span(start, end), 255);
+  assert.equal(schedule(null, null, null, start, end), '4.25 h · source clock span');
+  assert.equal(actual(null, null, start, end), '4.25 h · source clock span');
+  assert.equal(actual('0.00', null, start, end), '0.00 h · HHA');
+  assert.equal(span('2026-10-10 23:00', '2026-10-11 02:00'), 180);
+  assert.equal(actual(null, null, start, null), 'Not supplied by HHA');
+  for (const [a, b] of [[end, start], [start, '2026-10-10 07:00'], ['08:00', '12:00'], ['2026-02-30 08:00', '2026-02-30 12:00'],
+    ['2026-11-01T01:30:00-05:00', '2026-11-01T03:30:00-06:00'], ['0001-01-01 08:00', end], [start, '2026-10-13 12:00']]) assert.equal(span(a, b), null);
+});
+
 test('preview retains returned HHA duration fields and strips them from unavailable details', () => {
   const model = dashboardModel().primetimeDashboardModel, date = '2026-10-10';
   const payload = { ok: true, mode: 'live', source: 'hhaexchange', state: 'ready', scope: { officeId: '123', date }, validation: 'source_unvalidated', totals: null, items: [

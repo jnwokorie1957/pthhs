@@ -64,18 +64,35 @@
   }
   // Display source durations independently of the diagnosis/verification gate.
   // HHA ActualHours is preserved, never replaced by pay/bill hours or EVV math.
-  function sourceActualHours(raw, acceptedMinutes = null) {
-    if (typeof raw === 'string') return raw === '' ? 'Empty HHA ActualHours' : `${raw}${/^\d+(?:\.\d+)?$/.test(raw) ? ' h' : ''} · HHA`;
-    return Number.isFinite(acceptedMinutes) ? `${(acceptedMinutes / 60).toFixed(2)} h · calculated` : 'Not supplied by HHA';
+  function sourceClockSpan(start, end) {
+    const clock = raw => {
+      const match = typeof raw === 'string' && /^(\d{4}-\d{2}-\d{2})[ T]([01]\d|2[0-3]):([0-5]\d)(?::([0-5]\d)(?:\.(\d{1,3}))?)?(Z|[+-](?:0\d|1[0-4]):[0-5]\d)?$/.exec(raw);
+      if (!match || match[6] === '-00:00' || /[+-]14:(?!00)/.test(match[6] || '')) return null;
+      const day = Date.parse(match[1] + 'T00:00:00Z');
+      if (!Number.isFinite(day) || new Date(day).toISOString().slice(0, 10) !== match[1] || Number(match[1].slice(0, 4)) < 1900) return null;
+      return { wall: day + Number(match[2]) * 3600000 + Number(match[3]) * 60000 + Number(match[4] || 0) * 1000 + Number((match[5] || '').padEnd(3, '0')), zone: match[6] || '' };
+    };
+    const from = clock(start), to = clock(end), span = from && to && from.zone === to.zone ? (to.wall - from.wall) / 60000 : null;
+    // Written-clock arithmetic only; do not infer an overnight date or DST offset.
+    return span !== null && span > 0 && span <= 2880 ? span : null;
   }
-  function sourceScheduleHours(hours, minutes, acceptedMinutes = null) {
+  function displayDuration(acceptedMinutes, start, end) {
+    if (Number.isFinite(acceptedMinutes)) return `${(acceptedMinutes / 60).toFixed(2)} h · calculated`;
+    const span = sourceClockSpan(start, end);
+    return span === null ? 'Not supplied by HHA' : `${(span / 60).toFixed(2)} h · source clock span`;
+  }
+  function sourceActualHours(raw, acceptedMinutes = null, start = null, end = null) {
+    if (typeof raw === 'string') return raw === '' ? 'Empty HHA ActualHours' : `${raw}${/^\d+(?:\.\d+)?$/.test(raw) ? ' h' : ''} · HHA`;
+    return displayDuration(acceptedMinutes, start, end);
+  }
+  function sourceScheduleHours(hours, minutes, acceptedMinutes = null, start = null, end = null) {
     if ((hours === null || hours === undefined) && (minutes === null || minutes === undefined)) {
-      return Number.isFinite(acceptedMinutes) ? `${(acceptedMinutes / 60).toFixed(2)} h · calculated` : 'Not supplied by HHA';
+      return displayDuration(acceptedMinutes, start, end);
     }
     const part = (value, unit) => value === null || value === undefined ? `${unit} not supplied` : value === '' ? `empty ${unit}` : `${value} ${unit}`;
     return `${part(hours, 'h')} ${part(minutes, 'min')} · HHA`;
   }
-  window.primetimeSourceTime = Object.freeze({ timestampInstant, fetchAgeText, watchFetchAge, sourceActualHours, sourceScheduleHours });
+  window.primetimeSourceTime = Object.freeze({ timestampInstant, fetchAgeText, watchFetchAge, sourceActualHours, sourceScheduleHours, sourceClockSpan });
   const preferenceKey = 'primetime.dataMode';
   let mode = 'live';
   let generation = 0;

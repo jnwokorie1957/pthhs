@@ -3,7 +3,8 @@
 October 20 local visit-display fix: Visit Review shows returned HHA times and
 schedule/actual duration fields independently of diagnosis acceptance. Visit
 Preview retains source hours too. Zero/missing values stay distinct; no clinical
-or billing decision is inferred. All 485 backend and 254 frontend/tooling tests
+or billing decision is inferred. Complete time pairs can supply a separately
+labelled clock span when source hours are absent. All 485 backend and 256 frontend/tooling tests
 passed. See [implementation and verification scope](docs/management-layer/VISIT_SOURCE_VALUES_FIX_2026-10-20.md).
 
 October 21 UTC / October 20 local SEO acceptance: seven contextual service links

@@ -195,12 +195,30 @@ test('unaccepted review shows returned HHA times and durations without accepting
   assert.match(app.text('revisionVisits'), /2026-10-11 08:05 → Unavailable/);
   assert.match(app.text('revisionVisits'), /0\.00 h · HHA/);
   assert.doesNotMatch(app.text('revisionVisits'), /99\.00|Verified/);
-  assert.match(app.text('revisionDetail'), /these values do not mark a visit verified or billable/);
+  assert.match(app.text('revisionDetail'), /These values do not mark a visit verified or billable/);
   assert.equal(app.calls.some(call => call.options.method === 'POST'), false);
   const before = app.text('revisionVisits');
   app.window.primetimeDataMode.setMode('demo');
   assert.doesNotMatch(app.text('revisionVisits'), /0\.00 h · HHA/);
   assert.match(before, /Unknown evidence/);
+});
+
+test('review can show scheduled clock span when HHA omits duration fields while diagnosis stays unknown', async () => {
+  const app = harness(path => {
+    if (!path.includes('/visits?')) return null;
+    const payload = visits(new URL(path, 'https://fixture.test').searchParams.get('date'));
+    const { evidence, diagnosis } = payload.items[0];
+    evidence.state = 'unaccepted'; evidence.provenance.acceptanceVersion = null;
+    evidence.raw = { ScheduleStartTime: '2026-10-11 08:00', ScheduleEndTime: '2026-10-11 12:15', VisitStartTime: '2026-10-11 08:05', VisitEndTime: null };
+    for (const key of Object.keys(evidence.times)) evidence.times[key] = null;
+    diagnosis.state = 'unknown'; diagnosis.verification = 'unknown';
+    for (const key of Object.keys(diagnosis.metrics)) diagnosis.metrics[key] = null;
+    return { ok: true, json: async () => payload };
+  });
+  await app.openLive();
+  assert.match(app.text('revisionVisits'), /4\.25 h · source clock span/);
+  assert.match(app.text('revisionVisits'), /Actual hours\s+Not supplied by HHA/);
+  assert.match(app.text('revisionVisits'), /Unknown evidence/);
 });
 test('an unapproved Live status prevents all protected data reads', async () => {
   const app = harness(path => path.endsWith('/status') ? { ok: true, json: async () => ({ ...clone(status), dataApproved: false, capabilities: { diagnosis: false, records: false, monitoring: false, sms: false }, blockedReason: 'operational_data_release_not_approved' }) } : null);
