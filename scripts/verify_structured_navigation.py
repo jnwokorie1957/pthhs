@@ -158,6 +158,14 @@ for path in marketing_html_files(PUBLIC):
 
 # Selected area lists must retain their approved wording and real canonical links.
 contextual_lists = {
+    "alief": [
+        ("Attendant care and help with daily routines", None, ""),
+        ("Bathing, grooming, dressing and toileting assistance", "personal-care", ""),
+        ("Mobility and transfer support", None, ""),
+        ("Meal-related assistance and light housekeeping tied to the care plan", None, ""),
+        ("Respite support for family caregivers", "respite-care", ""),
+        ("Non-medical medication reminders", "medication-reminders", " when authorized"),
+    ],
     "southwest-houston": [
         ("Personal care and hygiene assistance", "personal-care", ""),
         ("Activities of Daily Living support", "activities-of-daily-living-adl", ""),
@@ -175,9 +183,12 @@ contextual_lists = {
         ("Medication reminders", "medication-reminders", " when allowed by the authorized plan"),
     ],
 }
+def matches_contextual_list(text: str, expected: str) -> bool:
+    return re.findall(r'<ul class="service-list">(.*?)</ul>', text, re.S) == [expected]
+
+
 for area, rows in contextual_lists.items():
     text = (PUBLIC / "locations" / f"{area}.html").read_text(encoding="utf-8")
-    lists = re.findall(r'<ul class="service-list">(.*?)</ul>', text, re.S)
     expected = []
     for label, slug, qualifier in rows:
         if slug:
@@ -189,8 +200,21 @@ for area, rows in contextual_lists.items():
                 ERRORS.append(f"contextual destination is not canonical: {area}: {route}")
             label = f'<a href="{route}">{label}</a>'
         expected.append(f"<li>{label}{qualifier}</li>")
-    if lists != ["".join(expected)]:
+    if not matches_contextual_list(text, "".join(expected)):
         ERRORS.append(f"contextual service links or approved wording changed: {area}")
+
+    if area == "alief":
+        # Negative fixtures ensure list-local wording and destination checks cannot
+        # be satisfied by an unrelated footer link or a weakened qualifier.
+        anchor = '<a href="/home-care-services/medication-reminders">Non-medical medication reminders</a>'
+        for invalid in (
+            text.replace(anchor, "Non-medical medication reminders"),
+            text.replace(anchor, anchor.replace("/medication-reminders", "/personal-care")),
+            text.replace(anchor + " when authorized", anchor + " whenever requested"),
+            text.replace(anchor + " when authorized", anchor.replace("</a>", " when authorized</a>")),
+        ):
+            if invalid == text or matches_contextual_list(invalid, "".join(expected)):
+                ERRORS.append("Alief contextual navigation negative fixture was not rejected")
 
 if service_count != 5:
     ERRORS.append(f"expected 5 Service nodes; found {service_count}")

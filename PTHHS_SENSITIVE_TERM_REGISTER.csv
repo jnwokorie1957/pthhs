@@ -272,11 +272,11 @@ index.html,144,home health,ALLOWED,Legal business name.,"© 2026 Primetime Home 
 locations/alief.html,1,home health,ALLOWED,Legal-name or explicit service-distinction context.,"Home Care in Alief, TX | Primetime Home Health"
 locations/alief.html,15,medical,ALLOWED,Explicit scope limitation or non-medical context.,"Dependable non-medical support for eligible Alief families who need help with daily routines, personal care, attendant services or caregiver relief at home."
 locations/alief.html,19,medical,ALLOWED,Explicit scope limitation or non-medical context.,"Alief is one of Houston’s most diverse communities, with multigenerational households and families balancing work, school, medical appointments and caregiving responsibilities. Primetime provides authorized, non-medical personal assistance that can make day-to-day care more manageable while helping clients remain at home."
-locations/alief.html,26,medical,ALLOWED,Explicit scope limitation or non-medical context.,Non-medical medication reminders when authorized
-locations/alief.html,35,nursing,ALLOWED,Explicit scope limitation or non-medical context.,Primetime provides non-medical personal assistance services rather than skilled nursing services.
-locations/alief.html,35,medical,ALLOWED,Explicit scope limitation or non-medical context.,Primetime provides non-medical personal assistance services rather than skilled nursing services.
-locations/alief.html,53,medical,ALLOWED,Explicit scope limitation or non-medical context.,"Non-medical personal assistance services for eligible children, adults, and seniors throughout Greater Houston."
-locations/alief.html,66,home health,ALLOWED,Legal business name.,"© 2026 Primetime Home Health Services, Inc. All rights reserved."
+locations/alief.html,26,medical,ALLOWED,Explicit scope limitation or non-medical context.,Non-medical medication reminders
+locations/alief.html,36,nursing,ALLOWED,Explicit scope limitation or non-medical context.,Primetime provides non-medical personal assistance services rather than skilled nursing services.
+locations/alief.html,36,medical,ALLOWED,Explicit scope limitation or non-medical context.,Primetime provides non-medical personal assistance services rather than skilled nursing services.
+locations/alief.html,54,medical,ALLOWED,Explicit scope limitation or non-medical context.,"Non-medical personal assistance services for eligible children, adults, and seniors throughout Greater Houston."
+locations/alief.html,67,home health,ALLOWED,Legal business name.,"© 2026 Primetime Home Health Services, Inc. All rights reserved."
 locations/alvin.html,1,home health,ALLOWED,Legal-name or explicit service-distinction context.,"Home Care in Alvin, TX | Primetime Home Health"
 locations/alvin.html,15,medical,ALLOWED,Explicit scope limitation or non-medical context.,"Local, non-medical support for eligible children, adults and seniors in Alvin and Brazoria County."
 locations/alvin.html,19,home health,ALLOWED,Legal business name.,"Primetime Home Health Services is a Houston-based agency serving Greater Houston families, including Alvin. Our focus is non-medical personal assistance services that help eligible clients complete daily routines safely in their own homes."
