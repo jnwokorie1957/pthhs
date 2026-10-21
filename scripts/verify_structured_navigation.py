@@ -156,6 +156,42 @@ for path in marketing_html_files(PUBLIC):
     elif breadcrumbs:
         ERRORS.append(f"BreadcrumbList outside approved scope: {route}")
 
+# Selected area lists must retain their approved wording and real canonical links.
+contextual_lists = {
+    "southwest-houston": [
+        ("Personal care and hygiene assistance", "personal-care", ""),
+        ("Activities of Daily Living support", "activities-of-daily-living-adl", ""),
+        ("Attendant care services", None, ""),
+        ("Respite care", "respite-care", ""),
+        ("Mobility and transfer assistance", None, ""),
+        ("Medication reminders", "medication-reminders", " when authorized"),
+    ],
+    "sugar-land": [
+        ("Attendant and personal care", None, ""),
+        ("Bathing, dressing and grooming assistance", "personal-care", ""),
+        ("Mobility, positioning and transfers", None, ""),
+        ("Meal-related support and light housekeeping tied to the care plan", None, ""),
+        ("Respite care for family caregivers", "respite-care", ""),
+        ("Medication reminders", "medication-reminders", " when allowed by the authorized plan"),
+    ],
+}
+for area, rows in contextual_lists.items():
+    text = (PUBLIC / "locations" / f"{area}.html").read_text(encoding="utf-8")
+    lists = re.findall(r'<ul class="service-list">(.*?)</ul>', text, re.S)
+    expected = []
+    for label, slug, qualifier in rows:
+        if slug:
+            route = f"/home-care-services/{slug}"
+            target = PUBLIC / f"{route.lstrip('/')}.html"
+            if not target.exists():
+                target = PUBLIC / route.lstrip("/") / "index.html"
+            if not target.exists() or f'<link rel="canonical" href="{HOST}{route}">' not in target.read_text(encoding="utf-8"):
+                ERRORS.append(f"contextual destination is not canonical: {area}: {route}")
+            label = f'<a href="{route}">{label}</a>'
+        expected.append(f"<li>{label}{qualifier}</li>")
+    if lists != ["".join(expected)]:
+        ERRORS.append(f"contextual service links or approved wording changed: {area}")
+
 if service_count != 5:
     ERRORS.append(f"expected 5 Service nodes; found {service_count}")
 if breadcrumb_count != 71:

@@ -632,10 +632,10 @@ locations/shenandoah.html,27,medical,ALLOWED,Explicit scope limitation or non-me
 locations/shenandoah.html,37,medical,ALLOWED,Explicit scope limitation or non-medical context.,"Non-medical personal assistance services for eligible children, adults, and seniors throughout Greater Houston."
 locations/shenandoah.html,50,home health,ALLOWED,Legal business name.,"© 2026 Primetime Home Health Services, Inc. All rights reserved."
 locations/southwest-houston.html,1,home health,ALLOWED,Legal-name or explicit service-distinction context.,"Home Care in Southwest Houston, TX | Primetime Home Health"
-locations/southwest-houston.html,28,medical,ALLOWED,Explicit scope limitation or non-medical context.,Every payer and program has its own eligibility criteria. We coordinate services according to the approved authorization and do not expand care beyond the non-medical personal assistance scope.
-locations/southwest-houston.html,31,home health,ALLOWED,Legal business name.,"Yes. Primetime Home Health Services is located at 11602 Burdine Street, Suite A, Houston, TX 77035."
-locations/southwest-houston.html,53,medical,ALLOWED,Explicit scope limitation or non-medical context.,"Non-medical personal assistance services for eligible children, adults, and seniors throughout Greater Houston."
-locations/southwest-houston.html,66,home health,ALLOWED,Legal business name.,"© 2026 Primetime Home Health Services, Inc. All rights reserved."
+locations/southwest-houston.html,29,medical,ALLOWED,Explicit scope limitation or non-medical context.,Every payer and program has its own eligibility criteria. We coordinate services according to the approved authorization and do not expand care beyond the non-medical personal assistance scope.
+locations/southwest-houston.html,32,home health,ALLOWED,Legal business name.,"Yes. Primetime Home Health Services is located at 11602 Burdine Street, Suite A, Houston, TX 77035."
+locations/southwest-houston.html,54,medical,ALLOWED,Explicit scope limitation or non-medical context.,"Non-medical personal assistance services for eligible children, adults, and seniors throughout Greater Houston."
+locations/southwest-houston.html,67,home health,ALLOWED,Legal business name.,"© 2026 Primetime Home Health Services, Inc. All rights reserved."
 locations/spring.html,1,home health,ALLOWED,Legal-name or explicit service-distinction context.,"Home Care in Spring, TX | Primetime Home Health"
 locations/spring.html,15,medical,ALLOWED,Explicit scope limitation or non-medical context.,"Local, non-medical support for eligible children, adults and seniors in Spring and northern Harris/Montgomery County who want to remain comfortable at home."
 locations/spring.html,19,home health,ALLOWED,Legal business name.,"Primetime Home Health Services is a Houston-based agency serving Greater Houston families, including Spring. Our focus is non-medical personal assistance services that help eligible clients complete daily routines safely in their own homes."
@@ -653,10 +653,10 @@ locations/stafford.html,37,medical,ALLOWED,Explicit scope limitation or non-medi
 locations/stafford.html,50,home health,ALLOWED,Legal business name.,"© 2026 Primetime Home Health Services, Inc. All rights reserved."
 locations/sugar-land.html,1,home health,ALLOWED,Legal-name or explicit service-distinction context.,"Home Care in Sugar Land, TX | Primetime Home Health"
 locations/sugar-land.html,19,medical,ALLOWED,Explicit scope limitation or non-medical context.,"Families in Sugar Land may be caring for aging parents, children with disabilities or relatives who need help staying safe and comfortable at home. Primetime provides authorized non-medical assistance designed around everyday routines and the individual’s approved needs."
-locations/sugar-land.html,32,nursing,ALLOWED,Scope FAQ question paired with a limiting answer on the same page.,Do you offer private-duty nursing?
-locations/sugar-land.html,33,medical,ALLOWED,Explicit scope limitation or non-medical context.,Primetime’s focus is non-medical personal assistance services. Contact us for the current service scope available through your program.
-locations/sugar-land.html,51,medical,ALLOWED,Explicit scope limitation or non-medical context.,"Non-medical personal assistance services for eligible children, adults, and seniors throughout Greater Houston."
-locations/sugar-land.html,64,home health,ALLOWED,Legal business name.,"© 2026 Primetime Home Health Services, Inc. All rights reserved."
+locations/sugar-land.html,33,nursing,ALLOWED,Scope FAQ question paired with a limiting answer on the same page.,Do you offer private-duty nursing?
+locations/sugar-land.html,34,medical,ALLOWED,Explicit scope limitation or non-medical context.,Primetime’s focus is non-medical personal assistance services. Contact us for the current service scope available through your program.
+locations/sugar-land.html,52,medical,ALLOWED,Explicit scope limitation or non-medical context.,"Non-medical personal assistance services for eligible children, adults, and seniors throughout Greater Houston."
+locations/sugar-land.html,65,home health,ALLOWED,Legal business name.,"© 2026 Primetime Home Health Services, Inc. All rights reserved."
 locations/sunnyside.html,1,home health,ALLOWED,Legal-name or explicit service-distinction context.,"Home Care in Sunnyside, TX | Primetime Home Health"
 locations/sunnyside.html,15,medical,ALLOWED,Explicit scope limitation or non-medical context.,"Community-focused, non-medical support for eligible Sunnyside residents who need assistance with everyday care at home."
 locations/sunnyside.html,19,medical,ALLOWED,Explicit scope limitation or non-medical context.,"Home-based personal assistance can reduce the pressure on families who are balancing work, appointments, school and caregiving. Primetime caregivers provide approved non-medical assistance with daily routines while respecting the client’s dignity, preferences and household."

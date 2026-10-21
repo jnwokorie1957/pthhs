@@ -1,5 +1,9 @@
 # PTHHS Management Layer — Developer Checklist
 
+October 21 local SEO candidate: seven contextual service links on Southwest Houston
+and Sugar Land retain existing wording and authorization qualifiers. Local
+keyboard/mobile checks passed; review and publication pending. See [verification](../seo/2026-10-21-contextual-links.md).
+
 October 20 local discovery-parser candidate: malformed or ambiguous visit-ID collections now fail instead of silently omitting empty or nested IDs, stray text or unknown collection syntax. Valid empty collections, comments, namespaces and CDATA/processing-instruction compatibility remain supported. Full-result XML validation and structural extraction reject malformed trailing syntax while preserving comment-split IDs and empty CDATA. The existing locked XML parser is now an explicit dependency. Standard XML decimal/hex character references decode once; literal CDATA and escaped references are preserved. Nil attributes use XML Schema whitespace normalization. Forward-only token spans and per-ID parsing avoid a whole-response object tree and reject malformed opener sequences promptly. All 484 backend tests pass locally; publication and authenticated acceptance are pending. No source writes or new retrieval calls.
 
 October 20 visit discovery candidate: the dashboard retains received SearchVisitsV2 IDs beyond 200 and pages at most 10 details under the existing time and office checks. Vendor completeness and operational totals remain unknown. See [discovery acceptance](VISIT_DISCOVERY_ACCEPTANCE_2026-10-20.md).
