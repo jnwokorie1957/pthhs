@@ -49,6 +49,19 @@ completeness and operational totals remain unknown.
 
 # Current checkpoint
 
+- [x] October 21 23:21 UTC role research connects the released default-day/focus
+  controls with proposed patient requests, staff encounter drafts and office
+  review screens. Records exact record/version scope, explicit-day retention,
+  predictable navigation and revocation acceptance; new W3C focus/input guidance
+  and HHA calendar/forms references are dated in [research](ROLE_WORKFLOW_RESEARCH.txt).
+  No new runtime defect, permission or external-role completion is claimed.
+
+- [ ] P1-P: expose whether the source date follows office today or is explicitly
+  selected, with Return to office today using the existing protected feed.
+  Reset only source evidence/cursors; retain unrelated work and all existing
+  office/read/context gates. The bounded proposal and acceptance cases are in
+  [research](ROLE_WORKFLOW_RESEARCH.txt); no source write or role grant is needed.
+
 - [x] October 21 feed continuation released in `42de1d3`; both normal jobs and
   156 affected data-mode tests passed. Authenticated current-day source/chart,
   native keyboard-focus pause and explicit resume checks passed. Pending-response

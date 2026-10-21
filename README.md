@@ -1,5 +1,11 @@
 # PTHHS
 
+October 21 23:21 UTC role research: proposed patient, therapist and office screens
+retain exact calendar/record/draft context across automatic updates. Date/focus
+behavior is separate from sharing, assignments and document actions. Current
+administrator continuation is implemented; external-role prerequisites remain.
+See [research](docs/management-layer/ROLE_WORKFLOW_RESEARCH.txt).
+
 October 21 feed continuation: pending responses recheck source focus,
 and the untouched default date follows the office calendar across midnight.
 Explicit date selections remain fixed. Both normal jobs and all 156 affected

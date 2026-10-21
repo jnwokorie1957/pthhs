@@ -22,6 +22,14 @@
 
 # Current owner checkpoint
 
+## October 21 role calendar and draft research
+
+The [research](ROLE_WORKFLOW_RESEARCH.txt) proposes stable patient/visit/form
+connections while lists refresh or dates advance. Display continuity cannot save,
+submit or approve requests/documents or retain revoked access. Existing source
+calendar/office mappings, sharing, staff assignments and form/reviewer/signature
+contracts remain separate prerequisites; no new owner decision is marked complete.
+
 ## October 21 feed continuation
 
 The deployed dashboard preserves source-record keyboard focus during refresh
