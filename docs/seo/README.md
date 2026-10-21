@@ -3,6 +3,10 @@
 These files remain useful for planning, but they do not override current public
 facts, payer evidence, or claim-release controls.
 
+- [October 21 contextual service-link acceptance](2026-10-21-contextual-links.md)
+  — seven deployed links, independent wording/destination review, bounded
+  production keyboard checks and fresh public/sitemap evidence; no outcome claim.
+
 - [October 20 SEO and owner-task review](2026-10-20-seo-review.md) — healthy fresh
   public checks, successful normal sitemap reads, retained outcome/owner limits
   and bounded P1-N administrator discovery navigation acceptance.

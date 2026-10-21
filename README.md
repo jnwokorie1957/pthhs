@@ -1,8 +1,11 @@
 # PTHHS
 
-October 21 local SEO candidate: seven contextual service links on Southwest Houston
-and Sugar Land retain existing wording and authorization qualifiers. Local
-keyboard/mobile checks passed; review and publication pending. See [verification](docs/seo/2026-10-21-contextual-links.md).
+October 21 UTC / October 20 local SEO acceptance: seven contextual service links
+on Southwest Houston and Sugar Land are deployed and independently reviewed.
+All seven production Enter destinations, two Tab transitions, public artifact/
+route checks and private boundaries passed. Existing wording/authorization
+qualifiers are unchanged; ranking/traffic effects remain unmeasured. See
+[verification](docs/seo/2026-10-21-contextual-links.md).
 
 **October 20 discovery-parser implementation:** malformed or ambiguous visit-ID
 collections fail explicitly; compatible scalar XML forms remain supported. All

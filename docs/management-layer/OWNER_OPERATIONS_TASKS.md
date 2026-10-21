@@ -22,6 +22,17 @@
 
 # Current owner checkpoint
 
+## October 21 UTC / October 20 local contextual service links
+
+Seven links in the existing Southwest Houston and Sugar Land service lists now
+open the relevant existing service pages. Independent review confirmed unchanged
+visible wording, metadata/schema and authorization qualifiers; production keyboard
+navigation and public/private checks passed. Both normal sitemap rows remain
+successful with 27 discovered pages. This is navigation acceptance, not measured
+search growth or approval of additional locations/services. Continue actual
+location availability/useful-content review and comparable settled outcome
+measurement. See [verification](../seo/2026-10-21-contextual-links.md).
+
 ## October 20 source-status labels
 
 The Live badge now distinguishes access checking, unavailable access, a required

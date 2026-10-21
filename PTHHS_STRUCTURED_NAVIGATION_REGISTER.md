@@ -5,6 +5,14 @@
 
 ## Selective Service schema
 
+October 21 UTC / October 20 local addition: the existing Southwest Houston and
+Sugar Land service lists have seven contextual native anchors to existing
+canonical personal-care, ADL, respite-care and medication-reminders pages.
+Visible wording and authorization qualifiers are unchanged; no Service node or
+additional location claim was added. Independent review, bounded production
+keyboard navigation and public checks passed. See
+[acceptance](docs/seo/2026-10-21-contextual-links.md).
+
 October 18 addition: Resources now links to the existing home-care guide; the
 guide links to the existing non-medical care explainer and approved service,
 eligibility, checklist and contact routes. Both core pages are now reachable
@@ -44,7 +52,11 @@ The first-party hierarchy is Home → Services → service, Home → Areas We Se
 
 Firebase Hosting documents that an unmatched request uses `public/404.html` as a custom 404 response. PTHHS has that file, no catch-all rewrite, a noindex directive, modern navigation, and Home, Services, Areas, and Contact recovery paths.
 
-The generator writes one root-level `robots.txt` policy with one fully qualified canonical sitemap directive. Search Console submission and live canonical-host validation remain separate blocked items.
+The generator writes one root-level `robots.txt` policy with one fully qualified
+canonical sitemap directive. Canonical-host validation and normal Search Console
+reprocessing were completed in the dated October 19 review. Both retained sitemap
+rows remain successful in the documented October 21 check; processing/discovery is not
+indexing, ranking or outcome growth.
 
 ## Release control
 
