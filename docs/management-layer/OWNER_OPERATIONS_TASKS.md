@@ -48,7 +48,10 @@ source/office/identity/period and role prerequisites remain separate. See
 The owner explicitly requested automatic API data using the existing HHA
 credentials, without manual web scraping. A minute-updated private source-page
 cache and automatic dashboard checks are implemented with existing office/read
-controls; normal release and scheduled production acceptance are pending.
+controls. Both normal jobs passed; production source receipts advanced while the
+display was paused and then advanced through an automatic dashboard check.
+Charts matched source fields, and scoped paging returned a separate next page.
+The live feed is enabled for the current office/day.
 Charts remain limited to readable details on the displayed page. Existing
 source interpretation, normalized-import and clinical/role gates remain open.
 

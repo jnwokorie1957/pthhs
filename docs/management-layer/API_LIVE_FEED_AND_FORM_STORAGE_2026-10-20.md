@@ -87,8 +87,47 @@ Concurrent source-time/hour display commits through `5067e0b` were preserved;
 generated assets were rebuilt from the combined sources and the affected suites
 rerun successfully.
 
-Remaining release work: review the diff, publish through the existing
-GitHub/Firebase workflow, then verify two
-actual scheduled API receipts and corresponding production charts. A configured
-Scheduler or passing synthetic suite is not production connection acceptance.
-No record values or credentials belong in this report.
+## Authenticated production acceptance
+
+Feature `3a8db49966c489d3914f85ba8cc5c49ae22715dd` passed both normal jobs in
+[workflow 39533867946](https://github.com/jnwokorie1957/pthhs/actions/runs/39533867946)
+on its first attempt: Hosting completed 02:36:01 UTC and backend 02:37:33 UTC,
+October 21 (October 20 America/Chicago). Concurrent source-duration and subsequent
+role-research work were preserved. Eight production Primetime artifacts matched
+the tested bytes at 02:39:24 UTC; anonymous session and feed requests returned
+401 with private noindex headers. Hosting's initialization configuration reports
+the newly provisioned Storage bucket.
+
+The normal administrator UI loaded the scheduled feed with source fetch receipt
+02:39:11.740 UTC. Display updates were paused for 62 observed seconds beginning
+02:40:56 UTC. Resuming read a new server receipt of 02:41:07.075 UTC, a fetch made
+inside the observed pause interval. No browser-triggered source read was requested during
+that pause. A subsequent dashboard timer check, without manual refresh, displayed
+receipt 02:42:09.242 UTC. These source receipts and the endpoint implementation
+verify an independently updating server API cache, rather than browser capture
+or manual import. This observation does not guarantee every minute's latency or
+complete source coverage.
+
+Both feed pages had ten readable details and all six chart counts/denominators
+matched their displayed source fields. The cached continuation also worked for
+the real administrator: the next ten positions had disjoint visit IDs, nine
+readable details and one explicitly unavailable detail, with all six charts
+matching the nine readable records. Resume returned to the first cached page
+with ten readable details and matching charts. The one unavailable row was not
+converted into missing/zero clinical evidence. No full-day scan, normalized import,
+clinical/financial verdict or additional source entitlement is claimed.
+
+Final normal Overview remains signed in, Live, on the configured current office
+day with automatic feed display updates enabled. The server continues on its
+minute schedule. The proof crop contains only generic feed controls and its
+fetch receipt, with no account or patient/staff fields. Raw identifiers and source
+records were used transiently for the comparisons and were not saved in these
+acceptance artifacts. No HHA web UI data was scraped. No private form was uploaded.
+
+Private aggregate evidence: `primetime-api-feed-release-acceptance-2026-10-21.json`,
+`primetime-api-live-feed-production-acceptance-2026-10-21.json`,
+`primetime-api-live-feed-verified-2026-10-21.png`,
+`firebase-form-storage-acceptance-2026-10-21.json` and
+`firebase-form-storage-rules-2026-10-21.png`. Source-record meaning, intended HHA
+application/office alignment, external role/form scopes and broader operational
+acceptance remain separate from this verified API connection.

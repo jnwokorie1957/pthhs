@@ -20,8 +20,10 @@ October 20 local automatic API-feed implementation: the existing server minute
 worker refreshes the approved current-office/day source page into a private,
 three-minute-limited cache. The dashboard follows it automatically with pause,
 paging and stale-context controls. Backend tests (493), root tooling/frontend
-tests (262) and Windows release checks passed; normal CI and scheduled production
-receipt acceptance remain pending. Private form Storage is provisioned with
+tests (262) and Windows release checks passed. Both normal jobs passed, and
+production verified server fetches while display updates were paused, a later
+automatic dashboard update, matching charts and scoped paging. The feed is left
+enabled. Private form Storage is provisioned with
 deny-all client rules and anonymous 403 checks. See
 [implementation and limits](docs/management-layer/API_LIVE_FEED_AND_FORM_STORAGE_2026-10-20.md).
 
