@@ -1,5 +1,11 @@
 # PTHHS
 
+October 21 private Forms library: upload and download screens are connected to
+Firebase Storage for administrators. Both normal release jobs passed; template
+and submission downloads matched uploaded bytes, duplicate retries reused the
+saved file, invalid content was rejected and anonymous access remained blocked.
+See [acceptance](docs/management-layer/FORM_STORAGE_SCREENS_2026-10-21.md).
+
 October 21 23:21 UTC role research: proposed patient, therapist and office screens
 retain exact calendar/record/draft context across automatic updates. Date/focus
 behavior is separate from sharing, assignments and document actions. Current

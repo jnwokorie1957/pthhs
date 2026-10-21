@@ -1,5 +1,12 @@
 # PTHHS Management Layer — Developer Checklist
 
+October 21 private Forms screen: administrator upload/list/download is connected
+to Firebase Storage. Both normal release jobs passed; synthetic template and
+submission round trips, exact downloaded bytes, duplicate reuse, invalid-content
+rejection, reload persistence and anonymous 401/403 boundaries were verified.
+All 502 backend and 275 frontend/tooling tests passed. Clinical approval and
+external-role sharing remain separate. See [acceptance](FORM_STORAGE_SCREENS_2026-10-21.md).
+
 October 20 local automatic API feed: server minute refresh, protected expiring
 cache and dashboard automatic checks are implemented and locally verified (493
 backend / 262 root tooling/frontend tests plus Windows release checks). Both normal

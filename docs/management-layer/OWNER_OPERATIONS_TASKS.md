@@ -22,6 +22,18 @@
 
 # Current owner checkpoint
 
+## October 21 private form uploads and downloads
+
+The owner authorized connecting the upload/download screens. The administrator
+Forms library now stores templates and submissions privately in Firebase.
+Production synthetic uploads/downloads in both folders matched exact file bytes;
+duplicate handling, invalid-content rejection, reload persistence, Demo clearing
+and anonymous access protections passed. Two synthetic verification files remain.
+This completes administrator document storage; clinical approval, signatures,
+retention and patient/staff sharing retain their separate contracts. No new
+owner decision is required for the completed library. See
+[acceptance](FORM_STORAGE_SCREENS_2026-10-21.md).
+
 ## October 21 role calendar and draft research
 
 The [research](ROLE_WORKFLOW_RESEARCH.txt) proposes stable patient/visit/form

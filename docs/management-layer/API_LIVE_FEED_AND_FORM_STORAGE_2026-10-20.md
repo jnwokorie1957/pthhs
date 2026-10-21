@@ -1,5 +1,10 @@
 # Automatic HHA API feed and private form storage
 
+October 21 follow-up: the administrator upload/download Forms screen is now
+connected and production-verified. See the separate
+[forms acceptance](FORM_STORAGE_SCREENS_2026-10-21.md). The initial bucket-only
+setup described below is retained as dated evidence.
+
 Owner request: October 20, 2026, America/Chicago (October 21 UTC).
 Use the existing HHA API credentials, establish a verified live feed, and avoid
 manual web-scraped imports. The owner also requested Firebase Storage for forms
