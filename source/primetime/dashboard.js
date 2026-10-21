@@ -118,18 +118,24 @@
       ? 'Automatic HHA API feed enabled. The server updates the first source page every minute; this page checks every minute.'
       : 'Live feed display paused. The server continues updating. Resume to read its latest page.'));
   }
-  function feedDay() {
-    if (!metadata?.settings?.officeTimezone || !dateInput?.value) return false;
+  function currentOfficeDay() {
+    if (!metadata?.settings?.officeTimezone) return null;
     try {
       const parts = new Intl.DateTimeFormat('en', { timeZone: metadata.settings.officeTimezone, year: 'numeric', month: '2-digit', day: '2-digit' }).formatToParts(new Date());
-      return dateInput.value === ['year', 'month', 'day'].map(type => parts.find(part => part.type === type)?.value).join('-');
-    } catch { return false; }
+      return ['year', 'month', 'day'].map(type => parts.find(part => part.type === type)?.value).join('-');
+    } catch { return null; }
+  }
+  function feedDay() { return Boolean(dateInput?.value && dateInput.value === currentOfficeDay()); }
+  function pauseForSourceFocus() {
+    if (!document.activeElement?.closest?.('#dashboardVisitRows, #dashboardTimeline, #dashboardEvidenceChart')) return false;
+    pauseFeed('Live feed display paused while working with source records. The server continues updating; Resume reads its latest page.');
+    return true;
   }
   function scheduleFeed() {
     stopFeedTimer();
     if (!feedInstalled || !ready || !controller.isLive() || !feedEnabled) { feedControls(); return; }
     if (document.visibilityState === 'hidden') { feedControls('Dashboard checks paused while hidden. The server API feed continues every minute.'); return; }
-    if (metadata && !feedDay()) { feedControls('The automatic API feed covers the current office day. Historical dates use Read source now.'); return; }
+    if (metadata && !feedDay() && (dateChosen || !currentOfficeDay())) { feedControls('The automatic API feed covers the current office day. Historical dates use Read source now.'); return; }
     feedTimer = setTimeout(() => { feedTimer = null; void pollFeed(); }, 60_000);
   }
   function pauseFeed(message) {
@@ -138,11 +144,19 @@
   }
   async function pollFeed() {
     if (!feedEnabled || !ready || !controller.isLive() || document.visibilityState === 'hidden' || feedPolling) return;
-    if (document.activeElement?.closest?.('#dashboardVisitRows, #dashboardTimeline, #dashboardEvidenceChart')) {
-      pauseFeed('Live feed display paused while working with source records. The server continues updating; Resume reads its latest page.'); return;
-    }
+    if (pauseForSourceFocus()) return;
     if (get('dashboardOverviewRefresh')?.disabled) { scheduleFeed(); return; }
     if (!metadata) { await loadMetadata(); return; }
+    const officeDay = currentOfficeDay();
+    if (!dateChosen && officeDay && dateInput.value !== officeDay) {
+      // The untouched default follows the office calendar, never the device's zone.
+      // Clear yesterday's evidence and cursors before asking for today's feed.
+      const settings = metadata;
+      clearSource();
+      metadata = settings;
+      dateInput.value = officeDay;
+      if (get('dashboardOverviewDate')) get('dashboardOverviewDate').value = officeDay;
+    }
     if (!feedDay()) { scheduleFeed(); return; }
     stopFeedTimer(); feedPolling = true;
     const captured = context(), request = new AbortController(); feedAbort = request;
@@ -152,6 +166,7 @@
       const response = await window.primetimeApiFetch('/primetime/api/views/feed?' + query, { signal: request.signal });
       const payload = await response.json();
       if (!current(captured) || !feedEnabled || request.signal.aborted) return;
+      if (document.visibilityState === 'hidden' || pauseForSourceFocus() || !feedDay()) return;
       const checked = window.primetimeSourceTime.timestampInstant(payload.feed?.checkedAt);
       const fetched = window.primetimeSourceTime.timestampInstant(payload.fetchedAt);
       if (!response.ok || payload.feed?.kind !== 'scheduled_api' || payload.feed?.background !== true
@@ -171,6 +186,7 @@
       feedControls(`Connected to HHA API · latest fetch ${payload.fetchedAt} · server updates every minute · first source page, up to ten details. No web scraping.`);
     } catch {
       if (!current(captured) || !feedEnabled || request.signal.aborted) return;
+      if (document.visibilityState === 'hidden' || pauseForSourceFocus() || !feedDay()) return;
       clearSource();
       liveOverviewState('Live API feed temporarily unavailable', 'The next automatic check will retry. Old source values have been removed.');
       unavailable('dashboardVisitRows', 'Live API feed temporarily unavailable', 'Retrying automatically; no example values are substituted.');

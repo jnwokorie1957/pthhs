@@ -490,15 +490,16 @@ function scheduledFeedPage(path, overrides = {}) {
   return { ...page, feed: { kind: 'scheduled_api', background: true, intervalSeconds: 60, maxAgeSeconds: 180,
     checkedAt: page.fetchedAt, persistedImport: false, coverage: 'first_source_page' }, ...overrides };
 }
-async function apiFeedFixture(read = path => response(scheduledFeedPage(path))) {
+async function apiFeedFixture(read = path => response(scheduledFeedPage(path)), initialClock) {
   const app = harness({ storedDataMode: null, metadata: liveMetadata,
     fetchSource: path => path.includes('/views/feed?') ? read(path) : response(numberedSourcePage(path)) });
   const timers = new Map(); let timerId = 10000;
   app.context.setTimeout = (fn, delay) => { const id = ++timerId; timers.set(id, { fn, delay }); return id; };
   app.context.clearTimeout = id => timers.delete(id);
   app.element('apiFeedControl').dataset.enabled = 'true';
+  const clock = initialClock ? deviceClock(app, initialClock) : null;
   installDashboard(app); await app.signIn(); await tick(); await tick();
-  return { ...app, timers, async runFeed() {
+  return { ...app, timers, clock, async runFeed() {
     const next = [...timers].find(([, item]) => item.delay === 60000);
     assert.ok(next, 'one minute feed check must be scheduled'); timers.delete(next[0]); next[1].fn(); await tick(); await tick(); await tick();
   } };
@@ -2457,4 +2458,83 @@ test('empty authorization evidence, denied access and unverifiable context remai
     if (mode === 'empty') { assert.match(nodeText(app.element('readResults')), /0 authorization discovery row/); assert.match(nodeText(app.element('readResults')), /not a zero census or a zero balance/); }
     else { assert.equal(app.element('readResults').children.length, 0); assert.match(app.element('workspaceMessage').textContent, mode === 'denied' ? /patient office mismatch/ : /could not be verified/); }
   }
+});
+
+
+test('focus acquired during a feed request preserves evidence on late success and failure until explicit resume', async () => {
+  for (const failure of [false, true]) {
+    const late = deferred(); let path, held = true;
+    const app = await apiFeedFixture(value => { path = value; return held ? late.promise : response(scheduledFeedPage(value)); });
+    const rows = app.element('dashboardVisitRows').children.slice(), receipt = app.element('dashboardVisitMetadata').textContent;
+    await app.runFeed();
+    const focused = { closest: () => app.element('dashboardVisitRows') }; app.document.activeElement = focused;
+    if (failure) late.reject(new Error('synthetic failure')); else late.resolve(response(scheduledFeedPage(path)));
+    await tick(); await tick();
+    assert.deepEqual(app.element('dashboardVisitRows').children, rows);
+    assert.equal(app.element('dashboardVisitMetadata').textContent, receipt);
+    assert.equal(app.document.activeElement, focused);
+    assert.equal(app.element('apiFeedToggle').textContent, 'Resume live feed');
+    assert.equal(app.timers.size, 0);
+    held = false; app.document.activeElement = app.element('apiFeedToggle');
+    await app.click('apiFeedToggle'); await tick(); await tick();
+    assert.match(app.element('apiFeedStatus').textContent, /Connected/);
+  }
+});
+
+test('untouched default follows Chicago midnight including DST dates without losing the feed timer', async () => {
+  for (const [before, after, day] of [['2026-10-21T04:59:59Z','2026-10-21T05:00:01Z','2026-10-21'], ['2026-11-02T05:59:59Z','2026-11-02T06:00:01Z','2026-11-02']]) {
+    const app = await apiFeedFixture(undefined, before);
+    app.clock.set(after); await app.runFeed();
+    assert.equal(app.element('dashboardVisitDate').value, day);
+    assert.equal(app.element('dashboardOverviewDate').value, day);
+    assert.ok(app.calls.filter(c => c.path.includes('/views/feed?')).every(c => new URL(c.path, 'https://synthetic.test').searchParams.get('date') === day));
+    assert.match(app.element('apiFeedStatus').textContent, /Connected/);
+    assert.equal(app.element('dashboardVisitPrevious').hidden, true);
+    await app.runFeed();
+    assert.equal(app.calls.filter(c => c.path.includes('/views/feed?')).length, 2);
+  }
+});
+
+test('explicit date selections stay fixed across office midnight', async () => {
+  for (const day of ['2026-10-19', '2026-10-20']) {
+    const app = await apiFeedFixture(undefined, '2026-10-21T04:59:59Z');
+    app.element('dashboardVisitDate').value = day;
+    for (const fn of app.element('dashboardVisitDate').handlers.get('change')) fn(new Event('change'));
+    await tick(); await tick();
+    app.clock.set('2026-10-21T05:00:01Z');
+    app.document.visibilityState = 'visible'; app.dispatch('visibilitychange'); await tick(); await tick();
+    assert.equal(app.element('dashboardVisitDate').value, day);
+    assert.equal(app.element('dashboardOverviewDate').value, day);
+    assert.equal(app.calls.filter(c => c.path.includes('/views/feed?')).length, 0);
+    assert.match(app.element('apiFeedStatus').textContent, /Historical dates/);
+  }
+});
+
+test('a pending yesterday response cannot replace evidence after midnight and the next check uses today', async () => {
+  const late = deferred(); let path, held = true;
+  const app = await apiFeedFixture(value => { path = value; return held ? late.promise : response(scheduledFeedPage(value)); }, '2026-10-21T04:59:59Z');
+  const rows = app.element('dashboardVisitRows').children.slice();
+  await app.runFeed(); app.clock.set('2026-10-21T05:00:01Z');
+  late.resolve(response(scheduledFeedPage(path))); await tick(); await tick();
+  assert.deepEqual(app.element('dashboardVisitRows').children, rows);
+  held = false; await app.runFeed();
+  assert.equal(app.element('dashboardVisitDate').value, '2026-10-21');
+  assert.match(app.element('apiFeedStatus').textContent, /Connected/);
+});
+
+
+test('midnight rollover waits for visibility and source focus release without making hidden requests', async () => {
+  const app = await apiFeedFixture(undefined, '2026-10-21T04:59:59Z');
+  app.document.visibilityState = 'hidden'; app.dispatch('visibilitychange');
+  app.clock.set('2026-10-21T05:00:01Z');
+  assert.equal(app.timers.size, 0);
+  assert.equal(app.calls.filter(c => c.path.includes('/views/feed?')).length, 0);
+  app.document.activeElement = { closest: () => app.element('dashboardTimeline') };
+  app.document.visibilityState = 'visible'; app.dispatch('visibilitychange'); await tick(); await tick();
+  assert.equal(app.element('dashboardVisitDate').value, '2026-10-20');
+  assert.equal(app.calls.filter(c => c.path.includes('/views/feed?')).length, 0);
+  app.document.activeElement = app.element('apiFeedToggle');
+  await app.click('apiFeedToggle'); await tick(); await tick();
+  assert.equal(app.element('dashboardVisitDate').value, '2026-10-21');
+  assert.match(app.element('apiFeedStatus').textContent, /Connected/);
 });

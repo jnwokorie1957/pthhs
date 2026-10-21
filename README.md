@@ -1,5 +1,13 @@
 # PTHHS
 
+October 21 feed continuation candidate: pending responses recheck source focus,
+and the untouched default date follows the office calendar across midnight.
+Explicit date selections remain fixed. Synthetic regression and release checks
+are recorded in [verification](docs/management-layer/FEED_CONTINUATION_2026-10-21.md);
+publication and authenticated acceptance are pending. Complete source coverage
+and HHA confirmation gates remain unchanged.
+
+
 October 21 02:32 UTC / October 20 local role research: proposed patient/family,
 therapist and office screens keep source times/hours, accepted interpretation
 and action authority separate. Exact record/context links and unknown values
