@@ -174,3 +174,52 @@ test("lost partial acknowledgement preserves committed counts and replay checkpo
   assert.equal(result.checkpoint, "original"); assert.deepEqual(f.runs, ["partial"]);
   await f.state.acquire("all_hha_imports");
 });
+
+
+test("failed imports persist acknowledged counts without advancing the original cursor", async () => {
+  for (const scenario of ["later-fetch", "page-limit", "missing-cursor", "first-fetch"] as const) {
+    const f = fixture();
+    const documents = new Map<string, any>([
+      ["integrationLocks/hhaexchange__all_hha_imports", { active: true, token: "lock" }],
+      ["integrationCursors/hhaexchange__visit_changes_v5", { checkpoint: "original" }],
+    ]);
+    const db = {
+      collection(name: string) { return { doc(id: string) { return { key: name + "/" + id }; } }; },
+      async runTransaction<T>(callback: (tx: any) => Promise<T>): Promise<T> {
+        const writes: [string, any][] = [];
+        const value = await callback({
+          async get(ref: any) { const data = documents.get(ref.key); return { exists: !!data, data: () => structuredClone(data) }; },
+          set(ref: any, data: any) { writes.push([ref.key, structuredClone(data)]); },
+        });
+        for (const [key, data] of writes) documents.set(key, data);
+        return value;
+      },
+    };
+    const persistedState = new SyncStateStore(db as any);
+    f.state.fail = (sync, code) => persistedState.fail(sync, code);
+    const begin = f.state.begin;
+    f.state.begin = async (resource, checkpoint, token) => ({ ...await begin(resource, checkpoint, token),
+      ...(checkpoint ? { checkpoint } : {}), importLockToken: token, processedCount: 0 });
+    let pages = 0;
+    const seen: (string | undefined)[] = [];
+    f.adapter.fetchPage = async cursor => {
+      seen.push(cursor);
+      if (scenario === "first-fetch" || pages++ > 0) throw new Error("PRIVATE_SOURCE_PAYLOAD");
+      return { items: [{ sourceIdentifier: "synthetic" }], hasMore: true,
+        ...(scenario === "missing-cursor" ? {} : { nextCheckpoint: "uncommitted-next" }) };
+    };
+    await assert.rejects(runIncrementalSync(f.adapter,
+      { ...(scenario === "page-limit" ? { maxPages: 1 } : {}), checkpointOverride: "override" }, f.management, f.state));
+    const run = documents.get("integrationSyncs/run"), health = documents.get("integrationHealth/hhaexchange__visit_changes_v5");
+    assert.equal(run.status, "failed");
+    assert.equal(run.processedCount, scenario === "first-fetch" ? 0 : 1);
+    assert.equal(run.checkpoint, "override"); assert.equal(run.importLockToken, "lock");
+    assert.equal(run.errorCode, "sync_failed"); assert.ok(run.completedAt);
+    assert.deepEqual(health, run); assert.doesNotMatch(JSON.stringify(run), /PRIVATE_SOURCE_PAYLOAD/);
+    assert.equal(documents.get("integrationCursors/hhaexchange__visit_changes_v5").checkpoint, "original");
+    assert.equal(f.checkpoint(), "original");
+    assert.deepEqual(seen, scenario === "later-fetch" ? ["override", "uncommitted-next"] : ["override"]);
+    assert.equal(f.records.size, scenario === "first-fetch" ? 0 : 1);
+    await f.state.acquire("all_hha_imports"); // Durable failure permits release, as before.
+  }
+});

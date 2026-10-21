@@ -142,7 +142,7 @@ export async function runIncrementalSync<
     }
     // Upstream exception messages can contain credentials, XML or patient data.
     const code = "sync_failed";
-    await state.fail(sync, code);
+    await state.fail({ ...sync, processedCount }, code);
     finalized = true;
     logger.error("Integration sync failed", {
       integration: "hhaexchange",
