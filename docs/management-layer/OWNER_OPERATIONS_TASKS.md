@@ -22,6 +22,18 @@
 
 # Current owner checkpoint
 
+## October 21 UTC / October 20 local role evidence
+
+The [research](ROLE_WORKFLOW_RESEARCH.txt) now connects source times/hours to
+proposed patient, therapist and office screens while retaining separate
+interpretation and action authority. The new HHA portal is signed in, but its
+empty office/day result has not been reconciled with the protected SOAP source;
+the original-tenant session is separate. Next evidence is the intended source
+application/office/filter mapping and a protected same-ID visit comparison,
+followed by plan/form/version and sharing/assignment/reviewer evidence. Existing
+policy attestation remains distinct from unverified source mappings and external
+role contracts. No owner decision or broader role acceptance is marked complete.
+
 ## October 20 local visit source values
 
 The corrected review/preview display uses the HHA schedule, recorded times and

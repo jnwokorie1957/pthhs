@@ -1,5 +1,14 @@
 # PTHHS
 
+October 21 02:32 UTC / October 20 local role research: proposed patient/family,
+therapist and office screens keep source times/hours, accepted interpretation
+and action authority separate. Exact record/context links and unknown values
+remain explicit. The new HHA portal is signed in; original-tenant/same-visit
+scope and external-role prerequisites remain unverified. See
+[research](docs/management-layer/ROLE_WORKFLOW_RESEARCH.txt).
+Concurrent scheduled API-feed/private Storage implementation is preserved;
+its normal jobs passed, with scheduled receipt acceptance tracked separately.
+
 October 20 local visit-display fix: Visit Review shows returned HHA times and
 schedule/actual duration fields independently of diagnosis acceptance. Visit
 Preview retains source hours too. Zero/missing values stay distinct; no clinical

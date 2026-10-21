@@ -48,6 +48,16 @@ completeness and operational totals remain unknown.
 
 # Current checkpoint
 
+- [x] October 21 02:32 UTC / October 20 local role research reconciles the
+  deployed source-value display fix with patient/family, therapist and office
+  screens. Records source values, accepted interpretation and action authority
+  separately, with exact record links and zero/missing/DST/revocation acceptance.
+  New HHA portal labels are observed; original-tenant/same-visit scope is still
+  unverified. See [research](ROLE_WORKFLOW_RESEARCH.txt). This is documentation
+  evidence; external-role and P1-B mapping dependencies remain open. Concurrent
+  scheduled feed/private Storage work is preserved; both normal jobs passed,
+  while scheduled receipt acceptance remains outside this research pass.
+
 - [x] Correct the source-value display path in Visit Review and Visit Preview:
   retain V3 schedule-duration components and actual hours; show original times
   while diagnosis acceptance is pending. Missing source hours can use a labelled
