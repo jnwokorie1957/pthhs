@@ -21,10 +21,15 @@ sign-out, Demo, context, paging, partial/error and receipt tests remain in scope
 Base-code reproduction fails the focus, default-rollover and pending-yesterday
 regressions while the explicit-date preservation regression passes.
 
-Validation: 154 data-mode tests passed; the full release gate passed (254 tests).
+Validation: 156 data-mode tests passed; revised full release gate passed (256 tests).
 Tests use synthetic data and a controlled clock; no authenticated runtime test
 or private browser access was performed. Backend code is unchanged and its
 suite was not rerun for this frontend-only candidate.
 Independent review, publication, CI and authenticated runtime acceptance pending.
 No backend, source dispatch budget, permission or HHA write behavior changes.
 The feed remains a first-page cache, not a complete normalized visit import.
+
+Independent-review correction: rollover now resets only the source page,
+retains unrelated unavailable panels, and keeps Clear source page enabled
+during and after the new-day request. Clearing during rollover fences both late
+success and failure. Two additional deterministic regressions cover these cases.

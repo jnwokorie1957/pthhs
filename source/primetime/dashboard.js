@@ -151,9 +151,17 @@
     if (!dateChosen && officeDay && dateInput.value !== officeDay) {
       // The untouched default follows the office calendar, never the device's zone.
       // Clear yesterday's evidence and cursors before asking for today's feed.
-      const settings = metadata;
-      clearSource();
-      metadata = settings;
+      invalidateSourceContext();
+      abort?.abort(); abort = null;
+      resetPaging();
+      const detail = 'The office day changed. Reading the new day; prior-day source evidence has been removed.';
+      liveOverviewState('Loading current office day', detail);
+      unavailable('dashboardVisitRows', 'Loading current office day', detail);
+      text('dashboardVisitMetadata', ''); text('dashboardVisitCompleteness', '');
+      text('dashboardVisitStatus', detail);
+      text('dashboardVisitScope', `Office: ${metadata.settings.officeId} · Date: ${officeDay} · Timezone: ${metadata.settings.officeTimezone}`);
+      text('dataModeBadge', 'Live · loading'); text('environmentDetails', 'Loading current office day');
+      sourceClearControls(true);
       dateInput.value = officeDay;
       if (get('dashboardOverviewDate')) get('dashboardOverviewDate').value = officeDay;
     }

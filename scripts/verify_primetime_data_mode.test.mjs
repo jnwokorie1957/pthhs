@@ -2538,3 +2538,35 @@ test('midnight rollover waits for visibility and source focus release without ma
   assert.equal(app.element('dashboardVisitDate').value, '2026-10-21');
   assert.match(app.element('apiFeedStatus').textContent, /Connected/);
 });
+
+
+test('midnight clears only prior-day source evidence and preserves unrelated panels and Clear controls', async () => {
+  const late = deferred(); let path;
+  const app = await apiFeedFixture(value => { path = value; return late.promise; }, '2026-10-21T04:59:59Z');
+  const panels = ['dashboardExceptions', 'dashboardMessages', 'dashboardStaffing', 'dashboardBillingMetrics', 'dashboardBillingPipeline', 'dashboardAudit', 'dashboardSettings'];
+  const original = panels.map(id => app.element(id).children.slice());
+  app.clock.set('2026-10-21T05:00:01Z'); await app.runFeed();
+  for (const id of ['dashboardVisitRows', 'dashboardTimeline', 'dashboardEvidenceChart']) {
+    assert.doesNotMatch(nodeText(app.element(id)), /900001/);
+    assert.match(nodeText(app.element(id)), /Loading current office day/);
+  }
+  for (const id of ['dashboardOverviewClear', 'dashboardVisitClear']) assert.equal(app.element(id).disabled, false);
+  panels.forEach((id, i) => assert.deepEqual(app.element(id).children, original[i], id));
+  late.resolve(response(scheduledFeedPage(path))); await tick(); await tick();
+  for (const id of ['dashboardOverviewClear', 'dashboardVisitClear']) assert.equal(app.element(id).disabled, false);
+  panels.forEach((id, i) => assert.deepEqual(app.element(id).children, original[i], id));
+  await app.click('dashboardVisitClear'); assertSourcePageCleared(app);
+});
+
+test('Clear during midnight rollover fences late success and failure without restoring source evidence', async () => {
+  for (const failure of [false, true]) {
+    const late = deferred(); let path;
+    const app = await apiFeedFixture(value => { path = value; return late.promise; }, '2026-10-21T04:59:59Z');
+    app.clock.set('2026-10-21T05:00:01Z'); await app.runFeed();
+    assert.equal(app.element('dashboardOverviewClear').disabled, false);
+    await app.click('dashboardOverviewClear'); assertSourcePageCleared(app);
+    if (failure) late.reject(new Error('synthetic')); else late.resolve(response(scheduledFeedPage(path)));
+    await tick(); await tick(); assertSourcePageCleared(app);
+    assert.equal(app.timers.size, 0);
+  }
+});
