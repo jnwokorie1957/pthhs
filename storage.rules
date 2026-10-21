@@ -1,0 +1,10 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    // Forms are private. Client authentication alone does not grant form access.
+    // Privileged console operators and reviewed server routes use existing IAM.
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}

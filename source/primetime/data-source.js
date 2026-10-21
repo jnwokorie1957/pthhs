@@ -16,7 +16,7 @@
         elapsed = minutes === 0 ? 'less than 1 min' : days ? `${days} d ${hours % 24} h ${minutes % 60} min` : hours ? `${hours} h ${minutes % 60} min` : `${minutes} min`;
       }
     }
-    return `Approximate fetch age: ${elapsed}. Uses this device clock; ${automatic ? 'age updates locally each minute' : 'age updates paused — value held from the last display calculation'}. Source refresh requires an explicit read.`;
+    return `Approximate fetch age: ${elapsed}. Uses this device clock; ${automatic ? 'age updates locally each minute' : 'age updates paused — value held from the last display calculation'}. Age display updates do not fetch source records.`;
   }
   let automaticAgeUpdates = true;
   const ageListeners = new Set();
@@ -164,8 +164,8 @@
     if (control) { control.checked = automaticAgeUpdates; control.disabled = !active || mode !== 'live'; }
     if (section) section.hidden = !active || mode !== 'live';
     if (status) status.textContent = automaticAgeUpdates
-      ? 'On for this page session. Displayed ages update locally each minute; source data is read only on request.'
-      : 'Paused for this page session. Existing ages stay at their last calculation; new reads show their initial age. Resume to recalculate from the original fetch receipts. Source data is read only on request.';
+      ? 'On for this page session. Displayed ages update locally each minute. Source reads and the automatic API feed run separately.'
+      : 'Paused for this page session. Existing ages stay at their last calculation; new reads show their initial age. Resume to recalculate from the original fetch receipts. Source reads and the automatic API feed run separately.';
   }
   document.getElementById('automaticAgeUpdates')?.addEventListener('change', event => {
     if (!active || mode !== 'live') { renderAgeControl(); return; }

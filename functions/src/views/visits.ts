@@ -4,6 +4,10 @@ import { identifier, readRequest, WorkflowError, type OperationalRead } from "..
 
 type Workspace = Pick<OperationsWorkspace, "settings" | "query">;
 type WorkspaceSettings = Awaited<ReturnType<Workspace["settings"]>>;
+export function visitContextFingerprint(value: WorkspaceSettings, actor: string, date: string) {
+  return fingerprint({ actor, date, officeId: value.settings.officeId, timezone: value.settings.officeTimezone,
+    revision: value.settings.revision, dataApproved: value.dataApproved, enabledReads: [...value.settings.enabledReads].sort() });
+}
 const REQUIRED_READS = ["SearchVisitsV2", "GetVisitInfoV3", "GetPatientDemographics"] as const;
 const TIME_BUDGET_MS = 25_000;
 
@@ -114,9 +118,7 @@ export async function visitPreview(workspace: Workspace, value: unknown, actor: 
   if (input.officeId !== undefined && (typeof input.officeId !== "string" || identifier(input.officeId) !== officeId)) throw new WorkflowError("office_scope_mismatch", 403);
   readRequest({ operation: "SearchVisitsV2", officeId, date: input.date as string });
   const date = input.date as string;
-  const scopeFingerprint = (value: WorkspaceSettings) => fingerprint({ actor, date,
-    officeId: value.settings.officeId, timezone: value.settings.officeTimezone,
-    revision: value.settings.revision, dataApproved: value.dataApproved, enabledReads: [...value.settings.enabledReads].sort() });
+  const scopeFingerprint = (value: WorkspaceSettings) => visitContextFingerprint(value, actor, date);
   const scope = scopeFingerprint(current);
   const assertCurrentScope = async () => {
     if (scopeFingerprint(await workspace.settings()) !== scope) throw new WorkflowError("visit_preview_policy_changed_restart", 409);

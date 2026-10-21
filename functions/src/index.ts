@@ -38,6 +38,7 @@ import { submitRate } from "./operations/writes.js";
 import { workspaceRoute } from "./operations/routes.js";
 import { manualSnapshotRoute } from "./operations/manualSnapshots.js";
 import { assertLiveDataMode, viewRoute } from "./views/visits.js";
+import { FirestoreFeedStore, refreshLiveFeed, readLiveFeed } from "./views/liveFeed.js";
 import { WorkflowError } from "./operations/reads.js";
 import { RevisionBackend, type RevisionActor, type RevisionApprovals } from "./revisions/service.js";
 import { revisionRoute } from "./revisions/routes.js";
@@ -120,6 +121,13 @@ function revisionBackend(actor: RevisionActor) {
 export const primetimeRevisionMonitor = process.env.PRIMETIME_API_ONLY_DEPLOY === "true" ? undefined : onSchedule({ region: "us-central1", schedule: "* * * * *", timeZone: "America/Chicago",
   labels: { "primetime-component": "visit-review-monitor" },
   timeoutSeconds: 300, memory: "256MiB", maxInstances: 1, concurrency: 1, retryCount: 0, secrets: [hhaCredentials] }, async () => {
+  // The owner-authorized read-only feed is independent of diagnosis/SMS stages.
+  // Existing operational release, office/read policy and shared quotas still apply.
+  try {
+    logger.info("Primetime live API feed", await refreshLiveFeed(liveReadWorkspace(), new FirestoreFeedStore()));
+  } catch {
+    logger.warn("Primetime live API feed deferred", { code: "feed_storage_unavailable" });
+  }
   try {
     const result = await revisionBackend({ actorId: "revision_monitor", roles: ["admin"], mode: "live" }).monitor();
     logger.info("Primetime revision monitor", result);
@@ -133,6 +141,15 @@ function apiPath(path: string): string {
     return path.slice(API_PREFIX.length) || "/";
   }
   return path || "/";
+}
+
+function liveReadWorkspace() {
+  const repository = new FirestoreWorkspaceRepository();
+  let client: HhaSoapClient | undefined;
+  return new OperationsWorkspace(repository, (input, scope) => {
+    client ??= new HhaSoapClient(hhaBaseUrl.value(), getHhaCredentials(), { beforeRequest: () => repository.reserveRead(), defer: seconds => repository.deferReads(seconds) });
+    return operationalRead(client, input, scope);
+  }, operationalDataApproved.value() === "true");
 }
 
 export const primetimeApi = onRequest(
@@ -190,6 +207,16 @@ export const primetimeApi = onRequest(
       response.status(result?.status ?? 404).json(result?.body ?? { ok: false, error: "not_found" }); return;
     }
 
+    if (path === "/views/feed") {
+      try {
+        if (request.method !== "GET") throw new WorkflowError("method_not_allowed", 405);
+        response.status(200).json(await readLiveFeed(liveReadWorkspace(), new FirestoreFeedStore(), request.query, principal.uid));
+      } catch (error) {
+        response.status(error instanceof WorkflowError ? error.status : 503).json({ ok: false,
+          error: error instanceof WorkflowError ? error.code : "live_api_feed_unavailable", retryAfterSeconds: 60 });
+      }
+      return;
+    }
     if (path === "/data/status" || path === "/views/visits") {
       const repository = new FirestoreWorkspaceRepository();
       let client: HhaSoapClient | undefined;

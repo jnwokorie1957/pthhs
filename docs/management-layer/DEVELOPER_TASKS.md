@@ -1,5 +1,13 @@
 # PTHHS Management Layer — Developer Checklist
 
+October 20 local automatic API feed: server minute refresh, protected expiring
+cache and dashboard automatic checks are implemented and locally verified (493
+backend / 262 root tooling/frontend tests plus Windows release checks). Normal CI
+and two scheduled production receipts remain pending. Form Storage is created
+privately; anonymous list/get/upload each return 403. See
+[implementation](API_LIVE_FEED_AND_FORM_STORAGE_2026-10-20.md). This does not close
+normalized visit-change imports, full office coverage or clinical/role gates.
+
 October 21 UTC / October 20 local SEO acceptance: seven deployed contextual
 service links on Southwest Houston and Sugar Land passed independent wording/
 destination review, production Enter navigation, two Tab transitions, public

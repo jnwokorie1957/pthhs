@@ -7,6 +7,15 @@ or billing decision is inferred. Complete time pairs can supply a separately
 labelled clock span when source hours are absent. All 485 backend and 256 frontend/tooling tests
 passed. See [implementation and verification scope](docs/management-layer/VISIT_SOURCE_VALUES_FIX_2026-10-20.md).
 
+October 20 local automatic API-feed implementation: the existing server minute
+worker refreshes the approved current-office/day source page into a private,
+three-minute-limited cache. The dashboard follows it automatically with pause,
+paging and stale-context controls. Backend tests (493), root tooling/frontend
+tests (262) and Windows release checks passed; normal CI and scheduled production
+receipt acceptance remain pending. Private form Storage is provisioned with
+deny-all client rules and anonymous 403 checks. See
+[implementation and limits](docs/management-layer/API_LIVE_FEED_AND_FORM_STORAGE_2026-10-20.md).
+
 October 21 UTC / October 20 local SEO acceptance: seven contextual service links
 on Southwest Houston and Sugar Land are deployed and independently reviewed.
 All seven production Enter destinations, two Tab transitions, public artifact/

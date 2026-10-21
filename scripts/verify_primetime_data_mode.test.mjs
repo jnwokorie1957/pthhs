@@ -42,7 +42,8 @@ function harness({ includeApp = true, storedDataMode = 'demo', metadata, fetchSo
       classList: { add(...names) { names.forEach(name => classes.add(name)); }, remove(...names) { names.forEach(name => classes.delete(name)); }, toggle(name, force) { if (force === undefined ? !classes.has(name) : force) classes.add(name); else classes.delete(name); }, contains(name) { return classes.has(name); } },
       addEventListener(type, fn) { const handlers = this.handlers.get(type) || []; handlers.push(fn); this.handlers.set(type, handlers); },
       append(...items) { this.children.push(...items); }, replaceChildren(...items) { this.children = items; },
-      querySelectorAll() { return []; }, querySelector() { return null; }, closest() { return { hidden: false }; },
+      querySelectorAll() { return []; }, querySelector() { return null; },
+      closest(selector = '') { return selector.startsWith('#dashboardVisitRows') ? null : { hidden: false }; },
       setAttribute(name, value) { this[name] = value; }, removeAttribute(name) { delete this[name]; },
       focus() { document.activeElement = this; }, reset() { this.value = ''; }, remove() {}
     };
@@ -483,6 +484,100 @@ function installDashboard(app) {
 }
 function nodeText(node) { return [node.textContent || '', ...node.children.map(child => child.children ? nodeText(child) : child.textContent || '')].join(' '); }
 const liveMetadata = { ok: true, mode: 'live', dataApproved: true, settings: { officeId: '123', officeTimezone: 'America/Chicago' }, panels: { visits: { available: true } } };
+
+function scheduledFeedPage(path, overrides = {}) {
+  const page = numberedSourcePage(path);
+  return { ...page, feed: { kind: 'scheduled_api', background: true, intervalSeconds: 60, maxAgeSeconds: 180,
+    checkedAt: page.fetchedAt, persistedImport: false, coverage: 'first_source_page' }, ...overrides };
+}
+async function apiFeedFixture(read = path => response(scheduledFeedPage(path))) {
+  const app = harness({ storedDataMode: null, metadata: liveMetadata,
+    fetchSource: path => path.includes('/views/feed?') ? read(path) : response(numberedSourcePage(path)) });
+  const timers = new Map(); let timerId = 10000;
+  app.context.setTimeout = (fn, delay) => { const id = ++timerId; timers.set(id, { fn, delay }); return id; };
+  app.context.clearTimeout = id => timers.delete(id);
+  app.element('apiFeedControl').dataset.enabled = 'true';
+  installDashboard(app); await app.signIn(); await tick(); await tick();
+  return { ...app, timers, async runFeed() {
+    const next = [...timers].find(([, item]) => item.delay === 60000);
+    assert.ok(next, 'one minute feed check must be scheduled'); timers.delete(next[0]); next[1].fn(); await tick(); await tick(); await tick();
+  } };
+}
+
+test('automatic API feed reads the server cache, validates receipts and updates both source views with paging intact', async () => {
+  const app = await apiFeedFixture();
+  await app.runFeed();
+  assert.equal(app.calls.filter(call => call.path.includes('/views/feed?')).length, 1);
+  assert.match(app.element('apiFeedStatus').textContent, /Connected to HHA API/);
+  assert.match(app.element('dashboardOverviewMetadata').textContent, /server updates every minute/);
+  assert.match(nodeText(app.element('dashboardVisitRows')), /900001/);
+  assert.equal(app.element('dashboardOverviewNext').hidden, false);
+  assert.equal([...app.timers.values()].filter(t => t.delay === 60000).length, 1);
+  await app.click('apiFeedToggle');
+  assert.match(app.element('apiFeedStatus').textContent, /paused/);
+  assert.equal([...app.timers.values()].filter(t => t.delay === 60000).length, 0);
+});
+test('feed errors and invalid/future/expired receipts clear prior evidence and schedule a bounded retry', async () => {
+  for (const mode of ['error', 'expired', 'future', 'wrong_marker']) {
+    const app = await apiFeedFixture(path => {
+      const page = scheduledFeedPage(path);
+      if (mode === 'error') return { ...response({ ok: false }), ok: false, status: 503 };
+      if (mode === 'expired') page.feed.checkedAt = new Date(Date.parse(page.fetchedAt) + 181000).toISOString();
+      if (mode === 'future') page.feed.checkedAt = new Date(Date.parse(page.fetchedAt) - 1000).toISOString();
+      if (mode === 'wrong_marker') page.feed.kind = 'manual_snapshot';
+      return response(page);
+    });
+    await app.runFeed();
+    assert.match(app.element('apiFeedStatus').textContent, /Retrying in one minute/);
+    assert.doesNotMatch(nodeText(app.element('dashboardVisitRows')), /900001/);
+    assert.equal(app.element('dashboardOverviewMetadata').textContent, '');
+    assert.equal([...app.timers.values()].filter(t => t.delay === 60000).length, 1);
+  }
+});
+test('clear during a pending feed check fences its late success and leaves automatic display updates paused', async () => {
+  const late = deferred(); let path;
+  const app = await apiFeedFixture(value => { path = value; return late.promise; });
+  await app.runFeed();
+  assert.equal([...app.timers.values()].filter(t => t.delay === 60000).length, 0, 'no overlapping poll');
+  await app.click('dashboardOverviewClear');
+  late.resolve(response(scheduledFeedPage(path))); await tick(); await tick();
+  assert.equal(app.element('dataModeBadge').textContent, 'Live · no source page');
+  assert.doesNotMatch(nodeText(app.element('dashboardVisitRows')), /900001/);
+  assert.equal(app.element('apiFeedToggle').textContent, 'Resume live feed');
+  assert.equal([...app.timers.values()].filter(t => t.delay === 60000).length, 0);
+});
+test('source paging pauses automatic display replacement and explicit resume returns to the feed first page', async () => {
+  const app = await apiFeedFixture(); await app.runFeed();
+  await app.click('dashboardOverviewNext'); await tick(); await tick();
+  assert.match(nodeText(app.element('dashboardVisitRows')), /900002/);
+  assert.equal(app.element('apiFeedToggle').textContent, 'Resume live feed');
+  assert.equal([...app.timers.values()].filter(t => t.delay === 60000).length, 0);
+  await app.click('apiFeedToggle'); await tick(); await tick();
+  assert.match(nodeText(app.element('dashboardVisitRows')), /900001/);
+  assert.equal(app.element('dashboardOverviewPrevious').hidden, true);
+});
+test('hidden, signed-out and Demo contexts stop dashboard polling without changing server permissions', async () => {
+  const app = await apiFeedFixture();
+  app.document.visibilityState = 'hidden'; app.dispatch('visibilitychange');
+  assert.equal([...app.timers.values()].filter(t => t.delay === 60000).length, 0);
+  assert.match(app.element('apiFeedStatus').textContent, /server API feed continues/);
+  app.document.visibilityState = 'visible'; app.dispatch('visibilitychange'); await tick(); await tick();
+  assert.match(app.element('apiFeedStatus').textContent, /Connected/);
+  app.window.primetimeDataMode.setMode('demo'); await tick();
+  assert.equal(app.element('apiFeedControl').hidden, true);
+  assert.equal([...app.timers.values()].filter(t => t.delay === 60000).length, 0);
+  await app.auth.signOut(); await tick();
+  assert.equal(app.element('apiFeedToggle').disabled, true);
+});
+test('automatic source replacement pauses when keyboard focus is working inside source evidence', async () => {
+  const app = await apiFeedFixture();
+  app.document.activeElement = { closest: () => app.element('dashboardVisitRows') };
+  await app.runFeed();
+  assert.equal(app.calls.filter(call => call.path.includes('/views/feed?')).length, 0);
+  assert.match(app.element('apiFeedStatus').textContent, /paused while working with source records/);
+  assert.equal(app.element('apiFeedToggle').textContent, 'Resume live feed');
+  assert.match(nodeText(app.element('dashboardVisitRows')), /900001/);
+});
 
 const sourceLabels = app => [app.element('dataModeBadge').textContent, app.element('environmentDetails').textContent];
 async function loadedLabelFixture() {
@@ -1852,7 +1947,7 @@ test('current fetch age advances locally with explicit device-clock scope and un
   const cells=savedCells(app);await clickNode(currentVisitButtons(app)[0]);await tick();
   const age=currentFetchAges(app)[0],raw=currentRawFields(app),focus=app.document.activeElement;
   assert.match(age.textContent,/Approximate fetch age: less than 1 min/);assert.equal(age['aria-live'],'off');assert.equal(age.role,undefined);
-  assert.match(age.textContent,/Uses this device clock.*locally each minute.*explicit read/);
+  assert.match(age.textContent,/Uses this device clock.*locally each minute.*do not fetch source records/);
   assert.match(nodeText(app.element('manualSnapshotDetails')),/fetched 2026-10-19T18:18:00-05:00/);
   assert.equal(app.intervals.size,1);assert.equal([...app.intervals.values()][0].delay,60_000);
   const calls=app.calls.length,events=app.events.length,status=app.element('manualSnapshotStatus').textContent;

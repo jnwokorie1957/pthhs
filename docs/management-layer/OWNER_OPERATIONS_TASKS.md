@@ -31,6 +31,22 @@ do not approve care, verification, payroll or billing. Existing representative
 source/office/identity/period and role prerequisites remain separate. See
 [implementation and verification scope](VISIT_SOURCE_VALUES_FIX_2026-10-20.md).
 
+## October 20 local API feed and form storage request
+
+The owner explicitly requested automatic API data using the existing HHA
+credentials, without manual web scraping. A minute-updated private source-page
+cache and automatic dashboard checks are implemented with existing office/read
+controls; normal release and scheduled production acceptance are pending.
+Charts remain limited to readable details on the displayed page. Existing
+source interpretation, normalized-import and clinical/role gates remain open.
+
+The owner also selected the Codex browser to provision form Storage when Chrome
+was unavailable. The default bucket now exists in us-central1 with private
+templates/submissions namespaces, deny-all client rules and anonymous 403 checks.
+No private form was uploaded or shared. Bucket setup is separate from scoped
+application form upload/download workflows. See
+[implementation and verification](API_LIVE_FEED_AND_FORM_STORAGE_2026-10-20.md).
+
 ## October 21 UTC / October 20 local contextual service links
 
 Seven links in the existing Southwest Houston and Sugar Land service lists now

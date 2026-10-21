@@ -102,6 +102,87 @@
   let dateChosen = false;
   let clearPageFetchAge = () => {};
   let sourceClearable = false;
+  const feedInstalled = get('apiFeedControl')?.dataset.enabled === 'true';
+  let feedEnabled = feedInstalled;
+  let feedTimer = null;
+  let feedAbort = null;
+  let feedReceipt = null;
+  let feedPolling = false;
+  function stopFeedTimer() { if (feedTimer !== null) clearTimeout(feedTimer); feedTimer = null; }
+  function feedControls(message) {
+    if (!feedInstalled) return;
+    get('apiFeedControl').hidden = !ready || !controller.isLive();
+    get('apiFeedToggle').disabled = !ready || !controller.isLive();
+    text('apiFeedToggle', feedEnabled ? 'Pause live feed' : 'Resume live feed');
+    text('apiFeedStatus', message || (feedEnabled
+      ? 'Automatic HHA API feed enabled. The server updates the first source page every minute; this page checks every minute.'
+      : 'Live feed display paused. The server continues updating. Resume to read its latest page.'));
+  }
+  function feedDay() {
+    if (!metadata?.settings?.officeTimezone || !dateInput?.value) return false;
+    try {
+      const parts = new Intl.DateTimeFormat('en', { timeZone: metadata.settings.officeTimezone, year: 'numeric', month: '2-digit', day: '2-digit' }).formatToParts(new Date());
+      return dateInput.value === ['year', 'month', 'day'].map(type => parts.find(part => part.type === type)?.value).join('-');
+    } catch { return false; }
+  }
+  function scheduleFeed() {
+    stopFeedTimer();
+    if (!feedInstalled || !ready || !controller.isLive() || !feedEnabled) { feedControls(); return; }
+    if (document.visibilityState === 'hidden') { feedControls('Dashboard checks paused while hidden. The server API feed continues every minute.'); return; }
+    if (metadata && !feedDay()) { feedControls('The automatic API feed covers the current office day. Historical dates use Read source now.'); return; }
+    feedTimer = setTimeout(() => { feedTimer = null; void pollFeed(); }, 60_000);
+  }
+  function pauseFeed(message) {
+    feedEnabled = false; stopFeedTimer(); feedAbort?.abort(); feedAbort = null;
+    feedControls(message);
+  }
+  async function pollFeed() {
+    if (!feedEnabled || !ready || !controller.isLive() || document.visibilityState === 'hidden' || feedPolling) return;
+    if (document.activeElement?.closest?.('#dashboardVisitRows, #dashboardTimeline, #dashboardEvidenceChart')) {
+      pauseFeed('Live feed display paused while working with source records. The server continues updating; Resume reads its latest page.'); return;
+    }
+    if (get('dashboardOverviewRefresh')?.disabled) { scheduleFeed(); return; }
+    if (!metadata) { await loadMetadata(); return; }
+    if (!feedDay()) { scheduleFeed(); return; }
+    stopFeedTimer(); feedPolling = true;
+    const captured = context(), request = new AbortController(); feedAbort = request;
+    feedControls('Checking the server-updated HHA API feed…');
+    try {
+      const query = new URLSearchParams({ officeId: metadata.settings.officeId, date: dateInput.value });
+      const response = await window.primetimeApiFetch('/primetime/api/views/feed?' + query, { signal: request.signal });
+      const payload = await response.json();
+      if (!current(captured) || !feedEnabled || request.signal.aborted) return;
+      const checked = window.primetimeSourceTime.timestampInstant(payload.feed?.checkedAt);
+      const fetched = window.primetimeSourceTime.timestampInstant(payload.fetchedAt);
+      if (!response.ok || payload.feed?.kind !== 'scheduled_api' || payload.feed?.background !== true
+        || payload.feed?.intervalSeconds !== 60 || payload.feed?.maxAgeSeconds !== 180 || payload.feed?.coverage !== 'first_source_page'
+        || payload.feed?.persistedImport !== false || checked === null || fetched === null || checked < fetched || checked - fetched > 180_000
+        || payload.page?.offset !== 0) throw new Error('feed_unavailable');
+      // Validate even an unchanged receipt; never trust an old page on an error.
+      normalizeVisitPreview(payload, { mode: 'live', date: dateInput.value, officeId: metadata.settings.officeId });
+      if (payload.fetchedAt !== feedReceipt) {
+        invalidateSourceContext(true);
+        resetPaging();
+        showVisitPreview(payload, { mode: 'live', date: dateInput.value, officeId: metadata.settings.officeId });
+        nextPageButton(Boolean(nextCursor));
+        feedReceipt = payload.fetchedAt;
+      }
+      text('dashboardVisitMetadata', `Source: HHAeXchange API · fetched: ${payload.fetchedAt} · server updates every minute · first source page only · source unvalidated · not a manual capture or persisted visit import.`);
+      feedControls(`Connected to HHA API · latest fetch ${payload.fetchedAt} · server updates every minute · first source page, up to ten details. No web scraping.`);
+    } catch {
+      if (!current(captured) || !feedEnabled || request.signal.aborted) return;
+      clearSource();
+      liveOverviewState('Live API feed temporarily unavailable', 'The next automatic check will retry. Old source values have been removed.');
+      unavailable('dashboardVisitRows', 'Live API feed temporarily unavailable', 'Retrying automatically; no example values are substituted.');
+      text('dataModeBadge', 'Live · feed unavailable'); text('environmentDetails', 'API feed update unavailable');
+      text('dashboardVisitStatus', 'API feed update unavailable. Automatic retry in one minute.');
+      feedControls('API feed update unavailable. Retrying in one minute; old source values are cleared.');
+    } finally {
+      feedPolling = false;
+      if (feedAbort === request) feedAbort = null;
+      scheduleFeed();
+    }
+  }
   const localDay = () => {
     const now = new Date();
     return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
@@ -261,12 +342,16 @@
     replace('dashboardExceptions', table(['Visit', 'Example exception', 'Scheduled start', 'Scheduled end', 'Example visibility', 'Example priority'],
       rows.map(item => [item.id, item.issue, item.scheduledStart, item.scheduledEnd, item.visibility, item.priority]), 'exceptionTable'));
   }
-  function invalidateSourceContext() {
+  function invalidateSourceContext(fromFeed = false) {
+    stopFeedTimer();
+    if (!fromFeed) feedAbort?.abort();
+    feedReceipt = null;
     clearPageFetchAge();
     serial += 1;
     document.dispatchEvent(new Event('primetime-source-context-cleared'));
   }
   function clearSource() {
+    feedControls();
     sourceClearControls(false);
     invalidateSourceContext();
     abort?.abort();
@@ -289,6 +374,7 @@
   }
   function clearLoadedPage() {
     if (!ready || !controller.isLive() || !sourceClearable) return false;
+    pauseFeed('Live feed display paused because the source page was cleared. Resume live feed to reconnect.');
     invalidateSourceContext();
     abort?.abort(); abort = null; metadata = null;
     resetPaging(); sourceClearControls(false);
@@ -305,6 +391,7 @@
   }
   function renderMode() {
     clearSource();
+    feedControls();
     const live = controller.isLive();
     const date = dateInput?.value || localDay();
     const demo = !live;
@@ -320,6 +407,7 @@
     text('environmentDetails', demo ? 'Synthetic preview records' : 'Source validation pending');
     text('dashboardModeNotice', demo
       ? 'Demo data is on. All preview records are synthetic; messages and HHA changes are disabled.'
+      : feedInstalled ? 'Live HHA API mode. The server refreshes the current office day’s first source page every minute. Charts describe only this bounded page. Read source now and paging remain available; saved captures are separate.'
       : 'Live HHA source mode. Read source now requests an on-demand source page; it does not save a visit import or start background synchronization. Charts describe this page only. Unavailable evidence is excluded from counts.');
     ['exceptionSearch', 'priorityFilter'].forEach(id => { if (get(id)) get(id).disabled = live; });
     text('dashboardReadiness', demo ? 'This preview uses synthetic records. Turn Demo data off to check live source availability.' : 'Source previews do not establish validated imports, complete counts, EVV exceptions, staffing eligibility or billable hours.');
@@ -416,6 +504,7 @@
       const control = node('button', label, 'btn secondary'); control.type = 'button';
       control.addEventListener('click', () => {
         if (!current(captured) || !controller.isLive() || metadata?.settings?.officeId !== view.scope.officeId) return;
+        if (feedInstalled) pauseFeed('Live feed display paused for record review. Resume live feed when ready to return to the latest page.');
         document.dispatchEvent(new CustomEvent('primetime-source-record-selected', { detail: { kind, id, officeId: view.scope.officeId } }));
       });
       tools.append(control);
@@ -469,7 +558,7 @@
       text('dataModeBadge', 'Live · unavailable');
       text('environmentDetails', 'Source access status unavailable');
     } finally {
-      if (current(captured)) refreshDisabled(false);
+      if (current(captured)) { refreshDisabled(false); scheduleFeed(); }
     }
   }
   async function loadVisits(cursor = null, trail = [null], position = 0) {
@@ -534,7 +623,7 @@
       text('environmentDetails', 'HHA visit source unavailable');
       text('dashboardVisitStatus', 'Visit source preview unavailable. No example values are shown.');
     } finally {
-      if (current(captured)) refreshDisabled(false);
+      if (current(captured)) { refreshDisabled(false); scheduleFeed(); }
     }
   }
   get('demoDataToggle')?.addEventListener('change', event => controller.setMode(event.target.checked ? 'demo' : 'live'));
@@ -560,6 +649,7 @@
   }
   const advancePage = () => {
     if (!nextCursor) return;
+    if (feedInstalled) pauseFeed('Live feed display paused for source paging. Resume returns to the current day’s first source page.');
     if (controller.isLive()) void loadVisits(nextCursor, [...pageTrail.slice(0, pagePosition + 1), nextCursor], pagePosition + 1);
     else { demoOffset = Number(nextCursor); showVisitPreview(fixtures.visitPage(dateInput.value, demoOffset), { mode: 'demo', date: dateInput.value }); }
   };
@@ -575,6 +665,16 @@
   };
   get('dashboardVisitPrevious')?.addEventListener('click', previousPage);
   get('dashboardOverviewPrevious')?.addEventListener('click', previousPage);
+  get('apiFeedToggle')?.addEventListener('click', () => {
+    if (!ready || !controller.isLive()) return;
+    if (feedEnabled) pauseFeed();
+    else { feedEnabled = true; feedControls(); void pollFeed(); }
+  });
+  document.addEventListener('visibilitychange', () => {
+    stopFeedTimer();
+    if (document.visibilityState === 'hidden') { feedAbort?.abort(); feedControls('Dashboard checks paused while hidden. The server API feed continues every minute.'); }
+    else if (feedEnabled && ready && controller.isLive()) void pollFeed();
+  });
   document.addEventListener('primetime-data-mode-changed', () => { renderMode(); if (ready && controller.isLive()) void loadMetadata(); });
   document.addEventListener('primetime-ready', () => { ready = true; session += 1; renderMode(); if (controller.isLive()) void loadMetadata(); });
   document.addEventListener('primetime-signed-out', () => { ready = false; session += 1; clearSource(); if (!controller.isLive()) renderMode(); });
