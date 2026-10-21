@@ -40,6 +40,12 @@ completeness and operational totals remain unknown.
 
 # Current checkpoint
 
+- [x] Correct the source-value display path in Visit Review and Visit Preview:
+  retain V3 schedule-duration components and actual hours; show original times
+  while diagnosis acceptance is pending. All 485 backend and 254 frontend/tooling
+  tests pass. Source acceptance and clinical/financial decisions are unchanged.
+  See [implementation and verification scope](VISIT_SOURCE_VALUES_FIX_2026-10-20.md).
+
 - [x] October 20 source-status labels locally verified: access checking and
   terminal outcomes replace obsolete loading/success labels. All 238 frontend
   tests and the local release gate passed; request and permission behavior is

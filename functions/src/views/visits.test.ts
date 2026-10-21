@@ -217,6 +217,20 @@ test("preview preserves raw manual and EVV evidence, exposes no aggregates and d
   assert.doesNotMatch(JSON.stringify(result), /never disclose|SSN/);
 });
 
+test("V3 projects HHA schedule-duration components and preview retains them without clinical acceptance or duration substitution", async () => {
+  const projected = await operationalRead({ async call() { return { ok: true, resultXml: '<VisitInfo><ID>77</ID><VisitDate>2026-10-10</VisitDate><Patient><ID>5</ID></Patient><ScheduleStartTime>2026-10-10 08:00</ScheduleStartTime><ScheduleEndTime>2026-10-10 12:15</ScheduleEndTime><ScheduleDuration><ScheduleDurationHours>4</ScheduleDurationHours><ScheduleDurationMinutes>15</ScheduleDurationMinutes></ScheduleDuration><ActualHours>0.00</ActualHours><PayHours>99.00</PayHours></VisitInfo>' }; } } as never, { operation: 'GetVisitInfoV3', id: '77' });
+  assert.equal(projected.records[0]?.['ScheduleDuration/ScheduleDurationHours'], '4');
+  assert.equal(projected.records[0]?.['ScheduleDuration/ScheduleDurationMinutes'], '15');
+  const f = fixture(['77'], { read: async input => input.operation === 'SearchVisitsV2' ? source(input.operation, [{ VisitID: '77' }]) : projected });
+  const result = await visitPreview(f.service, { date: '2026-10-10' }, 'owner');
+  assert.equal(result.items[0]?.scheduleDurationHours, '4'); assert.equal(result.items[0]?.scheduleDurationMinutes, '15');
+  assert.equal(result.items[0]?.actualHours, '0.00'); assert.equal(result.items[0]?.actualEnd, null);
+  assert.equal(result.items[0]?.state, 'source_unvalidated'); assert.equal(result.totals, null);
+  const missing = fixture();
+  const absent = (await visitPreview(missing.service, { date: '2026-10-10' }, 'owner')).items[0]!;
+  assert.equal(absent.scheduleDurationHours, null); assert.equal(absent.scheduleDurationMinutes, null); assert.equal(absent.actualHours, null);
+});
+
 test("empty discovery is empty source preview while vendor failure and malformed discovery cannot become empty success", async () => {
   const f = fixture([]), empty = await visitPreview(f.service, { date: "2026-10-10" }, "owner");
   assert.equal(empty.state, "empty"); assert.deepEqual(empty.items, []); assert.equal(empty.completeness.complete, false); assert.equal(f.calls.length, 1);

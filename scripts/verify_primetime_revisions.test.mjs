@@ -17,7 +17,11 @@ function visits(date = scope.date) {
 }
 const page = items => ({ ok: true, mode: 'live', source: 'primetime', items, nextCursor: null });
 const exception = { id: 'ex-1', officeId: '123', revision: 1, visitId: '55', diagnosis: 'Missing punches', state: 'open', followUpAt: null, assignee: 'Supervisor', hhaVerification: 'not_established' };
-function pure() { const window = {}; vm.runInNewContext(asset('revisions.js'), { window, URLSearchParams }); return window.primetimeRevisionModel; }
+function pure() {
+  const window = {};
+  vm.runInNewContext(asset('data-source.js'), { window, document: { getElementById: () => null, addEventListener() {} } });
+  vm.runInNewContext(asset('revisions.js'), { window, URLSearchParams }); return window.primetimeRevisionModel;
+}
 
 test('readable clock labels retain office timezone and cross-date context without guessing live offsets', () => {
   const clock = pure().formatClock, options = { timezone: 'America/Chicago', serviceDate: '2026-10-11' };
@@ -169,6 +173,34 @@ test('Demo uses shared fixtures without any API request and clears immediately i
   app.window.primetimeDataMode.setMode('live');
   assert.ok(!app.text('revisionDetail').includes('DEMO-')); assert.ok(!app.text('revisionVisits').includes('Synthetic'));
   await tick(); await tick(); assert.ok(app.text('revisionDetail').includes('55')); assert.ok(app.text('revisionDetail').includes('4.00 h'));
+});
+
+test('unaccepted review shows returned HHA times and durations without accepting diagnosis or substituting EVV/pay hours', async () => {
+  const app = harness(path => {
+    if (!path.includes('/visits?')) return null;
+    const payload = visits(new URL(path, 'https://fixture.test').searchParams.get('date'));
+    const { evidence, diagnosis } = payload.items[0];
+    evidence.state = 'unaccepted'; evidence.provenance.acceptanceVersion = null;
+    evidence.patientId = null; evidence.caregiverId = null;
+    for (const key of Object.keys(evidence.times)) evidence.times[key] = null;
+    evidence.raw = { ScheduleStartTime: '2026-10-11 08:00', ScheduleEndTime: '2026-10-11 12:15', VisitStartTime: '2026-10-11 08:05', VisitEndTime: null,
+      EVVStartTime: '2026-10-11 08:06', EVVEndTime: '2026-10-11 12:10', 'ScheduleDuration/ScheduleDurationHours': '4', 'ScheduleDuration/ScheduleDurationMinutes': '15', ActualHours: '0.00', PayHours: '99.00' };
+    diagnosis.state = 'unknown'; diagnosis.verification = 'unknown';
+    for (const key of Object.keys(diagnosis.metrics)) diagnosis.metrics[key] = null;
+    return { ok: true, json: async () => payload };
+  });
+  await app.openLive();
+  assert.match(app.text('revisionVisits'), /2026-10-11 08:00/);
+  assert.match(app.text('revisionVisits'), /4 h 15 min · HHA/);
+  assert.match(app.text('revisionVisits'), /2026-10-11 08:05 → Unavailable/);
+  assert.match(app.text('revisionVisits'), /0\.00 h · HHA/);
+  assert.doesNotMatch(app.text('revisionVisits'), /99\.00|Verified/);
+  assert.match(app.text('revisionDetail'), /these values do not mark a visit verified or billable/);
+  assert.equal(app.calls.some(call => call.options.method === 'POST'), false);
+  const before = app.text('revisionVisits');
+  app.window.primetimeDataMode.setMode('demo');
+  assert.doesNotMatch(app.text('revisionVisits'), /0\.00 h · HHA/);
+  assert.match(before, /Unknown evidence/);
 });
 test('an unapproved Live status prevents all protected data reads', async () => {
   const app = harness(path => path.endsWith('/status') ? { ok: true, json: async () => ({ ...clone(status), dataApproved: false, capabilities: { diagnosis: false, records: false, monitoring: false, sms: false }, blockedReason: 'operational_data_release_not_approved' }) } : null);

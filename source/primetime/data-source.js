@@ -62,7 +62,20 @@
     changed();
     return stop;
   }
-  window.primetimeSourceTime = Object.freeze({ timestampInstant, fetchAgeText, watchFetchAge });
+  // Display source durations independently of the diagnosis/verification gate.
+  // HHA ActualHours is preserved, never replaced by pay/bill hours or EVV math.
+  function sourceActualHours(raw, acceptedMinutes = null) {
+    if (typeof raw === 'string') return raw === '' ? 'Empty HHA ActualHours' : `${raw}${/^\d+(?:\.\d+)?$/.test(raw) ? ' h' : ''} · HHA`;
+    return Number.isFinite(acceptedMinutes) ? `${(acceptedMinutes / 60).toFixed(2)} h · calculated` : 'Not supplied by HHA';
+  }
+  function sourceScheduleHours(hours, minutes, acceptedMinutes = null) {
+    if ((hours === null || hours === undefined) && (minutes === null || minutes === undefined)) {
+      return Number.isFinite(acceptedMinutes) ? `${(acceptedMinutes / 60).toFixed(2)} h · calculated` : 'Not supplied by HHA';
+    }
+    const part = (value, unit) => value === null || value === undefined ? `${unit} not supplied` : value === '' ? `empty ${unit}` : `${value} ${unit}`;
+    return `${part(hours, 'h')} ${part(minutes, 'min')} · HHA`;
+  }
+  window.primetimeSourceTime = Object.freeze({ timestampInstant, fetchAgeText, watchFetchAge, sourceActualHours, sourceScheduleHours });
   const preferenceKey = 'primetime.dataMode';
   let mode = 'live';
   let generation = 0;

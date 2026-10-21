@@ -65,13 +65,15 @@ export interface VisitPreviewItem {
   patientId: string | null; caregiverId: string | null;
   visitType: string | null; sourceTimezone: string | null;
   actualHours: string | null; payHours: string | null; billedAmount: string | null;
+  scheduleDurationHours: string | null; scheduleDurationMinutes: string | null;
   verifiedBy: string | null; verifiedDate: string | null;
   state: "source_unvalidated" | "unavailable"; error?: string;
 }
 function unavailable(id: string, error: string): VisitPreviewItem {
   return { id, scheduledStart: null, scheduledEnd: null, actualStart: null, actualEnd: null,
     evvStart: null, evvEnd: null, patientId: null, caregiverId: null, visitType: null, sourceTimezone: null,
-    actualHours: null, payHours: null, billedAmount: null, verifiedBy: null, verifiedDate: null, state: "unavailable", error };
+    actualHours: null, payHours: null, billedAmount: null, scheduleDurationHours: null, scheduleDurationMinutes: null,
+    verifiedBy: null, verifiedDate: null, state: "unavailable", error };
 }
 function validateSource(source: OperationalRead, operation: "SearchVisitsV2" | "GetVisitInfoV3") {
   if (source.operation !== operation || source.source !== "hhaexchange" || !Array.isArray(source.records)
@@ -96,6 +98,7 @@ function detailItem(id: string, date: string, source: OperationalRead): VisitPre
     evvStart: field("EVVStartTime"), evvEnd: field("EVVEndTime"),
     patientId: field("Patient/ID"), caregiverId: field("Caregiver/ID"), visitType: field("VisitType"), sourceTimezone: field("TimeZone"),
     actualHours: field("ActualHours"), payHours: field("PayHours"), billedAmount: field("BilledAmount"),
+    scheduleDurationHours: field("ScheduleDuration/ScheduleDurationHours"), scheduleDurationMinutes: field("ScheduleDuration/ScheduleDurationMinutes"),
     verifiedBy: field("Verification/VerifiedBy"), verifiedDate: field("Verification/VerifiedDate"), state: "source_unvalidated" };
 }
 

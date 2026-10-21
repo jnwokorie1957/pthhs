@@ -397,10 +397,40 @@ function livePreview(date) {
 
 function dashboardModel() {
   const window = {};
+  vm.runInNewContext(asset('data-source.js'), { window, document: { getElementById: () => null, addEventListener() {} } });
   vm.runInNewContext(asset('demo-data.js'), { window });
   vm.runInNewContext(asset('dashboard.js'), { window });
   return window;
 }
+
+test('HHA source hours preserve zero, empty and missing components separately from accepted calculated durations', () => {
+  const { sourceActualHours: actual, sourceScheduleHours: schedule } = dashboardModel().primetimeSourceTime;
+  assert.equal(actual('0.00', 240), '0.00 h · HHA');
+  assert.equal(actual('4:15'), '4:15 · HHA');
+  assert.equal(actual(''), 'Empty HHA ActualHours');
+  assert.equal(actual(null), 'Not supplied by HHA');
+  assert.equal(actual(null, 240), '4.00 h · calculated');
+  assert.equal(schedule('4', '15'), '4 h 15 min · HHA');
+  assert.equal(schedule('0', '0'), '0 h 0 min · HHA');
+  assert.equal(schedule(null, '30'), 'h not supplied 30 min · HHA');
+  assert.equal(schedule('', '0'), 'empty h 0 min · HHA');
+  assert.equal(schedule(undefined, null), 'Not supplied by HHA');
+});
+
+test('preview retains returned HHA duration fields and strips them from unavailable details', () => {
+  const model = dashboardModel().primetimeDashboardModel, date = '2026-10-10';
+  const payload = { ok: true, mode: 'live', source: 'hhaexchange', state: 'ready', scope: { officeId: '123', date }, validation: 'source_unvalidated', totals: null, items: [
+    { id: '77', state: 'source_unvalidated', actualHours: '0.00', scheduleDurationHours: '4', scheduleDurationMinutes: '15' }
+  ] };
+  const expected = { mode: 'live', officeId: '123', date };
+  const result = model.normalizeVisitPreview(payload, expected).items[0];
+  assert.equal(result.actualHours, '0.00'); assert.equal(result.scheduleDurationHours, '4'); assert.equal(result.scheduleDurationMinutes, '15');
+  payload.items[0].state = 'unavailable';
+  assert.equal(model.normalizeVisitPreview(payload, expected).items[0].actualHours, null);
+  assert.equal(model.normalizeVisitPreview(payload, expected).items[0].scheduleDurationHours, null);
+  payload.items[0].state = 'source_unvalidated'; payload.items[0].actualHours = 4;
+  assert.throws(() => model.normalizeVisitPreview(payload, expected));
+});
 
 test('dashboard preview rejects wrong mode, source, date and scope without inventing records or totals', () => {
   const window = dashboardModel(), expected = { mode: 'live', date: '2026-10-10', officeId: '123' };

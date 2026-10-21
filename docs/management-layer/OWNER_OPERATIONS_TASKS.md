@@ -22,6 +22,15 @@
 
 # Current owner checkpoint
 
+## October 20 local visit source values
+
+The corrected review/preview display uses the HHA schedule, recorded times and
+duration fields even when diagnosis interpretation is pending. It preserves true
+missing end times, supplied zero hours and raw source provenance. These values
+do not approve care, verification, payroll or billing. Existing representative
+source/office/identity/period and role prerequisites remain separate. See
+[implementation and verification scope](VISIT_SOURCE_VALUES_FIX_2026-10-20.md).
+
 ## October 21 UTC / October 20 local contextual service links
 
 Seven links in the existing Southwest Houston and Sugar Land service lists now
