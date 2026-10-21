@@ -4,9 +4,18 @@ October 21 local SEO candidate: seven contextual service links on Southwest Hous
 and Sugar Land retain existing wording and authorization qualifiers. Local
 keyboard/mobile checks passed; review and publication pending. See [verification](docs/seo/2026-10-21-contextual-links.md).
 
-October 20 local discovery-parser candidate: malformed or ambiguous visit-ID collections now fail instead of silently omitting empty or nested IDs, stray text or unknown collection syntax. Valid empty collections, comments, namespaces and CDATA/processing-instruction compatibility remain supported. Full-result XML validation and structural extraction reject malformed trailing syntax while preserving comment-split IDs and empty CDATA. The existing locked XML parser is now an explicit dependency. Standard XML decimal/hex character references decode once; literal CDATA and escaped references are preserved. Nil attributes use XML Schema whitespace normalization. Forward-only token spans and per-ID parsing avoid a whole-response object tree and reject malformed opener sequences promptly. All 484 backend tests pass locally; publication and authenticated acceptance are pending. No source writes or new retrieval calls.
+**October 20 discovery-parser implementation:** malformed or ambiguous visit-ID
+collections fail explicitly; compatible scalar XML forms remain supported. All
+484 backend tests, 238 frontend tests and the local release gate passed. Both
+normal jobs passed, and October 21 UTC / October 20 local production accepted a
+normal discovery exceeding the former 200-ID projection cap. First/next/return
+detail pages and chart calculations passed; offsets beyond 200 and malformed
+responses remain synthetic checks. No source write or full scan occurred. See
+[discovery acceptance](docs/management-layer/VISIT_DISCOVERY_ACCEPTANCE_2026-10-20.md).
 
-October 20 visit discovery candidate: the dashboard retains received SearchVisitsV2 IDs beyond 200 and pages at most 10 details under the existing time and office checks. Vendor completeness and operational totals remain unknown. See [discovery acceptance](docs/management-layer/VISIT_DISCOVERY_ACCEPTANCE_2026-10-20.md).
+The dashboard retains received SearchVisitsV2 IDs within its SOAP byte bound and
+pages at most ten details under existing time and office checks. Vendor
+completeness and operational totals remain unknown.
 
 ## 🚨 START HERE — MANAGEMENT LAYER BUILD
 
@@ -31,7 +40,9 @@ Operational/management decisions: EVV rules, visibility/escalation, correction a
 **October 20 source-status labels:** access checks and terminal unavailable,
 refresh-required and missing-date outcomes now replace prior loading/success
 labels. All 238 frontend tests and the local release gate passed. Authenticated
-production acceptance remains pending; source/operational gates are unchanged.
+access-check, missing-date, retry/paging and pending-clear checks passed in the
+October 21 00:38 UTC heartbeat. Failure/revocation cases remain synthetic;
+source/operational gates are unchanged.
 See [verification](docs/management-layer/SOURCE_STATUS_LABELS_ACCEPTANCE_2026-10-20.md).
 
 **October 20 checklist reconciliation:** stale setup/dependency wording in the

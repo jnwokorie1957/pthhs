@@ -26,9 +26,21 @@
 
 The Live badge now distinguishes access checking, unavailable access, a required
 service date and a refresh-required result. Prior returned-source labels no
-longer remain after these transitions. Local synthetic checks passed; real-session
-acceptance remains pending. This display correction adds no source interpretation
+longer remain after these transitions. Local synthetic checks and the October 21
+00:38 UTC heartbeat's normal access-check, missing-date, retry/paging and clear
+checks passed. Error/revocation cases remain synthetic. This adds no interpretation
 or operational decision. See [verification](SOURCE_STATUS_LABELS_ACCEPTANCE_2026-10-20.md).
+
+## October 20 visit discovery and parser verification
+
+The source returned a discovery exceeding the old 200-ID projection cap. The
+first two ten-detail pages and return to the first page passed chart and exact-ID
+comparisons. This is received search evidence, not complete office coverage or a
+persisted import; offsets beyond 200 and malformed responses remain synthetic
+checks. Normal release jobs passed. Preview is left cleared, with automatic age
+updates on. HHA sign-in and representative source/office/identity/unit/period/
+discipline/document validation remain open. See
+[acceptance](VISIT_DISCOVERY_ACCEPTANCE_2026-10-20.md).
 
 ## October 20 automatic age display control
 

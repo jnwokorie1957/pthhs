@@ -24,8 +24,32 @@ partial/on-demand scope, paging, context guards and age behavior are unchanged.
 - Generated artifacts match their readable source. Backend and permission code
   are unchanged. No real source failure or access restriction was induced.
 
-Authenticated production acceptance is pending for this change. Synthetic tests
-and successful deployment do not establish real-session acceptance or broader
-source interpretation. Existing source, membership, role and operational gates
-remain open. Rollback is a reviewed revert through the normal release checks;
-there is no data migration or source-record change.
+## Bounded production acceptance — October 21 UTC / October 20 local
+
+The 00:38 UTC heartbeat verified the normal administrator session with the latest
+discovery release. Production assets matched tested bytes and both normal jobs
+passed. A successful page showed Live / HHA source. Clearing the selected date
+showed Live / date required and Choose a service date, with no former rows,
+receipts or ages. Restoring the selected service day returned the first IDs and
+the source-success labels. Paging cleared pending evidence and restored only
+the returned page, with matching chart calculations.
+
+An explicit refresh showed Live / checking access and Checking HHA source access.
+Clear source page during that check replaced the pending labels with Live / no
+source page and retained an empty preview during the subsequent idle check.
+Automatic age updates stayed on and all entry/results fields were emptied.
+
+Blocked/failed access, malformed metadata, 409/423, revocation and late-failure
+cases remain synthetic coverage; no real source failure or access restriction
+was induced. These observations do not establish all terminal-error behavior in
+production or broader source interpretation. Existing membership, role and
+operational gates remain open. No new HHA capture/import or source write occurred.
+
+Aggregate evidence is in `primetime-source-discovery-live-acceptance-2026-10-21.json`
+and `primetime-source-discovery-release-acceptance-2026-10-21.json`. The visually
+checked `primetime-source-date-required.png` contains only generic missing-date
+text, without identities or source timestamps; SHA-256
+`8093ff1f7c2bc400d1729bdbbb9a80a1b5dcdc32acb6beee125011f4c857ea17`.
+
+Rollback is a reviewed revert through the normal release checks; there is no
+data migration or source-record change.
