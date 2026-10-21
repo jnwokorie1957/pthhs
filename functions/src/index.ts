@@ -17,6 +17,8 @@ import { submitTopic } from "./operations/topics.js";
 import { submitDocumentType } from "./operations/documentTypes.js";
 import { AVAILABILITY_WRITES, submitAvailability } from "./operations/availability.js";
 import { logger } from "firebase-functions";
+import { FirebaseFormStore } from "./forms/library.js";
+import { formRoute } from "./forms/routes.js";
 import { onRequest } from "firebase-functions/v2/https";
 import { onSchedule } from "firebase-functions/v2/scheduler";
 import {
@@ -195,6 +197,22 @@ export const primetimeApi = onRequest(
     try { assertLiveDataMode(request.method, path, request.get("X-Primetime-Data-Mode")); }
     catch (error) {
       response.status(error instanceof WorkflowError ? error.status : 400).json({ ok: false, error: error instanceof WorkflowError ? error.code : "invalid_data_mode" });
+      return;
+    }
+
+    if (path === "/forms" || path.startsWith("/forms/")) {
+      if (request.method === "POST" && (!request.is("application/json") || request.rawBody.length > 2_800_000)) {
+        response.status(400).json({ ok: false, error: "invalid_form_request" }); return;
+      }
+      const result = await formRoute(new FirebaseFormStore(), request.method, path, request.method === "GET" ? request.query : request.body, principal.uid, operationalDataApproved.value() === "true");
+      if (result.download) {
+        response.set("Content-Type", result.download.record.contentType);
+        response.set("Content-Disposition", `attachment; filename="${result.download.record.filename}"`);
+        response.set("X-Content-Type-Options", "nosniff");
+        response.set("Content-Security-Policy", "sandbox");
+        response.set("X-Content-SHA256", result.download.record.sha256);
+        response.status(200).send(result.download.bytes);
+      } else response.status(result.status).json(result.body);
       return;
     }
 

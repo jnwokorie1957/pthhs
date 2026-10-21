@@ -6,7 +6,7 @@ import { minify } from 'terser';
 
 export const PRIMETIME_ASSETS = Object.freeze([
   'primetime.css', 'data-source.js', 'demo-data.js', 'dashboard.js',
-  'revisions.js', 'primetime.js', 'workspace.js'
+  'revisions.js', 'primetime.js', 'workspace.js', 'forms.js'
 ]);
 
 const defaultSource = fileURLToPath(new URL('../source/primetime/', import.meta.url));

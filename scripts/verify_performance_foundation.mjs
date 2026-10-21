@@ -188,9 +188,10 @@ const publicBytes = (await Promise.all(publicFiles.map((file) => fs.stat(file)))
 const internalBytes = (await Promise.all(publicFiles.filter(file => isInternalAppFile(file, publicDir)).map(file => fs.stat(file)))).reduce((sum, stat) => sum + stat.size, 0);
 if (publicBytes - internalBytes > 2_000_000) errors.push(`marketing output exceeds 2 MB foundation budget: ${publicBytes - internalBytes}`);
 // The authenticated app now includes source review, Demo/Live and durable
-// follow-up UI. Keep a bounded raw budget plus compressed-transfer and per-file
+// follow-up UI and the private forms library. The latter adds about 8 KB raw.
+// Keep a bounded raw budget plus compressed-transfer and per-file
 // caps; the separate marketing budget remains unchanged.
-if (internalBytes > 360_000) errors.push(`internal app output exceeds 360 KB budget: ${internalBytes}`);
+if (internalBytes > 370_000) errors.push(`internal app output exceeds 370 KB budget: ${internalBytes}`);
 const internalFiles = publicFiles.filter(file => isInternalAppFile(file, publicDir));
 let compressedInternalBytes = 0;
 for (const file of internalFiles) {

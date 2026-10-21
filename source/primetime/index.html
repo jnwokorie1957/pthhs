@@ -57,6 +57,7 @@
         <button class="nav-item" data-view="messages"><span class="nav-icon">✉</span><span>Messages & Alerts</span><span class="nav-badge neutral" data-demo-badge="alerts" hidden></span></button>
         <button class="nav-item" data-view="staffing"><span class="nav-icon">◎</span><span>Staffing</span></button>
         <button class="nav-item" data-view="billing"><span class="nav-icon">$</span><span>Billing & AR</span></button>
+        <button class="nav-item" data-view="forms"><span class="nav-icon">▧</span><span>Forms</span></button>
         <button class="nav-item" data-view="hha"><span class="nav-icon">↻</span><span>HHA Integration</span></button>
         <button class="nav-item" data-view="audit"><span class="nav-icon">≡</span><span>Audit Log</span></button>
         <button class="nav-item" data-view="workbench"><span class="nav-icon">☷</span><span>Advanced tools</span></button>
@@ -135,6 +136,18 @@
         <section class="view" data-view-panel="messages"><div class="section-heading"><div><p class="eyebrow">Communications</p><h2>Messages & alert rules</h2><p>Delivery requires an approved channel and audience policy.</p></div></div><div id="dashboardMessages" class="cards-3"></div></section>
         <section class="view" data-view-panel="staffing"><section class="panel connected-tools"><h3>Operational tools</h3><button type="button" class="btn secondary" data-view-jump="workbench" data-workflow="SearchCaregivers">Read caregiver availability and preferences</button></section><div class="section-heading"><div><p class="eyebrow">Coverage</p><h2>Staffing</h2><p>Availability and assignment rules require validated source evidence.</p></div></div><section class="panel"><h3>Open shifts</h3><div id="dashboardStaffing"></div></section></section>
         <section class="view" data-view-panel="billing"><section class="panel connected-tools"><h3>Operational tools</h3><button type="button" class="btn secondary" data-view-jump="workbench" data-workflow="SearchBilledVisits">Review billed visits</button><button type="button" class="btn secondary" data-view-jump="workbench" data-workflow="SearchPayrollBatches">Review payroll batches</button></section><div class="section-heading"><div><p class="eyebrow">Revenue operations</p><h2>Billing & accounts receivable</h2><p>Hours, charges, submitted claims and payments require distinct source evidence.</p></div></div><div id="dashboardBillingMetrics" class="metric-grid"></div><section class="panel"><h3>Billing pipeline</h3><div id="dashboardBillingPipeline"></div></section></section>
+        <section class="view" data-view-panel="forms" id="formsWorkspace">
+          <div class="section-heading"><div><p class="eyebrow">Private files</p><h2>Forms</h2></div></div>
+          <section class="panel"><h3>Upload a form</h3><p>Save a blank template or a submitted form to private Firebase Storage. Only approved Primetime administrators can access this library. Files are stored as documents; approval, signatures and patient/staff sharing are separate workflows.</p>
+            <form id="formUpload" class="operational-form"><label>Save to<select id="formUploadKind"><option value="templates">Templates</option><option value="submissions">Submissions</option></select></label><label>Form file (PDF, PNG or JPEG; maximum 2 MiB)<input id="formFile" type="file" accept=".pdf,.png,.jpg,.jpeg,application/pdf,image/png,image/jpeg" required></label><button id="formUploadSubmit" type="submit" class="btn primary">Upload form</button></form>
+            <p>Each new file is saved separately. Uploading identical content to the same folder reuses the saved file and its original filename.</p>
+          </section>
+          <section class="panel"><div class="panel-head"><h3>Download forms</h3></div><div class="operational-form"><label>Folder<select id="formLibraryKind"><option value="templates">Templates</option><option value="submissions">Submissions</option></select></label><button id="formsReload" class="btn secondary" type="button">Load files</button><button id="formsNext" class="btn secondary" type="button" disabled>Next files</button></div>
+            <p>Files appear in Storage order, up to 20 per page. Downloads verify the saved file checksum. HHA source documents remain in Advanced tools.</p>
+            <p id="formsStatus" role="status" aria-live="polite">Sign in with Demo data off to use private forms.</p>
+            <div class="table-wrap"><table><caption>Private Firebase forms</caption><thead><tr><th scope="col">Filename</th><th scope="col">Size</th><th scope="col">Uploaded</th><th scope="col">Action</th></tr></thead><tbody id="formsRows"></tbody></table></div>
+          </section>
+        </section>
         <section class="view" data-view-panel="hha">
           <section class="panel"><div class="panel-head"><h3>Persisted import history</h3><button id="refreshIntegration" class="btn secondary" type="button">Check connection and history</button></div><p>The automatic API feed updates a bounded private source-page cache every minute. Read source now also supports direct API reads. This history describes normalized persisted import runs separately; feed-cache updates do not advance it. CSV upload and starting an import are not available in this workspace.</p><p id="integrationSyncDetails" role="status" aria-live="polite">Sign in to check persisted import history.</p></section>
           <div class="section-heading"><div><p class="eyebrow">Reference metadata</p><h2>HHAeXchange integration</h2><p>The captured contract describes operations. Contract presence does not prove account access or source validation.</p></div><span class="status pending" id="hhaConnectionStatus">Unverified</span></div>
@@ -175,5 +188,6 @@
   <script src="/primetime/revisions.js?v=45afe91b7456" defer></script>
   <script src="/primetime/primetime.js?v=7f70136168e0" defer></script>
   <script src="/primetime/workspace.js?v=489b1f422c4b" defer></script>
+  <script src="/primetime/forms.js" defer></script>
 </body>
 </html>
