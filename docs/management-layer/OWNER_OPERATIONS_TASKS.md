@@ -22,6 +22,15 @@
 
 # Current owner checkpoint
 
+## October 21 feed continuation
+
+The deployed dashboard preserves source-record keyboard focus during refresh
+and advances the untouched default date using the office calendar. Current-day
+source/chart, focus pause and resume checks passed; midnight and pending-response
+race cases remain synthetic. Explicit date selections stay fixed. This changes
+display continuity, not clinical/financial rules, source acceptance, imports or
+role permissions. See [verification](FEED_CONTINUATION_2026-10-21.md).
+
 ## October 21 UTC / October 20 local role evidence
 
 The [research](ROLE_WORKFLOW_RESEARCH.txt) now connects source times/hours to

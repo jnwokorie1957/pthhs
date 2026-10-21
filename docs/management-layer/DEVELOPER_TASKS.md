@@ -49,6 +49,13 @@ completeness and operational totals remain unknown.
 
 # Current checkpoint
 
+- [x] October 21 feed continuation released in `42de1d3`; both normal jobs and
+  156 affected data-mode tests passed. Authenticated current-day source/chart,
+  native keyboard-focus pause and explicit resume checks passed. Pending-response
+  focus races, midnight/rollover, explicit-day retention and failure/revocation
+  remain synthetic acceptance. See [verification](FEED_CONTINUATION_2026-10-21.md).
+  No runtime code or source/role authority changed in this independent review.
+
 - [x] October 21 02:32 UTC / October 20 local role research reconciles the
   deployed source-value display fix with patient/family, therapist and office
   screens. Records source values, accepted interpretation and action authority
