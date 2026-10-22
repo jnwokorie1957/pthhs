@@ -22,6 +22,15 @@
 
 # Current owner checkpoint
 
+## October 22 document-role research
+
+The [research](ROLE_WORKFLOW_RESEARCH.txt) records the accepted administrator
+Forms library and proposed patient/family, therapist and office connections.
+Identical file bytes cannot establish a shared patient/encounter, signature or
+review decision. Current source/application/office, sharing, staff assignment,
+form/version and reviewer/action contracts remain the next evidence. Existing
+policy attestation and administrator storage completion remain accepted.
+
 ## October 22 UTC / October 21 local SEO review
 
 Both Search Console sitemaps remain successful with 27 discovered pages; all

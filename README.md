@@ -1,5 +1,11 @@
 # PTHHS
 
+October 22 02:22 UTC role research reconciles accepted administrator Forms
+storage with proposed patient, therapist and office document connections. File
+identity, per-encounter records, workflow receipts and sharing remain distinct;
+external-role prerequisites stay open. See
+[research](docs/management-layer/ROLE_WORKFLOW_RESEARCH.txt).
+
 October 22 Forms initialization candidate: delayed script loading now reads the
 existing active-session state, retaining sign-out and Demo boundaries. Synthetic
 race tests pass; review/publication and authenticated acceptance remain pending.

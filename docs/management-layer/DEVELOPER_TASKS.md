@@ -56,6 +56,12 @@ completeness and operational totals remain unknown.
 
 # Current checkpoint
 
+- [x] October 22 02:22 UTC role research reconciled administrator Forms storage
+  with proposed patient/visit/form-version document instances and current HHA
+  primary guidance. Recorded deduplication, recipient/assignment revocation,
+  exact byte authorization and separate clinical/EVV/billing acceptance cases.
+  Research/checkpoints only; see [research](ROLE_WORKFLOW_RESEARCH.txt).
+
 - [x] October 22 00:29 UTC / October 21 local SEO review passed 132 public-route,
   seventeen artifact, claim/navigation/performance/logo and private-boundary
   checks. Search Console sitemaps remain successful; field samples remain
