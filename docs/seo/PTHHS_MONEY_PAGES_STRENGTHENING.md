@@ -63,6 +63,10 @@ guide's visitor purpose and connected it and the existing care explainer through
 Resources. Both are now homepage-reachable; the 37 remaining graph findings are
 location routes. See [current evidence](2026-10-18-seo-review.md). The remaining
 location inventory still needs availability and useful-content review.
-Sitemap warning details/reprocessing and optional CrUX configuration remain
-owner actions. No growth is established; private HHA/admin acceptance remains
-in the management checklists.
+Sitemap warning review and normal Google reprocessing were completed October 19;
+October 22 verification retains both successful rows and 27 discovered pages.
+The current owner SEO action is actual location availability/useful-content
+validation before further promotion. Comparable settled outcomes and sufficient
+field performance evidence remain open; optional reporting configuration is
+separate. See the [current review](2026-10-22-seo-review.md). No growth is
+established; private HHA/admin acceptance remains in the management checklists.

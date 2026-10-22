@@ -1,5 +1,11 @@
 # PTHHS
 
+October 22 UTC / October 21 local SEO review: public routes/artifacts and private
+indexing/authentication boundaries passed; both sitemaps retain Success and 27
+discovered pages. Field samples remain insufficient. Reconciled the obsolete
+sitemap owner action; public/runtime assets unchanged. See
+[review](docs/seo/2026-10-22-seo-review.md).
+
 October 21 office-today navigation: the administrator can see whether the date
 follows office today or stays selected, and explicitly return to the current
 office-day feed without reloading. Source-only clearing and pending-response

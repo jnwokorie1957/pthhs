@@ -3,6 +3,10 @@
 These files remain useful for planning, but they do not override current public
 facts, payer evidence, or claim-release controls.
 
+- [October 22 SEO and owner-task review](2026-10-22-seo-review.md) - fresh
+  public and Search Console checks, unavailable field samples and reconciliation
+  of the completed sitemap action; public/runtime assets unchanged.
+
 - [October 21 contextual service-link acceptance](2026-10-21-contextual-links.md)
   — seven deployed links, independent wording/destination review, bounded
   production keyboard checks and fresh public/sitemap evidence; no outcome claim.
