@@ -15,8 +15,8 @@ const settled = async f => {
   }
   throw new Error('form action did not settle');
 };
-function fixture() {
-  let clicks = 0, creates = 0, revokes = 0, live = true;
+function fixture({ active = false, initialLive = true, stateAvailable = true } = {}) {
+  let clicks = 0, creates = 0, revokes = 0, live = initialLive;
   class Element extends EventTarget {
     children = []; value = ''; textContent = ''; disabled = false; files = [];
     constructor(tag = '') { super(); this.tag = tag; }
@@ -31,11 +31,11 @@ function fixture() {
   ids.get('formLibraryKind').value = ids.get('formUploadKind').value = 'templates';
   const document = new EventTarget(); document.getElementById = id => ids.get(id); document.createElement = tag => new Element(tag); document.body = new Element('body');
   const calls = []; let handler = async () => json({ ok: true, items: [item], nextCursor: null });
-  vm.runInNewContext(source, { document, window: { primetimeDataMode: { isLive: () => live }, primetimeApiFetch: async (...args) => { calls.push(args); return handler(...args); } },
+  vm.runInNewContext(source, { document, window: { primetimeDataMode: { isLive: () => live, ...(stateAvailable ? { isActive: () => active } : {}) }, primetimeApiFetch: async (...args) => { calls.push(args); return handler(...args); } },
     URL: { createObjectURL() { creates++; return 'blob:synthetic'; }, revokeObjectURL() { revokes++; } }, Blob, crypto: webcrypto, Uint8Array, Date, Error, btoa });
   const event = (id, name = 'click') => ids.get(id).dispatchEvent(new Event(name, { cancelable: true }));
   return { ids, calls, document, event, handler(value) { handler = value; }, live(value) { live = value; document.dispatchEvent(new Event('primetime-data-mode-changed')); },
-    ready() { document.dispatchEvent(new Event('primetime-ready')); }, counts: () => ({ clicks, creates, revokes }) };
+    ready() { active = true; document.dispatchEvent(new Event('primetime-ready')); }, counts: () => ({ clicks, creates, revokes }) };
 }
 test('forms stay disabled while signed out or in Demo; file selection and rows clear on context changes', async () => {
   const f = fixture(); assert.equal(f.ids.get('formUploadSubmit').disabled, true);
@@ -82,4 +82,47 @@ test('pagination uses the server cursor and folder changes discard the old page'
   f.event('formsNext'); await tick(); assert.match(f.calls[1][0], /cursor=page%2B%2F%3D/);
   f.ids.get('formLibraryKind').value = 'submissions'; f.event('formLibraryKind', 'change');
   assert.equal(f.ids.get('formsRows').children.length, 0); assert.equal(f.ids.get('formsNext').disabled, true);
+});
+
+
+test('ready before Forms loads initializes from shared active state without an automatic request', async () => {
+  const f = fixture({ active: true });
+  assert.equal(f.ids.get('formsReload').disabled, false);
+  assert.equal(f.ids.get('formUploadSubmit').disabled, false);
+  assert.match(f.ids.get('formsStatus').textContent, /library ready/);
+  assert.equal(f.calls.length, 0);
+  f.event('formsReload'); await tick();
+  assert.equal(f.ids.get('formsRows').children.length, 1);
+});
+
+test('initialization fails closed without active state and retains ready-after-load and Demo behavior', async () => {
+  for (const options of [{ active: false }, { stateAvailable: false }, { active: 'true' }]) {
+    const f = fixture(options);
+    assert.equal(f.ids.get('formsReload').disabled, true);
+    f.event('formsReload'); await tick(); assert.equal(f.calls.length, 0);
+    f.ready(); assert.equal(f.ids.get('formsReload').disabled, false);
+  }
+  const f = fixture({ active: true, initialLive: false });
+  assert.equal(f.ids.get('formsReload').disabled, true);
+  f.live(true); assert.equal(f.ids.get('formsReload').disabled, false);
+  f.document.dispatchEvent(new Event('primetime-signed-out'));
+  f.live(false); f.live(true);
+  assert.equal(f.ids.get('formsReload').disabled, true);
+  f.event('formsReload'); await tick(); assert.equal(f.calls.length, 0);
+});
+
+test('an initially active Forms session fences stale responses after sign-out or Demo', async () => {
+  for (const change of ['signout', 'demo']) {
+    const f = fixture({ active: true }); let resolve;
+    f.handler(() => new Promise(r => { resolve = r; }));
+    f.event('formsReload'); await tick();
+    assert.equal(typeof resolve, 'function');
+    if (change === 'signout') f.document.dispatchEvent(new Event('primetime-signed-out')); else f.live(false);
+    resolve(json({ ok: true, items: [item], nextCursor: 'next' })); await tick();
+    assert.equal(f.ids.get('formsRows').children.length, 0);
+    assert.equal(f.ids.get('formsReload').disabled, true);
+    assert.equal(f.ids.get('formsNext').disabled, true);
+    assert.match(f.ids.get('formsStatus').textContent, /Sign in/);
+    assert.equal(f.counts().creates, 0);
+  }
 });

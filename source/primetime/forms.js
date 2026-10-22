@@ -2,7 +2,7 @@
   const panel = document.getElementById('formsWorkspace');
   if (!panel) return;
   const $ = id => document.getElementById(id);
-  let generation = 0, busy = false, active = false, nextCursor = null, downloadUrl = null;
+  let generation = 0, busy = false, active = window.primetimeDataMode?.isActive?.() === true, nextCursor = null, downloadUrl = null;
   const available = () => active && window.primetimeDataMode?.isLive() === true;
   const message = text => { $('formsStatus').textContent = text; };
   const controls = ['formFile', 'formUploadKind', 'formUploadSubmit', 'formLibraryKind', 'formsReload', 'formsNext'];

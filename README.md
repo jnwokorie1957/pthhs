@@ -1,5 +1,10 @@
 # PTHHS
 
+October 22 Forms initialization candidate: delayed script loading now reads the
+existing active-session state, retaining sign-out and Demo boundaries. Synthetic
+race tests pass; review/publication and authenticated acceptance remain pending.
+See [verification](docs/management-layer/FORMS_INITIALIZATION_2026-10-22.md).
+
 October 22 UTC / October 21 local SEO review: public routes/artifacts and private
 indexing/authentication boundaries passed; both sitemaps retain Success and 27
 discovered pages. Field samples remain insufficient. Reconciled the obsolete
