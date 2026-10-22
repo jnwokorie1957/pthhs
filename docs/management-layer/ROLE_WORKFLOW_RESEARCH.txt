@@ -1,7 +1,7 @@
 PRIMETIME ROLE AND WORKFLOW RESEARCH
 Updated: October 22, 2026, America/Chicago
 Scope: PTHHS /primetime, repository jnwokorie1957/pthhs.
-Latest research review: October 22, 2026, 13:18 UTC / October 22 America/Chicago; typed visit-maintenance evidence and separate patient/staff requests, office review, clinical documentation and aggregation outcomes. The latest section distinguishes parser readiness from permitted role actions and source-policy mapping. Prior administrator Forms/native acceptance remains dated below.
+Latest research review: October 22, 2026, 19:46 UTC heartbeat / October 22 America/Chicago; field provenance across patient forms, recurring schedules, recorded visit time and authorization/billing evidence. New proposed acceptance keeps copied fields and source bases distinct. Existing administrator acceptance remains dated below; external-role and source-mapping prerequisites remain open.
 
 EVIDENCE BASELINE — DATED OBSERVATIONS; LATER UPDATES BELOW
 The initially observed authorized HHA member calendar showed a patient summary, separate navigation for authorizations, visits, recurring schedules, documents and clinical records, and month navigation. Calendar tiles kept scheduled times, actual times, caregiver names and billed-hour evidence together. The visible authorization grid included payer, dates, discipline, service codes, limits and weekday allowances. Calendar records are observations, not validated business rules. The reviewed source used PCA discipline; it did not establish that those caregivers were physical therapists. At the October 16 review, the HHA browser requires normal sign-in; these are earlier observations, not new tenant evidence.
@@ -726,3 +726,30 @@ https://fhb.hhs.texas.gov/handbooks/electronic-visit-verification-policy-handboo
 https://knowledge.hhaexchange.com/texas/Content/Documentation/Admin/Admin-N-TX-EVV-Aggregation-Transaction-Manager-P.htm
 [R9] HHAeXchange, Control Access to Patient's Clinical Records. Effective assignment and separate document editing permission.
 https://knowledge.hhaexchange.com/texas/Content/Documentation/Patient/Pat-N-Control-Access-Patient-P.htm
+
+FORM FIELD PROVENANCE AND ROLE HANDOFF — OCTOBER 22, 2026, 19:46 UTC HEARTBEAT / OCTOBER 22 AMERICA/CHICAGO
+Baseline: clean/aligned 3167d11f45fdb3785bb4e4fca829800722294ceb after upstream refresh. This is design research, not an enabled form or tenant mapping.
+
+OBSERVED IMPLEMENTATION
+The administrator Forms record stores byte identity, folder, filename, type, size, hash and upload time; it has no patient/visit instance or per-field origin. Existing strict session/Live/generation checks and checksum downloads remain accepted. The authorization viewer verifies patient/office context and labels units, balance period and usage basis unvalidated. Latest protected feed/chart evidence is dated 19:36 UTC. Current browser inventory has no HHA tab, so no private form, tenant setting or current source record was examined.
+
+DOCUMENTED PRODUCT DISTINCTIONS
+R40 maps certain scheduled/authorized form fields to Master Week and recorded-time fields to calendar EVV. It also describes editable prefilled values and copying from an earlier visit. These mappings do not establish equivalence to similarly named SOAP fields, a valid authorization balance or current-encounter truth.
+R12 separately identifies contract, discipline, service and period context. R13 describes feature- and rate-dependent allocation using billable service, with contract settings and adjustments. Neither reference supplies this agency's configuration or a formula to infer remaining units from the current ten-row dashboard.
+
+ROLE DESIGN — PROPOSED
+Patient/family documents should expose only explicitly shared instances, with understandable origin/correction information. Staff/PT drafts should distinguish current-visit evidence, recurring-plan values and copied prior-visit content; copied content stays unconfirmed until reviewed under the applicable form/version contract. Office review should preserve original and edited field origins beside the existing schedule/actual/EVV/authorization evidence. An ambiguous form label must not silently select an authorization or billing basis.
+
+SHARED CONTRACT AND ACCEPTANCE
+A future field mapping needs its form/version/field key, permitted source field/path, office/patient/visit or recurrence identity, effective dates, source receipt/version, raw unit/time basis, copy origin and permitted edits. This supplements the existing document-instance, assignment, sharing, reviewer/signature and retention contracts; a file checksum or free-text assignee cannot replace them.
+P2 acceptance should cover different recurring-plan and visit values; absent EVV with supplied actual hours; copied earlier-visit content; later source/form-version changes; and cross-office or revoked recipients. Preserve provenance and unknowns instead of substituting another time basis or advancing signed/reviewed/billing states. Use synthetic cases first, then a permitted same-record/form-version comparison.
+
+Existing P0 protections and accepted Forms/feed/P1-P work remain intact. P1-B membership and external-role prerequisites remain open. Next owner evidence is still the intended signed-in application/office/day/filter relationship and protected same-record/unit/period comparison, followed by approved candidate form/version/field-source and reviewer/action examples. Existing policy attestation is not reopened. No source write, clinical/financial decision, permission change, private file action or communication occurred.
+
+PRIMARY SOURCES — RECHECKED OCTOBER 22, 2026, 19:46 UTC PASS
+[R40] HHAeXchange, Patient Forms Feature. Product field origins and prior-visit copying; not a verified agency/SOAP mapping.
+https://knowledge.hhaexchange.com/texas/Content/Documentation/Patient/Pat-N-Forms-Feature-P.htm
+[R12] HHAeXchange, Authorizations. Contract, service, discipline and period context.
+https://knowledge.hhaexchange.com/enterprise/Content/Documentation/Patient/Pat-N-Authorizations-P.htm
+[R13] HHAeXchange, Utilize Billable Service for Authorization Allocation. Feature/rate/contract-specific usage; no agency formula adopted.
+https://knowledge.hhaexchange.com/texas/Content/Documentation/Billing/Bill-N-Utilize-Billable-Service-P.htm
