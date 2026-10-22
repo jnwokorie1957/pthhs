@@ -1,5 +1,11 @@
 # PTHHS Management Layer — Developer Checklist
 
+October 22 reason/action evidence candidate: an additive typed projection retains
+nested action descriptions and repeated reason associations while preserving the
+legacy read fields. The vendor contract gate remains blocked; no live read or
+correction is enabled. See [verification](REASON_ACTION_EVIDENCE_2026-10-22.md).
+
+
 October 21 private Forms screen: administrator upload/list/download is connected
 to Firebase Storage. Both normal release jobs passed; synthetic template and
 submission round trips, exact downloaded bytes, duplicate reuse, invalid-content

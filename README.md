@@ -1,5 +1,11 @@
 # PTHHS
 
+October 22 reason/action evidence candidate: an additive typed projection retains
+nested action descriptions and repeated reason associations while preserving the
+legacy read fields. The vendor contract gate remains blocked; no live read or
+correction is enabled. See [verification](docs/management-layer/REASON_ACTION_EVIDENCE_2026-10-22.md).
+
+
 October 22 02:22 UTC role research reconciles accepted administrator Forms
 storage with proposed patient, therapist and office document connections. File
 identity, per-encounter records, workflow receipts and sharing remain distinct;

@@ -618,7 +618,30 @@ function dashboardVisitIds(xml: string): Record<string, string | null>[] {
   }
 }
 
-export interface OperationalRead { operation: ReadOperation; fetchedAt: string; source: "hhaexchange"; validation: "source_unvalidated"; timezone: "source_values_unconverted"; records: Record<string, string | null>[]; truncated: boolean; attachment?: { filename: string; byteLength: number; base64: string; contentType: "application/octet-stream" }; changePreview?: { timeBasis: "vendor_EST_wall_time_unconverted" | "UTC"; modifiedAfter: string; page: string | null; completeness: "not_inferred"; checkpointAdvanced: false }; }
+export interface VisitEditActionEvidence {
+  id: string | null; label: string | null; description: string | null; status: string | null;
+}
+export interface VisitEditReasonEvidence extends VisitEditActionEvidence {
+  actions: VisitEditActionEvidence[];
+}
+// Additive evidence only: retain the legacy records/Actions strings for existing
+// consumers. Order and repeated IDs are source associations, not deduplication keys.
+function visitEditReasonEvidence(xml: string): VisitEditReasonEvidence {
+  const scalar = (body: string, name: string): string | null => {
+    const elements = directChildElements(body, name);
+    if (elements.length !== 1) return null;
+    try { return extractExactElementText(elements[0]!, name) ?? null; }
+    catch { return null; } // Unreadable evidence is unknown, never an approval.
+  };
+  const fields = (body: string, prefix: string, status: string): VisitEditActionEvidence => ({
+    id: scalar(body, prefix + "ID"), label: scalar(body, prefix),
+    description: scalar(body, prefix + "Description"), status: scalar(body, status),
+  });
+  return { ...fields(xml, "VisitEditReason", "VisitEditStatus"),
+    actions: directChildElements(xml, "VisitEditActionTakenInfo").map(element =>
+      fields(extractElementBody(element, "VisitEditActionTakenInfo") ?? "", "VisitEditActionTakenReason", "VisitEditActionTakenStatus")) };
+}
+export interface OperationalRead { operation: ReadOperation; fetchedAt: string; source: "hhaexchange"; validation: "source_unvalidated"; timezone: "source_values_unconverted"; records: Record<string, string | null>[]; truncated: boolean; visitEditReasons?: VisitEditReasonEvidence[]; attachment?: { filename: string; byteLength: number; base64: string; contentType: "application/octet-stream" }; changePreview?: { timeBasis: "vendor_EST_wall_time_unconverted" | "UTC"; modifiedAfter: string; page: string | null; completeness: "not_inferred"; checkpointAdvanced: false }; }
 export function boundedAttachment(record: Record<string, string | null>, identity: string, expected: string) {
   if (record[identity] !== expected) throw new WorkflowError("download_identity_mismatch", 502);
   const encoded = (record.StreamData || "").replace(/\s/g, "");
@@ -643,6 +666,7 @@ export async function operationalRead(client: Pick<HhaSoapClient, "call">, input
     throw new WorkflowError("hha_read_failed", 502);
   }
   let records: Record<string, string | null>[];
+  let visitEditReasons: VisitEditReasonEvidence[] | undefined;
   if (input.operation === "SearchVisitsV2" || input.operation === "SearchPatients" || input.operation === "SearchCaregivers") {
     const [container, field] = input.operation === "SearchVisitsV2" ? ["Visits", "VisitID"] : input.operation === "SearchPatients" ? ["Patients", "PatientID"] : ["Caregivers", "CaregiverID"];
     const values = extractElementBody(response.resultXml, container!) ?? "";
@@ -659,6 +683,7 @@ export async function operationalRead(client: Pick<HhaSoapClient, "call">, input
       if (bodies.length && alternate.length) throw new WorkflowError("ambiguous_change_response_shape", 502);
       if (!bodies.length) bodies = alternate;
     }
+    if (input.operation === "GetVisitEditReasonActionTaken") visitEditReasons = bodies.slice(0, 200).map(visitEditReasonEvidence);
     records = bodies.map(xml => {
       const projected = Object.fromEntries(projection.fields.map(name => [name, field(xml, name)]));
       if (input.operation === "GetVisitInfoV2" || input.operation === "GetVisitInfoV3") Object.assign(projected, verificationReceiptFields(xml));
@@ -696,5 +721,5 @@ export async function operationalRead(client: Pick<HhaSoapClient, "call">, input
   // Only the bounded dashboard ID discovery retains every received identifier.
   // Other operational previews preserve their existing projection limit.
   const retainVisitIds = input.operation === "SearchVisitsV2" && projectionScope === "visit_discovery";
-  return { operation: input.operation, fetchedAt: new Date().toISOString(), source: "hhaexchange", validation: "source_unvalidated", timezone: "source_values_unconverted", records: retainVisitIds ? records : records.slice(0, 200), ...(attachment ? { attachment } : {}), truncated: !retainVisitIds && records.length > 200, ...([...EST_CHANGE_READS, ...UTC_CHANGE_READS].includes(input.operation) ? { changePreview: { timeBasis: UTC_CHANGE_READS.includes(input.operation) ? "UTC" as const : "vendor_EST_wall_time_unconverted" as const, modifiedAfter: UTC_CHANGE_READS.includes(input.operation) ? input.modifiedAfterUtc! : input.modifiedAfter!, page: input.operation === "GetVisitChangesV4" ? input.page || "1" : null, completeness: "not_inferred" as const, checkpointAdvanced: false as const } } : {}) };
+  return { operation: input.operation, fetchedAt: new Date().toISOString(), source: "hhaexchange", validation: "source_unvalidated", timezone: "source_values_unconverted", records: retainVisitIds ? records : records.slice(0, 200), ...(attachment ? { attachment } : {}), ...(visitEditReasons ? { visitEditReasons } : {}), truncated: !retainVisitIds && records.length > 200, ...([...EST_CHANGE_READS, ...UTC_CHANGE_READS].includes(input.operation) ? { changePreview: { timeBasis: UTC_CHANGE_READS.includes(input.operation) ? "UTC" as const : "vendor_EST_wall_time_unconverted" as const, modifiedAfter: UTC_CHANGE_READS.includes(input.operation) ? input.modifiedAfterUtc! : input.modifiedAfter!, page: input.operation === "GetVisitChangesV4" ? input.page || "1" : null, completeness: "not_inferred" as const, checkpointAdvanced: false as const } } : {}) };
 }
