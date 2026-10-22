@@ -68,9 +68,10 @@ completeness and operational totals remain unknown.
   clearing and request ownership retain unrelated panels on success/failure.
   All 282 frontend/tooling tests pass, including seven new regressions.
   See [verification](OFFICE_TODAY_NAVIGATION_2026-10-21.md).
-- [ ] Verify P1-P through normal CI and authenticated native date-selection,
-  return/cache/chart and focus checks; failure/revocation/midnight/race cases
-  remain synthetic. No source write or role grant is needed.
+- [x] P1-P normal CI and authenticated native date-selection, return/cache/chart,
+  focus and paused-feed checks passed. Unrelated panels/Forms stayed unchanged.
+  Failure/revocation/midnight/race cases remain synthetic. No source write or
+  role grant was added.
 
 - [x] October 21 feed continuation released in `42de1d3`; both normal jobs and
   156 affected data-mode tests passed. Authenticated current-day source/chart,

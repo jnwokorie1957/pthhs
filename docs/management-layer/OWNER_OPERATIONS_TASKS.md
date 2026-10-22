@@ -22,13 +22,13 @@
 
 # Current owner checkpoint
 
-## October 21 office-today navigation implementation
+## October 21 office-today navigation
 
 The new date description distinguishes office-day following from an explicit
 selection. Return to office today restores the current-day source cache while
 preserving unrelated panels and source/office access gates. All 282 local
-frontend/tooling tests pass; normal release and native production acceptance
-remain pending. This is administrator navigation, not an import, policy decision
+frontend/tooling tests, both normal jobs and native date/return/paused-feed/chart
+checks passed. This is administrator navigation, not an import, policy decision
 or external-role grant. See [verification](OFFICE_TODAY_NAVIGATION_2026-10-21.md).
 
 ## October 21 private form uploads and downloads

@@ -43,8 +43,32 @@ Unrelated panels are retained on success and failure. Backend code is unchanged;
 its suite is not repeated locally for this frontend change.
 
 Windows site checks, generated assets, repository integrity and diff checks
-passed. The normal GitHub/Firebase workflow and subsequent
-authenticated production acceptance remain pending at this implementation
-checkpoint. Synthetic clock, failure, revocation and race checks are distinct
-from any later production observation. No real midnight or clinical workflow
-acceptance is inferred.
+passed. Concurrent private Forms work through `efe0f4e` was preserved; assets
+were rebuilt from the combined source and all 282 frontend/tooling tests rerun.
+Backend changes belong to that separately accepted Forms release.
+
+## Authenticated production acceptance
+
+Feature `aa53a37d0a7afca10e0ef4135a27c692ef175886` passed both normal jobs in
+[workflow 39699004309](https://github.com/jnwokorie1957/pthhs/actions/runs/39699004309)
+on the first attempt (Hosting 00:20:10 UTC; backend 00:20:25 UTC, October 22 /
+October 21 America/Chicago). At 00:20:50 UTC, HTML and all eight referenced app
+assets matched tested bytes. Private noindex/nofollow/noarchive and anonymous
+session/feed 401 boundaries remained intact.
+
+The normal signed-in UI showed Following office today and the configured
+timezone. Native date entry selected the previous day; both controls changed
+and the description said the selected date stays fixed. Native Enter on Return
+to office today restored both controls to the office day, cleared the prior
+receipt/cursors while pending, kept focus on the activated button and loaded
+the scheduled cache. Ten readable details and all six chart values, native
+progress attributes, denominators and accessible labels matched source fields.
+Unrelated panel and Forms content stayed unchanged. A separate explicit pause
+followed by Return restored the enabled feed and office-day following.
+
+No private form was uploaded, downloaded or modified during this verification.
+Raw source fields and IDs were compared only in protected UI/transient memory;
+saved artifacts contain aggregate checks and a generic control/date proof crop.
+Current-day evidence is bounded to the displayed source page. Synthetic clock,
+failure, revocation and race checks remain distinct; no real midnight, complete
+office census, clinical workflow or external-role acceptance is inferred.
