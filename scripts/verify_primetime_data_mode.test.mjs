@@ -2570,3 +2570,147 @@ test('Clear during midnight rollover fences late success and failure without res
     assert.equal(app.timers.size, 0);
   }
 });
+
+test('office-today navigation distinguishes explicit dates, resumes the cache and preserves unrelated panels', async () => {
+  const app = await apiFeedFixture(undefined, '2026-10-21T01:00:00Z');
+  assert.match(app.element('apiFeedDateContext').textContent, /Following office today: 2026-10-20/);
+  app.element('dashboardOverviewDate').value = '2026-10-19';
+  for (const fn of app.element('dashboardOverviewDate').handlers.get('change')) fn(new Event('change'));
+  await tick(); await tick();
+  assert.match(app.element('apiFeedDateContext').textContent, /Selected date: 2026-10-19.*stays fixed/);
+  await app.click('apiFeedToggle');
+  const panels = ['dashboardMessages','dashboardBillingMetrics','dashboardAudit','dashboardSettings'];
+  const original = panels.map(id => app.element(id).children.slice());
+  const before = app.calls.length;
+  await app.click('apiFeedToday'); await tick(); await tick();
+  assert.equal(app.element('dashboardOverviewDate').value, '2026-10-20');
+  assert.equal(app.element('dashboardVisitDate').value, '2026-10-20');
+  assert.match(app.element('apiFeedDateContext').textContent, /Following office today: 2026-10-20.*America\/Chicago/);
+  assert.equal(app.document.activeElement, app.element('apiFeedToday'));
+  assert.equal(app.element('apiFeedToggle').textContent, 'Pause live feed');
+  assert.equal(app.element('dashboardVisitPrevious').hidden, true);
+  assert.ok(app.calls.slice(before).every(call => call.path.includes('/views/feed?')));
+  assert.equal(app.calls.length - before, 1, 'explicit return reads only the existing cache');
+  panels.forEach((id,i) => assert.deepEqual(app.element(id).children, original[i], id));
+});
+
+test('returning today fences a pending historical read without clearing unrelated work or accepting its late result', async () => {
+  for (const failure of [false,true]) {
+    const app = await apiFeedFixture(undefined, '2026-10-21T01:00:00Z');
+    const old = deferred(), latest = deferred(), original = app.window.primetimeApiFetch; let oldPath, feedPath;
+    app.window.primetimeApiFetch = path => {
+      if (path.includes('/views/visits?')) { oldPath = path; return old.promise; }
+      if (path.includes('/views/feed?')) { feedPath = path; return latest.promise; }
+      return original(path);
+    };
+    app.element('dashboardVisitDate').value = '2026-10-19';
+    for (const fn of app.element('dashboardVisitDate').handlers.get('change')) fn(new Event('change'));
+    await tick(); const unrelated = app.element('dashboardMessages').children.slice();
+    await app.click('apiFeedToday');
+    assert.equal(app.element('dashboardVisitMetadata').textContent, '');
+    assert.match(nodeText(app.element('dashboardVisitRows')), /Loading office today/);
+    assert.deepEqual(app.element('dashboardMessages').children, unrelated);
+    if (failure) old.reject(new Error('obsolete historical failure')); else old.resolve(response(numberedSourcePage(oldPath)));
+    await tick(); await tick();
+    assert.match(nodeText(app.element('dashboardVisitRows')), /Loading office today/);
+    latest.resolve(response(scheduledFeedPage(feedPath))); await tick(); await tick();
+    assert.match(app.element('apiFeedStatus').textContent, /Connected/);
+    assert.equal(app.element('dashboardVisitDate').value, '2026-10-20');
+    assert.match(nodeText(app.element('dashboardVisitRows')), /900001/);
+  }
+});
+
+test('an obsolete feed completion cannot release a newer return-today request or schedule over its timer', async () => {
+  for (const failure of [false,true]) {
+    const old = deferred(), latest = deferred(); let oldPath, newPath, count = 0;
+    const app = await apiFeedFixture(path => { if (++count === 1) { oldPath = path; return old.promise; } newPath = path; return latest.promise; });
+    await app.runFeed(); await app.click('apiFeedToday'); await tick();
+    assert.equal(count, 2, 'return starts a current request even when the aborted adapter has not settled');
+    if (failure) old.reject(new Error('obsolete feed failure')); else old.resolve(response(scheduledFeedPage(oldPath)));
+    await tick(); await tick();
+    assert.equal(app.timers.size, 0, 'old completion must not schedule a check over the current request');
+    assert.match(nodeText(app.element('dashboardVisitRows')), /Loading office today/);
+    latest.resolve(response(scheduledFeedPage(newPath))); await tick(); await tick();
+    assert.match(app.element('apiFeedStatus').textContent, /Connected/);
+    assert.equal([...app.timers.values()].filter(timer => timer.delay === 60000).length, 1);
+  }
+});
+
+test('return today restores the office-calendar default across daylight and standard-time midnights', async () => {
+  for (const [before,after,day] of [['2026-10-21T04:59:59Z','2026-10-21T05:00:01Z','2026-10-21'],['2026-11-02T05:59:59Z','2026-11-02T06:00:01Z','2026-11-02']]) {
+    const app = await apiFeedFixture(undefined, before);
+    app.element('dashboardVisitDate').value = '2026-10-18';
+    for (const fn of app.element('dashboardVisitDate').handlers.get('change')) fn(new Event('change'));
+    await tick(); await tick(); await app.click('apiFeedToday'); await tick(); await tick();
+    app.clock.set(after); await app.runFeed();
+    assert.equal(app.element('dashboardVisitDate').value, day);
+    assert.match(app.element('apiFeedDateContext').textContent, new RegExp(`Following office today: ${day}`));
+    assert.match(app.element('apiFeedStatus').textContent, /Connected/);
+  }
+});
+
+test('today navigation cannot dispatch through missing timezone, owner denial, Demo or signed-out controls', async () => {
+  for (const change of ['timezone','invalid-zone','office','owner','reads','demo','session']) {
+    const app = await apiFeedFixture();
+    if (change === 'demo') app.window.primetimeDataMode.setMode('demo');
+    else if (change === 'session') app.dispatch('primetime-signed-out');
+    else {
+      const original = app.window.primetimeApiFetch;
+      const changed = structuredClone(liveMetadata);
+      if (change === 'timezone') changed.settings.officeTimezone = '';
+      if (change === 'invalid-zone') changed.settings.officeTimezone = 'Unavailable/Timezone';
+      if (change === 'office') changed.settings.officeId = '';
+      if (change === 'owner') changed.dataApproved = false;
+      if (change === 'reads') changed.panels.visits.available = false;
+      app.window.primetimeApiFetch = path => path.endsWith('/data/status') ? response(changed) : original(path);
+      await app.click('dashboardOverviewRefresh');
+    }
+    await tick(); await tick();
+    assert.equal(app.element('apiFeedToday').disabled, true, change);
+    const calls = app.calls.length, date = app.element('dashboardVisitDate').value;
+    await app.click('apiFeedToday'); await tick();
+    assert.equal(app.calls.length, calls, change);
+    assert.equal(app.element('dashboardVisitDate').value, date, change);
+  }
+});
+
+test('clearing or changing scope during return today prevents late cache evidence and leaves the current state in charge', async () => {
+  for (const change of ['clear','office','policy','demo','session']) {
+    const pending = deferred(); let path;
+    const app = await apiFeedFixture(value => { path = value; return pending.promise; });
+    app.window.primetimeDataMode.observeScope({...liveMetadata.settings,revision:1});
+    await app.click('apiFeedToday');
+    if (change === 'clear') await app.click('dashboardOverviewClear');
+    if (change === 'office' || change === 'policy') app.window.primetimeDataMode.observeScope({officeId:change === 'office'?'999':'123',officeTimezone:'America/Chicago',revision:2});
+    if (change === 'demo') app.window.primetimeDataMode.setMode('demo');
+    if (change === 'session') app.dispatch('primetime-signed-out');
+    for (let i = 0; i < 6; i++) await tick();
+    const status = app.element('dashboardVisitStatus').textContent;
+    const obsolete = scheduledFeedPage(path); obsolete.items[0].id = '999999';
+    pending.resolve(response(obsolete)); await tick(); await tick();
+    assert.equal(app.element('dashboardVisitStatus').textContent, status, change);
+    assert.doesNotMatch(nodeText(app.element('dashboardVisitRows')), /999999/, change);
+    if (change === 'clear') assertSourcePageCleared(app);
+    if (change === 'demo') assert.match(nodeText(app.element('dashboardVisitRows')), /DEMO-/);
+    if (change === 'session') assert.doesNotMatch(nodeText(app.element('dashboardVisitRows')), /900001/);
+  }
+});
+
+test('a failed return today clears source evidence and retries without removing unrelated panels', async () => {
+  for (const failure of ['error','expired']) {
+    const app = await apiFeedFixture(path => {
+      if (failure === 'error') return {...response({ok:false}),ok:false,status:503};
+      const page = scheduledFeedPage(path); page.feed.checkedAt = new Date(Date.parse(page.fetchedAt)+181000).toISOString();
+      return response(page);
+    });
+    const panels = ['dashboardMessages','dashboardBillingMetrics','dashboardAudit','dashboardSettings'];
+    const original = panels.map(id => app.element(id).children.slice());
+    await app.click('apiFeedToday'); await tick(); await tick();
+    assert.doesNotMatch(nodeText(app.element('dashboardVisitRows')), /900001/);
+    assert.equal(app.element('dashboardVisitMetadata').textContent, '');
+    assert.equal(app.element('apiFeedToday').disabled, true);
+    assert.match(app.element('apiFeedDateContext').textContent, /unavailable/);
+    assert.equal([...app.timers.values()].filter(timer => timer.delay === 60000).length, 1);
+    panels.forEach((id,i) => assert.deepEqual(app.element(id).children, original[i], id));
+  }
+});

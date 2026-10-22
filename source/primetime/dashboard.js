@@ -109,6 +109,7 @@
   let feedReceipt = null;
   let feedPolling = false;
   function stopFeedTimer() { if (feedTimer !== null) clearTimeout(feedTimer); feedTimer = null; }
+  function cancelFeedRead() { feedAbort?.abort(); feedAbort = null; feedPolling = false; }
   function feedControls(message) {
     if (!feedInstalled) return;
     get('apiFeedControl').hidden = !ready || !controller.isLive();
@@ -117,6 +118,7 @@
     text('apiFeedStatus', message || (feedEnabled
       ? 'Automatic HHA API feed enabled. The server updates the first source page every minute; this page checks every minute.'
       : 'Live feed display paused. The server continues updating. Resume to read its latest page.'));
+    renderDateContext();
   }
   function currentOfficeDay() {
     if (!metadata?.settings?.officeTimezone) return null;
@@ -126,6 +128,22 @@
     } catch { return null; }
   }
   function feedDay() { return Boolean(dateInput?.value && dateInput.value === currentOfficeDay()); }
+  function canReturnToday() {
+    return feedInstalled && ready && controller.isLive() && metadata?.dataApproved === true
+      && metadata.panels?.visits?.available === true && typeof metadata.settings?.officeId === 'string'
+      && /^[1-9]\d{0,9}$/.test(metadata.settings.officeId) && Boolean(currentOfficeDay());
+  }
+  function renderDateContext() {
+    const control = get('apiFeedToday'), description = get('apiFeedDateContext');
+    if (control) control.disabled = !canReturnToday();
+    if (!description) return;
+    const day = currentOfficeDay(), selected = dateInput?.value || 'not selected';
+    const message = !canReturnToday() ? 'Office date navigation is unavailable until live source access and the office timezone are checked.'
+      : dateChosen ? `Selected date: ${selected} · stays fixed. Office today: ${day} (${metadata.settings.officeTimezone}).`
+      : selected === day ? `Following office today: ${day} (${metadata.settings.officeTimezone}).`
+      : `Following office today when updates resume. Displayed date: ${selected}. Office today: ${day} (${metadata.settings.officeTimezone}).`;
+    if (description.textContent !== message) description.textContent = message;
+  }
   function pauseForSourceFocus() {
     if (!document.activeElement?.closest?.('#dashboardVisitRows, #dashboardTimeline, #dashboardEvidenceChart')) return false;
     pauseFeed('Live feed display paused while working with source records. The server continues updating; Resume reads its latest page.');
@@ -139,7 +157,7 @@
     feedTimer = setTimeout(() => { feedTimer = null; void pollFeed(); }, 60_000);
   }
   function pauseFeed(message) {
-    feedEnabled = false; stopFeedTimer(); feedAbort?.abort(); feedAbort = null;
+    feedEnabled = false; stopFeedTimer(); cancelFeedRead();
     feedControls(message);
   }
   async function pollFeed() {
@@ -195,16 +213,18 @@
     } catch {
       if (!current(captured) || !feedEnabled || request.signal.aborted) return;
       if (document.visibilityState === 'hidden' || pauseForSourceFocus() || !feedDay()) return;
-      clearSource();
+      invalidateSourceContext(); abort?.abort(); abort = null; metadata = null;
+      resetPaging(); sourceClearControls(false); refreshDisabled(!ready);
       liveOverviewState('Live API feed temporarily unavailable', 'The next automatic check will retry. Old source values have been removed.');
       unavailable('dashboardVisitRows', 'Live API feed temporarily unavailable', 'Retrying automatically; no example values are substituted.');
+      text('dashboardVisitMetadata', ''); text('dashboardVisitCompleteness', '');
+      text('dashboardVisitScope', 'Source access will be checked on the next read.');
       text('dataModeBadge', 'Live · feed unavailable'); text('environmentDetails', 'API feed update unavailable');
       text('dashboardVisitStatus', 'API feed update unavailable. Automatic retry in one minute.');
       feedControls('API feed update unavailable. Retrying in one minute; old source values are cleared.');
-    } finally {
-      feedPolling = false;
-      if (feedAbort === request) feedAbort = null;
       scheduleFeed();
+    } finally {
+      if (feedAbort === request) { feedPolling = false; feedAbort = null; scheduleFeed(); }
     }
   }
   const localDay = () => {
@@ -368,7 +388,7 @@
   }
   function invalidateSourceContext(fromFeed = false) {
     stopFeedTimer();
-    if (!fromFeed) feedAbort?.abort();
+    if (!fromFeed) cancelFeedRead();
     feedReceipt = null;
     clearPageFetchAge();
     serial += 1;
@@ -395,6 +415,7 @@
     nextPageButton(false);
     refreshDisabled(!ready);
     document.querySelectorAll('[data-demo-badge]').forEach(badge => { badge.textContent = ''; badge.hidden = true; });
+    renderDateContext();
   }
   function clearLoadedPage() {
     if (!ready || !controller.isLive() || !sourceClearable) return false;
@@ -411,6 +432,7 @@
     text('dataModeBadge', 'Live · no source page');
     text('environmentDetails', 'No source page loaded');
     refreshDisabled(!ready);
+    renderDateContext();
     return true;
   }
   function renderMode() {
@@ -563,6 +585,7 @@
         try { const parts = new Intl.DateTimeFormat('en', { timeZone: settings.officeTimezone, year: 'numeric', month: '2-digit', day: '2-digit' }).formatToParts(new Date()); dateInput.value = ['year', 'month', 'day'].map(type => parts.find(part => part.type === type)?.value).join('-'); if (get('dashboardOverviewDate')) get('dashboardOverviewDate').value = dateInput.value; } catch { /* A user-selected date remains available. */ }
       }
       text('dashboardVisitScope', `Office: ${settings.officeId || 'Unconfigured'} · Timezone: ${settings.officeTimezone || 'Unconfigured'}`);
+      renderDateContext();
       if (payload.dataApproved !== true || payload.panels?.visits?.available !== true) {
         const detail = blockedMessage(payload.panels?.visits?.blockedReason);
         text('dataModeBadge', 'Live · unavailable');
@@ -656,11 +679,13 @@
   dateInput?.addEventListener('change', () => {
     dateChosen = true;
     if (get('dashboardOverviewDate')) get('dashboardOverviewDate').value = dateInput.value;
+    renderDateContext();
     if (controller.isLive()) void loadVisits(); else { demoOffset = 0; renderMode(); }
   });
   get('dashboardOverviewDate')?.addEventListener('change', () => {
     dateChosen = true;
     if (dateInput) dateInput.value = get('dashboardOverviewDate').value;
+    renderDateContext();
     if (controller.isLive()) void loadVisits(); else { demoOffset = 0; renderMode(); }
   });
   const refresh = () => {
@@ -694,9 +719,28 @@
     if (feedEnabled) pauseFeed();
     else { feedEnabled = true; feedControls(); void pollFeed(); }
   });
+  get('apiFeedToday')?.addEventListener('click', () => {
+    if (!canReturnToday()) { renderDateContext(); return; }
+    const day = currentOfficeDay();
+    invalidateSourceContext(); abort?.abort(); abort = null;
+    resetPaging(); dateChosen = false;
+    dateInput.value = day;
+    if (get('dashboardOverviewDate')) get('dashboardOverviewDate').value = day;
+    const detail = 'Reading office today. Previous source page values have been cleared.';
+    liveOverviewState('Loading office today', detail);
+    unavailable('dashboardVisitRows', 'Loading office today', detail);
+    text('dashboardVisitMetadata', ''); text('dashboardVisitCompleteness', '');
+    text('dashboardVisitStatus', detail);
+    text('dashboardVisitScope', `Office: ${metadata.settings.officeId} · Date: ${day} · Timezone: ${metadata.settings.officeTimezone}`);
+    text('dataModeBadge', 'Live · loading'); text('environmentDetails', 'Loading office today');
+    sourceClearControls(true); refreshDisabled(false);
+    feedEnabled = true; feedControls();
+    get('apiFeedToday')?.focus();
+    void pollFeed();
+  });
   document.addEventListener('visibilitychange', () => {
     stopFeedTimer();
-    if (document.visibilityState === 'hidden') { feedAbort?.abort(); feedControls('Dashboard checks paused while hidden. The server API feed continues every minute.'); }
+    if (document.visibilityState === 'hidden') { cancelFeedRead(); feedControls('Dashboard checks paused while hidden. The server API feed continues every minute.'); }
     else if (feedEnabled && ready && controller.isLive()) void pollFeed();
   });
   document.addEventListener('primetime-data-mode-changed', () => { renderMode(); if (ready && controller.isLive()) void loadMetadata(); });

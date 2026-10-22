@@ -84,7 +84,8 @@
         <p id="fetchAgeUpdateStatus" class="source-metadata" aria-live="polite"></p>
       </section>
       <section id="apiFeedControl" class="fetch-age-control" aria-label="Automatic HHA API feed" data-enabled="true" hidden>
-        <button id="apiFeedToggle" type="button" class="btn secondary" disabled>Pause live feed</button>
+        <div class="heading-actions"><button id="apiFeedToggle" type="button" class="btn secondary" disabled>Pause live feed</button><button id="apiFeedToday" type="button" class="btn secondary" aria-describedby="apiFeedDateContext" disabled>Return to office today</button></div>
+        <p id="apiFeedDateContext" class="source-metadata" aria-live="off">Office date context is checked after sign-in.</p>
         <p id="apiFeedStatus" class="source-metadata" role="status" aria-live="polite">Sign in to connect the HHA API feed.</p>
       </section>
       <main id="workspace" class="workspace" tabindex="-1">

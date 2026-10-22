@@ -634,3 +634,6 @@ https://www.w3.org/WAI/WCAG22/Understanding/on-input.html
 https://knowledge.hhaexchange.com/texas/Content/Documentation/Patient/Pat-N-Schedule-P.htm
 [R10, rechecked] HHAeXchange Forms. Configured office/visit/form availability and distinct documentation stages.
 https://knowledge.hhaexchange.com/enterprise/Content/Documentation/Clinical/Clinical-N-HHAX-Forms-Basic.htm
+
+OFFICE-TODAY NAVIGATION IMPLEMENTATION — OCTOBER 21, 2026
+P1-P is implemented locally: the date description distinguishes following office today from a fixed selection, and the explicit Return to office today action restores the configured office-day default and reads the existing protected feed cache. It clears source evidence/cursors while retaining unrelated panels on success/failure, preserves activated-button focus and fences old page/feed responses. It adds no source operation, polling interval, import, role grant or source mutation. All 282 frontend/tooling tests pass, including 163 data-mode cases and seven new date/scope/cancellation/failure regressions. Backend unchanged. Normal release and authenticated native acceptance remain pending at this implementation checkpoint. See OFFICE_TODAY_NAVIGATION_2026-10-21.md. External-role reuse remains dependent on the separately recorded account/office/assignment/action/sharing/form/version/reviewer/signature contracts.

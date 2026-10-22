@@ -63,11 +63,14 @@ completeness and operational totals remain unknown.
   and HHA calendar/forms references are dated in [research](ROLE_WORKFLOW_RESEARCH.txt).
   No new runtime defect, permission or external-role completion is claimed.
 
-- [ ] P1-P: expose whether the source date follows office today or is explicitly
-  selected, with Return to office today using the existing protected feed.
-  Reset only source evidence/cursors; retain unrelated work and all existing
-  office/read/context gates. The bounded proposal and acceptance cases are in
-  [research](ROLE_WORKFLOW_RESEARCH.txt); no source write or role grant is needed.
+- [x] P1-P implemented and locally verified: following/selected office-date
+  description and Return to office today reuse the protected feed. Source-only
+  clearing and request ownership retain unrelated panels on success/failure.
+  All 282 frontend/tooling tests pass, including seven new regressions.
+  See [verification](OFFICE_TODAY_NAVIGATION_2026-10-21.md).
+- [ ] Verify P1-P through normal CI and authenticated native date-selection,
+  return/cache/chart and focus checks; failure/revocation/midnight/race cases
+  remain synthetic. No source write or role grant is needed.
 
 - [x] October 21 feed continuation released in `42de1d3`; both normal jobs and
   156 affected data-mode tests passed. Authenticated current-day source/chart,

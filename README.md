@@ -1,5 +1,12 @@
 # PTHHS
 
+October 21 office-today navigation: the administrator can see whether the date
+follows office today or stays selected, and explicitly return to the current
+office-day feed without reloading. Source-only clearing and pending-response
+guards preserve unrelated panels. All 282 frontend/tooling tests pass; normal
+release and authenticated production acceptance remain pending. See
+[verification](docs/management-layer/OFFICE_TODAY_NAVIGATION_2026-10-21.md).
+
 October 21 private Forms library: upload and download screens are connected to
 Firebase Storage for administrators. Both normal release jobs passed; template
 and submission downloads matched uploaded bytes, duplicate retries reused the
