@@ -626,7 +626,7 @@ export interface VisitEditReasonEvidence extends VisitEditActionEvidence {
 }
 // Additive evidence only: retain the legacy records/Actions strings for existing
 // consumers. Order and repeated IDs are source associations, not deduplication keys.
-function visitEditReasonEvidence(xml: string): VisitEditReasonEvidence[] {
+function visitEditReasonEvidence(xml: string): { reasons: VisitEditReasonEvidence[]; truncated: boolean } {
   const invalid = (): never => { throw new WorkflowError("invalid_reason_evidence_xml", 502); };
   if (XMLValidator.validate("<EvidenceResult>" + xml + "</EvidenceResult>") !== true) invalid();
   const local = (name: string) => name.split(":").at(-1)!;
@@ -649,7 +649,7 @@ function visitEditReasonEvidence(xml: string): VisitEditReasonEvidence[] {
   const empty = (): VisitEditActionEvidence => ({ id: null, label: null, description: null, status: null });
   const result: VisitEditReasonEvidence[] = [], stack: string[] = [];
   let reason: VisitEditReasonEvidence | null = null, action: VisitEditActionEvidence | null = null;
-  let reasonDepth = -1, actionDepth = -1;
+  let reasonDepth = -1, actionDepth = -1, truncated = false;
   const seen = new WeakMap<VisitEditActionEvidence, Set<string>>();
   let scalar: { start: number; depth: number; target: VisitEditActionEvidence; key: keyof VisitEditActionEvidence } | null = null;
   const readScalar = (fragment: string): string | null => {
@@ -697,6 +697,7 @@ function visitEditReasonEvidence(xml: string): VisitEditReasonEvidence[] {
     } else {
       if (tag === "VisitEditReasonInfo" && (stack.length === 0 || (stack.length === 1 && local(stack[0]!) === "VisitEditReasonActionTaken"))) {
         reason = result.length < 200 ? { ...empty(), actions: [] } : null;
+        if (!reason) truncated = true;
         reasonDepth = stack.length + 1;
         if (reason) result.push(reason);
       } else if (reason && stack.length === reasonDepth && tag === "VisitEditActionTakenInfo") {
@@ -718,7 +719,7 @@ function visitEditReasonEvidence(xml: string): VisitEditReasonEvidence[] {
     i = end + 1;
   }
   if (stack.length) invalid();
-  return result;
+  return { reasons: result, truncated };
 }
 export interface OperationalRead { operation: ReadOperation; fetchedAt: string; source: "hhaexchange"; validation: "source_unvalidated"; timezone: "source_values_unconverted"; records: Record<string, string | null>[]; truncated: boolean; visitEditReasons?: VisitEditReasonEvidence[]; attachment?: { filename: string; byteLength: number; base64: string; contentType: "application/octet-stream" }; changePreview?: { timeBasis: "vendor_EST_wall_time_unconverted" | "UTC"; modifiedAfter: string; page: string | null; completeness: "not_inferred"; checkpointAdvanced: false }; }
 export function boundedAttachment(record: Record<string, string | null>, identity: string, expected: string) {
@@ -746,6 +747,7 @@ export async function operationalRead(client: Pick<HhaSoapClient, "call">, input
   }
   let records: Record<string, string | null>[];
   let visitEditReasons: VisitEditReasonEvidence[] | undefined;
+  let typedReasonsTruncated = false;
   if (input.operation === "SearchVisitsV2" || input.operation === "SearchPatients" || input.operation === "SearchCaregivers") {
     const [container, field] = input.operation === "SearchVisitsV2" ? ["Visits", "VisitID"] : input.operation === "SearchPatients" ? ["Patients", "PatientID"] : ["Caregivers", "CaregiverID"];
     const values = extractElementBody(response.resultXml, container!) ?? "";
@@ -762,7 +764,10 @@ export async function operationalRead(client: Pick<HhaSoapClient, "call">, input
       if (bodies.length && alternate.length) throw new WorkflowError("ambiguous_change_response_shape", 502);
       if (!bodies.length) bodies = alternate;
     }
-    if (input.operation === "GetVisitEditReasonActionTaken") visitEditReasons = visitEditReasonEvidence(response.resultXml);
+    if (input.operation === "GetVisitEditReasonActionTaken") {
+      const evidence = visitEditReasonEvidence(response.resultXml);
+      visitEditReasons = evidence.reasons; typedReasonsTruncated = evidence.truncated;
+    }
     records = bodies.map(xml => {
       const projected = Object.fromEntries(projection.fields.map(name => [name, field(xml, name)]));
       if (input.operation === "GetVisitInfoV2" || input.operation === "GetVisitInfoV3") Object.assign(projected, verificationReceiptFields(xml));
@@ -800,5 +805,5 @@ export async function operationalRead(client: Pick<HhaSoapClient, "call">, input
   // Only the bounded dashboard ID discovery retains every received identifier.
   // Other operational previews preserve their existing projection limit.
   const retainVisitIds = input.operation === "SearchVisitsV2" && projectionScope === "visit_discovery";
-  return { operation: input.operation, fetchedAt: new Date().toISOString(), source: "hhaexchange", validation: "source_unvalidated", timezone: "source_values_unconverted", records: retainVisitIds ? records : records.slice(0, 200), ...(attachment ? { attachment } : {}), ...(visitEditReasons ? { visitEditReasons } : {}), truncated: !retainVisitIds && records.length > 200, ...([...EST_CHANGE_READS, ...UTC_CHANGE_READS].includes(input.operation) ? { changePreview: { timeBasis: UTC_CHANGE_READS.includes(input.operation) ? "UTC" as const : "vendor_EST_wall_time_unconverted" as const, modifiedAfter: UTC_CHANGE_READS.includes(input.operation) ? input.modifiedAfterUtc! : input.modifiedAfter!, page: input.operation === "GetVisitChangesV4" ? input.page || "1" : null, completeness: "not_inferred" as const, checkpointAdvanced: false as const } } : {}) };
+  return { operation: input.operation, fetchedAt: new Date().toISOString(), source: "hhaexchange", validation: "source_unvalidated", timezone: "source_values_unconverted", records: retainVisitIds ? records : records.slice(0, 200), ...(attachment ? { attachment } : {}), ...(visitEditReasons ? { visitEditReasons } : {}), truncated: typedReasonsTruncated || (!retainVisitIds && records.length > 200), ...([...EST_CHANGE_READS, ...UTC_CHANGE_READS].includes(input.operation) ? { changePreview: { timeBasis: UTC_CHANGE_READS.includes(input.operation) ? "UTC" as const : "vendor_EST_wall_time_unconverted" as const, modifiedAfter: UTC_CHANGE_READS.includes(input.operation) ? input.modifiedAfterUtc! : input.modifiedAfter!, page: input.operation === "GetVisitChangesV4" ? input.page || "1" : null, completeness: "not_inferred" as const, checkpointAdvanced: false as const } } : {}) };
 }

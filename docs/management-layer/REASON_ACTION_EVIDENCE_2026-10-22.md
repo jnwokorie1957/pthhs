@@ -26,7 +26,7 @@ multiple reason associations and describes free-text requirements. It does not
 establish how the HHA fields map to those requirements. No code meaning or
 billable/payable/clinical consequence is inferred here.
 
-Validation: eight focused synthetic tests, TypeScript and all 510 backend tests
+Validation: nine focused synthetic tests, TypeScript and all 511 backend tests
 passed. The full release gate passed (263 tests in that gate). Independent review, publication and live acceptance are
 pending. No patient data or raw production responses are included. The Library
 backlog was not read because its prior materialization block remains unresolved;
@@ -41,5 +41,10 @@ validation, declaration rejection and a depth bound precede evidence publication
 No second full response tree is allocated. Commented reasons, adjacent CDATA and
 literal closing tags in CDATA have explicit regression fixtures. Legacy fields
 remain unchanged even where their old regex behavior differs from typed evidence.
-Revised TypeScript, all 510 backend tests and the full release gate (263 tests)
+Revised TypeScript, all 511 backend tests and the full release gate (263 tests)
 passed. Independent re-review and publication remain pending.
+
+Typed-reason overflow is tracked independently and ORed into the existing
+truncation flag. Boundary fixtures cover 200/201 self-closing and mixed reason
+elements without changing legacy records. All 511 backend tests and the full
+release gate (263 tests) pass after this correction. Publication remains held.

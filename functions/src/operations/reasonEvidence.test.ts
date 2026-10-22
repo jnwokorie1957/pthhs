@@ -86,3 +86,14 @@ test("malformed and declaration-bearing typed evidence rejects without evaluatin
     '</EvidenceResult><EvidenceResult>',
   ]) await assert.rejects(read(xml), /invalid_reason_evidence_xml/);
 });
+
+
+test("typed reason overflow independently marks 200 versus 201 self-closing and mixed reasons", async () => {
+  for (const mixed of [false, true]) for (const count of [200, 201]) {
+    const xml = Array.from({length: count}, (_, i) => mixed && i % 2 ? reason(String(i + 1), "") : "<VisitEditReasonInfo/>").join("");
+    const result = await read(`<VisitEditReasonActionTaken>${xml}</VisitEditReasonActionTaken>`);
+    assert.equal(result.visitEditReasons!.length, Math.min(count, 200));
+    assert.equal(result.truncated, count > 200);
+    assert.equal(result.records.length, mixed ? Math.floor(count / 2) : 0, "legacy records remain unchanged");
+  }
+});
