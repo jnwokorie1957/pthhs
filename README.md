@@ -12,10 +12,11 @@ identity, per-encounter records, workflow receipts and sharing remain distinct;
 external-role prerequisites stay open. See
 [research](docs/management-layer/ROLE_WORKFLOW_RESEARCH.txt).
 
-October 22 Forms initialization candidate: delayed script loading now reads the
-existing active-session state, retaining sign-out and Demo boundaries. Synthetic
-race tests pass; review/publication and authenticated acceptance remain pending.
-See [verification](docs/management-layer/FORMS_INITIALIZATION_2026-10-22.md).
+October 22 Forms session initialization accepted: restored-session controls and
+native protected listing passed, alongside nine focused synthetic tests and
+successful normal release jobs. Exact loading-order and context races remain
+synthetic acceptance. See
+[verification](docs/management-layer/FORMS_INITIALIZATION_2026-10-22.md).
 
 October 22 UTC / October 21 local SEO review: public routes/artifacts and private
 indexing/authentication boundaries passed; both sitemaps retain Success and 27

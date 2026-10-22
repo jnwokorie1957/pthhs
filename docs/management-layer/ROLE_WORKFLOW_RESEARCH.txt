@@ -1,5 +1,5 @@
 PRIMETIME ROLE AND WORKFLOW RESEARCH
-Updated: October 21, 2026, America/Chicago
+Updated: October 22, 2026, America/Chicago
 Scope: PTHHS /primetime, repository jnwokorie1957/pthhs.
 Latest research review: October 22, 2026, 02:22 UTC / October 21 America/Chicago; accepted administrator file storage, distinct document-instance identity and proposed patient/family, therapist and office connections. File integrity, clinical workflow state and sharing/action authority remain separate. The latest section reconciles current Forms/source evidence; broader source/configuration and external-role prerequisites remain open.
 
@@ -690,3 +690,7 @@ https://knowledge.hhaexchange.com/texas/Content/Documentation/Patient/Pat-N-Form
 https://knowledge.hhaexchange.com/enterprise/Content/Documentation/Patient/Pat-N-Authorizations-P.htm
 [R37] HHAeXchange, EVV Aggregation Transaction Manager. Separate permission, aggregation stages and history.
 https://knowledge.hhaexchange.com/texas/Content/Documentation/Admin/Admin-N-TX-EVV-Aggregation-Transaction-Manager-P.htm
+
+FORMS RESTORED-SESSION IMPLEMENTATION ACCEPTANCE — OCTOBER 22, 2026, 12:55 UTC HEARTBEAT / OCTOBER 22 AMERICA/CHICAGO
+The previously published 7e92ffe strict active-session initializer is independently reviewed within current 51d94e5 source. Nine focused Forms tests passed; both normal feature/baseline release jobs already passed. A new normal production tab restored the existing approved session without a new login; Forms showed enabled upload/list controls and its ready status, then native Load files completed a protected one-page listing and returned the controls. No file upload/download, private file contents or storage/permission change was used. Exact script/event ordering, sign-out/Demo and stale-response interleavings remain synthetic evidence, not induced production cases. See FORMS_INITIALIZATION_2026-10-22.md and the private aggregate acceptance. This closes the bounded independent readiness/list acceptance, not clinical form/version/sharing or external-role contracts. Prior statements that publication and all authenticated readiness acceptance were pending are superseded to this precise extent.
+The concurrent typed reason/action projection remains a blocked-operation parser capability; its existing vendor/source mapping gate is unchanged. No clinical, EVV, financial or correction authority follows from a typed association or successful administrator list. P1-B and proposed patient/family/therapist document-instance contracts remain dependent on the separately recorded authoritative mappings. No further independent runtime defect or ready role feature was established in this pass.

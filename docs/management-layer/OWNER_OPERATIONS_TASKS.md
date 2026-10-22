@@ -22,6 +22,15 @@
 
 # Current owner checkpoint
 
+## October 22 Forms restored-session readiness
+
+The existing-session initialization correction passed independent review, nine
+focused tests, normal release jobs and native production readiness/list checks.
+No new sign-in, private file upload/download or permission change was required.
+Exact loading-order/race cases remain synthetic; clinical and sharing contracts
+remain separate. No new owner decision is needed for this correction. See
+[bounded acceptance](FORMS_INITIALIZATION_2026-10-22.md).
+
 ## October 22 document-role research
 
 The [research](ROLE_WORKFLOW_RESEARCH.txt) records the accepted administrator

@@ -62,6 +62,12 @@ completeness and operational totals remain unknown.
 
 # Current checkpoint
 
+- [x] October 22 12:55 UTC independent Forms initialization review passed nine
+  focused tests. Normal production restored the existing session, enabled the
+  controls and completed a native protected file list. Both normal release jobs
+  already passed; exact event ordering and races remain synthetic. See
+  [bounded acceptance](FORMS_INITIALIZATION_2026-10-22.md).
+
 - [x] October 22 02:22 UTC role research reconciled administrator Forms storage
   with proposed patient/visit/form-version document instances and current HHA
   primary guidance. Recorded deduplication, recipient/assignment revocation,
