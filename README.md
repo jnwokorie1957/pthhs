@@ -1,5 +1,11 @@
 # PTHHS
 
+October 22 13:18 UTC role research connects proposed patient/staff requests and
+office maintenance evidence while keeping clinical, aggregation and billing
+outcomes separate. Typed source associations do not grant code-selection or
+correction authority. See
+[research](docs/management-layer/ROLE_WORKFLOW_RESEARCH.txt).
+
 October 22 reason/action evidence candidate: an additive typed projection retains
 nested action descriptions and repeated reason associations while preserving the
 legacy read fields. The vendor contract gate remains blocked; no live read or

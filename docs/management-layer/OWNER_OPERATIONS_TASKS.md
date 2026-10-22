@@ -22,6 +22,15 @@
 
 # Current owner checkpoint
 
+## October 22 visit-maintenance role research
+
+The [research](ROLE_WORKFLOW_RESEARCH.txt) separates patient/staff requests,
+clinical documentation, maintenance reasons, aggregation and billing evidence.
+No source reason or action was selected. Intended HHA application/office scope,
+representative source/code mappings and existing role/action contracts remain
+prerequisites. The current policy attestation and accepted Forms/feed work remain
+intact; no new owner setting or decision is marked complete.
+
 ## October 22 Forms restored-session readiness
 
 The existing-session initialization correction passed independent review, nine

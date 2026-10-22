@@ -62,6 +62,12 @@ completeness and operational totals remain unknown.
 
 # Current checkpoint
 
+- [x] October 22 13:18 UTC role research compared typed reason/action readiness
+  with current HHSC/HHA primary guidance and proposed patient/staff/office
+  connections. Recorded parent-association, scope, null/empty, overflow and
+  independent-state acceptance criteria. The source operation remains blocked; research
+  only. See [research](ROLE_WORKFLOW_RESEARCH.txt).
+
 - [x] October 22 12:55 UTC independent Forms initialization review passed nine
   focused tests. Normal production restored the existing session, enabled the
   controls and completed a native protected file list. Both normal release jobs
