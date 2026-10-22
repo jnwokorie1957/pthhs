@@ -626,20 +626,99 @@ export interface VisitEditReasonEvidence extends VisitEditActionEvidence {
 }
 // Additive evidence only: retain the legacy records/Actions strings for existing
 // consumers. Order and repeated IDs are source associations, not deduplication keys.
-function visitEditReasonEvidence(xml: string): VisitEditReasonEvidence {
-  const scalar = (body: string, name: string): string | null => {
-    const elements = directChildElements(body, name);
-    if (elements.length !== 1) return null;
-    try { return extractExactElementText(elements[0]!, name) ?? null; }
-    catch { return null; } // Unreadable evidence is unknown, never an approval.
+function visitEditReasonEvidence(xml: string): VisitEditReasonEvidence[] {
+  const invalid = (): never => { throw new WorkflowError("invalid_reason_evidence_xml", 502); };
+  if (XMLValidator.validate("<EvidenceResult>" + xml + "</EvidenceResult>") !== true) invalid();
+  const local = (name: string) => name.split(":").at(-1)!;
+  const predefined: Record<string, string> = { amp: "&", lt: "<", gt: ">", quot: '"', apos: "'" };
+  const entityDecoder = {
+    reset() {}, setXmlVersion() {}, addInputEntities() { invalid(); },
+    setExternalEntities(entities: Record<string, string>) { if (Object.keys(entities).length) invalid(); },
+    decode(value: string) {
+      return value.replace(/&([^;]*);/g, (_match, entity: string) => {
+        if (Object.hasOwn(predefined, entity)) return predefined[entity]!;
+        if (!/^#(?:[0-9]+|x[0-9a-fA-F]+)$/.test(entity)) return invalid();
+        const code = entity.startsWith("#x") ? parseInt(entity.slice(2), 16) : Number(entity.slice(1));
+        if (!(code === 9 || code === 10 || code === 13 || (code >= 32 && code <= 0xD7FF) ||
+          (code >= 0xE000 && code <= 0xFFFD) || (code >= 0x10000 && code <= 0x10FFFF))) return invalid();
+        return String.fromCodePoint(code);
+      });
+    },
   };
-  const fields = (body: string, prefix: string, status: string): VisitEditActionEvidence => ({
-    id: scalar(body, prefix + "ID"), label: scalar(body, prefix),
-    description: scalar(body, prefix + "Description"), status: scalar(body, status),
-  });
-  return { ...fields(xml, "VisitEditReason", "VisitEditStatus"),
-    actions: directChildElements(xml, "VisitEditActionTakenInfo").map(element =>
-      fields(extractElementBody(element, "VisitEditActionTakenInfo") ?? "", "VisitEditActionTakenReason", "VisitEditActionTakenStatus")) };
+  const parser = new XMLParser({ preserveOrder: true, ignoreAttributes: false, parseTagValue: false, trimValues: false, entityDecoder });
+  const empty = (): VisitEditActionEvidence => ({ id: null, label: null, description: null, status: null });
+  const result: VisitEditReasonEvidence[] = [], stack: string[] = [];
+  let reason: VisitEditReasonEvidence | null = null, action: VisitEditActionEvidence | null = null;
+  let reasonDepth = -1, actionDepth = -1;
+  const seen = new WeakMap<VisitEditActionEvidence, Set<string>>();
+  let scalar: { start: number; depth: number; target: VisitEditActionEvidence; key: keyof VisitEditActionEvidence } | null = null;
+  const readScalar = (fragment: string): string | null => {
+    try {
+      const node = parser.parse(fragment)[0], key = Object.keys(node).find(key => key !== ":@")!;
+      if (Object.entries(node[":@"] ?? {}).some(([name, value]) => local(name.replace(/^@_/, "")) === "nil" &&
+        /^(true|1)$/.test(String(value).replace(/[ \t\r\n]+/g, " ").trim()))) return null;
+      const parts = node[key] as Record<string, unknown>[];
+      if (parts.some(part => Object.keys(part).some(name => name !== "#text" && !name.startsWith("?")))) return null;
+      return parts.map(part => String(part["#text"] ?? "")).join("");
+    } catch { return null; }
+  };
+  const finishScalar = (end: number) => {
+    if (!scalar) return;
+    const used = seen.get(scalar.target) ?? new Set<string>();
+    scalar.target[scalar.key] = used.has(scalar.key) ? null : readScalar(xml.slice(scalar.start, end));
+    used.add(scalar.key); seen.set(scalar.target, used); scalar = null;
+  };
+  // Forward-only lexical traversal keeps comment/CDATA/PI text out of structure.
+  // Decode one scalar at a time, avoiding a second full response object tree.
+  for (let i = 0; i < xml.length;) {
+    if (xml[i] !== "<") { const next = xml.indexOf("<", i); i = next < 0 ? xml.length : next; continue; }
+    if (xml.startsWith("<!--", i) || xml.startsWith("<![CDATA[", i) || xml.startsWith("<?", i)) {
+      const cdata = xml.startsWith("<![CDATA[", i), comment = xml.startsWith("<!--", i);
+      const suffix = cdata ? "]]>" : comment ? "-->" : "?>", prefix = cdata ? 9 : comment ? 4 : 2;
+      const end = xml.indexOf(suffix, i + prefix); if (end < 0) invalid(); i = end + suffix.length; continue;
+    }
+    if (xml.startsWith("<!", i)) invalid();
+    let end = i + 1, quote = "";
+    for (; end < xml.length; end++) {
+      const ch = xml[end]!;
+      if (quote) { if (ch === quote) quote = ""; }
+      else if (ch === '"' || ch === "'") quote = ch;
+      else if (ch === ">") break;
+    }
+    if (end === xml.length) invalid();
+    const token = xml.slice(i, end + 1), closing = token.startsWith("</"), selfClosing = token.endsWith("/>");
+    const name = /^<\/?([^\s/>]+)/.exec(token)?.[1]; if (!name) invalid();
+    const tag = local(name!);
+    if (closing) {
+      if (scalar?.depth === stack.length) finishScalar(end + 1);
+      if (actionDepth === stack.length) { action = null; actionDepth = -1; }
+      if (reasonDepth === stack.length) { reason = null; reasonDepth = -1; }
+      if (stack.pop() !== name) invalid();
+    } else {
+      if (tag === "VisitEditReasonInfo" && (stack.length === 0 || (stack.length === 1 && local(stack[0]!) === "VisitEditReasonActionTaken"))) {
+        reason = result.length < 200 ? { ...empty(), actions: [] } : null;
+        reasonDepth = stack.length + 1;
+        if (reason) result.push(reason);
+      } else if (reason && stack.length === reasonDepth && tag === "VisitEditActionTakenInfo") {
+        action = empty(); actionDepth = stack.length + 1; reason.actions.push(action);
+      } else if (!scalar) {
+        const target = action && stack.length === actionDepth ? action : reason && stack.length === reasonDepth ? reason : null;
+        if (target) {
+          const prefix = target === action ? "VisitEditActionTakenReason" : "VisitEditReason";
+          const names: Record<string, keyof VisitEditActionEvidence> = { [prefix + "ID"]: "id", [prefix]: "label", [prefix + "Description"]: "description", [target === action ? "VisitEditActionTakenStatus" : "VisitEditStatus"]: "status" };
+          const key = names[tag]; if (key) scalar = { start: i, depth: stack.length + 1, target, key };
+        }
+      }
+      if (selfClosing) {
+        if (scalar?.depth === stack.length + 1) finishScalar(end + 1);
+        if (actionDepth === stack.length + 1) { action = null; actionDepth = -1; }
+        if (reasonDepth === stack.length + 1) { reason = null; reasonDepth = -1; }
+      } else { stack.push(name!); if (stack.length > 100) invalid(); }
+    }
+    i = end + 1;
+  }
+  if (stack.length) invalid();
+  return result;
 }
 export interface OperationalRead { operation: ReadOperation; fetchedAt: string; source: "hhaexchange"; validation: "source_unvalidated"; timezone: "source_values_unconverted"; records: Record<string, string | null>[]; truncated: boolean; visitEditReasons?: VisitEditReasonEvidence[]; attachment?: { filename: string; byteLength: number; base64: string; contentType: "application/octet-stream" }; changePreview?: { timeBasis: "vendor_EST_wall_time_unconverted" | "UTC"; modifiedAfter: string; page: string | null; completeness: "not_inferred"; checkpointAdvanced: false }; }
 export function boundedAttachment(record: Record<string, string | null>, identity: string, expected: string) {
@@ -683,7 +762,7 @@ export async function operationalRead(client: Pick<HhaSoapClient, "call">, input
       if (bodies.length && alternate.length) throw new WorkflowError("ambiguous_change_response_shape", 502);
       if (!bodies.length) bodies = alternate;
     }
-    if (input.operation === "GetVisitEditReasonActionTaken") visitEditReasons = bodies.slice(0, 200).map(visitEditReasonEvidence);
+    if (input.operation === "GetVisitEditReasonActionTaken") visitEditReasons = visitEditReasonEvidence(response.resultXml);
     records = bodies.map(xml => {
       const projected = Object.fromEntries(projection.fields.map(name => [name, field(xml, name)]));
       if (input.operation === "GetVisitInfoV2" || input.operation === "GetVisitInfoV3") Object.assign(projected, verificationReceiptFields(xml));

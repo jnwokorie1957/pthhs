@@ -26,8 +26,20 @@ multiple reason associations and describes free-text requirements. It does not
 establish how the HHA fields map to those requirements. No code meaning or
 billable/payable/clinical consequence is inferred here.
 
-Validation: five focused synthetic tests, TypeScript and all 507 backend tests
+Validation: eight focused synthetic tests, TypeScript and all 510 backend tests
 passed. The full release gate passed (263 tests in that gate). Independent review, publication and live acceptance are
 pending. No patient data or raw production responses are included. The Library
 backlog was not read because its prior materialization block remains unresolved;
 selection is supported by the repository schema and parser evidence above.
+
+
+Independent-review correction: typed evidence is traversed from the complete XML
+result, independently of regex-derived legacy bodies. A forward-only scanner
+skips comments, CDATA and processing instructions as structural tokens; scalar
+XML parsing joins text/CDATA and decodes standard XML references once. Whole-result
+validation, declaration rejection and a depth bound precede evidence publication.
+No second full response tree is allocated. Commented reasons, adjacent CDATA and
+literal closing tags in CDATA have explicit regression fixtures. Legacy fields
+remain unchanged even where their old regex behavior differs from typed evidence.
+Revised TypeScript, all 510 backend tests and the full release gate (263 tests)
+passed. Independent re-review and publication remain pending.

@@ -50,3 +50,39 @@ test("empty responses stay unvalidated, failed responses reject and unrelated re
   const other = await operationalRead(client("<VisitInfo><ID>77</ID></VisitInfo>"), {operation: "GetVisitInfoV3", id: "77"});
   assert.equal(other.visitEditReasons, undefined);
 });
+
+
+test("review fixtures ignore commented reasons and join CDATA while preserving literal closing tags", async () => {
+  const a = '<VisitEditActionTakenInfo><VisitEditActionTakenReasonID>9</VisitEditActionTakenReasonID><VisitEditActionTakenStatus>Unknown</VisitEditActionTakenStatus></VisitEditActionTakenInfo>';
+  const r = (body: string) => `<VisitEditReasonInfo><VisitEditReasonID>1</VisitEditReasonID>${body}</VisitEditReasonInfo>`;
+  const wrapped = (body: string) => `<VisitEditReasonActionTaken>${body}</VisitEditReasonActionTaken>`;
+  const commented = await read(wrapped(`<!--${r(a)}-->${r('')}`));
+  assert.equal(commented.visitEditReasons!.length, 1); assert.deepEqual(commented.visitEditReasons![0]!.actions, []);
+  assert.equal(commented.records.length, 2, "legacy regex projection unchanged");
+  const adjacent = await read(wrapped(r('<VisitEditReasonDescription><![CDATA[A]]><![CDATA[B]]></VisitEditReasonDescription>')));
+  assert.equal(adjacent.visitEditReasons![0]!.description, 'AB');
+  const literal = await read(wrapped(r('<VisitEditReasonDescription><![CDATA[</VisitEditReasonInfo> literal]]></VisitEditReasonDescription>'+a)));
+  assert.equal(literal.visitEditReasons![0]!.id, '1');
+  assert.equal(literal.visitEditReasons![0]!.description, '</VisitEditReasonInfo> literal');
+  assert.equal(literal.visitEditReasons![0]!.actions[0]!.id, '9');
+});
+
+
+test("typed scalar decoding joins text, comments and CDATA and decodes XML references only once", async () => {
+  const result = await read(reason("1", action("&#57;", "A<!--ignored-->B<![CDATA[&amp;]]>&amp;#57;", "&#65;&#x42;", "Unknown")));
+  assert.equal(result.visitEditReasons![0]!.actions[0]!.id, "9");
+  assert.equal(result.visitEditReasons![0]!.actions[0]!.label, "AB&amp;&#57;");
+  assert.equal(result.visitEditReasons![0]!.actions[0]!.description, "AB");
+  const nil = await read('<VisitEditReasonInfo><VisitEditReasonID xsi:nil="&#32;true&#32;">1</VisitEditReasonID></VisitEditReasonInfo>');
+  assert.equal(nil.visitEditReasons![0]!.id, null);
+});
+
+test("malformed and declaration-bearing typed evidence rejects without evaluating external entities", async () => {
+  for (const xml of [
+    reason("1", "") + '<bad',
+    '<!DOCTYPE x [<!ENTITY e SYSTEM "file:///synthetic">]>' + reason("1", ""),
+    '<!--'.repeat(16000),
+    '<x>'.repeat(101) + '</x>'.repeat(101),
+    '</EvidenceResult><EvidenceResult>',
+  ]) await assert.rejects(read(xml), /invalid_reason_evidence_xml/);
+});
