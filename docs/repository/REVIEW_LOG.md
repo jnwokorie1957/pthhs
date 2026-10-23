@@ -146,3 +146,27 @@ owner/developer checkpoint only when new evidence changes task status.
   when repository settings access is available.
 - Resolve and re-review `codex/batch-c-g-qa` separately before any visitor-facing
   content is proposed for `main`.
+
+## Dependency advisory recheck — October 23, 2026
+
+The September moderate optional `gaxios`/`uuid` finding was rechecked against
+baseline `f95750366c1f00cadc455013f841ee8ae69c622d`. The current root and Functions
+lockfiles contain no `uuid`; Functions contains `gaxios` 6.3.0 and 7.3.1 rather
+than the historical dependency chain. The earlier reviews above remain dated
+observations and are not rewritten as current findings.
+
+At 20:59:27 UTC, a read-only request to the public npm registry's
+`/-/npm/v1/security/advisories/bulk` endpoint submitted every named/versioned,
+non-link package in each lockfile, including development and optional entries.
+The root payload contained 43 names/43 version pairs; Functions contained
+250 names/272 version pairs. Each successful response was the empty advisory
+object. Payload construction followed npm's documented package-name/version-list
+method. See [npm audit endpoints](https://docs.npmjs.com/cli/v11/commands/npm-audit/#bulk-advisory-endpoint).
+
+This closes the specific historical recheck. It is not an npm CLI audit,
+signature/provenance verification, exploitability assessment or guarantee that
+all vulnerabilities are known. No install, dependency update, transitive override
+or runtime change was needed. Continue routine advisory reviews when lockfiles
+change. The developer checklist and root checkpoint were updated together;
+separate source validation, production administration and owner evidence gates
+remain in their existing checklists.

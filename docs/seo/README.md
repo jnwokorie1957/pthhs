@@ -3,6 +3,10 @@
 These files remain useful for planning, but they do not override current public
 facts, payer evidence, or claim-release controls.
 
+- [October 23 SEO and developer-task review](2026-10-23-seo-review.md) — fresh
+  delivery/sitemap evidence, unavailable field samples and closure of the
+  historical dependency-advisory recheck; runtime and business claims unchanged.
+
 - [October 22 SEO and owner-task review](2026-10-22-seo-review.md) - fresh
   public and Search Console checks, unavailable field samples and reconciliation
   of the completed sitemap action; public/runtime assets unchanged.
