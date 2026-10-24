@@ -100,6 +100,9 @@
           <div class="dashboard-grid"><section class="panel span-2"><h3>Visit windows</h3><div id="dashboardTimeline"></div></section><section class="panel"><h3>Source field availability</h3><div id="dashboardEvidenceChart"></div></section><section class="panel span-2"><div class="panel-head"><h3 id="dashboardEvidenceTitle">EVV source evidence</h3><button class="text-button" data-view-jump="visits">View records →</button></div><div id="dashboardOverviewExceptions"></div></section><section class="panel"><h3 id="dashboardCoverageTitle">Caregiver assignment evidence</h3><div id="dashboardCoverage"></div></section><section class="panel"><h3 id="dashboardAlertsTitle">Source evidence gaps</h3><div id="dashboardAlerts"></div></section><section class="panel span-2"><h3>Source readiness</h3><p id="dashboardReadiness">Live source validation is pending.</p><button class="btn secondary" data-view-jump="hha">Integration details</button></section></div>
         </section>
         <section class="view" data-view-panel="patients">
+          <div class="section-heading"><div><p class="eyebrow">Current HHA source</p><h2>Patients on the selected visit page</h2><p>Read current patient details with a fresh visit, patient and office check. This page is not the full patient census.</p></div><button class="btn secondary" data-view-jump="overview">Choose visit date / page</button></div>
+          <section class="panel"><div id="dashboardPatients"></div></section>
+          <section class="panel" aria-labelledby="dashboardPatientProfileTitle"><h3 id="dashboardPatientProfileTitle">Current patient source profile</h3><div id="dashboardPatientProfile" role="status" aria-live="polite"></div></section>
           <div class="section-heading"><div><p class="eyebrow">Patient source history</p><h2>Calendar imports</h2><p>Keep HHA calendar evidence alongside live reads, with its original date and source.</p></div><button class="btn secondary" data-view-jump="overview">Live overview</button></div>
           <section class="panel" id="manualSnapshotPanel">
             <p class="notice">Manual snapshots preserve what was visible when captured. Current HHA changes appear in live reads; these imports do not calculate payable hours or classify EVV exceptions.</p>
@@ -185,7 +188,7 @@
   <script src="/__/firebase/init.js" defer></script>
   <script src="/primetime/data-source.js?v=82e610d37b6d" defer></script>
   <script src="/primetime/demo-data.js?v=daf4470da486" defer></script>
-  <script src="/primetime/dashboard.js?v=053b0278ebdb" defer></script>
+  <script src="/primetime/dashboard.js?v=911b450812e4" defer></script>
   <script src="/primetime/revisions.js?v=be85c8db684d" defer></script>
   <script src="/primetime/primetime.js?v=59389ef91444" defer></script>
   <script src="/primetime/workspace.js?v=a8d21169e9da" defer></script>

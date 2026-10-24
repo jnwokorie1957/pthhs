@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { patientVisitRead } from "./patientVisit.js";
+import { patientVisitRead, visitPatientRead } from "./patientVisit.js";
 import { workspaceRoute } from "./routes.js";
 import type { OperationsWorkspace } from "./workspace.js";
 import type { OperationalRead, ReadInput } from "./reads.js";
@@ -76,4 +76,32 @@ test("patient visit route is an explicit protected POST and errors return no sou
   f.patient(source("GetPatientDemographics", [{ PatientID: "13", OfficeID: "99" }]));
   const denied = await workspaceRoute(f.workspace, "POST", "/workspace/patient-visit", input, "synthetic-admin");
   assert.equal(denied?.status, 403); assert.deepEqual(denied?.body, { ok: false, error: "patient_office_mismatch" });
+});
+
+test("current patient profile returns only the patient read after current visit and office proof", async () => {
+  const f = fixture(); f.patient(source("GetPatientDemographics", [{ PatientID: "13", OfficeID: "12", FirstName: "Synthetic", PatientStatusName: null }]));
+  const result = await visitPatientRead(f.workspace, input, "synthetic-admin");
+  assert.deepEqual(f.calls, [{ operation: "GetVisitInfoV3", id: "14" }, { operation: "GetPatientDemographics", id: "13" }]);
+  assert.equal(result.operation, "GetPatientDemographics"); assert.equal(result.interpretation, "patient_source_unvalidated");
+  assert.equal(result.records[0]!.FirstName, "Synthetic"); assert.equal(result.records[0]!.PatientStatusName, null);
+  assert.equal(result.records[0]!.ActualHours, undefined); assert.deepEqual(result.scope, input);
+  assert.equal(result.membershipCheckedAt, result.fetchedAt);
+});
+
+test("current patient profile route preserves release/read/identity/scope fences and returns no fields on error", async () => {
+  assert.equal((await workspaceRoute(fixture().workspace, "GET", "/workspace/visit-patient", input, "synthetic-admin"))?.status, 405);
+  for (const mode of ["release", "office", "read", "visit", "patient", "policy", "withdraw", "extra"]) {
+    const f = fixture();
+    if (mode === "release") f.state.approved = false;
+    if (mode === "office") f.state.officeId = "99";
+    if (mode === "read") f.state.enabledReads = ["GetVisitInfoV3"];
+    if (mode === "visit") f.visit(source("GetVisitInfoV3", [{ ID: "14", "Patient/ID": "99" }]));
+    if (mode === "patient") f.patient(source("GetPatientDemographics", [{ PatientID: "13", OfficeID: "99", FirstName: "Must not escape" }]));
+    if (mode === "policy") f.state.changeAfterVisit = true;
+    if (mode === "withdraw") f.state.withdrawAfterPatient = true;
+    const denied = await workspaceRoute(f.workspace, "POST", "/workspace/visit-patient", mode === "extra" ? { ...input, operation: "SearchPatients" } : input, "synthetic-admin");
+    assert.notEqual(denied?.status, 200, mode); assert.equal("records" in (denied!.body as object), false, mode);
+    if (["release", "office", "read", "extra"].includes(mode)) assert.equal(f.calls.length, 0, mode);
+  }
+  assert.equal((await workspaceRoute(fixture().workspace, "POST", "/workspace/visit-patient", input, "synthetic-admin"))?.status, 200);
 });

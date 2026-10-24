@@ -996,6 +996,75 @@ test('failed paging discards cursor history and refresh starts from the first so
 function descendants(node) { return [node, ...node.children.flatMap(child => child.children ? descendants(child) : [])]; }
 function recordButtons(app, host = 'dashboardTimeline') { return descendants(app.element(host)).filter(node => /^Open (patient|caregiver|visit) read$/.test(node.textContent)); }
 async function clickNode(node) { for (const callback of node.handlers.get('click') || []) await callback(new Event('click')); }
+const currentProfilePayload = (scope, fields = {}) => ({ ok: true, operation: 'GetPatientDemographics', source: 'hhaexchange', validation: 'source_unvalidated', interpretation: 'patient_source_unvalidated', timezone: 'source_values_unconverted', truncated: false,
+  fetchedAt: '2026-10-24T16:00:00Z', membershipCheckedAt: '2026-10-24T16:00:00Z', scope, records: [{ PatientID: scope.patientId, OfficeID: scope.officeId, FirstName: 'Synthetic profile', LastName: null, ...fields }] });
+const currentProfileButtons = app => descendants(app.element('dashboardPatients')).filter(item => item.textContent === 'View current profile');
+async function currentProfileFixture(read, preview = livePreview) {
+  const app = harness({ storedDataMode: null, metadata: liveMetadata, fetchSource: (path, options) => {
+    if (path.includes('/views/visits?')) return response(preview(new URL(path, 'https://fixture.test').searchParams.get('date')));
+    if (path.endsWith('/workspace/visit-patient')) return read(JSON.parse(options.body), options);
+    return response({ ok: true });
+  } });
+  installDashboard(app); await app.signIn(); await tick(); await tick(); return app;
+}
+
+test('current patient workbench groups readable source patients and fetches exact office-checked profiles on demand', async () => {
+  const app = await currentProfileFixture(scope => response(currentProfilePayload(scope, { PayerName: '<script>source text only</script>' })), date => {
+    const page = livePreview(date); page.state = 'partial'; page.items.push({ ...page.items[0], id: '900002' }, { id: '900003', patientId: '7', state: 'unavailable' }); return page;
+  });
+  assert.equal(currentProfileButtons(app).length, 1); assert.match(nodeText(app.element('dashboardPatients')), /not the full office/);
+  assert.equal(app.calls.filter(c => c.path.endsWith('/workspace/visit-patient')).length, 0);
+  await clickNode(currentProfileButtons(app)[0]); await tick(); await tick();
+  assert.deepEqual(JSON.parse(app.calls.find(c => c.path.endsWith('/workspace/visit-patient')).options.body), { visitId: '900001', patientId: '5', officeId: '123' });
+  const text = nodeText(app.element('dashboardPatientProfile'));
+  assert.match(text, /Synthetic profile/); assert.match(text, /Not supplied by HHA/); assert.match(text, /current visit \/ patient \/ office checked/);
+  assert.match(text, /<script>source text only<\/script>/); assert.equal(descendants(app.element('dashboardPatientProfile')).some(n => n.tagName === 'SCRIPT'), false);
+  assert.match(text, /Open records/); assert.match(text, /2026-10-24T16:00:00Z/);
+});
+
+test('patient profile projection rejects wrong operation, identity, source, membership receipt and malformed fields', () => {
+  const normalize = dashboardModel().primetimeDashboardModel.normalizePatientProfile, scope = { visitId: '900001', patientId: '5', officeId: '123' };
+  assert.equal(normalize(currentProfilePayload(scope), scope).fields.LastName, null);
+  for (const changes of [{ operation: 'GetVisitInfoV3' }, { source: 'synthetic' }, { truncated: true }, { membershipCheckedAt: '2026-10-23T00:00:00Z' },
+    { fetchedAt: 'bad', membershipCheckedAt: 'bad' }, { scope: { ...scope, visitId: '900002' } }, { records: [] },
+    { records: [{ PatientID: '5', OfficeID: '999' }] }, { records: [{ PatientID: '5', OfficeID: '123', FirstName: {} }] }]) {
+    assert.throws(() => normalize({ ...currentProfilePayload(scope), ...changes }, scope), /invalid_patient_profile/);
+  }
+});
+
+test('patient source requests and detached controls cannot outlive Clear, mode, date or session changes', async () => {
+  for (const change of ['clear', 'demo', 'date', 'session']) {
+    const late = deferred(); const app = await currentProfileFixture(() => late.promise), old = currentProfileButtons(app)[0];
+    await clickNode(old); await tick();
+    if (change === 'clear') await app.click('dashboardVisitClear');
+    if (change === 'demo') app.window.primetimeDataMode.setMode('demo');
+    if (change === 'date') { app.element('dashboardVisitDate').value = '2026-10-23'; for (const fn of app.element('dashboardVisitDate').handlers.get('change')) fn(new Event('change')); }
+    if (change === 'session') app.dispatch('primetime-signed-out');
+    late.resolve(response(currentProfilePayload({ visitId: '900001', patientId: '5', officeId: '123' }, { FirstName: 'Must not return after context change' })));
+    await tick(); await tick(); assert.doesNotMatch(nodeText(app.element('dashboardPatientProfile')), /Must not return after context change/, change);
+    const calls = app.calls.length; await clickNode(old); await tick(); assert.equal(app.calls.length, calls, change);
+  }
+});
+
+test('patient source errors remove old fields and a quota cooldown blocks repeated dispatch', async () => {
+  let limited = false;
+  const app = await currentProfileFixture(scope => limited ? { ...response({ ok: false, error: 'read_budget_exhausted', retryAfterSeconds: 60 }), ok: false, status: 429 } : response(currentProfilePayload(scope)));
+  await clickNode(currentProfileButtons(app)[0]); await tick(); await tick(); assert.match(nodeText(app.element('dashboardPatientProfile')), /Synthetic profile/);
+  limited = true; await clickNode(currentProfileButtons(app)[0]); await tick(); await tick();
+  assert.doesNotMatch(nodeText(app.element('dashboardPatientProfile')), /Synthetic profile/); assert.match(nodeText(app.element('dashboardPatientProfile')), /Retry in 60 seconds/);
+  const calls = app.calls.length; await clickNode(currentProfileButtons(app)[0]); await tick(); assert.equal(app.calls.length, calls);
+});
+
+test('live EVV search filters the connected table on input without making another source read', async () => {
+  const app = await currentProfileFixture(scope => response(currentProfilePayload(scope))), rows = [{ textContent: 'visit-alpha caregiver-one', hidden: false }, { textContent: 'visit-beta caregiver-two', hidden: false }];
+  app.element('dashboardExceptions').querySelectorAll = () => rows;
+  const calls = app.calls.length; app.element('exceptionSearch').value = 'caregiver-two';
+  for (const fn of app.element('exceptionSearch').handlers.get('input')) fn(new Event('input'));
+  assert.equal(rows[0].hidden, true); assert.equal(rows[1].hidden, false); assert.equal(app.calls.length, calls);
+  app.element('exceptionSearch').value = ''; for (const fn of app.element('exceptionSearch').handlers.get('input')) fn(new Event('input'));
+  assert.equal(rows.every(row => !row.hidden), true);
+});
+
 function connectedWorkspace({ dataApproved = true, enabledReads = ['GetPatientDemographics', 'GetVisitInfoV3'], preview = livePreview, history = () => response({ ok: true, items: [], nextCursor: null, source: 'manual_snapshot' }), authorizations = () => response({ ok: false, error: 'read_not_owner_enabled' }), patientVisit = () => response({ ok: false, error: 'read_not_owner_enabled' }) } = {}) {
   const settings = { revision: 1, officeId: '123', officeTimezone: 'America/Chicago', policyReference: '', enabledReads };
   const app = harness({ storedDataMode: null, metadata: liveMetadata, fetchSource: (path, options) => {

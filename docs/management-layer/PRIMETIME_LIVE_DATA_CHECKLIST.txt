@@ -70,13 +70,17 @@ TAB 02 - VISIT REVIEW
     applicable policy/assignment contracts; raw visit reads do not establish it.
 
 TAB 03 - EVV EXCEPTIONS
-[ ] E01 Currently displays 'EVV exceptions unavailable' and disables its filters.
+[x] E01 Replaced the disconnected EVV preview with source clock evidence.
     Actual source fields already live in GetVisitInfoV3 (VisitStartTime,
     VisitEndTime, EVVStartTime, EVVEndTime, verification and related details).
     Connect a useful live source-evidence view without fabricating exception rules.
     Iteration3: implemented selected-page source clock fields and search from the
     already approved visit feed, with exact date/receipt and no extra HHA calls.
-    Rollovers clear these related source panels; native production check pending.
+    Rollovers clear these related source panels. Release78c2551/workflow40131778386
+    passed both jobs; production returned10rows with the same source receipt and
+    ordered visit references as Staffing. Priority classification stays disabled.
+    Live input filtering was corrected in the next patient-workbench iteration;
+    its final native acceptance is pending that release.
 [ ] E02 Classified exception queue depends on accepted diagnosis/policy evidence
     and local revision exception records. Keep classification separate from raw
     punch presence, and connect genuine local follow-up where available.
@@ -109,6 +113,13 @@ TAB 05 - PATIENT WORKBENCH
     SearchPatients for approved discovery with documented filters/office checks.
 [ ] T02 Connect current patient details directly to this tab, preserving the live
     source receipt and links to visits, authorizations, care plans and documents.
+    Iteration4: selected-page patient references are grouped from readable visits.
+    A protected /workspace/visit-patient POST reuses fresh GetVisitInfoV3 plus
+    GetPatientDemographics proof, rejecting wrong/changed patient/office/policy.
+    The native tab now has an on-demand profile, its own source receipt/fetch age,
+    explicit missing fields and the existing related-record actions. Source Clear,
+    date/page/session/Demo changes fence old controls and pending responses. No
+    extra read permissions or source writes. Production acceptance pending.
 [ ] T03 Authorization discovery is enabled (SearchPatientAuthorizations), but
     exact detail uses GetPatientAuthorizationInfo and is not currently enabled.
     Establish detail entitlement and matching patient/office before activating.
@@ -128,11 +139,14 @@ TAB 06 - MESSAGES & ALERTS
     text messages or send new communications during connection verification.
 
 TAB 07 - STAFFING
-[ ] S01 Currently 'Open shifts unavailable'. Live visit assignments already exist
+[x] S01 Replaced 'Open shifts unavailable' with dated visit assignment evidence.
+    Live visit assignments already exist
     in GetVisitInfoV3 caregiver references/schedule fields. Connect those fields
     to a dated assignment-evidence surface without declaring staffing eligibility.
     Iteration3: implemented a dated source assignment table from the shared live
-    source page, with missing/details explicit. Native production check pending.
+    source page, with missing/details explicit. Production release78c2551 returned
+    10rows with exactly the same ordered references and receipt as the EVV tab;
+    it does not establish open-shift completeness or staff eligibility.
 [ ] S02 Staff profile source: GetCaregiverDemographics. Availability sources:
     GetCaregiverPermanentWeekAvailability, GetCaregiverSpecialAvailability;
     restrictions/preferences/discipline and office membership remain separate.
@@ -178,7 +192,7 @@ TAB 11 - AUDIT LOG
 [x] A01 Replaced the disconnected preview using the existing protected
     /workspace/audit endpoint and workspaceAudit Firestore collection.
     This is Primetime's audit trail, not HHA's complete external audit history.
-    endpoint. Iteration2 release8b132be17f17f186ddcd701e9ca648b79c9e8306 passed
+    Iteration2 release8b132be17f17f186ddcd701e9ca648b79c9e8306 passed
     both normal jobs in workflow40116042772. Native production loaded100events
     then100older events. Source Clear preserved them; Demo cleared them. Late
     session/Demo response fences have synthetic coverage; real sign-out was not
@@ -211,9 +225,10 @@ TAB 13 - SETTINGS
     keyboard access remains, and geometry checks passed390/1280/1920px.
 
 NEXT IMPLEMENTATION ORDER
-1. Finish R03, O04, P04/P05 and C02 production acceptance.
-2. Wire existing internal A01/C01 data into their actual tabs.
-3. Reuse approved live visit fields for E01/S01 and current patient T01/T02.
+1. Finish T01/T02 current patient workbench and EVV live-search production acceptance.
+2. Recheck Forms folder lists and exact current source/detail failure labels.
+3. R03, O04, P04/P05, C02, A01/C01 and E01/S01 source connections are verified
+   within their documented page/field/gate limits; retain those boundaries.
 4. Audit/enable additional bounded HHA read sources for exact-record context;
    verify entitlement and fields before expanding any data shown as operational.
 5. Connect supported billing/document/staff/read-only context with explicit scope.

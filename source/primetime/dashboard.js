@@ -80,14 +80,26 @@
     const from = clock(start), to = clock(end);
     return from && to && from.zone === to.zone && to.minute > from.minute ? { left: from.minute / 14.4, width: (to.minute - from.minute) / 14.4 } : null;
   }
-  window.primetimeDashboardModel = Object.freeze({ filterExceptions, normalizeVisitPreview, sourceEvidence, sourceInterval });
+  function normalizePatientProfile(payload, expected) {
+    if (!payload || payload.ok !== true || payload.operation !== 'GetPatientDemographics' || payload.source !== 'hhaexchange'
+      || payload.validation !== 'source_unvalidated' || payload.interpretation !== 'patient_source_unvalidated' || payload.truncated !== false
+      || payload.timezone !== 'source_values_unconverted' || !Array.isArray(payload.records) || payload.records.length !== 1
+      || typeof payload.fetchedAt !== 'string' || !Number.isFinite(Date.parse(payload.fetchedAt)) || payload.membershipCheckedAt !== payload.fetchedAt
+      || !expected || !['visitId', 'patientId', 'officeId'].every(key => payload.scope?.[key] === expected[key])) throw new Error('invalid_patient_profile');
+    const record = payload.records[0];
+    if (!record || record.PatientID !== expected.patientId || record.OfficeID !== expected.officeId) throw new Error('invalid_patient_profile');
+    const fields = ['PatientID', 'OfficeID', 'FirstName', 'LastName', 'PatientStatusName', 'AdmissionID', 'PayerID', 'PayerName', 'LastModifiedDate'];
+    if (fields.some(key => record[key] !== null && record[key] !== undefined && (typeof record[key] !== 'string' || record[key].length > 1000))) throw new Error('invalid_patient_profile');
+    return { fields: Object.fromEntries(fields.map(key => [key, record[key] || null])), fetchedAt: payload.fetchedAt };
+  }
+  window.primetimeDashboardModel = Object.freeze({ filterExceptions, normalizeVisitPreview, sourceEvidence, sourceInterval, normalizePatientProfile });
   if (typeof document === 'undefined') return;
   const controller = window.primetimeDataMode;
   const fixtures = window.primetimeDemoData;
   if (!controller || !fixtures) return;
   const get = id => document.getElementById(id);
   const hosts = ['dashboardOverviewMetrics', 'dashboardOverviewExceptions', 'dashboardCoverage', 'dashboardAlerts', 'dashboardTimeline', 'dashboardEvidenceChart',
-    'dashboardExceptions', 'dashboardVisitMetrics', 'dashboardVisitRows', 'dashboardMessages', 'dashboardStaffing',
+    'dashboardExceptions', 'dashboardVisitMetrics', 'dashboardVisitRows', 'dashboardPatients', 'dashboardPatientProfile', 'dashboardMessages', 'dashboardStaffing',
     'dashboardBillingMetrics', 'dashboardBillingPipeline'];
   const dateInput = get('dashboardVisitDate');
   let ready = false;
@@ -108,6 +120,8 @@
   let feedAbort = null;
   let feedReceipt = null;
   let feedPolling = false;
+  let patientAbort = null, patientRequest = 0, patientRetryAt = 0;
+  let clearPatientFetchAge = () => {};
   function stopFeedTimer() { if (feedTimer !== null) clearTimeout(feedTimer); feedTimer = null; }
   function cancelFeedRead() { feedAbort?.abort(); feedAbort = null; feedPolling = false; }
   function feedControls(message) {
@@ -145,7 +159,7 @@
     if (description.textContent !== message) description.textContent = message;
   }
   function pauseForSourceFocus() {
-    if (!document.activeElement?.closest?.('#dashboardVisitRows, #dashboardTimeline, #dashboardEvidenceChart')) return false;
+    if (!document.activeElement?.closest?.('#dashboardVisitRows, #dashboardTimeline, #dashboardEvidenceChart, #dashboardPatients, #dashboardPatientProfile')) return false;
     pauseFeed('Live feed display paused while working with source records. The server continues updating; Resume reads its latest page.');
     return true;
   }
@@ -277,7 +291,7 @@
     }));
   }
   function liveOverviewState(title, detail) {
-    ['dashboardOverviewMetrics', 'dashboardVisitMetrics', 'dashboardOverviewExceptions', 'dashboardCoverage', 'dashboardAlerts', 'dashboardTimeline', 'dashboardEvidenceChart', 'dashboardExceptions', 'dashboardStaffing'].forEach(id => unavailable(id, title, detail));
+    ['dashboardOverviewMetrics', 'dashboardVisitMetrics', 'dashboardOverviewExceptions', 'dashboardCoverage', 'dashboardAlerts', 'dashboardTimeline', 'dashboardEvidenceChart', 'dashboardExceptions', 'dashboardStaffing', 'dashboardPatients', 'dashboardPatientProfile'].forEach(id => unavailable(id, title, detail));
     text('dashboardReadiness', detail);
   }
   function renderTimeline(view) {
@@ -351,12 +365,12 @@
       node('p', 'These are source clock fields. Missing values are not automatically late, missed or classified exceptions.', 'source-metadata'));
     if (get('exceptionSearch')) get('exceptionSearch').disabled = false;
     if (get('priorityFilter')) { get('priorityFilter').value = 'all'; get('priorityFilter').disabled = true; }
-    const sourceTerm = (get('exceptionSearch')?.value || '').trim().toLowerCase();
-    for (const row of get('dashboardExceptions')?.querySelectorAll('tbody tr') || []) row.hidden = !!sourceTerm && !row.textContent.toLowerCase().includes(sourceTerm);
+    filterSourceExceptions();
     replace('dashboardStaffing', sourceNote(), table(['Visit', 'Caregiver reference', 'Scheduled start', 'Scheduled end', 'Assignment field'],
       view.items.map(item => [item.id, ...['caregiverId', 'scheduledStart', 'scheduledEnd'].map(key => sourceField(item, key)),
         item.state === 'unavailable' ? unavailableDetail(item) : item.caregiverId ? 'Caregiver reference supplied' : 'Caregiver reference not supplied'])),
       node('p', 'Assignments shown by HHA do not establish staff eligibility, availability, open-shift completeness or permission to reassign care.', 'source-metadata'));
+    renderSourcePatients(view, sourceNote());
     const coverage = node('div');
     const stat = node('div', null, 'coverage-stat'); stat.append(node('strong', `${evidence.assigned} / ${evidence.readable}`), node('span', 'caregiver IDs supplied')); coverage.append(stat);
     const bar = node('progress'); bar.max = evidence.readable || 1; bar.value = evidence.assigned; bar.setAttribute('aria-label', `${evidence.assigned} of ${evidence.readable} readable visits have a caregiver ID`);
@@ -395,8 +409,12 @@
     element.append(body); wrap.append(element); return wrap;
   }
   const hours = minutes => (minutes / 60).toFixed(1) + 'h';
+  function filterSourceExceptions() {
+    const term = (get('exceptionSearch')?.value || '').trim().toLowerCase();
+    for (const row of get('dashboardExceptions')?.querySelectorAll('tbody tr') || []) row.hidden = !!term && !row.textContent.toLowerCase().includes(term);
+  }
   function renderExceptions() {
-    if (controller.isLive()) return;
+    if (controller.isLive()) { filterSourceExceptions(); return; }
     const model = fixtures.dashboard(dateInput?.value || localDay());
     const rows = filterExceptions(model.exceptions, get('exceptionSearch')?.value, get('priorityFilter')?.value);
     replace('dashboardExceptions', table(['Visit', 'Example exception', 'Scheduled start', 'Scheduled end', 'Example visibility', 'Example priority'],
@@ -407,6 +425,8 @@
     if (!fromFeed) cancelFeedRead();
     feedReceipt = null;
     clearPageFetchAge();
+    patientAbort?.abort(); patientAbort = null; patientRequest++;
+    clearPatientFetchAge(); replace('dashboardPatientProfile');
     serial += 1;
     document.dispatchEvent(new Event('primetime-source-context-cleared'));
   }
@@ -511,6 +531,8 @@
     replace('dashboardAlerts', alerts);
     replace('dashboardMessages', ...model.rules.map(rule => { const card = node('article', null, 'panel'); card.append(node('span', rule.audience, 'rule-tag ' + rule.tone), node('h3', rule.title), node('p', rule.detail), node('small', rule.channel)); return card; }));
     replace('dashboardStaffing', table(['Example shift', 'Service', 'Day', 'Window', 'Example matches'], model.coverage.shifts.map(shift => [shift.id, shift.service, shift.dayOffset ? `In ${shift.dayOffset} day(s)` : 'Selected day', shift.window, `${shift.eligible.length} example candidates`])));
+    unavailable('dashboardPatients', 'Current patient source is paused', 'Switch Demo data off to read real patients from the selected visit page.');
+    replace('dashboardPatientProfile');
     const pipeline = node('div', null, 'pipeline');
     [['Scheduled', hours(model.billing.projectedMinutes)], ['Completed', hours(model.billing.completedMinutes)], ['Ready', hours(model.billing.readyMinutes)], ['Submitted', 'Unavailable'], ['Paid', 'Unavailable']].forEach(([label, value]) => { const stage = node('div'); stage.append(node('span', label), node('strong', value)); pipeline.append(stage); });
     replace('dashboardBillingPipeline', pipeline);
@@ -554,6 +576,60 @@
       () => nodes.forEach(item => { item.hidden = true; item.textContent = ''; }));
   }
   function context() { return { generation: controller.getGeneration(), mode: controller.getMode(), session, serial }; }
+  function renderSourcePatients(view, sourceNote) {
+    const captured = context(), grouped = new Map();
+    for (const item of view.items) {
+      if (item.state === 'unavailable' || typeof item.patientId !== 'string' || !/^[1-9]\d{0,9}$/.test(item.patientId)) continue;
+      const group = grouped.get(item.patientId);
+      if (group) group.visits++;
+      else grouped.set(item.patientId, { item, visits: 1 });
+    }
+    replace('dashboardPatients', sourceNote, table(['Patient reference', 'Visits on this page', 'Current source details'],
+      [...grouped.values()].map(({ item, visits }) => [item.patientId, visits, () => {
+        const control = node('button', 'View current profile', 'btn secondary'); control.type = 'button';
+        control.addEventListener('click', () => { void loadPatientProfile(view, item, captured); }); return control;
+      }])), node('p', 'Only patients from readable visits on the selected page are listed. Choose a visit date or another source page in Overview to change this list.', 'source-metadata'));
+    replace('dashboardPatientProfile', node('p', 'Choose View current profile to read fresh HHA patient fields. Saved calendar captures remain separate.'));
+  }
+  async function loadPatientProfile(view, item, captured) {
+    if (!current(captured) || !controller.isLive() || metadata?.settings?.officeId !== view.scope.officeId) return;
+    if (Date.now() < patientRetryAt) {
+      replace('dashboardPatientProfile', node('p', `Source read limit reached. Retry in ${Math.ceil((patientRetryAt - Date.now()) / 1000)} seconds.`)); return;
+    }
+    pauseFeed('Live feed display paused for current patient review. Resume live feed to return to the latest visit page.');
+    patientAbort?.abort(); clearPatientFetchAge();
+    const request = new AbortController(), sequence = ++patientRequest; patientAbort = request;
+    const scope = { visitId: item.id, patientId: item.patientId, officeId: view.scope.officeId };
+    replace('dashboardPatientProfile', node('p', 'Reading current HHA patient fields and checking visit / patient / office membership…'));
+    const active = () => current(captured) && sequence === patientRequest && !request.signal.aborted;
+    try {
+      const response = await window.primetimeApiFetch('/primetime/api/workspace/visit-patient', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(scope), signal: request.signal
+      });
+      const payload = await response.json();
+      if (!active()) return;
+      if (!response.ok) {
+        if (response.status === 429 && Number.isSafeInteger(payload.retryAfterSeconds) && payload.retryAfterSeconds > 0 && payload.retryAfterSeconds <= 600) {
+          patientRetryAt = Date.now() + payload.retryAfterSeconds * 1000;
+          throw new Error(`Source read limit reached. Retry in ${payload.retryAfterSeconds} seconds.`);
+        }
+        throw new Error(({ read_not_owner_enabled: 'The required patient source read is not enabled in owner controls.',
+          operational_data_release_not_approved: 'Patient source access is locked pending operational data release.',
+          office_policy_changed_restart: 'Office preferences changed. Reload the source page before retrying.',
+          visit_patient_mismatch: 'The current visit no longer matches this patient. Reload the source page.',
+          patient_office_mismatch: 'Current patient office membership could not be verified.' })[payload.error] || 'Current patient source read could not be completed. Retry from the source page.');
+      }
+      const profile = normalizePatientProfile(payload, scope);
+      const labels = { PatientID: 'Patient ID', OfficeID: 'Office ID', FirstName: 'First name', LastName: 'Last name', PatientStatusName: 'Patient status (source)', AdmissionID: 'Admission reference', PayerID: 'Payer reference', PayerName: 'Payer name (source)', LastModifiedDate: 'Last modified (source)' };
+      const receipt = node('p', `HHA GetPatientDemographics · fetched ${profile.fetchedAt} · current visit / patient / office checked. Source fields are unvalidated; this does not establish coverage or clinical acceptance.`, 'source-metadata');
+      const age = node('p', null, 'source-metadata');
+      replace('dashboardPatientProfile', receipt, age, table(['Source field', 'Source value'], Object.entries(profile.fields).map(([key, value]) => [labels[key], value || 'Not supplied by HHA'])), sourceRecordTools(view, item, captured));
+      clearPatientFetchAge = window.primetimeSourceTime.watchFetchAge(window.primetimeSourceTime.timestampInstant(profile.fetchedAt), active,
+        value => { age.textContent = value; }, () => { age.textContent = ''; });
+    } catch (error) {
+      if (active()) replace('dashboardPatientProfile', node('p', error.message === 'invalid_patient_profile' ? 'Patient source response could not be verified. Reload the source page before retrying.' : error.message));
+    } finally { if (patientAbort === request) patientAbort = null; }
+  }
   function sourceRecordTools(view, item, captured) {
     const tools = node('div', null, 'source-record-tools');
     if (view.mode !== 'live' || item.state === 'unavailable') return tools;

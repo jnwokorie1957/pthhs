@@ -4,6 +4,16 @@ import { identifier, WorkflowError } from "./reads.js";
 type Workspace = Pick<OperationsWorkspace, "settings" | "query">;
 
 export async function patientVisitRead(workspace: Workspace, value: unknown, actor: string) {
+  const { visit, patient, scope } = await checkedVisitPatient(workspace, value, actor);
+  return { ...visit, scope, membershipCheckedAt: patient.fetchedAt, interpretation: "visit_source_unvalidated" as const };
+}
+
+export async function visitPatientRead(workspace: Workspace, value: unknown, actor: string) {
+  const { patient, scope } = await checkedVisitPatient(workspace, value, actor);
+  return { ...patient, scope, membershipCheckedAt: patient.fetchedAt, interpretation: "patient_source_unvalidated" as const };
+}
+
+async function checkedVisitPatient(workspace: Workspace, value: unknown, actor: string) {
   if (!value || typeof value !== "object" || Array.isArray(value)) throw new WorkflowError("invalid_patient_visit_query");
   const input = value as Record<string, unknown>;
   if (Object.keys(input).some(key => !["visitId", "patientId", "officeId"].includes(key))) throw new WorkflowError("invalid_patient_visit_query");
@@ -26,5 +36,5 @@ export async function patientVisitRead(workspace: Workspace, value: unknown, act
   if (patient.operation !== "GetPatientDemographics" || patient.source !== "hhaexchange" || patient.truncated || patient.records.length !== 1
     || patient.records[0]?.PatientID !== patientId || patient.records[0]?.OfficeID !== officeId) throw new WorkflowError("patient_office_mismatch", 403);
   await checkScope();
-  return { ...visit, scope: { visitId, patientId, officeId }, membershipCheckedAt: patient.fetchedAt, interpretation: "visit_source_unvalidated" as const };
+  return { visit, patient, scope: { visitId, patientId, officeId } };
 }
