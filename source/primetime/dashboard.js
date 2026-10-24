@@ -367,8 +367,9 @@
     const body = node('tbody');
     for (const values of rows) {
       const row = node('tr');
-      values.forEach(value => {
+      values.forEach((value, index) => {
         const cell = node('td');
+        if (id === 'sourceVisitTable') cell.setAttribute('data-label', headers[index]);
         if (typeof value === 'function') cell.append(value());
         else cell.textContent = value === null || value === undefined || value === '' ? 'Unavailable' : String(value);
         row.append(cell);
@@ -511,13 +512,13 @@
       renderTimeline(view);
       unavailable('dashboardEvidenceChart', 'Synthetic example mode', 'All records in this mode are generated examples. Switch Demo data off to load live HHA evidence.');
     }
-    const pair = (start, end) => `${start || 'Unavailable'}\n${end || 'Unavailable'}`;
+    const pair = (start, end) => `${start || 'Not supplied by HHA'}\n${end || 'Not supplied by HHA'}`;
     const captured = context();
     const { sourceScheduleHours, sourceActualHours } = window.primetimeSourceTime;
     replace('dashboardVisitRows', table(['Visit', 'Patient ID', 'Caregiver ID', 'Scheduled start / end', 'Actual start / end', 'EVV start / end', 'Expected hours (HHA)', 'Actual hours (HHA)', 'Evidence state', 'Source records'],
       view.items.map(item => [item.id, item.patientId, item.caregiverId, pair(item.scheduledStart, item.scheduledEnd), pair(item.actualStart, item.actualEnd), pair(item.evvStart, item.evvEnd),
         view.mode === 'demo' ? 'Synthetic example' : sourceScheduleHours(item.scheduleDurationHours, item.scheduleDurationMinutes, null, item.scheduledStart, item.scheduledEnd), view.mode === 'demo' ? 'Synthetic example' : sourceActualHours(item.actualHours, null, item.actualStart, item.actualEnd),
-        item.state === 'unavailable' ? 'Detail unavailable: ' + item.detailReason : view.mode === 'demo' ? 'Synthetic example' : 'Source unvalidated', view.mode === 'demo' ? 'Synthetic record' : () => sourceRecordTools(view, item, captured)])));
+        item.state === 'unavailable' ? 'Detail unavailable: ' + item.detailReason : view.mode === 'demo' ? 'Synthetic example' : 'Source unvalidated', view.mode === 'demo' ? 'Synthetic record' : () => sourceRecordTools(view, item, captured)]), 'sourceVisitTable'));
     text('dashboardVisitStatus', view.mode === 'demo' ? 'Synthetic visit examples. No source request was made.' : view.state === 'partial' ? 'Partial source page returned. More pages, truncated search results or unavailable details are disclosed below.' : view.state === 'empty' ? 'No visit identifiers returned for this query. Complete office coverage is not established.' : 'Live HHA source page returned. Source fields are shown separately; operational classifications are pending.');
     text('dashboardVisitScope', `Office: ${view.scope.officeId || 'Unavailable'} · Date: ${view.scope.date} · Timezone: ${view.scope.timezone || 'Unconfigured'}`);
     text('dashboardVisitMetadata', view.mode === 'demo' ? 'Source: synthetic examples · values are not patient records.' : `Source: HHAeXchange · fetched: ${view.fetchedAt || 'Unavailable'} · source unvalidated · on-demand read, not a persisted visit import · source time values shown without conversion. Source clock spans are written-time arithmetic, not elapsed, payable or billable time.`);
@@ -555,7 +556,10 @@
       });
       tools.append(control);
     }
-    return tools;
+    if (!tools.children.length) return tools;
+    const menu = node('details', null, 'source-record-menu');
+    menu.append(node('summary', 'Open records', 'btn secondary'), tools);
+    return menu;
   }
   function current(captured) { return ready && captured.generation === controller.getGeneration() && captured.mode === controller.getMode() && captured.session === session && captured.serial === serial; }
   function blockedMessage(reason) {

@@ -1,0 +1,364 @@
+PRIMETIME LIVE-DATA AUDIT AND CONNECTION CHECKLIST
+Started: October 24, 2026, America/Chicago
+Requested outcome: inspect every tab, find every error/unavailable/disconnected
+area, map the actual source, connect available authorized data and verify it.
+Goal remains ACTIVE. This document does not claim every tab is connected.
+
+STATUS KEY
+[x] Verified completed connection or correction, with its limits stated.
+[ ] Open implementation or verification work.
+SOURCE EMPTY means a successful source read returned no value; it is not an
+authentication failure and must not be replaced with invented clinical facts.
+GATED means an existing release/source/provider control remains closed.
+NO SOURCE CONTRACT means no supported field/endpoint/meaning has been proved.
+Every completed connection needs signed-in production evidence, not only tests.
+
+EVIDENCE AND WORK RULES
+All thirteen navigation tabs were inspected in the signed-in Chrome session on
+October 24. Source/code matches this repository; API field contracts were checked
+against hharefs/hha-wdsl.xml. No source patient/staff values or IDs belong here.
+Use API reads, not a web-scraped import. Preserve live versus historical/saved
+labels, office/date/identity checks, throttling, auth and normal release controls.
+The owner requested connection work; investigate bounded read enablement under
+that request. Do not enable clinical writes, financial decisions or SMS sending
+merely to remove a warning. Do not turn empty data into a false populated value.
+
+FIRST VERIFIED REPAIR
+[x] R01 Visit review HTTP429: smaller five-visit UI requests; preserve completed,
+    office-checked prefixes if a later source read is throttled. The deferred ID
+    remains at the next offset. Zero-progress limits retain real retry seconds;
+    browser retries respect that delay without hammering the API.
+    Source: SearchVisitsV2 -> GetVisitInfoV3 -> GetPatientDemographics office proof.
+    Feature release: 671fd3a580f89ce87b0f32c1251bb6a475515902.
+    Normal workflow40114386393: Hosting/backend both passed. Local515 backend /
+    288 tooling/frontend tests passed. Production visible October23 and24:
+    five visit cards per date after the fix. Earlier October23 read had ten.
+[x] R02 Repeated notification HTTP423: status now advertises notification-record
+    access separately from sending. UI does not call a closed history endpoint.
+    Source: private Primetime notification outbox; not a generic HHA SMS inbox.
+    History availability still GATED by existing capability/configuration flags.
+    No sending or source-interpretation approval was changed.
+[ ] R03 Complete post-release repeat and paging evidence for both requested dates.
+
+TAB 01 - OVERVIEW
+[x] O01 Current office/day API feed: SearchVisitsV2, GetVisitInfoV3 and patient
+    office proof; server refreshes the bounded first page each minute. Live read
+    receipts, schedules, actual/EVV fields, six field-presence charts and paging
+    are connected. Counts describe the page, not an office census.
+[ ] O02 Audit all page and source-failure messages and make retry guidance match
+    the actual error, retry seconds and current selected date.
+[ ] O03 Complete-office coverage is not established. Determine a supported bounded
+    scan/refresh design before promising full-office totals or all-record search.
+[ ] O04 Crowded record buttons and clipped/wrapped identifiers: compact record
+    disclosure plus responsive source cards is implemented locally; production
+    desktop/narrow-screen verification remains pending.
+
+TAB 02 - VISIT REVIEW
+[x] V01 October23/24 source visits visible after R01. Diagnosis remains unknown
+    where interpretation is unaccepted; displayed original source fields remain
+    readable. Unknown diagnosis is not proof that the data feed is disconnected.
+[ ] V02 Finish retry, next-page, changed-date and office-scope production checks.
+[ ] V03 Exception/requirement records: private Primetime records, not HHA visits.
+    Confirm the local collections load and distinguish empty from failed reads.
+[ ] V04 Notification history/delivery: map exact existing provider configuration
+    and owner acceptance evidence. Preserve the separate history/send gates.
+[ ] V05 Accepted diagnosis/overlap/member-rule interpretation remains GATED.
+    Needed evidence is the exact approved source field/unit/period/semantics and
+    applicable policy/assignment contracts; raw visit reads do not establish it.
+
+TAB 03 - EVV EXCEPTIONS
+[ ] E01 Currently displays 'EVV exceptions unavailable' and disables its filters.
+    Actual source fields already live in GetVisitInfoV3 (VisitStartTime,
+    VisitEndTime, EVVStartTime, EVVEndTime, verification and related details).
+    Connect a useful live source-evidence view without fabricating exception rules.
+[ ] E02 Classified exception queue depends on accepted diagnosis/policy evidence
+    and local revision exception records. Keep classification separate from raw
+    punch presence, and connect genuine local follow-up where available.
+
+TAB 04 - VISIT PREVIEW
+[x] P01 Schedule times/duration: GetVisitInfoV3 ScheduleStartTime,
+    ScheduleEndTime, ScheduleDuration/ScheduleDurationHours and
+    ScheduleDuration/ScheduleDurationMinutes. Live page is connected.
+[x] P02 Actual/EVV starts and ends are read from their exact GetVisitInfoV3 fields.
+    One affected current-day visit was independently reread through Advanced
+    tools. Actual and EVV starts were supplied; both end fields were empty.
+    Its ActualHours and ActualHoursRounded were also empty. This is SOURCE EMPTY
+    for that read, not a recovered clock-out or a parser fix.
+    The WSDL V2 and V3 contracts both name those same end/hour fields. No alternate
+    value was proved by this read. Do not substitute scheduled, payable or billed
+    hours, or a hypothetical future clock-out.
+[ ] P03 Verify additional affected examples, including a completed historical
+    visit, and cross-check any documented alternate endpoint only after its
+    identity/office boundary and entitlement are established.
+[ ] P04 Replace vague 'Unavailable' in connected time cells with the specific
+    source-absence explanation. Local change says 'Not supplied by HHA'; deploy
+    and verify it, including unconverted source times and honest clock-span labels.
+[ ] P05 Record controls: all seven actions must remain reachable without cropped
+    labels. Keep patient, caregiver, visit, calendar, authorization, care-plan and
+    document links tied to the same source context.
+
+TAB 05 - PATIENT WORKBENCH
+[ ] T01 Main surface currently shows Calendar imports (saved captures), not a
+    current patient list/profile. Keep those captures clearly historical.
+    Current API source: GetPatientDemographics for exact discovered patient IDs;
+    SearchPatients for approved discovery with documented filters/office checks.
+[ ] T02 Connect current patient details directly to this tab, preserving the live
+    source receipt and links to visits, authorizations, care plans and documents.
+[ ] T03 Authorization discovery is enabled (SearchPatientAuthorizations), but
+    exact detail uses GetPatientAuthorizationInfo and is not currently enabled.
+    Establish detail entitlement and matching patient/office before activating.
+    Units/remaining balance/approval semantics remain independent evidence.
+[ ] T04 Care plans/documents: SearchPatientPOC, GetPatientPOCInfo,
+    SearchPatientDocument and DownloadPatientDocument. Confirm exact ownership,
+    office and release/access limits before enabling the bounded readers.
+
+TAB 06 - MESSAGES & ALERTS
+[ ] M01 Currently says no live message feed or delivery channel is connected.
+    Existing source for application reminders is the Primetime outbox/provider
+    delivery state, not HHA notes or a made-up HHA inbox endpoint.
+[ ] M02 Expose actual provider/configuration/history state and persisted office
+    follow-up in this tab; avoid a generic failure for a deliberately closed gate.
+[ ] M03 HHA patient/caregiver notes are separate: GetPatientNotes,
+    GetCaregiverNotes and their change endpoints. Do not label these as delivered
+    text messages or send new communications during connection verification.
+
+TAB 07 - STAFFING
+[ ] S01 Currently 'Open shifts unavailable'. Live visit assignments already exist
+    in GetVisitInfoV3 caregiver references/schedule fields. Connect those fields
+    to a dated assignment-evidence surface without declaring staffing eligibility.
+[ ] S02 Staff profile source: GetCaregiverDemographics. Availability sources:
+    GetCaregiverPermanentWeekAvailability, GetCaregiverSpecialAvailability;
+    restrictions/preferences/discipline and office membership remain separate.
+    Verify exact caregiver/office proof and then enable a bounded source reader.
+[ ] S03 Open-shift/eligible staff matching needs verified schedule completeness,
+    authorization, effective assignment/discipline and applicable availability
+    rules. Do not create assignments or infer qualified staff from a nonempty ID.
+
+TAB 08 - BILLING & AR
+[ ] B01 Currently 'Billing pipeline unavailable'. Source facts can come from
+    SearchBilledVisits, GetVisitBillInfoV2, GetBillingServiceCodes, GetContracts,
+    GetCollectionNotes and relevant collection reference catalogs.
+[ ] B02 Connect exact-visit billing/source follow-up with office/identity checks
+    and current source receipts. Those additional reads are not yet enabled.
+[ ] B03 GetVisitInfoV3 BilledAmount is a source field, not collected cash.
+    Do not invent cash collections, paid-claim stages, billing readiness or AR
+    totals from visit times, billed amount, payroll hours or absent records.
+
+TAB 09 - FORMS
+[x] F01 Connected private Firebase Storage template/submission library. Exact
+    synthetic file round trips, deduplication, persistence and anonymous-denial
+    checks previously passed; current restored-session readiness was corrected.
+    This source is Firebase, not HHA, and does not require a fabricated HHA feed.
+[ ] F02 Recheck current list/loading/error status in both folders during this audit.
+[ ] F03 HHA source documents are a separate API source (patient/caregiver document
+    discovery/download). No clinical editable form instance, autofill schema,
+    patient/visit linkage, reviewer/signature or sharing contract is established
+    merely by stored bytes. Retain precise prerequisites for those features.
+
+TAB 10 - HHA INTEGRATION
+[x] H01 Authenticated HHA reference read and scheduled visit-feed connectivity
+    exist. Credentials remain backend-only; direct list/detail reads are API-based.
+[ ] H02 Persisted normalized import history is separate from the minute source
+    cache. GetVisitChangesV4/GetDeletedVisits and related patient/caregiver change
+    endpoints are candidates for an approved normalized sync, not proof one runs.
+[ ] H03 Publish a meaningful per-source status/last-success/freshness/coverage
+    matrix; a successful reference health check is not all endpoint entitlement.
+[ ] H04 Confirm intended tenant/application/office filters against owner-provided
+    matching source evidence. No current HHA web tab was available in the prior
+    scheduled review; connection work must not depend on web-scraped imports.
+
+TAB 11 - AUDIT LOG
+[ ] A01 Displays a disconnected preview despite an existing protected
+    /workspace/audit endpoint and workspaceAudit Firestore collection.
+    This is Primetime's audit trail, not HHA's complete external audit history.
+    Connect its existing paginated real records directly in this tab.
+
+TAB 12 - ADVANCED TOOLS
+[x] W01 Existing protected settings and operational GetVisitInfoV3 source reads
+    work. One exact affected visit was reread during this investigation.
+[ ] W02 Only five read operations were selected in the inspected owner controls:
+    GetOfficesV2, SearchVisitsV2, SearchPatientAuthorizations, GetVisitInfoV3,
+    GetPatientDemographics. Other exposed operations must be mapped, scope-audited,
+    entitlement-tested and enabled deliberately under the connection request.
+[ ] W03 Distinguish an owner-disabled operation, vendor-contract block, API quota,
+    empty successful response, release lock and unexpected server failure in UI.
+[ ] W04 Review each displayed workflow's required live prerequisites. Existing
+    creation/replacement/clinical/financial/scheduling execution gates stay closed
+    unless independently authorized; a button's presence is not a live source.
+
+TAB 13 - SETTINGS
+[ ] C01 Displays 'Settings preview unavailable' although current preferences are
+    already served by /workspace/settings and edited by the existing ownerForm.
+    Connect the existing real controls/data directly here without duplicating or
+    silently changing office/read/privacy policy.
+[ ] C02 Navigation bug: at a609px-high viewport, sidebar content is818px high;
+    Advanced tools and Settings lie below the viewport and mouse clicks do not
+    activate them. Keyboard Enter reached both for this audit. Add a scrollable
+    sidebar and verify mouse/keyboard access at desktop/narrow/short heights.
+
+NEXT IMPLEMENTATION ORDER
+1. Finish R03, O04, P04/P05 and C02 production acceptance.
+2. Wire existing internal A01/C01 data into their actual tabs.
+3. Reuse approved live visit fields for E01/S01 and current patient T01/T02.
+4. Audit/enable additional bounded HHA read sources for exact-record context;
+   verify entitlement and fields before expanding any data shown as operational.
+5. Connect supported billing/document/staff/read-only context with explicit scope.
+6. Keep source-empty fields, unproved totals/semantics and provider/clinical/action
+   gates explicit. Never mark all connected while any required item is unverified.
+
+COMPLETION EVIDENCE REQUIRED FOR EACH CONNECTION
+Exact source/endpoint and fields; office/date/identity boundary; signed-in live
+result or an honest source-empty response; freshness and paging; failure/retry;
+session/Demo isolation; meaningful tests; normal release; production verification.
+Local evidence is stored under outputs with no raw patient/staff values in Git.
+
+READ OPERATION INVENTORY
+The following generated appendix names every read exposed in Advanced tools and
+whether it was selected in the inspected owner configuration. A selected read is
+not proof of full field semantics, successful entitlement or complete coverage.
+Unselected reads are work to scope and verify, not automatically failed APIs.
+
+[ ] GetReferralProfile
+[ENABLED] GetOfficesV2
+[ ] GetContracts
+[ ] GetMissedVisitReasonsV2
+[ ] GetMissedVisitActionTakenV2
+[ ] GetVisitEditReasonActionTaken
+[ ] GetBillingServiceCodes
+[ENABLED] SearchVisitsV2
+[ ] SearchPatients
+[ ] SearchCaregivers
+[ENABLED] SearchPatientAuthorizations
+[ ] SearchBilledVisits
+[ ] GetScheduleInfo
+[ENABLED] GetVisitInfoV3
+[ENABLED] GetPatientDemographics
+[ ] GetCaregiverDemographics
+[ ] GetPatientAuthorizationInfo
+[ ] GetVisitBillInfoV2
+[ ] GetCaregiverPermanentWeekAvailability
+[ ] GetCaregiverSpecialAvailability
+[ ] GetPatientContracts
+[ ] GetPatientDisciplines
+[ ] GetPatientReferralInfo
+[ ] GetPatientPreferences
+[ ] GetPatientDeclinedCaregivers
+[ ] GetCaregiverRates
+[ ] GetCaregiverPayCodes
+[ ] GetCaregiverInServices
+[ ] GetCaregiverRestriction
+[ ] GetCaregiverPreferences
+[ ] SearchPayrollBatches
+[ ] SearchPayrollBatchCaregivers
+[ ] GetVisitPayrollInfoV2
+[ ] SearchPatientPOC
+[ ] GetPatientPOCInfo
+[ ] GetPatientTeams
+[ ] GetCaregiverTeams
+[ ] GetBranches
+[ ] GetLocations
+[ ] GetPayRateCodes
+[ ] GetPayers
+[ ] GetLanguages
+[ ] GetSourceOfAdmissions
+[ ] GetPatientDischargeTo
+[ ] GetReferralStatus
+[ ] GetReferralSourceType
+[ ] GetReferralLostReason
+[ ] GetCollectionStatus
+[ ] GetCollectionARNoteReasons
+[ ] GetCollectionRepresentatives
+[ ] GetCollectionFollowUpRepresentatives
+[ ] GetCollectionClaimStatus
+[ ] GetCollectionReasonForNonPayment
+[ ] GetPayrollTaxTypes
+[ ] GetPayrollTaxLocations
+[ ] GetEthnicity
+[ ] GetGenders
+[ ] GetInServiceTopics
+[ ] GetInServiceInstructors
+[ ] GetInServiceNoShowReason
+[ ] GetContractDischargeReason
+[ ] GetRefusedDutyReason
+[ ] GetI9ColumnCDocument
+[ ] GetCaregiverPTOAccrualTypes
+[ ] GetCaregiverGender
+[ ] GetCaregiverGenderForPatientPreference
+[ ] GetScheduleBillInfoEditReasons
+[ ] GetFluSeasonYears
+[ ] GetI9Documents
+[ ] GetCaregiverReferralSources
+[ ] GetEmergencyContactRelationships
+[ ] GetCaregiverNotificationMethods
+[ ] GetPayrollStateFillingStatus
+[ ] GetPayrollFederalFillingStatus
+[ ] GetMobilityStatuses
+[ ] GetEvacuationZones
+[ ] GetNurses
+[ ] GetEvacuationLocations
+[ ] GetReferralSalesStaff
+[ ] GetElectricEquipments
+[ ] GetCollectionNotes
+[ ] GetPayrollBatchDetails
+[ ] GetMasterWeeks
+[ ] GetLinkedScheduleInfo
+[ ] GetComplianceTrainingSchools
+[ ] GetVisitDeleteReasons
+[ ] GetVisitChangesV4
+[ ] GetDeletedVisits
+[ ] GetDeletedPatientAuthorizations
+[ ] GetPatientChangesV2
+[ ] GetCaregiverChangesV2
+[ ] GetCaregiverAbsenceChangesV2
+[ ] GetPatientContractChangesV2
+[ ] GetPatientAuthorizationChanges
+[ ] GetCaregiverMedicalDetails
+[ ] GetCaregiverComplianceItemDue
+[ ] GetNumberOfComplianceItemDue
+[ ] GetPatientClinicalInfo
+[ ] GetCaregiversAccessPatientInfoToMobileApp
+[ ] SearchPatientDocument
+[ ] SearchCaregiverDocument
+[ ] GetPatientDocumentType
+[ ] GetCaregiverDocumentType
+[ ] GetCaregiverMedicals
+[ ] GetCaregiverOtherCompliance
+[ ] GetCaregiverMedicalResults
+[ ] GetCaregiverOtherComplianceResults
+[ ] GetCaregiverTrainingSchools
+[ ] GetContractServiceCode
+[ ] GetLinkedContractServiceCodes
+[ ] GetCoordinators
+[ ] GetEvaluationCodes
+[ ] GetMissedVisitActionTaken
+[ ] GetMissedVisitReasons
+[ ] GetOffices
+[ ] GetPOCTasks
+[ ] GetPatientCaregiverPreferences
+[ ] GetStatusReasonsForCaregiver
+[ ] GetCaregiverNoteSubjects
+[ ] GetPatientNoteReasons
+[ ] GetCaregiverMedicalDetailChanges
+[ ] GetCaregiverPayrollInfoChangesV2
+[ ] GetCaregiverPictureChanges
+[ ] GetVisitChangesV2
+[ ] GetVisitChangesV3
+[ ] GetCaregiverNoteChanges
+[ ] GetCaregiverPermanentWeekAvailabilityChanges
+[ ] GetCaregiverPreferenceChanges
+[ ] GetCaregiverSpecialAvailabilityChanges
+[ ] GetPatientNoteChanges
+[ ] GetPatientNotes
+[ ] GetCaregiverNotes
+[ ] GetCallDashBoardData
+[ ] GetReferralSource
+[ ] GetReferralSourceContact
+[ ] GetPatientAddress
+[ ] GetPOCDutyLists
+[ ] GetVisitBillInfo
+[ ] GetVisitInfoV2
+[ ] GetVisitPayrollInfo
+[ ] SearchPhoneNumber
+[ ] DownloadCaregiverDocument
+[ ] DownloadPatientDocument
+[ ] DownloadCaregiverPicture
