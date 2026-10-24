@@ -172,6 +172,8 @@ TAB 11 - AUDIT LOG
     /workspace/audit endpoint and workspaceAudit Firestore collection.
     This is Primetime's audit trail, not HHA's complete external audit history.
     Connect its existing paginated real records directly in this tab.
+    Iteration2: implemented locally using the existing protected endpoint,
+    independent pagination and stale-session/Demo fences; production pending.
 
 TAB 12 - ADVANCED TOOLS
 [x] W01 Existing protected settings and operational GetVisitInfoV3 source reads
@@ -191,6 +193,9 @@ TAB 13 - SETTINGS
     already served by /workspace/settings and edited by the existing ownerForm.
     Connect the existing real controls/data directly here without duplicating or
     silently changing office/read/privacy policy.
+    Iteration2: implemented a real current-settings summary/reload in this tab
+    while retaining the existing owner editor; production pending. Current read
+    failures must replace stale summaries, not leave them labeled current.
 [ ] C02 Navigation bug: at a609px-high viewport, sidebar content is818px high;
     Advanced tools and Settings lie below the viewport and mouse clicks do not
     activate them. Keyboard Enter reached both for this audit. Add a scrollable

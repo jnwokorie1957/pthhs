@@ -31,7 +31,7 @@ async function harness(readQueue) {
   vm.runInNewContext(readFileSync(new URL('../public/primetime/data-source.js', import.meta.url), 'utf8'), { document, window, Event, Date: FixtureDate });
   window.primetimeDataMode = isolatedMode;
   vm.runInNewContext(readFileSync(new URL('../public/primetime/workspace.js', import.meta.url), 'utf8'), { document, window, URLSearchParams, Date: FixtureDate, console });
-  const emit = async event => { events.get(event)?.(); await tick(); await tick(); };
+  const emit = async (event, detail) => { events.get(event)?.({ detail }); await tick(); await tick(); };
   const fire = async control => { control.handlers.get('click')?.({}); await tick(); await tick(); };
   await emit('primetime-ready');
   return { get, calls, mode, emit, fire, load: () => fire(get('loadInvestigations')),
@@ -125,4 +125,38 @@ test('the investigation workflow focuses its review filters and performs only a 
   assert.match(app.summary(), /Showing 0 of 0 loaded records/);
   assert.equal(app.calls.filter(call => call.path.endsWith('/investigations')).length, 1);
   assert.ok(app.calls.every(call => !call.options?.method || call.options.method === 'GET'));
+});
+
+test('Settings displays protected backend preferences and clears them on Demo and sign-out', async () => {
+  const app = await harness(() => ({ events: [], nextCursor: null }));
+  assert.match(text(app.get('dashboardSettings')), /Current preferences loaded from protected Primetime storage/);
+  assert.match(text(app.get('dashboardSettings')), /Configuration revision 1/);
+  app.mode.live = false; await app.emit('primetime-data-mode-changed');
+  assert.doesNotMatch(text(app.get('dashboardSettings')), /Configuration revision/);
+  app.mode.live = true; await app.emit('primetime-ready');
+  assert.match(text(app.get('dashboardSettings')), /Configuration revision 1/);
+  await app.emit('primetime-signed-out'); assert.doesNotMatch(text(app.get('dashboardSettings')), /Configuration revision/);
+});
+
+test('Audit tab reads protected real events and keeps pagination independent of Advanced tools', async () => {
+  const app = await harness(path => ({ events: [{ updatedAt: '2026-10-24T12:00:00Z', actor: 'synthetic-admin', action: path.includes('cursor=') ? 'older-action' : '<source-action>', revision: 2 }], nextCursor: path.includes('cursor=') ? null : 'opaque/older' }));
+  await app.emit('primetime-view-changed', { view: 'audit' });
+  assert.match(text(app.get('dashboardAudit')), /<source-action>/); assert.match(text(app.get('dashboardAudit')), /protected Primetime storage/);
+  assert.doesNotMatch(text(app.get('workspaceAudit')), /<source-action>/);
+  const more = descendants(app.get('dashboardAudit')).find(item => item.textContent === 'Load older audit events');
+  await app.fire(more); assert.match(text(app.get('dashboardAudit')), /older-action/);
+  assert.ok(app.calls.some(call => call.path.includes('cursor=opaque%2Folder')));
+  assert.equal(app.calls.some(call => call.options?.method === 'POST'), false);
+});
+
+test('a pending audit response cannot restore private events after Demo or sign-out', async () => {
+  for (const transition of ['demo', 'sign-out']) {
+    const wait = pending(), app = await harness(() => wait.promise);
+    await app.emit('primetime-view-changed', { view: 'audit' });
+    if (transition === 'demo') { app.mode.live = false; await app.emit('primetime-data-mode-changed'); }
+    else await app.emit('primetime-signed-out');
+    wait.resolve({ events: [{ updatedAt: 'synthetic', actor: 'private-fixture', action: 'must-not-appear', revision: 1 }], nextCursor: null });
+    await tick(); await tick();
+    assert.doesNotMatch(text(app.get('dashboardAudit')), /private-fixture|must-not-appear/);
+  }
 });

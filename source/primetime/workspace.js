@@ -25,6 +25,23 @@
   const investigationFilters = ['investigationStatusFilter', 'investigationAssignmentFilter', 'investigationFollowUpFilter'];
   let clearManualSnapshots = () => {};
   const message = text => { $('workspaceMessage').textContent = text; };
+  function clearConnectedPanels(detail = 'Sign in with Demo data off to load protected workspace data.') {
+    for (const id of ['dashboardAudit', 'dashboardSettings']) $(id)?.replaceChildren(paragraph(detail));
+  }
+  function renderConnectedPanels() {
+    if (!settings || window.primetimeDataMode?.isLive() !== true) return clearConnectedPanels();
+    const host = $('dashboardSettings');
+    if (host) { const card = document.createElement('section'); card.className = 'panel'; card.append(
+      paragraph('Current preferences loaded from protected Primetime storage.'),
+      paragraph(`Office: ${settings.officeId || 'Not configured'} · Timezone: ${settings.officeTimezone || 'Not configured'}`),
+      paragraph(`${settings.enabledReads.length} HHA read operations enabled. Configuration revision ${settings.revision}. Last saved ${settings.updatedAt || 'not recorded'}.`),
+      paragraph('Use Open owner controls above to edit the existing preferences. Loading this tab does not change them.'),
+      button('Reload current preferences', loadSettings)); host.replaceChildren(card); }
+    const audit = $('dashboardAudit');
+    if (audit) { const load = button('Load audit events', () => loadAudit(undefined, 'dashboardAudit')); load.disabled = !dataApproved;
+      audit.replaceChildren(paragraph(dataApproved ? 'Live Primetime audit history. This records application actions, not HHA’s full external audit trail.' : 'Audit history is locked pending operational data release.'), load); }
+  }
+  clearConnectedPanels();
   const names = { "GetPatientContracts": "Patient contracts on selected date", "GetPatientDisciplines": "Patient disciplines", "GetPatientReferralInfo": "Patient referral status (optional for admission)", "GetPatientPreferences": "Patient staffing preferences", "GetPatientDeclinedCaregivers": "Patient declined caregivers", "GetCaregiverRates": "Caregiver pay rates", "GetCaregiverPayCodes": "Caregiver pay codes", "GetCaregiverInServices": "Caregiver training attendance", "GetCaregiverRestriction": "Caregiver restrictions", "GetCaregiverPreferences": "Caregiver staffing preferences", "SearchPayrollBatches": "Find payroll batches by date", "SearchPayrollBatchCaregivers": "Caregivers in selected batch (record ID = batch)", "GetVisitPayrollInfoV2": "Visit payroll facts", "SearchPatientPOC": "Patient care plans", "GetPatientPOCInfo": "Care plan tasks (record ID = plan)", SearchVisitsV2: 'Find visits by office and date', GetScheduleInfo: 'Schedule details', GetVisitInfoV3: 'Visit and EVV evidence', GetPatientDemographics: 'Patient overview', GetCaregiverDemographics: 'Caregiver overview', GetPatientAuthorizationInfo: 'Authorization units', GetVisitBillInfoV2: 'Visit billing facts', GetCaregiverPermanentWeekAvailability: 'Weekly availability', GetCaregiverSpecialAvailability: 'Special availability' };
   const inputIds = { id: 'readId', patientId: 'readPatient', officeId: 'readOffice', date: 'readDate', term: 'readTerm', status: 'readStatus', contractId: 'readContract', caregiverId: 'readCaregiver', excludeZeroAmount: 'readExcludeZero', groupByVisit: 'readGroupVisit', modifiedAfter: 'readModifiedAfter', page: 'readPage', complianceType: 'readComplianceType', sequence: 'readSequence', documentTypeId: 'readDocumentType', scheduleType: 'readScheduleType', appliesTo: 'readAppliesTo', caregiverStatus: 'readCaregiverStatus', modifiedAfterUtc: 'readModifiedUtc', lastId: 'readLastId', phone: 'readPhone', noteId: 'readNoteId', referralStatusId: 'readReferralStatus', referralSourceId: 'readReferralSource', salesStaffId: 'readSalesStaff' };
   function showReadInputs() {
@@ -84,7 +101,10 @@
   }
   setDataAccess(false);
   function reset() { linkedScheduleCreationWritesEnabled = false; pendingLinkedScheduleCreationId = null; setDataAccess(false); collectionNoteWritesEnabled = false; pendingCollectionNoteId = null; referralCreationWritesEnabled = false; pendingReferralCreationId = null; contractCreationWritesEnabled = false; pendingContractCreationId = null; caregiverPictureWritesEnabled = false; pendingCaregiverPictureId = null; documentCreationWrites = []; pendingDocumentCreationId = null; documentReplacementWrites = []; pendingDocumentReplacementId = null; medicalCreationWritesEnabled = false; pendingMedicalCreationId = null; patientClinicalWritesEnabled = false; pendingPatientClinicalId = null; documentMetadataWrites = []; pendingDocumentMetadataId = null; patientNoteWritesEnabled = false; pendingPatientNoteId = null; $("patientNoteForm").reset(); $("patientNoteChanges").replaceChildren(); availabilityCreationWrites = []; pendingAvailabilityCreationId = null; $("availabilityCreationForm").reset(); $("availabilityCreations").replaceChildren(); patientContractWritesEnabled = false; pendingPatientContractId = null; $("patientContractForm").reset(); $("patientContractChanges").replaceChildren(); rateCreationWritesEnabled = false; pendingRateCreationId = null; $("rateCreationForm").reset(); $("rateCreations").replaceChildren(); topicWritesEnabled = false; pendingTopicId = null; $("topicForm").reset(); $("topicChanges").replaceChildren(); documentTypeWritesEnabled = false; pendingDocumentTypeId = null; $("documentTypeForm").reset(); $("documentTypeChanges").replaceChildren(); generation++; readSequence++; readInputs = {}; writesEnabled = false; settings = null; investigations = []; intents = []; pendingIntentId = null; pendingRateId = null; $('rateProposalForm').reset(); $('staffingReviewForm').reset(); $('availabilityForm').reset(); availabilityWrites = []; pendingAvailabilityId = null; for (const id of ['availabilityChanges', 'staffingEvidence', 'readResults', 'investigationList', 'intentList', 'workspaceAudit']) $(id)?.replaceChildren(); $('investigationForm').reset(); $('intentForm').reset(); $('readForm').reset(); $('ownerForm').reset(); $('readPermissions').replaceChildren(); $('readPermissionSearch').value = ''; $('readPermissionSelectedOnly').checked = false; $('readPermissionCount').textContent = 'Sign in to load available reads.'; message('Sign in to load operational controls.'); }
-  document.addEventListener('primetime-signed-out', () => { reset(); clearManualSnapshots(); if ($('manualPatientId')) $('manualPatientId').value = ''; });
+  document.addEventListener('primetime-signed-out', () => { reset(); clearConnectedPanels(); clearManualSnapshots(); if ($('manualPatientId')) $('manualPatientId').value = ''; });
+  document.addEventListener('primetime-view-changed', event => {
+    if (event.detail?.view === 'audit' && dataApproved && window.primetimeDataMode?.isLive() === true && window.primetimeDataMode.isActive?.()) void action(() => loadAudit(undefined, 'dashboardAudit'));
+  });
   function applyMode() {
     const live = window.primetimeDataMode?.isLive() === true;
     panel.inert = !live;
@@ -98,6 +118,7 @@
   applyMode();
   document.addEventListener('primetime-data-mode-changed', () => {
     reset();
+    clearConnectedPanels();
     clearManualSnapshots();
     applyMode();
     if (window.primetimeDataMode?.isLive() && window.primetimeDataMode.isActive?.()) void action(loadSettings);
@@ -120,6 +141,12 @@
   $('readPermissionSelectedOnly').addEventListener('change', filterReadPermissions);
   $('readPermissions').addEventListener('change', filterReadPermissions);
   async function loadSettings() {
+    const current = generation;
+    $('dashboardSettings')?.replaceChildren(paragraph('Loading current protected preferences…'));
+    try { await loadSettingsData(); }
+    catch (error) { if (current === generation) $('dashboardSettings')?.replaceChildren(paragraph('Settings read unavailable: ' + error.message)); throw error; }
+  }
+  async function loadSettingsData() {
     const data = await request('settings'); linkedScheduleCreationWritesEnabled = data.linkedScheduleCreationWritesEnabled === true; collectionNoteWritesEnabled = data.collectionNoteWritesEnabled === true; referralCreationWritesEnabled = data.referralCreationWritesEnabled === true; contractCreationWritesEnabled = data.contractCreationWritesEnabled === true; caregiverPictureWritesEnabled = data.caregiverPictureWritesEnabled === true; documentCreationWrites = data.documentCreationWrites || []; documentReplacementWrites = data.documentReplacementWrites || []; medicalCreationWritesEnabled = data.medicalCreationWritesEnabled === true; patientClinicalWritesEnabled = data.patientClinicalWritesEnabled === true; documentMetadataWrites = data.documentMetadataWrites || []; patientNoteWritesEnabled = data.patientNoteWritesEnabled === true; availabilityCreationWrites = data.availabilityCreationWrites || []; patientContractWritesEnabled = data.patientContractWritesEnabled === true; settings = data.settings; writesEnabled = data.writesEnabled === true; documentTypeWritesEnabled = data.documentTypeWritesEnabled === true; topicWritesEnabled = data.topicWritesEnabled === true; rateCreationWritesEnabled = data.rateCreationWritesEnabled === true; readInputs = data.readInputs || {}; availabilityWrites = data.availabilityWrites || []; showReadInputs();
     if (window.primetimeDataMode?.observeScope?.(settings)) return;
     $('ownerOffice').value = settings.officeId || ''; $('ownerTimezone').value = settings.officeTimezone || ''; $('ownerReference').value = settings.policyReference;
@@ -131,6 +158,7 @@
     filterReadPermissions();
     $('dataGate').textContent = data.dataApproved ? 'Operational data release approved. Individual reads still require owner enablement. Source values remain unvalidated.' : 'Operational data locked. Deployment approval is required before reads or investigation notes can be stored. Preferences do not change this gate.';
     setDataAccess(data.dataApproved === true);
+    renderConnectedPanels();
     const enabledWrites = [linkedScheduleCreationWritesEnabled,writesEnabled, documentTypeWritesEnabled, topicWritesEnabled, rateCreationWritesEnabled, patientContractWritesEnabled, patientNoteWritesEnabled, patientClinicalWritesEnabled, medicalCreationWritesEnabled, caregiverPictureWritesEnabled, contractCreationWritesEnabled, referralCreationWritesEnabled, collectionNoteWritesEnabled].filter(Boolean).length + availabilityWrites.length + availabilityCreationWrites.length + documentMetadataWrites.length + documentReplacementWrites.length + documentCreationWrites.length;
     message(`Owner controls loaded. ${enabledWrites} specific write workflows have release approval; all other submissions remain locked.`);
   }
@@ -825,11 +853,17 @@
   $('rateProposalForm').addEventListener('submit', event => { event.preventDefault(); action(async () => { pendingRateId ||= crypto.randomUUID(); await request('rate-proposals', { id: pendingRateId, caregiverId: $('rateCaregiver').value, rateId: $('rateId').value, hourlyRate: $('rateAmount').value, rationale: $('rateRationale').value }); pendingRateId = null; $('rateProposalForm').reset(); await loadIntents(); message('Source-backed rate proposal saved. Recheck and independent review are required; source submission remains separately gated.'); }); });
   $('loadIntents').addEventListener('click', () => action(loadIntents));
   $('intentForm').addEventListener('submit', event => { event.preventDefault(); action(async () => { pendingIntentId ||= crypto.randomUUID(); await request('intents', { id: pendingIntentId, revision: 0, visitId: $('intentVisit').value, kind: $('intentKind').value, rationale: $('intentRationale').value, proposed: $('intentProposed').value }); pendingIntentId = null; $('intentForm').reset(); await loadIntents(); message('Change request saved for independent review. Approval does not execute it in HHA.'); }); });
-  async function loadAudit(cursor) {
-    const result = await request('audit' + (cursor ? '?cursor=' + encodeURIComponent(cursor) : '')), target = $('workspaceAudit');
+  async function loadAudit(cursor, targetId = 'workspaceAudit') {
+    const target = $(targetId), current = generation;
+    if (!cursor) target.replaceChildren(paragraph('Loading protected audit events…'));
+    let result;
+    try { result = await request('audit' + (cursor ? '?cursor=' + encodeURIComponent(cursor) : '')); }
+    catch (error) { if (current === generation) target.append(paragraph('Audit read unavailable: ' + error.message)); throw error; }
     if (!cursor) target.replaceChildren(); else target.querySelector('[data-more]')?.remove();
     target.append(...result.events.map(event => paragraph(`${event.updatedAt} · ${event.actor} · ${event.action} · revision ${event.revision}`)));
-    if (result.nextCursor) { const more = button('Load older audit events', () => loadAudit(result.nextCursor)); more.dataset.more = ''; target.append(more); }
+    if (!result.events.length && !cursor) target.append(paragraph('No recorded audit events were returned.'));
+    if (result.nextCursor) { const more = button('Load older audit events', () => loadAudit(result.nextCursor, targetId)); more.dataset.more = ''; target.append(more); }
+    target.append(paragraph('Read from protected Primetime storage at ' + new Date().toLocaleString() + '. Refresh for newer events.'));
     message('Audit events loaded, 100 per page. Refresh to include recent changes.');
   }
   $('loadWorkspaceAudit').addEventListener('click', () => action(loadAudit));

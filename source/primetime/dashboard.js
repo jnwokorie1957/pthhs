@@ -88,7 +88,7 @@
   const get = id => document.getElementById(id);
   const hosts = ['dashboardOverviewMetrics', 'dashboardOverviewExceptions', 'dashboardCoverage', 'dashboardAlerts', 'dashboardTimeline', 'dashboardEvidenceChart',
     'dashboardExceptions', 'dashboardVisitMetrics', 'dashboardVisitRows', 'dashboardMessages', 'dashboardStaffing',
-    'dashboardBillingMetrics', 'dashboardBillingPipeline', 'dashboardAudit', 'dashboardSettings'];
+    'dashboardBillingMetrics', 'dashboardBillingPipeline'];
   const dateInput = get('dashboardVisitDate');
   let ready = false;
   let session = 0;
@@ -473,8 +473,6 @@
       unavailable('dashboardMessages', 'Messages unavailable', 'No live message feed or delivery channel is connected.');
       unavailable('dashboardStaffing', 'Open shifts unavailable', 'No staffing eligibility or assignment is inferred from the visit preview.');
       unavailable('dashboardBillingPipeline', 'Billing pipeline unavailable', 'No billing-ready totals, claims or payments are inferred.');
-      unavailable('dashboardAudit', 'Dashboard audit feed unavailable', 'Use Operational tools to request persisted audit history.');
-      unavailable('dashboardSettings', 'Settings preview unavailable', 'Use authenticated owner controls in Operational tools to review current preferences.');
       unavailable('dashboardVisitRows', 'Visit preview unavailable', ready ? 'Checking source access…' : 'Sign in with an approved administrator account.');
       liveOverviewState(ready ? 'Loading live source' : 'Sign in required', ready ? 'Checking HHA visit access for the selected office and date…' : 'Sign in with an approved administrator account to load HHA visit data.');
       return;
@@ -499,8 +497,6 @@
     const pipeline = node('div', null, 'pipeline');
     [['Scheduled', hours(model.billing.projectedMinutes)], ['Completed', hours(model.billing.completedMinutes)], ['Ready', hours(model.billing.readyMinutes)], ['Submitted', 'Unavailable'], ['Paid', 'Unavailable']].forEach(([label, value]) => { const stage = node('div'); stage.append(node('span', label), node('strong', value)); pipeline.append(stage); });
     replace('dashboardBillingPipeline', pipeline);
-    replace('dashboardAudit', table(['Time', 'Actor', 'Example action', 'Object', 'Result'], model.audit.map(item => [item.time, item.actor, item.action, item.object, item.result])));
-    replace('dashboardSettings', ...model.settings.map(setting => { const card = node('section', null, 'panel'); card.append(node('h3', setting.title), node('p', setting.detail), node('small', 'Synthetic configuration example')); return card; }));
     renderExceptions();
     showVisitPreview(fixtures.visitPage(date), { mode: 'demo', date });
   }
