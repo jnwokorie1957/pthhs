@@ -277,7 +277,7 @@
     }));
   }
   function liveOverviewState(title, detail) {
-    ['dashboardOverviewMetrics', 'dashboardVisitMetrics', 'dashboardOverviewExceptions', 'dashboardCoverage', 'dashboardAlerts', 'dashboardTimeline', 'dashboardEvidenceChart'].forEach(id => unavailable(id, title, detail));
+    ['dashboardOverviewMetrics', 'dashboardVisitMetrics', 'dashboardOverviewExceptions', 'dashboardCoverage', 'dashboardAlerts', 'dashboardTimeline', 'dashboardEvidenceChart', 'dashboardExceptions', 'dashboardStaffing'].forEach(id => unavailable(id, title, detail));
     text('dashboardReadiness', detail);
   }
   function renderTimeline(view) {
@@ -342,6 +342,17 @@
     replace('dashboardEvidenceChart', chart);
     replace('dashboardOverviewExceptions', table(['Visit', 'EVV start (source)', 'EVV end (source)', 'Source field evidence'], view.items.map(item => [item.id, item.evvStart, item.evvEnd,
       item.state === 'unavailable' ? 'Detail unavailable: ' + item.detailReason : item.evvStart && item.evvEnd ? 'Both fields supplied' : item.evvStart || item.evvEnd ? 'One field supplied' : 'Neither field supplied'])));
+    const sourceNote = () => node('p', `HHA API source page · ${view.scope.date} · fetched ${view.fetchedAt || 'time not supplied'}. The selected page follows Overview / Visit Preview; it is not the full office.`, 'source-metadata');
+    replace('dashboardExceptions', sourceNote(), table(['Visit', 'Patient', 'Caregiver', 'Actual start', 'Actual end', 'EVV start', 'EVV end'],
+      view.items.map(item => [item.id, item.patientId, item.caregiverId, item.actualStart || 'Not supplied by HHA', item.actualEnd || 'Not supplied by HHA', item.evvStart || 'Not supplied by HHA', item.evvEnd || 'Not supplied by HHA']), 'exceptionTable'),
+      node('p', 'These are source clock fields. Missing values are not automatically late, missed or classified exceptions.', 'source-metadata'));
+    if (get('exceptionSearch')) get('exceptionSearch').disabled = false;
+    if (get('priorityFilter')) { get('priorityFilter').value = 'all'; get('priorityFilter').disabled = true; }
+    const sourceTerm = (get('exceptionSearch')?.value || '').trim().toLowerCase();
+    for (const row of get('dashboardExceptions')?.querySelectorAll('tbody tr') || []) row.hidden = !!sourceTerm && !row.textContent.toLowerCase().includes(sourceTerm);
+    replace('dashboardStaffing', sourceNote(), table(['Visit', 'Caregiver reference', 'Scheduled start', 'Scheduled end', 'Assignment field'],
+      view.items.map(item => [item.id, item.caregiverId || 'Not supplied by HHA', item.scheduledStart || 'Not supplied by HHA', item.scheduledEnd || 'Not supplied by HHA', item.state === 'unavailable' ? 'Detail unavailable' : item.caregiverId ? 'Caregiver reference supplied' : 'Caregiver reference not supplied'])),
+      node('p', 'Assignments shown by HHA do not establish staff eligibility, availability, open-shift completeness or permission to reassign care.', 'source-metadata'));
     const coverage = node('div');
     const stat = node('div', null, 'coverage-stat'); stat.append(node('strong', `${evidence.assigned} / ${evidence.readable}`), node('span', 'caregiver IDs supplied')); coverage.append(stat);
     const bar = node('progress'); bar.max = evidence.readable || 1; bar.value = evidence.assigned; bar.setAttribute('aria-label', `${evidence.assigned} of ${evidence.readable} readable visits have a caregiver ID`);
@@ -445,6 +456,8 @@
     text('dashboardEvidenceTitle', demo ? 'Example EVV exception queue' : 'EVV source evidence');
     text('dashboardCoverageTitle', demo ? 'Example coverage' : 'Caregiver assignment evidence');
     text('dashboardAlertsTitle', demo ? 'Example manager inbox' : 'Source evidence gaps');
+    text('staffingEvidenceTitle', demo ? 'Example open shifts' : 'Visit assignment evidence');
+    text('evvPanelTitle', demo ? 'Example EVV exceptions' : 'EVV source clock evidence');
     ['dashboardOverviewRefresh', 'dashboardVisitRefresh'].forEach(id => text(id, demo ? 'Refresh examples' : 'Read source now'));
     if (get('demoDataToggle')) get('demoDataToggle').checked = demo;
     text('demoToggleState', demo ? 'On' : 'Off');

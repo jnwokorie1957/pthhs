@@ -113,7 +113,7 @@
         </section>
         <section class="view" data-view-panel="evv">
           <section class="panel connected-tools"><h3>Operational tools</h3><button type="button" class="btn secondary" data-view-jump="workbench" data-workflow="SearchVisitsV2">Inspect source EVV evidence</button><button type="button" class="btn secondary" data-view-jump="workbench" data-workflow="investigations">Open investigation queue</button></section>
-          <div class="section-heading"><div><p class="eyebrow">Compliance workflow</p><h2>EVV exception queue</h2><p>Source evidence must be validated before policy rules can classify an exception.</p></div></div>
+          <div class="section-heading"><div><p class="eyebrow">Compliance workflow</p><h2 id="evvPanelTitle">EVV source clock evidence</h2><p>Source evidence must be validated before policy rules can classify an exception.</p></div></div>
           <div class="filter-bar"><label for="exceptionSearch">Search preview<input id="exceptionSearch" type="search" placeholder="Visit or exception"></label><label for="priorityFilter">Priority<select id="priorityFilter"><option value="all">All priorities</option><option value="high">High</option><option value="medium">Review</option><option value="low">Low</option></select></label></div>
           <section class="panel"><div id="dashboardExceptions"></div></section>
         </section>
@@ -135,7 +135,7 @@
           <details class="panel revision-secondary"><summary>Reminders & office alerts</summary><p>Provider acceptance, confirmed delivery and office acknowledgement are shown separately. No messages are sent from this panel.</p><div id="revisionNotifications"></div><button class="btn secondary" id="revisionNotificationsNext" type="button" hidden>Next alerts</button></details>
         </section>
         <section class="view" data-view-panel="messages"><div class="section-heading"><div><p class="eyebrow">Communications</p><h2>Messages & alert rules</h2><p>Delivery requires an approved channel and audience policy.</p></div></div><div id="dashboardMessages" class="cards-3"></div></section>
-        <section class="view" data-view-panel="staffing"><section class="panel connected-tools"><h3>Operational tools</h3><button type="button" class="btn secondary" data-view-jump="workbench" data-workflow="SearchCaregivers">Read caregiver availability and preferences</button></section><div class="section-heading"><div><p class="eyebrow">Coverage</p><h2>Staffing</h2><p>Availability and assignment rules require validated source evidence.</p></div></div><section class="panel"><h3>Open shifts</h3><div id="dashboardStaffing"></div></section></section>
+        <section class="view" data-view-panel="staffing"><section class="panel connected-tools"><h3>Operational tools</h3><button type="button" class="btn secondary" data-view-jump="workbench" data-workflow="SearchCaregivers">Read caregiver availability and preferences</button></section><div class="section-heading"><div><p class="eyebrow">Coverage</p><h2>Staffing</h2><p>Availability and assignment rules require validated source evidence.</p></div></div><section class="panel"><h3 id="staffingEvidenceTitle">Visit assignment evidence</h3><div id="dashboardStaffing"></div></section></section>
         <section class="view" data-view-panel="billing"><section class="panel connected-tools"><h3>Operational tools</h3><button type="button" class="btn secondary" data-view-jump="workbench" data-workflow="SearchBilledVisits">Review billed visits</button><button type="button" class="btn secondary" data-view-jump="workbench" data-workflow="SearchPayrollBatches">Review payroll batches</button></section><div class="section-heading"><div><p class="eyebrow">Revenue operations</p><h2>Billing & accounts receivable</h2><p>Hours, charges, submitted claims and payments require distinct source evidence.</p></div></div><div id="dashboardBillingMetrics" class="metric-grid"></div><section class="panel"><h3>Billing pipeline</h3><div id="dashboardBillingPipeline"></div></section></section>
         <section class="view" data-view-panel="forms" id="formsWorkspace">
           <div class="section-heading"><div><p class="eyebrow">Private files</p><h2>Forms</h2></div></div>
@@ -185,7 +185,7 @@
   <script src="/__/firebase/init.js" defer></script>
   <script src="/primetime/data-source.js?v=82e610d37b6d" defer></script>
   <script src="/primetime/demo-data.js?v=daf4470da486" defer></script>
-  <script src="/primetime/dashboard.js?v=5b67c127bcc7" defer></script>
+  <script src="/primetime/dashboard.js?v=68e618f0963d" defer></script>
   <script src="/primetime/revisions.js?v=be85c8db684d" defer></script>
   <script src="/primetime/primetime.js?v=59389ef91444" defer></script>
   <script src="/primetime/workspace.js?v=a8d21169e9da" defer></script>

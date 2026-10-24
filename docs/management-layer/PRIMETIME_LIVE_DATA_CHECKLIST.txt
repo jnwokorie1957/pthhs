@@ -38,7 +38,10 @@ FIRST VERIFIED REPAIR
     Source: private Primetime notification outbox; not a generic HHA SMS inbox.
     History availability still GATED by existing capability/configuration flags.
     No sending or source-interpretation approval was changed.
-[ ] R03 Complete post-release repeat and paging evidence for both requested dates.
+[x] R03 Post-release normal Chrome reads returned five visits, then a next page
+    of five, for each of October23 and October24. No generic visit error occurred.
+    A historical page also displayed an actual start/end pair, confirming those
+    source fields render when supplied; missing pairs remain explicit.
 
 TAB 01 - OVERVIEW
 [x] O01 Current office/day API feed: SearchVisitsV2, GetVisitInfoV3 and patient
@@ -49,9 +52,9 @@ TAB 01 - OVERVIEW
     the actual error, retry seconds and current selected date.
 [ ] O03 Complete-office coverage is not established. Determine a supported bounded
     scan/refresh design before promising full-office totals or all-record search.
-[ ] O04 Crowded record buttons and clipped/wrapped identifiers: compact record
-    disclosure plus responsive source cards is implemented locally; production
-    desktop/narrow-screen verification remains pending.
+[x] O04 Compact Open records disclosure plus responsive cards is deployed.
+    Production at390/1280/1920px: all7actions fit, identifier cells fit and the
+    page has no horizontal overflow. Native source actions remain reachable.
 
 TAB 02 - VISIT REVIEW
 [x] V01 October23/24 source visits visible after R01. Diagnosis remains unknown
@@ -71,6 +74,9 @@ TAB 03 - EVV EXCEPTIONS
     Actual source fields already live in GetVisitInfoV3 (VisitStartTime,
     VisitEndTime, EVVStartTime, EVVEndTime, verification and related details).
     Connect a useful live source-evidence view without fabricating exception rules.
+    Iteration3: implemented selected-page source clock fields and search from the
+    already approved visit feed, with exact date/receipt and no extra HHA calls.
+    Rollovers clear these related source panels; native production check pending.
 [ ] E02 Classified exception queue depends on accepted diagnosis/policy evidence
     and local revision exception records. Keep classification separate from raw
     punch presence, and connect genuine local follow-up where available.
@@ -90,10 +96,9 @@ TAB 04 - VISIT PREVIEW
 [ ] P03 Verify additional affected examples, including a completed historical
     visit, and cross-check any documented alternate endpoint only after its
     identity/office boundary and entitlement are established.
-[ ] P04 Replace vague 'Unavailable' in connected time cells with the specific
-    source-absence explanation. Local change says 'Not supplied by HHA'; deploy
-    and verify it, including unconverted source times and honest clock-span labels.
-[ ] P05 Record controls: all seven actions must remain reachable without cropped
+[x] P04 Connected missing-time cells now say 'Not supplied by HHA'. This preserves
+    actual source omissions and existing unconverted times/clock-span labels.
+[x] P05 Record controls: all seven actions remain reachable without cropped
     labels. Keep patient, caregiver, visit, calendar, authorization, care-plan and
     document links tied to the same source context.
 
@@ -126,6 +131,8 @@ TAB 07 - STAFFING
 [ ] S01 Currently 'Open shifts unavailable'. Live visit assignments already exist
     in GetVisitInfoV3 caregiver references/schedule fields. Connect those fields
     to a dated assignment-evidence surface without declaring staffing eligibility.
+    Iteration3: implemented a dated source assignment table from the shared live
+    source page, with missing/details explicit. Native production check pending.
 [ ] S02 Staff profile source: GetCaregiverDemographics. Availability sources:
     GetCaregiverPermanentWeekAvailability, GetCaregiverSpecialAvailability;
     restrictions/preferences/discipline and office membership remain separate.
@@ -168,12 +175,14 @@ TAB 10 - HHA INTEGRATION
     scheduled review; connection work must not depend on web-scraped imports.
 
 TAB 11 - AUDIT LOG
-[ ] A01 Displays a disconnected preview despite an existing protected
+[x] A01 Replaced the disconnected preview using the existing protected
     /workspace/audit endpoint and workspaceAudit Firestore collection.
     This is Primetime's audit trail, not HHA's complete external audit history.
-    Connect its existing paginated real records directly in this tab.
-    Iteration2: implemented locally using the existing protected endpoint,
-    independent pagination and stale-session/Demo fences; production pending.
+    endpoint. Iteration2 release8b132be17f17f186ddcd701e9ca648b79c9e8306 passed
+    both normal jobs in workflow40116042772. Native production loaded100events
+    then100older events. Source Clear preserved them; Demo cleared them. Late
+    session/Demo response fences have synthetic coverage; real sign-out was not
+    induced. This is application audit history, not HHA's full external trail.
 
 TAB 12 - ADVANCED TOOLS
 [x] W01 Existing protected settings and operational GetVisitInfoV3 source reads
@@ -189,17 +198,17 @@ TAB 12 - ADVANCED TOOLS
     unless independently authorized; a button's presence is not a live source.
 
 TAB 13 - SETTINGS
-[ ] C01 Displays 'Settings preview unavailable' although current preferences are
+[x] C01 Replaced 'Settings preview unavailable'. Current preferences are
     already served by /workspace/settings and edited by the existing ownerForm.
     Connect the existing real controls/data directly here without duplicating or
     silently changing office/read/privacy policy.
-    Iteration2: implemented a real current-settings summary/reload in this tab
-    while retaining the existing owner editor; production pending. Current read
-    failures must replace stale summaries, not leave them labeled current.
-[ ] C02 Navigation bug: at a609px-high viewport, sidebar content is818px high;
-    Advanced tools and Settings lie below the viewport and mouse clicks do not
-    activate them. Keyboard Enter reached both for this audit. Add a scrollable
-    sidebar and verify mouse/keyboard access at desktop/narrow/short heights.
+    Iteration2: a real current-settings summary/reload retains the existing owner
+    editor. Native production showed actual configuration/revision; source Clear
+    preserved it and Demo cleared it. Read failures replace stale summaries.
+[x] C02 The609px-high viewport originally clipped818px of sidebar content;
+    Advanced tools/Settings mouse clicks could not reach their controls. The
+    sidebar is now scrollable. Native mouse navigation reaches Settings/Audit,
+    keyboard access remains, and geometry checks passed390/1280/1920px.
 
 NEXT IMPLEMENTATION ORDER
 1. Finish R03, O04, P04/P05 and C02 production acceptance.

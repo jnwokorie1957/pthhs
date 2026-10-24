@@ -785,6 +785,16 @@ test('live default renders source counts, timeline, EVV and assignment evidence 
   assert.match(nodeText(app.element('dashboardOverviewMetrics')), /1601/);
   assert.match(nodeText(app.element('dashboardOverviewMetrics')), /not an operational total/);
   assert.match(nodeText(app.element('dashboardCoverage')), /1 \/ 1/);
+  for (const id of ['dashboardExceptions', 'dashboardStaffing']) {
+    assert.match(nodeText(app.element(id)), /900001/);
+    assert.match(nodeText(app.element(id)), /HHA API source page/);
+    assert.match(nodeText(app.element(id)), /not the full office/);
+    assert.doesNotMatch(nodeText(app.element(id)), /DEMO-|Open shifts unavailable|EVV exceptions unavailable/);
+  }
+  assert.match(nodeText(app.element('dashboardExceptions')), /not automatically late/);
+  assert.match(nodeText(app.element('dashboardStaffing')), /do not establish staff eligibility/);
+  assert.equal(app.element('exceptionSearch').disabled, false);
+  assert.equal(app.element('priorityFilter').disabled, true);
   assert.match(nodeText(app.element('dashboardEvidenceChart')), /EVV start/);
   assert.match(app.element('dashboardOverviewCompleteness').textContent, /1–1 of 1601/);
   assert.match(app.element('dashboardOverviewScope').textContent, /Office: 123.*Date:.*America\/Chicago/);
@@ -2543,10 +2553,10 @@ test('midnight rollover waits for visibility and source focus release without ma
 test('midnight clears only prior-day source evidence and preserves unrelated panels and Clear controls', async () => {
   const late = deferred(); let path;
   const app = await apiFeedFixture(value => { path = value; return late.promise; }, '2026-10-21T04:59:59Z');
-  const panels = ['dashboardExceptions', 'dashboardMessages', 'dashboardStaffing', 'dashboardBillingMetrics', 'dashboardBillingPipeline', 'dashboardAudit', 'dashboardSettings'];
+  const panels = ['dashboardMessages', 'dashboardBillingMetrics', 'dashboardBillingPipeline', 'dashboardAudit', 'dashboardSettings'];
   const original = panels.map(id => app.element(id).children.slice());
   app.clock.set('2026-10-21T05:00:01Z'); await app.runFeed();
-  for (const id of ['dashboardVisitRows', 'dashboardTimeline', 'dashboardEvidenceChart']) {
+  for (const id of ['dashboardVisitRows', 'dashboardTimeline', 'dashboardEvidenceChart', 'dashboardExceptions', 'dashboardStaffing']) {
     assert.doesNotMatch(nodeText(app.element(id)), /900001/);
     assert.match(nodeText(app.element(id)), /Loading current office day/);
   }
