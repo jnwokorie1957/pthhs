@@ -79,8 +79,9 @@ TAB 03 - EVV EXCEPTIONS
     Rollovers clear these related source panels. Release78c2551/workflow40131778386
     passed both jobs; production returned10rows with the same source receipt and
     ordered visit references as Staffing. Priority classification stays disabled.
-    Live input filtering was corrected in the next patient-workbench iteration;
-    its final native acceptance is pending that release.
+    Live input filtering was corrected in release3af690a; native acceptance:
+    10rows visible -> unmatched search hides all10 -> clearing restores all10.
+    This filtering makes no new HHA source request.
 [ ] E02 Classified exception queue depends on accepted diagnosis/policy evidence
     and local revision exception records. Keep classification separate from raw
     punch presence, and connect genuine local follow-up where available.
@@ -107,11 +108,12 @@ TAB 04 - VISIT PREVIEW
     document links tied to the same source context.
 
 TAB 05 - PATIENT WORKBENCH
-[ ] T01 Main surface currently shows Calendar imports (saved captures), not a
-    current patient list/profile. Keep those captures clearly historical.
+[x] T01 Main surface now starts with current patients from readable visits on the
+    selected source page. Calendar imports remain clearly separate saved history.
+    This is a bounded visit-page roster, not complete patient discovery/census.
     Current API source: GetPatientDemographics for exact discovered patient IDs;
     SearchPatients for approved discovery with documented filters/office checks.
-[ ] T02 Connect current patient details directly to this tab, preserving the live
+[x] T02 Connected current patient details directly to this tab, preserving the live
     source receipt and links to visits, authorizations, care plans and documents.
     Iteration4: selected-page patient references are grouped from readable visits.
     A protected /workspace/visit-patient POST reuses fresh GetVisitInfoV3 plus
@@ -119,7 +121,15 @@ TAB 05 - PATIENT WORKBENCH
     The native tab now has an on-demand profile, its own source receipt/fetch age,
     explicit missing fields and the existing related-record actions. Source Clear,
     date/page/session/Demo changes fence old controls and pending responses. No
-    extra read permissions or source writes. Production acceptance pending.
+    extra read permissions or source writes. Release3af690a25ca6ea9684858abcbce00e3d49039a48
+    passed normal workflow40132568940 (Hosting21:04:39UTC/backend21:06:11UTC).
+    Native production:8distinct patients on the inspected source page; a selected
+    profile returned9fields, matched the selected patient, supplied both name
+    fields, disclosed1missing field and exposed all7related actions. Its receipt
+    and local fetch-age display were visible. Source Clear removed profile/list;
+    Demo removed source actions/fields; live mode was restored.517backend and
+    297root tests passed. All10published artifacts matched; anonymous profilePOST
+    and5other protected reads returned401 with private noindex headers.
 [ ] T03 Authorization discovery is enabled (SearchPatientAuthorizations), but
     exact detail uses GetPatientAuthorizationInfo and is not currently enabled.
     Establish detail entitlement and matching patient/office before activating.
@@ -170,7 +180,9 @@ TAB 09 - FORMS
     synthetic file round trips, deduplication, persistence and anonymous-denial
     checks previously passed; current restored-session readiness was corrected.
     This source is Firebase, not HHA, and does not require a fabricated HHA feed.
-[ ] F02 Recheck current list/loading/error status in both folders during this audit.
+[x] F02 Current authenticated template and submission lists each returned1file
+    and an enabled Download control without a load failure. This was a list-only
+    check; previous synthetic file round-trip acceptance remains separately dated.
 [ ] F03 HHA source documents are a separate API source (patient/caregiver document
     discovery/download). No clinical editable form instance, autofill schema,
     patient/visit linkage, reviewer/signature or sharing contract is established
@@ -225,8 +237,10 @@ TAB 13 - SETTINGS
     keyboard access remains, and geometry checks passed390/1280/1920px.
 
 NEXT IMPLEMENTATION ORDER
-1. Finish T01/T02 current patient workbench and EVV live-search production acceptance.
-2. Recheck Forms folder lists and exact current source/detail failure labels.
+1. Investigate the next additional bounded staff, billing, authorization-detail
+   and document readers: exact identity/office proof, entitlement and live result.
+2. Complete per-source status/error/retry guidance and complete-office coverage
+   design. Patient/visit page success is not all-record coverage.
 3. R03, O04, P04/P05, C02, A01/C01 and E01/S01 source connections are verified
    within their documented page/field/gate limits; retain those boundaries.
 4. Audit/enable additional bounded HHA read sources for exact-record context;

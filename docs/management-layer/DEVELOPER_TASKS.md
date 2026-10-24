@@ -1,5 +1,14 @@
 # PTHHS Management Layer — Developer Checklist
 
+October 24 active live-data goal: all thirteen tabs and 144 exposed HHA reads are
+mapped in the [plain-text connection checklist](PRIMETIME_LIVE_DATA_CHECKLIST.txt).
+October 23/24 visit paging, responsive record controls, native Audit/Settings,
+selected-page EVV/Staffing and current patient profiles have signed-in production
+acceptance. Private Forms folder lists also pass. The patient release passed 517
+backend and 297 root tests plus both normal release jobs. Remaining staff,
+billing, document, authorization-detail, coverage and provider/source-contract
+items stay open; these bounded connections do not complete the overall goal.
+
 October 22 reason/action evidence candidate: an additive typed projection retains
 nested action descriptions and repeated reason associations while preserving the
 legacy read fields. The vendor contract gate remains blocked; no live read or
