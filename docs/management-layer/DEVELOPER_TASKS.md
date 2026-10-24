@@ -71,6 +71,11 @@ completeness and operational totals remain unknown.
 
 # Current checkpoint
 
+- [x] October 24 21:11 UTC role research reconciles accepted administrator
+  patient/profile and EVV/Staffing connections with current primary guidance.
+  Proposed per-source availability and role/action acceptance retain the
+  existing P1-B/P2 dependencies. See [research](ROLE_WORKFLOW_RESEARCH.txt).
+
 - [x] October 24 EVV/Staffing availability labels distinguish failed detail
   reads from successfully returned empty fields, with bounded per-row reasons.
   Mixed-page synthetic coverage and all 292 frontend/tooling tests pass; no

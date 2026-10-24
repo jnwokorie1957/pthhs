@@ -1,5 +1,11 @@
 # PTHHS
 
+October 24 21:11 UTC role research reconciles accepted administrator patient,
+EVV/Staffing and Forms connections with proposed family, staff/PT and office
+workflows. Per-source states, timestamps and action permissions remain separate;
+external-role and full-coverage dependencies stay open. See
+[research](docs/management-layer/ROLE_WORKFLOW_RESEARCH.txt).
+
 October 24 source availability display: EVV and Staffing now distinguish failed
 visit-detail reads from fields absent in successfully returned details. The
 mixed-page regression and all 292 frontend/tooling tests pass; both panels reuse
