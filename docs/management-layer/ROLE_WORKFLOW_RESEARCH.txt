@@ -1,7 +1,7 @@
 PRIMETIME ROLE AND WORKFLOW RESEARCH
-Updated: October 22, 2026, America/Chicago
+Updated: October 24, 2026, America/Chicago
 Scope: PTHHS /primetime, repository jnwokorie1957/pthhs.
-Latest research review: October 22, 2026, 19:46 UTC heartbeat / October 22 America/Chicago; field provenance across patient forms, recurring schedules, recorded visit time and authorization/billing evidence. New proposed acceptance keeps copied fields and source bases distinct. Existing administrator acceptance remains dated below; external-role and source-mapping prerequisites remain open.
+Latest research review: October 24, 2026, 16:26 UTC heartbeat / October 24 America/Chicago; distinguish form creation methods and template capabilities from stored bytes and encounter instances. Any future two-way order synchronization needs its own authorized write contract. Existing administrator acceptance remains dated below; role/source/form prerequisites remain open.
 
 EVIDENCE BASELINE — DATED OBSERVATIONS; LATER UPDATES BELOW
 The initially observed authorized HHA member calendar showed a patient summary, separate navigation for authorizations, visits, recurring schedules, documents and clinical records, and month navigation. Calendar tiles kept scheduled times, actual times, caregiver names and billed-hour evidence together. The visible authorization grid included payer, dates, discipline, service codes, limits and weekday allowances. Calendar records are observations, not validated business rules. The reviewed source used PCA discipline; it did not establish that those caregivers were physical therapists. At the October 16 review, the HHA browser requires normal sign-in; these are earlier observations, not new tenant evidence.
@@ -753,3 +753,29 @@ https://knowledge.hhaexchange.com/texas/Content/Documentation/Patient/Pat-N-Form
 https://knowledge.hhaexchange.com/enterprise/Content/Documentation/Patient/Pat-N-Authorizations-P.htm
 [R13] HHAeXchange, Utilize Billable Service for Authorization Allocation. Feature/rate/contract-specific usage; no agency formula adopted.
 https://knowledge.hhaexchange.com/texas/Content/Documentation/Billing/Bill-N-Utilize-Billable-Service-P.htm
+
+FORM METHODS, TEMPLATE CAPABILITIES AND ROLE LINKS — OCTOBER 24, 2026, 16:26 UTC HEARTBEAT
+Baseline: clean/aligned d5f429ba6b4dc029797608ca448e68ad24bc945f. Current source still stores Forms as file metadata/bytes, not a form builder or clinical encounter. No HHA tab/Chrome connector is available; no private template or tenant feature was examined. Today's feed/chart/paging acceptance remains separately dated.
+
+DOCUMENTED PRODUCT DIFFERENCES
+R10 distinguishes vendor-library, custom-built and uploaded-PDF methods. Some library templates cannot be modified; PDF uploads do not gain automatic field population. Availability depends on publication, office and visit configuration. Its resource documentation also describes two-way data synchronization with MD orders. These product capabilities are not established for this agency or Primetime.
+Design inference: a future template catalog needs an explicit method/version and verified capabilities before offering duplicate/edit/prefill controls. A stored PDF, field label or signature-shaped component proves none of those capabilities. Any future form-to-order synchronization is a separate source-write proposal, outside current read-only and file-storage acceptance.
+
+PATIENT / STAFF / OFFICE CONNECTIONS — PROPOSED
+Patient/family: keep the permitted calendar/request receipt and explicitly shared document instance separate from template administration. R8 supports reviewing original versus requested times and history; its automatic hold/timesheet effects are not adopted.
+PT/staff: choose an encounter form only within verified discipline, current assignment and applicable office/visit configuration. R27 separates schedule, availability, caregiver-file and office permissions; calendar visibility cannot grant document editing or signing.
+Office: connect the exact visit to document-instance review and separately scoped authorization evidence. R12 preserves contract, discipline, service and period context. Neither template publication nor document receipt can release scheduling, EVV or billing decisions.
+
+ACCEPTANCE AND PRIORITY
+Before external P2 implementation, supply method/version/capability and instance mappings with the existing account/office/assignment/sharing/reviewer/action contracts. Test a nonmodifiable library template, uploaded PDF without field population, wrong office/visit configuration, later template change, revoked sharing and a proposed order sync that must dispatch no write under current gates. Existing file-byte integrity and pending-source evidence stay distinct from clinical completion.
+P0 accepted administrator controls remain intact; P1-B and P2 mappings remain dependencies. Next owner evidence is still intended HHA application/office/day/filter and protected same-record/unit/period alignment, then approved template/method/version/field-source and role/action examples. Existing policy attestation is not reopened. No feature activation, source/file mutation, clinical/financial decision, permission change or communication occurred.
+
+PRIMARY SOURCES — RECHECKED OCTOBER 24, 2026
+[R10] HHAeXchange Forms. Creation methods, configuration and resource behavior; product guidance, not tenant or SOAP mapping.
+https://knowledge.hhaexchange.com/enterprise/Content/Documentation/Clinical/Clinical-N-HHAX-Forms-Basic.htm
+[R8] Patient Visit Family Dashboard. Original/requested windows, calendar links and review history.
+https://knowledge.hhaexchange.com/enterprise/Content/Documentation/Admin/Admin-N-Patient-Visit-Family-Dashboard-P.htm
+[R27] User Permissions for Caregiver Multi-Office. Separate office and action permissions.
+https://knowledge.hhaexchange.com/enterprise/Content/Documentation/Caregiver/CG-N-User-Permissions-Caregiver-P.htm
+[R12] Authorizations. Separate contract, discipline, service and period evidence.
+https://knowledge.hhaexchange.com/enterprise/Content/Documentation/Patient/Pat-N-Authorizations-P.htm
