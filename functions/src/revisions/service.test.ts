@@ -51,15 +51,55 @@ function setup(options: { approvals?: Partial<RevisionApprovals>; workspaceData?
   repo.records.set("workspaceSettings/owner", settings);
   repo.records.set("revisionPolicies_office_123/owner", { ...defaultRevisionPolicy("123"), revision: 1, updatedAt: NOW, monitoringEnabled: options.monitoring ?? false } as RevisionPolicy);
   if (options.accepted !== false) repo.records.set("revisionSourceAcceptance_office_123/owner", contract());
-  let now = new Date(NOW), sends = 0, patientOffice = "123", patientFields: Record<string, string | null> = {};
+  let now = new Date(NOW), sends = 0, patientOffice = "123", patientFields: Record<string, string | null> = {}, patientRead: ((input: ReadInput) => Promise<OperationalRead>) | null = null;
   let handler: (input: ReadInput) => Promise<OperationalRead> = async input => input.operation === "SearchVisitsV2" ? source(input.operation, [{ VisitID: "77" }])
     : input.operation === "GetVisitInfoV3" ? detail(input.id!) : source("GetCallDashBoardData", [{ CallDashboardID: "33", "Patient/ID": "5", "Caregiver/ID": "6", CallTime: "2026-10-10T08:00:00-05:00", CallType: "synthetic-in", CallStatus: "synthetic-status" }]);
-  const workspace = new OperationsWorkspace(repo, async input => { readRequest(input); calls.push(structuredClone(input)); return input.operation === "GetPatientDemographics" ? source(input.operation, [{ PatientID: input.id!, OfficeID: patientOffice, ...patientFields }]) : handler(input); }, options.workspaceData ?? true);
+  const workspace = new OperationsWorkspace(repo, async input => { readRequest(input); calls.push(structuredClone(input)); return input.operation === "GetPatientDemographics" ? patientRead ? patientRead(input) : source(input.operation, [{ PatientID: input.id!, OfficeID: patientOffice, ...patientFields }]) : handler(input); }, options.workspaceData ?? true);
   const backend = new RevisionBackend(repo, workspace, approvals, { submit: async () => { sends++; return { state: "unknown", providerId: null }; }, reconcile: async () => ({ state: "unknown", providerId: null }) }, () => now);
-  return { setPatientOffice: (office: string) => { patientOffice = office; }, setPatientFields: (fields: Record<string, string | null>) => { patientFields = { ...fields }; }, repo, backend, calls, settings, approvals, sends: () => sends, clock: () => new Date(now), setClock: (value: string) => { now = new Date(value); }, setRead: (read: typeof handler) => { handler = read; }, advance: (ms: number) => { now = new Date(now.getTime() + ms); } };
+  return { setPatientRead: (read: typeof patientRead) => { patientRead = read; }, setPatientOffice: (office: string) => { patientOffice = office; }, setPatientFields: (fields: Record<string, string | null>) => { patientFields = { ...fields }; }, repo, backend, calls, settings, approvals, sends: () => sends, clock: () => new Date(now), setClock: (value: string) => { now = new Date(value); }, setRead: (read: typeof handler) => { handler = read; }, advance: (ms: number) => { now = new Date(now.getTime() + ms); } };
 }
 const prepare = { id: "synthetic-match", revision: 0, date: "2026-10-10", visitId: "77", lastId: "0", note: "Synthetic matching evidence" };
 const decide = { id: "synthetic-match", revision: 1, officeId: "123", action: "match", callId: "33", reason: "Synthetic human review" };
+
+test("notification record capability follows existing read gates independently of sending and source interpretation", async () => {
+  for (const [capability, configuration] of [[false, false], [true, false], [false, true], [true, true]] as const) {
+    const f = setup({ accepted: false, approvals: { smsCapability: capability, smsConfiguration: configuration, smsSend: false } });
+    const status = await f.backend.status(actor);
+    assert.equal(status.capabilities.notificationRecords, capability && configuration);
+    assert.equal(status.capabilities.sms, false); assert.equal(status.capabilities.diagnosis, false); assert.equal(f.calls.length, 0); assert.equal(f.sends(), 0);
+  }
+});
+
+test("a source quota limit retains the completed prefix and retries the throttled visit without skipping", async () => {
+  const f = setup(), ids = ["77", "78", "79"];
+  f.setRead(async input => {
+    if (input.operation === "SearchVisitsV2") return source(input.operation, ids.map(VisitID => ({ VisitID })));
+    if (input.id === "78") throw new WorkflowError("read_budget_exhausted_retry_next_minute", 429, 17);
+    return detail(input.id!);
+  });
+  const result = await f.backend.visits(actor, { date: "2026-10-10" });
+  assert.deepEqual(result.items.map(item => item.evidence.visitId), ["77"]); assert.equal(result.nextOffset, 1);
+  assert.equal(result.retryAfterSeconds, 17); assert.equal(result.completeness.deferredCount, 2);
+  f.setRead(async input => input.operation === "SearchVisitsV2" ? source(input.operation, ids.map(VisitID => ({ VisitID }))) : detail(input.id!));
+  const retry = await f.backend.visits(actor, { date: "2026-10-10", offset: "1", discovery: result.discovery });
+  assert.deepEqual(retry.items.map(item => item.evidence.visitId), ["78", "79"]); assert.equal(retry.nextOffset, null);
+});
+
+test("a quota limit during patient-office proof cannot publish the unproven visit", async () => {
+  const f = setup(); let patientReads = 0;
+  f.setRead(async input => input.operation === "SearchVisitsV2" ? source(input.operation, [{ VisitID: "77" }, { VisitID: "78" }]) : detail(input.id!));
+  f.setPatientRead(async input => { if (++patientReads > 1) throw new WorkflowError("vendor_backoff_active", 429, 31); return source(input.operation, [{ PatientID: "5", OfficeID: "123" }]); });
+  const result = await f.backend.visits(actor, { date: "2026-10-10" });
+  assert.deepEqual(result.items.map(item => item.evidence.visitId), ["77"]); assert.equal(result.nextOffset, 1); assert.equal(result.retryAfterSeconds, 31);
+});
+
+test("zero-progress quotas keep their real retry time and access failures never become a partial success", async () => {
+  const f = setup();
+  f.setRead(async input => { if (input.operation === "SearchVisitsV2") return source(input.operation, [{ VisitID: "77" }]); throw new WorkflowError("vendor_backoff_active", 429, 23); });
+  await assert.rejects(f.backend.visits(actor, { date: "2026-10-10" }), error => error instanceof WorkflowError && error.status === 429 && error.retryAfterSeconds === 23);
+  f.setRead(async input => { if (input.operation === "SearchVisitsV2") return source(input.operation, [{ VisitID: "77" }, { VisitID: "78" }]); if (input.id === "78") throw new WorkflowError("office_scope_mismatch", 403); return detail(input.id!); });
+  await assert.rejects(f.backend.visits(actor, { date: "2026-10-10" }), error => error instanceof WorkflowError && error.status === 403);
+});
 
 test("disabled data/source/monitor gates and an unconfigured monitoring policy dispatch no HHA or SMS", async () => {
   for (const approvals of [{ data: false }, { source: false }, { monitor: false }] as Partial<RevisionApprovals>[]) {

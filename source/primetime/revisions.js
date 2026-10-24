@@ -9,8 +9,9 @@
   }
   function normalizeStatus(payload) {
     if (payload?.ok !== true || payload.mode !== 'live' || typeof payload.dataApproved !== 'boolean' || payload.sourceWritesEnabled !== false
-      || payload.officeId !== null && !sourceId(payload.officeId) || !payload.capabilities || ['diagnosis', 'records', 'monitoring', 'sms'].some(key => typeof payload.capabilities[key] !== 'boolean')) throw new Error('invalid_revision_status');
-    return { officeId: payload.officeId, workspaceScope: payload.workspaceScope, dataApproved: payload.dataApproved, capabilities: { ...payload.capabilities },
+      || payload.officeId !== null && !sourceId(payload.officeId) || !payload.capabilities || ['diagnosis', 'records', 'monitoring', 'sms'].some(key => typeof payload.capabilities[key] !== 'boolean')
+      || payload.capabilities.notificationRecords !== undefined && typeof payload.capabilities.notificationRecords !== 'boolean') throw new Error('invalid_revision_status');
+    return { officeId: payload.officeId, workspaceScope: payload.workspaceScope, dataApproved: payload.dataApproved, capabilities: { ...payload.capabilities, notificationRecords: payload.capabilities.notificationRecords === true },
       earlyReminderConfigured: payload.earlyReminderConfigured === true, blockedReason: short(payload.blockedReason),
       sourceAcceptance: payload.sourceAcceptance ? { version: short(payload.sourceAcceptance.version, 128), reference: short(payload.sourceAcceptance.reference, 500), validUntil: short(payload.sourceAcceptance.validUntil, 40) } : null };
   }
@@ -19,7 +20,8 @@
       || payload.scope?.date !== expected.date || !short(payload.scope.timezone, 128) || !Array.isArray(payload.items) || payload.items.length > 10
       || payload.completeness?.complete !== false || !/^[a-f0-9]{64}$/.test(payload.discovery || '')
       || payload.completeness.deferredCount !== undefined && (!Number.isInteger(payload.completeness.deferredCount) || payload.completeness.deferredCount < 0 || payload.completeness.deferredCount > 10)
-      || payload.nextOffset !== null && (!Number.isInteger(payload.nextOffset) || payload.nextOffset <= expected.offset || payload.nextOffset >= 200)) throw new Error('invalid_revision_visits');
+      || payload.nextOffset !== null && (!Number.isInteger(payload.nextOffset) || payload.nextOffset <= expected.offset || payload.nextOffset >= 200)
+      || payload.retryAfterSeconds !== undefined && (!Number.isInteger(payload.retryAfterSeconds) || payload.retryAfterSeconds < 1 || payload.retryAfterSeconds > 600)) throw new Error('invalid_revision_visits');
     const items = payload.items.map(item => {
       const evidence = item?.evidence, diagnosis = item?.diagnosis;
       if (!sourceId(evidence?.visitId) || !['ready', 'unavailable', 'unaccepted', 'stale', 'incomplete', 'failed'].includes(evidence.state)
@@ -81,7 +83,7 @@
       diagnosis: { state: diagnosis.state, verification: diagnosis.verification, issues, metrics: Object.fromEntries(['scheduledMinutes', 'actualMinutes', 'evvMinutes', 'varianceMinutes'].map(key => [key, number(diagnosis.metrics?.[key])])) }, memberContext, overlapCoverage };
     });
     if (new Set(items.map(item => item.evidence.visitId)).size !== items.length) throw new Error('invalid_revision_visits');
-    return { items, scope: { ...payload.scope }, evaluatedAt: short(payload.evaluatedAt, 40), nextOffset: payload.nextOffset, discovery: payload.discovery, truncated: payload.completeness.truncated === true, deferredCount: payload.completeness.deferredCount || 0 };
+    return { items, scope: { ...payload.scope }, evaluatedAt: short(payload.evaluatedAt, 40), nextOffset: payload.nextOffset, discovery: payload.discovery, truncated: payload.completeness.truncated === true, deferredCount: payload.completeness.deferredCount || 0, retryAfterSeconds: payload.retryAfterSeconds || null };
   }
   function normalizeRecords(payload, kind, officeId) {
     if (payload?.ok !== true || payload.mode !== 'live' || payload.source !== 'primetime' || !Array.isArray(payload.items) || payload.items.length > 100
@@ -166,7 +168,7 @@
   const get = id => document.getElementById(id);
   const panel = get('revisionWorkspace');
   if (!controller || !fixtures || !panel) return;
-  let ready = false, session = 0, serial = 0, active = false, loading = false, abort = null, status = null, visitPage = null, visitRetry = null, selectedId = null, demoOffset = 0;
+  let ready = false, session = 0, serial = 0, active = false, loading = false, abort = null, status = null, visitPage = null, visitRetry = null, selectedId = null, demoOffset = 0, sourceRetryAt = 0;
   const pages = { requirements: null, exceptions: null, notifications: null };
   const localDay = () => { const now = new Date(); return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`; };
   const dateInput = get('revisionDate');
@@ -328,9 +330,12 @@
     invalid_record_text: 'Complete the required fields and keep the note within its limit.', completion_outside_rule_dates: 'The completion date must be within the requirement’s effective dates.',
     completion_review_final: 'This completion has already been reviewed. Its evidence is retained in the ledger.', requirement_period_already_completed: 'This due period already has an accepted completion.',
     completion_date_must_advance: 'A recurring completion must be later than the previously accepted completion.', requirement_cadence_not_configured_or_completed: 'Define the recurrence before recording completion, or review the existing completed requirement.',
-    invalid_exception_transition: 'This office follow-up changed state. Refresh before choosing the next action.'
+    invalid_exception_transition: 'This office follow-up changed state. Refresh before choosing the next action.',
+    notification_capability_not_approved: 'Notification history is not enabled for this office. Visit records remain available.'
   };
-  function errorText(error) { return friendlyErrors[error?.message] || 'This request could not be completed. Refresh and try again.'; }
+  const sourceDeferred = error => error?.status === 429 || ['revision_batch_time_budget_deferred', 'read_budget_exhausted_retry_next_minute', 'vendor_backoff_active', 'revision_run_budget_deferred'].includes(error?.message);
+  function retryText(seconds) { return `HHA visit reads are temporarily limited. Wait ${seconds} seconds, then choose Retry visits. This does not mean there are no visits.`; }
+  function errorText(error) { return sourceDeferred(error) ? retryText(error.retryAfterSeconds || 60) : friendlyErrors[error?.message] || 'This request could not be completed. Refresh and try again.'; }
   function clearRevokedAccess(error) {
     if (!['revision_policy_changed_restart', 'revision_discovery_changed_restart', 'operational_data_release_not_approved', 'office_timezone_not_configured', 'revision_management_role_required', 'office_scope_mismatch'].includes(error?.message)) return false;
     invalidate(); text('revisionStatus', errorText(error));
@@ -343,7 +348,12 @@
     if (!current(ticket)) throw new Error('stale_revision_request');
     const payload = await response.json();
     if (!current(ticket)) throw new Error('stale_revision_request');
-    if (!response.ok || payload?.ok !== true) throw new Error(short(payload?.error, 128) || 'revision_request_failed');
+    if (!response.ok || payload?.ok !== true) {
+      const error = new Error(short(payload?.error, 128) || 'revision_request_failed');
+      error.status = response.status;
+      if (Number.isInteger(payload?.retryAfterSeconds) && payload.retryAfterSeconds >= 1 && payload.retryAfterSeconds <= 600) error.retryAfterSeconds = payload.retryAfterSeconds;
+      throw error;
+    }
     return payload;
   }
   function begin() { serial += 1; abort?.abort(); abort = new AbortController(); loading = true; const untrack = controller.trackRequest?.(abort); controls(); return { ticket: context(), untrack }; }
@@ -372,21 +382,29 @@
   }
   async function loadVisits(ticket, offset) {
     const discovery = visitRetry?.discovery || visitPage?.discovery;
+    if (sourceRetryAt > Date.now()) {
+      const message = retryText(Math.ceil((sourceRetryAt - Date.now()) / 1000));
+      if (visitPage) text('revisionCompleteness', message + ' The current page remains visible.');
+      else { visitRetry = { offset, discovery }; unavailable('revisionVisits', message); get('revisionNext').hidden = false; get('revisionNext').textContent = 'Retry visits'; }
+      return;
+    }
     try {
-      const query = new URLSearchParams({ date: ticket.date, offset: String(offset) });
+      const query = new URLSearchParams({ date: ticket.date, offset: String(offset), limit: '5' });
       if (offset) query.set('discovery', discovery);
       const result = normalizeVisits(await request('visits?' + query, ticket), { officeId: status.officeId, date: ticket.date, offset });
       if (!current(ticket)) return;
       visitPage = result; visitRetry = null;
+      if (result.retryAfterSeconds) sourceRetryAt = Date.now() + result.retryAfterSeconds * 1000;
       text('revisionScope', `Office ${result.scope.officeId} · ${result.scope.date} · ${result.scope.timezone} · Reviewed ${result.evaluatedAt || 'time unavailable'}`);
-      text('revisionCompleteness', `A page is not a complete office report. Related-visit checks show their own coverage.${result.truncated ? ' Source discovery was truncated.' : ''}${result.deferredCount ? ` ${result.deferredCount} visits deferred to the next page.` : ''}`);
+      text('revisionCompleteness', `A page is not a complete office report. Related-visit checks show their own coverage.${result.truncated ? ' Source discovery was truncated.' : ''}${result.deferredCount ? ` ${result.deferredCount} visits deferred to the next page.` : ''}${result.retryAfterSeconds ? ` Wait ${result.retryAfterSeconds} seconds before loading more visits.` : ''}`);
       renderVisits();
     } catch (error) {
       if (current(ticket) && !clearRevokedAccess(error)) {
         visitPage = null; selectedId = null;
-        const deferred = error?.message === 'revision_batch_time_budget_deferred';
+        const deferred = sourceDeferred(error);
+        if (deferred) sourceRetryAt = Date.now() + (error.retryAfterSeconds || 60) * 1000;
         visitRetry = deferred ? { offset, discovery } : null;
-        unavailable('revisionVisits', deferred ? 'This visit page needs another read. Wait about a minute, then retry this page.' : errorText(error));
+        unavailable('revisionVisits', errorText(error));
         unavailable('revisionDetail', 'No current visit evidence is available.'); text('revisionPageCount', ''); text('revisionCompleteness', '');
         get('revisionNext').hidden = !deferred; get('revisionNext').textContent = deferred ? 'Retry visits' : 'Next visits';
       }
@@ -394,6 +412,9 @@
   }
   async function loadRecords(kind, ticket, cursor) {
     const host = 'revision' + kind[0].toUpperCase() + kind.slice(1);
+    if (kind === 'notifications' && status?.capabilities.notificationRecords !== true) {
+      pages[kind] = null; unavailable(host, friendlyErrors.notification_capability_not_approved); get(host + 'Next').hidden = true; return;
+    }
     try {
       const payload = await request(kind + (cursor ? '?cursor=' + encodeURIComponent(cursor) : ''), ticket);
       const result = normalizeRecords(payload, kind, status.officeId);

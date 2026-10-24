@@ -87,6 +87,7 @@ export class RevisionBackend {
       capabilities: { diagnosis: data && sourceReady, records: data && !!officeId && timezoneReady, monitoring: data && sourceReady && this.approvals.monitor && policy?.monitoringEnabled === true,
         memberContext: data && sourceReady && contract?.memberContext?.accepted === true && ["GetScheduleInfo", "GetPatientContracts", "SearchPatientAuthorizations", "GetPatientAuthorizationInfo"].every(operation => current.settings.enabledReads.includes(operation)),
         overlapChecks: data && sourceReady && !!contract?.overlapCoverage && contract.overlapCoverage.timezone === current.settings.officeTimezone,
+        notificationRecords: data && !!officeId && timezoneReady && this.approvals.smsCapability && this.approvals.smsConfiguration,
         sms: data && sourceReady && this.approvals.monitor && policy?.monitoringEnabled === true && this.approvals.smsCapability && this.approvals.smsConfiguration && this.approvals.smsSend && !!policy?.smsPolicyReference && !!policy.quietHours },
       sourceAcceptance: contract ? { version: contract.version, reference: contract.reviewReference, validUntil: contract.validUntil } : null,
       earlyReminderConfigured: policy?.earlyReminderMinutes !== null && policy?.earlyReminderMinutes !== undefined,
@@ -128,6 +129,7 @@ export class RevisionBackend {
     const richContext = !!scope.contract?.memberContext && memberReadsReady;
     const selectedIds = ids.slice(offset, offset + (richContext ? Math.min(limit, 2) : limit)), evidence: NormalizedVisitEvidence[] = [];
     const memberContexts = new Map<string, MemberContextResult>();
+    let sourceRetryAfter: number | null = null;
     for (const visitId of selectedIds) {
       await scope.check();
       let source: OperationalRead | null = null, readError: string | undefined;
@@ -135,7 +137,16 @@ export class RevisionBackend {
       // neither an evaluated visit nor progress that a monitor may checkpoint.
       if (performance.now() - started >= 25000) break;
       try { source = await this.query({ operation: "GetVisitInfoV3", id: visitId }, actor.actorId); }
-      catch (error) { if (error instanceof WorkflowError && [403, 423, 429].includes(error.status)) throw error; readError = "source_read_failed"; }
+      catch (error) {
+        if (error instanceof WorkflowError && error.status === 429 && evidence.length) {
+          // Keep only the completed, office-checked prefix. The throttled ID
+          // stays at nextOffset so a retry cannot skip it or invent evidence.
+          sourceRetryAfter = Math.max(1, Math.min(600, error.retryAfterSeconds ?? 60));
+          break;
+        }
+        if (error instanceof WorkflowError && [403, 423, 429].includes(error.status)) throw error;
+        readError = "source_read_failed";
+      }
       const visit = this.adapt(source, visitId, serviceDate, ids, scope, readError);
       evidence.push(visit);
       if (scope.contract?.memberContext && memberReadsReady) {
@@ -148,7 +159,7 @@ export class RevisionBackend {
     if (selectedIds.length && !evidence.length) throw new WorkflowError("revision_batch_time_budget_deferred", 429, 60);
     const attemptedCount = evidence.length, nextOffset = offset + attemptedCount < ids.length ? offset + attemptedCount : null;
     let window: OverlapWindow | null = null;
-    if (scope.contract?.overlapCoverage && scope.contract.overlapCoverage.timezone === scope.timezone) {
+    if (!sourceRetryAfter && scope.contract?.overlapCoverage && scope.contract.overlapCoverage.timezone === scope.timezone) {
       const contract = scope.contract, phaseLimit = Number.isFinite(this.deadline) ? 45000 : 25000;
       const scanner = new OverlapScanner(this.repository, {
         discover: async date => {
@@ -187,7 +198,7 @@ export class RevisionBackend {
       overlapCoverage: coverage };
     });
     return { ok: true, mode: "live" as const, source: "hhaexchange", scope: { officeId: scope.officeId, date: serviceDate, timezone: scope.timezone },
-      evaluatedAt, items, nextOffset, discovery: fingerprint,
+      evaluatedAt, items, nextOffset, discovery: fingerprint, ...(sourceRetryAfter ? { retryAfterSeconds: sourceRetryAfter } : {}),
       completeness: { complete: false, truncated: discovery.truncated, selectedCount: ids.length, pageSelectedCount: selectedIds.length,
         attemptedCount, evaluatedCount: evidence.length, deferredCount: selectedIds.length - attemptedCount },
       tokenSummary: summarizeMissingTokenDays(evidence, evaluatedAt), fence: scope.signature };

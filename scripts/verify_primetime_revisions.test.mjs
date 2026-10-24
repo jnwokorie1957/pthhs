@@ -7,7 +7,7 @@ const asset = name => readFileSync(new URL(`../public/primetime/${name}`, import
 const tick = () => new Promise(resolve => setImmediate(resolve));
 const clone = value => JSON.parse(JSON.stringify(value));
 const scope = { officeId: '123', date: '2026-10-11', timezone: 'America/Chicago', revision: 1 };
-const status = { ok: true, mode: 'live', officeId: '123', dataApproved: true, sourceWritesEnabled: false, capabilities: { diagnosis: true, records: true, monitoring: false, sms: false }, sourceAcceptance: { version: 'accepted-v1', reference: 'Owner acceptance', validUntil: '2026-11-11T00:00:00Z' }, earlyReminderConfigured: false, blockedReason: null };
+const status = { ok: true, mode: 'live', officeId: '123', dataApproved: true, sourceWritesEnabled: false, capabilities: { diagnosis: true, records: true, monitoring: false, sms: false, notificationRecords: true }, sourceAcceptance: { version: 'accepted-v1', reference: 'Owner acceptance', validUntil: '2026-11-11T00:00:00Z' }, earlyReminderConfigured: false, blockedReason: null };
 function visits(date = scope.date) {
   const visitScope = { ...scope, date };
   return { ok: true, mode: 'live', source: 'hhaexchange', scope: visitScope, evaluatedAt: '2026-10-11T15:00:00Z', discovery: 'a'.repeat(64), nextOffset: null, completeness: { complete: false, truncated: false }, items: [{
@@ -130,6 +130,7 @@ test('persisted records reject foreign office, synthetic IDs and HHA verificatio
 function deferred() { let resolve; const promise = new Promise(yes => { resolve = yes; }); return { promise, resolve }; }
 function harness(custom) {
   const elements = new Map(), listeners = new Map(), calls = [];
+  let now = Date.now();
   function node(tag = 'div') {
     const classes = new Set();
     const item = { tag, children: [], handlers: new Map(), value: '', disabled: false, hidden: false, className: '', ownText: '',
@@ -156,10 +157,10 @@ function harness(custom) {
     const payload = url.pathname.endsWith('/status') ? status : url.pathname.endsWith('/visits') ? visits(url.searchParams.get('date')) : url.pathname.endsWith('/exceptions') ? page([exception]) : options.method === 'POST' ? { ok: true, mode: 'live', source: 'primetime', ...exception, revision: 2 } : page([]);
     return { ok: true, json: async () => clone(payload) };
   };
-  const context = vm.createContext({ window, document, Event, URLSearchParams, AbortController, crypto: { randomUUID: () => 'new-fixture-id' }, console });
+  const context = vm.createContext({ window, document, Event, URLSearchParams, AbortController, Date: class extends Date { static now() { return now; } }, crypto: { randomUUID: () => 'new-fixture-id' }, console });
   vm.runInContext(asset('data-source.js'), context); vm.runInContext(asset('demo-data.js'), context); vm.runInContext(asset('revisions.js'), context);
   const emit = (type, detail) => { const event = new Event(type); event.detail = detail; document.dispatchEvent(event); };
-  return { element, window, calls, descendants, emit,
+  return { element, window, calls, descendants, emit, advance(ms) { now += ms; },
     async openLive() { emit('primetime-ready'); window.primetimeDataMode.setMode('live'); emit('primetime-view-changed', { view: 'revisions' }); await tick(); await tick(); },
     async click(id) { for (const fn of element(id).handlers.get('click') || []) await fn({ currentTarget: element(id), preventDefault() {} }); },
     async submit(form) { for (const fn of form.handlers.get('submit') || []) await fn({ currentTarget: form, preventDefault() {} }); },
@@ -292,9 +293,9 @@ test('a deferred later page retries the same offset and discovery instead of ski
   });
   await app.openLive(); const date = app.element('revisionDate').value;
   await app.click('revisionNext');
-  assert.ok(app.text('revisionVisits').includes('Wait about a minute')); assert.equal(app.text('revisionNext'), 'Retry visits');
+  assert.ok(app.text('revisionVisits').includes('Wait 60 seconds')); assert.equal(app.text('revisionNext'), 'Retry visits');
   assert.ok(!app.text('revisionDetail').includes('55')); assert.equal(app.element('revisionNext').hidden, false);
-  await app.click('revisionNext');
+  app.advance(60000); await app.click('revisionNext');
   assert.equal(nextAttempts, 2); assert.equal(app.element('revisionDate').value, date); assert.ok(app.text('revisionDetail').includes('56'));
   assert.equal(app.element('revisionNext').hidden, true);
 });
@@ -307,9 +308,45 @@ test('zero-progress first pages can retry offset zero and mode changes discard t
     return attempts === 1 ? { ok: false, json: async () => ({ ok: false, error: 'revision_batch_time_budget_deferred' }) } : { ok: true, json: async () => visits(app.element('revisionDate').value) };
   });
   await app.openLive(); assert.equal(app.text('revisionNext'), 'Retry visits');
-  await app.click('revisionNext'); assert.equal(attempts, 2); assert.ok(app.text('revisionDetail').includes('55'));
+  app.advance(60000); await app.click('revisionNext'); assert.equal(attempts, 2); assert.ok(app.text('revisionDetail').includes('55'));
   app.window.primetimeDataMode.setMode('demo'); const before = app.calls.length;
   await app.click('revisionNext'); assert.equal(app.calls.length, before); assert.ok(app.text('revisionDetail').includes('DEMO-V-'));
+});
+
+test('notification history is not requested without the server capability, while visits still load five at a time', async () => {
+  for (const capability of [false, undefined]) {
+    const app = harness(path => path.endsWith('/status') ? { ok: true, json: async () => ({ ...clone(status), capabilities: { ...status.capabilities, notificationRecords: capability } }) } : null);
+    await app.openLive();
+    assert.equal(app.calls.some(call => call.path.includes('/notifications')), false);
+    assert.match(app.text('revisionNotifications'), /not enabled/); assert.match(app.text('revisionPageCount'), /on this page/);
+    assert.equal(new URL(app.calls.find(call => call.path.includes('/visits?')).path, 'https://fixture.test').searchParams.get('limit'), '5');
+  }
+});
+
+test('source throttling offers a scoped retry and prevents repeated reads before the server delay expires', async () => {
+  let attempts = 0;
+  const app = harness(path => {
+    if (!path.includes('/visits?')) return null;
+    if (++attempts === 1) return { ok: false, status: 429, json: async () => ({ ok: false, error: 'read_budget_exhausted_retry_next_minute', retryAfterSeconds: 20 }) };
+    return { ok: true, json: async () => visits(new URL(path, 'https://fixture.test').searchParams.get('date')) };
+  });
+  await app.openLive(); assert.match(app.text('revisionVisits'), /Wait 20 seconds/); assert.equal(app.text('revisionNext'), 'Retry visits');
+  await app.click('revisionNext'); assert.equal(attempts, 1);
+  app.advance(20000); await app.click('revisionNext'); assert.equal(attempts, 2); assert.match(app.text('revisionDetail'), /55/);
+});
+
+test('a partial throttled page remains visible and its next request resumes at the first deferred ID', async () => {
+  let attempts = 0;
+  const app = harness(path => {
+    if (!path.includes('/visits?')) return null;
+    const query = new URL(path, 'https://fixture.test').searchParams, result = visits(query.get('date'));
+    if (++attempts === 1) { result.nextOffset = 1; result.completeness.deferredCount = 4; result.retryAfterSeconds = 30; }
+    else { assert.equal(query.get('offset'), '1'); assert.equal(query.get('discovery'), 'a'.repeat(64)); }
+    return { ok: true, json: async () => result };
+  });
+  await app.openLive(); const before = app.text('revisionVisits'); await app.click('revisionNext');
+  assert.equal(attempts, 1); assert.equal(app.text('revisionVisits'), before); assert.match(app.text('revisionCompleteness'), /current page remains visible/);
+  app.advance(30000); await app.click('revisionNext'); assert.equal(attempts, 2);
 });
 
 test('record paging keeps opaque cursors and only eligible office-review actions', async () => {
