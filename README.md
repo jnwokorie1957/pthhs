@@ -1,5 +1,10 @@
 # PTHHS
 
+October 24 source availability display: EVV and Staffing now distinguish failed
+visit-detail reads from fields absent in successfully returned details. The
+mixed-page regression and all 292 frontend/tooling tests pass; both panels reuse
+the existing visit page. See [verification](docs/management-layer/SOURCE_DETAIL_AVAILABILITY_2026-10-24.md).
+
 October 23 SEO and developer-task review: all 132 public routes and seventeen
 served artifacts passed; sitemaps remain successful and field samples remain
 insufficient. Rechecked the historical optional dependency advisory: the current

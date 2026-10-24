@@ -62,6 +62,11 @@ completeness and operational totals remain unknown.
 
 # Current checkpoint
 
+- [x] October 24 EVV/Staffing availability labels distinguish failed detail
+  reads from successfully returned empty fields, with bounded per-row reasons.
+  Mixed-page synthetic coverage and all 292 frontend/tooling tests pass; no
+  additional source reads. See [verification](SOURCE_DETAIL_AVAILABILITY_2026-10-24.md).
+
 - [x] October 23 SEO/developer review passed fresh public delivery and private
   indexing/authentication checks. Rechecked the historical optional dependency
   advisory against current lockfiles: no `uuid` and no returned Bulk Advisory

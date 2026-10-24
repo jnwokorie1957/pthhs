@@ -804,6 +804,36 @@ test('live default renders source counts, timeline, EVV and assignment evidence 
   assert.equal(nodeText(app.element('dashboardOverviewMetrics')).includes('DEMO'), false);
 });
 
+test('EVV and staffing distinguish unavailable detail reads from fields absent in returned details', async () => {
+  let sourceRequests = 0;
+  const app = harness({ storedDataMode: null, metadata: liveMetadata, fetchSource: path => {
+    if (!path.startsWith('/primetime/api/views/visits?')) return response({ ok: true });
+    sourceRequests += 1;
+    const date = new URL(path, 'https://fixture.test').searchParams.get('date'), payload = livePreview(date);
+    payload.state = 'partial';
+    payload.items[0].caregiverId = null;
+    payload.items[0].actualStart = `${date}T08:04:00`;
+    payload.items.push({ ...payload.items[0], id: '900002', state: 'unavailable', error: 'read_budget_exhausted_retry_next_minute',
+      caregiverId: 'UNVERIFIED-CAREGIVER', actualEnd: 'UNVERIFIED-CLOCK', evvEnd: 'UNVERIFIED-EVV' });
+    return response(payload);
+  } });
+  installDashboard(app); await app.signIn(); await tick(); await tick();
+  const rows = id => app.element(id).children.find(child => child.className === 'table-wrap')
+    .children[0].children.find(child => child.tagName === 'TBODY').children;
+  for (const id of ['dashboardExceptions', 'dashboardStaffing']) {
+    const [returned, unavailable] = rows(id).map(nodeText);
+    assert.match(returned, /900001/);
+    assert.match(returned, /Not supplied by HHA/);
+    assert.match(unavailable, /900002/);
+    assert.match(unavailable, /Detail unavailable: Shared read limit reached; retry next minute/);
+    assert.doesNotMatch(unavailable, /Not supplied by HHA|UNVERIFIED-|08:04:00|08:00:00|12:00:00/);
+  }
+  assert.match(nodeText(rows('dashboardExceptions')[0]), /08:04:00/);
+  assert.match(nodeText(rows('dashboardExceptions')[0]), /Source detail returned/);
+  assert.match(nodeText(rows('dashboardStaffing')[0]), /Caregiver reference not supplied/);
+  assert.equal(sourceRequests, 1, 'both panels reuse the selected visit page without additional source reads');
+});
+
 test('source-page navigation clears old overview charts immediately and an empty page shows zero records', async () => {
   const pending = deferred(); let request = 0;
   const app = harness({ metadata: liveMetadata, fetchSource: path => {
