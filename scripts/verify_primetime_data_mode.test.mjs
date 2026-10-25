@@ -2590,6 +2590,43 @@ test('focus acquired during a feed request preserves evidence on late success an
   }
 });
 
+test('EVV search focus pauses automatic reads before dispatch without losing the query or rows', async () => {
+  const app = await apiFeedFixture();
+  const search = app.element('exceptionSearch');
+  search.closest = selector => selector.split(',').map(value => value.trim()).includes('#exceptionSearch') ? search : null;
+  search.value = '900001'; search.focus();
+  const rows = app.element('dashboardExceptions').children.slice(), calls = app.calls.length;
+  await app.runFeed();
+  assert.equal(app.calls.length, calls);
+  assert.deepEqual(app.element('dashboardExceptions').children, rows);
+  assert.equal(search.value, '900001');
+  assert.equal(app.document.activeElement, search);
+  assert.equal(app.element('apiFeedToggle').textContent, 'Resume live feed');
+});
+
+test('EVV focus acquired during a feed read preserves evidence on success and failure until resume', async () => {
+  for (const failure of [false, true]) {
+    const late = deferred(); let path, held = true;
+    const app = await apiFeedFixture(value => { path = value; return held ? late.promise : response(scheduledFeedPage(value)); });
+    const rows = app.element('dashboardExceptions').children.slice();
+    await app.runFeed();
+    const search = app.element('exceptionSearch');
+    search.closest = selector => selector.split(',').map(value => value.trim()).includes('#exceptionSearch') ? search : null;
+    search.value = '900001'; search.focus();
+    if (failure) late.reject(new Error('synthetic feed failure')); else late.resolve(response(scheduledFeedPage(path)));
+    await tick(); await tick();
+    assert.deepEqual(app.element('dashboardExceptions').children, rows);
+    assert.equal(search.value, '900001');
+    assert.equal(app.document.activeElement, search);
+    assert.equal(app.element('apiFeedToggle').textContent, 'Resume live feed');
+    assert.equal(app.timers.size, 0);
+    held = false; app.document.activeElement = app.element('apiFeedToggle');
+    await app.click('apiFeedToggle'); await tick(); await tick();
+    assert.match(app.element('apiFeedStatus').textContent, /Connected/);
+    assert.equal(search.value, '900001');
+  }
+});
+
 test('untouched default follows Chicago midnight including DST dates without losing the feed timer', async () => {
   for (const [before, after, day] of [['2026-10-21T04:59:59Z','2026-10-21T05:00:01Z','2026-10-21'], ['2026-11-02T05:59:59Z','2026-11-02T06:00:01Z','2026-11-02']]) {
     const app = await apiFeedFixture(undefined, before);

@@ -159,7 +159,7 @@
     if (description.textContent !== message) description.textContent = message;
   }
   function pauseForSourceFocus() {
-    if (!document.activeElement?.closest?.('#dashboardVisitRows, #dashboardTimeline, #dashboardEvidenceChart, #dashboardPatients, #dashboardPatientProfile')) return false;
+    if (!document.activeElement?.closest?.('#dashboardVisitRows, #dashboardTimeline, #dashboardEvidenceChart, #dashboardPatients, #dashboardPatientProfile, #exceptionSearch')) return false;
     pauseFeed('Live feed display paused while working with source records. The server continues updating; Resume reads its latest page.');
     return true;
   }

@@ -1,5 +1,13 @@
 # PTHHS Management Layer — Developer Checklist
 
+October 25 EVV search focus candidate: the shared feed focus guard now includes
+the EVV search field. Two synthetic regressions cover pre-dispatch focus and
+focus acquired during pending success/failure, retained query/evidence and
+explicit Resume. The existing generated dashboard and index were rebuilt.
+Independent review passed with 171 data-mode tests; all 299 frontend/tooling
+tests and generated-asset checks passed locally. Publication and authenticated
+acceptance remain pending.
+
 October 24 active live-data goal: all thirteen tabs and 144 exposed HHA reads are
 mapped in the [plain-text connection checklist](PRIMETIME_LIVE_DATA_CHECKLIST.txt).
 October 23/24 visit paging, responsive record controls, native Audit/Settings,
