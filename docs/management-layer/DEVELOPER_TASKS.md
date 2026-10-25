@@ -1,5 +1,15 @@
 # PTHHS Management Layer — Developer Checklist
 
+October 25 explicit Pause coverage adds three synthetic tests for EVV/Staffing
+row, receipt, query and chart retention after focus leaves, late success/failure,
+detached timers, resumed new receipt/bounded scope, independent age pause and
+Clear/sign-out/office invalidation. The harness dispatches a view-change event;
+it does not establish native navigation or screen-reader acceptance. Runtime
+assets are unchanged; native and authenticated acceptance remain pending.
+Independent review passed all three added cases; the full data-mode suite
+passed 174 tests on October 25. This test/documentation-only publication does
+not require a runtime deployment.
+
 October 25 EVV search focus released: the shared feed focus guard now includes
 the EVV search field. Two synthetic regressions cover pre-dispatch focus and
 focus acquired during pending success/failure, retained query/evidence and

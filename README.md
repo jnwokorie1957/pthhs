@@ -1,5 +1,12 @@
 # PTHHS
 
+October 25 explicit Pause regression coverage: synthetic EVV/Staffing evidence
+stays held after focus moves outside source controls, including pending feed
+success/failure and a detached timer. Resume shows the new receipt and bounded
+page scope; age pause remains independent and context clearing remains active.
+No runtime change. Native navigation, screen-reader orientation/announcements
+and authenticated acceptance remain pending.
+
 October 25 EVV search focus released: automatic feed checks now use the existing
 focus pause while the EVV search field is active, including responses already in
 flight. Synthetic regressions reproduce row replacement before the correction

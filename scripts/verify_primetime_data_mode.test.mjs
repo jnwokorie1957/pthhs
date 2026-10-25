@@ -2860,3 +2860,46 @@ test('a failed return today clears source evidence and retries without removing 
     panels.forEach((id,i) => assert.deepEqual(app.element(id).children, original[i], id));
   }
 });
+
+test('explicit pause holds EVV and Staffing after focus leaves across late success and failure', async () => {
+ for(const failed of [false,true]) {
+  const late=deferred();let route,held=true;
+  const fresh = p => { const value=scheduledFeedPage(p); value.fetchedAt='2026-10-10T08:01:00Z'; value.feed.checkedAt=value.fetchedAt; value.items[0].id='900009'; return value; };
+  const app=await apiFeedFixture(p=>{route=p;return held?late.promise:response(fresh(p));});
+  app.element('exceptionSearch').value='900001';
+  const ids=['dashboardExceptions','dashboardStaffing','dashboardEvidenceChart'];
+  const before=ids.map(id=>app.element(id).children.slice()),receipt=app.element('dashboardVisitMetadata').textContent;
+  const oldTimer=[...app.timers.values()].find(t=>t.delay===60000).fn;
+  await app.runFeed();await app.click('apiFeedToggle');
+  const outside=app.element('unrelatedNavigation');outside.closest=()=>null;outside.focus();
+  app.dispatch('primetime-view-changed',{view:'settings'});
+  const changed=fresh(route);
+  if(failed)late.reject(new Error('synthetic failed update'));else late.resolve(response(changed));
+  await tick();await tick();const calls=app.calls.length;oldTimer();await tick();
+  ids.forEach((id,i)=>assert.deepEqual(app.element(id).children,before[i]));
+  assert.equal(app.element('dashboardVisitMetadata').textContent,receipt);
+  assert.equal(app.element('exceptionSearch').value,'900001');assert.equal(app.document.activeElement,outside);
+  assert.equal(app.calls.length,calls);assert.equal(app.timers.size,0);
+  assert.match(app.element('apiFeedStatus').textContent,/paused/);
+  held=false;await app.click('apiFeedToggle');await tick();await tick();
+  assert.match(app.element('apiFeedStatus').textContent,/Connected/);
+  assert.match(app.element('dashboardVisitMetadata').textContent,/2026-10-10T08:01:00Z.*first source page/);
+  for(const id of ['dashboardExceptions','dashboardStaffing']) { assert.match(nodeText(app.element(id)),/900009/); assert.match(nodeText(app.element(id)),/not the full office/); }
+  assert.equal(app.element('exceptionSearch').value,'900001');
+ }
+});
+test('age pause is independent from row feed pause', async()=>{
+ const app=await apiFeedFixture();
+ app.element('automaticAgeUpdates').checked=false; for(const fn of app.element('automaticAgeUpdates').handlers.get('change'))fn({target:app.element('automaticAgeUpdates')});
+ await app.runFeed();assert.equal(app.calls.filter(c=>c.path.includes('/views/feed?')).length,1);
+ assert.equal(app.element('apiFeedToggle').textContent,'Pause live feed');
+});
+test('clear and revocation still remove paused EVV and Staffing evidence',async()=>{
+ for(const change of ['clear','signout','office']){
+  const app=await apiFeedFixture();app.window.primetimeDataMode.observeScope({revision:1,officeId:'123',officeTimezone:'America/Chicago'});await app.click('apiFeedToggle');
+  if(change==='clear')await app.click('dashboardVisitClear');
+  else if(change==='signout')app.dispatch('primetime-signed-out');
+  else app.window.primetimeDataMode.observeScope({revision:2,officeId:'999',officeTimezone:'America/Chicago'});
+  for(const id of ['dashboardExceptions','dashboardStaffing'])assert.doesNotMatch(nodeText(app.element(id)),/900001/,change+' '+id);
+ }
+});
