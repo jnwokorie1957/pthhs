@@ -1,11 +1,13 @@
 # PTHHS
 
-October 25 EVV search focus candidate: automatic feed checks now use the existing
+October 25 EVV search focus released: automatic feed checks now use the existing
 focus pause while the EVV search field is active, including responses already in
 flight. Synthetic regressions reproduce row replacement before the correction
 and preserve evidence until explicit Resume afterward. Independent review and
-299 frontend/tooling tests passed. Publication and native acceptance remain
-pending; source reads and authorization rules are unchanged.
+299 frontend/tooling tests and the aggregate release gate passed. Commit b3cd4ad
+passed both [release jobs](https://github.com/jnwokorie1957/pthhs/actions/runs/40203346604);
+served dashboard/index bytes matched at 14:41 UTC. Authenticated EVV typing
+acceptance remains pending; source reads and authorization rules are unchanged.
 
 October 24 21:11 UTC role research reconciles accepted administrator patient,
 EVV/Staffing and Forms connections with proposed family, staff/PT and office
