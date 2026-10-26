@@ -5,6 +5,10 @@ destinations visibly, retaining URLs, descriptions and new-tab notices. The
 generator and navigation regressions preserve this contract. Independent review
 and navigation checks, including seven negative fixtures, passed. This improves
 link clarity; no ranking gain or native assistive-technology acceptance is claimed.
+Commit 63a67b3 passed 280 frontend/tooling tests and the aggregate release gate.
+Both [normal release jobs](https://github.com/jnwokorie1957/pthhs/actions/runs/40348822055)
+passed October 26 by 15:24 UTC; served Resources bytes matched the Git blob,
+and public dashboard/index hashes remained unchanged.
 
 October 25 explicit Pause coverage adds three synthetic tests for EVV/Staffing
 row, receipt, query and chart retention after focus leaves, late success/failure,
