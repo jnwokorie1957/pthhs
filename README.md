@@ -1,5 +1,11 @@
 # PTHHS
 
+October 26 resource navigation: six official-resource links now name their
+destinations visibly, retaining URLs, descriptions and new-tab notices. The
+generator and navigation regressions preserve this contract. Independent review
+and navigation checks, including seven negative fixtures, passed. This improves
+link clarity; no ranking gain or native assistive-technology acceptance is claimed.
+
 October 25 explicit Pause regression coverage: synthetic EVV/Staffing evidence
 stays held after focus moves outside source controls, including pending feed
 success/failure and a detached timer. Resume shows the new receipt and bounded

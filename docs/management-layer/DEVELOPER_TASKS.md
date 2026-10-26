@@ -1,5 +1,11 @@
 # PTHHS Management Layer — Developer Checklist
 
+October 26 resource navigation: six official-resource links now name their
+destinations visibly, retaining URLs, descriptions and new-tab notices. The
+generator and navigation regressions preserve this contract. Independent review
+and navigation checks, including seven negative fixtures, passed. This improves
+link clarity; no ranking gain or native assistive-technology acceptance is claimed.
+
 October 25 explicit Pause coverage adds three synthetic tests for EVV/Staffing
 row, receipt, query and chart retention after focus leaves, late success/failure,
 detached timers, resumed new receipt/bounded scope, independent age pause and

@@ -216,6 +216,44 @@ for area, rows in contextual_lists.items():
             if invalid == text or matches_contextual_list(invalid, "".join(expected)):
                 ERRORS.append("Alief contextual navigation negative fixture was not rejected")
 
+# Official resource links must identify their destination independently of card headings.
+RESOURCE_LINKS = [
+    ("https://www.hhs.texas.gov/services/health/medicaid-chip", "Texas Medicaid &amp; CHIP information"),
+    ("https://www.hhs.texas.gov/services/aging/long-term-care", "Texas long-term care information"),
+    ("https://www.yourtexasbenefits.com/Learn/Home", "Apply or manage Your Texas Benefits"),
+    ("https://www.hhs.texas.gov/services/health/medicaid-chip/medicaid-chip-programs-services/programs-children-adults-disabilities/medicaid-elderly-people-disabilities", "Texas Medicaid for older adults and people with disabilities"),
+    ("https://www.medicaid.gov/medicaid/long-term-services-supports/self-directed-services", "Medicaid.gov self-directed services"),
+    ("https://www.211texas.org/", "Search 2-1-1 Texas resources"),
+]
+RESOURCE_ANCHORS = [
+    f'<a class="card-link" href="{url}" target="_blank" rel="noopener noreferrer">{label} '
+    '<span aria-hidden="true">↗</span><span class="sr-only"> (opens in a new tab)</span></a>'
+    for url, label in RESOURCE_LINKS
+]
+
+
+def resource_links_match(text: str) -> bool:
+    return re.findall(r'<a class="card-link"[^>]*>.*?</a>', text, re.S) == RESOURCE_ANCHORS
+
+
+resource_page = (PUBLIC / "home-care-resources.html").read_text(encoding="utf-8")
+resource_generator = (ROOT / "scripts/batch_b1_migration.py").read_text(encoding="utf-8")
+if not resource_links_match(resource_page):
+    ERRORS.append("official resource labels, destinations or new-tab safeguards changed")
+if any(resource_generator.count(anchor) != 1 for anchor in RESOURCE_ANCHORS):
+    ERRORS.append("resource generator does not preserve official link contracts")
+for invalid in (
+    resource_page.replace(RESOURCE_LINKS[0][1], "Open official resource"),
+    resource_page.replace(RESOURCE_LINKS[0][0], RESOURCE_LINKS[1][0]),
+    resource_page.replace(RESOURCE_ANCHORS[0], ""),
+    resource_page.replace(RESOURCE_ANCHORS[0], RESOURCE_ANCHORS[0] * 2),
+    resource_page.replace(' (opens in a new tab)', ''),
+    resource_page.replace('rel="noopener noreferrer"', 'rel="nofollow"'),
+    resource_page.replace('class="card-link"', 'class="card-link" aria-label="Open official resource"'),
+):
+    if invalid == resource_page or resource_links_match(invalid):
+        ERRORS.append("official resource navigation negative fixture was not rejected")
+
 if service_count != 5:
     ERRORS.append(f"expected 5 Service nodes; found {service_count}")
 if breadcrumb_count != 71:
