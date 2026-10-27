@@ -6,6 +6,12 @@ Missing or invalid current IDs withhold the caregiver link. Superseded receipt
 controls cannot navigate during or after a replacement read. Synthetic regression
 coverage is separate from authenticated acceptance; read settings are unchanged.
 Independent review and all 181 data-mode tests passed.
+Commit af9e1c2 passed all 287 frontend/tooling tests and the aggregate release gate.
+Automatic release [40534074546](https://github.com/jnwokorie1957/pthhs/actions/runs/40534074546)
+completed Hosting and backend jobs successfully on October 27 at 15:46 UTC.
+Query-free production dashboard.js and index.html matched the exact commit bytes
+at 15:47:52 UTC. Authenticated source acceptance remains pending; no source reads
+were enabled or performed for this change.
 
 October 26 resource navigation: six official-resource links now name their
 destinations visibly, retaining URLs, descriptions and new-tab notices. The
