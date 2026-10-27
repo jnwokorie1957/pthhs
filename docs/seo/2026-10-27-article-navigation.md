@@ -47,3 +47,8 @@ Article prose, private portal and other marketing output were unchanged.
 This corrects social-preview semantics; no ranking or indexing outcome is claimed.
 Native browser/AT acceptance remains unverified. Scoped rollback: revert c485efd
 through the normal authorized pipeline, preserving unrelated work.
+
+Later bounded browser acceptance: desktop keyboard and 390-pixel mobile menu,
+Escape/focus and article/index/guide paths passed in Chrome. See the
+[Articles browser review](2026-10-27-articles-browser-review.md). This closes those
+browser checks; screen-reader and broader AT acceptance remain unverified.

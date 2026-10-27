@@ -3,6 +3,10 @@
 These files remain useful for planning, but they do not override current public
 facts, payer evidence, or claim-release controls.
 
+- [October 27 Articles browser review](2026-10-27-articles-browser-review.md) —
+  bounded desktop/mobile keyboard acceptance, publisher punctuation correction,
+  current public crawl and explicit assistive-technology/outcome limits.
+
 - [October 23 SEO and developer-task review](2026-10-23-seo-review.md) — fresh
   delivery/sitemap evidence, unavailable field samples and closure of the
   historical dependency-advisory recheck; runtime and business claims unchanged.

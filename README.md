@@ -1,5 +1,11 @@
 # PTHHS
 
+October 27 Articles browser review: desktop keyboard and 390-pixel menu/article/
+guide navigation passed in Chrome, with no observed horizontal overflow. A
+duplicated publisher period was corrected; approved prose, dates and citations
+are unchanged. Existing article and release validators pass. Screen-reader and
+search-outcome acceptance remain separate. See [review](docs/seo/2026-10-27-articles-browser-review.md).
+
 October 27 20:02 UTC role research records current-receipt navigation checks,
 separate caregiver-document and family-invoice rights, and proposed bounded
 document review/export lifetimes. Current source code and synthetic acceptance

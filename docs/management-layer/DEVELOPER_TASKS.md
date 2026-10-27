@@ -128,6 +128,12 @@ completeness and operational totals remain unknown.
 
 # Current checkpoint
 
+- [x] October 27 public Articles browser checks passed for desktop keyboard,
+  390-pixel menu open/Escape/Enter, article/index/guide links and bounded layout.
+  Corrected publisher punctuation; 13 existing article tests and normal static
+  validators pass. Assistive-technology/conformance and outcomes remain open.
+  See [review](../seo/2026-10-27-articles-browser-review.md).
+
 - [x] October 27 20:02 UTC role research reconciles current-source navigation
   ownership with primary caregiver-document, family-invoice and Forms guidance.
   Proposed bounded review/export acceptance retains existing role/action and

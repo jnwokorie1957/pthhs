@@ -42,3 +42,9 @@ exact commit bytes at 16:21:16–17 UTC; article canonical, title, one H1, citat
 and AI disclosure were verified. Linked personal-care/contact pages returned 200.
 Portal assets remained byte-identical. No ranking or authenticated acceptance is
 claimed. Rollback is a scoped revert through the same release pipeline.
+
+Later browser acceptance: desktop keyboard and 390-pixel article/index/guide
+navigation now have the bounded checks in the
+[Articles browser review](2026-10-27-articles-browser-review.md). A duplicated
+publisher period was corrected without changing approved prose, citations or
+dates. Screen-reader and broader accessibility acceptance remain unverified.
