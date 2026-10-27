@@ -34,3 +34,16 @@ assistive-technology acceptance, which remains unverified.
 
 Rollback: revert c4345b3 through the same authorized release pipeline, preserving
 later unrelated work. No manual source-record or infrastructure rollback is needed.
+
+Metadata follow-up: c485efd8532d32e5cb3579e3f95a8b33e78eacbd corrects only
+the collection's Open Graph type to `website`; individual articles retain `article`.
+The paired regression failed before the fix and passed afterward. Independent
+review, all 13 article tests and the exact-commit aggregate gate passed.
+[Release 40562981364](https://github.com/jnwokorie1957/pthhs/actions/runs/40562981364)
+completed Hosting at 18:46:31 UTC and backend at 18:47:01 UTC on October 27.
+Ordinary public index and article responses returned 200 and matched commit
+bytes at 18:47:13 UTC, with exactly one correct Open Graph type on each.
+Article prose, private portal and other marketing output were unchanged.
+This corrects social-preview semantics; no ranking or indexing outcome is claimed.
+Native browser/AT acceptance remains unverified. Scoped rollback: revert c485efd
+through the normal authorized pipeline, preserving unrelated work.
