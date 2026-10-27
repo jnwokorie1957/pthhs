@@ -161,6 +161,15 @@ TAB 07 - STAFFING
     GetCaregiverPermanentWeekAvailability, GetCaregiverSpecialAvailability;
     restrictions/preferences/discipline and office membership remain separate.
     Verify exact caregiver/office proof and then enable a bounded source reader.
+    October27 iteration: the existing OfficeIDs projection maps the WSDL's
+    CaregiverOffices/Office/OfficeID list. It is now restricted to unique direct
+    child IDs, bounded to200; ambiguous/nested identities fail closed. A protected
+    /workspace/visit-context caregiver read checks fresh visit/patient/office,
+    the exact expected caregiver and current office membership. The Staffing tab
+    has on-demand profiles, source receipts/age and context/session clearing.
+    Current inspected settings still disable GetCaregiverDemographics. Source
+    activation/entitlement/native profile acceptance remain pending; availability
+    and matching remain separate. No read permission has been changed.
 [ ] S03 Open-shift/eligible staff matching needs verified schedule completeness,
     authorization, effective assignment/discipline and applicable availability
     rules. Do not create assignments or infer qualified staff from a nonempty ID.
@@ -171,6 +180,15 @@ TAB 08 - BILLING & AR
     GetCollectionNotes and relevant collection reference catalogs.
 [ ] B02 Connect exact-visit billing/source follow-up with office/identity checks
     and current source receipts. Those additional reads are not yet enabled.
+    October27 iteration: /workspace/visit-context billing mode uses GetVisitBillInfoV2
+    after fresh visit and patient-office proof, requiring matching visit/patient,
+    caregiver and source visit date. The Billing tab supports raw primary and
+    secondary contract references, billed flags/rates/minutes/amounts with source
+    receipt/fetch age. Zero stays zero; omitted fields stay absent. Identity/policy
+    changes, source errors and session/Demo/date/page changes remove old facts.
+    Current inspected settings still disable GetVisitBillInfoV2. Source activation,
+    entitlement and native billing acceptance remain pending. No cash, paid-claim,
+    AR balance or readiness inference is added.
 [ ] B03 GetVisitInfoV3 BilledAmount is a source field, not collected cash.
     Do not invent cash collections, paid-claim stages, billing readiness or AR
     totals from visit times, billed amount, payroll hours or absent records.
@@ -219,6 +237,9 @@ TAB 12 - ADVANCED TOOLS
     entitlement-tested and enabled deliberately under the connection request.
 [ ] W03 Distinguish an owner-disabled operation, vendor-contract block, API quota,
     empty successful response, release lock and unexpected server failure in UI.
+    Related caregiver/billing buttons now use protected status metadata to show
+    required disabled reads before dispatch. Enabled metadata is readiness only,
+    never proof of successful source entitlement. Actual quota seconds are honored.
 [ ] W04 Review each displayed workflow's required live prerequisites. Existing
     creation/replacement/clinical/financial/scheduling execution gates stay closed
     unless independently authorized; a button's presence is not a live source.
@@ -254,6 +275,19 @@ Exact source/endpoint and fields; office/date/identity boundary; signed-in live
 result or an honest source-empty response; freshness and paging; failure/retry;
 session/Demo isolation; meaningful tests; normal release; production verification.
 Local evidence is stored under outputs with no raw patient/staff values in Git.
+
+OCTOBER27 IMPLEMENTATION CHECKPOINT (LIVE ACCEPTANCE STILL OPEN)
+524backend and307frontend/tooling tests plus the complete Windows release checks
+pass for the caregiver/billing iteration, including integrated concurrent EVV
+focus/explicit-pause tests and unrelated official-resource label changes. Source
+identities now use direct XML paths for patient/visit/billing/caregiver checks.
+Responsive visit/card styling extends to Staffing/Billing source controls. No HHA
+source writes, clinical/financial decisions, communications, credentials or new
+roles/permissions are introduced. The app/capability catalog totals388250bytes
+before transfer compression; measured gzip is below95KB. The bounded total cap
+is400KB (formerly380KB), gzip95KB (formerly90KB); the110KB per-asset and separate
+marketing limits remain intact. Normal release and live activation must still be
+verified before S02/B02 can be checked complete.
 
 READ OPERATION INVENTORY
 The following generated appendix names every read exposed in Advanced tools and

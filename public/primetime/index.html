@@ -7,7 +7,7 @@
   <meta name="theme-color" content="#0d4f8f">
   <title>Primetime Operations</title>
   <link rel="icon" href="/assets/meta/favicon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="/primetime/primetime.css?v=72f15f018981">
+  <link rel="stylesheet" href="/primetime/primetime.css?v=fe719a33922c">
 </head>
 <body>
   <div class="auth-shell" id="authShell">
@@ -138,8 +138,8 @@
           <details class="panel revision-secondary"><summary>Reminders & office alerts</summary><p>Provider acceptance, confirmed delivery and office acknowledgement are shown separately. No messages are sent from this panel.</p><div id="revisionNotifications"></div><button class="btn secondary" id="revisionNotificationsNext" type="button" hidden>Next alerts</button></details>
         </section>
         <section class="view" data-view-panel="messages"><div class="section-heading"><div><p class="eyebrow">Communications</p><h2>Messages & alert rules</h2><p>Delivery requires an approved channel and audience policy.</p></div></div><div id="dashboardMessages" class="cards-3"></div></section>
-        <section class="view" data-view-panel="staffing"><section class="panel connected-tools"><h3>Operational tools</h3><button type="button" class="btn secondary" data-view-jump="workbench" data-workflow="SearchCaregivers">Read caregiver availability and preferences</button></section><div class="section-heading"><div><p class="eyebrow">Coverage</p><h2>Staffing</h2><p>Availability and assignment rules require validated source evidence.</p></div></div><section class="panel"><h3 id="staffingEvidenceTitle">Visit assignment evidence</h3><div id="dashboardStaffing"></div></section></section>
-        <section class="view" data-view-panel="billing"><section class="panel connected-tools"><h3>Operational tools</h3><button type="button" class="btn secondary" data-view-jump="workbench" data-workflow="SearchBilledVisits">Review billed visits</button><button type="button" class="btn secondary" data-view-jump="workbench" data-workflow="SearchPayrollBatches">Review payroll batches</button></section><div class="section-heading"><div><p class="eyebrow">Revenue operations</p><h2>Billing & accounts receivable</h2><p>Hours, charges, submitted claims and payments require distinct source evidence.</p></div></div><div id="dashboardBillingMetrics" class="metric-grid"></div><section class="panel"><h3>Billing pipeline</h3><div id="dashboardBillingPipeline"></div></section></section>
+        <section class="view" data-view-panel="staffing"><section class="panel connected-tools"><h3>Operational tools</h3><button type="button" class="btn secondary" data-view-jump="workbench" data-workflow="SearchCaregivers">Read caregiver availability and preferences</button></section><div class="section-heading"><div><p class="eyebrow">Coverage</p><h2>Staffing</h2><p>Availability and assignment rules require validated source evidence.</p></div></div><section class="panel"><h3 id="staffingEvidenceTitle">Visit assignment evidence</h3><div id="dashboardStaffing"></div></section><section class="panel"><h3>Current caregiver source profile</h3><div id="dashboardCaregiverProfile" role="status" aria-live="polite"></div></section></section>
+        <section class="view" data-view-panel="billing"><section class="panel connected-tools"><h3>Operational tools</h3><button type="button" class="btn secondary" data-view-jump="workbench" data-workflow="SearchBilledVisits">Review billed visits</button><button type="button" class="btn secondary" data-view-jump="workbench" data-workflow="SearchPayrollBatches">Review payroll batches</button></section><div class="section-heading"><div><p class="eyebrow">Revenue operations</p><h2>Billing & accounts receivable</h2><p>Hours, charges, submitted claims and payments require distinct source evidence.</p></div></div><div id="dashboardBillingMetrics" class="metric-grid"></div><section class="panel"><h3>Visit billing source reads</h3><div id="dashboardBillingPipeline"></div></section><section class="panel"><h3>Current visit billing facts</h3><div id="dashboardBillingFacts" role="status" aria-live="polite"></div></section></section>
         <section class="view" data-view-panel="forms" id="formsWorkspace">
           <div class="section-heading"><div><p class="eyebrow">Private files</p><h2>Forms</h2></div></div>
           <section class="panel"><h3>Upload a form</h3><p>Save a blank template or a submitted form to private Firebase Storage. Only approved Primetime administrators can access this library. Files are stored as documents; approval, signatures and patient/staff sharing are separate workflows.</p>
@@ -188,7 +188,7 @@
   <script src="/__/firebase/init.js" defer></script>
   <script src="/primetime/data-source.js?v=82e610d37b6d" defer></script>
   <script src="/primetime/demo-data.js?v=daf4470da486" defer></script>
-  <script src="/primetime/dashboard.js?v=fa065c7b93bc" defer></script>
+  <script src="/primetime/dashboard.js?v=87a65f4dd37f" defer></script>
   <script src="/primetime/revisions.js?v=be85c8db684d" defer></script>
   <script src="/primetime/primetime.js?v=59389ef91444" defer></script>
   <script src="/primetime/workspace.js?v=a8d21169e9da" defer></script>

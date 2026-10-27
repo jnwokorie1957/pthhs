@@ -436,7 +436,7 @@ const projections: Record<Exclude<ReadOperation, "SearchVisitsV2" | "SearchPatie
   GetPatientDemographics: { record: "PatientInfo", fields: ["PatientID", "OfficeID", "FirstName", "LastName", "PatientStatusName", "AdmissionID", "PayerID", "PayerName", "MedicaidStartDate", "MedicaidEndDate", "ManagedCareStartDate", "ManagedCareEndDate", "LastModifiedDate"] },
   GetCaregiverDemographics: { record: "CaregiverInfo", fields: ["ID", "FirstName", "LastName", "CaregiverCode", "EmployeeID", "Status/Name", "TimeZone", "LastModifiedDate"] },
   GetPatientAuthorizationInfo: { record: "AuthorizationInfo", fields: ["AuthorizationID", "Patient/ID", "Contract/ID", "ServiceCode/ID", "AuthorizationNumber", "ServiceCode/Name", "StartDate", "StopDate", "MaxUnits", "RemainingUnits", "BankedHours", "WeeklyMaxAuthorization", "MonthlyMaxAuthorization", "EntirePeriodMaxAuthorization"] },
-  GetVisitBillInfoV2: { record: "VisitBillInfo", fields: ["PrimaryBillTo/Contract/ID", "SecondaryBillTo/Contract/ID", "ID", "VisitDate", "Patient/ID", "Caregiver/ID", "PrimaryBillTo/IsBilled", "PrimaryBillTo/BilledRate", "PrimaryBillTo/BilledMinutes", "PrimaryBillTo/BilledAmount", "SecondaryBillTo/IsBilled", "SecondaryBillTo/BilledAmount"] },
+  GetVisitBillInfoV2: { record: "VisitBillInfo", fields: ["PrimaryBillTo/Contract/ID", "SecondaryBillTo/Contract/ID", "ID", "VisitDate", "Patient/ID", "Caregiver/ID", "PrimaryBillTo/IsBilled", "PrimaryBillTo/BilledRate", "PrimaryBillTo/BilledMinutes", "PrimaryBillTo/BilledAmount", "SecondaryBillTo/IsBilled", "SecondaryBillTo/BilledRate", "SecondaryBillTo/BilledMinutes", "SecondaryBillTo/BilledAmount"] },
   GetCaregiverPermanentWeekAvailability: { record: "PermanentWeekAvailabilityInfo", fields: ["PermanentWeekID", "CaregiverID", "OfficeID", ...days.flatMap(d => [d + "AvailabilityType", d + "From", d + "To", d + "LiveIn"])] },
   GetCaregiverSpecialAvailability: { record: "SpecialAvailabilityInfo", fields: ["SpecialAvailabilityID", "CaregiverID", "OfficeID", "FromDate", "ToDate", ...days.flatMap(d => [d + "AvailabilityType", d + "From", d + "To", d + "LiveIn"])] },
 };
@@ -525,6 +525,29 @@ function verificationReceiptFields(xml: string): Record<string, string | null> {
   const entries = names.map(name => ({ name, elements: directChildElements(body, name) }));
   if (entries.some(entry => entry.elements.length > 1)) return empty;
   return Object.fromEntries(entries.map(({ name, elements }) => ["Verification/" + name, elements.length ? extractExactElementText(elements[0]!, name) ?? null : null]));
+}
+function directScalar(xml: string, name: string): string | null {
+  const elements = directChildElements(xml, name);
+  return elements.length === 1 ? extractExactElementText(elements[0]!, name) ?? null : null;
+}
+function directPathScalar(xml: string, path: string): string | null {
+  const names = path.split("/");
+  for (const name of names.slice(0, -1)) {
+    const elements = directChildElements(xml, name);
+    if (elements.length !== 1) return null;
+    xml = extractElementBody(elements[0]!, name) ?? "";
+  }
+  return directScalar(xml, names.at(-1)!);
+}
+function caregiverOfficeIds(xml: string): string | null {
+  const roots = directChildElements(xml, "CaregiverOffices");
+  if (!roots.length) return "[]";
+  if (roots.length !== 1 || /(?:\w+:)?nil\s*=\s*["'](?:true|1)["']/i.test(roots[0]!.match(/^<[^>]+>/)?.[0] ?? "")) return null;
+  const offices = directChildElements(extractElementBody(roots[0]!, "CaregiverOffices") ?? "", "Office");
+  if (offices.length > 200) return null;
+  const ids = offices.map(office => directScalar(extractElementBody(office, "Office") ?? "", "OfficeID"));
+  if (ids.some(id => !id || !/^[1-9]\d{0,9}$/.test(id) || Number(id) > 2147483647) || new Set(ids).size !== ids.length) return null;
+  return JSON.stringify(ids);
 }
 // Dashboard discovery must not silently skip empty IDs or borrow nested IDs.
 // The captured contract permits an absent/empty Visits collection, but IDs
@@ -770,6 +793,10 @@ export async function operationalRead(client: Pick<HhaSoapClient, "call">, input
     }
     records = bodies.map(xml => {
       const projected = Object.fromEntries(projection.fields.map(name => [name, field(xml, name)]));
+      if (["GetVisitInfoV2", "GetVisitInfoV3", "GetVisitBillInfoV2"].includes(input.operation)) {
+        for (const name of ["ID", "Patient/ID", "Caregiver/ID", "VisitDate"]) projected[name] = directPathScalar(xml, name);
+      }
+      if (input.operation === "GetPatientDemographics") for (const name of ["PatientID", "OfficeID"]) projected[name] = directScalar(xml, name);
       if (input.operation === "GetVisitInfoV2" || input.operation === "GetVisitInfoV3") Object.assign(projected, verificationReceiptFields(xml));
       if ((projectionScope === "medical_review" || projectionScope === "write_recovery") && input.operation === "GetCaregiverMedicalDetails") { for (const name of ["Notes", "Result", "DocumentName"]) projected[name] = extractExactElementText(xml, name) ?? null; }
       if ((projectionScope === "clinical_review" || projectionScope === "write_recovery") && input.operation === "GetPatientClinicalInfo") { projected.Comments = extractExactElementText(xml, "Comments") ?? null; projected.Allergies = extractExactElementText(xml, "Allergies") ?? null; }
@@ -780,7 +807,8 @@ export async function operationalRead(client: Pick<HhaSoapClient, "call">, input
         projected.Tasks = JSON.stringify(extractElementBodies(xml, "SubDutyList").map(task => Object.fromEntries(["DutyTaskId", "DutyCode", "DutyName", "DutyCategory", "UseForSpeakOutDuty", "Status"].map(name => [name, field(task, name)]))));
       }
       if (input.operation === "GetCaregiverDemographics") {
-        projected.OfficeIDs = JSON.stringify(extractElementBodies(extractElementBody(xml, "CaregiverOffices") || "", "Office").map(office => field(office, "OfficeID")));
+        projected.ID = directScalar(xml, "ID");
+        projected.OfficeIDs = caregiverOfficeIds(xml);
         projected.EmploymentDisciplines = JSON.stringify(extractElementBodies(extractElementBody(xml, "EmploymentTypes") || "", "Discipline").map(value => extractElementText(`<Discipline>${value}</Discipline>`, "Discipline")));
       }
       if (input.operation === "GetPatientPOCInfo") projected.Tasks = JSON.stringify(extractElementBodies(xml, "Task").map(task => Object.fromEntries(["ID", "Code", "Name", "Required", "AsNeeded", "WeeklyMin", "WeeklyMax", ...days].map(name => [name, field(task, name)]))));

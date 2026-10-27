@@ -30,8 +30,12 @@ function statusFromSettings(current: WorkspaceSettings) {
   const blockedReason = !current.dataApproved ? "operational_data_release_not_approved"
     : !settings.officeId || !settings.officeTimezone ? "office_timezone_not_configured"
     : REQUIRED_READS.some(operation => !current.settings.enabledReads.includes(operation)) ? "visit_reads_not_owner_enabled" : null;
+  const related = (operation: "GetCaregiverDemographics" | "GetVisitBillInfoV2") => {
+    const reason = blockedReason ?? (current.settings.enabledReads.includes(operation) ? null : "read_not_owner_enabled");
+    return { available: reason === null, blockedReason: reason, operation };
+  };
   return { ok: true, mode: "live" as const, dataApproved: current.dataApproved, settings: { ...settings, revision: current.settings.revision },
-    panels: { visits: { available: blockedReason === null, blockedReason } }, sourceValidation: "pending" as const };
+    panels: { visits: { available: blockedReason === null, blockedReason }, caregiverProfile: related("GetCaregiverDemographics"), billingFacts: related("GetVisitBillInfoV2") }, sourceValidation: "pending" as const };
 }
 export async function dataStatus(workspace: Workspace) { return statusFromSettings(await workspace.settings()); }
 

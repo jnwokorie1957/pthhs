@@ -1065,6 +1065,68 @@ test('live EVV search filters the connected table on input without making anothe
   assert.equal(rows.every(row => !row.hidden), true);
 });
 
+const relatedPayload = ({ kind, ...scope }, fields = {}) => ({ ok: true, source: 'hhaexchange', validation: 'source_unvalidated', timezone: 'source_values_unconverted', truncated: false,
+  operation: kind === 'caregiver' ? 'GetCaregiverDemographics' : 'GetVisitBillInfoV2', interpretation: kind === 'caregiver' ? 'caregiver_profile_unvalidated' : 'billing_source_unvalidated',
+  fetchedAt: '2026-10-24T16:00:00Z', membershipCheckedAt: '2026-10-24T15:59:59Z', scope,
+  records: [{ ID: kind === 'caregiver' ? scope.caregiverId : scope.visitId, ...(kind === 'caregiver' ? { FirstName: 'Synthetic caregiver', OfficeIDs: JSON.stringify([scope.officeId]) } : { 'Patient/ID': scope.patientId, 'PrimaryBillTo/BilledAmount': '0', 'SecondaryBillTo/BilledMinutes': null }), ...fields }] });
+async function relatedFixture(read, available = true) {
+  const metadata = { ...liveMetadata, panels: { ...liveMetadata.panels, caregiverProfile: { available }, billingFacts: { available } } };
+  const app = harness({ storedDataMode: null, metadata, fetchSource: (path, options) => path.includes('/views/visits?') ? response(livePreview(new URL(path, 'https://fixture.test').searchParams.get('date')))
+    : path.endsWith('/workspace/visit-context') ? read(JSON.parse(options.body), options) : response({ ok: true }) });
+  installDashboard(app); await app.signIn(); await tick(); await tick(); return app;
+}
+const relatedButton = (app, kind) => descendants(app.element(kind === 'caregiver' ? 'dashboardStaffing' : 'dashboardBillingPipeline')).find(n => n.textContent === (kind === 'caregiver' ? 'View caregiver profile' : 'Read billing facts'));
+test('Staffing and Billing fetch guarded source context on demand and preserve zero and missing fields', async () => {
+  const app = await relatedFixture(input => response(relatedPayload(input)));
+  for (const kind of ['caregiver', 'billing']) {
+    assert.equal(relatedButton(app, kind).disabled, false); await clickNode(relatedButton(app, kind)); await tick(); await tick();
+    const call = app.calls.filter(c => c.path.endsWith('/workspace/visit-context')).at(-1);
+    assert.deepEqual(JSON.parse(call.options.body), { kind, visitId: '900001', patientId: '5', officeId: '123', ...(kind === 'caregiver' ? { caregiverId: '6' } : {}) });
+    const text = nodeText(app.element(kind === 'caregiver' ? 'dashboardCaregiverProfile' : 'dashboardBillingFacts'));
+    assert.match(text, /fetched 2026-10-24T16:00:00Z/); assert.match(text, /Not supplied by HHA/); assert.match(text, /Open records/);
+    assert.match(text, kind === 'caregiver' ? /Synthetic caregiver/ : /Billed amount \(source\) 0/);
+    assert.doesNotMatch(text, /collected\s+\$|eligible candidate|billing-ready total/i);
+  }
+});
+test('disabled related reads are explicit and do not dispatch through the main tabs', async () => {
+  const app = await relatedFixture(() => { throw new Error('disabled read dispatched'); }, false), calls = app.calls.length;
+  for (const kind of ['caregiver', 'billing']) { assert.equal(relatedButton(app, kind).disabled, true); await clickNode(relatedButton(app, kind)); }
+  assert.equal(app.calls.length, calls); assert.match(nodeText(app.element('dashboardBillingFacts')), /GetVisitBillInfoV2 is not enabled/);
+  assert.match(nodeText(app.element('dashboardCaregiverProfile')), /GetCaregiverDemographics is not enabled/);
+});
+test('related source projection rejects foreign identities, office lists and invalid receipts', () => {
+  const normalize = dashboardModel().primetimeDashboardModel.normalizeVisitContext;
+  for (const kind of ['caregiver', 'billing']) {
+    const input = { kind, visitId: '900001', patientId: '5', officeId: '123', ...(kind === 'caregiver' ? { caregiverId: '6' } : {}) }, valid = relatedPayload(input);
+    assert.ok(normalize(valid, input).fields);
+    for (const changes of [{ scope: { ...valid.scope, officeId: '999' } }, { records: [] }, { operation: 'GetPatientDemographics' }, { truncated: true }, { membershipCheckedAt: '2026-10-24T16:01:00Z' },
+      { records: [{ ...valid.records[0], ID: '999' }] }, { records: [{ ...valid.records[0], ...(kind === 'caregiver' ? { OfficeIDs: '["999"]' } : { 'Patient/ID': '999' }) }] }]) {
+      assert.throws(() => normalize({ ...valid, ...changes }, input), /invalid_visit_context/);
+    }
+  }
+});
+test('pending related reads and detached controls are fenced after date, Clear, Demo and session changes', async () => {
+  for (const kind of ['caregiver', 'billing']) for (const change of ['clear', 'date', 'demo', 'session']) {
+    const late = deferred(); let input; const app = await relatedFixture(value => { input = value; return late.promise; }), old = relatedButton(app, kind);
+    await clickNode(old); await tick();
+    if (change === 'clear') await app.click('dashboardVisitClear');
+    if (change === 'date') { app.element('dashboardVisitDate').value = '2026-10-23'; for (const fn of app.element('dashboardVisitDate').handlers.get('change')) fn(new Event('change')); }
+    if (change === 'demo') app.window.primetimeDataMode.setMode('demo');
+    if (change === 'session') app.dispatch('primetime-signed-out');
+    late.resolve(response(relatedPayload(input, kind === 'caregiver' ? { FirstName: 'Late private context' } : { 'PrimaryBillTo/BilledAmount': '999999999' })));
+    await tick(); await tick(); assert.doesNotMatch(nodeText(app.element(kind === 'caregiver' ? 'dashboardCaregiverProfile' : 'dashboardBillingFacts')), /Late private context|999999999/);
+    const calls = app.calls.length; await clickNode(old); await tick(); assert.equal(app.calls.length, calls);
+  }
+});
+test('related source failures replace prior facts and respect the real quota delay', async () => {
+  for (const kind of ['caregiver', 'billing']) {
+    let limited = false; const app = await relatedFixture(input => limited ? { ...response({ ok: false, error: 'vendor_backoff_active', retryAfterSeconds: 60 }), ok: false, status: 429 } : response(relatedPayload(input)));
+    await clickNode(relatedButton(app, kind)); await tick(); await tick(); limited = true; await clickNode(relatedButton(app, kind)); await tick(); await tick();
+    const text = nodeText(app.element(kind === 'caregiver' ? 'dashboardCaregiverProfile' : 'dashboardBillingFacts')); assert.match(text, /Retry in 60 seconds/); assert.doesNotMatch(text, /fetched|Synthetic caregiver/);
+    const calls = app.calls.length; await clickNode(relatedButton(app, kind)); await tick(); assert.equal(app.calls.length, calls);
+  }
+});
+
 function connectedWorkspace({ dataApproved = true, enabledReads = ['GetPatientDemographics', 'GetVisitInfoV3'], preview = livePreview, history = () => response({ ok: true, items: [], nextCursor: null, source: 'manual_snapshot' }), authorizations = () => response({ ok: false, error: 'read_not_owner_enabled' }), patientVisit = () => response({ ok: false, error: 'read_not_owner_enabled' }) } = {}) {
   const settings = { revision: 1, officeId: '123', officeTimezone: 'America/Chicago', policyReference: '', enabledReads };
   const app = harness({ storedDataMode: null, metadata: liveMetadata, fetchSource: (path, options) => {
@@ -2689,10 +2751,10 @@ test('midnight rollover waits for visibility and source focus release without ma
 test('midnight clears only prior-day source evidence and preserves unrelated panels and Clear controls', async () => {
   const late = deferred(); let path;
   const app = await apiFeedFixture(value => { path = value; return late.promise; }, '2026-10-21T04:59:59Z');
-  const panels = ['dashboardMessages', 'dashboardBillingMetrics', 'dashboardBillingPipeline', 'dashboardAudit', 'dashboardSettings'];
+  const panels = ['dashboardMessages', 'dashboardBillingMetrics', 'dashboardAudit', 'dashboardSettings'];
   const original = panels.map(id => app.element(id).children.slice());
   app.clock.set('2026-10-21T05:00:01Z'); await app.runFeed();
-  for (const id of ['dashboardVisitRows', 'dashboardTimeline', 'dashboardEvidenceChart', 'dashboardExceptions', 'dashboardStaffing']) {
+  for (const id of ['dashboardVisitRows', 'dashboardTimeline', 'dashboardEvidenceChart', 'dashboardExceptions', 'dashboardStaffing', 'dashboardCaregiverProfile', 'dashboardBillingPipeline', 'dashboardBillingFacts']) {
     assert.doesNotMatch(nodeText(app.element(id)), /900001/);
     assert.match(nodeText(app.element(id)), /Loading current office day/);
   }

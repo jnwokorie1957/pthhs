@@ -365,7 +365,7 @@ test("staffing review cannot disclose subjects without authoritative caregiver o
   const input = { patientId: "8", officeId: "123", date: "2026-09-30", caregiverIds: ["7"] };
   const response = await workspaceRoute(service, "POST", "/workspace/staffing-review", input, "owner");
   assert.equal(response?.status, 423);
-  assert.equal((response?.body as any).error, "staffing_caregiver_office_evidence_unavailable");
+  assert.equal((response?.body as any).error, "staffing_matching_evidence_not_accepted");
   await assert.rejects(service.reviewStaffing({ ...input, officeId: "456" }, "owner"), /office_scope_mismatch/);
   assert.equal(calls, 0);
 });

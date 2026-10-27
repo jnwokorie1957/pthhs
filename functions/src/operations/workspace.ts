@@ -277,10 +277,10 @@ export class OperationsWorkspace {
     // Validate the discovery scope before making any source requests.
     readRequest({ operation: "SearchVisitsV2", officeId, date });
     if ((await this.settings()).settings.officeId !== officeId) throw new WorkflowError("office_scope_mismatch", 403);
-    // The captured caregiver demographic response has no OfficeID. Neither an
-    // empty schedule nor a supplied caregiver ID proves office membership.
-    // Keep this composite review closed until an authoritative join is accepted.
-    throw new WorkflowError("staffing_caregiver_office_evidence_unavailable", 423);
+    // Exact caregiver profiles can verify CaregiverOffices/Office/OfficeID.
+    // This composite matching workflow still lacks accepted full-schedule,
+    // effective-assignment, discipline and availability-rule evidence.
+    throw new WorkflowError("staffing_matching_evidence_not_accepted", 423);
   }
 
   async page<T extends Versioned>(collection: "investigations" | "writeIntents" | "workspaceAudit" | "availabilityChanges" | "documentTypeChanges" | "topicChanges" | "rateCreations" | "patientContractChanges" | "availabilityCreations" | "patientNoteChanges" | "documentMetadataChanges" | "patientClinicalChanges" | "medicalCreations" | "documentReplacementChanges" | "documentCreationChanges" | "caregiverPictureChanges" | "contractCreations" | "referralCreations" | "collectionNoteChanges" | "linkedScheduleCreations", query: unknown): Promise<WorkspacePage<T>> {

@@ -184,6 +184,16 @@ test("data status is safe metadata and explains closed approval, scope and owner
   const f = fixture(); assert.equal((await dataStatus(f.service)).panels.visits.available, true); assert.equal(f.calls.length, 0);
 });
 
+test("related-reader readiness reflects each read gate without dispatching or claiming source success", async () => {
+  const closed = fixture(), initial = await dataStatus(closed.service);
+  assert.equal(initial.panels.caregiverProfile.available, false); assert.equal(initial.panels.billingFacts.blockedReason, "read_not_owner_enabled"); assert.equal(closed.calls.length, 0);
+  const opened = fixture(["77"], { settings: { ...settings, enabledReads: [...settings.enabledReads, "GetCaregiverDemographics", "GetVisitBillInfoV2"] } });
+  const checked = await dataStatus(opened.service); assert.equal(checked.panels.caregiverProfile.available, true); assert.equal(checked.panels.billingFacts.available, true);
+  assert.equal(checked.sourceValidation, "pending"); assert.equal(opened.calls.length, 0);
+  const locked = fixture(["77"], { approved: false, settings: { ...settings, enabledReads: [...settings.enabledReads, "GetCaregiverDemographics", "GetVisitBillInfoV2"] } });
+  assert.equal((await dataStatus(locked.service)).panels.billingFacts.blockedReason, "operational_data_release_not_approved"); assert.equal(locked.calls.length, 0);
+});
+
 test("Demo marker denies live data and commands while safe metadata and legacy clients remain usable", () => {
   for (const path of ["/workspace/read", "/workspace/settings", "/workspace/investigations", "/views/visits", "/hha/health", "/integration/health"]) {
     assert.throws(() => assertLiveDataMode("GET", path, "demo"), /demo_mode_live_request_denied/);

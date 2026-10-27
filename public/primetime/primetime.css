@@ -32,14 +32,14 @@ button:disabled{cursor:not-allowed;opacity:.55}details summary{cursor:pointer;fo
 .fetch-age-control .heading-actions { display: flex; flex-wrap: wrap; gap: 8px; }
 /* Visit records keep complete identifiers and collapse secondary actions. */
 #dashboardVisitRows .table-wrap{max-width:100%;overscroll-behavior-x:contain}
-#sourceVisitTable{min-width:1440px;table-layout:fixed}
-#sourceVisitTable th,#sourceVisitTable td{vertical-align:top}
-#sourceVisitTable th:nth-child(-n+3),#sourceVisitTable td:nth-child(-n+3){width:110px;white-space:nowrap;overflow-wrap:normal}
-#sourceVisitTable th:last-child{width:190px}
+:is(#sourceVisitTable,#sourceStaffingTable,#sourceBillingTable){min-width:1440px;table-layout:fixed}
+:is(#sourceVisitTable,#sourceStaffingTable,#sourceBillingTable) th,:is(#sourceVisitTable,#sourceStaffingTable,#sourceBillingTable) td{vertical-align:top}
+:is(#sourceVisitTable,#sourceStaffingTable,#sourceBillingTable) th:nth-child(-n+3),:is(#sourceVisitTable,#sourceStaffingTable,#sourceBillingTable) td:nth-child(-n+3){width:110px;white-space:nowrap;overflow-wrap:normal}
+:is(#sourceVisitTable,#sourceStaffingTable,#sourceBillingTable) th:last-child{width:190px}
 .source-record-menu{white-space:normal;min-width:150px;max-width:210px}
 .source-record-menu summary{color:var(--blue);cursor:pointer;list-style-position:inside}
 .source-record-menu .source-record-tools{display:grid;grid-template-columns:minmax(0,1fr);margin:8px 0 0}
 .source-record-menu .btn{white-space:normal;text-align:left;overflow-wrap:break-word}
-@media(max-width:1700px){#dashboardVisitRows #sourceVisitTable{min-width:0;display:block}#sourceVisitTable thead{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}#sourceVisitTable tbody{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}#sourceVisitTable tr{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 14px;padding:14px;border:1px solid var(--line);border-radius:12px;background:#fff}#sourceVisitTable td,#sourceVisitTable td:nth-child(-n+3){display:block;width:auto;min-width:0;padding:8px 0;border:0;white-space:pre-line;overflow-wrap:normal}#sourceVisitTable td:before{content:attr(data-label);display:block;color:var(--muted);font-size:10px;font-weight:700;margin-bottom:5px}#sourceVisitTable td:first-child,#sourceVisitTable td:last-child{grid-column:1/-1}#sourceVisitTable td:first-child{font-size:15px}.source-record-menu{max-width:none}}
-@media(max-width:640px){#sourceVisitTable tbody{grid-template-columns:minmax(0,1fr)}}
+@media(max-width:1700px){:is(#sourceVisitTable,#sourceStaffingTable,#sourceBillingTable){min-width:0;display:block}:is(#sourceVisitTable,#sourceStaffingTable,#sourceBillingTable) thead{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}:is(#sourceVisitTable,#sourceStaffingTable,#sourceBillingTable) tbody{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}:is(#sourceVisitTable,#sourceStaffingTable,#sourceBillingTable) tr{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 14px;padding:14px;border:1px solid var(--line);border-radius:12px;background:#fff}:is(#sourceVisitTable,#sourceStaffingTable,#sourceBillingTable) td,:is(#sourceVisitTable,#sourceStaffingTable,#sourceBillingTable) td:nth-child(-n+3){display:block;width:auto;min-width:0;padding:8px 0;border:0;white-space:pre-line;overflow-wrap:normal}:is(#sourceVisitTable,#sourceStaffingTable,#sourceBillingTable) td:before{content:attr(data-label);display:block;color:var(--muted);font-size:10px;font-weight:700;margin-bottom:5px}:is(#sourceVisitTable,#sourceStaffingTable,#sourceBillingTable) td:first-child,:is(#sourceVisitTable,#sourceStaffingTable,#sourceBillingTable) td:last-child{grid-column:1/-1}:is(#sourceVisitTable,#sourceStaffingTable,#sourceBillingTable) td:first-child{font-size:15px}.source-record-menu{max-width:none}}
+@media(max-width:640px){:is(#sourceVisitTable,#sourceStaffingTable,#sourceBillingTable) tbody{grid-template-columns:minmax(0,1fr)}}
 .sidebar{overflow-y:auto;overscroll-behavior:contain}
