@@ -1046,6 +1046,45 @@ test('patient source requests and detached controls cannot outlive Clear, mode, 
   }
 });
 
+test('patient profile record actions belong only to the latest profile request', async () => {
+  for (const selection of ['same', 'different']) for (const outcome of ['success', 'failure']) {
+    let pending = false, requestedScope;
+    const late = deferred();
+    const app = await currentProfileFixture(scope => {
+      requestedScope = scope;
+      return pending ? late.promise : response(currentProfilePayload(scope));
+    }, date => {
+      const page = livePreview(date);
+      page.items.push({ ...page.items[0], id: '900002', patientId: '7', caregiverId: '8' });
+      return page;
+    });
+    const selectors = currentProfileButtons(app);
+    await clickNode(selectors[0]); await tick(); await tick();
+    const old = descendants(app.element('dashboardPatientProfile')).filter(node => (node.handlers.get('click') || []).length);
+    assert.equal(old.length, 7);
+    await clickNode(old.find(node => node.textContent === 'Open patient read'));
+    assert.equal(app.events.filter(event => event.type === 'primetime-source-record-selected').at(-1).detail.id, '5');
+    pending = true;
+    await clickNode(selectors[selection === 'same' ? 0 : 1]); await tick();
+    const assertOldActionsHeld = async () => {
+      const before = app.events.filter(event => event.type === 'primetime-source-record-selected').length, calls = app.calls.length;
+      for (const control of old) await clickNode(control);
+      assert.equal(app.events.filter(event => event.type === 'primetime-source-record-selected').length, before, `${selection}/${outcome}: superseded profile cannot select a record`);
+      assert.equal(app.calls.length, calls, 'stale controls cannot dispatch a source request');
+    };
+    await assertOldActionsHeld();
+    if (outcome === 'failure') late.reject(new Error('synthetic profile failure'));
+    else late.resolve(response(currentProfilePayload(requestedScope)));
+    await tick(); await tick(); await assertOldActionsHeld();
+    if (outcome === 'success') {
+      const current = descendants(app.element('dashboardPatientProfile')).find(node => node.textContent === 'Open patient read');
+      await clickNode(current);
+      assert.equal(app.events.filter(event => event.type === 'primetime-source-record-selected').at(-1).detail.id, selection === 'same' ? '5' : '7');
+    } else assert.equal(recordButtons(app, 'dashboardPatientProfile').length, 0);
+    assert.equal(app.calls.filter(call => call.path.endsWith('/workspace/visit-patient')).length, 2);
+  }
+});
+
 test('patient source errors remove old fields and a quota cooldown blocks repeated dispatch', async () => {
   let limited = false;
   const app = await currentProfileFixture(scope => limited ? { ...response({ ok: false, error: 'read_budget_exhausted', retryAfterSeconds: 60 }), ok: false, status: 429 } : response(currentProfilePayload(scope)));

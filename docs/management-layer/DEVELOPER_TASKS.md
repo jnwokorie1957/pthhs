@@ -128,6 +128,12 @@ completeness and operational totals remain unknown.
 
 # Current checkpoint
 
+- [x] October 27 current-patient related actions check their owning profile
+  request, so superseded controls cannot select records during or after a
+  replacement read. Same/different-patient success/failure regressions and all
+  310 frontend/tooling tests pass; no extra source requests. See
+  [verification](PATIENT_PROFILE_ACTIONS_2026-10-27.md).
+
 - [x] October 24 21:11 UTC role research reconciles accepted administrator
   patient/profile and EVV/Staffing connections with current primary guidance.
   Proposed per-source availability and role/action acceptance retain the

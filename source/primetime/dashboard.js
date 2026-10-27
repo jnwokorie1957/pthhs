@@ -700,7 +700,7 @@
       const labels = { PatientID: 'Patient ID', OfficeID: 'Office ID', FirstName: 'First name', LastName: 'Last name', PatientStatusName: 'Patient status (source)', AdmissionID: 'Admission reference', PayerID: 'Payer reference', PayerName: 'Payer name (source)', LastModifiedDate: 'Last modified (source)' };
       const receipt = node('p', `HHA GetPatientDemographics · fetched ${profile.fetchedAt} · current visit / patient / office checked. Source fields are unvalidated; this does not establish coverage or clinical acceptance.`, 'source-metadata');
       const age = node('p', null, 'source-metadata');
-      replace('dashboardPatientProfile', receipt, age, table(['Source field', 'Source value'], Object.entries(profile.fields).map(([key, value]) => [labels[key], value || 'Not supplied by HHA'])), sourceRecordTools(view, item, captured));
+      replace('dashboardPatientProfile', receipt, age, table(['Source field', 'Source value'], Object.entries(profile.fields).map(([key, value]) => [labels[key], value || 'Not supplied by HHA'])), sourceRecordTools(view, item, captured, active));
       clearPatientFetchAge = window.primetimeSourceTime.watchFetchAge(window.primetimeSourceTime.timestampInstant(profile.fetchedAt), active,
         value => { age.textContent = value; }, () => { age.textContent = ''; });
     } catch (error) {

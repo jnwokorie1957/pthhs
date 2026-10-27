@@ -1,5 +1,11 @@
 # PTHHS
 
+October 27 patient profile navigation: related-record controls now belong to
+their exact profile request. Refreshing or selecting another patient immediately
+invalidates old controls, including after a failed replacement. The regression
+reproduced the gap; all 310 frontend/tooling tests pass. No extra source reads.
+See [verification](docs/management-layer/PATIENT_PROFILE_ACTIONS_2026-10-27.md).
+
 October 27 Articles navigation released: the published-only `/articles` index and
 shared desktop/mobile Articles link preserve the guide, services and legacy
 quarantine. Commit c4345b3 passed independent review and aggregate checks; release
