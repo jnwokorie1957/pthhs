@@ -1,5 +1,12 @@
 # PTHHS
 
+October 27 billing record navigation: related-source controls use the caregiver
+identity in the newly verified response, never the older visit-page identity.
+Missing or invalid current IDs withhold the caregiver link. Superseded receipt
+controls cannot navigate during or after a replacement read. Synthetic regression
+coverage is separate from authenticated acceptance; read settings are unchanged.
+Independent review and all 181 data-mode tests passed.
+
 October 26 resource navigation: six official-resource links now name their
 destinations visibly, retaining URLs, descriptions and new-tab notices. The
 generator and navigation regressions preserve this contract. Independent review

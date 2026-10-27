@@ -644,9 +644,11 @@
       const checked = normalizeVisitContext(payload, scope), age = node('p', null, 'source-metadata');
       const labels = { ID: kind === 'caregiver' ? 'Caregiver ID' : 'Visit ID', FirstName: 'First name', LastName: 'Last name', CaregiverCode: 'Caregiver reference code', 'Status/Name': 'Status (source)', TimeZone: 'Timezone (source)', LastModifiedDate: 'Last modified (source)', VisitDate: 'Visit date (source)', 'Patient/ID': 'Patient ID', 'Caregiver/ID': 'Caregiver ID' };
       const label = key => labels[key] || key.replace('PrimaryBillTo/', 'Primary · ').replace('SecondaryBillTo/', 'Secondary · ').replace('Contract/ID', 'Contract ID').replace('IsBilled', 'Is billed (source)').replace('BilledRate', 'Billed rate (source)').replace('BilledMinutes', 'Billed minutes (source)').replace('BilledAmount', 'Billed amount (source)');
+      const caregiverId = kind === 'billing' ? checked.fields['Caregiver/ID'] : checked.fields.ID;
+      const currentItem = { ...item, caregiverId: typeof caregiverId === 'string' && /^[1-9]\d{0,9}$/.test(caregiverId) && Number(caregiverId) <= 2147483647 ? caregiverId : null };
       replace(host, node('p', `HHA ${payload.operation} · fetched ${checked.fetchedAt} · patient office checked ${checked.membershipCheckedAt}. Independent source reads; source values remain unvalidated.`, 'source-metadata'), age,
         node('p', kind === 'caregiver' ? 'Current office membership is checked from CaregiverOffices/Office/OfficeID. This profile does not establish qualification, eligibility or availability.' : 'Visit, patient, caregiver and source visit date matched current visit evidence. Billed source fields do not establish cash received, billable approval or a complete ledger.', 'source-metadata'),
-        table(['Source field', 'Source value'], Object.entries(checked.fields).map(([key, value]) => [label(key), value || 'Not supplied by HHA'])), sourceRecordTools(view, item, captured));
+        table(['Source field', 'Source value'], Object.entries(checked.fields).map(([key, value]) => [label(key), value || 'Not supplied by HHA'])), sourceRecordTools(view, currentItem, captured, active));
       state.clearAge = window.primetimeSourceTime.watchFetchAge(window.primetimeSourceTime.timestampInstant(checked.fetchedAt), active, value => { age.textContent = value; }, () => { age.textContent = ''; });
     } catch (error) { if (active()) replace(host, node('p', error.message === 'invalid_visit_context' ? 'The source response could not be verified. Reload the source page.' : error.message)); }
     finally { if (state.abort === request) state.abort = null; }
@@ -705,7 +707,7 @@
       if (active()) replace('dashboardPatientProfile', node('p', error.message === 'invalid_patient_profile' ? 'Patient source response could not be verified. Reload the source page before retrying.' : error.message));
     } finally { if (patientAbort === request) patientAbort = null; }
   }
-  function sourceRecordTools(view, item, captured) {
+  function sourceRecordTools(view, item, captured, active = () => true) {
     const tools = node('div', null, 'source-record-tools');
     if (view.mode !== 'live' || item.state === 'unavailable') return tools;
     for (const [kind, id] of [['patient', item.patientId], ['caregiver', item.caregiverId], ['visit', item.id], ['patient-history', item.patientId], ['patient-authorizations', item.patientId], ['patient-care-plans', item.patientId], ['patient-documents', item.patientId]]) {
@@ -714,7 +716,7 @@
         : kind === 'patient-care-plans' ? 'Find patient care plans' : kind === 'patient-documents' ? 'Find patient documents' : `Open ${kind} read`;
       const control = node('button', label, 'btn secondary'); control.type = 'button';
       control.addEventListener('click', () => {
-        if (!current(captured) || !controller.isLive() || metadata?.settings?.officeId !== view.scope.officeId) return;
+        if (!active() || !current(captured) || !controller.isLive() || metadata?.settings?.officeId !== view.scope.officeId) return;
         if (feedInstalled) pauseFeed('Live feed display paused for record review. Resume live feed when ready to return to the latest page.');
         document.dispatchEvent(new CustomEvent('primetime-source-record-selected', { detail: { kind, id, officeId: view.scope.officeId } }));
       });

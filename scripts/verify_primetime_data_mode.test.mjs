@@ -2965,3 +2965,49 @@ test('clear and revocation still remove paused EVV and Staffing evidence',async(
   for(const id of ['dashboardExceptions','dashboardStaffing'])assert.doesNotMatch(nodeText(app.element(id)),/900001/,change+' '+id);
  }
 });
+
+
+test('billing record navigation uses fresh caregiver identity rather than the selected page identity', async () => {
+ for (const id of ['7', '6', null, undefined, '', '0', 'invalid', '2147483648']) {
+  const app = await relatedFixture(input => response(relatedPayload(input, { 'Caregiver/ID': id, VisitDate: '2026-10-24' })));
+  await clickNode(relatedButton(app, 'billing')); await tick(); await tick();
+  const host = app.element('dashboardBillingFacts'), controls = descendants(host);
+  const caregiver = controls.find(n => n.textContent === 'Open caregiver read');
+  if (id === '7' || id === '6') {
+   assert.ok(caregiver); await clickNode(caregiver);
+   assert.equal(app.events.filter(e => e.type === 'primetime-source-record-selected').at(-1).detail.id, id);
+  } else assert.equal(caregiver, undefined, 'missing or invalid fresh identity never falls back to page caregiver');
+  const patient = controls.find(n => n.textContent === 'Open patient read');
+  await clickNode(patient);
+  assert.equal(app.events.filter(e => e.type === 'primetime-source-record-selected').at(-1).detail.id, '5');
+ }
+});
+
+test('related record navigation is fenced when its receipt is superseded or context cleared', async () => {
+ for (const kind of ['billing', 'caregiver']) for (const outcome of ['success', 'failure', 'clear', 'demo', 'session']) {
+  let pending = false, input; const late = deferred();
+  const app = await relatedFixture(value => { input = value; return pending ? late.promise : response(relatedPayload(value, kind === 'billing' ? { 'Caregiver/ID': '7' } : {})); });
+  await clickNode(relatedButton(app, kind)); await tick(); await tick();
+  const host = app.element(kind === 'billing' ? 'dashboardBillingFacts' : 'dashboardCaregiverProfile');
+  const old = descendants(host).filter(n => (n.handlers.get('click') || []).length);
+  assert.ok(old.length);
+  pending = true; await clickNode(relatedButton(app, kind)); await tick();
+  const assertHeld = async () => {
+   const before = app.events.filter(e => e.type === 'primetime-source-record-selected').length;
+   for (const control of old) await clickNode(control);
+   assert.equal(app.events.filter(e => e.type === 'primetime-source-record-selected').length, before);
+  };
+  await assertHeld();
+  if (outcome === 'clear') await app.click('dashboardVisitClear');
+  if (outcome === 'demo') app.window.primetimeDataMode.setMode('demo');
+  if (outcome === 'session') app.dispatch('primetime-signed-out');
+  if (outcome === 'failure') late.reject(new Error('synthetic failure'));
+  else late.resolve(response(relatedPayload(input, kind === 'billing' ? { 'Caregiver/ID': '8' } : {})));
+  await tick(); await tick(); await assertHeld();
+  if (outcome === 'success') {
+   const currentLink = descendants(host).find(n => n.textContent === 'Open caregiver read');
+   await clickNode(currentLink);
+   assert.equal(app.events.filter(e => e.type === 'primetime-source-record-selected').at(-1).detail.id, kind === 'billing' ? '8' : '6');
+  }
+ }
+});
