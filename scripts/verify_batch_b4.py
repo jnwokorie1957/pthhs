@@ -12,6 +12,9 @@ from urllib.parse import urlsplit
 from xml.etree import ElementTree
 
 from site_scope import marketing_html_files
+from pthhs_articles import approved_articles, is_approved_internal_citation
+
+ARTICLE_ROUTES = {a.path for a in approved_articles()}
 
 ROOT = Path(__file__).resolve().parents[1]
 PUBLIC = ROOT / "public"
@@ -112,6 +115,8 @@ for path in marketing_html_files(PUBLIC):
                 types = {node.get("@type") for node in graph}
                 required_types = {"Organization", "WebSite", "WebPage"}
                 allowed_types = required_types | {"Service", "BreadcrumbList"}
+                if route in ARTICLE_ROUTES:
+                    allowed_types.add("Article")
                 if not required_types.issubset(types) or types - allowed_types:
                     errors.append(f"unexpected schema types: {relative} ({sorted(types)})")
                 organization = next((node for node in graph if node.get("@type") == "Organization"), {})
@@ -136,7 +141,10 @@ for path in marketing_html_files(PUBLIC):
         parsed = urlsplit(href)
         if parsed.scheme in {"http", "https"}:
             if parsed.netloc in {"pthhs.net", "www.pthhs.net"}:
-                errors.append(f"absolute internal anchor in {relative}: {href}")
+                if not is_approved_internal_citation(route, href):
+                    errors.append(f"absolute internal anchor in {relative}: {href}")
+                elif parsed.path in redirects:
+                    errors.append(f"article citation points through redirect in {relative}: {href}")
             continue
         clean_path = parsed.path
         if clean_path.endswith(".html") or clean_path.startswith(("./", "../")):
@@ -169,8 +177,8 @@ for url in sitemap_urls:
         errors.append(f"sitemap route is not indexable: {route}")
     if route in redirects:
         errors.append(f"sitemap route redirects: {route}")
-if len(sitemap_urls) != 27:
-    errors.append(f"expected 27 reviewed sitemap URLs, found {len(sitemap_urls)}")
+if len(sitemap_urls) != 28:
+    errors.append(f"expected 28 reviewed sitemap URLs, found {len(sitemap_urls)}")
 
 try:
     sitemap_index = ElementTree.parse(PUBLIC / "sitemap_index.xml").getroot()

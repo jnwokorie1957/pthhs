@@ -17,7 +17,7 @@ class SitemapDatesTest(unittest.TestCase):
         ns = {"s": "http://www.sitemaps.org/schemas/sitemap/0.9"}
         self.assertEqual([row.findtext("s:loc", namespaces=ns) for row in rows],
                          [HOST + route for route in SITEMAP_ROUTES])
-        self.assertEqual(len(rows), 27)
+        self.assertEqual(len(rows), 28)
         for row, route in zip(rows, SITEMAP_ROUTES):
             self.assertEqual(row.findtext("s:lastmod", namespaces=ns), dates.get(route))
 

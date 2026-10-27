@@ -10,6 +10,9 @@ from html.parser import HTMLParser
 from pathlib import Path
 
 from site_scope import marketing_html_files
+from pthhs_articles import approved_articles
+
+ARTICLE_ROUTES = {a.path for a in approved_articles()}
 
 ROOT = Path(__file__).resolve().parents[1]
 PUBLIC = ROOT / "public"
@@ -79,7 +82,7 @@ def is_noindex(text: str) -> bool:
 
 
 def target_breadcrumb_route(route: str) -> bool:
-    return route.startswith("/locations/") or route.startswith("/home-care-services/") or route == "/home-care-blog"
+    return route.startswith("/locations/") or route.startswith("/home-care-services/") or route == "/home-care-blog" or route in ARTICLE_ROUTES
 
 
 service_count = 0
@@ -256,8 +259,8 @@ for invalid in (
 
 if service_count != 5:
     ERRORS.append(f"expected 5 Service nodes; found {service_count}")
-if breadcrumb_count != 71:
-    ERRORS.append(f"expected 71 breadcrumb routes; found {breadcrumb_count}")
+if breadcrumb_count != 72:
+    ERRORS.append(f"expected 72 breadcrumb routes; found {breadcrumb_count}")
 
 robots = (PUBLIC / "robots.txt").read_text(errors="strict")
 expected_robots = "User-agent: *\nAllow: /\n\nSitemap: https://pthhs.net/sitemap.xml\n"

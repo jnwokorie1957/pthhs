@@ -61,6 +61,7 @@ def render_page(
     lead: str,
     body: str,
     robots: str | None = None,
+    current_nav: str | None = None,
 ) -> str:
     canonical = f"{HOST}{path}"
     schema = {
@@ -105,7 +106,7 @@ def render_page(
 </head>
 <body class="modern-page template-refresh">
   {skip_link_markup()}
-  {header_markup()}
+  {header_markup(current_nav)}
   <main id="main-content" tabindex="-1">
     <section class="page-hero"><div class="shell">
       <nav class="breadcrumb" aria-label="Breadcrumb"><a href="/">Home</a> / <span aria-current="page">{html.escape(heading)}</span></nav>

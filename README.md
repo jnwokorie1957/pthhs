@@ -1,5 +1,11 @@
 # PTHHS
 
+October 27 original article preparation: the approved company perspective on
+learning from software/AI mistakes preserves non-medical PAS scope and separates
+synthetic testing from operational acceptance. The shared-shell article, guide
+card, 28-route sitemap and source dates are synchronized; legacy posts remain
+quarantined. See [article review](docs/seo/2026-10-27-original-article.md).
+
 October 27 billing record navigation: related-source controls use the caregiver
 identity in the newly verified response, never the older visit-page identity.
 Missing or invalid current IDs withhold the caregiver link. Superseded receipt

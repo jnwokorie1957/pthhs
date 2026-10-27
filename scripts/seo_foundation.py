@@ -9,6 +9,7 @@ import re
 from pathlib import Path
 
 from site_scope import marketing_html_files
+from pthhs_articles import approved_articles
 from urllib.parse import urlsplit
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -44,6 +45,7 @@ SITEMAP_ROUTES = (
     "/home-care-contact-us",
     "/home-care-resources",
     "/home-care-blog",
+    "/articles/why-healthcare-ai-should-learn-from-mistakes",
     "/privacy-policy",
     "/terms-of-use",
 )
@@ -107,6 +109,10 @@ def is_noindex(text: str) -> bool:
 
 
 def breadcrumb_items(route: str, text: str) -> list[tuple[str, str]]:
+    if route.startswith("/articles/"):
+        article = next((a for a in approved_articles() if a.path == route), None)
+        if article:
+            return [("Home", "/"), ("Home Care Guide", "/home-care-blog"), (article.title, route)]
     if route.startswith("/home-care-services/"):
         current = head_value(text, r"<h1[^>]*>(.*?)</h1>", "H1", file_for_route(route))
         return [("Home", "/"), ("Services", "/home-care-services"), (current, route)]
@@ -318,8 +324,7 @@ def process_html(path: Path, facts: dict) -> tuple[str, bool]:
             if service_type
             else None
         )
-        payload = json.dumps(
-            verified_schema(
+        schema = verified_schema(
                 canonical,
                 title,
                 description,
@@ -327,7 +332,12 @@ def process_html(path: Path, facts: dict) -> tuple[str, bool]:
                 service_type,
                 service_name,
                 breadcrumbs,
-            ),
+            )
+        article = next((a for a in approved_articles() if a.path == route), None)
+        if article:
+            schema["@graph"].append(article.schema())
+            next(item for item in schema["@graph"] if item["@type"] == "WebPage")["mainEntity"] = {"@id": canonical + "#article"}
+        payload = json.dumps(schema,
             ensure_ascii=False,
             separators=(",", ":"),
         )

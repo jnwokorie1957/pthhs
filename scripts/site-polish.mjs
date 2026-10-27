@@ -172,7 +172,10 @@ function serviceNameFromRoute(route, h1) {
   return service;
 }
 
+const articleMeta = Object.fromEntries(JSON.parse(await fs.readFile(path.join(root, 'content/articles/manifest.json'), 'utf8')).map(a => [`/articles/${a.slug}`, {title: a.seo_title, description: a.description}]));
+
 function pageMeta(route, html) {
+  if (articleMeta[route]) return articleMeta[route];
   if (coreMeta[route]) return coreMeta[route];
 
   if (route === '/404') {

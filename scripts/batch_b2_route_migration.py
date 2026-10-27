@@ -4,9 +4,15 @@
 from __future__ import annotations
 
 from pathlib import Path
+import argparse
 
 from batch_a_config import BLOG_SLUGS
 from pthhs_shell import render_page, section
+from pthhs_articles import approved_articles, render_article_card
+
+parser = argparse.ArgumentParser(description=__doc__)
+parser.add_argument("--guide-only", action="store_true", help="Regenerate the guide without rewriting retired pages or reviews")
+args = parser.parse_args()
 
 ROOT = Path(__file__).resolve().parents[1]
 PUBLIC = ROOT / "public"
@@ -24,6 +30,7 @@ blog_body = section(
 ) + section(
     '''<div class="content-wrap"><h2>Ask Primetime about your next step</h2><p>Call to discuss non-medical personal assistance, current service-area and staffing availability, and the information needed for agency onboarding.</p><p><a class="btn-secondary" href="tel:7139777721">Call 713-977-7721</a> <a class="btn-primary" href="/home-care-contact-us">Get Started</a></p></div>'''
 )
+blog_body += section('<div class="grid grid-2">' + "".join(render_article_card(a) for a in approved_articles()) + "</div>")
 (PUBLIC / "home-care-blog.html").write_text(
     render_page(
         title="Home Care Guide | Primetime Houston",
@@ -33,9 +40,14 @@ blog_body = section(
         heading="Find the next step for home care",
         lead="Choose the question that fits your situation. These pages explain non-medical personal assistance and the information to confirm before services can begin.",
         body=blog_body,
+        current_nav="Resources",
     )
 )
 
+
+if args.guide_only:
+    print("Generated Home Care Guide only; legacy pages untouched.")
+    raise SystemExit(0)
 
 reviews_body = section(
     '''<div class="grid grid-2"><article class="card"><h2>Testimonials remain withheld</h2><p>Individual statements are not published unless source, permission, attribution, current accuracy, and privacy approval are documented. Raw WordPress comments are not approved testimonials.</p></article><article class="card"><h2>Share service feedback privately</h2><p>Current clients, authorized representatives, and attendants can call the office with feedback. Do not post health details or identifying information publicly.</p><p><a class="btn-primary" href="tel:7139777721">Call 713-977-7721</a></p></article></div>'''

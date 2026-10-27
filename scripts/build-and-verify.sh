@@ -32,10 +32,13 @@ python3 scripts/verify_hha_preservation_evidence.py
 # contract. Marketing generators must never rewrite or prune it.
 find public/primetime -type f -print0 | sort -z | xargs -0 sha256sum > "$INTERNAL_SNAPSHOT"
 
+python3 scripts/batch_b2_route_migration.py --guide-only
+python3 scripts/build_articles.py
 node scripts/site-polish.mjs
 node scripts/site-polish-finalize.mjs
 python3 scripts/seo_foundation.py
 python3 scripts/verify_sitemap_dates.py
+python3 scripts/verify_pthhs_articles.py
 python3 scripts/accessibility_foundation.py
 node scripts/performance_foundation.mjs
 node scripts/frontend_controls.mjs
