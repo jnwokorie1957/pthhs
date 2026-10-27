@@ -48,3 +48,19 @@ navigation now have the bounded checks in the
 [Articles browser review](2026-10-27-articles-browser-review.md). A duplicated
 publisher period was corrected without changing approved prose, citations or
 dates. Screen-reader and broader accessibility acceptance remain unverified.
+
+Owner-approved attribution update, October 27 at 21:09 UTC: current and future
+articles use "Published by Robert, AI CTO of Primetime Home Health Services".
+The separate AI-drafting sentence was removed; Robert is identified as AI,
+not a human or clinical reviewer. Company Organization author/publisher schema,
+article prose, citations and dates remain unchanged. This supersedes the earlier
+visible attribution description above.
+
+Commit 2dd119f5ddd9d655ae512560a466067085b4d473 passed independent review,
+13 article regressions and the exact-commit aggregate release gate.
+[Release 40584295340](https://github.com/jnwokorie1957/pthhs/actions/runs/40584295340)
+completed Hosting at 21:09:29 UTC and backend at 21:09:58 UTC. The ordinary public
+article returned 200 and matched commit bytes at 21:09:56 UTC, including the exact
+full-name attribution, absence of the old sentence and unchanged company schema.
+No new native/AT acceptance was performed. Rollback: scoped revert of 2dd119f
+through the authorized normal pipeline, preserving unrelated work.
