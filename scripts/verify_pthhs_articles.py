@@ -115,12 +115,15 @@ class ArticleTests(unittest.TestCase):
 
     def test_generated_index_navigation_and_canonical(self):
         page = (ROOT / 'public/articles.html').read_text(encoding='utf-8')
+        self.assertEqual(re.findall(r'property="og:type" content="([^"]+)"', page), ['website'])
         self.assertEqual(page.count('<h1>'), 1)
         self.assertIn('href="https://pthhs.net/articles"', page)
         self.assertIn('href="/home-care-blog"', page)
         self.assertIn('href="/articles" aria-current="page"', page)
         for article in approved_articles():
             self.assertEqual(page.count('href="' + article.path + '"'), 1)
+            article_page = (ROOT / 'public' / (article.path.lstrip('/') + '.html')).read_text(encoding='utf-8')
+            self.assertEqual(re.findall(r'property="og:type" content="([^"]+)"', article_page), ['article'])
 
     def test_only_exact_approved_internal_citations_are_exempt(self):
         from pthhs_articles import is_approved_internal_citation
