@@ -1,10 +1,12 @@
 # PTHHS
 
-October 27 original article preparation: the approved company perspective on
+October 27 original article published: the approved company perspective on
 learning from software/AI mistakes preserves non-medical PAS scope and separates
 synthetic testing from operational acceptance. The shared-shell article, guide
 card, 28-route sitemap and source dates are synchronized; legacy posts remain
-quarantined. See [article review](docs/seo/2026-10-27-original-article.md).
+quarantined. Commit 44801c8 passed independent review and the aggregate gate;
+release 40539889629 succeeded and ordinary public article/guide/sitemap bytes
+matched at 16:21 UTC. Native browser acceptance remains unverified. See [article review](docs/seo/2026-10-27-original-article.md).
 
 October 27 billing record navigation: related-source controls use the caregiver
 identity in the newly verified response, never the older visit-page identity.

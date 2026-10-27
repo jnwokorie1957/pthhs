@@ -28,6 +28,17 @@ schema, breadcrumbs, guide discovery and legacy quarantine. Independent review p
 preservation, nine article tests, structured navigation and B4 checks. Static
 accessibility/performance checks passed. Local headless Edge did not expose a
 debugging endpoint, so responsive visual/keyboard browser acceptance is not
-claimed. Final aggregate and deployment evidence will follow publication. Public delivery
+claimed. Final aggregate and delivery evidence is recorded below. Public delivery
 must be verified separately; neither tests nor Article markup establish search
 performance, native assistive-technology acceptance or authenticated operations.
+
+Release verified: commit 44801c8849fae9356fa5c99a255c9ce07b386956 passed the
+committed aggregate gate (287 JavaScript tests, nine article tests, four sitemap
+date tests and all static release validators). Independent review passed.
+[Automatic release 40539889629](https://github.com/jnwokorie1957/pthhs/actions/runs/40539889629)
+completed Hosting at 16:20:47 UTC and backend verification at 16:21:05 UTC on
+October 27. Ordinary query-free article, guide and sitemap responses matched
+exact commit bytes at 16:21:16–17 UTC; article canonical, title, one H1, citations
+and AI disclosure were verified. Linked personal-care/contact pages returned 200.
+Portal assets remained byte-identical. No ranking or authenticated acceptance is
+claimed. Rollback is a scoped revert through the same release pipeline.
