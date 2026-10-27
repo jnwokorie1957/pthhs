@@ -132,7 +132,7 @@ def approved_articles(content_dir: Path | None = None) -> tuple[Article, ...]:
 
 def render_article(article: Article) -> str:
     article.validate()
-    metadata = (f'<p>Published by {PUBLISHER.rstrip(".")}. Prepared with AI drafting assistance.</p>'
+    metadata = ('<p>Published by Robert, AI CTO of Primetime Home Health Services</p>'
                 f'<p>Published <time datetime="{article.published}">{article.published}</time>. '
                 f'Research checked <time datetime="{article.research_checked}">{article.research_checked}</time>.')
     if article.modified and article.modified != article.published:

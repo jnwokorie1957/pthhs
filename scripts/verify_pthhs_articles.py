@@ -31,11 +31,13 @@ class ArticleTests(unittest.TestCase):
         page = render_article(BASE)
         self.assertEqual(page.count('<h1>'), 1)
         for expected in ('href="#main-content"', 'aria-label="Breadcrumb"', PUBLISHER,
-                         'datetime="2026-10-27"', 'AI drafting assistance',
+                         'datetime="2026-10-27"', 'Published by Robert, AI CTO of Primetime Home Health Services',
                          'href="https://pthhs.net/articles/synthetic-fixture"', 'href="/home-care-blog"'):
             self.assertIn(expected, page)
         self.assertNotIn('reviewedBy', page)
         self.assertNotIn('Person', page)
+        self.assertNotIn('Prepared with AI drafting assistance.', page)
+        self.assertNotIn('RidePrimetime', page)
 
     def test_card_has_descriptive_link_and_same_route(self):
         self.assertIn('href="/articles/synthetic-fixture">Synthetic title</a>', render_article_card(BASE))
@@ -147,6 +149,9 @@ class ArticleTests(unittest.TestCase):
         self.assertEqual(hashlib.sha256(source.read_bytes()).hexdigest(), '23d5f3fa85f16d5ef06ffc767762517de26e82411333eb20d026c713562f9462')
         page = (ROOT / 'public' / (article.path.lstrip('/') + '.html')).read_text(encoding='utf-8')
         body = re.search(r'<div data-article-body>(.*?)</div>', page, re.S).group(1)
+        self.assertEqual(page.count('Published by Robert, AI CTO of Primetime Home Health Services'), 1)
+        self.assertNotIn('RidePrimetime', page)
+        self.assertNotIn('Prepared with AI drafting assistance.', page)
         self.assertEqual(plaintext(body), plaintext(render_body(article.body)))
         for url in re.findall(r'\]\((https://[^)]+)\)', article.body):
             self.assertIn('href="' + url + '"', body)
