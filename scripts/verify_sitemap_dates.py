@@ -5,6 +5,7 @@ import unittest
 import xml.etree.ElementTree as ET
 from sitemap_dates import validated_dates
 from seo_foundation import SITEMAP_ROUTES, HOST
+from pthhs_articles import approved_articles
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -17,7 +18,7 @@ class SitemapDatesTest(unittest.TestCase):
         ns = {"s": "http://www.sitemaps.org/schemas/sitemap/0.9"}
         self.assertEqual([row.findtext("s:loc", namespaces=ns) for row in rows],
                          [HOST + route for route in SITEMAP_ROUTES])
-        self.assertEqual(len(rows), 28)
+        self.assertEqual(len(rows), 28 + len(approved_articles()))
         for row, route in zip(rows, SITEMAP_ROUTES):
             self.assertEqual(row.findtext("s:lastmod", namespaces=ns), dates.get(route))
 

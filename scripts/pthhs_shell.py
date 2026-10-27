@@ -13,6 +13,7 @@ NAV_ITEMS = (
     ("Areas", "/home-care-areas-we-serve"),
     ("Insurance & Eligibility", "/home-care-insurance"),
     ("Resources", "/home-care-resources"),
+    ("Articles", "/articles"),
     ("Careers", "/home-care-careers"),
     ("Get Started", "/home-care-contact-us"),
 )

@@ -56,9 +56,75 @@ class ArticleTests(unittest.TestCase):
             with self.subTest(changes=changes), self.assertRaises(ValueError):
                 render_article(replace(BASE, **changes))
 
+    def test_registry_index_lists_all_published_entries_excluding_drafts(self):
+        import tempfile
+        from pthhs_articles import render_article_index
+        with tempfile.TemporaryDirectory(dir=ROOT, prefix="article-test-") as temp:
+            root = Path(temp)
+            records = []
+            for slug in ('first-fixture', 'second-fixture'):
+                record = {'slug': slug, 'title': slug, 'seo_title': slug, 'description': 'Synthetic only',
+                          'published': '2026-10-27', 'research_checked': '2026-10-27', 'status': 'published'}
+                records.append(record)
+                (root / (slug + '.md')).write_text('# ' + slug + '\n\nSynthetic body.', encoding='utf-8')
+            # Deliberately no draft/quarantined body files: these must never be loaded.
+            records.extend([{'slug': 'draft-fixture', 'status': 'draft'}, {'slug': 'legacy-fixture', 'status': 'quarantined'}])
+            (root / 'manifest.json').write_text(json.dumps(records), encoding='utf-8')
+            articles = approved_articles(root)
+            self.assertEqual(len(articles), 2)
+            index = render_article_index(articles)
+            for slug in ('first-fixture', 'second-fixture'):
+                self.assertEqual(index.count('href="/articles/' + slug + '"'), 1)
+            self.assertNotIn('draft-fixture', index)
+            self.assertNotIn('legacy-fixture', index)
+            self.assertIn('No articles are currently published.', render_article_index(()))
+            records.append({'slug': 'unclear', 'status': 'unknown'})
+            (root / 'manifest.json').write_text(json.dumps(records), encoding='utf-8')
+            with self.assertRaises(ValueError):
+                approved_articles(root)
+
+    def test_navigation_is_idempotent_and_preserves_other_content(self):
+        from sync_article_navigation import sync_navigation, NAV
+        from pthhs_shell import header_markup
+        old = header_markup('Resources').replace('<a href="/articles">Articles</a>', '') + '<main>Unchanged</main>'
+        new = sync_navigation(old)
+        self.assertEqual(new.count('href="/articles"'), 1)
+        self.assertEqual(NAV.sub('', old), NAV.sub('', new))
+        self.assertEqual(sync_navigation(new), new)
+        article = sync_navigation(new, True)
+        self.assertIn('href="/articles" aria-current="page"', article)
+        self.assertNotIn('href="/home-care-resources" aria-current="page"', article)
+        self.assertIn('href="/home-care-services"', article)
+        self.assertIn('href="/home-care-resources"', article)
+        # Existing mobile controller operates on this same nav, not a separate link list.
+        mobile = (ROOT / 'public/assets/site-enhancements.js').read_text(encoding='utf-8')
+        self.assertIn("navWrap.querySelector(':scope > .site-nav')", mobile)
+
+    def test_unregistered_generated_article_requires_explicit_review(self):
+        import tempfile
+        from build_articles import validate_article_outputs
+        with tempfile.TemporaryDirectory(dir=ROOT, prefix="article-test-") as temp:
+            directory = Path(temp)
+            validate_article_outputs(directory, (BASE,))
+            (directory / 'synthetic-fixture.html').write_text('synthetic', encoding='utf-8')
+            validate_article_outputs(directory, (BASE,))
+            (directory / 'old-draft.html').write_text('synthetic', encoding='utf-8')
+            with self.assertRaisesRegex(ValueError, 'Unregistered article outputs'):
+                validate_article_outputs(directory, (BASE,))
+            self.assertTrue((directory / 'old-draft.html').exists())
+
+    def test_generated_index_navigation_and_canonical(self):
+        page = (ROOT / 'public/articles.html').read_text(encoding='utf-8')
+        self.assertEqual(page.count('<h1>'), 1)
+        self.assertIn('href="https://pthhs.net/articles"', page)
+        self.assertIn('href="/home-care-blog"', page)
+        self.assertIn('href="/articles" aria-current="page"', page)
+        for article in approved_articles():
+            self.assertEqual(page.count('href="' + article.path + '"'), 1)
+
     def test_only_exact_approved_internal_citations_are_exempt(self):
         from pthhs_articles import is_approved_internal_citation
-        article, = approved_articles()
+        article = next(a for a in approved_articles() if a.slug == "why-healthcare-ai-should-learn-from-mistakes")
         href = 'https://pthhs.net/home-care-services/personal-care'
         self.assertTrue(is_approved_internal_citation(article.path, href))
         for route, target in [('/home-care-blog', href), (article.path, href + '.html'),
@@ -73,7 +139,7 @@ class ArticleTests(unittest.TestCase):
         self.assertIn('Updated <time datetime="2026-10-28">', render_article(replace(BASE, modified='2026-10-28')))
 
     def test_exact_approved_body_and_citations_survive_generation(self):
-        article, = approved_articles()
+        article = next(a for a in approved_articles() if a.slug == "why-healthcare-ai-should-learn-from-mistakes")
         source = ROOT / 'content/articles' / (article.slug + '.md')
         self.assertEqual(hashlib.sha256(source.read_bytes()).hexdigest(), '23d5f3fa85f16d5ef06ffc767762517de26e82411333eb20d026c713562f9462')
         page = (ROOT / 'public' / (article.path.lstrip('/') + '.html')).read_text(encoding='utf-8')
@@ -86,7 +152,7 @@ class ArticleTests(unittest.TestCase):
         self.assertEqual(page.count('<h1>'), 1)
 
     def test_schema_metadata_and_breadcrumb_match_visible_content(self):
-        article, = approved_articles()
+        article = next(a for a in approved_articles() if a.slug == "why-healthcare-ai-should-learn-from-mistakes")
         page = (ROOT / 'public' / (article.path.lstrip('/') + '.html')).read_text(encoding='utf-8')
         graph = json.loads(re.search(r'<script type="application/ld\+json">(.*?)</script>', page, re.S).group(1))['@graph']
         schema, = [x for x in graph if x['@type'] == 'Article']
@@ -95,14 +161,14 @@ class ArticleTests(unittest.TestCase):
         for forbidden in ['reviewedBy', 'review', 'aggregateRating', 'image']:
             self.assertNotIn(forbidden, schema)
         breadcrumb, = [x for x in graph if x['@type'] == 'BreadcrumbList']
-        self.assertEqual([x['name'] for x in breadcrumb['itemListElement']], ['Home', 'Home Care Guide', article.title])
+        self.assertEqual([x['name'] for x in breadcrumb['itemListElement']], ['Home', 'Articles', article.title])
         self.assertIn('<title>' + article.seo_title + '</title>', page)
         self.assertIn('property="og:type" content="article"', page)
-        self.assertIn('href="/home-care-resources" aria-current="page"', page)
-        self.assertIn('<li><a href="/home-care-blog">Home Care Guide</a></li>', page)
+        self.assertIn('href="/articles" aria-current="page"', page)
+        self.assertIn('<li><a href="/articles">Articles</a></li>', page)
 
     def test_guide_and_sitemap_include_only_new_reviewed_article(self):
-        article, = approved_articles()
+        article = next(a for a in approved_articles() if a.slug == "why-healthcare-ai-should-learn-from-mistakes")
         guide = (ROOT / 'public/home-care-blog.html').read_text(encoding='utf-8')
         self.assertEqual(guide.count('href="' + article.path + '"'), 1)
         self.assertIn('No imported article is currently retained', guide)

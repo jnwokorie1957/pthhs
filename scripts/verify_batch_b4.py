@@ -177,8 +177,8 @@ for url in sitemap_urls:
         errors.append(f"sitemap route is not indexable: {route}")
     if route in redirects:
         errors.append(f"sitemap route redirects: {route}")
-if len(sitemap_urls) != 28:
-    errors.append(f"expected 28 reviewed sitemap URLs, found {len(sitemap_urls)}")
+if len(sitemap_urls) != 28 + len(ARTICLE_ROUTES):
+    errors.append(f"expected {28 + len(ARTICLE_ROUTES)} reviewed sitemap URLs, found {len(sitemap_urls)}")
 
 try:
     sitemap_index = ElementTree.parse(PUBLIC / "sitemap_index.xml").getroot()

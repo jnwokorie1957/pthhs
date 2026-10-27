@@ -34,6 +34,7 @@ find public/primetime -type f -print0 | sort -z | xargs -0 sha256sum > "$INTERNA
 
 python3 scripts/batch_b2_route_migration.py --guide-only
 python3 scripts/build_articles.py
+python3 scripts/sync_article_navigation.py
 node scripts/site-polish.mjs
 node scripts/site-polish-finalize.mjs
 python3 scripts/seo_foundation.py

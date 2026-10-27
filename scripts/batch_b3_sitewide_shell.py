@@ -66,6 +66,8 @@ def route_for(path: Path) -> str:
 
 
 def current_section(route: str) -> str | None:
+    if route == "/articles" or route.startswith("/articles/"):
+        return "Articles"
     if route.startswith("/home-care-about") or route.startswith("/home-care-meet"):
         return "About"
     if "service" in route or route == "/home-health-agency-in-houston-texas":

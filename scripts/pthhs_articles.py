@@ -104,14 +104,21 @@ class Article:
         return result
 
 
-def approved_articles() -> tuple[Article, ...]:
-    records = json.loads((ROOT / 'content/articles/manifest.json').read_text(encoding='utf-8'))
+def approved_articles(content_dir: Path | None = None) -> tuple[Article, ...]:
+    content_dir = content_dir or ROOT / 'content/articles'
+    records = json.loads((content_dir / 'manifest.json').read_text(encoding='utf-8'))
     result = []
-    for record in records:
+    for entry in records:
+        record = dict(entry)
+        status = record.pop('status', None)
+        if status in {'draft', 'quarantined'}:
+            continue
+        if status != 'published':
+            raise ValueError('Explicit article publication status required')
         slug = record['slug']
         if not re.fullmatch(r'[a-z0-9]+(?:-[a-z0-9]+)*', slug):
             raise ValueError('Invalid article slug')
-        text = (ROOT / 'content/articles' / (slug + '.md')).read_text(encoding='utf-8')
+        text = (content_dir / (slug + '.md')).read_text(encoding='utf-8')
         heading, body = text.split('\n\n', 1)
         if heading != '# ' + record['title']:
             raise ValueError('Article heading and manifest disagree')
@@ -120,7 +127,7 @@ def approved_articles() -> tuple[Article, ...]:
         result.append(article)
     if len({a.slug for a in result}) != len(result):
         raise ValueError('Duplicate article route')
-    return tuple(result)
+    return tuple(sorted(result, key=lambda a: (a.published, a.slug), reverse=True))
 
 
 def render_article(article: Article) -> str:
@@ -131,10 +138,10 @@ def render_article(article: Article) -> str:
     if article.modified and article.modified != article.published:
         metadata += f' Updated <time datetime="{article.modified}">{article.modified}</time>.'
     metadata += '</p>'
-    body = section(f'<article class="content-wrap" aria-label="{escape(article.title, quote=True)}">{metadata}<div data-article-body>{render_body(article.body)}</div><p><a href="/home-care-blog">Return to the Home Care Guide</a></p></article>')
+    body = section(f'<article class="content-wrap" aria-label="{escape(article.title, quote=True)}">{metadata}<div data-article-body>{render_body(article.body)}</div><p><a href="/articles">Browse all articles</a> · <a href="/home-care-blog">Return to the Home Care Guide</a></p></article>')
     return render_page(title=article.seo_title, description=article.description, path=article.path,
                        eyebrow='Company perspective', heading=article.title,
-                       lead=article.description, body=body, current_nav='Resources').replace('property="og:type" content="website"', 'property="og:type" content="article"')
+                       lead=article.description, body=body, current_nav='Articles').replace('property="og:type" content="website"', 'property="og:type" content="article"')
 
 
 def render_article_card(article: Article) -> str:
@@ -149,3 +156,14 @@ def is_approved_internal_citation(route: str, href: str) -> bool:
     if parts.scheme != 'https' or parts.netloc != 'pthhs.net' or parts.query or parts.fragment or parts.path.endswith('.html'):
         return False
     return any(a.path == route and href in re.findall(r'\]\((https://[^)]+)\)', a.body) for a in approved_articles())
+
+
+def render_article_index(articles: tuple[Article, ...]) -> str:
+    cards = ''.join(render_article_card(article) for article in articles)
+    listing = '<div class="grid grid-2">' + cards + '</div>' if cards else '<p>No articles are currently published.</p>'
+    return render_page(title='Articles | Primetime Home Health Services',
+                       description='Read published company perspectives on non-medical home care and responsible administrative technology from Primetime Home Health Services.',
+                       path='/articles', eyebrow='Company perspectives', heading='Articles',
+                       lead='Read our published articles. For practical service questions, use the Home Care Guide.',
+                       body=section(listing + '<p><a href="/home-care-blog">Explore the Home Care Guide</a></p>'),
+                       current_nav='Articles')

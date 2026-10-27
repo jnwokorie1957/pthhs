@@ -10,6 +10,10 @@ const BRAND = 'Primetime Home Health';
 const BRAND_FULL = 'Primetime Home Health Services';
 
 const coreMeta = {
+  '/articles': {
+    title: 'Articles | Primetime Home Health Services',
+    description: 'Read published company perspectives on non-medical home care and responsible administrative technology from Primetime Home Health Services.'
+  },
   '/': {
     title: 'Non-Medical Home Care Houston | Primetime',
     description: 'Compassionate non-medical personal assistance, attendant care, respite care and ADL support for eligible families across Greater Houston.'
@@ -172,7 +176,7 @@ function serviceNameFromRoute(route, h1) {
   return service;
 }
 
-const articleMeta = Object.fromEntries(JSON.parse(await fs.readFile(path.join(root, 'content/articles/manifest.json'), 'utf8')).map(a => [`/articles/${a.slug}`, {title: a.seo_title, description: a.description}]));
+const articleMeta = Object.fromEntries(JSON.parse(await fs.readFile(path.join(root, 'content/articles/manifest.json'), 'utf8')).filter(a => a.status === 'published').map(a => [`/articles/${a.slug}`, {title: a.seo_title, description: a.description}]));
 
 function pageMeta(route, html) {
   if (articleMeta[route]) return articleMeta[route];

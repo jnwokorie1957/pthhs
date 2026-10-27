@@ -20,6 +20,7 @@ NAV_HREFS = [
     "/home-care-areas-we-serve",
     "/home-care-insurance",
     "/home-care-resources",
+    "/articles",
     "/home-care-careers",
     "/home-care-contact-us",
 ]

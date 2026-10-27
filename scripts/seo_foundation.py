@@ -45,7 +45,8 @@ SITEMAP_ROUTES = (
     "/home-care-contact-us",
     "/home-care-resources",
     "/home-care-blog",
-    "/articles/why-healthcare-ai-should-learn-from-mistakes",
+    "/articles",
+    *(article.path for article in approved_articles()),
     "/privacy-policy",
     "/terms-of-use",
 )
@@ -109,10 +110,12 @@ def is_noindex(text: str) -> bool:
 
 
 def breadcrumb_items(route: str, text: str) -> list[tuple[str, str]]:
+    if route == "/articles":
+        return [("Home", "/"), ("Articles", route)]
     if route.startswith("/articles/"):
         article = next((a for a in approved_articles() if a.path == route), None)
         if article:
-            return [("Home", "/"), ("Home Care Guide", "/home-care-blog"), (article.title, route)]
+            return [("Home", "/"), ("Articles", "/articles"), (article.title, route)]
     if route.startswith("/home-care-services/"):
         current = head_value(text, r"<h1[^>]*>(.*?)</h1>", "H1", file_for_route(route))
         return [("Home", "/"), ("Services", "/home-care-services"), (current, route)]
