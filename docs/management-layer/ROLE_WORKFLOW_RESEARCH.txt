@@ -1,7 +1,7 @@
 PRIMETIME ROLE AND WORKFLOW RESEARCH
-Updated: October 24, 2026, America/Chicago
+Updated: October 27, 2026, America/Chicago
 Scope: PTHHS /primetime, repository jnwokorie1957/pthhs.
-Latest research review: October 24, 2026, 21:11 UTC heartbeat / October 24 America/Chicago; reconcile accepted current-patient and EVV/Staffing administrator connections with separate role permissions and per-source availability states. External account/assignment/document-action contracts remain proposed; no all-tabs or full-census acceptance.
+Latest research review: October 27, 2026, 20:02 UTC heartbeat / October 27 America/Chicago; reconcile current-source navigation ownership with separate caregiver document and family invoice rights. Add proposed bounded multi-document review/export lifetime requirements; clinical/external-role and full-coverage contracts remain open.
 
 EVIDENCE BASELINE — DATED OBSERVATIONS; LATER UPDATES BELOW
 The initially observed authorized HHA member calendar showed a patient summary, separate navigation for authorizations, visits, recurring schedules, documents and clinical records, and month navigation. Calendar tiles kept scheduled times, actual times, caregiver names and billed-hour evidence together. The visible authorization grid included payer, dates, discipline, service codes, limits and weekday allowances. Calendar records are observations, not validated business rules. The reviewed source used PCA discipline; it did not establish that those caregivers were physical therapists. At the October 16 review, the HHA browser requires normal sign-in; these are earlier observations, not new tenant evidence.
@@ -806,3 +806,33 @@ https://knowledge.hhaexchange.com/texas/Content/Documentation/Patient/Pat-N-Cont
 https://knowledge.hhaexchange.com/enterprise/Content/Documentation/Caregiver/CG-N-User-Permissions-Caregiver-P.htm
 [R8] HHAeXchange, Patient Visit Family Dashboard. Requested/original windows, linked calendars and independent review history.
 https://knowledge.hhaexchange.com/enterprise/Content/Documentation/Admin/Admin-N-Patient-Visit-Family-Dashboard-P.htm
+
+
+CURRENT-RECEIPT NAVIGATION AND DOCUMENT REVIEW LINKS — OCTOBER 27, 2026, 20:02 UTC HEARTBEAT
+Baseline: clean/aligned9181d4cba4cbd950b19edd0b68e80e876ca5faba after upstream refresh. Current Chrome dashboard is reserved by another chat; no private source record, document or HHA UI was opened here. Earlier tenant/calendar observations remain dated. This pass compares current code and recorded release evidence with fresh primary R31, R25 and R10 guidance.
+
+IMPLEMENTED CODE AND ACCEPTANCE LIMITS
+Feature88fed43 adds guarded caregiver and visit-billing panels using fresh visit/patient/office proof. Caregiver identity and a bounded unique direct office-ID list must match. Billing records must match the visit, patient, caregiver and source date; original primary/secondary billed facts remain unvalidated. Its normal release passed, but code deployment does not establish source entitlement, complete native billing acceptance, staffing eligibility, paid claims or a ledger.
+Featureaf9e1c2 binds related caregiver navigation to the newly returned identity and the owning related-record request. Feature9181d4c applies the owning-request predicate to current patient profile controls: same/different-patient replacement immediately invalidates former controls through pending success/failure. All310frontend/tooling tests passed for9181d4c; both normal jobs and exact production artifact/authentication boundaries passed. These queued/detached-action cases remain synthetic acceptance; no production wrong-patient navigation was induced. See PATIENT_PROFILE_ACTIONS_2026-10-27.md. The latest bounded native patient/feed/Forms evidence stays separately dated in the connection checklist/handoff.
+
+PATIENT / FAMILY — PROPOSED SCHEDULE, DOCUMENT AND INVOICE LINKS
+Continue the authorized patient's next-visit/calendar/request history and explicitly shared documents. R25 describes a family invoice list for billed visits, but supplies no Primetime invoice identity, sharing scope or payment contract. Raw billed flags/amounts cannot create an invoice link, coverage claim or payment state. A future financial view needs its own exact patient/invoice/contract mapping and revocable financial-view grant, separate from schedule and document access. On patient switch or replacement read, old request/document/invoice controls must become inert even when the new read fails.
+
+PT / STAFF — PROPOSED CASELOAD AND DOCUMENT AUTHORITY
+My day and assigned caseload still require verified account, discipline, effective patient assignment and encounter/form-version context. R31 places caregiver document-management actions under primary-office and action permission controls. Current OfficeIDs membership evidence does not establish that primary-office authority; it does not grant patient clinical-document editing or signing. Link only the exact permitted clinician/visit/form instance and retain separate draft, submission, review and signature evidence. A caregiver profile or stored PDF cannot stand in for those contracts.
+
+OFFICE — PROPOSED BOUNDED DOCUMENT REVIEW / EXPORT
+R10 distinguishes patient, caregiver, skilled and non-skilled document locations. It also describes filtered multi-PDF submission exports, asynchronous preparation and later download availability. These vendor features are not activated Primetime capabilities.
+Design inference: a future office review/export request should retain exact permitted instance/version selection, date/filter scope, requester and creation receipt. Job state and artifact availability need separate visible labels; a pending request is not a completed download. Use an agency-approved server bound and recheck every selected subject, current access and document sharing at retrieval. Do not copy a vendor's unrestricted patient-count behavior into Primetime or treat the administrator file library as encounter submission data. Scheduling, authorization allocation, EVV/aggregation, document review, billed evidence and payer outcomes remain independent sections; exporting documents changes none of those states.
+
+ACCEPTANCE, PRIORITY AND EXISTING OWNER EVIDENCE
+Extend the current request-lifetime regression pattern to future family/staff/document controls. Test a second patient or form version selected while the first read/job is pending, a failed replacement, stale completion controls, duplicate bytes associated with distinct encounters, revoked sharing before download and partial/missing export items. Old callbacks must not target the previous record; a result with missing items must disclose its coverage. No metadata, filename, byte or count may cross an unauthorized context.
+Continue bounded caregiver/billing source investigation and exact authorization/document contracts before broader portals or review jobs. P1-B office/supervisor membership and P2 account/patient/effective assignment/sharing/discipline/form/version/reviewer/signature/retention/action mappings remain open. Existing next owner evidence is intended source application/office/day/filter and protected same-record/unit/period alignment, then the exact role/form/document-action examples. Accepted agency policy attestation is not reopened. No new grant, source write, private-file operation, clinical/financial decision or communication occurred.
+
+PRIMARY SOURCES — RECHECKED OCTOBER 27, 2026, 20:02 UTC PASS
+[R31] HHAeXchange, Document Management for Caregivers in Multiple Offices. Primary-office and document-action permissions; no Primetime grant.
+https://knowledge.hhaexchange.com/enterprise/Content/Documentation/Caregiver/CG-N-Document-Management-Multiple-Offices-P.htm
+[R25] HHAeXchange, Family Portal Invoices Page for Users. Billed-visit invoice list; no payment or local sharing contract.
+https://knowledge.hhaexchange.com/enterprise/Content/Documentation/Patient/Pat-N-Family-Portal-Invoices-P.htm
+[R10] HHAeXchange Forms. Distinct document locations and configured, filtered asynchronous submission exports; tenant activation unverified.
+https://knowledge.hhaexchange.com/enterprise/Content/Documentation/Clinical/Clinical-N-HHAX-Forms-Basic.htm

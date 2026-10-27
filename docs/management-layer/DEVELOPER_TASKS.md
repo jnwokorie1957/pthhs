@@ -128,6 +128,11 @@ completeness and operational totals remain unknown.
 
 # Current checkpoint
 
+- [x] October 27 20:02 UTC role research reconciles current-source navigation
+  ownership with primary caregiver-document, family-invoice and Forms guidance.
+  Proposed bounded review/export acceptance retains existing role/action and
+  instance/version dependencies. See [research](ROLE_WORKFLOW_RESEARCH.txt).
+
 - [x] October 27 current-patient related actions check their owning profile
   request, so superseded controls cannot select records during or after a
   replacement read. Same/different-patient success/failure regressions and all

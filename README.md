@@ -1,5 +1,11 @@
 # PTHHS
 
+October 27 20:02 UTC role research records current-receipt navigation checks,
+separate caregiver-document and family-invoice rights, and proposed bounded
+document review/export lifetimes. Current source code and synthetic acceptance
+remain distinct from external-role and clinical/financial completion. See
+[research](docs/management-layer/ROLE_WORKFLOW_RESEARCH.txt).
+
 October 27 patient profile navigation: related-record controls now belong to
 their exact profile request. Refreshing or selecting another patient immediately
 invalidates old controls, including after a failed replacement. The regression
