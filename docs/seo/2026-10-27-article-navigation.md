@@ -1,4 +1,4 @@
-# October 27 Articles index and navigation — local candidate
+# October 27 Articles index and navigation — released
 
 Requested scope: one `/articles` index, a top-level Articles link in the shared
 desktop/mobile navigation, and automatic discovery of all published registry
@@ -17,11 +17,20 @@ canonical/breadcrumb metadata and preservation of the original approved body.
 Static mobile coverage verifies the existing controller uses the same shared
 navigation. Real browser/assistive-technology acceptance is still unverified.
 
-Publication boundary: `.github/workflows/deploy-firebase.yml` runs on main push
-and deploys Hosting and Functions. The current instruction excludes deployment,
-so this candidate must remain local until separate approval covers that effect.
-No workflow changes, skip marker or alternate push route is authorized to bypass
-that boundary. Independent review passed; all 13 article tests plus second-article and stale-output
-checks passed. Static accessibility, navigation, metadata, sitemap and performance
-validators passed. The final committed reproducibility gate is checked before
-any publication; this document does not claim a public release.
+Release: c4345b3871102ea3331fc4bb32f54d1c395e492f passed independent review,
+13 article tests and the committed aggregate gate (including 287 JavaScript
+tests and four sitemap-date tests). Separate publication approval was received
+before the normal main push, which triggers Hosting and Functions. No workflow
+or access settings were changed.
+
+[Release 40549793411](https://github.com/jnwokorie1957/pthhs/actions/runs/40549793411)
+completed Hosting successfully October 27 at 17:22:03 UTC and backend verification
+at 17:22:28 UTC. Ordinary query-free homepage, `/articles`, article, guide and
+sitemap responses returned 200 and matched exact commit bytes at 17:22:31–33 UTC.
+The shared Articles link was present on all checked marketing pages; canonical,
+approved article text/citations and disclosure were retained. Portal asset hashes
+were unchanged. Public HTTP delivery does not establish native responsive or
+assistive-technology acceptance, which remains unverified.
+
+Rollback: revert c4345b3 through the same authorized release pipeline, preserving
+later unrelated work. No manual source-record or infrastructure rollback is needed.

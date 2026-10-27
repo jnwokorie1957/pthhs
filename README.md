@@ -1,9 +1,10 @@
 # PTHHS
 
-October 27 Articles navigation candidate: a published-only `/articles` index and
-shared desktop/mobile Articles link are prepared locally, preserving the guide,
-services and legacy quarantine. Push is held because main automatically deploys
-and this request excludes deployment. See [local review](docs/seo/2026-10-27-article-navigation.md).
+October 27 Articles navigation released: the published-only `/articles` index and
+shared desktop/mobile Articles link preserve the guide, services and legacy
+quarantine. Commit c4345b3 passed independent review and aggregate checks; release
+40549793411 succeeded. Ordinary public pages matched commit bytes at 17:22 UTC.
+Native browser/assistive-technology acceptance remains unverified. See [release review](docs/seo/2026-10-27-article-navigation.md).
 
 October 27 original article published: the approved company perspective on
 learning from software/AI mistakes preserves non-medical PAS scope and separates
