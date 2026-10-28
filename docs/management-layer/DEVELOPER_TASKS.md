@@ -1,5 +1,14 @@
 # PTHHS Management Layer — Developer Checklist
 
+- [x] October 28 Forms folder-loading correction: release the invalidated
+  action's busy state on folder change. Five synthetic pending-work cases fence
+  old results/cleanup while a new load owns its controls, and current downloads
+  still verify bytes. All 13 Forms/314 frontend-tooling tests pass. Added Forms
+  tests to the normal release gate. This does not cancel an already-dispatched
+  server upload or grant external document access. Next: protected billing
+  diagnostics and existing source/P1-B/P2 contracts. See
+  [scope and verification](FORMS_FOLDER_LOADING_2026-10-28.md).
+
 - [x] October 28, 16:27 UTC SEO follow-up: verified the newly published family
   article's bounded keyboard navigation, skip link, mobile menu and narrow-screen
   reading behavior. Fresh 135-route metadata/canonical and 22-artifact delivery

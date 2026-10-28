@@ -79,7 +79,7 @@
   }
   $('formsReload').addEventListener('click', () => action(async current => message(await load(current))));
   $('formsNext').addEventListener('click', () => { const cursor = nextCursor; if (cursor) void action(async current => message(await load(current, cursor))); });
-  $('formLibraryKind').addEventListener('change', () => { generation++; nextCursor = null; revoke(); $('formsRows').replaceChildren(); message('Folder changed. Choose Load files to browse.'); updateControls(); });
+  $('formLibraryKind').addEventListener('change', () => { generation++; busy = false; nextCursor = null; revoke(); $('formsRows').replaceChildren(); message('Folder changed. Choose Load files to browse.'); updateControls(); });
   $('formUpload').addEventListener('submit', event => {
     event.preventDefault();
     void action(async current => {

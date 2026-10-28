@@ -188,3 +188,52 @@ test('a download from the preceding server-cursor page cannot target its old fil
   assert.equal(f.counts().creates, 0);
   assert.equal(f.ids.get('formsRows').querySelectorAll('button').length, 1);
 });
+
+test('a queued folder change releases the old busy action without unlocking or overwriting its replacement', async () => {
+  for (const prior of ['list', 'failed-list', 'download', 'file-read', 'upload-request']) {
+    const f = fixture({ active: true });
+    let finishOld, finishCurrent;
+    if (prior === 'download') { f.event('formsReload'); await settled(f); }
+    f.handler(() => new Promise(resolve => { finishOld = resolve; }));
+    if (prior === 'download') f.ids.get('formsRows').querySelectorAll('button')[0].click();
+    else if (prior === 'file-read' || prior === 'upload-request') {
+      f.ids.get('formFile').files = [{ name: item.filename, size: bytes.length,
+        arrayBuffer: () => prior === 'file-read' ? new Promise(resolve => { finishOld = resolve; }) : Promise.resolve(bytes) }];
+      f.event('formUpload', 'submit');
+    } else f.event('formsReload');
+    await tick();
+    assert.equal(typeof finishOld, 'function');
+    assert.equal(f.ids.get('formsReload').disabled, true);
+    const oldCalls = f.calls.length;
+    // A change event queued before the controls became disabled can still run.
+    f.ids.get('formLibraryKind').value = 'submissions'; f.event('formLibraryKind', 'change');
+    assert.equal(f.ids.get('formsReload').disabled, false, `${prior}: the new folder can be loaded`);
+    assert.equal(f.ids.get('formsNext').disabled, true);
+    assert.equal(f.ids.get('formsRows').children.length, 0);
+    assert.equal(f.calls.length, oldCalls, 'folder selection itself dispatches no request');
+    f.handler(() => new Promise(resolve => { finishCurrent = resolve; }));
+    f.event('formsReload'); await tick();
+    assert.match(f.calls.at(-1)[0], /kind=submissions/);
+    const pendingStatus = f.ids.get('formsStatus').textContent;
+    finishOld(prior === 'file-read' ? bytes : prior === 'download'
+      ? new Response(bytes, { headers: { 'X-Content-SHA256': hash } })
+      : prior === 'failed-list' ? new Response(JSON.stringify({ error: 'storage_unavailable' }), { status: 503 })
+      : prior === 'upload-request' ? json({ ok: true, item, duplicate: false })
+      : json({ ok: true, items: [item], nextCursor: 'former-page' }));
+    await tick();
+    assert.equal(f.ids.get('formsReload').disabled, true, 'the replacement still owns the busy state');
+    assert.equal(f.ids.get('formsStatus').textContent, pendingStatus);
+    assert.equal(f.ids.get('formsRows').children.length, 0);
+    assert.equal(f.ids.get('formsNext').disabled, true);
+    assert.equal(f.calls.length, oldCalls + 1, 'late old work adds no request');
+    assert.equal(f.counts().creates, 0);
+    finishCurrent(json({ ok: true, items: [{ ...item, kind: 'submissions', filename: 'Current.pdf' }], nextCursor: null }));
+    await settled(f);
+    assert.equal(f.ids.get('formsRows').children[0].children[0].textContent, 'Current.pdf');
+    assert.match(f.ids.get('formsStatus').textContent, /1 file on this page/);
+    f.handler(async () => new Response(bytes, { headers: { 'X-Content-SHA256': hash } }));
+    f.ids.get('formsRows').querySelectorAll('button')[0].click(); await settled(f);
+    assert.equal(f.calls.at(-1)[0], `/primetime/api/forms/submissions/${item.id}`);
+    assert.equal(f.counts().creates, 1, 'the current folder still supports a verified download');
+  }
+});

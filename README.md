@@ -1,5 +1,12 @@
 # PTHHS
 
+October 28 Forms folder loading: a queued folder change now releases its former
+busy state so Load files can work in the new folder. Late list/download/upload
+work cannot overwrite or unlock the replacement. All 13 Forms and 314 frontend/
+tooling tests pass; the Forms suite is now included in the normal release gate.
+Exact queued-event coverage is synthetic. Next: protected billing diagnostics
+and existing source/role/form contracts. See [verification](docs/management-layer/FORMS_FOLDER_LOADING_2026-10-28.md).
+
 October 28 live-source verification passed bounded chart/field, Next/Previous,
 current patient/caregiver identity and automatic receipt-advance checks in a
 normally restored session. Billing remained unverified; staff availability and
