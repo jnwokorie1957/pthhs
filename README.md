@@ -1,5 +1,12 @@
 # PTHHS
 
+October 28 family first-call checklist published with the approved AI CTO credit,
+Organization publisher, two published article cards and 30-URL sitemap. Independent
+review, 16 article tests and aggregate checks passed. Release `add4b6e` succeeded;
+ordinary public article/index/guide/sitemap bytes matched at 13:13:42 UTC.
+See [release evidence](docs/seo/2026-10-28-family-checklist.md). Native/AT checks
+and search-performance measurement remain separate and unverified.
+
 October 28 UTC SEO review passed fresh public delivery and private response
 checks. Normal Chrome Search Console access works; sitemap/field observations
 remain dated and limited. Planning now preserves the 29-URL published inventory
