@@ -74,6 +74,14 @@ guide/navigation change addresses a separately demonstrated crawl gap, not an
 assumed query ranking gain. See [review](2026-10-18-seo-review.md).
 
 Next: continue candidate intent review and compare later settled outcomes. Preserve
-the 27 reviewed sitemap URLs and eight promoted locations. The other 57 location
+the 29 currently published sitemap URLs and eight promoted locations. The other 57 location
 files require availability and useful-content review before further promotion.
 Outcome validation remains open pending comparable evidence.
+
+October 28 UTC: the new Articles index and company article account for the
+current 29-URL source inventory. Normal signed-in Chrome Search Console access
+works; its seven-day Web view covers October 19–25 and is recorded privately
+with rounded-display and row-coverage limits. The successful sitemap rows retain
+older last-read dates and 27 discovered pages. Do not use those observations as
+an exact API extract, a current 29-page Google indexing count or evidence of
+effects from the October 27 publication. See [review](2026-10-28-seo-review.md).

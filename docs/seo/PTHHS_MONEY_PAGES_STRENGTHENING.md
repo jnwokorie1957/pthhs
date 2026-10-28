@@ -1,5 +1,5 @@
 # PTHHS priority public-page review
-**Reviewed:** October 18, 2026
+**Reviewed:** October 28 UTC / October 27, 2026 America/Chicago
 **Status:** Supersedes the August 19 assumed ranks, unverified network/county copy,
 FAQ rich-result tactics and page-creation instructions.
 
@@ -13,6 +13,13 @@ FAQ rich-result tactics and page-creation instructions.
 | Eight promoted locations and areas hub | Reviewed service/eligibility links exist | Retain them; verify another community before further promotion |
 | Privacy Policy and Terms of Use | Published canonical pages in sitemap | Shared footer links added October 16; policy content unchanged |
 | Home-care guide and care explainer | Resources -> guide -> explainer verified October 18 | Preserve useful question-led navigation and current approved scope |
+| Articles index and company perspective | Published October 27; bounded browser navigation and current delivery verified | Preserve approved attribution, prose, citations and actual content dates; measure later comparable periods |
+
+October 28 review: the current production inventory is 134 source routes,
+88 distinct final HTML pages and 86 indexable pages, with 29 selected sitemap
+URLs. Twenty-one public artifacts and private response protections passed.
+These delivery checks and the historical crawl below are separate from Google
+discovery and outcomes. See [current review](2026-10-28-seo-review.md).
 
 The October 16 crawl reached 132 marketing source routes at HTTP 200 with no more
 than one redirect. All 84 distinct indexable final pages had present, unique
@@ -63,10 +70,13 @@ guide's visitor purpose and connected it and the existing care explainer through
 Resources. Both are now homepage-reachable; the 37 remaining graph findings are
 location routes. See [current evidence](2026-10-18-seo-review.md). The remaining
 location inventory still needs availability and useful-content review.
-Sitemap warning review and normal Google reprocessing were completed October 19;
-October 22 verification retains both successful rows and 27 discovered pages.
+Sitemap warning review and normal Google reprocessing were completed October 19.
+The October 28 normal Chrome Search Console view still shows both rows successful
+with 27 discovered pages; their last-read dates predate the new article/index.
+The current source has 29 URLs. Native seven-day performance observations are
+bounded private evidence; both device field reports still lack enough samples.
 The current owner SEO action is actual location availability/useful-content
 validation before further promotion. Comparable settled outcomes and sufficient
 field performance evidence remain open; optional reporting configuration is
-separate. See the [current review](2026-10-22-seo-review.md). No growth is
+separate. See the [current review](2026-10-28-seo-review.md). No growth is
 established; private HHA/admin acceptance remains in the management checklists.

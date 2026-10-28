@@ -3,6 +3,10 @@
 These files remain useful for planning, but they do not override current public
 facts, payer evidence, or claim-release controls.
 
+- [October 28 public SEO and task review](2026-10-28-seo-review.md) — fresh
+  production checks, normal Chrome Search Console access, dated sitemap/field
+  evidence and correction of the current planning inventory to 29 URLs.
+
 October 28 priority-location metadata correction: Houston, southwest Houston,
 Alief and Sugar Land landing pages now use Open Graph `website` rather than
 `article`. Commit 571e8a7610463737871cece539bab5a75b3f8881 changes only those

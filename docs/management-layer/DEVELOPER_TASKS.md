@@ -128,6 +128,12 @@ completeness and operational totals remain unknown.
 
 # Current checkpoint
 
+- [x] October 28 02:18 UTC SEO review verified public delivery/private response
+  protections and normal Chrome Search Console access. Corrected the planning
+  inventory to 29 published URLs while retaining dated Google observations,
+  field-data limits and owner dependencies. Runtime is unchanged; see
+  [review](../seo/2026-10-28-seo-review.md).
+
 - [x] October 28 01:59 UTC role research reconciles the Forms download guard
   with separate server permission and delivery evidence. Patient/family,
   staff/PT and office acceptance retain existing instance/sharing/assignment

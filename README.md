@@ -1,5 +1,11 @@
 # PTHHS
 
+October 28 UTC SEO review passed fresh public delivery and private response
+checks. Normal Chrome Search Console access works; sitemap/field observations
+remain dated and limited. Planning now preserves the 29-URL published inventory
+and the approved Articles experience. Runtime and business claims are unchanged.
+See [review](docs/seo/2026-10-28-seo-review.md).
+
 October 28 UTC role research reconciles the Forms download correction with
 proposed patient, staff/PT and office document actions. Dated primary sources
 separate browser cleanup, server authorization and already-delivered copies;
