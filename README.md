@@ -10,8 +10,12 @@ October 28 family first-call checklist published with the approved AI CTO credit
 Organization publisher, two published article cards and 30-URL sitemap. Independent
 review, 16 article tests and aggregate checks passed. Release `add4b6e` succeeded;
 ordinary public article/index/guide/sitemap bytes matched at 13:13:42 UTC.
-See [release evidence](docs/seo/2026-10-28-family-checklist.md). Native/AT checks
-and search-performance measurement remain separate and unverified.
+See [release evidence](docs/seo/2026-10-28-family-checklist.md). The 16:27 UTC
+follow-up accepted bounded desktop/mobile keyboard navigation and article reading;
+assistive-technology conformance and search outcomes remain unverified. Fresh
+135-route/30-URL delivery checks passed, and current planning counts are aligned.
+Next SEO work remains matched-window query intent/outcomes and actual location
+availability evidence. See [follow-up](docs/seo/2026-10-28-seo-review.md#october-28-1627-utc-follow-up).
 
 October 28 UTC SEO review passed fresh public delivery and private response
 checks. Normal Chrome Search Console access works; sitemap/field observations

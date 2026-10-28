@@ -29,5 +29,24 @@ Ordinary public responses for the article, `/articles`, `/home-care-blog` and
 Public URL: https://pthhs.net/articles/home-care-first-call-checklist-houston .
 The verified bytes include the approved credit, canonical, Organization schema,
 citations and published-card links. Native browser and assistive-technology
-acceptance remain unverified; no search performance outcome is claimed.
+acceptance were unverified at that publication check; the bounded browser
+follow-up below does not establish assistive-technology conformance or outcomes.
 Rollback is a scoped revert of `add4b6e` through the same tested release pipeline.
+
+## October 28 browser follow-up
+
+At 16:29–16:30 UTC, a normal Codex-browser tab opened the article from its
+published Articles card by keyboard at the default 1280-pixel viewport. The
+skip link focused main content, with one H1 and the correct canonical. At a
+390-pixel viewport, the article headings stayed within the viewport and the
+document had no horizontal overflow. The menu opened with Space and closed
+with Escape, returning focus to its toggle. The article-to-guide link, guide
+card back to this article and article contact link opened their expected pages
+by keyboard. The contact page retained its sensitive-information warning; no
+call, message or form was submitted. The temporary viewport was reset and tab
+closed. No page content or settings changed during these read-only checks.
+
+This accepts only the inspected keyboard/navigation and narrow-screen reading
+behavior. Screen-reader, other-device and complete accessibility acceptance
+remain unverified. Current exact public bytes, metadata inventory and evidence
+limits are in the [SEO follow-up](2026-10-28-seo-review.md#october-28-1627-utc-follow-up).

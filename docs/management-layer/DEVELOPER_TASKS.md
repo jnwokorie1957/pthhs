@@ -1,5 +1,14 @@
 # PTHHS Management Layer — Developer Checklist
 
+- [x] October 28, 16:27 UTC SEO follow-up: verified the newly published family
+  article's bounded keyboard navigation, skip link, mobile menu and narrow-screen
+  reading behavior. Fresh 135-route metadata/canonical and 22-artifact delivery
+  checks passed with 30 sitemap URLs. Updated current planning inventory while
+  retaining older Search Console dates. No runtime, claims or public copy changed.
+  Next: matched-window query intent/outcome review and actual location evidence;
+  assistive-technology conformance and external-role/source acceptance remain
+  separate. See [follow-up](../seo/2026-10-28-seo-review.md#october-28-1627-utc-follow-up).
+
 October 27 Articles navigation released: the published-only `/articles` index and
 shared desktop/mobile Articles link preserve the guide, services and legacy
 quarantine. Commit c4345b3 passed independent review and aggregate checks; release

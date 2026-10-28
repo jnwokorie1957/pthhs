@@ -83,3 +83,57 @@ promising rich results or search impact. [Google Article guidance](https://devel
 
 Keep private indexing directives and authentication as separate protections;
 directly observing a header is not a Google indexing report. [Google noindex guidance](https://developers.google.com/search/docs/crawling-indexing/block-indexing).
+
+## October 28, 16:27 UTC follow-up
+
+Baseline: `f93a77b5a9cd8268f3167be58010c77a0967206a`. The independent approved
+family first-call checklist publication is preserved. Fresh public checks now
+cover 135 marketing source routes, 89 distinct final HTML pages and 87 indexable
+pages. All final responses were 200, without multi-hop routes, missing/duplicate
+indexable titles/descriptions, canonical mismatches or H1-count faults. Both
+policy links remain present on every final page. The 37 homepage graph findings
+remain location pages awaiting actual availability and useful-content evidence.
+
+At 16:28:52 UTC, 22 ordinary public artifacts, including both articles, index,
+guide and sitemap, exactly matched the reviewed source. The sitemap has 30
+selected URLs, excludes the private app and uses the canonical host; both `www`
+sitemap redirects and private indexing/anonymous-session checks passed. These
+are delivery and technical inventory checks, not actual Google indexing results.
+
+At 16:29–16:30 UTC, bounded Codex-browser checks accepted the family article's
+Articles-card keyboard entry, skip-to-main focus, one H1/canonical, article/guide
+return path and contact link. A 390-pixel viewport had no horizontal overflow or
+clipped article headings; Space opened the menu and Escape restored its toggle
+focus. The contact privacy warning remained visible. No call, form or message
+was submitted. The temporary viewport was reset and tab closed. No content or
+settings were changed in the browser. Assistive-technology, other-device and
+complete accessibility acceptance remain unverified.
+
+Current planning counts are corrected from 29 to 30 and the two published
+articles are included. The earlier 02:18 UTC Search Console observations above
+were not refreshed: successful rows with 27 discovered pages and older last-read
+dates remain historical observations. Neither they nor the 30-URL sitemap
+establish current indexing, article effects or growth. Comparable settled
+query-to-page intent/outcomes and adequate field-performance data remain open;
+the optional paid-reporting blocker was not retried or changed.
+
+Rechecked the primary Google Article, canonical and noindex guidance linked
+above. Accurate Article properties and aligned URL signals are appropriate, but
+they do not promise a search appearance, selected canonical or traffic outcome.
+No demonstrated metadata/schema/navigation fault justified changing working
+public content. Approved credit, company publisher, citations, actual dates,
+service scope, payer displays and individual confirmation qualifiers remain.
+
+The developer/owner review retains source interpretation, billing, staff
+availability and P1-B/P2 contracts as open. The immediately preceding live-source
+check now accepts bounded caregiver/patient identities, charts, paging and
+automatic receipt advance; it leaves billing unverified and does not establish
+external-role or full-office acceptance. See [current source evidence](../management-layer/LIVE_SOURCE_ACCEPTANCE_2026-10-28.md).
+
+Only documentation/evidence changed. Whitespace, current public business/metadata
+gates and repository checks apply; unchanged local runtime suites are not
+repeated. Final normal release and public-byte evidence are retained in the
+handoff. No new owner decision, permission, source operation or schedule change
+is required by this pass. Next owner SEO action remains real location
+availability/useful-content validation; next independent measurement is a matched
+settled query/page review, without inventing missing comparison data.
