@@ -1,5 +1,11 @@
 # PTHHS
 
+October 28 UTC role research reconciles the Forms download correction with
+proposed patient, staff/PT and office document actions. Dated primary sources
+separate browser cleanup, server authorization and already-delivered copies;
+existing external-role, sharing and clinical contracts remain open. See
+[research](docs/management-layer/ROLE_WORKFLOW_RESEARCH.txt).
+
 October 28 UTC Forms download controls now belong to the exact loaded library
 page and session. Folder, Demo, sign-out, reload and cursor-page replacements
 make former controls inert before a request or download can begin. All 12 Forms

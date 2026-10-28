@@ -128,6 +128,12 @@ completeness and operational totals remain unknown.
 
 # Current checkpoint
 
+- [x] October 28 01:59 UTC role research reconciles the Forms download guard
+  with separate server permission and delivery evidence. Patient/family,
+  staff/PT and office acceptance retain existing instance/sharing/assignment
+  and clinical-action prerequisites. New W3C draft and OWASP references are
+  dated in [research](ROLE_WORKFLOW_RESEARCH.txt); runtime is unchanged.
+
 - [x] October 28 UTC Forms download controls check their originating page and
   session before dispatch. Folder/session and ready/empty/failed reloads plus
   cursor-page replacements fence former controls; current downloads retain

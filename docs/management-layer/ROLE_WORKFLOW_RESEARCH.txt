@@ -1,7 +1,7 @@
 PRIMETIME ROLE AND WORKFLOW RESEARCH
-Updated: October 27, 2026, America/Chicago
+Updated: October 27, 2026, America/Chicago (October 28 UTC review)
 Scope: PTHHS /primetime, repository jnwokorie1957/pthhs.
-Latest research review: October 27, 2026, 20:02 UTC heartbeat / October 27 America/Chicago; reconcile current-source navigation ownership with separate caregiver document and family invoice rights. Add proposed bounded multi-document review/export lifetime requirements; clinical/external-role and full-coverage contracts remain open.
+Latest research review: October 28, 2026, 01:59 UTC heartbeat / October 27 America/Chicago; reconcile the released Forms download lifetime guard with proposed family/staff/office document actions. Distinguish browser cleanup, server authorization and already-delivered copies; clinical/external-role and full-coverage contracts remain open.
 
 EVIDENCE BASELINE — DATED OBSERVATIONS; LATER UPDATES BELOW
 The initially observed authorized HHA member calendar showed a patient summary, separate navigation for authorizations, visits, recurring schedules, documents and clinical records, and month navigation. Calendar tiles kept scheduled times, actual times, caregiver names and billed-hour evidence together. The visible authorization grid included payer, dates, discipline, service codes, limits and weekday allowances. Calendar records are observations, not validated business rules. The reviewed source used PCA discipline; it did not establish that those caregivers were physical therapists. At the October 16 review, the HHA browser requires normal sign-in; these are earlier observations, not new tenant evidence.
@@ -836,3 +836,40 @@ https://knowledge.hhaexchange.com/enterprise/Content/Documentation/Caregiver/CG-
 https://knowledge.hhaexchange.com/enterprise/Content/Documentation/Patient/Pat-N-Family-Portal-Invoices-P.htm
 [R10] HHAeXchange Forms. Distinct document locations and configured, filtered asynchronous submission exports; tenant activation unverified.
 https://knowledge.hhaexchange.com/enterprise/Content/Documentation/Clinical/Clinical-N-HHAX-Forms-Basic.htm
+
+
+FORMS DOWNLOAD LIFETIME AND ROLE DELIVERY BOUNDARIES — OCTOBER 28, 2026, 01:59 UTC HEARTBEAT
+Baseline: 426dacff57ef9c2a3453690a15befa17fe94ad2d; checkout clean and aligned after upstream refresh. Required handoff/developer/owner records and both cumulative mirrors were reviewed first. No new private HHA UI, patient/staff record or file was opened. The preceding native-access review found the Chrome Primetime tab owned by the separate chat; earlier authorized calendar observations remain dated. This pass compares current code/release evidence with fresh R7, R9, R31 and new R45/R46 primary sources.
+
+IMPLEMENTED ADMINISTRATOR FILE ACTIONS — BOUNDED ACCEPTANCE
+Release 426dacf gives each Forms Download callback its original session generation and loaded-list revision. Folder/Demo/sign-out changes, replacement list success/empty/failure and cursor-page changes make old controls inert before a request/status change. A current replacement control still downloads and verifies its bytes. All 12 Forms and 313 frontend/tooling tests passed; both normal release jobs and exact public bundle/private-boundary checks passed at the dated times in FORMS_DOWNLOAD_ACTIONS_2026-10-28.md and the handoff. Exact queued/detached transitions remain synthetic; no production private-file transition was induced. The existing server administrator/live/release checks were retained; this was not a demonstrated server authorization bypass or new role grant.
+Current FormRecord still contains file identity, folder, filename, content type, byte size/hash and upload time, without patient, encounter, clinical form version or recipient sharing. A templates/submissions folder or matching checksum cannot supply those relationships. The administrator library remains separate from proposed clinical instances, patient sharing, therapist documentation and export jobs.
+
+PRIMARY GUIDANCE AND DESIGN INFERENCES
+R45 is a W3C File API Working Draft dated September 12, 2026, not a final Recommendation. Its object-URL revocation model prevents later dereferences, while an already-started request can finish. Design inference: browser cleanup cannot be described as recalling an already downloaded copy or revoking the server's authorization. Keep request cancellation, removal of displayed controls, server permission decisions and local file delivery as separate states; no new retention rule or remote-delete capability is adopted.
+R46 recommends default denial and server-side object/action checks on every request rather than relying on browser checks. Proposed P2 enforcement must evaluate the current account, patient/assignment, exact document instance/version and permitted action for both metadata and bytes. The new callback guard improves selection continuity; it cannot establish that external-role contract. These are design requirements, not a new security-audit finding or activated patient route.
+
+PATIENT / FAMILY — PROPOSED SCHEDULE AND DOCUMENT EXPERIENCE
+Retain a selected-patient heading, next visit and day/week/month schedule, request history and explicitly shared documents. R7 documents calendar views and requested changes/concerns; do not copy vendor billing/status restrictions into local policy without the existing agency contract. Place document receipt/status beside its exact visit/form reference. Changing patient, month or document version removes the former action target, while original requests remain historical records. Public pages retain generic approved sign-in links only. A current family membership still needs a separate document download grant; no shared-document route is implemented here.
+
+PT / STAFF — PROPOSED CASELOAD AND DOCUMENT EXPERIENCE
+My day/caseload links retain exact clinician, patient, encounter and form version. R9 distinguishes effective patient access from permission to edit another user's clinical documents; R31 makes caregiver document administration dependent on primary-office/action authority. Current caregiver OfficeIDs and a file folder cannot establish either capability. Keep draft, signature/amendment, reviewer and allowed download actions distinct. Revoked or expired assignment denies new server reads even if a prior list or file label remains visible; UI cleanup does not promise recall of a copy already delivered.
+
+OFFICE — PROPOSED SEPARATE FOLLOW-UP AND DELIVERY STATES
+Show schedule/request, authorization, EVV/aggregation, document review and billed-source follow-up as independent sections with their own exact identities, receipts and coverage. For a future document/export action, distinguish selection, server request, prepared artifact, allowed retrieval, verified bytes and local download initiation. Browser initiation alone is not proof that a user saved/read the file or that a clinical submission was signed/reviewed. Preserve requester and selected instance/version references without treating a duplicate byte hash as the same encounter. No document event advances scheduling, authorization usage, EVV acceptance, payable hours or paid-claim state.
+
+ACCEPTANCE EXTENSION / PRIORITIES / EXISTING DEPENDENCIES
+Before P2 grants, test denied metadata and bytes separately; old callbacks after membership/assignment/version changes; direct object requests with altered identifiers; sharing revoked between list and retrieval; late download results after sign-out; and current permitted retrieval with intact byte checks. Verify that cleanup does not trigger another source/file request or claim recall of an already delivered copy. Scope any delivery evidence honestly: requested, response verified and browser initiation are not interchangeable with recipient receipt.
+Continue existing caregiver/billing native acceptance and exact authorization/document/source contracts, then P1-B office/supervisor membership and P2 account/patient/effective-assignment/sharing/discipline/form/version/reviewer/signature/retention/action examples. Include permitted download/local-copy handling in those existing sharing/retention examples; do not invent it from storage metadata. Accepted policy attestation stays accepted. Later native access still requires continuing/releasing the owning Primetime session or opening/signing in through Codex browser. No new urgent owner action, permission, source write, clinical/financial decision or communication occurred.
+
+PRIMARY SOURCES — RECHECKED OCTOBER 28 UTC / OCTOBER 27 AMERICA/CHICAGO
+[R7] HHAeXchange, Family Portal Schedule Page for Users. Calendar/request navigation; agency-specific applicability is unverified.
+https://knowledge.hhaexchange.com/texas/Content/Documentation/Patient/Pat-N-Schedule-P.htm
+[R9] HHAeXchange, Control Access to Patient's Clinical Records. User assignment/effective dates and separate other-author document editing.
+https://knowledge.hhaexchange.com/texas/Content/Documentation/Patient/Pat-N-Control-Access-Patient-P.htm
+[R31] HHAeXchange, Document Management for Caregivers in Multiple Offices. Primary-office and document-action permissions; no Primetime grant.
+https://knowledge.hhaexchange.com/enterprise/Content/Documentation/Caregiver/CG-N-Document-Management-Multiple-Offices-P.htm
+[R45] W3C, File API, September 12, 2026 Working Draft, section 8.4. Object-URL revocation and already-started requests; work in progress, not a final Recommendation.
+https://www.w3.org/TR/2026/WD-FileAPI-20260912/#dfn-revokeObjectURL
+[R46] OWASP, Authorization Cheat Sheet. Per-request server-side object/action enforcement and default denial; engineering guidance, not tenant policy.
+https://cheatsheetseries.owasp.org/cheatsheets/Authorization_Cheat_Sheet.html
