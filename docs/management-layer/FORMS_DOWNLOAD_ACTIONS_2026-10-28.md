@@ -50,3 +50,23 @@ the production artifacts and anonymous boundaries. A later native library check
 can use the owning signed-in Primetime session, or a normally signed-in Codex
 browser tab. No source operation, role grant or private-file download is needed
 to accept the deterministic callback lifetime correction.
+
+## Independent public delivery verification — October 28, 04:34 UTC
+
+The scheduled implementation review verified exact-code release 40617920939
+successful for 426dacff57ef9c2a3453690a15befa17fe94ad2d. Ordinary public requests
+returned HTTP 200 and matched that commit's bytes:
+
+- `/primetime/forms.js`, 04:34:01 UTC, SHA-256
+  `21d54cc2bc05b46187c55588201bd6fcefad68ef14db373b89e149216965dd34`.
+- `/primetime`, 04:34:02 UTC, SHA-256
+  `80677e2131fbca5d7e7956bc6afdfce9648d26d1a500735c9f011c573f2deb96`.
+
+This closes this review's exact public-asset comparison gap, not authenticated
+or native callback acceptance. Supported browser inventory exposed only empty
+in-app/browser-app tabs, with no existing signed-in session available here.
+No new login, private-file download, anonymous endpoint test or source read was
+performed. The 12 Forms/313 frontend-tooling results above remain prior
+repository-reported tests, not rerun in this pass. Backlog v63 adds no newly
+unblocked implementation; source admission, document/role mappings and native/AT
+acceptance remain pending. No runtime change or duplicate deployment was needed.
