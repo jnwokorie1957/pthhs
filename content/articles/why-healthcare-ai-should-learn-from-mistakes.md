@@ -24,6 +24,36 @@ An administrative tool could help organize exceptions for authorized review. Its
 
 Consider a **hypothetical training example**, using invented records: a visit appears to lack an end time. The tool could flag the missing field and show when the source was last checked. It should not invent a time, accuse someone of missing a visit, change payroll or decide whether a claim is payable. A staff member needs to investigate through the approved workflow.
 
+## A useful alert explains what to check next
+
+An administrative alert should give the person reading it enough information to take a sensible next step. A label such as “Attention needed” leaves too much work unexplained.
+
+For a proposed home care administrative tool, a useful message can answer four questions:
+
+- **What was observed?** Name the missing information or the check that could not finish.
+- **What information was available?** Identify the source and when it was last checked, where that context is relevant and permitted.
+
+- **What remains uncertain?** Separate an incomplete check from a confirmed result.
+- **What should the authorized reviewer do next?** Point to the established review process without making a consequential decision for them.
+
+Consider a **hypothetical design example using invented information**. An office tool cannot refresh a routine administrative list. “No items need review” would be misleading if the tool never completed its check. A more useful message might say:
+
+> The latest check could not finish. The list below was last refreshed at 9:00 a.m. today. Newer changes may be missing. Use the approved review process before relying on this list.
+
+The timestamp here is an invented example, not a report from PTHHS. In an actual interface, the wording should match what the software can establish. If it does not know the last successful refresh time, it should say that rather than display an assumed time.
+
+The same care applies when a reviewer takes action. Opening an item, reviewing it and resolving the underlying question are different events. A proposed tool should explain which event it has recorded. A message that says a review note was saved should not imply that the underlying information has been corrected.
+
+## Make the message usable
+
+Clear wording is only part of the job. W3C’s form guidance recommends concise feedback, understandable error descriptions and instructions for correcting problems. Applying that principle to administrative screens, an alert should name the relevant item or field and explain the next available step. [W3C User Notification](https://www.w3.org/WAI/tutorials/forms/notifications/)
+
+People who use screen readers also need to know when relevant status information changes. W3C explains how status messages can be exposed to assistive technology without moving focus, while warning that excessive announcements can make an application too talkative. The appropriate behavior needs testing in the actual interface. [W3C Understanding Status Messages](https://www.w3.org/WAI/WCAG22/Understanding/status-messages.html)
+
+Before considering a message ready, try it with synthetic information and ask a reviewer to explain what happened, what remains unknown and what they would do next. Include an unavailable source and an older result, not just a successful refresh. If someone reasonably reads “nothing needs review” when the intended meaning is “we could not check,” revise the wording and behavior.
+
+These checks evaluate communication. They do not establish that an entire administrative workflow is accepted for operational use. Clinical, eligibility, authorization, billing and payroll decisions remain outside this proposed alert’s purpose.
+
 ## Make “learning from mistakes” measurable
 
 AI does not necessarily improve merely because someone points out an error. Improvement requires a deliberate process for reviewing the failure, changing the system and testing the change.

@@ -50,6 +50,10 @@ def render_body(markdown: str) -> str:
             if '\n' in block:
                 raise ValueError('Heading must be its own block')
             result.append('<h2>' + escape(block[3:]) + '</h2>')
+        elif block.startswith('> '):
+            if '\n' in block:
+                raise ValueError('Quote must be one paragraph')
+            result.append('<blockquote><p>' + inline(block[2:]) + '</p></blockquote>')
         elif block.startswith('- '):
             lines = block.splitlines()
             if any(not line.startswith('- ') for line in lines):

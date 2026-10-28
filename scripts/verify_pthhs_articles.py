@@ -152,7 +152,7 @@ class ArticleTests(unittest.TestCase):
     def test_exact_approved_body_and_citations_survive_generation(self):
         article = next(a for a in approved_articles() if a.slug == "why-healthcare-ai-should-learn-from-mistakes")
         source = ROOT / 'content/articles' / (article.slug + '.md')
-        self.assertEqual(hashlib.sha256(source.read_bytes()).hexdigest(), '23d5f3fa85f16d5ef06ffc767762517de26e82411333eb20d026c713562f9462')
+        self.assertEqual(hashlib.sha256(source.read_bytes()).hexdigest(), 'eb90423fa9b2b7e5ef777c0ddf596858a53bc8ef62cdaa10ed994efa1960a3c1')
         page = (ROOT / 'public' / (article.path.lstrip('/') + '.html')).read_text(encoding='utf-8')
         body = re.search(r'<div data-article-body>(.*?)</div>', page, re.S).group(1)
         self.assertEqual(page.count('Published by Robert, AI CTO of Primetime Home Health Services'), 1)
@@ -180,6 +180,22 @@ class ArticleTests(unittest.TestCase):
         self.assertIn('property="og:type" content="article"', page)
         self.assertIn('href="/articles" aria-current="page"', page)
         self.assertIn('<li><a href="/articles">Articles</a></li>', page)
+
+    def test_alert_insert_and_safe_quote(self):
+        article = next(a for a in approved_articles() if a.slug == 'why-healthcare-ai-should-learn-from-mistakes')
+        self.assertEqual(article.published, '2026-10-27')
+        self.assertEqual(article.modified, '2026-10-28')
+        self.assertEqual(article.research_checked, '2026-10-28')
+        self.assertLess(article.body.index('## Make the message usable'), article.body.index('## Make “learning'))
+        self.assertIn('https://www.w3.org/WAI/tutorials/forms/notifications/', article.body)
+        self.assertIn('https://www.w3.org/WAI/WCAG22/Understanding/status-messages.html', article.body)
+        self.assertEqual(render_body('> **Example** [Source](https://example.org)'), '<blockquote><p><strong>Example</strong> <a href="https://example.org">Source</a></p></blockquote>')
+        self.assertLess(article.body.index('## A useful alert'), article.body.index('## Make “learning'))
+        self.assertIn('hypothetical design example using invented information', article.body)
+        self.assertNotIn('Editorial handoff', article.body)
+        self.assertEqual(render_body('> <script>unsafe</script>'), '<blockquote><p>&lt;script&gt;unsafe&lt;/script&gt;</p></blockquote>')
+        with self.assertRaises(ValueError):
+            render_body('> first\nsecond')
 
     def test_family_checklist_release_contract(self):
         article = next(a for a in approved_articles() if a.slug == 'home-care-first-call-checklist-houston')
