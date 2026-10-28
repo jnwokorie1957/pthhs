@@ -127,6 +127,12 @@ class ArticleTests(unittest.TestCase):
             article_page = (ROOT / 'public' / (article.path.lstrip('/') + '.html')).read_text(encoding='utf-8')
             self.assertEqual(re.findall(r'property="og:type" content="([^"]+)"', article_page), ['article'])
 
+    def test_priority_location_landing_pages_are_not_articles(self):
+        for slug in ('houston', 'southwest-houston', 'alief', 'sugar-land'):
+            with self.subTest(location=slug):
+                page = (ROOT / 'public/locations' / (slug + '.html')).read_text(encoding='utf-8')
+                self.assertEqual(re.findall(r'property="og:type" content="([^"]+)"', page), ['website'])
+
     def test_only_exact_approved_internal_citations_are_exempt(self):
         from pthhs_articles import is_approved_internal_citation
         article = next(a for a in approved_articles() if a.slug == "why-healthcare-ai-should-learn-from-mistakes")

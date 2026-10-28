@@ -252,7 +252,8 @@ function removeHeadTag(html, regex) {
 function injectMeta(html, route, meta) {
   const canonical = canonicalForRoute(route);
   const ogImage = ogImageForRoute(route);
-  const ogType = route !== '/articles' && route !== '/home-care-blog' && (route.includes('blog') || (!route.startsWith('/home-care-') && route !== '/' && route !== '/404')) ? 'article' : 'website';
+  const priorityLocationLanding = ['/locations/houston', '/locations/southwest-houston', '/locations/alief', '/locations/sugar-land'].includes(route);
+  const ogType = !priorityLocationLanding && route !== '/articles' && route !== '/home-care-blog' && (route.includes('blog') || (!route.startsWith('/home-care-') && route !== '/' && route !== '/404')) ? 'article' : 'website';
 
   html = removeHeadTag(html, /<title>[\s\S]*?<\/title>/i);
   html = removeHeadTag(html, /<meta\s+name=["']description["'][^>]*>/gi);
