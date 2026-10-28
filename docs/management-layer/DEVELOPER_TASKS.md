@@ -128,6 +128,13 @@ completeness and operational totals remain unknown.
 
 # Current checkpoint
 
+- [x] October 28 UTC Forms download controls check their originating page and
+  session before dispatch. Folder/session and ready/empty/failed reloads plus
+  cursor-page replacements fence former controls; current downloads retain
+  byte/hash checks. All 12 Forms and 313 frontend/tooling tests pass. Native
+  production lifetime transitions remain unverified; see
+  [scope and verification](FORMS_DOWNLOAD_ACTIONS_2026-10-28.md).
+
 - [x] October 27 public Articles browser checks passed for desktop keyboard,
   390-pixel menu open/Escape/Enter, article/index/guide links and bounded layout.
   Corrected publisher punctuation; 13 existing article tests and normal static

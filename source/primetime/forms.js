@@ -3,6 +3,7 @@
   if (!panel) return;
   const $ = id => document.getElementById(id);
   let generation = 0, busy = false, active = window.primetimeDataMode?.isActive?.() === true, nextCursor = null, downloadUrl = null;
+  let listRevision = 0;
   const available = () => active && window.primetimeDataMode?.isLive() === true;
   const message = text => { $('formsStatus').textContent = text; };
   const controls = ['formFile', 'formUploadKind', 'formUploadSubmit', 'formLibraryKind', 'formsReload', 'formsNext'];
@@ -57,6 +58,7 @@
     message(`Download verified: ${item.filename} (${bytesLabel(item.size)}). SHA-256 matches the saved file.`);
   }
   async function load(current, cursor = null) {
+    const revision = ++listRevision;
     nextCursor = null; $('formsRows').replaceChildren();
     const kind = $('formLibraryKind').value;
     const response = await request(`?kind=${encodeURIComponent(kind)}${cursor ? '&cursor=' + encodeURIComponent(cursor) : ''}`, {}, current);
@@ -67,7 +69,9 @@
       const cell = document.createElement('td'), button = document.createElement('button');
       button.type = 'button'; button.className = 'btn secondary'; button.textContent = 'Download';
       button.setAttribute('aria-label', 'Download ' + item.filename);
-      button.addEventListener('click', () => action(current => download(item, current)));
+      button.addEventListener('click', () => {
+        if (current === generation && revision === listRevision) void action(current => download(item, current));
+      });
       cell.append(button); row.append(cell); $('formsRows').append(row);
     }
     nextCursor = result.nextCursor;

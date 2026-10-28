@@ -126,3 +126,65 @@ test('an initially active Forms session fences stale responses after sign-out or
     assert.equal(f.counts().creates, 0);
   }
 });
+
+test('a former Forms page cannot download after folder or session context is replaced', async () => {
+  for (const change of ['folder', 'demo', 'session']) {
+    const f = fixture({ active: true });
+    f.event('formsReload'); await settled(f);
+    const former = f.ids.get('formsRows').querySelectorAll('button')[0];
+    if (change === 'folder') {
+      f.ids.get('formLibraryKind').value = 'submissions'; f.event('formLibraryKind', 'change');
+    } else if (change === 'demo') { f.live(false); f.live(true); }
+    else { f.document.dispatchEvent(new Event('primetime-signed-out')); f.ready(); }
+    const calls = f.calls.length, status = f.ids.get('formsStatus').textContent;
+    f.handler(async () => new Response(bytes, { headers: { 'X-Content-SHA256': hash } }));
+    former.dispatchEvent(new Event('click')); await tick();
+    assert.equal(f.calls.length, calls, `${change}: an old download control must not dispatch`);
+    assert.equal(f.counts().creates, 0);
+    assert.equal(f.ids.get('formsStatus').textContent, status);
+  }
+});
+
+test('replacement list success, empty and failure keep former download controls inert', async () => {
+  for (const outcome of ['ready', 'empty', 'failed']) {
+    const f = fixture({ active: true });
+    f.event('formsReload'); await settled(f);
+    const former = f.ids.get('formsRows').querySelectorAll('button')[0];
+    let finish;
+    f.handler(() => new Promise(resolve => { finish = resolve; }));
+    f.event('formsReload'); await tick();
+    const pendingCalls = f.calls.length;
+    former.dispatchEvent(new Event('click')); await tick();
+    assert.equal(f.calls.length, pendingCalls, `${outcome}: no dispatch during a replacement`);
+    finish(outcome === 'failed' ? new Response(JSON.stringify({ error: 'storage_unavailable' }), { status: 503 })
+      : json({ ok: true, items: outcome === 'ready' ? [item] : [], nextCursor: null }));
+    await settled(f);
+    const calls = f.calls.length, status = f.ids.get('formsStatus').textContent;
+    f.handler(async () => new Response(bytes, { headers: { 'X-Content-SHA256': hash } }));
+    former.dispatchEvent(new Event('click')); await tick();
+    assert.equal(f.calls.length, calls, `${outcome}: no dispatch after a replacement settles`);
+    assert.equal(f.counts().creates, 0);
+    assert.equal(f.ids.get('formsStatus').textContent, status);
+    if (outcome === 'ready') {
+      f.ids.get('formsRows').querySelectorAll('button')[0].click(); await settled(f);
+      assert.equal(f.calls.length, calls + 1);
+      assert.equal(f.counts().creates, 1);
+      assert.match(f.ids.get('formsStatus').textContent, /Download verified/);
+    }
+  }
+});
+
+test('a download from the preceding server-cursor page cannot target its old file', async () => {
+  const f = fixture({ active: true });
+  f.handler(async () => json({ ok: true, items: [item], nextCursor: 'next-page' }));
+  f.event('formsReload'); await settled(f);
+  const former = f.ids.get('formsRows').querySelectorAll('button')[0];
+  f.handler(async () => json({ ok: true, items: [{ ...item, filename: 'Current.pdf' }], nextCursor: null }));
+  f.event('formsNext'); await settled(f);
+  assert.match(f.calls.at(-1)[0], /cursor=next-page/);
+  const calls = f.calls.length;
+  former.dispatchEvent(new Event('click')); await tick();
+  assert.equal(f.calls.length, calls);
+  assert.equal(f.counts().creates, 0);
+  assert.equal(f.ids.get('formsRows').querySelectorAll('button').length, 1);
+});

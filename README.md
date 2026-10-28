@@ -1,5 +1,11 @@
 # PTHHS
 
+October 28 UTC Forms download controls now belong to the exact loaded library
+page and session. Folder, Demo, sign-out, reload and cursor-page replacements
+make former controls inert before a request or download can begin. All 12 Forms
+and 313 frontend/tooling tests pass; exact lifetime transitions are synthetic
+acceptance. See [verification](docs/management-layer/FORMS_DOWNLOAD_ACTIONS_2026-10-28.md).
+
 October 27 Articles browser review: desktop keyboard and 390-pixel menu/article/
 guide navigation passed in Chrome, with no observed horizontal overflow. A
 duplicated publisher period was corrected; approved prose, dates and citations
