@@ -3,6 +3,25 @@
 These files remain useful for planning, but they do not override current public
 facts, payer evidence, or claim-release controls.
 
+October 28 priority-location metadata correction: Houston, southwest Houston,
+Alief and Sugar Land landing pages now use Open Graph `website` rather than
+`article`. Commit 571e8a7610463737871cece539bab5a75b3f8881 changes only those
+four metadata values, their generator rule and regression coverage. Conroe,
+other locations, article credit/prose, claims, logos and private portal are unchanged.
+All four regression subcases failed before the correction; 14 article/metadata
+tests, independent review and the exact-commit aggregate gate passed afterward.
+[Release 40609698428](https://github.com/jnwokorie1957/pthhs/actions/runs/40609698428)
+completed Hosting at 00:35:44 UTC and backend at 00:36:09 UTC. Nine ordinary public
+pages matched commit bytes at 00:36:15 UTC with expected canonicals, one H1 and
+no page-level noindex; the four corrected types were `website`, the published
+article remained `article`. This is social-preview semantics, not measured ranking
+or indexing harm/improvement. No fresh GSC/Maps/conversion evidence was available;
+the unchanged paid-reporting blocker was not retried. Native/AT acceptance was
+not performed in this pass. Rollback: scoped revert of 571e8a7 through normal release.
+Current references: [Open Graph types](https://ogp.me/#types),
+[Google links](https://developers.google.com/search/docs/crawling-indexing/links-crawlable)
+and [Article guidance](https://developers.google.com/search/docs/appearance/structured-data/article).
+
 - [October 27 Articles browser review](2026-10-27-articles-browser-review.md) —
   bounded desktop/mobile keyboard acceptance, publisher punctuation correction,
   current public crawl and explicit assistive-technology/outcome limits.
