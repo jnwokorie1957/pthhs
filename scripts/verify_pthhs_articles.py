@@ -181,6 +181,45 @@ class ArticleTests(unittest.TestCase):
         self.assertIn('href="/articles" aria-current="page"', page)
         self.assertIn('<li><a href="/articles">Articles</a></li>', page)
 
+    def test_family_checklist_release_contract(self):
+        article = next(a for a in approved_articles() if a.slug == 'home-care-first-call-checklist-houston')
+        page = (ROOT / 'public' / (article.path.lstrip('/') + '.html')).read_text(encoding='utf-8')
+        body = re.search(r'<div data-article-body>(.*?)</div>', page, re.S).group(1)
+        self.assertEqual(plaintext(body), plaintext(render_body(article.body)))
+        self.assertEqual(page.count('<h1>'), 1)
+        self.assertEqual(page.count('Published by Robert, AI CTO of Primetime Home Health Services'), 1)
+        self.assertNotIn('Editorial handoff', page)
+        self.assertNotIn('publication-ready draft', page)
+        self.assertIn('<title>' + article.seo_title + '</title>', page)
+        self.assertIn('rel="canonical" href="https://pthhs.net' + article.path + '"', page)
+        graph = json.loads(re.search(r'<script type="application/ld\+json">(.*?)</script>', page, re.S).group(1))['@graph']
+        schema, = [x for x in graph if x['@type'] == 'Article']
+        self.assertEqual(schema, article.schema())
+        self.assertEqual(schema['publisher']['@type'], 'Organization')
+        self.assertEqual(schema['datePublished'], '2026-10-28')
+        for url in re.findall(r'\]\((https://[^)]+)\)', article.body):
+            self.assertIn('href="' + url + '"', body)
+        for filename in ['articles.html', 'home-care-blog.html']:
+            index = (ROOT / 'public' / filename).read_text(encoding='utf-8')
+            for published in approved_articles():
+                self.assertEqual(index.count('href="' + published.path + '"'), 1)
+        sitemap = (ROOT / 'public/sitemap.xml').read_text(encoding='utf-8')
+        self.assertEqual(sitemap.count('<loc>https://pthhs.net' + article.path + '</loc>'), 1)
+
+    def test_privacy_warning_exception_does_not_allow_diagnosis_claims(self):
+        import ast
+        source = (ROOT / 'scripts/generate_sensitive_term_register.py').read_text(encoding='utf-8')
+        function = next(node for node in ast.parse(source).body if isinstance(node, ast.FunctionDef) and node.name == 'classify')
+        namespace = {}
+        exec(compile(ast.Module(body=[function], type_ignores=[]), '<classifier>', 'exec'), namespace)
+        classify = namespace['classify']
+        article = next(a for a in approved_articles() if a.slug == 'home-care-first-call-checklist-houston')
+        warning = next(block for block in article.body.split('\n\n') if block.startswith('A question about services'))
+        warning = warning.split(' [PTHHS:')[0]
+        self.assertEqual(classify('diagnose', warning, False)[0], 'ALLOWED')
+        self.assertEqual(classify('diagnose', warning.replace('not to send diagnoses', 'to send diagnoses'), False)[0], 'REVIEW_REQUIRED')
+        self.assertEqual(classify('diagnose', 'We diagnose conditions.', False)[0], 'REVIEW_REQUIRED')
+
     def test_guide_and_sitemap_include_only_new_reviewed_article(self):
         article = next(a for a in approved_articles() if a.slug == "why-healthcare-ai-should-learn-from-mistakes")
         guide = (ROOT / 'public/home-care-blog.html').read_text(encoding='utf-8')

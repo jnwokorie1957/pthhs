@@ -56,8 +56,8 @@
     "evidence": "Added contextual home-care guide navigation: docs/seo/2026-10-18-seo-review.md"
   },
   "/home-care-blog": {
-    "lastmod": "2026-10-27",
-    "evidence": "Approved original article and guide card: docs/seo/2026-10-27-original-article.md"
+    "lastmod": "2026-10-28",
+    "evidence": "Family first-call article and registry cards: docs/seo/2026-10-28-family-checklist.md"
   },
   "/": {
     "lastmod": "2026-10-12",
@@ -72,7 +72,11 @@
     "evidence": "Approved original article and guide card: docs/seo/2026-10-27-original-article.md"
   },
   "/articles": {
-    "lastmod": "2026-10-27",
-    "evidence": "Published article index and navigation: docs/seo/2026-10-27-article-navigation.md"
+    "lastmod": "2026-10-28",
+    "evidence": "Family first-call article and registry cards: docs/seo/2026-10-28-family-checklist.md"
+  },
+  "/articles/home-care-first-call-checklist-houston": {
+    "lastmod": "2026-10-28",
+    "evidence": "Family first-call article and registry cards: docs/seo/2026-10-28-family-checklist.md"
   }
 }

@@ -39,6 +39,8 @@ def classify(term: str, text: str, quarantined: bool) -> tuple[str, str]:
     low = text.lower()
     if quarantined:
         return "QUARANTINED", "Article is noindex and permanently redirected pending editorial review."
+    if term == "diagnose" and low == "a question about services should not require sending a detailed personal history through an ordinary message. pthhs's contact page asks people not to send diagnoses, medication lists or other sensitive health information through ordinary email or social media, and directs them to call for the appropriate next step.":
+        return "ALLOWED", "Reviewed first-call article repeats the company's privacy warning, not a diagnosis service; docs/seo/2026-10-28-family-checklist.md."
     if term == "medical" and low == "to discuss your needs. services depend on applicable authorization and availability. this article provides general operational education, not individualized medical, legal or eligibility advice.":
         return "ALLOWED", "Reviewed article disclaimer explicitly excludes individualized medical, legal or eligibility advice; docs/seo/2026-10-27-original-article.md."
     if term == "home health" and "primetime home health services" in low:
