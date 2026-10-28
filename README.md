@@ -1,5 +1,12 @@
 # PTHHS
 
+October 28, 17:07 UTC role research reconciles the accepted bounded caregiver
+profile and Forms folder-loading correction with proposed patient requests,
+staff/PT caseload documents and office rosters/exports. Navigation alone does not
+cancel an accepted server operation; accessible-patient and loaded-visit coverage stay
+separate. Billing and existing P1-B/P2 contracts remain open. See the dated
+[research](docs/management-layer/ROLE_WORKFLOW_RESEARCH.txt); runtime is unchanged.
+
 October 28 Forms folder loading: a queued folder change now releases its former
 busy state so Load files can work in the new folder. Late list/download/upload
 work cannot overwrite or unlock the replacement. All 13 Forms and 314 frontend/

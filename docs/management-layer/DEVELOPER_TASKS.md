@@ -1,5 +1,13 @@
 # PTHHS Management Layer — Developer Checklist
 
+- [x] October 28, 17:07 UTC research reconciles bounded caregiver/Forms
+  acceptance with separate navigation/server outcomes, accessible-patient and
+  loaded-visit coverage, clinical document stages and office roster/export
+  proposals. Six current primary references include new mobile-menu and
+  Appointments sources. Existing billing/source and P1-B/P2 action contracts
+  remain open. Next: protected billing diagnostics and exact source/role/form
+  examples. See the dated [research](ROLE_WORKFLOW_RESEARCH.txt); no runtime change.
+
 - [x] October 28 Forms folder-loading correction: release the invalidated
   action's busy state on folder change. Five synthetic pending-work cases fence
   old results/cleanup while a new load owns its controls, and current downloads
