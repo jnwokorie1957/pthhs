@@ -167,28 +167,37 @@ TAB 07 - STAFFING
     /workspace/visit-context caregiver read checks fresh visit/patient/office,
     the exact expected caregiver and current office membership. The Staffing tab
     has on-demand profiles, source receipts/age and context/session clearing.
-    Current inspected settings still disable GetCaregiverDemographics. Source
-    activation/entitlement/native profile acceptance remain pending; availability
-    and matching remain separate. No read permission has been changed.
+    The October27 inspected settings disabled GetCaregiverDemographics; that
+    activation/native acceptance was pending at the dated checkpoint.
+    October28 native follow-up: the existing profile control was available and
+    returned a matching current caregiver profile with receipt and related
+    actions. No source operation was enabled in this pass. This accepts only
+    the bounded profile; availability, discipline/assignment and matching remain
+    separate, so S02 is still open. See LIVE_SOURCE_ACCEPTANCE_2026-10-28.md.
 [ ] S03 Open-shift/eligible staff matching needs verified schedule completeness,
     authorization, effective assignment/discipline and applicable availability
     rules. Do not create assignments or infer qualified staff from a nonempty ID.
 
 TAB 08 - BILLING & AR
-[ ] B01 Currently 'Billing pipeline unavailable'. Source facts can come from
+[ ] B01 Operational billing pipeline/AR remains unconnected. Source facts can come from
     SearchBilledVisits, GetVisitBillInfoV2, GetBillingServiceCodes, GetContracts,
     GetCollectionNotes and relevant collection reference catalogs.
 [ ] B02 Connect exact-visit billing/source follow-up with office/identity checks
-    and current source receipts. Those additional reads are not yet enabled.
+    and current source receipts. The bounded reader exists; usable current
+    billing facts still need verification.
     October27 iteration: /workspace/visit-context billing mode uses GetVisitBillInfoV2
     after fresh visit and patient-office proof, requiring matching visit/patient,
     caregiver and source visit date. The Billing tab supports raw primary and
     secondary contract references, billed flags/rates/minutes/amounts with source
     receipt/fetch age. Zero stays zero; omitted fields stay absent. Identity/policy
     changes, source errors and session/Demo/date/page changes remove old facts.
-    Current inspected settings still disable GetVisitBillInfoV2. Source activation,
-    entitlement and native billing acceptance remain pending. No cash, paid-claim,
-    AR balance or readiness inference is added.
+    The October27 inspected settings disabled GetVisitBillInfoV2. October28
+    native follow-up found the existing read control available, but a bounded
+    request returned no verified facts/receipt. The precise backend/source cause
+    was not established from the UI. B02 stays open for usable same-record
+    evidence and protected diagnostics, rather than another automatic read
+    enablement. No settings changed; no cash, paid-claim, AR balance or readiness
+    inference is added. See LIVE_SOURCE_ACCEPTANCE_2026-10-28.md.
 [ ] B03 GetVisitInfoV3 BilledAmount is a source field, not collected cash.
     Do not invent cash collections, paid-claim stages, billing readiness or AR
     totals from visit times, billed amount, payroll hours or absent records.
@@ -291,7 +300,10 @@ verified before S02/B02 can be checked complete.
 
 READ OPERATION INVENTORY
 The following generated appendix names every read exposed in Advanced tools and
-whether it was selected in the inspected owner configuration. A selected read is
+whether it was selected in the October24 inspected owner configuration; it is
+retained as dated evidence, not the current selection list. The October28 native
+patient/caregiver/billing-control observations above supersede their old gate
+status within their stated bounds. A selected read is
 not proof of full field semantics, successful entitlement or complete coverage.
 Unselected reads are work to scope and verify, not automatically failed APIs.
 

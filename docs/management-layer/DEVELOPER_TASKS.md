@@ -128,6 +128,12 @@ completeness and operational totals remain unknown.
 
 # Current checkpoint
 
+- [x] October 28 native live-source checks passed for bounded charts/field
+  counts, Next/Previous, patient/caregiver identities and automatic receipt
+  advance. Existing read controls were available; none were enabled here.
+  Billing returned no verified facts and remains open, as do availability,
+  coverage and role contracts. See [acceptance](LIVE_SOURCE_ACCEPTANCE_2026-10-28.md).
+
 - [x] October 28 02:18 UTC SEO review verified public delivery/private response
   protections and normal Chrome Search Console access. Corrected the planning
   inventory to 29 published URLs while retaining dated Google observations,

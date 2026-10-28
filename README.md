@@ -1,5 +1,11 @@
 # PTHHS
 
+October 28 live-source verification passed bounded chart/field, Next/Previous,
+current patient/caregiver identity and automatic receipt-advance checks in a
+normally restored session. Billing remained unverified; staff availability and
+full-office/role acceptance stay open. No source permission or runtime change.
+See [scope](docs/management-layer/LIVE_SOURCE_ACCEPTANCE_2026-10-28.md).
+
 October 28 family first-call checklist published with the approved AI CTO credit,
 Organization publisher, two published article cards and 30-URL sitemap. Independent
 review, 16 article tests and aggregate checks passed. Release `add4b6e` succeeded;
