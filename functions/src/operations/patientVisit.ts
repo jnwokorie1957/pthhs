@@ -22,7 +22,9 @@ export async function visitContextRead(workspace: Workspace, value: unknown, act
   const { visit, patient, scope, checkScope } = await checkedVisitPatient(workspace, { visitId: input.visitId, patientId: input.patientId, officeId: input.officeId }, actor, [operation]);
   if (expectedCaregiver !== null && visit.records[0]?.["Caregiver/ID"] !== expectedCaregiver) throw new WorkflowError("visit_caregiver_changed_restart", 409);
   const data = await workspace.query({ operation, id: kind === "caregiver" ? expectedCaregiver! : scope.visitId }, actor);
-  if (data.operation !== operation || data.source !== "hhaexchange" || data.truncated || data.records.length !== 1) throw new WorkflowError("visit_context_source_not_unique", 409);
+  if (data.operation !== operation || data.source !== "hhaexchange" || data.truncated) throw new WorkflowError("visit_context_source_not_unique", 409);
+  if (data.records.length === 0) throw new WorkflowError("visit_context_source_empty", 409);
+  if (data.records.length !== 1) throw new WorkflowError("visit_context_source_not_unique", 409);
   const record = data.records[0]!;
   if (kind === "caregiver") {
     let offices: unknown; try { offices = JSON.parse(record.OfficeIDs || ""); } catch { /* rejected below */ }

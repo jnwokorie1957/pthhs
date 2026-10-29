@@ -1,5 +1,12 @@
 # PTHHS
 
+October 29 related-source empty results: Billing and caregiver panels now explain
+when their read returned no record, while keeping facts and prior actions clear.
+An empty billing read does not mean zero charges or payment. All 315 frontend/
+tooling and 525 backend tests pass; broader source/billing acceptance remains
+open. Next: protected same-record billing diagnostics and existing source/role
+contracts. See [scope](docs/management-layer/EMPTY_RELATED_READS_2026-10-29.md).
+
 October 28, 17:07 UTC role research reconciles the accepted bounded caregiver
 profile and Forms folder-loading correction with proposed patient requests,
 staff/PT caseload documents and office rosters/exports. Navigation alone does not

@@ -67,6 +67,24 @@ test("billing source must match current visit, patient, caregiver and source dat
   }
 });
 
+test("an empty related source result is explicit and never returns facts or zero balances", async () => {
+  for (const query of [caregiverQuery, billingQuery]) {
+    const f = fixture(), row = query.kind === "caregiver" ? f.rows.GetCaregiverDemographics : f.rows.GetVisitBillInfoV2;
+    row.records = [];
+    const result = await workspaceRoute(f.workspace, "POST", "/workspace/visit-context", query, "synthetic-admin");
+    assert.equal(f.calls.length, 3);
+    assert.equal(result?.status, 409);
+    assert.deepEqual(result?.body, { ok: false, error: "visit_context_source_empty" });
+    for (const invalid of ["truncated", "operation"] as const) {
+      const changed = fixture(), data = query.kind === "caregiver" ? changed.rows.GetCaregiverDemographics : changed.rows.GetVisitBillInfoV2;
+      data.records = [];
+      if (invalid === "truncated") data.truncated = true; else data.operation = "GetPatientDemographics";
+      const rejected = await workspaceRoute(changed.workspace, "POST", "/workspace/visit-context", query, "synthetic-admin");
+      assert.deepEqual(rejected?.body, { ok: false, error: "visit_context_source_not_unique" });
+    }
+  }
+});
+
 test("related source responses cannot escape ambiguous reads, changed policy or withdrawn release", async () => {
   for (const query of [caregiverQuery, billingQuery]) for (const mode of ["duplicate", "truncated", "operation", "policy", "withdraw"]) {
     const f = fixture(), row = query.kind === "caregiver" ? f.rows.GetCaregiverDemographics : f.rows.GetVisitBillInfoV2;

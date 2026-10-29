@@ -1166,6 +1166,24 @@ test('related source failures replace prior facts and respect the real quota del
   }
 });
 
+test('an explicit empty related read replaces prior facts without a zero balance or source actions', async () => {
+  for (const kind of ['caregiver', 'billing']) {
+    let empty = false;
+    const app = await relatedFixture(input => empty
+      ? { ...response({ ok: false, error: 'visit_context_source_empty' }), ok: false, status: 409 }
+      : response(relatedPayload(input)));
+    await clickNode(relatedButton(app, kind)); await tick(); await tick();
+    const host = app.element(kind === 'caregiver' ? 'dashboardCaregiverProfile' : 'dashboardBillingFacts');
+    assert.match(nodeText(host), /fetched/);
+    empty = true; await clickNode(relatedButton(app, kind)); await tick(); await tick();
+    const text = nodeText(host);
+    assert.match(text, kind === 'caregiver' ? /This read returned no caregiver profile/ : /This read returned no billing record/);
+    assert.match(text, kind === 'caregiver' ? /availability and eligibility remain unknown/ : /does not establish zero charges, payment or an AR balance/);
+    assert.doesNotMatch(text, /fetched|Synthetic caregiver|Billed amount \(source\) 0|Not supplied by HHA|Open records/);
+    assert.equal(descendants(host).filter(n => n.tagName === 'BUTTON').length, 0);
+  }
+});
+
 function connectedWorkspace({ dataApproved = true, enabledReads = ['GetPatientDemographics', 'GetVisitInfoV3'], preview = livePreview, history = () => response({ ok: true, items: [], nextCursor: null, source: 'manual_snapshot' }), authorizations = () => response({ ok: false, error: 'read_not_owner_enabled' }), patientVisit = () => response({ ok: false, error: 'read_not_owner_enabled' }) } = {}) {
   const settings = { revision: 1, officeId: '123', officeTimezone: 'America/Chicago', policyReference: '', enabledReads };
   const app = harness({ storedDataMode: null, metadata: liveMetadata, fetchSource: (path, options) => {

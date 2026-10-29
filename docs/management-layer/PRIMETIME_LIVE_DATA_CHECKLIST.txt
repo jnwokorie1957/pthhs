@@ -198,6 +198,12 @@ TAB 08 - BILLING & AR
     evidence and protected diagnostics, rather than another automatic read
     enablement. No settings changed; no cash, paid-claim, AR balance or readiness
     inference is added. See LIVE_SOURCE_ACCEPTANCE_2026-10-28.md.
+    October29: an explicit same-visit GetVisitBillInfoV2 read completed with
+    zero projected records. The related-source route/panel now distinguishes
+    that empty outcome from other verification failures, without returning
+    facts or inferring zero charges/payment/AR. The vendor-side cause remains
+    unknown; B02 still needs usable same-record facts and diagnostics. No source
+    read was enabled. See EMPTY_RELATED_READS_2026-10-29.md.
 [ ] B03 GetVisitInfoV3 BilledAmount is a source field, not collected cash.
     Do not invent cash collections, paid-claim stages, billing readiness or AR
     totals from visit times, billed amount, payroll hours or absent records.

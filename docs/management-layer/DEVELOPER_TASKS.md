@@ -1,5 +1,13 @@
 # PTHHS Management Layer — Developer Checklist
 
+- [x] October 29 related-source empty outcomes: return an explicit empty error
+  only for the expected non-truncated operation/source result with zero records.
+  Billing/caregiver panels replace prior facts and actions with truthful empty
+  messages, without zero-balance or eligibility inference. All 315 frontend/
+  tooling and 525 backend tests pass. B02 stays open for usable same-record
+  facts; next work is protected billing diagnostics and source/role contracts.
+  See [verification scope](EMPTY_RELATED_READS_2026-10-29.md).
+
 - [x] October 28, 17:07 UTC research reconciles bounded caregiver/Forms
   acceptance with separate navigation/server outcomes, accessible-patient and
   loaded-visit coverage, clinical document stages and office roster/export

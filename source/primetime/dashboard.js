@@ -636,7 +636,8 @@
         if (response.status === 429 && Number.isSafeInteger(payload.retryAfterSeconds) && payload.retryAfterSeconds > 0 && payload.retryAfterSeconds <= 600) {
           state.retryAt = Date.now() + payload.retryAfterSeconds * 1000; throw new Error(`Source read limit reached. Retry in ${payload.retryAfterSeconds} seconds.`);
         }
-        throw new Error(({ read_not_owner_enabled: 'The required source read is not enabled. Reload the page and review Settings.', caregiver_office_mismatch: 'The caregiver’s current office membership could not be verified.',
+        throw new Error(({ visit_context_source_empty: kind === 'caregiver' ? 'This read returned no caregiver profile. Staff availability and eligibility remain unknown. Retry from the source page.' : 'This read returned no billing record. This does not establish zero charges, payment or an AR balance. Retry from the source page.',
+          read_not_owner_enabled: 'The required source read is not enabled. Reload the page and review Settings.', caregiver_office_mismatch: 'The caregiver’s current office membership could not be verified.',
           visit_caregiver_changed_restart: 'The visit’s current caregiver changed. Reload the source page.', billing_visit_patient_mismatch: 'The billing source did not match the selected visit and patient.',
           billing_source_changed_restart: 'Visit and billing source details differ. Reload the source page before retrying.', office_policy_changed_restart: 'Office preferences changed. Reload the source page.',
           operational_data_release_not_approved: 'Source records are locked pending operational data release.' })[payload.error] || 'The source request could not be verified. Retry from the source page.');
