@@ -585,9 +585,12 @@
     const pair = (start, end) => `${start || 'Not supplied by HHA'}\n${end || 'Not supplied by HHA'}`;
     const captured = context();
     const { sourceScheduleHours, sourceActualHours } = window.primetimeSourceTime;
+    const detailCells = item => item.state === 'unavailable' ? Array(5).fill('Detail unavailable') : [
+      pair(item.scheduledStart, item.scheduledEnd), pair(item.actualStart, item.actualEnd), pair(item.evvStart, item.evvEnd),
+      view.mode === 'demo' ? 'Synthetic example' : sourceScheduleHours(item.scheduleDurationHours, item.scheduleDurationMinutes, null, item.scheduledStart, item.scheduledEnd),
+      view.mode === 'demo' ? 'Synthetic example' : sourceActualHours(item.actualHours, null, item.actualStart, item.actualEnd)];
     replace('dashboardVisitRows', table(['Visit', 'Patient ID', 'Caregiver ID', 'Scheduled start / end', 'Actual start / end', 'EVV start / end', 'Expected hours (HHA)', 'Actual hours (HHA)', 'Evidence state', 'Source records'],
-      view.items.map(item => [item.id, item.patientId, item.caregiverId, pair(item.scheduledStart, item.scheduledEnd), pair(item.actualStart, item.actualEnd), pair(item.evvStart, item.evvEnd),
-        view.mode === 'demo' ? 'Synthetic example' : sourceScheduleHours(item.scheduleDurationHours, item.scheduleDurationMinutes, null, item.scheduledStart, item.scheduledEnd), view.mode === 'demo' ? 'Synthetic example' : sourceActualHours(item.actualHours, null, item.actualStart, item.actualEnd),
+      view.items.map(item => [item.id, item.patientId, item.caregiverId, ...detailCells(item),
         item.state === 'unavailable' ? 'Detail unavailable: ' + item.detailReason : view.mode === 'demo' ? 'Synthetic example' : 'Source unvalidated', view.mode === 'demo' ? 'Synthetic record' : () => sourceRecordTools(view, item, captured)]), 'sourceVisitTable'));
     text('dashboardVisitStatus', view.mode === 'demo' ? 'Synthetic visit examples. No source request was made.' : view.state === 'partial' ? 'Partial source page returned. More pages, truncated search results or unavailable details are disclosed below.' : view.state === 'empty' ? 'No visit identifiers returned for this query. Complete office coverage is not established.' : 'Live HHA source page returned. Source fields are shown separately; operational classifications are pending.');
     text('dashboardVisitScope', `Office: ${view.scope.officeId || 'Unavailable'} · Date: ${view.scope.date} · Timezone: ${view.scope.timezone || 'Unconfigured'}`);

@@ -804,7 +804,7 @@ test('live default renders source counts, timeline, EVV and assignment evidence 
   assert.equal(nodeText(app.element('dashboardOverviewMetrics')).includes('DEMO'), false);
 });
 
-test('EVV and staffing distinguish unavailable detail reads from fields absent in returned details', async () => {
+test('Preview, EVV and staffing distinguish unavailable details from absent fields and supplied zero hours', async () => {
   let sourceRequests = 0;
   const app = harness({ storedDataMode: null, metadata: liveMetadata, fetchSource: path => {
     if (!path.startsWith('/primetime/api/views/visits?')) return response({ ok: true });
@@ -813,6 +813,7 @@ test('EVV and staffing distinguish unavailable detail reads from fields absent i
     payload.state = 'partial';
     payload.items[0].caregiverId = null;
     payload.items[0].actualStart = `${date}T08:04:00`;
+    Object.assign(payload.items[0], { actualHours: '0.00', scheduleDurationHours: '0', scheduleDurationMinutes: '0' });
     payload.items.push({ ...payload.items[0], id: '900002', state: 'unavailable', error: 'read_budget_exhausted_retry_next_minute',
       caregiverId: 'UNVERIFIED-CAREGIVER', actualEnd: 'UNVERIFIED-CLOCK', evvEnd: 'UNVERIFIED-EVV' });
     return response(payload);
@@ -820,7 +821,7 @@ test('EVV and staffing distinguish unavailable detail reads from fields absent i
   installDashboard(app); await app.signIn(); await tick(); await tick();
   const rows = id => app.element(id).children.find(child => child.className === 'table-wrap')
     .children[0].children.find(child => child.tagName === 'TBODY').children;
-  for (const id of ['dashboardExceptions', 'dashboardStaffing']) {
+  for (const id of ['dashboardVisitRows', 'dashboardExceptions', 'dashboardStaffing']) {
     const [returned, unavailable] = rows(id).map(nodeText);
     assert.match(returned, /900001/);
     assert.match(returned, /Not supplied by HHA/);
@@ -828,6 +829,9 @@ test('EVV and staffing distinguish unavailable detail reads from fields absent i
     assert.match(unavailable, /Detail unavailable: Shared read limit reached; retry next minute/);
     assert.doesNotMatch(unavailable, /Not supplied by HHA|UNVERIFIED-|08:04:00|08:00:00|12:00:00/);
   }
+  assert.deepEqual(rows('dashboardVisitRows')[1].children.slice(3, 8).map(nodeText), Array(5).fill('Detail unavailable'));
+  assert.match(nodeText(rows('dashboardVisitRows')[0]), /0 h 0 min · HHA/);
+  assert.match(nodeText(rows('dashboardVisitRows')[0]), /0.00 h · HHA/);
   assert.match(nodeText(rows('dashboardExceptions')[0]), /08:04:00/);
   assert.match(nodeText(rows('dashboardExceptions')[0]), /Source detail returned/);
   assert.match(nodeText(rows('dashboardStaffing')[0]), /Caregiver reference not supplied/);

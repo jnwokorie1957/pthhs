@@ -1,5 +1,16 @@
 # PTHHS
 
+October 29 Visit Preview now labels unreadable time/hour cells “Detail unavailable,”
+keeping them distinct from fields omitted by a readable source record. Supplied
+zero hours and genuine missing values remain intact. The expanded regression and
+all 315 frontend/tooling tests pass. See [scope](docs/management-layer/PREVIEW_UNAVAILABLE_FIELDS_2026-10-29.md).
+
+October 29, 18:55 UTC role research reconciles bounded Review/Preview comparisons,
+partial-page denominators and automatic refresh with proposed patient, staff/PT
+and office links. Four primary references rechecked; independent receipts and
+source/B02/P1-B/P2 contracts remain explicit. See
+[research](docs/management-layer/ROLE_WORKFLOW_RESEARCH.txt).
+
 October 29, 15:28 UTC role research connects the released empty-source explanation
 to proposed patient schedule/shared-file/invoice sections, staff/PT caseload and
 documentation, and office follow-up. Empty results, absent fields, independent

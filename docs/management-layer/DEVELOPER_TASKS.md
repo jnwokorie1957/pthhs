@@ -1,5 +1,17 @@
 # PTHHS Management Layer — Developer Checklist
 
+- [x] October 29 Preview unavailable-detail wording: all five time/hour cells say
+  “Detail unavailable” for an unread detail. Returned-record missing fields, zero
+  hours, specific failure reasons and chart denominators remain distinct. The
+  expanded regression fails before/passes after; all 315 frontend/tooling tests
+  pass. See [scope](PREVIEW_UNAVAILABLE_FIELDS_2026-10-29.md); source/B02/role contracts remain open.
+
+- [x] October 29, 18:55 UTC role research reconciles same-record Review/Preview
+  hours, partial denominators and automatic advance with proposed patient,
+  staff/PT and office links. Four primary sources rechecked; acceptance covers
+  different pages/receipts and current target permissions. Next: protected B02
+  diagnostics and source/P1-B/P2 examples. See [research](ROLE_WORKFLOW_RESEARCH.txt).
+
 - [x] October 29, 15:28 UTC role research reconciles the released empty related-read
   explanation with patient schedule/shared-file/invoice, staff/PT caseload and
   document, and office follow-up designs. Seven primary sources rechecked;
