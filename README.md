@@ -1,5 +1,12 @@
 # PTHHS
 
+October 29, 15:28 UTC role research connects the released empty-source explanation
+to proposed patient schedule/shared-file/invoice sections, staff/PT caseload and
+documentation, and office follow-up. Empty results, absent fields, independent
+receipts and role grants stay distinct. Seven primary sources rechecked; usable
+billing facts and existing source/P1-B/P2 contracts remain open. See the dated
+[research](docs/management-layer/ROLE_WORKFLOW_RESEARCH.txt); no runtime change.
+
 October 29 related-source empty results: Billing and caregiver panels now explain
 when their read returned no record, while keeping facts and prior actions clear.
 An empty billing read does not mean zero charges or payment. All 315 frontend/

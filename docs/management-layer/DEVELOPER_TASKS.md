@@ -1,5 +1,13 @@
 # PTHHS Management Layer — Developer Checklist
 
+- [x] October 29, 15:28 UTC role research reconciles the released empty related-read
+  explanation with patient schedule/shared-file/invoice, staff/PT caseload and
+  document, and office follow-up designs. Seven primary sources rechecked;
+  acceptance separates empty/absent/failed sections and current action grants.
+  B02 usable billing facts, source coverage and P1-B/P2 contracts remain open.
+  Next: protected same-record diagnostics and exact source/role/form examples.
+  See the dated [research](ROLE_WORKFLOW_RESEARCH.txt); no runtime change.
+
 - [x] October 29 related-source empty outcomes: return an explicit empty error
   only for the expected non-truncated operation/source result with zero records.
   Billing/caregiver panels replace prior facts and actions with truthful empty
