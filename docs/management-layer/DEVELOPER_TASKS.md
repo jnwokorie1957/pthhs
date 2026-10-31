@@ -15,8 +15,11 @@
   comparisons/contact rows remain unavailable while valid current facts display.
   40 adapter/query and347frontend/tooling tests pass; three browser regressions
   fail before/pass after. Normal push adds a separately gated analytics codebase
-  deployment; manual Hosting-only boundaries stay intact. Release/native source
-  acceptance remains pending; GA01/GA03 are open. See
+  deployment; manual Hosting-only boundaries stay intact. All three normal jobs
+  passed. Native both-site empty-historical/stream-realtime connections close
+  GA01 within those bounds; populated historical/quality/calculation acceptance
+  keeps GA02/GA03 open. The earlier Google grant is superseded, never submitted.
+  See
   [scope](ANALYTICS_SOURCE_CONTRACT_2026-10-31.md).
 
 - [x] October31,20:40UTC approved call-source recheck: fresh October24 preview
@@ -32,8 +35,9 @@
   runtime logs report Google403 insufficient property permissions; neither
   intended property lists the runtime account directly. Firebase-linked virtual
   users remain distinct from proven effective access. A restricted Viewer action
-  is prepared and awaits its specific confirmation; no grant was submitted.
-  GA01 connection and GA03 source-contract acceptance remain open in the
+  was prepared without submission. It is now superseded by successful native
+  reads after the new release, without a grant by this agent. GA01 is connected
+  within its empty-historical/stream-realtime bounds; GA03 remains open in the
   [connection checklist](PRIMETIME_LIVE_DATA_CHECKLIST.txt). See the exact
   [access evidence](../analytics-setup-2026-10-31.md#runtime-access-diagnosis).
 

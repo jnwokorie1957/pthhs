@@ -12,15 +12,19 @@ from zero, preserves quality/coverage, requests explicit reporting-calendar date
 and filters realtime to each configured web stream. Three regressions fail before
 and pass after;40adapter/query and347frontend/tooling tests pass after preserving
 the concurrent visit-receipt change and its535backend tests. The existing
-independent codebase now has a normal push deployment gate; native reporting
-access and populated acceptance remain pending. See
+independent codebase passed its new normal push gate, alongside Hosting and HHA.
+Native reads now verify both sites' empty historical reports and selected-stream
+realtime counts, with their actual source timezones. No Google grant was
+submitted; the prepared grant is superseded. Populated historical calculations
+and quality variants remain open. See
 [scope](docs/management-layer/ANALYTICS_SOURCE_CONTRACT_2026-10-31.md).
 
 October31,20:36UTC read-only console checks established the analytics runtime
 identity, confirmed its project's Data API is enabled, and found the actual
-Google403 insufficient-property-permissions error. A restricted Viewer grant
-for both intended properties is prepared for specific approval; no permission
-was changed. Reporting and source-contract acceptance remain open. See
+Google403 insufficient-property-permissions error. That earlier failure is
+superseded by successful native reads after the release above; its cause of
+resolution is unknown. No permission was changed by this agent. Broader source
+acceptance remains open. See
 [access evidence](docs/analytics-setup-2026-10-31.md#runtime-access-diagnosis) and
 GA01/GA03 in the
 [connection checklist](docs/management-layer/PRIMETIME_LIVE_DATA_CHECKLIST.txt).

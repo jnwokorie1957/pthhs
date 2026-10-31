@@ -43,7 +43,9 @@ The subsequent [source-contract change](management-layer/ANALYTICS_SOURCE_CONTRA
 adds strict reports, explicit dates, source-empty/quality evidence and selected
 web-stream realtime. Normal push now deploys the existing separate codebase
 after site checks using its frozen dependency lock; manual Hosting-only releases
-remain unchanged. Grant and populated source acceptance below are still pending.
+remain unchanged. Both report connections are now verified within the returned
+empty-historical/stream-realtime bounds below; populated historical acceptance
+remains open.
 
 At October31,20:36UTC, direct read-only checks in the existing signed-in Google
 consoles verified the following independently of the earlier reported setup:
@@ -67,15 +69,23 @@ The precise proposed correction is a direct **Viewer** grant to that verified
 runtime identity on PTHHS property546711548 and Ride Primetime property561765914,
 with **No Cost Metrics** and **No Revenue Metrics**, and email notifications off.
 The PTHHS form was prepared for review without clicking Add. Separate action-time
-confirmation is pending because this grants access to Google reporting data;
+confirmation was requested because this grants access to Google reporting data;
 the approved HHA call-source read is a different permission boundary. No new
 permission, credential, key, API activation or HHA setting was changed.
 
-After approval, apply only the reviewed grants, verify the entries and refresh
-the existing protected dashboard for each site. A grant entry is not a successful
-report. Exact returned schema, periods, empty/missing values, realtime isolation,
-quality metadata and chart calculations still require GA02/GA03 acceptance in
-the [live-data checklist](management-layer/PRIMETIME_LIVE_DATA_CHECKLIST.txt).
+That proposed action is now superseded. After release47a9e6c, native21:20-21:22UTC
+reads succeed for BOTH properties: actual empty historical reports and a returned
+count for each configured web stream, with receipts and explicit date ranges.
+PTHHS reports `Etc/GMT+5`; Ride reports `America/Chicago`. Cloud Run still selects
+the same verified compute identity. This agent submitted no Google grant or
+credential/API/role change, and closed the unsubmitted grant form. The previous
+confirmation question is no longer needed. Why the earlier403 changed is unknown.
+
+The source-empty historical cards remain unavailable, with no invented zeroes,
+table rows or charts. Native property changes first clear prior realtime/receipt
+facts. Actual populated historical calculations and quality/failure/expiry
+variants still require GA02/GA03 acceptance in the
+[live-data checklist](management-layer/PRIMETIME_LIVE_DATA_CHECKLIST.txt).
 
 The connected analytics plugin separately returned a subscription-required
 error; it supplied no property or permission evidence. Diagnosis used the native

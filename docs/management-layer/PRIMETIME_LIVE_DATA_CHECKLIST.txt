@@ -439,7 +439,8 @@ TAB 13 - SETTINGS
     keyboard access remains, and geometry checks passed390/1280/1920px.
 
 TAB 14 - WEBSITE ANALYTICS (ADDED OCTOBER31)
-[ ] GA01 Reporting is an independent Google Analytics source, not HHA.
+[x] GA01 Both configured Google Analytics report connections verified within
+    their returned-data bounds. This source is independent of HHA.
     Source: /primetime/api/website-analytics?site=pthhs&days=28 -> separately
     deployed website-analytics Functions codebase -> Google Analytics Data API
     historical and realtime reports. The owner authentication gate is separate
@@ -448,38 +449,31 @@ TAB 14 - WEBSITE ANALYTICS (ADDED OCTOBER31)
     day periods, prior-period comparisons, daily/page/channel/contact metrics,
     realtime visitors, reporting timezone and updatedAt. Server caching is60s,
     after authentication, with private/no-store responses. Code supports the
-    PTHHS and Ride Primetime properties; this audit's native read selected PTHHS.
-    October31 native PTHHS read showed the explicit Google reporting-access
-    message, six awaiting-report cards, no chart/report rows and no update
-    receipt. This is ACCESS PENDING, not zero activity or connected live reports.
-    The separate completed analytics setup records the same unresolved issue:
-    owner-approved/reported Viewer grants have not yielded a successful report.
-    October31,20:36UTC direct read-only console diagnosis: Cloud Run Security
-    identifies the deployed websiteanalytics identity as the default compute
-    account in project733708568001. The Analytics Data API is already enabled
-    in primetimehomehealthservices. Scoped websiteanalytics logs explicitly
-    report Google403 insufficient property permissions; this is not evidence
-    of an API-disabled, HHA-entitlement or empty-traffic result.
-    Unfiltered GA4 Property access management shows no direct entry for this
-    runtime identity on either intended property. PTHHS has four Firebase-linked
-    virtual users and the owner; Ride Primetime has only the owner. Linked
-    virtual users can provide inherited access, so direct-entry absence alone
-    does not establish effective permissions. The actual PTHHS API denial is
-    independent evidence. Ride's successful reporting remains unverified.
-    Exact proposed correction: restricted Viewer for the verified current
-    runtime identity on properties546711548 and561765914; No Cost Metrics and
-    No Revenue Metrics selected, email notification off. PTHHS form prepared
-    without submission; separate action-time approval requested. No new grant,
-    service-account key, role, API activation or credential change was made.
-    Precise next action: obtain approval for this exact Google permission
-    change, submit only the reviewed scope, verify the resulting role entries
-    and protected reports for both sites. Never infer success from adding a
-    role; preserve report/schema/freshness acceptance and GA03 below.
+    PTHHS and Ride Primetime properties. Earlier20:19/20:36UTC PTHHS reads and
+    scoped runtime logs actually returned Google403 insufficient property
+    permissions. Data API activation was already verified. A specific restricted
+    Viewer grant was prepared without submission while diagnosing the failure;
+    direct-entry absence alone did not establish inherited permissions.
+    After release47a9e6c, native21:20-21:22UTC reads for BOTH properties succeed.
+    The strict adapter accepts their actual five empty historical reports and
+    each selected web stream's realtime active-user count. All six historical
+    cards remain unavailable, with no fabricated zero, daily chart or table
+    rows. Exact current/previous dates, source quality/unknown-row-total notes
+    and report receipts display. Switching properties first clears prior
+    realtime/receipt facts. PTHHS reports Etc/GMT+5; Ride reports America/Chicago.
+    Do not replace either source timezone with a central-time default.
+    Post-release Cloud Run still selects the same verified default compute
+    identity in project733708568001. This agent submitted NO Google grant,
+    role, key, API activation or credential change. The prior grant question is
+    superseded and its unsubmitted form was closed; no extra permission is
+    currently needed. Why the earlier denial changed is not established.
+    This proves real empty-historical and populated realtime connections, not
+    populated historical chart/calculation or all quality-variant acceptance.
     Existing setup: docs/analytics-setup-2026-10-31.md.
-[ ] GA02 Verify report validation, exact chart calculations and failure freshness
-    once authorized reports return. Code inspection: a failed refresh changes
-    its status but does not clear a previously rendered successful report or
-    realtime count. The current first-read failure had no older facts to expose;
+[ ] GA02 Complete real report/chart calculation and failure-freshness acceptance.
+    Initial code inspection found a failed refresh changed its status without
+    clearing previous successful metrics/realtime. That first-read failure had
+    no older facts to expose;
     a populated-to-failed native transition is not yet proved. Add meaningful
     failure/context/number-shape regressions, preserve source empties separately
     from invalid data and never leave an older realtime number labeled current.
@@ -503,14 +497,15 @@ TAB 14 - WEBSITE ANALYTICS (ADDED OCTOBER31)
     malformed and timed-expiry transitions retain synthetic acceptance limits;
     real Google report calculations and the broader GA02 requirement stay open.
     See docs/management-layer/ANALYTICS_REPORT_VALIDATION_2026-10-31.md.
-[ ] GA03 The existing independent server adapter still needs direct upstream
-    schema/empty-reason/sampling/truncation and explicit report-period evidence.
-    It currently defaults some omitted values/summary sections to zero and falls
-    back to a timezone. Frontend validation cannot distinguish those substituted
-    values from source-supplied zeroes. Do not claim the whole Google report path
-    is validated, a live report returned, or all calculations are accepted from
-    frontend fixtures alone. Preserve source access gates and the separate
-    website-analytics deployment boundary while addressing that adapter.
+    Later47a9e6c native acceptance adds successful empty-historical/populated-
+    realtime responses for both properties and clears realtime/receipt on site
+    change. Historical chart calculations and native failure/expiry after a
+    populated historical report remain open; synthetic tests are not that proof.
+[ ] GA03 Complete actual source schema/quality/calendar/calculation acceptance.
+    The former adapter defaulted omitted values/summary sections to zero and
+    a missing timezone. These implementation defects are now corrected below.
+    Do not infer all quality variants or populated historical calculations from
+    frontend fixtures or a successful source-empty response.
     October31 implementation replaces these defaults with strict requested
     schemas, null missing summary periods, preserved metadata/row coverage,
     explicit source-calendar date windows and web-stream-filtered realtime.
@@ -518,8 +513,12 @@ TAB 14 - WEBSITE ANALYTICS (ADDED OCTOBER31)
     facts with an empty comparison remain distinct. 40adapter/query and347root
     tests pass; three browser regressions fail against the former module.
     Normal push workflow adds a separate website-analytics codebase job after
-    site checks; manual releases stay Hosting-only. Release/native acceptance
-    is pending. GA01 and populated/quality/calculation acceptance keep GA03 open.
+    site checks; manual releases stay Hosting-only. Normalworkflow41242691339
+    passed Hosting21:15:35/backend21:16:48/analytics21:17:40UTC. At21:20UTC,
+    12exactappassets and9anonymous401/noindexboundaries passed. Actual source
+    timezone/empty-historical/stream-realtime variants now pass natively on
+    both sites; populated historical/quality variants and calculations keep
+    GA03 open. Combined535backend/347root/40analytics tests pass.
     See docs/management-layer/ANALYTICS_SOURCE_CONTRACT_2026-10-31.md.
 
 NEXT IMPLEMENTATION ORDER
