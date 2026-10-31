@@ -1,5 +1,15 @@
 # PTHHS Management Layer — Developer Checklist
 
+- [x] October 31 raw-call investigation: EVV now has a protected, scoped HHA
+  call-event reader with independent receipts and truthful empty states. Normal
+  Hosting/backend release passed; the human approved only the eighth read method.
+  Three historical missing-EVV-end examples returned successful empty responses;
+  no missing punch was recovered or substituted. 530 backend/324 frontend-tooling
+  tests and responsive geometry passed. Populated native events, source retention
+  and exact visit linkage remain open in E04 of the
+  [live-data checklist](PRIMETIME_LIVE_DATA_CHECKLIST.txt). Production verification
+  accounted for the concurrent analytics overlay and preserved it.
+
 - [x] October 31, 16:18 UTC role research distinguishes recurring/generated
   visits, current schedule and schedule-change requests from supplied actual/EVV
   evidence. New R55/R56 and rechecked R17 refine source-history, exact role links

@@ -85,7 +85,7 @@ TAB 03 - EVV EXCEPTIONS
 [ ] E02 Classified exception queue depends on accepted diagnosis/policy evidence
     and local revision exception records. Keep classification separate from raw
     punch presence, and connect genuine local follow-up where available.
-[ ] E03 Raw call evidence: GetCallDashBoardData filters by office, patient,
+[x] E03 Raw call evidence: GetCallDashBoardData filters by office, patient,
     caregiver and day, returning CallDashboardID, CallTime, CallType and CallStatus
     plus patient/caregiver references. The captured response has no VisitID.
     A new protected /workspace/visit-calls route rechecks the fresh visit,
@@ -96,8 +96,39 @@ TAB 03 - EVV EXCEPTIONS
     empty/truncated states, context fences and actual quota delays pass530backend
     and324frontend/tooling tests plus full Windows checks. The source is bounded
     to200records, not complete history or an accepted event-to-visit matching rule.
-    GetCallDashBoardData remains unselected in inspected read controls. Normal
-    release, explicit activation and native source acceptance are still pending.
+    Releasefbc16f81aff766f03085155017ed7430fcc51336 passed both normal jobs in
+    workflow41222454604 (Hosting17:01:53UTC/backend17:03:32UTC). The human then
+    explicitly approved this read. Native owner controls added only this method,
+    preserving the seven existing reads and all other preferences; eight reads
+    are selected, with zero write workflows approved.
+    October31 signed-in production: three separate readable October24 visits
+    with missing original EVV ends each returned a successful HHA receipt and
+    zero call events. Each original EVV row stayed unchanged. This verifies the
+    connection and truthful empty state, not recovery of a missing clock-out.
+    That later page had eight readable details and two unavailable/deferred
+    details; do not confuse those unread records with empty returned fields.
+    Mobile390px and normal1280px geometry: no page/panel overflow or clipped
+    call controls. Tests cover populated/foreign/late/quota responses; populated
+    raw call rows have not yet received native acceptance.
+    At17:08UTC public verification reconciled eight exact feature artifacts plus
+    two separately deployed concurrent analytics overlay files; eight anonymous
+    protected routes returned401. This was composite feature verification.
+    The analytics work subsequently landed in267ef2e and was fast-forwarded into
+    this checkout without conflicts. At17:17UTC all ten checked app artifacts
+    exactly matched that combined commit and all eight auth boundaries passed.
+    Preserve that concurrent feature; the
+    evidence-only acceptance update does not redeploy or rewrite its runtime.
+[ ] E04 Establish usable raw-call evidence and source linkage, if available.
+    The October31 empty responses do not establish retention/filter semantics,
+    complete history, absence of an original punch, or an event-to-visit join.
+    The official contract rechecked October31 contains CallDashboardID,
+    CallTime, CallType, CallStatus and subject references but no VisitID:
+    https://app.hhaexchange.com/Integration/ENT/V1.8/ws.asmx?op=GetCallDashBoardData
+    Next source evidence: compare one affected visit's original EVV/call history
+    in the normal HHA application with this exact office/patient/caregiver/day
+    read, and establish which retained call statuses/dates this API exposes.
+    Do not copy private examples to Git, substitute recorded/scheduled hours,
+    broaden patient scope or assign events automatically to remove a gap.
 
 TAB 04 - VISIT PREVIEW
 [x] P01 Schedule times/duration: GetVisitInfoV3 ScheduleStartTime,
@@ -127,6 +158,9 @@ TAB 04 - VISIT PREVIEW
     remained absent. Keep that remaining original-punch/hour gap open. No alternate
     endpoint has yet established a matching missing raw clock-out. The10rows are
     one selected source page, not full-office or every-visit completion.
+    Later October31 E03 checks reached the approved raw-call API for three
+    affected historical visits and returned zero events for each. No matching
+    missing clock-out was recovered. E04 retains the exact next source evidence.
 [x] P04 Connected missing-time cells now say 'Not supplied by HHA'. This preserves
     actual source omissions and existing unconverted times/clock-span labels.
 [x] P05 Record controls: all seven actions remain reachable without cropped
@@ -282,8 +316,10 @@ TAB 12 - ADVANCED TOOLS
 [ ] W02 The initial October24 audit had five selected owner read operations:
     GetOfficesV2, SearchVisitsV2, SearchPatientAuthorizations, GetVisitInfoV3,
     GetPatientDemographics. Owner-approved GetCaregiverDemographics and
-    GetVisitBillInfoV2 were added October27 and remain selected October31 (7total).
-    GetCallDashBoardData is not selected. Other operations must be mapped, scope-audited,
+    GetVisitBillInfoV2 were added October27. On October31 the human explicitly
+    approved GetCallDashBoardData; only that eighth read was added. Three live
+    historical reads returned successful empty results (E03), not recovered times.
+    Other operations must be mapped, scope-audited,
     entitlement-tested and enabled deliberately under the connection request.
 [ ] W03 Distinguish an owner-disabled operation, vendor-contract block, API quota,
     empty successful response, release lock and unexpected server failure in UI.
@@ -341,10 +377,10 @@ verified before S02/B02 can be checked complete.
 
 READ OPERATION INVENTORY
 The following generated appendix names every read exposed in Advanced tools and
-whether it was selected in the October24 inspected owner configuration; it is
-retained as dated evidence, not the current selection list. The October28 native
-patient/caregiver/billing-control observations above supersede their old gate
-status within their stated bounds. A selected read is
+the initial October24 owner selection, with affected entries updated by the
+October28 patient/caregiver/billing observations and October31 explicit call-read
+approval and native empty acceptance above. Other entries remain dated evidence,
+not a fresh exhaustive settings audit. A selected read is
 not proof of full field semantics, successful entitlement or complete coverage.
 Unselected reads are work to scope and verify, not automatically failed APIs.
 
@@ -480,7 +516,7 @@ Unselected reads are work to scope and verify, not automatically failed APIs.
 [ ] GetPatientNoteChanges
 [ ] GetPatientNotes
 [ ] GetCaregiverNotes
-[ ] GetCallDashBoardData
+[ENABLED] GetCallDashBoardData
 [ ] GetReferralSource
 [ ] GetReferralSourceContact
 [ ] GetPatientAddress

@@ -1,5 +1,13 @@
 # PTHHS
 
+October 31 EVV source call events: administrators can inspect a bounded HHA
+response for the selected visit's patient, caregiver, office and day. The human
+approved the read and three historical requests returned successful empty
+results. Missing original EVV ends remain open; event times never replace them.
+Normal release, 530 backend/324 frontend-tooling tests and responsive checks
+passed. See E03/E04 in the
+[live-data checklist](docs/management-layer/PRIMETIME_LIVE_DATA_CHECKLIST.txt).
+
 October 31, 16:18 UTC role research separates recurring plans, current source
 schedules, proposed requests and recorded/EVV hours. Two new primary sources
 refine source-history and role-link acceptance without inferring rounding,
