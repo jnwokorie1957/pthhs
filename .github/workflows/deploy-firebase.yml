@@ -106,3 +106,34 @@ jobs:
       - name: Report authenticated acceptance pending
         if: ${{ !cancelled() && (steps.deploy_functions.outcome == 'success' || steps.deploy_functions.outcome == 'failure') }}
         run: node functions/scripts/report-acceptance-pending.mjs
+
+  # The website report source is an existing independent Functions codebase.
+  # Keep Hosting-only manual releases and the HHA backend deployment separate.
+  deploy_website_analytics:
+    if: github.event_name == 'push'
+    needs: build_and_deploy
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+      - name: Setup Node.js for website analytics
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install pinned deployment tools
+        run: npm install -g pnpm@11.25.0 firebase-tools@15.30.0
+      - name: Install locked website analytics dependencies
+        run: pnpm --dir analytics-functions install --frozen-lockfile --ignore-scripts
+      - name: Verify website report contract
+        run: pnpm --dir analytics-functions test
+      - name: Prepare existing Firebase deployment credentials
+        shell: bash
+        run: |
+          printf '%s' '${{ secrets.FIREBASE_SERVICE_ACCOUNT_PRIMETIMEHOMEHEALTHSERVICES }}' > "$RUNNER_TEMP/firebase-service-account.json"
+          chmod 600 "$RUNNER_TEMP/firebase-service-account.json"
+      - name: Deploy only the website analytics codebase
+        env:
+          GOOGLE_APPLICATION_CREDENTIALS: ${{ runner.temp }}/firebase-service-account.json
+        run: firebase deploy --config firebase.analytics.json --only functions:website-analytics --project primetimehomehealthservices --non-interactive
+      - name: Verify anonymous website analytics boundary
+        run: node analytics-functions/verify-deployment.mjs

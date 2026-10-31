@@ -39,6 +39,12 @@ The standard Hosting rewrite for `/primetime/api/website-analytics` targets this
 
 ## Runtime access diagnosis
 
+The subsequent [source-contract change](management-layer/ANALYTICS_SOURCE_CONTRACT_2026-10-31.md)
+adds strict reports, explicit dates, source-empty/quality evidence and selected
+web-stream realtime. Normal push now deploys the existing separate codebase
+after site checks using its frozen dependency lock; manual Hosting-only releases
+remain unchanged. Grant and populated source acceptance below are still pending.
+
 At October31,20:36UTC, direct read-only checks in the existing signed-in Google
 consoles verified the following independently of the earlier reported setup:
 

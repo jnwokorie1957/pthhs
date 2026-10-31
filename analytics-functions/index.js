@@ -2,7 +2,8 @@ import {onRequest} from 'firebase-functions/v2/https';
 import {initializeApp} from 'firebase-admin/app';
 import {getAuth} from 'firebase-admin/auth';
 import {GoogleAuth} from 'google-auth-library';
-import {SITES,reportRequests,shapeReports,rows} from './report.js';
+import {SITES} from './report.js';
+import {queryReports} from './query.js';
 initializeApp();
 const auth = new GoogleAuth({scopes:['https://www.googleapis.com/auth/analytics.readonly']});
 const cache = new Map();
@@ -18,17 +19,8 @@ async function owner(request) {
   } catch {return false;}
 }
 async function query(siteKey,days) {
-  const {site,requests}=reportRequests(siteKey,days);
   const client=await auth.getClient();
-  const base='https://analyticsdata.googleapis.com/v1beta/properties/'+site.property;
-  const batch=await client.request({url:base+':batchRunReports',method:'POST',data:{requests},timeout:20000,retry:false});
-  let realtime=null,realtimeError=null;
-  try {
-    const live=await client.request({url:base+':runRealtimeReport',method:'POST',data:{metrics:[{name:'activeUsers'}]},timeout:15000,retry:false});
-    realtime=rows(live.data)[0]?.activeUsers||0;
-  } catch {realtimeError='Live visitors are temporarily unavailable.';}
-  return {ok:true,site:siteKey,name:site.name,days,propertyId:site.property,...shapeReports(batch.data.reports),realtime,realtimeError,updatedAt:new Date().toISOString(),
-    periodNote:'Historical reports end yesterday. Recent data can take 24–48 hours to finish processing. Live visitors cover the last 30 minutes.'};
+  return queryReports(client,siteKey,days);
 }
 export const websiteAnalytics=onRequest({region:'us-central1',memory:'256MiB',timeoutSeconds:60,maxInstances:1,concurrency:10,invoker:'public'},async(request,response)=>{
   response.set({'Cache-Control':'private, no-store','X-Robots-Tag':'noindex, nofollow, noarchive','X-Content-Type-Options':'nosniff'});

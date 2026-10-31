@@ -44,9 +44,11 @@ test('workflow retains push behavior and excludes backend on every manual releas
   });
   assert.equal(evaluate('build_and_deploy', 'push', 'refs/heads/main'), true);
   assert.equal(evaluate('deploy_backend', 'push', 'refs/heads/main'), true);
+  assert.equal(evaluate('deploy_website_analytics', 'push', 'refs/heads/main'), true);
   for (const target of ['hosting', 'backend', 'all', undefined]) {
     for (const ref of ['refs/heads/main', 'refs/heads/other']) {
       assert.equal(evaluate('deploy_backend', 'workflow_dispatch', ref, target), false);
+      assert.equal(evaluate('deploy_website_analytics', 'workflow_dispatch', ref, target), false);
       assert.equal(evaluate('build_and_deploy', 'workflow_dispatch', ref, target), ref === 'refs/heads/main' && target === 'hosting');
     }
   }
@@ -55,4 +57,13 @@ test('workflow retains push behavior and excludes backend on every manual releas
   assert.match(siteJob, /node scripts\/verify-hosting-only\.mjs/);
   assert.match(siteJob, /FirebaseExtended\/action-hosting-deploy@v0/);
   assert.doesNotMatch(siteJob, /firebase deploy|functions:|--prefix functions/);
+});
+
+test('website analytics deploy stays behind site checks and within its existing codebase',()=>{
+  const job=workflow.split('  deploy_website_analytics:')[1];
+  assert.match(job,/needs: build_and_deploy/);assert.match(job,/--frozen-lockfile --ignore-scripts/);
+  assert.match(job,/pnpm --dir analytics-functions test/);
+  assert.match(job,/firebase deploy --config firebase.analytics.json --only functions:website-analytics --project primetimehomehealthservices --non-interactive/);
+  assert.doesNotMatch(job,/--force|--only functions\s|--only firestore|--only storage|--config firebase\.json/);
+  assert.deepEqual(JSON.parse(fs.readFileSync('firebase.analytics.json','utf8')),{functions:[{source:'analytics-functions',codebase:'website-analytics'}]});
 });

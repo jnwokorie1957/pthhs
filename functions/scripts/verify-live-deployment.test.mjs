@@ -46,7 +46,8 @@ test('CI summary retains blocked acceptance instead of passing or exposing ambie
 
 test('deployment reports pending acceptance after either outcome without claiming verification or suppressing failures', () => {
   const workflow = readFileSync(new URL('../../.github/workflows/deploy-firebase.yml', import.meta.url), 'utf8');
-  const section = workflow.split('      - name: Report authenticated acceptance pending')[1];
+  // Credential isolation applies to this reporting step, not later deploy jobs.
+  const section = workflow.split('      - name: Report authenticated acceptance pending')[1]?.split(/\r?\n(?= {2}\S| {6}- name:)/)[0];
   assert.ok(section, 'deployment must keep manual acceptance visibly pending');
   assert.ok(section.includes("if: ${{ !cancelled() && (steps.deploy_functions.outcome == 'success' || steps.deploy_functions.outcome == 'failure') }}"));
   assert.ok(section.includes('run: node functions/scripts/report-acceptance-pending.mjs'));

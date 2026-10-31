@@ -503,6 +503,16 @@ TAB 14 - WEBSITE ANALYTICS (ADDED OCTOBER31)
     is validated, a live report returned, or all calculations are accepted from
     frontend fixtures alone. Preserve source access gates and the separate
     website-analytics deployment boundary while addressing that adapter.
+    October31 implementation replaces these defaults with strict requested
+    schemas, null missing summary periods, preserved metadata/row coverage,
+    explicit source-calendar date windows and web-stream-filtered realtime.
+    Separate historical/realtime receipts, legitimate zeros and valid current
+    facts with an empty comparison remain distinct. 40adapter/query and347root
+    tests pass; three browser regressions fail against the former module.
+    Normal push workflow adds a separate website-analytics codebase job after
+    site checks; manual releases stay Hosting-only. Release/native acceptance
+    is pending. GA01 and populated/quality/calculation acceptance keep GA03 open.
+    See docs/management-layer/ANALYTICS_SOURCE_CONTRACT_2026-10-31.md.
 
 NEXT IMPLEMENTATION ORDER
 1. Investigate the next additional bounded staff, billing, authorization-detail

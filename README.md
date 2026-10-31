@@ -6,6 +6,15 @@ or operational interpretation is added. All 535 backend/343 frontend-tooling
 tests pass; release/native acceptance are pending. See
 [scope](docs/management-layer/VISIT_READ_RECEIPTS_2026-10-31.md).
 
+October31 analytics source-contract implementation keeps empty reports separate
+from zero, preserves quality/coverage, requests explicit reporting-calendar dates
+and filters realtime to each configured web stream. Three regressions fail before
+and pass after;40adapter/query and347frontend/tooling tests pass after preserving
+the concurrent visit-receipt change and its535backend tests. The existing
+independent codebase now has a normal push deployment gate; native reporting
+access and populated acceptance remain pending. See
+[scope](docs/management-layer/ANALYTICS_SOURCE_CONTRACT_2026-10-31.md).
+
 October31,20:36UTC read-only console checks established the analytics runtime
 identity, confirmed its project's Data API is enabled, and found the actual
 Google403 insufficient-property-permissions error. A restricted Viewer grant

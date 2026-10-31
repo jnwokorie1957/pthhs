@@ -533,11 +533,14 @@ function nodeText(node) { return [node.textContent || '', ...node.children.map(c
 
 function analyticsReport(site='pthhs',days=28){
   const current={screenPageViews:7203,sessions:20,activeUsers:12,engagementRate:0.5,averageSessionDuration:75};
-  return {ok:true,site,days,name:site==='pthhs'?'PTHHS':'Ride Primetime',propertyId:site==='pthhs'?'546711548':'561765914',current,previous:{...current,screenPageViews:6000},
+  const shift=n=>new Date(Date.parse('2026-10-31T00:00:00Z')+n*86400000).toISOString().slice(0,10);
+  const coverage=Object.fromEntries([['summary',2],['trend',2],['pages',1],['channels',1],['events',2]].map(([key,n])=>[key,{returnedRows:n,totalRows:n,limited:false,emptyReason:null}]));
+  return {ok:true,contractVersion:2,site,days,name:site==='pthhs'?'PTHHS':'Ride Primetime',propertyId:site==='pthhs'?'546711548':'561765914',current,previous:{...current,screenPageViews:6000},coverage,
+    periods:{asOfDate:'2026-10-31',current:{startDate:shift(-days),endDate:shift(-1)},previous:{startDate:shift(-days*2),endDate:shift(-days-1)}},
     trend:[{date:'20261030',screenPageViews:9,sessions:3},{date:'20261028',screenPageViews:7,sessions:2}],
     pages:[{pagePath:'/synthetic-public-page',screenPageViews:11,activeUsers:8}],channels:[{sessionDefaultChannelGroup:'Direct',sessions:10,activeUsers:8}],
     events:[{eventName:'phone_click',eventCount:2},{eventName:'email_click',eventCount:3}],realtime:4,realtimeError:null,dataQuality:null,timeZone:'America/Chicago',
-    updatedAt:'2026-10-31T18:00:00.000Z',periodNote:'Synthetic report period; source dates only.'};
+    realtimeStreamId:site==='pthhs'?'16244033088':'16244067646',realtimeUpdatedAt:'2026-10-31T18:00:00.000Z',updatedAt:'2026-10-31T18:00:00.000Z',periodNote:'Synthetic report period; source dates only.'};
 }
 async function analyticsApp(read=()=>response(analyticsReport())){
   const app=harness({storedDataMode:null,fetchSource:read});
@@ -575,14 +578,41 @@ test('analytics plots source dates without invented zero days or lines across mi
   assert.ok(daily.indexOf('10/28/2026')<daily.indexOf('10/30/2026'));assert.doesNotMatch(daily,/10\/29\/2026/);
   const svg=app.element('waChart').children[0];const paths=svg.children.filter(n=>n.d!==undefined);
   assert.equal(paths.length,2);assert.ok(paths.every(n=>(n.d.match(/M/g)||[]).length===2&&!n.d.includes('L')));
-  assert.match(nodeText(app.element('waMetrics')),/50.0%|1m 15s/);assert.match(nodeText(app.element('waMetrics')),/Phone & email clicks 5/);
+  assert.match(nodeText(app.element('waMetrics')),/50.0%|1m 15s/);assert.match(nodeText(app.element('waMetrics')),/Reported phone & email clicks 5/);
 });
 test('analytics preserves real zeros and distinguishes missing realtime from a zero count',async()=>{
   for(const realtime of [0,null]){const app=await analyticsApp(()=>{const d=analyticsReport();for(const item of [d.current,d.previous])for(const key of Object.keys(item))item[key]=0;
-    Object.assign(d,{trend:[],pages:[],channels:[],events:[],realtime,realtimeError:realtime===null?'Unavailable at source':null});return response(d);});
+    Object.assign(d,{trend:[],pages:[],channels:[],events:[],realtime,realtimeError:realtime===null?'Unavailable at source':null});for(const key of ['trend','pages','channels','events'])d.coverage[key]={returnedRows:0,totalRows:0,limited:false,emptyReason:null};return response(d);});
     assert.equal(app.element('waStatus').classList.contains('wa-error'),false);assert.equal(app.element('waLive').textContent,realtime===0?'0':'Unavailable');
     assert.match(nodeText(app.element('waChart')),/No daily source rows/);assert.match(nodeText(app.element('waDaily')),/No source rows/);
     assert.match(nodeText(app.element('waMetrics')),/0.0%/);assert.match(app.element('waUpdated').textContent,/Updated/);
+  }
+});
+test('analytics source-empty summaries do not become zero and missing comparison does not erase current facts',async()=>{
+  for(const emptyCurrent of [true,false]){
+    const app=await analyticsApp(()=>{const d=analyticsReport();d.previous=null;if(emptyCurrent)d.current=null;
+      d.coverage.summary={returnedRows:emptyCurrent?0:1,totalRows:emptyCurrent?0:1,limited:false,emptyReason:emptyCurrent?'NO_DATA':null};
+      d.dataQuality=emptyCurrent?'Summary empty: NO_DATA':'No comparison summary row returned.';return response(d);});
+    assert.equal(app.element('waStatus').classList.contains('wa-error'),false);
+    const cards=nodeText(app.element('waMetrics'));
+    if(emptyCurrent){assert.match(cards,/No summary row returned/);assert.doesNotMatch(cards,/Page views 0|Sessions 0|0.0%/);}else{assert.match(cards,/7,203/);assert.match(cards,/Comparison not returned/);}
+    assert.match(app.element('waStatus').textContent,/2026-10-03 to 2026-10-30.*2026-09-05 to 2026-10-02/);
+  }
+});
+test('analytics missing contact rows remain unavailable; explicit contact zero and source-quality warnings remain visible',async()=>{
+  for(const supplied of [false,true]){
+    const app=await analyticsApp(()=>{const d=analyticsReport();d.events=supplied?[{eventName:'phone_click',eventCount:0}]:[];
+      d.coverage.events={returnedRows:d.events.length,totalRows:d.events.length,limited:false,emptyReason:null};
+      d.coverage.pages.totalRows=20;d.coverage.pages.limited=true;d.dataQuality='Pages: 1 of 20 source rows returned. Pages uses sampled source data.';return response(d);});
+    assert.match(nodeText(app.element('waMetrics')),supplied?/Reported phone & email clicks 0/:/No contact event rows returned/);
+    assert.match(app.element('waStatus').textContent,/1 of 20.*sampled/);assert.match(nodeText(app.element('waPages')),/synthetic-public-page/);
+  }
+});
+test('analytics rejects wrong periods, stream or coverage instead of rendering mismatched live facts',async()=>{
+  for(const change of [d=>delete d.contractVersion,d=>d.periods.current.endDate='2026-11-01',d=>d.realtimeStreamId='999',
+    d=>d.coverage.pages.returnedRows=0,d=>d.coverage.summary.totalRows=1,d=>d.trend[0].date='20261101',d=>d.realtimeUpdatedAt='2026-10-31T17:59:59.000Z',d=>d.periods=analyticsReport('pthhs',7).periods]){
+    const app=await analyticsApp(()=>{const d=analyticsReport();change(d);return response(d);});
+    assert.equal(app.element('waStatus').classList.contains('wa-error'),true);assert.doesNotMatch(nodeText(app.element('waMetrics')),/7,203/);assert.equal(app.element('waLive').textContent,'—');
   }
 });
 test('analytics expires retained facts without making hidden source requests',async()=>{

@@ -10,26 +10,38 @@
   const duration=value=>{const s=Math.round(value);return Math.floor(s/60)+'m '+s%60+'s';};
   function verified(data,scope){
     const properties={pthhs:'546711548',rideprimetime:'561765914'};
+    const streams={pthhs:'16244033088',rideprimetime:'16244067646'};
     const validText=value=>typeof value==='string'&&value.trim()!==''&&value.length<=2048;
     const count=value=>Number.isSafeInteger(value)&&value>=0;
     const number=value=>typeof value==='number'&&Number.isFinite(value)&&value>=0&&value<=Number.MAX_SAFE_INTEGER;
     const summary=row=>row&&['screenPageViews','sessions','activeUsers'].every(key=>count(row[key]))&&number(row.averageSessionDuration)&&number(row.engagementRate)&&row.engagementRate<=1;
     const age=Date.now()-Date.parse(data?.updatedAt);
-    if(data?.ok!==true||!Object.hasOwn(properties,scope.site)||data.site!==scope.site||data.propertyId!==properties[scope.site]||data.days!==scope.days||![7,28,90].includes(data.days)
-      ||!summary(data.current)||!summary(data.previous)||!Number.isFinite(age)||age< -60000||age>120000
+    if(data?.ok!==true||data.contractVersion!==2||!Object.hasOwn(properties,scope.site)||data.site!==scope.site||data.propertyId!==properties[scope.site]||data.days!==scope.days||![7,28,90].includes(data.days)
+      ||data.current!==null&&!summary(data.current)||data.previous!==null&&!summary(data.previous)||!Number.isFinite(age)||age< -60000||age>120000
       ||typeof data.updatedAt!=='string'||new Date(data.updatedAt).toISOString()!==data.updatedAt||!validText(data.timeZone)
-      ||!validText(data.periodNote)||![null,undefined].includes(data.dataQuality)&&!validText(data.dataQuality)
+      ||!validText(data.periodNote)||![null,undefined].includes(data.dataQuality)&&!(typeof data.dataQuality==='string'&&data.dataQuality.length>0&&data.dataQuality.length<=8192)
       ||data.realtime!==null&&!count(data.realtime)||data.realtime===null&&!validText(data.realtimeError))throw new Error('invalid_report');
     new Intl.DateTimeFormat('en',{timeZone:data.timeZone});
+    const p=data.periods,iso=value=>typeof value==='string'&&/^\d{4}-\d\d-\d\d$/.test(value)&&new Date(value+'T00:00:00Z').toISOString().slice(0,10)===value;
+    const shift=(value,n)=>new Date(Date.parse(value+'T00:00:00Z')+n*86400000).toISOString().slice(0,10);
+    if(!p||!iso(p.asOfDate)||!['current','previous'].every(key=>iso(p[key]?.startDate)&&iso(p[key]?.endDate))
+      ||p.current.startDate!==shift(p.asOfDate,-data.days)||p.current.endDate!==shift(p.asOfDate,-1)||p.previous.startDate!==shift(p.asOfDate,-2*data.days)||p.previous.endDate!==shift(p.asOfDate,-data.days-1)
+      ||data.realtimeStreamId!==streams[scope.site]||data.realtime!==null&&typeof data.realtimeUpdatedAt!=='string'
+      ||data.realtimeUpdatedAt!==null&&(!Number.isFinite(Date.parse(data.realtimeUpdatedAt))||new Date(data.realtimeUpdatedAt).toISOString()!==data.realtimeUpdatedAt||Date.parse(data.realtimeUpdatedAt)<Date.parse(data.updatedAt)||Date.parse(data.realtimeUpdatedAt)-Date.parse(data.updatedAt)>60000||Date.parse(data.realtimeUpdatedAt)-Date.now()>60000))throw new Error('invalid_report');
+    const calendar=new Intl.DateTimeFormat('en-CA',{timeZone:data.timeZone,year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date(data.updatedAt));
+    if(p.asOfDate!==calendar&&p.asOfDate!==shift(calendar,-1))throw new Error('invalid_report');
     const rows=(items,max,dimension,metrics)=>{
       const seen=new Set();
       if(!Array.isArray(items)||items.length>max||items.some(row=>!row||!validText(row[dimension])||seen.has(row[dimension])||!seen.add(row[dimension])||metrics.some(key=>!count(row[key]))))throw new Error('invalid_report');
     };
     rows(data.trend,data.days,'date',['screenPageViews','sessions']);rows(data.pages,10,'pagePath',['screenPageViews','activeUsers']);
     rows(data.channels,10,'sessionDefaultChannelGroup',['sessions','activeUsers']);rows(data.events,10,'eventName',['eventCount']);
-    for(const row of data.trend){const value=row.date;if(!/^\d{8}$/.test(value)||new Date(value.slice(0,4)+'-'+value.slice(4,6)+'-'+value.slice(6)+'T00:00:00Z').toISOString().slice(0,10).replaceAll('-','')!==value)throw new Error('invalid_report');}
-    const contacts=data.events.filter(row=>['phone_click','email_click'].includes(row.eventName)).reduce((sum,row)=>sum+row.eventCount,0);
-    if(!count(contacts))throw new Error('invalid_report');
+    for(const[key,n]of Object.entries({summary:Number(data.current!==null)+Number(data.previous!==null),trend:data.trend.length,pages:data.pages.length,channels:data.channels.length,events:data.events.length})){
+      const c=data.coverage?.[key];if(!c||c.returnedRows!==n||c.totalRows!==null&&(!count(c.totalRows)||c.totalRows<n)||c.limited!==(c.totalRows===null?null:c.totalRows>n)||c.emptyReason&&n)throw new Error('invalid_report');
+    }
+    for(const row of data.trend){const value=row.date,day=value.slice(0,4)+'-'+value.slice(4,6)+'-'+value.slice(6);if(!/^\d{8}$/.test(value)||!iso(day)||day<p.current.startDate||day>p.current.endDate)throw new Error('invalid_report');}
+    const contactRows=data.events.filter(row=>['phone_click','email_click'].includes(row.eventName)),contacts=contactRows.length?contactRows.reduce((sum,row)=>sum+row.eventCount,0):null;
+    if(contacts!==null&&!count(contacts))throw new Error('invalid_report');
     return {...data,contacts,trend:[...data.trend].sort((a,b)=>a.date.localeCompare(b.date))};
   }
   const el=(tag,text,cls)=>{const node=document.createElement(tag);if(text!==undefined)node.textContent=String(text);if(cls)node.className=cls;return node;};
@@ -39,7 +51,7 @@
   function facts(label='Awaiting report'){receipt=null;$('waMetrics').replaceChildren(...['Page views','Sessions','Active visitors','Engagement rate','Average session','Phone & email clicks'].map(name=>{const c=el('article',undefined,'wa-metric');c.append(el('p',name),el('strong','—'),el('small',label));return c;}));$('waChart').replaceChildren(el('p',label,'wa-empty'));for(const id of ['waPages','waChannels','waDaily'])$(id).replaceChildren();$('waLive').textContent='—';$('waUpdated').textContent='';$('waNote').textContent='';}
   function clear(){sequence++;controller?.abort();controller=null;busy=false;refresh.disabled=!ready||!live();facts();}
   function table(target,headings,data){const t=el('table');const h=el('thead'),hr=el('tr');for(const heading of headings){const c=el('th',heading);c.scope='col';hr.append(c);}h.append(hr);const b=el('tbody');for(const cells of data){const r=el('tr');for(const value of cells)r.append(el('td',value));b.append(r);}t.append(h,b);target.replaceChildren(data.length?t:el('p','No source rows returned.','wa-empty'));}
-  function card(label,value,previous,format=num){const c=el('article',undefined,'wa-metric');c.append(el('p',label),el('strong',format(value)));let note='';if(previous!==null&&previous!==undefined){if(previous>0){const delta=(value-previous)/previous*100;note=(delta>0?'+':'')+delta.toFixed(1)+'% vs previous period';}else note=value>0?'No activity in the previous period':'No activity yet';}c.append(el('small',note,previous>0&&value>previous?'wa-up':''));return c;}
+  function card(label,value,previous,format=num,empty='No summary row returned.'){const c=el('article',undefined,'wa-metric');c.append(el('p',label),el('strong',value===null?'—':format(value)));let note=value===null?empty:previous===null?'Comparison not returned.':'';if(value!==null&&previous!==null&&previous!==undefined){if(previous>0){const delta=(value-previous)/previous*100;note=(delta>0?'+':'')+delta.toFixed(1)+'% vs previous period';}else note=value>0?'Previous reported value: 0':'Reported value: 0 in both periods';}c.append(el('small',note,previous>0&&value>previous?'wa-up':''));return c;}
   function chart(all){
     table($('waDaily'),['Date','Page views','Sessions'],all.map(r=>[r.date.slice(4,6)+'/'+r.date.slice(6,8)+'/'+r.date.slice(0,4),num(r.screenPageViews),num(r.sessions)]));
     if(!all.length){$('waChart').replaceChildren(el('p','No daily source rows returned.','wa-empty'));return;}
@@ -54,13 +66,13 @@
     $('waChart').replaceChildren(svg);
   }
   function render(data,label){const c=data.current,p=data.previous;
-    $('waMetrics').replaceChildren(card('Page views',c.screenPageViews,p.screenPageViews),card('Sessions',c.sessions,p.sessions),card('Active visitors',c.activeUsers,p.activeUsers),card('Engagement rate',c.engagementRate,p.engagementRate,pct),card('Average session',c.averageSessionDuration,p.averageSessionDuration,duration),card('Phone & email clicks',data.contacts,null));
+    $('waMetrics').replaceChildren(card('Page views',c?.screenPageViews??null,p?.screenPageViews??null),card('Sessions',c?.sessions??null,p?.sessions??null),card('Active visitors',c?.activeUsers??null,p?.activeUsers??null),card('Engagement rate',c?.engagementRate??null,p?.engagementRate??null,pct),card('Average session',c?.averageSessionDuration??null,p?.averageSessionDuration??null,duration),card('Reported phone & email clicks',data.contacts,undefined,num,'No contact event rows returned.'));
     $('waLive').textContent=data.realtime===null?'Unavailable':num(data.realtime);chart(data.trend);
     table($('waPages'),['Page','Views','Visitors'],data.pages.map(r=>[r.pagePath==='/'?'Home /':r.pagePath,num(r.screenPageViews),num(r.activeUsers)]));
     table($('waChannels'),['Channel','Sessions','Visitors'],data.channels.map(r=>[r.sessionDefaultChannelGroup,num(r.sessions),num(r.activeUsers)]));
     $('waUpdated').textContent='Updated '+new Date(data.updatedAt).toLocaleString('en-US',{timeZone:'America/Chicago'})+' Central · '+data.timeZone+' reporting time zone';
     $('waNote').textContent=data.periodNote+' Contact clicks show intent to call or email; they do not confirm a completed inquiry.';
-    receipt=Date.parse(data.updatedAt);message([label+' · last '+data.days+' complete calendar days',data.dataQuality,data.realtime===null?'Realtime unavailable':null].filter(Boolean).join(' · '));
+    receipt=Date.parse(data.updatedAt);message([label+' · '+data.periods.current.startDate+' to '+data.periods.current.endDate+' · previous '+data.periods.previous.startDate+' to '+data.periods.previous.endDate,data.dataQuality,data.realtime===null?data.realtimeError:null].filter(Boolean).join(' · '));
   }
   async function load(){if(!ready||!visible()||busy||!live())return;const user=window.firebase?.auth().currentUser;if(!user){clear();message('Sign in to see your website analytics.');return;}
     const scope={site:site.value,days:Number(days.value)},label=site.options[site.selectedIndex].text;

@@ -8,6 +8,16 @@
   This advances H03 without claiming its full source-health matrix. See
   [scope](VISIT_READ_RECEIPTS_2026-10-31.md).
 
+- [x] October31 analytics source-contract implementation removes server numeric/
+  summary/timezone defaults, retains quality and row coverage, requests explicit
+  source-calendar periods, and bounds realtime to the selected web stream. Empty
+  comparisons/contact rows remain unavailable while valid current facts display.
+  40 adapter/query and347frontend/tooling tests pass; three browser regressions
+  fail before/pass after. Normal push adds a separately gated analytics codebase
+  deployment; manual Hosting-only boundaries stay intact. Release/native source
+  acceptance remains pending; GA01/GA03 are open. See
+  [scope](ANALYTICS_SOURCE_CONTRACT_2026-10-31.md).
+
 - [x] October31,20:40UTC approved call-source recheck: fresh October24 preview
   returned10readable details and3missing original EVV ends. One affected row's
   normal GetCallDashBoardData action succeeded with0events; all missing ends
