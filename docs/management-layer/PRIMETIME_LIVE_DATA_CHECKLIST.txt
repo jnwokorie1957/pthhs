@@ -91,8 +91,8 @@ TAB 04 - VISIT PREVIEW
     ScheduleEndTime, ScheduleDuration/ScheduleDurationHours and
     ScheduleDuration/ScheduleDurationMinutes. Live page is connected.
 [x] P02 Actual/EVV starts and ends are read from their exact GetVisitInfoV3 fields.
-    One affected current-day visit was independently reread through Advanced
-    tools. Actual and EVV starts were supplied; both end fields were empty.
+    One affected visit was independently reread on October24 through Advanced
+    tools. At that time actual and EVV starts were supplied; both end fields were empty.
     Its ActualHours and ActualHoursRounded were also empty. This is SOURCE EMPTY
     for that read, not a recovered clock-out or a parser fix.
     The WSDL V2 and V3 contracts both name those same end/hour fields. No alternate
@@ -101,6 +101,19 @@ TAB 04 - VISIT PREVIEW
 [ ] P03 Verify additional affected examples, including a completed historical
     visit, and cross-check any documented alternate endpoint only after its
     identity/office boundary and entitlement are established.
+    October31 native API check: the October24 first page returned10readable visits,
+    all10with recorded start/end pairs and7with both original EVV punches. The
+    original screenshot visit was present; an independent exact GetVisitInfoV3
+    read supplied VisitStartTime, VisitEndTime, EVVStartTime, EVVEndTime,
+    ActualHours and ActualHoursRounded. Its four clock values matched the EVV
+    page exactly. That original omission is no longer reproduced; no source write
+    or substitute was used. This proves current availability, not why or when
+    HHA's earlier empty fields changed.
+    A separate affected historical visit was also re-read independently: recorded
+    start/end and EVV start were supplied; EVV end and both actual-hour fields
+    remained absent. Keep that remaining original-punch/hour gap open. No alternate
+    endpoint has yet established a matching missing raw clock-out. The10rows are
+    one selected source page, not full-office or every-visit completion.
 [x] P04 Connected missing-time cells now say 'Not supplied by HHA'. This preserves
     actual source omissions and existing unconverted times/clock-span labels.
 [x] P05 Record controls: all seven actions remain reachable without cropped
