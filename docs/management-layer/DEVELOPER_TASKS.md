@@ -1,5 +1,12 @@
 # PTHHS Management Layer — Developer Checklist
 
+- [x] October31,22:37UTC role research separates call attempts/association,
+  confirmed-time evidence and clinical document review. New R57/R58/R59 and
+  rechecked R18 refine patient/staff/PT/office links, action permissions and
+  acceptance. Existing receipt and bounded analytics connections stay accepted;
+  the obsolete Google grant stays superseded. E04/B02/H03/P1-B/P2 requirements
+  remain open. See [research](ROLE_WORKFLOW_RESEARCH.txt); no runtime change.
+
 - [x] October 31 per-visit read receipts: carry independent V3 detail and
   patient-office proof timestamps through the existing preview/minute feed;
   show them under Open records and label the page receipt as search fetched.

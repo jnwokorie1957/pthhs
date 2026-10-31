@@ -1,5 +1,12 @@
 # PTHHS
 
+October31,22:37UTC role research keeps raw call attempts, visit association,
+confirmation evidence and clinical document review separate. Three new primary
+sources and rechecked clinical guidance refine proposed patient/staff/PT/office
+links and acceptance. Current connections and source/role dependencies remain
+accurately bounded; no runtime or grant changed. See the dated
+[research](docs/management-layer/ROLE_WORKFLOW_RESEARCH.txt).
+
 October 31 visit read receipts now distinguish search, individual detail and
 patient-office checks in the existing record disclosures. No extra source read
 or operational interpretation is added. All 535 backend/343 frontend-tooling
