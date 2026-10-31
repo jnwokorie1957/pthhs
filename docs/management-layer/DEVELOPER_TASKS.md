@@ -1,5 +1,13 @@
 # PTHHS Management Layer — Developer Checklist
 
+- [x] October 31 per-visit read receipts: carry independent V3 detail and
+  patient-office proof timestamps through the existing preview/minute feed;
+  show them under Open records and label the page receipt as search fetched.
+  Malformed/present, missing/legacy, unavailable and Demo states stay distinct;
+  535 backend/343 frontend-tooling tests pass. Native acceptance/release pending.
+  This advances H03 without claiming its full source-health matrix. See
+  [scope](VISIT_READ_RECEIPTS_2026-10-31.md).
+
 - [x] October31,20:40UTC approved call-source recheck: fresh October24 preview
   returned10readable details and3missing original EVV ends. One affected row's
   normal GetCallDashBoardData action succeeded with0events; all missing ends

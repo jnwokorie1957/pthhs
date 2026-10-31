@@ -459,6 +459,40 @@ test('preview retains returned HHA duration fields and strips them from unavaila
   assert.throws(() => model.normalizeVisitPreview(payload, expected));
 });
 
+test('visit receipts remain distinct from search, validate explicitly and disappear with unavailable details', () => {
+  const model = dashboardModel().primetimeDashboardModel, date = '2026-10-10';
+  const page = livePreview(date), expected = { mode: 'live', date, officeId: '123' };
+  Object.assign(page.items[0], { detailFetchedAt: '2026-10-10T08:01:00Z', officeCheckedAt: '2026-10-10T08:02:00Z' });
+  let item = model.normalizeVisitPreview(page, expected).items[0];
+  assert.equal(item.detailFetchedAt, page.items[0].detailFetchedAt); assert.equal(item.officeCheckedAt, page.items[0].officeCheckedAt);
+  assert.notEqual(item.detailFetchedAt, page.fetchedAt);
+  for (const key of ['detailFetchedAt', 'officeCheckedAt']) {
+    const original = page.items[0][key];
+    for (const value of [7, '', '2026-10-10', '2026-02-30T08:00:00Z', 'not-a-receipt']) {
+      page.items[0][key] = value; assert.throws(() => model.normalizeVisitPreview(page, expected));
+    }
+    delete page.items[0][key]; assert.equal(model.normalizeVisitPreview(page, expected).items[0][key], null);
+    page.items[0][key] = original;
+  }
+  page.items[0].state = 'unavailable';
+  item = model.normalizeVisitPreview(page, expected).items[0];
+  assert.equal(item.detailFetchedAt, null); assert.equal(item.officeCheckedAt, null);
+});
+
+test('record disclosures show detail/office read receipts without another source request and clear them in Demo', async () => {
+  const app = harness({ storedDataMode: null, metadata: liveMetadata, fetchSource: path => {
+    if (!path.startsWith('/primetime/api/views/visits?')) return response({ ok: true });
+    const page = livePreview(new URL(path, 'https://fixture.test').searchParams.get('date'));
+    Object.assign(page.items[0], { detailFetchedAt: '2026-10-10T08:01:00Z', officeCheckedAt: '2026-10-10T08:02:00Z' }); return response(page);
+  } });
+  installDashboard(app); await app.signIn(); await tick(); await tick();
+  assert.match(nodeText(app.element('dashboardVisitRows')), /Detail read: 2026-10-10T08:01:00Z/);
+  assert.match(nodeText(app.element('dashboardVisitRows')), /Office check: 2026-10-10T08:02:00Z/);
+  assert.equal(app.calls.some(call => call.path.startsWith('/primetime/api/workspace/read')), false);
+  app.window.primetimeDataMode.setMode('demo');
+  assert.doesNotMatch(nodeText(app.element('dashboardVisitRows')), /2026-10-10T08:0[12]:00Z/);
+});
+
 test('dashboard preview rejects wrong mode, source, date and scope without inventing records or totals', () => {
   const window = dashboardModel(), expected = { mode: 'live', date: '2026-10-10', officeId: '123' };
   const valid = livePreview(expected.date);

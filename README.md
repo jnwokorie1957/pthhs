@@ -1,5 +1,11 @@
 # PTHHS
 
+October 31 visit read receipts now distinguish search, individual detail and
+patient-office checks in the existing record disclosures. No extra source read
+or operational interpretation is added. All 535 backend/343 frontend-tooling
+tests pass; release/native acceptance are pending. See
+[scope](docs/management-layer/VISIT_READ_RECEIPTS_2026-10-31.md).
+
 October31,20:36UTC read-only console checks established the analytics runtime
 identity, confirmed its project's Data API is enabled, and found the actual
 Google403 insufficient-property-permissions error. A restricted Viewer grant

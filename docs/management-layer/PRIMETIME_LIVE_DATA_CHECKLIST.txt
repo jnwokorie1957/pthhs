@@ -373,6 +373,16 @@ TAB 10 - HHA INTEGRATION
     endpoints are candidates for an approved normalized sync, not proof one runs.
 [ ] H03 Publish a meaningful per-source status/last-success/freshness/coverage
     matrix; a successful reference health check is not all endpoint entitlement.
+    October31 bounded implementation: the visit DTO now retains the existing
+    GetVisitInfoV3 OperationalRead.fetchedAt as detailFetchedAt and the checked
+    patient-office GetPatientDemographics receipt as officeCheckedAt. The same
+    metadata travels through the minute cache; no source operation was added.
+    Open records labels the two independent receipts; page metadata labels its
+    search receipt. Missing legacy metadata stays unavailable, malformed present
+    values fail validation, and unread details/Demo expose no source receipts.
+    535backend/343frontend-tooling tests pass; native/release acceptance pending.
+    See VISIT_READ_RECEIPTS_2026-10-31.md. This is not source-modified time,
+    persisted last-success history, atomic state or the full H03 matrix.
 [ ] H04 Confirm intended tenant/application/office filters against owner-provided
     matching source evidence. No current HHA web tab was available in the prior
     scheduled review; connection work must not depend on web-scraped imports.

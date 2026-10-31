@@ -29,12 +29,17 @@
       // Never count fields from a detail read the server could not verify.
       if (live && item.state === 'unavailable') return { id: item.id, state: 'unavailable', patientId: null, caregiverId: null,
         scheduledStart: null, scheduledEnd: null, actualStart: null, actualEnd: null, evvStart: null, evvEnd: null,
-        actualHours: null, actualHoursRounded: null, scheduleDurationHours: null, scheduleDurationMinutes: null,
+        detailFetchedAt: null, officeCheckedAt: null, actualHours: null, actualHoursRounded: null, scheduleDurationHours: null, scheduleDurationMinutes: null,
         detailReason: detailReasons[item.error] || 'Source detail could not be verified' };
       const result = Object.fromEntries(['id', 'patientId', 'caregiverId', 'scheduledStart', 'scheduledEnd', 'actualStart', 'actualEnd', 'evvStart', 'evvEnd', 'state'].map(key => [key, value(item[key])]));
       for (const key of ['actualHours', 'actualHoursRounded', 'scheduleDurationHours', 'scheduleDurationMinutes']) {
         if (item[key] !== null && item[key] !== undefined && (typeof item[key] !== 'string' || item[key].length > 128)) throw new Error('invalid_visit_preview');
         result[key] = item[key] ?? null;
+      }
+      for (const key of ['detailFetchedAt', 'officeCheckedAt']) {
+        const receipt = live ? item[key] ?? null : null;
+        if (receipt !== null && (typeof receipt !== 'string' || receipt.length > 40 || window.primetimeSourceTime.timestampInstant(receipt) === null)) throw new Error('invalid_visit_receipt');
+        result[key] = receipt;
       }
       return result;
     });
@@ -277,7 +282,7 @@
         nextPageButton(Boolean(nextCursor));
         feedReceipt = payload.fetchedAt;
       }
-      text('dashboardVisitMetadata', `Source: HHAeXchange API · fetched: ${payload.fetchedAt} · server updates every minute · first source page only · source unvalidated · not a manual capture or persisted visit import.`);
+      text('dashboardVisitMetadata', `Source: HHAeXchange API · search fetched: ${payload.fetchedAt} · server updates every minute · first source page only · source unvalidated · not a manual capture or persisted visit import.`);
       feedControls(`Connected to HHA API · latest fetch ${payload.fetchedAt} · server updates every minute · first source page, up to ten details. No web scraping.`);
     } catch {
       if (!current(captured) || !feedEnabled || request.signal.aborted) return;
@@ -431,7 +436,7 @@
     replace('dashboardEvidenceChart', chart);
     replace('dashboardOverviewExceptions', table(['Visit', 'EVV start (source)', 'EVV end (source)', 'Source field evidence'], view.items.map(item => [item.id, item.evvStart, item.evvEnd,
       item.state === 'unavailable' ? 'Detail unavailable: ' + item.detailReason : item.evvStart && item.evvEnd ? 'Both fields supplied' : item.evvStart || item.evvEnd ? 'One field supplied' : 'Neither field supplied'])));
-    const sourceNote = () => node('p', `HHA API source page · ${view.scope.date} · fetched ${view.fetchedAt || 'time not supplied'}. The selected page follows Overview / Visit Preview; it is not the full office.`, 'source-metadata');
+    const sourceNote = () => node('p', `HHA API source page · ${view.scope.date} · search fetched ${view.fetchedAt || 'time not supplied'}. The selected page follows Overview / Visit Preview; it is not the full office.`, 'source-metadata');
     const sourceField = (item, key) => item.state === 'unavailable' ? 'Detail unavailable' : item[key] || 'Not supplied by HHA';
     const unavailableDetail = item => 'Detail unavailable: ' + item.detailReason;
     const callContext = context();
@@ -654,7 +659,7 @@
         item.state === 'unavailable' ? 'Detail unavailable: ' + item.detailReason : view.mode === 'demo' ? 'Synthetic example' : 'Source unvalidated', view.mode === 'demo' ? 'Synthetic record' : () => sourceRecordTools(view, item, captured)]), 'sourceVisitTable'));
     text('dashboardVisitStatus', view.mode === 'demo' ? 'Synthetic visit examples. No source request was made.' : view.state === 'partial' ? 'Partial source page returned. See limits and unavailable details below.' : view.state === 'empty' ? 'No visit identifiers returned; office coverage is unknown.' : 'Live HHA page; source fields unvalidated.');
     text('dashboardVisitScope', `Office: ${view.scope.officeId || 'Unavailable'} · Date: ${view.scope.date} · Timezone: ${view.scope.timezone || 'Unconfigured'}`);
-    text('dashboardVisitMetadata', view.mode === 'demo' ? 'Synthetic examples; no patient records.' : `Source: HHAeXchange · fetched: ${view.fetchedAt || 'Unavailable'} · source unvalidated · on-demand read, not a persisted visit import · times unconverted. Clock spans use written times, not elapsed, payable or billable time.`);
+    text('dashboardVisitMetadata', view.mode === 'demo' ? 'Synthetic examples; no patient records.' : `Source: HHAeXchange · search fetched: ${view.fetchedAt || 'Unavailable'} · source unvalidated · on-demand read, not a persisted visit import · times unconverted. Clock spans use written times, not elapsed, payable or billable time.`);
     const pageScope = view.page && view.discovery ? `Showing source IDs ${view.items.length ? view.page.offset + 1 : 0}–${view.page.offset + view.items.length} of ${view.discovery.selectedCount} returned by search. ` : `${view.items.length} source record(s) on this page. `;
     text('dashboardVisitCompleteness', view.mode === 'demo' ? 'Example page only.' : `${pageScope}Page-only charts. Office totals are unknown; coverage is unknown. Read limits: received search IDs retained; 10 details per page and a 25-second detail-read budget.${view.truncated ? ' Source identifier results were truncated.' : ''}`);
     nextPageButton(Boolean(nextCursor));
@@ -826,7 +831,7 @@
     }
     if (!tools.children.length) return tools;
     const menu = node('details', null, 'source-record-menu');
-    menu.append(node('summary', 'Open records', 'btn secondary'), tools);
+    menu.append(node('summary', 'Open records', 'btn secondary'), node('p', `Detail read: ${item.detailFetchedAt || 'unavailable'} · Office check: ${item.officeCheckedAt || 'unavailable'}. Separate read receipts.`, 'source-metadata'), tools);
     return menu;
   }
   function current(captured) { return ready && captured.generation === controller.getGeneration() && captured.mode === controller.getMode() && captured.session === session && captured.serial === serial; }

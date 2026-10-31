@@ -1106,3 +1106,8 @@ https://knowledge.hhaexchange.com/enterprise/Content/Documentation/Patient/Pat-N
 https://knowledge.hhaexchange.com/enterprise/Content/Documentation/Visit/Visit-N-Adjust-Schedule-Unbalanced-P.htm
 [R17, rechecked] HHAeXchange, Family Portal Schedule Page functions. Separate request and agency decision; vendor deadlines/holds are not local operational rules.
 https://knowledge.hhaexchange.com/enterprise/Content/Documentation/Patient/Pat-N-Family-Portal-Schedule-Function-P.htm
+
+
+PER-VISIT READ RECEIPTS — OCTOBER 31, 2026, 20:56 UTC IMPLEMENTATION
+The bounded administrator visit preview and minute feed now preserve separate backend read receipts for the exact V3 detail and verified patient-office proof. Open records shows both, while page metadata identifies the independent search receipt. These are fetch receipts, not source modification or service times, persisted last-success history, an atomic snapshot or complete office coverage. This implements part of the research's separate subject/section/provenance design without granting patient, staff or clinician access.
+Both browser regressions fail before/pass after; all535backend/343frontend-tooling tests pass, including distinct timestamps, malformed/legacy/unavailable metadata, unchanged read count and Demo clearing. Normal release/native acceptance remain separately pending at this implementation checkpoint. See VISIT_READ_RECEIPTS_2026-10-31.md. Future permitted family schedules, staff caseloads and office related reads must keep their own receipts rather than inheriting the visit search time. H03's full matrix, B02/P03/E04 source evidence and P1-B/P2 role/document/action contracts remain open. No source/grant/clinical/financial/sending control changed.

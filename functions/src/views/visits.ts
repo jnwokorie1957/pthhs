@@ -75,13 +75,14 @@ export interface VisitPreviewItem {
   actualHours: string | null; actualHoursRounded: string | null; payHours: string | null; billedAmount: string | null;
   scheduleDurationHours: string | null; scheduleDurationMinutes: string | null;
   verifiedBy: string | null; verifiedDate: string | null;
+  detailFetchedAt: string | null; officeCheckedAt: string | null;
   state: "source_unvalidated" | "unavailable"; error?: string;
 }
 function unavailable(id: string, error: string): VisitPreviewItem {
   return { id, scheduledStart: null, scheduledEnd: null, actualStart: null, actualEnd: null,
     evvStart: null, evvEnd: null, patientId: null, caregiverId: null, visitType: null, sourceTimezone: null,
     actualHours: null, actualHoursRounded: null, payHours: null, billedAmount: null, scheduleDurationHours: null, scheduleDurationMinutes: null,
-    verifiedBy: null, verifiedDate: null, state: "unavailable", error };
+    verifiedBy: null, verifiedDate: null, detailFetchedAt: null, officeCheckedAt: null, state: "unavailable", error };
 }
 function validateSource(source: OperationalRead, operation: "SearchVisitsV2" | "GetVisitInfoV3") {
   if (source.operation !== operation || source.source !== "hhaexchange" || !Array.isArray(source.records)
@@ -107,7 +108,7 @@ function detailItem(id: string, date: string, source: OperationalRead): VisitPre
     patientId: field("Patient/ID"), caregiverId: field("Caregiver/ID"), visitType: field("VisitType"), sourceTimezone: field("TimeZone"),
     actualHours: field("ActualHours"), actualHoursRounded: field("ActualHoursRounded"), payHours: field("PayHours"), billedAmount: field("BilledAmount"),
     scheduleDurationHours: field("ScheduleDuration/ScheduleDurationHours"), scheduleDurationMinutes: field("ScheduleDuration/ScheduleDurationMinutes"),
-    verifiedBy: field("Verification/VerifiedBy"), verifiedDate: field("Verification/VerifiedDate"), state: "source_unvalidated" };
+    verifiedBy: field("Verification/VerifiedBy"), verifiedDate: field("Verification/VerifiedDate"), detailFetchedAt: source.fetchedAt, officeCheckedAt: null, state: "source_unvalidated" };
 }
 
 export async function visitPreview(workspace: Workspace, value: unknown, actor: string, clock: () => number = () => performance.now()) {
@@ -158,7 +159,7 @@ export async function visitPreview(workspace: Workspace, value: unknown, actor: 
       if (patient.operation !== "GetPatientDemographics" || patient.source !== "hhaexchange" || patient.truncated || patient.records.length !== 1
         || patient.records[0]?.PatientID !== patientId || patient.records[0]?.OfficeID !== officeId) throw new WorkflowError("visit_patient_office_mismatch", 403);
       await assertCurrentScope();
-      items.push(item);
+      items.push({ ...item, officeCheckedAt: patient.fetchedAt });
     }
     catch (error) {
       const code = error instanceof WorkflowError ? error.code : "visit_preview_unavailable";

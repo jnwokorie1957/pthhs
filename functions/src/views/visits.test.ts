@@ -256,6 +256,23 @@ test("rounded HHA actual hours remain an independent raw field, never filling cl
   assert.equal(absent.items[0]!.actualHoursRounded, null);
 });
 
+test("each readable visit retains its independent detail and patient-office read receipts", async () => {
+  const f = fixture(["77"], { read: async input => {
+    if (input.operation === "SearchVisitsV2") return source(input.operation, [{ VisitID: "77" }]);
+    return { ...detail(input.id!), fetchedAt: "2026-10-10T08:01:00.000Z" };
+  } });
+  const page = await visitPreview(f.service, { date: "2026-10-10" }, "owner"), item = page.items[0]!;
+  assert.equal(page.fetchedAt, "2026-10-10T08:00:00.000Z");
+  assert.equal(item.detailFetchedAt, "2026-10-10T08:01:00.000Z");
+  assert.equal(item.officeCheckedAt, "2026-10-10T08:00:00.000Z");
+  assert.notEqual(item.detailFetchedAt, page.fetchedAt);
+  assert.deepEqual(f.calls.map(x => x.operation), ["SearchVisitsV2", "GetVisitInfoV3", "GetPatientDemographics"]);
+  assert.equal(page.totals, null); assert.equal(item.state, "source_unvalidated");
+  const invalid = fixture(["77"], { read: async input => input.operation === "SearchVisitsV2" ? source(input.operation, [{ VisitID: "77" }]) : { ...detail(input.id!), records: [{ ...detail(input.id!).records[0]!, VisitDate: "2026-10-11" }] } });
+  const failed = (await visitPreview(invalid.service, { date: "2026-10-10" }, "owner")).items[0]!;
+  assert.equal(failed.state, "unavailable"); assert.equal(failed.detailFetchedAt, null); assert.equal(failed.officeCheckedAt, null);
+});
+
 test("empty discovery is empty source preview while vendor failure and malformed discovery cannot become empty success", async () => {
   const f = fixture([]), empty = await visitPreview(f.service, { date: "2026-10-10" }, "owner");
   assert.equal(empty.state, "empty"); assert.deepEqual(empty.items, []); assert.equal(empty.completeness.complete, false); assert.equal(f.calls.length, 1);
