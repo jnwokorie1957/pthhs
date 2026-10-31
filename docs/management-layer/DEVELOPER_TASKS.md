@@ -1,5 +1,15 @@
 # PTHHS Management Layer — Developer Checklist
 
+- [x] October31,20:36UTC analytics access diagnosis: directly verified the
+  deployed service identity and existing Data API activation. Analytics-only
+  runtime logs report Google403 insufficient property permissions; neither
+  intended property lists the runtime account directly. Firebase-linked virtual
+  users remain distinct from proven effective access. A restricted Viewer action
+  is prepared and awaits its specific confirmation; no grant was submitted.
+  GA01 connection and GA03 source-contract acceptance remain open in the
+  [connection checklist](PRIMETIME_LIVE_DATA_CHECKLIST.txt). See the exact
+  [access evidence](../analytics-setup-2026-10-31.md#runtime-access-diagnosis).
+
 - [x] October 31 rounded actual-hour source mapping: retain optional
   ActualHoursRounded through the existing visit/feed DTO and Review raw
   projection; expose it separately without filling clocks or ActualHours.

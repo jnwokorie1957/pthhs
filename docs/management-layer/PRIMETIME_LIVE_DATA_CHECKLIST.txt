@@ -432,11 +432,27 @@ TAB 14 - WEBSITE ANALYTICS (ADDED OCTOBER31)
     receipt. This is ACCESS PENDING, not zero activity or connected live reports.
     The separate completed analytics setup records the same unresolved issue:
     owner-approved/reported Viewer grants have not yielded a successful report.
-    Precise next owner/vendor action: verify that GA4 Property access management
-    for the intended property grants Viewer to the CURRENT Cloud Run
-    websiteAnalytics runtime service identity, and verify Analytics Data API
-    activation in that identity's project; then refresh this protected report.
-    Do not duplicate grants or change permissions based only on a setup claim.
+    October31,20:36UTC direct read-only console diagnosis: Cloud Run Security
+    identifies the deployed websiteanalytics identity as the default compute
+    account in project733708568001. The Analytics Data API is already enabled
+    in primetimehomehealthservices. Scoped websiteanalytics logs explicitly
+    report Google403 insufficient property permissions; this is not evidence
+    of an API-disabled, HHA-entitlement or empty-traffic result.
+    Unfiltered GA4 Property access management shows no direct entry for this
+    runtime identity on either intended property. PTHHS has four Firebase-linked
+    virtual users and the owner; Ride Primetime has only the owner. Linked
+    virtual users can provide inherited access, so direct-entry absence alone
+    does not establish effective permissions. The actual PTHHS API denial is
+    independent evidence. Ride's successful reporting remains unverified.
+    Exact proposed correction: restricted Viewer for the verified current
+    runtime identity on properties546711548 and561765914; No Cost Metrics and
+    No Revenue Metrics selected, email notification off. PTHHS form prepared
+    without submission; separate action-time approval requested. No new grant,
+    service-account key, role, API activation or credential change was made.
+    Precise next action: obtain approval for this exact Google permission
+    change, submit only the reviewed scope, verify the resulting role entries
+    and protected reports for both sites. Never infer success from adding a
+    role; preserve report/schema/freshness acceptance and GA03 below.
     Existing setup: docs/analytics-setup-2026-10-31.md.
 [ ] GA02 Verify report validation, exact chart calculations and failure freshness
     once authorized reports return. Code inspection: a failed refresh changes

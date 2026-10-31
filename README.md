@@ -1,5 +1,14 @@
 # PTHHS
 
+October31,20:36UTC read-only console checks established the analytics runtime
+identity, confirmed its project's Data API is enabled, and found the actual
+Google403 insufficient-property-permissions error. A restricted Viewer grant
+for both intended properties is prepared for specific approval; no permission
+was changed. Reporting and source-contract acceptance remain open. See
+[access evidence](docs/analytics-setup-2026-10-31.md#runtime-access-diagnosis) and
+GA01/GA03 in the
+[connection checklist](docs/management-layer/PRIMETIME_LIVE_DATA_CHECKLIST.txt).
+
 October 31 rounded actual-hour mapping now preserves HHA ActualHoursRounded
 separately in Review and Preview/feed. It never fills actual or EVV clocks or
 changes financial/clinical interpretation. All 534 backend/333 frontend-tooling

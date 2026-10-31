@@ -37,6 +37,50 @@ firebase deploy --config firebase.analytics.json --only functions:website-analyt
 
 The standard Hosting rewrite for `/primetime/api/website-analytics` targets this function. Public invocation reaches an owner authentication gate; it does not expose reports anonymously. No service-account key is created or stored in frontend code.
 
+## Runtime access diagnosis
+
+At October31,20:36UTC, direct read-only checks in the existing signed-in Google
+consoles verified the following independently of the earlier reported setup:
+
+- Cloud Run `websiteanalytics` in `us-central1`, project
+  `primetimehomehealthservices`, uses the selected default compute identity
+  `733708568001-compute@developer.gserviceaccount.com`.
+- The Google Analytics Data API is already **API Enabled** in that project.
+  No activation or project change is required by this evidence.
+- Analytics-only runtime logs report upstream403 with insufficient permissions
+  for the property. The protected report returns503; this is not zero traffic,
+  successful reporting or an HHA API problem.
+- Unfiltered PTHHS property access management lists four Firebase-linked virtual
+  users plus the owner; Ride Primetime lists only the owner. Neither lists this
+  runtime service account directly. Firebase virtual users can supply inherited
+  roles, so a missing direct entry alone does not prove effective permissions.
+  The actual PTHHS API denial separately establishes its failed report access.
+  A successful Ride report has not been established.
+
+The precise proposed correction is a direct **Viewer** grant to that verified
+runtime identity on PTHHS property546711548 and Ride Primetime property561765914,
+with **No Cost Metrics** and **No Revenue Metrics**, and email notifications off.
+The PTHHS form was prepared for review without clicking Add. Separate action-time
+confirmation is pending because this grants access to Google reporting data;
+the approved HHA call-source read is a different permission boundary. No new
+permission, credential, key, API activation or HHA setting was changed.
+
+After approval, apply only the reviewed grants, verify the entries and refresh
+the existing protected dashboard for each site. A grant entry is not a successful
+report. Exact returned schema, periods, empty/missing values, realtime isolation,
+quality metadata and chart calculations still require GA02/GA03 acceptance in
+the [live-data checklist](management-layer/PRIMETIME_LIVE_DATA_CHECKLIST.txt).
+
+The connected analytics plugin separately returned a subscription-required
+error; it supplied no property or permission evidence. Diagnosis used the native
+Google consoles instead, without extracting browser tokens or credentials.
+
+Primary guidance rechecked October31: Google's
+[API quickstart](https://developers.google.com/analytics/devguides/reporting/data/v1/quickstart),
+[Firebase linked-user access](https://support.google.com/analytics/answer/9289234),
+[effective and direct roles](https://support.google.com/analytics/answer/9305587),
+and [response metadata contract](https://developers.google.com/analytics/devguides/reporting/data/v1/rest/v1beta/ResponseMetaData).
+
 ## Search Console and release verification
 
 PTHHS domain verification already existed; its canonical sitemap was submitted successfully. Google showed 43 indexed URLs at the initial check. Ride Primetime's canonical HTTPS URL-prefix property was verified using `google42b973e2d43e4ad9.html`; the permanent file must remain deployed. Google successfully read its sitemap and discovered 34 URLs; URL inspection confirmed its homepage is indexed. The existing unverified Ride domain property was not removed. Google controls subsequent indexing timing.
