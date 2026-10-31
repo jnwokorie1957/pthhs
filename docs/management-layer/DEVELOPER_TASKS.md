@@ -1,5 +1,13 @@
 # PTHHS Management Layer — Developer Checklist
 
+- [x] October 30 local / October 31 UTC role research maps authorization
+  quantity/period evidence, duty-list POC origin, clinician documents and separate
+  billing prerequisites. New R50/R51/R52 and rechecked R38 support patient,
+  staff/PT and office detail/link acceptance. Current projections do not supply
+  all unit/period/origin/action semantics. Next: existing protected source/POC/
+  document examples and B02/P1-B/P2 contracts. See [research](ROLE_WORKFLOW_RESEARCH.txt);
+  no runtime or read-setting change.
+
 - [x] October 29 Preview unavailable-detail wording: all five time/hour cells say
   “Detail unavailable” for an unread detail. Returned-record missing fields, zero
   hours, specific failure reasons and chart denominators remain distinct. The

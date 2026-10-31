@@ -1,5 +1,12 @@
 # PTHHS
 
+October 30 local / October 31 UTC role research separates authorization
+quantities and periods, duty-list POCs, clinician forms and billing prerequisites
+across proposed patient, staff/PT and office views. Three new primary references
+and a rechecked provider POC guide inform exact plan-origin, unit/period and
+role/action acceptance. Existing source/B02/P1-B/P2 contracts remain open. See
+[research](docs/management-layer/ROLE_WORKFLOW_RESEARCH.txt); no runtime change.
+
 October 29 Visit Preview now labels unreadable time/hour cells “Detail unavailable,”
 keeping them distinct from fields omitted by a readable source record. Supplied
 zero hours and genuine missing values remain intact. The expanded regression and
