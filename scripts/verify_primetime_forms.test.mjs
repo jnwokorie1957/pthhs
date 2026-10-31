@@ -76,6 +76,55 @@ test('late list and upload results cannot repopulate a signed-out or Demo sessio
     assert.equal(f.ids.get('formsRows').children.length, 0); assert.match(f.ids.get('formsStatus').textContent, /Sign in/); assert.equal(f.calls.length, 1);
   }
 });
+test('a file page is validated as a whole before any current download control is exposed', async () => {
+  const invalidPages = [
+    { ok: true, items: [item, { ...item, id: 'b'.repeat(64) + '.pdf', sha256: 'b'.repeat(64), size: null }], nextCursor: null },
+    { ok: false, items: [item], nextCursor: null },
+    { ok: true, items: [item, { ...item, id: 'b'.repeat(64) + '.pdf', kind: 'submissions' }], nextCursor: null },
+    { ok: true, items: [item, { ...item, id: '../other' }], nextCursor: null },
+    { ok: true, items: [item, { ...item, id: 'b'.repeat(64) + '.pdf', size: null }], nextCursor: null },
+    { ok: true, items: [item, item], nextCursor: null },
+    { ok: true, items: [item], nextCursor: ['not-a-token'] },
+    { ok: true, items: [item], nextCursor: 'bad\n' },
+    { ok: true, items: [item], nextCursor: 'x'.repeat(4097) },
+    { ok: true, items: Array(21).fill(item), nextCursor: null }
+  ];
+  for (const payload of invalidPages) {
+    const f = fixture({ active: true });
+    f.event('formsReload'); await settled(f);
+    const former = f.ids.get('formsRows').querySelectorAll('button')[0];
+    f.handler(async () => json(payload));
+    f.event('formsReload'); await settled(f);
+    assert.equal(f.ids.get('formsRows').children.length, 0, 'a valid prefix is not a verified page');
+    assert.equal(f.ids.get('formsNext').disabled, true);
+    assert.match(f.ids.get('formsStatus').textContent, /File list could not be verified/);
+    const calls = f.calls.length;
+    former.dispatchEvent(new Event('click')); await tick();
+    assert.equal(f.calls.length, calls);
+    assert.equal(f.counts().creates, 0);
+  }
+});
+
+test('file list identity, hash, media, size, filename and timestamp must agree before browsing', async () => {
+  for (const edit of [{ sha256: 'b'.repeat(64) }, { contentType: 'image/png' }, { filename: 'Wrong.png' },
+    { filename: '../Synthetic.pdf' }, { size: 0 }, { size: 2097153 }, { size: 1.5 }, { uploadedAt: 'invalid date' }]) {
+    const f = fixture({ active: true });
+    f.handler(async () => json({ ok: true, items: [{ ...item, ...edit }], nextCursor: null }));
+    f.event('formsReload'); await settled(f);
+    assert.equal(f.ids.get('formsRows').children.length, 0);
+    assert.equal(f.ids.get('formsNext').disabled, true);
+    assert.match(f.ids.get('formsStatus').textContent, /File list could not be verified/);
+    assert.equal(f.calls.length, 1);
+  }
+  const f = fixture({ active: true });
+  const png = { ...item, id: 'a'.repeat(64) + '.png', sha256: 'a'.repeat(64), filename: 'Image.PNG', contentType: 'image/png' };
+  const jpeg = { ...item, id: 'b'.repeat(64) + '.jpg', sha256: 'b'.repeat(64), filename: 'Image.JPEG', contentType: 'image/jpeg' };
+  f.handler(async () => json({ ok: true, items: [item, png, jpeg], nextCursor: null }));
+  f.event('formsReload'); await settled(f);
+  assert.equal(f.ids.get('formsRows').children.length, 3);
+  assert.match(f.ids.get('formsStatus').textContent, /3 files on this page/);
+});
+
 test('pagination uses the server cursor and folder changes discard the old page', async () => {
   const f = fixture(); f.ready(); f.handler(async () => json({ ok: true, items: [item], nextCursor: 'page+/=' }));
   f.event('formsReload'); await tick(); assert.equal(f.ids.get('formsNext').disabled, false);

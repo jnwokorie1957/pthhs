@@ -1,5 +1,11 @@
 # PTHHS
 
+October 31 Forms file-list validation: the entire returned page must match the
+selected folder and stored-file metadata contract before rows or Download
+controls appear. Invalid pages leave a clear reload message and no partial list.
+Both regressions failed before the correction; all 15 Forms and 319 frontend/
+tooling tests pass. See [scope](docs/management-layer/FORMS_LIST_VALIDATION_2026-10-31.md).
+
 October 30 local / October 31 UTC role research separates selected-patient,
 mobile-information and clinical-document grants from scheduled assignment. Two
 new primary references and rechecked family/document guidance support proposed

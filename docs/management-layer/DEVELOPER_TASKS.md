@@ -1,5 +1,13 @@
 # PTHHS Management Layer — Developer Checklist
 
+- [x] October 31 Forms list validation: validate the complete page, selected
+  folder, content-address identity/hash/media, filename, size, timestamp and
+  bounded opaque cursor before rendering rows/actions. Invalid replacements
+  keep former controls inert and leave no partial list. Both new regressions
+  fail before/pass after; all 15 Forms/319 frontend-tooling tests pass. See
+  [scope](FORMS_LIST_VALIDATION_2026-10-31.md). Malformed-result coverage remains
+  synthetic; backend grants, file writes and external-role contracts unchanged.
+
 - [x] October 30 local / October 31 UTC role research distinguishes family
   patient selection, staff information grants and scheduled assignment, plus
   logical document/history/origin versus stored-file integrity. New R53/R54 and

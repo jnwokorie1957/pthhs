@@ -35,6 +35,7 @@
     unsupported_form_content: 'Choose a PDF, PNG or JPEG file.',
     form_extension_mismatch: 'The filename extension does not match the file content.',
     form_integrity_error: 'The saved file could not be verified. Download was blocked.',
+    invalid_form_page: 'File list could not be verified. Reload the library.',
     form_not_found: 'This file is no longer available. Reload the library.',
     operational_data_release_not_approved: 'Private forms are locked pending operational data release.'
   };
@@ -46,6 +47,22 @@
     finally { if (current === generation) { busy = false; updateControls(); } }
   }
   function bytesLabel(size) { return `${size.toLocaleString()} bytes`; }
+  function filePage(value, kind) {
+    if (value?.ok !== true || !['templates', 'submissions'].includes(kind) || !Array.isArray(value.items) || value.items.length > 20
+      || value.nextCursor !== null && (typeof value.nextCursor !== 'string' || !/^[\x21-\x7e]{1,4096}$/.test(value.nextCursor))) throw new Error('invalid_form_page');
+    const items = value.items.map(item => {
+      const id = typeof item?.id === 'string' && /^([a-f0-9]{64})\.(pdf|png|jpg)$/.exec(item.id);
+      if (!id || item.kind !== kind || item.sha256 !== id[1]
+        || item.contentType !== ({ pdf: 'application/pdf', png: 'image/png', jpg: 'image/jpeg' })[id[2]]
+        || typeof item.filename !== 'string' || item.filename.length > 120 || !/^[A-Za-z0-9][A-Za-z0-9 _().-]*\.(pdf|png|jpe?g)$/i.test(item.filename)
+        || item.filename.split('.').at(-1).toLowerCase().replace('jpeg', 'jpg') !== id[2]
+        || !Number.isSafeInteger(item.size) || item.size < 1 || item.size > 2097152
+        || typeof item.uploadedAt !== 'string' || !Number.isFinite(Date.parse(item.uploadedAt))) throw new Error('invalid_form_page');
+      return { id: item.id, kind: item.kind, filename: item.filename, size: item.size, sha256: item.sha256, contentType: item.contentType, uploadedAt: item.uploadedAt };
+    });
+    if (new Set(items.map(item => item.id)).size !== items.length) throw new Error('invalid_form_page');
+    return { items, nextCursor: value.nextCursor };
+  }
   async function download(item, current) {
     const response = await request(`/${item.kind}/${item.id}`, {}, current), bytes = await response.arrayBuffer();
     check(current);
@@ -62,7 +79,8 @@
     nextCursor = null; $('formsRows').replaceChildren();
     const kind = $('formLibraryKind').value;
     const response = await request(`?kind=${encodeURIComponent(kind)}${cursor ? '&cursor=' + encodeURIComponent(cursor) : ''}`, {}, current);
-    const result = await response.json(); check(current);
+    const payload = await response.json(); check(current);
+    const result = filePage(payload, kind);
     for (const item of result.items) {
       const row = document.createElement('tr');
       for (const text of [item.filename, bytesLabel(item.size), new Date(item.uploadedAt).toLocaleString()]) { const cell = document.createElement('td'); cell.textContent = text; row.append(cell); }
