@@ -3,7 +3,8 @@
 October 31 visit read receipts now distinguish search, individual detail and
 patient-office checks in the existing record disclosures. No extra source read
 or operational interpretation is added. All 535 backend/343 frontend-tooling
-tests pass; release/native acceptance are pending. See
+tests, both normal release jobs and production cache/historical receipt checks
+passed. Source Clear removed the receipt display. See
 [scope](docs/management-layer/VISIT_READ_RECEIPTS_2026-10-31.md).
 
 October31 analytics source-contract implementation keeps empty reports separate

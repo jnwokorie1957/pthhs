@@ -35,8 +35,35 @@ and proves the existing three-operation request count is unchanged. All 535
 backend and 343 root frontend/tooling tests pass. Existing static budgets pass
 without adjustment: 417205 bytes raw including the catalog, 100866 gzip.
 
-Normal release/native acceptance are pending at this implementation checkpoint.
+Normal release/native acceptance are recorded below.
 Malformed metadata, legacy-cache and invalidation transitions retain synthetic
 coverage; no production failure is induced. H03 remains open for the complete
 per-operation last-success/freshness/coverage matrix. B02, P03/E04 and external
 patient/staff/clinician assignment/document/action contracts remain open.
+
+
+## Production acceptance
+
+Feature `8006dd4936770b993d2c0d46d5f160718e39993e` passed
+[normal workflow 41242314141](https://github.com/jnwokorie1957/pthhs/actions/runs/41242314141):
+Hosting at 21:10:46 UTC and backend at 21:12:29 UTC. At 21:13:21 UTC all twelve
+app artifacts matched and eight anonymous boundaries returned 401.
+
+After both jobs, the normal authenticated minute cache supplied ten readable
+visits with ten valid receipt pairs. Every detail and office receipt differed
+from the search receipt; all ten detail receipts were distinct. The first Open
+records disclosure visibly retained its seven actions and fit within the desktop
+page width. A separate October 24 read returned ten readable details, all with
+valid independent receipts and the explicit search label. No unavailable detail
+occurred in that native receipt; unavailable/malformed/legacy/Demo transitions
+remain synthetic acceptance.
+
+Source Clear removed all rows and receipt paragraphs. Return to office today
+was disabled in that cleared temporary state; no further source query was issued.
+The temporary tab was closed and private snapshot bindings cleared. Original
+user-held historical and pending Google-grant tabs were untouched.
+
+Concurrent analytics source-contract commit `47a9e6c` was safely fast-forwarded
+before recording this acceptance. Its runtime, workflow, source tests, release
+and pending permission decisions remain separate and preserved. This feature
+adds no Analytics/Google access and does not close the broader H03 matrix.

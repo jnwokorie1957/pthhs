@@ -4,7 +4,8 @@
   patient-office proof timestamps through the existing preview/minute feed;
   show them under Open records and label the page receipt as search fetched.
   Malformed/present, missing/legacy, unavailable and Demo states stay distinct;
-  535 backend/343 frontend-tooling tests pass. Native acceptance/release pending.
+  535 backend/343 frontend-tooling tests, both normal jobs and native cache/
+  historical receipt checks pass; Source Clear removes the displayed metadata.
   This advances H03 without claiming its full source-health matrix. See
   [scope](VISIT_READ_RECEIPTS_2026-10-31.md).
 
