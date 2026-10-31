@@ -1,5 +1,11 @@
 # PTHHS
 
+October 30 local / October 31 UTC role research separates selected-patient,
+mobile-information and clinical-document grants from scheduled assignment. Two
+new primary references and rechecked family/document guidance support proposed
+caseload, document-history and origin-specific action links. Existing source and
+role contracts remain open. See [research](docs/management-layer/ROLE_WORKFLOW_RESEARCH.txt).
+
 October 30 local / October 31 UTC Visit review distinguishes unread source details
 from missing fields in a returned record. Cards and detail times/hours say
 “Source detail unavailable” when no source record returned; returned raw fields,

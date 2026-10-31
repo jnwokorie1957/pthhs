@@ -1,5 +1,13 @@
 # PTHHS Management Layer — Developer Checklist
 
+- [x] October 30 local / October 31 UTC role research distinguishes family
+  patient selection, staff information grants and scheduled assignment, plus
+  logical document/history/origin versus stored-file integrity. New R53/R54 and
+  rechecked R14/R39 refine patient, PT/staff and office links, priorities and
+  acceptance. Recent normal Visit review release evidence remains separately
+  dated; exact unread failures stay synthetic. See [research](ROLE_WORKFLOW_RESEARCH.txt).
+  Source/B02/P1-B/P2 contracts stay open; no runtime or grant changed.
+
 - [x] October 30 local / October 31 UTC Visit review now distinguishes an unread
   source detail from a returned record with missing fields. Cards, time/hour
   facts and original-value guidance follow record availability independently of
