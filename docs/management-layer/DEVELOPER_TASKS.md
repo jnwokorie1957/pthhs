@@ -1,5 +1,14 @@
 # PTHHS Management Layer — Developer Checklist
 
+- [x] October 30 local / October 31 UTC Visit review now distinguishes an unread
+  source detail from a returned record with missing fields. Cards, time/hour
+  facts and original-value guidance follow record availability independently of
+  interpretation state. Failed normalization with returned raw data stays
+  visible. The regression fails before/passes after; all 317 frontend/tooling
+  tests pass. See [scope](REVIEW_UNAVAILABLE_DETAILS_2026-10-31.md).
+  Exact unavailable-detail production acceptance remains separate from synthetic
+  coverage; no source read setting or operational contract changed.
+
 - [x] October 30 local / October 31 UTC role research maps authorization
   quantity/period evidence, duty-list POC origin, clinician documents and separate
   billing prerequisites. New R50/R51/R52 and rechecked R38 support patient,

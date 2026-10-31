@@ -76,6 +76,7 @@
           facts: Object.entries(issue.facts || {}).slice(0, 30).filter(([key, value]) => short(key, 128) && (value === null || short(value, 1000) !== null || number(value) !== null)) };
       });
       return { evidence: { visitId: evidence.visitId, state: evidence.state, patientId: evidence.patientId || null, caregiverId: evidence.caregiverId || null, times,
+        recordReturned: evidence.raw !== null && typeof evidence.raw === 'object' && !Array.isArray(evidence.raw),
         rawTimes: Object.fromEntries(['ScheduleStartTime', 'ScheduleEndTime', 'VisitStartTime', 'VisitEndTime', 'EVVStartTime', 'EVVEndTime'].map(key => [key, short(evidence.raw?.[key], 128)])),
         rawDurations: Object.fromEntries(['ScheduleDuration/ScheduleDurationHours', 'ScheduleDuration/ScheduleDurationMinutes', 'ActualHours'].map(key => [key, short(evidence.raw?.[key], 128)])),
         reasons: Array.isArray(evidence.reasons) ? evidence.reasons.map(value => short(value)).filter(Boolean).slice(0, 30) : [],
@@ -181,17 +182,24 @@
   function details(title, ...children) { const element = node('details'); element.append(node('summary', title), ...children); return element; }
   function duration(minutes) { return minutes === null ? 'Unknown' : `${(minutes / 60).toFixed(2)} h`; }
   function clock(value) { return formatClock(value, { timezone: visitPage?.scope?.timezone, serviceDate: dateInput?.value, synthetic: !controller.isLive() }); }
+  const sourceUnavailable = 'Source detail unavailable';
+  const sourceReadable = item => item.demo || item.evidence.recordReturned === true;
   function sourceTime(item, key, field) {
     return clock(item.evidence.times[key] || (item.evidence.rawTimes?.[field] !== null && item.evidence.rawTimes?.[field] !== undefined ? { raw: item.evidence.rawTimes[field] } : null));
   }
+  function sourcePair(item, start, end, startField, endField) {
+    return sourceReadable(item) ? `${sourceTime(item, start, startField)} → ${sourceTime(item, end, endField)}` : sourceUnavailable;
+  }
   function sourceHours(item, actual = false) {
     if (item.demo) return duration(item.diagnosis.metrics[actual ? 'actualMinutes' : 'scheduledMinutes']);
+    if (!sourceReadable(item)) return sourceUnavailable;
     const raw = item.evidence.rawDurations || {}, times = item.evidence.rawTimes || {}, { sourceActualHours, sourceScheduleHours } = window.primetimeSourceTime;
     return actual ? sourceActualHours(raw.ActualHours, item.diagnosis.metrics.actualMinutes, times.VisitStartTime, times.VisitEndTime)
       : sourceScheduleHours(raw['ScheduleDuration/ScheduleDurationHours'], raw['ScheduleDuration/ScheduleDurationMinutes'], item.diagnosis.metrics.scheduledMinutes, times.ScheduleStartTime, times.ScheduleEndTime);
   }
   function labels(entries) { const list = node('dl', null, 'revision-facts'); for (const [title, value] of entries) list.append(node('dt', title), node('dd', value || 'Unavailable')); return list; }
   function statePill(item) {
+    if (!sourceReadable(item)) return node('span', sourceUnavailable, 'status medium');
     const verified = item.diagnosis.verification === 'verified' && item.evidence.state === 'ready';
     const blocked = item.diagnosis.verification === 'blocked';
     return node('span', item.demo ? 'Synthetic example' : verified ? 'Verified' : blocked ? 'Blocking issue' : item.diagnosis.state === 'unknown' ? 'Unknown evidence' : 'Needs review', `status ${verified ? 'low' : blocked ? 'high' : 'medium'}`);
@@ -249,8 +257,8 @@
     else replace('revisionVisits', ...visible.map(item => {
       const article = node('article', null, 'revision-visit-card');
       article.append(statePill(item), node('h4', `Visit ${all.indexOf(item) + 1}`), labels([
-        ['Scheduled', `${sourceTime(item, 'scheduledStart', 'ScheduleStartTime')} → ${sourceTime(item, 'scheduledEnd', 'ScheduleEndTime')}`], ['Expected hours', sourceHours(item)],
-        ['Recorded actual', `${sourceTime(item, 'actualStart', 'VisitStartTime')} → ${sourceTime(item, 'actualEnd', 'VisitEndTime')}`], ['Actual hours', sourceHours(item, true)]
+        ['Scheduled', sourcePair(item, 'scheduledStart', 'scheduledEnd', 'ScheduleStartTime', 'ScheduleEndTime')], ['Expected hours', sourceHours(item)],
+        ['Recorded actual', sourcePair(item, 'actualStart', 'actualEnd', 'VisitStartTime', 'VisitEndTime')], ['Actual hours', sourceHours(item, true)]
       ]));
       article.append(node('small', `Member reference: ${item.evidence.patientId || 'Unknown'} · Caregiver reference: ${item.evidence.caregiverId || 'Unknown'}`, 'source-metadata'));
       const issue = item.diagnosis.issues.find(value => value.level === 'blocker') || item.diagnosis.issues[0];
@@ -274,10 +282,10 @@
     text('revisionDetailTitle', `Visit ${(visitPage?.items || []).indexOf(item) + 1} details`);
     const box = node('div');
     box.append(statePill(item), labels([
-      ['Schedule', `${sourceTime(item, 'scheduledStart', 'ScheduleStartTime')} → ${sourceTime(item, 'scheduledEnd', 'ScheduleEndTime')}`], ['Expected duration', sourceHours(item)],
-      ['Recorded actual', `${sourceTime(item, 'actualStart', 'VisitStartTime')} → ${sourceTime(item, 'actualEnd', 'VisitEndTime')}`], ['Actual duration', sourceHours(item, true)],
-      ['EVV punches', `${sourceTime(item, 'evvStart', 'EVVStartTime')} → ${sourceTime(item, 'evvEnd', 'EVVEndTime')}`], ['EVV duration', duration(item.diagnosis.metrics.evvMinutes)],
-      ['Duration variance', item.diagnosis.metrics.varianceMinutes === null ? 'Unknown' : `${item.diagnosis.metrics.varianceMinutes} minutes`], ['Location / GPS', 'Unavailable until supported source evidence is validated']
+      ['Schedule', sourcePair(item, 'scheduledStart', 'scheduledEnd', 'ScheduleStartTime', 'ScheduleEndTime')], ['Expected duration', sourceHours(item)],
+      ['Recorded actual', sourcePair(item, 'actualStart', 'actualEnd', 'VisitStartTime', 'VisitEndTime')], ['Actual duration', sourceHours(item, true)],
+      ['EVV punches', sourcePair(item, 'evvStart', 'evvEnd', 'EVVStartTime', 'EVVEndTime')], ['EVV duration', sourceReadable(item) ? duration(item.diagnosis.metrics.evvMinutes) : sourceUnavailable],
+      ['Duration variance', !sourceReadable(item) ? sourceUnavailable : item.diagnosis.metrics.varianceMinutes === null ? 'Unknown' : `${item.diagnosis.metrics.varianceMinutes} minutes`], ['Location / GPS', 'Unavailable until supported source evidence is validated']
     ]));
     for (const issue of item.diagnosis.issues) {
       const article = node('article', null, 'revision-issue');
@@ -314,8 +322,8 @@
       if (value.reasons.length) panel.append(node('small', value.reasons.map(human).join('; '), 'source-metadata'));
       box.append(panel);
     }
-    if (item.evidence.rawTimes) box.append(details(item.evidence.state === 'ready' ? 'Original source values' : 'Original source values · interpretation pending', labels(Object.entries({ ...item.evidence.rawTimes, ...item.evidence.rawDurations }).map(([key, value]) => [key, value]))));
-    if (!item.demo) box.append(node('p', 'HHA times and duration fields are displayed even while interpretation is pending. A source clock span uses complete written start/end times; it is not elapsed, payable or billable time. Missing end times remain missing. These values do not mark a visit verified or billable.', 'source-metadata'));
+    if (sourceReadable(item) && item.evidence.rawTimes) box.append(details(item.evidence.state === 'ready' ? 'Original source values' : 'Original source values · interpretation pending', labels(Object.entries({ ...item.evidence.rawTimes, ...item.evidence.rawDurations }).map(([key, value]) => [key, value]))));
+    if (!item.demo) box.append(node('p', sourceReadable(item) ? 'HHA times and duration fields are displayed even while interpretation is pending. A source clock span uses complete written start/end times; it is not elapsed, payable or billable time. Missing end times remain missing. These values do not mark a visit verified or billable.' : 'Time and duration fields could not be read. This does not establish missing source fields or a visit status. Check the source failure reason before retrying.', 'source-metadata'));
     box.append(details('Source references', labels([['Visit reference', item.evidence.visitId], ['Member reference', item.evidence.patientId], ['Caregiver reference', item.evidence.caregiverId], ['Evidence state', human(item.evidence.state)], ['Source operation', provenance?.operation], ['Fetched at', provenance?.fetchedAt], ['Source revision', provenance?.sourceRevision], ['Acceptance version', provenance?.acceptanceVersion]])));
     box.append(node('p', 'Office follow-up and suggestions do not establish HHA verification or change recorded work times.', 'source-metadata'));
     if (window.matchMedia?.('(max-width: 1000px)').matches) box.append(button('Back to visits', () => get('revisionVisits')?.scrollIntoView({ behavior: 'smooth', block: 'start' })));

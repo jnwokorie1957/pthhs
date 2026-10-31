@@ -221,6 +221,62 @@ test('review can show scheduled clock span when HHA omits duration fields while 
   assert.match(app.text('revisionVisits'), /Actual hours\s+Not supplied by HHA/);
   assert.match(app.text('revisionVisits'), /Unknown evidence/);
 });
+test('unread review details do not claim HHA omitted times or hours, including when selection changes', async () => {
+  for (const state of ['unavailable', 'failed', 'incomplete']) {
+    const app = harness(path => {
+      if (!path.includes('/visits?')) return null;
+      const payload = visits(new URL(path, 'https://fixture.test').searchParams.get('date'));
+      const readable = clone(payload.items[0]);
+      readable.evidence.visitId = '56'; readable.diagnosis.visitId = '56';
+      const { evidence, diagnosis } = payload.items[0];
+      Object.assign(evidence, { state, patientId: null, caregiverId: null, raw: null, provenance: null, reasons: ['visit_source_read_failed'] });
+      for (const key of Object.keys(evidence.times)) evidence.times[key] = null;
+      diagnosis.state = 'unknown'; diagnosis.verification = 'unknown'; diagnosis.issues = [];
+      for (const key of Object.keys(diagnosis.metrics)) diagnosis.metrics[key] = null;
+      payload.items.push(readable);
+      return { ok: true, json: async () => payload };
+    });
+    await app.openLive();
+    const card = app.element('revisionVisits').children[0];
+    const facts = app.descendants(card).find(element => element.tag === 'dl');
+    assert.deepEqual(facts.children.filter(element => element.tag === 'dd').map(element => element.textContent), Array(4).fill('Source detail unavailable'));
+    assert.doesNotMatch(card.textContent, /Not supplied by HHA|Unknown evidence|Original source start/);
+    assert.doesNotMatch(app.text('revisionDetail'), /Original source values|Not supplied by HHA|HHA times and duration fields are displayed/);
+    assert.match(app.text('revisionDetail'), /Time and duration fields could not be read/);
+    assert.match(app.text('revisionDetail'), /visit source read failed/);
+    const next = app.descendants(app.element('revisionVisits')).find(element => element['aria-label'] === 'Review details for visit 2');
+    for (const handler of next.handlers.get('click') || []) await handler();
+    assert.match(app.text('revisionDetail'), /4\.00 h/);
+    assert.match(app.text('revisionDetail'), /Actual duration\s+Not supplied by HHA/);
+    assert.doesNotMatch(app.text('revisionDetail'), /Time and duration fields could not be read|Source detail unavailable/);
+    assert.equal(app.calls.some(call => call.options.method === 'POST'), false);
+  }
+});
+
+test('a returned source record stays readable when its normalization fails or interpretation is pending', async () => {
+  for (const state of ['failed', 'incomplete', 'stale', 'unaccepted']) {
+    const app = harness(path => {
+      if (!path.includes('/visits?')) return null;
+      const payload = visits(new URL(path, 'https://fixture.test').searchParams.get('date'));
+      const { evidence, diagnosis } = payload.items[0];
+      evidence.state = state;
+      evidence.raw = { ScheduleStartTime: 'original unconverted start', ScheduleEndTime: null, VisitStartTime: 'original actual', VisitEndTime: null,
+        'ScheduleDuration/ScheduleDurationHours': '0', 'ScheduleDuration/ScheduleDurationMinutes': '0', ActualHours: '0.00' };
+      for (const key of Object.keys(evidence.times)) evidence.times[key] = null;
+      diagnosis.state = 'unknown'; diagnosis.verification = 'unknown'; diagnosis.issues = [];
+      for (const key of Object.keys(diagnosis.metrics)) diagnosis.metrics[key] = null;
+      return { ok: true, json: async () => payload };
+    });
+    await app.openLive();
+    assert.match(app.text('revisionVisits'), /original unconverted start → Unavailable/);
+    assert.match(app.text('revisionVisits'), /0 h 0 min · HHA/);
+    assert.match(app.text('revisionVisits'), /0\.00 h · HHA/);
+    assert.match(app.text('revisionDetail'), /Original source values · interpretation pending/);
+    assert.doesNotMatch(app.text('revisionVisits'), /Source detail unavailable|Verified/);
+    assert.equal(app.calls.some(call => call.options.method === 'POST'), false);
+  }
+});
+
 test('an unapproved Live status prevents all protected data reads', async () => {
   const app = harness(path => path.endsWith('/status') ? { ok: true, json: async () => ({ ...clone(status), dataApproved: false, capabilities: { diagnosis: false, records: false, monitoring: false, sms: false }, blockedReason: 'operational_data_release_not_approved' }) } : null);
   await app.openLive(); assert.equal(app.calls.length, 1); assert.ok(app.text('revisionStatus').includes('not been approved')); assert.ok(!app.text('revisionVisits').includes('DEMO-'));

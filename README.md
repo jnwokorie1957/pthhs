@@ -1,5 +1,12 @@
 # PTHHS
 
+October 30 local / October 31 UTC Visit review distinguishes unread source details
+from missing fields in a returned record. Cards and detail times/hours say
+“Source detail unavailable” when no source record returned; returned raw fields,
+zero hours and pending interpretation remain distinct. The regression reproduced
+the old wording; all 317 frontend/tooling tests pass. See
+[scope](docs/management-layer/REVIEW_UNAVAILABLE_DETAILS_2026-10-31.md).
+
 October 30 local / October 31 UTC role research separates authorization
 quantities and periods, duty-list POCs, clinician forms and billing prerequisites
 across proposed patient, staff/PT and office views. Three new primary references
