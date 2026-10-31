@@ -11,8 +11,10 @@ Genuine original EVV omissions remain open. See
 October 31 analytics validation clears older metrics after failed reads, keeps
 invalid values separate from zero, plots returned dates and respects Demo and
 receipt freshness. Eight regressions cover the new behavior;202data-mode and
-341frontend/tooling tests plus Windows checks pass on the combined tree. Release/native acceptance
-and actual Google reporting access remain separate. See
+341frontend/tooling tests plus Windows checks and both normal release jobs pass
+on the combined tree. Native unavailable-report and direct Demo/Live states are
+verified; actual Google reporting access and populated-report acceptance remain
+open. See
 [scope](docs/management-layer/ANALYTICS_REPORT_VALIDATION_2026-10-31.md).
 
 October 31 deferred-source recovery: Overview, Visit Preview and EVV can resume

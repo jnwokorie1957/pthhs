@@ -13,8 +13,10 @@
   on reads/errors; validate whole responses, retain explicit zeroes, plot only
   returned dates, expire old receipts and fence Demo/selection/account/navigation
   changes. Seven of eight new regressions fail against the old module; all202
-  data-mode/341frontend-tooling tests and Windows checks pass on the combined tree. Normal release and
-  native acceptance pending. Reporting access and upstream adapter semantics
+  data-mode/341frontend-tooling tests and Windows checks pass on the combined tree.
+  Both normal release jobs passed. Native access-pending/no-facts and direct
+  Demo/Live switch states passed at mobile/desktop widths; populated report and
+  malformed/expiry transitions keep synthetic limits. Reporting access and upstream adapter semantics
   remain open in GA01/GA03. See [scope](ANALYTICS_REPORT_VALIDATION_2026-10-31.md).
 
 - [x] October 31 deferred-source recovery implementation: retain a separate,

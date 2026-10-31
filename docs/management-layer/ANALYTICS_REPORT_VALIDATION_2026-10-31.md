@@ -43,4 +43,19 @@ synthetic acceptance; a live access-pending response is not a populated report.
 The combined tree passes 534 backend, 202 data-mode and 341 frontend/tooling tests
 plus full Windows release checks. Eight new analytics regressions were isolated
 against the former module: seven failed before the correction and all pass now.
-Normal release and native acceptance are pending at this checkpoint.
+Validation release `8a0eed0` passed normal workflow `41237844043`.
+Native QA found that existing analytics CSS hid the Demo switch. Follow-up
+`8c55dd7` restores that control on this screen and passed normal workflow
+`41238210213` (Hosting 20:18:03 UTC; backend 20:18:19 UTC).
+
+At 20:19 UTC, all 12 app artifacts and nine anonymous 401/noindex boundaries
+matched production. A signed-in PTHHS read still returned the actual reporting
+access blocker, with six unavailable metric cards and no chart, table rows,
+realtime count or update receipt. Direct Demo activation on the same screen
+cleared facts and disabled Refresh; direct Live activation restored the access
+check. The switch remained visible within mobile390/desktop1280 viewports with
+no horizontal page overflow. These checks do not prove populated Google reports
+or reproduce malformed/populated-to-failed cases natively.
+
+Final combined output after the switch CSS fix is 416,755 raw / 100,738 gzip
+bytes, within the reviewed raw, per-file, gzip and marketing limits.

@@ -455,8 +455,16 @@ TAB 14 - WEBSITE ANALYTICS (ADDED OCTOBER31)
     eight new regressions failed against the old generated module; the combined
     tree retains the concurrent rounded-hour mapping and passes534backend,
     202data-mode and341totalfrontend/tooling tests plus full Windows release checks.
-    Normal release/native acceptance are pending. See the bounded scope in
-    docs/management-layer/ANALYTICS_REPORT_VALIDATION_2026-10-31.md.
+    Validation8a0eed0 and direct-switch follow-up8c55dd7 passed both normal
+    release jobs (finalworkflow41238210213 Hosting20:18:03/backend20:18:19UTC).
+    At20:19UTC12exactappartifacts and9anonymous401/noindexboundaries passed.
+    Signed-in PTHHS access still returned the true reporting blocker, with six
+    unavailable cards and no chart/rows/realtimecount/receipt. Direct Demo on
+    this screen clears facts/disables Refresh; Live restores the source check.
+    The switch is now reachable at390/1280px, with no page overflow. Populated,
+    malformed and timed-expiry transitions retain synthetic acceptance limits;
+    real Google report calculations and the broader GA02 requirement stay open.
+    See docs/management-layer/ANALYTICS_REPORT_VALIDATION_2026-10-31.md.
 [ ] GA03 The existing independent server adapter still needs direct upstream
     schema/empty-reason/sampling/truncation and explicit report-period evidence.
     It currently defaults some omitted values/summary sections to zero and falls
