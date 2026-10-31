@@ -1,5 +1,13 @@
 # PTHHS Management Layer — Developer Checklist
 
+- [x] October 31 rounded actual-hour source mapping: retain optional
+  ActualHoursRounded through the existing visit/feed DTO and Review raw
+  projection; expose it separately without filling clocks or ActualHours.
+  534 backend/333 frontend-tooling tests pass; normal release and native
+  acceptance remain pending at this checkpoint. See
+  [scope](ROUNDED_SOURCE_HOURS_2026-10-31.md) and P06 in the
+  [connection checklist](PRIMETIME_LIVE_DATA_CHECKLIST.txt).
+
 - [x] October 31 deferred-source recovery implementation: retain a separate,
   caller/office/day/discovery-bound cursor for skipped details and honor source
   delays in Overview, Preview and EVV. A second quota response retains the same

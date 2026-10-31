@@ -1,5 +1,11 @@
 # PTHHS
 
+October 31 rounded actual-hour mapping now preserves HHA ActualHoursRounded
+separately in Review and Preview/feed. It never fills actual or EVV clocks or
+changes financial/clinical interpretation. All 534 backend/333 frontend-tooling
+tests pass; production acceptance remains pending at this checkpoint. See
+[scope](docs/management-layer/ROUNDED_SOURCE_HOURS_2026-10-31.md).
+
 October 31 deferred-source recovery: Overview, Visit Preview and EVV can resume
 details deferred by source/time limits without skipping them via Next page.
 Source delays are honored, including a second quota response on the retry.

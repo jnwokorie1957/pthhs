@@ -29,10 +29,10 @@
       // Never count fields from a detail read the server could not verify.
       if (live && item.state === 'unavailable') return { id: item.id, state: 'unavailable', patientId: null, caregiverId: null,
         scheduledStart: null, scheduledEnd: null, actualStart: null, actualEnd: null, evvStart: null, evvEnd: null,
-        actualHours: null, scheduleDurationHours: null, scheduleDurationMinutes: null,
+        actualHours: null, actualHoursRounded: null, scheduleDurationHours: null, scheduleDurationMinutes: null,
         detailReason: detailReasons[item.error] || 'Source detail could not be verified' };
       const result = Object.fromEntries(['id', 'patientId', 'caregiverId', 'scheduledStart', 'scheduledEnd', 'actualStart', 'actualEnd', 'evvStart', 'evvEnd', 'state'].map(key => [key, value(item[key])]));
-      for (const key of ['actualHours', 'scheduleDurationHours', 'scheduleDurationMinutes']) {
+      for (const key of ['actualHours', 'actualHoursRounded', 'scheduleDurationHours', 'scheduleDurationMinutes']) {
         if (item[key] !== null && item[key] !== undefined && (typeof item[key] !== 'string' || item[key].length > 128)) throw new Error('invalid_visit_preview');
         result[key] = item[key] ?? null;
       }
@@ -643,19 +643,20 @@
     }
     const pair = (start, end) => `${start || 'Not supplied by HHA'}\n${end || 'Not supplied by HHA'}`;
     const captured = context();
-    const { sourceScheduleHours, sourceActualHours } = window.primetimeSourceTime;
-    const detailCells = item => item.state === 'unavailable' ? Array(5).fill('Detail unavailable') : [
+    const { sourceScheduleHours, sourceActualHours, sourceRoundedActualHours } = window.primetimeSourceTime;
+    const detailCells = item => item.state === 'unavailable' ? Array(6).fill('Detail unavailable') : [
       pair(item.scheduledStart, item.scheduledEnd), pair(item.actualStart, item.actualEnd), pair(item.evvStart, item.evvEnd),
       view.mode === 'demo' ? 'Synthetic example' : sourceScheduleHours(item.scheduleDurationHours, item.scheduleDurationMinutes, null, item.scheduledStart, item.scheduledEnd),
-      view.mode === 'demo' ? 'Synthetic example' : sourceActualHours(item.actualHours, null, item.actualStart, item.actualEnd)];
-    replace('dashboardVisitRows', table(['Visit', 'Patient ID', 'Caregiver ID', 'Scheduled start / end', 'Actual start / end', 'EVV start / end', 'Expected hours (HHA)', 'Actual hours (HHA)', 'Evidence state', 'Source records'],
+      view.mode === 'demo' ? 'Synthetic example' : sourceActualHours(item.actualHours, null, item.actualStart, item.actualEnd),
+      view.mode === 'demo' ? 'Synthetic example' : sourceRoundedActualHours(item.actualHoursRounded)];
+    replace('dashboardVisitRows', table(['Visit', 'Patient ID', 'Caregiver ID', 'Scheduled start / end', 'Actual start / end', 'EVV start / end', 'Expected hours (HHA)', 'Actual hours (HHA)', 'Rounded actual hours (HHA)', 'Evidence state', 'Source records'],
       view.items.map(item => [item.id, item.patientId, item.caregiverId, ...detailCells(item),
         item.state === 'unavailable' ? 'Detail unavailable: ' + item.detailReason : view.mode === 'demo' ? 'Synthetic example' : 'Source unvalidated', view.mode === 'demo' ? 'Synthetic record' : () => sourceRecordTools(view, item, captured)]), 'sourceVisitTable'));
-    text('dashboardVisitStatus', view.mode === 'demo' ? 'Synthetic visit examples. No source request was made.' : view.state === 'partial' ? 'Partial source page returned. More pages, truncated search results or unavailable details are disclosed below.' : view.state === 'empty' ? 'No visit identifiers returned for this query. Complete office coverage is not established.' : 'Live HHA source page returned. Source fields are shown separately; operational classifications are pending.');
+    text('dashboardVisitStatus', view.mode === 'demo' ? 'Synthetic visit examples. No source request was made.' : view.state === 'partial' ? 'Partial source page returned. See limits and unavailable details below.' : view.state === 'empty' ? 'No visit identifiers returned; office coverage is unknown.' : 'Live HHA page; source fields unvalidated.');
     text('dashboardVisitScope', `Office: ${view.scope.officeId || 'Unavailable'} · Date: ${view.scope.date} · Timezone: ${view.scope.timezone || 'Unconfigured'}`);
-    text('dashboardVisitMetadata', view.mode === 'demo' ? 'Source: synthetic examples · values are not patient records.' : `Source: HHAeXchange · fetched: ${view.fetchedAt || 'Unavailable'} · source unvalidated · on-demand read, not a persisted visit import · source time values shown without conversion. Source clock spans are written-time arithmetic, not elapsed, payable or billable time.`);
+    text('dashboardVisitMetadata', view.mode === 'demo' ? 'Synthetic examples; no patient records.' : `Source: HHAeXchange · fetched: ${view.fetchedAt || 'Unavailable'} · source unvalidated · on-demand read, not a persisted visit import · times unconverted. Clock spans use written times, not elapsed, payable or billable time.`);
     const pageScope = view.page && view.discovery ? `Showing source IDs ${view.items.length ? view.page.offset + 1 : 0}–${view.page.offset + view.items.length} of ${view.discovery.selectedCount} returned by search. ` : `${view.items.length} source record(s) on this page. `;
-    text('dashboardVisitCompleteness', view.mode === 'demo' ? 'Example page only.' : `${pageScope}Charts use this page only. Office totals are unknown; complete office coverage is not established. Read limits: received search IDs retained; 10 details per page and a 25-second detail-read budget.${view.truncated ? ' Source identifier results were truncated.' : ''}`);
+    text('dashboardVisitCompleteness', view.mode === 'demo' ? 'Example page only.' : `${pageScope}Page-only charts. Office totals are unknown; coverage is unknown. Read limits: received search IDs retained; 10 details per page and a 25-second detail-read budget.${view.truncated ? ' Source identifier results were truncated.' : ''}`);
     nextPageButton(Boolean(nextCursor));
     previousPageButton(view.mode === 'demo' ? demoOffset > 0 : pagePosition > 0);
     pageFetchAge(view, captured);
@@ -689,7 +690,7 @@
     const request = new AbortController(), sequence = ++state.sequence; state.abort = request;
     const scope = { visitId: item.id, patientId: item.patientId, caregiverId: item.caregiverId, officeId: view.scope.officeId, date: view.scope.date };
     const active = () => current(captured) && state.sequence === sequence && !request.signal.aborted;
-    replace(host, node('p', 'Reading source call events and checking current visit / patient / caregiver / office / day…'));
+    replace(host, node('p', 'Reading call events and checking visit/subject/office/day…'));
     try {
       const response = await window.primetimeApiFetch('/primetime/api/workspace/visit-calls', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(scope), signal: request.signal });
       const payload = await response.json(); if (!active()) return;
@@ -698,15 +699,15 @@
           state.retryAt = Date.now() + payload.retryAfterSeconds * 1000; throw new Error(`Source read limit reached. Retry in ${payload.retryAfterSeconds} seconds.`);
         }
         throw new Error(({ read_not_owner_enabled: 'The raw-call read is not enabled. Review Settings.', visit_caregiver_changed_restart: 'The caregiver on this visit changed. Reload the source page.',
-          visit_call_date_mismatch: 'The current visit date differs from the selected source day. Reload the source page.', call_subject_mismatch: 'The call response did not match this patient and caregiver.',
-          call_source_date_unverified: 'The call source date could not be verified for this day.', office_policy_changed_restart: 'Office preferences changed. Reload the source page.',
+          visit_call_date_mismatch: 'The current visit date differs from the selected source day. Reload the source page.', call_subject_mismatch: 'Call response patient/caregiver mismatch.',
+          call_source_date_unverified: 'Call source date could not be verified.', office_policy_changed_restart: 'Office preferences changed. Reload the source page.',
           operational_data_release_not_approved: 'Source access is locked pending operational data release.' })[payload.error] || 'The raw-call response could not be verified. Retry from the source page.');
       }
       const checked = normalizeCallEvents(payload, scope), age = node('p', null, 'source-metadata');
       replace(host, node('p', `HHA GetCallDashBoardData · ${scope.date} · fetched ${checked.fetchedAt}. ${checked.records.length} event(s) in this bounded response${checked.truncated ? ' · source response truncated' : ''}; complete history is not established.`, 'source-metadata'), age,
-        node('p', 'Source events are filtered by patient, caregiver, office and day. No visit ID is supplied by this source. Event type/status is preserved without assigning a clock-in/out to this visit or replacing recorded/EVV fields.', 'source-metadata'),
+        node('p', 'Filtered by patient/caregiver/office/day. No visit ID is supplied. Raw type/status assigns no punch and replaces no recorded/EVV field.', 'source-metadata'),
         ...(checked.records.length ? [table(['Call event ID', 'Call time (source)', 'Type (source)', 'Status (source)'], checked.records.map(row => [row.CallDashboardID, row.CallTime || 'Not supplied by HHA', row.CallType || 'Not supplied by HHA', row.CallStatus || 'Not supplied by HHA']))]
-          : [node('p', 'No source call events returned for this request. This does not prove that no visit or original punch exists.')]));
+          : [node('p', 'No source call events returned. This does not prove absence of a visit or original punch.')]));
       state.clearAge = window.primetimeSourceTime.watchFetchAge(window.primetimeSourceTime.timestampInstant(checked.fetchedAt), active, value => { age.textContent = value; }, () => { age.textContent = ''; });
     } catch (error) { if (active()) replace(host, node('p', error.message === 'invalid_call_events' ? 'The raw-call response could not be verified. Reload the source page.' : error.message)); }
     finally { if (state.abort === request) state.abort = null; }
@@ -950,8 +951,8 @@
     } catch {
       if (!current(captured)) return;
       resetPaging();
-      unavailable('dashboardVisitRows', 'Visit preview unavailable', 'The source request failed or its response could not be verified. Refresh to retry.');
-      liveOverviewState('Live visits unavailable', 'The HHA request failed or its response could not be verified. Refresh to retry.');
+      unavailable('dashboardVisitRows', 'Visit preview unavailable', 'Source response could not be verified. Reload the source page.');
+      liveOverviewState('Live visits unavailable', 'Source response could not be verified. Reload the source page.');
       text('dataModeBadge', 'Live · unavailable');
       text('environmentDetails', 'HHA visit source unavailable');
       text('dashboardVisitStatus', 'Visit source preview unavailable. No example values are shown.');

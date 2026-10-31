@@ -211,6 +211,17 @@ TAB 04 - VISIT PREVIEW
     labels. Keep patient, caregiver, visit, calendar, authorization, care-plan and
     document links tied to the same source context.
 
+[ ] P06 Rounded actual hours: the approved GetVisitInfoV3 operational read
+    already returns ActualHoursRounded, but Preview DTO and Review projection
+    omitted it. Map VisitInfo/ActualHoursRounded (optional WSDL string) separately
+    to actualHoursRounded / rawDurations.ActualHoursRounded, with its own label.
+    Empty/absent/zero/unread values remain distinct; no local rounding or fallback
+    into ActualHours, original EVV punches, other clocks, charts or decisions.
+    October31 implementation passes534backend/333frontend-tooling tests; three
+    browser regressions fail before/pass after. Normal release/native acceptance
+    pending here. Source/read/interpretation grants unchanged. See
+    ROUNDED_SOURCE_HOURS_2026-10-31.md. P03/E04 original-punch gaps remain open.
+
 TAB 05 - PATIENT WORKBENCH
 [x] T01 Main surface now starts with current patients from readable visits on the
     selected source page. Calendar imports remain clearly separate saved history.

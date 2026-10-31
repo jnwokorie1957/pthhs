@@ -185,7 +185,7 @@ test('unaccepted review shows returned HHA times and durations without accepting
     evidence.patientId = null; evidence.caregiverId = null;
     for (const key of Object.keys(evidence.times)) evidence.times[key] = null;
     evidence.raw = { ScheduleStartTime: '2026-10-11 08:00', ScheduleEndTime: '2026-10-11 12:15', VisitStartTime: '2026-10-11 08:05', VisitEndTime: null,
-      EVVStartTime: '2026-10-11 08:06', EVVEndTime: '2026-10-11 12:10', 'ScheduleDuration/ScheduleDurationHours': '4', 'ScheduleDuration/ScheduleDurationMinutes': '15', ActualHours: '0.00', PayHours: '99.00' };
+      EVVStartTime: '2026-10-11 08:06', EVVEndTime: '2026-10-11 12:10', 'ScheduleDuration/ScheduleDurationHours': '4', 'ScheduleDuration/ScheduleDurationMinutes': '15', ActualHours: '0.00', ActualHoursRounded: '0.25', PayHours: '99.00' };
     diagnosis.state = 'unknown'; diagnosis.verification = 'unknown';
     for (const key of Object.keys(diagnosis.metrics)) diagnosis.metrics[key] = null;
     return { ok: true, json: async () => payload };
@@ -195,6 +195,8 @@ test('unaccepted review shows returned HHA times and durations without accepting
   assert.match(app.text('revisionVisits'), /4 h 15 min · HHA/);
   assert.match(app.text('revisionVisits'), /2026-10-11 08:05 → Unavailable/);
   assert.match(app.text('revisionVisits'), /0\.00 h · HHA/);
+  assert.match(app.text('revisionVisits'), /Rounded actual hours\s+0\.25 h · HHA/);
+  assert.match(app.text('revisionDetail'), /Rounded actual hours\s+0\.25 h · HHA/);
   assert.doesNotMatch(app.text('revisionVisits'), /99\.00|Verified/);
   assert.match(app.text('revisionDetail'), /These values do not mark a visit verified or billable/);
   assert.equal(app.calls.some(call => call.options.method === 'POST'), false);
@@ -239,7 +241,7 @@ test('unread review details do not claim HHA omitted times or hours, including w
     await app.openLive();
     const card = app.element('revisionVisits').children[0];
     const facts = app.descendants(card).find(element => element.tag === 'dl');
-    assert.deepEqual(facts.children.filter(element => element.tag === 'dd').map(element => element.textContent), Array(4).fill('Source detail unavailable'));
+    assert.deepEqual(facts.children.filter(element => element.tag === 'dd').map(element => element.textContent), Array(5).fill('Source detail unavailable'));
     assert.doesNotMatch(card.textContent, /Not supplied by HHA|Unknown evidence|Original source start/);
     assert.doesNotMatch(app.text('revisionDetail'), /Original source values|Not supplied by HHA|HHA times and duration fields are displayed/);
     assert.match(app.text('revisionDetail'), /Time and duration fields could not be read/);

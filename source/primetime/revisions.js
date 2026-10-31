@@ -78,7 +78,7 @@
       return { evidence: { visitId: evidence.visitId, state: evidence.state, patientId: evidence.patientId || null, caregiverId: evidence.caregiverId || null, times,
         recordReturned: evidence.raw !== null && typeof evidence.raw === 'object' && !Array.isArray(evidence.raw),
         rawTimes: Object.fromEntries(['ScheduleStartTime', 'ScheduleEndTime', 'VisitStartTime', 'VisitEndTime', 'EVVStartTime', 'EVVEndTime'].map(key => [key, short(evidence.raw?.[key], 128)])),
-        rawDurations: Object.fromEntries(['ScheduleDuration/ScheduleDurationHours', 'ScheduleDuration/ScheduleDurationMinutes', 'ActualHours'].map(key => [key, short(evidence.raw?.[key], 128)])),
+        rawDurations: Object.fromEntries(['ScheduleDuration/ScheduleDurationHours', 'ScheduleDuration/ScheduleDurationMinutes', 'ActualHours', 'ActualHoursRounded'].map(key => [key, short(evidence.raw?.[key], 128)])),
         reasons: Array.isArray(evidence.reasons) ? evidence.reasons.map(value => short(value)).filter(Boolean).slice(0, 30) : [],
         provenance: evidence.provenance ? { operation: short(evidence.provenance.operation, 128), fetchedAt: short(evidence.provenance.fetchedAt, 40), sourceRevision: short(evidence.provenance.sourceRevision, 128), acceptanceVersion: short(evidence.provenance.acceptanceVersion, 128) } : null, verificationReceipt },
       diagnosis: { state: diagnosis.state, verification: diagnosis.verification, issues, metrics: Object.fromEntries(['scheduledMinutes', 'actualMinutes', 'evvMinutes', 'varianceMinutes'].map(key => [key, number(diagnosis.metrics?.[key])])) }, memberContext, overlapCoverage };
@@ -197,6 +197,10 @@
     return actual ? sourceActualHours(raw.ActualHours, item.diagnosis.metrics.actualMinutes, times.VisitStartTime, times.VisitEndTime)
       : sourceScheduleHours(raw['ScheduleDuration/ScheduleDurationHours'], raw['ScheduleDuration/ScheduleDurationMinutes'], item.diagnosis.metrics.scheduledMinutes, times.ScheduleStartTime, times.ScheduleEndTime);
   }
+  function roundedHours(item) {
+    return item.demo ? 'Synthetic example' : !sourceReadable(item) ? sourceUnavailable
+      : window.primetimeSourceTime.sourceRoundedActualHours(item.evidence.rawDurations?.ActualHoursRounded);
+  }
   function labels(entries) { const list = node('dl', null, 'revision-facts'); for (const [title, value] of entries) list.append(node('dt', title), node('dd', value || 'Unavailable')); return list; }
   function statePill(item) {
     if (!sourceReadable(item)) return node('span', sourceUnavailable, 'status medium');
@@ -258,7 +262,7 @@
       const article = node('article', null, 'revision-visit-card');
       article.append(statePill(item), node('h4', `Visit ${all.indexOf(item) + 1}`), labels([
         ['Scheduled', sourcePair(item, 'scheduledStart', 'scheduledEnd', 'ScheduleStartTime', 'ScheduleEndTime')], ['Expected hours', sourceHours(item)],
-        ['Recorded actual', sourcePair(item, 'actualStart', 'actualEnd', 'VisitStartTime', 'VisitEndTime')], ['Actual hours', sourceHours(item, true)]
+        ['Recorded actual', sourcePair(item, 'actualStart', 'actualEnd', 'VisitStartTime', 'VisitEndTime')], ['Actual hours', sourceHours(item, true)], ['Rounded actual hours', roundedHours(item)]
       ]));
       article.append(node('small', `Member reference: ${item.evidence.patientId || 'Unknown'} · Caregiver reference: ${item.evidence.caregiverId || 'Unknown'}`, 'source-metadata'));
       const issue = item.diagnosis.issues.find(value => value.level === 'blocker') || item.diagnosis.issues[0];
@@ -283,7 +287,7 @@
     const box = node('div');
     box.append(statePill(item), labels([
       ['Schedule', sourcePair(item, 'scheduledStart', 'scheduledEnd', 'ScheduleStartTime', 'ScheduleEndTime')], ['Expected duration', sourceHours(item)],
-      ['Recorded actual', sourcePair(item, 'actualStart', 'actualEnd', 'VisitStartTime', 'VisitEndTime')], ['Actual duration', sourceHours(item, true)],
+      ['Recorded actual', sourcePair(item, 'actualStart', 'actualEnd', 'VisitStartTime', 'VisitEndTime')], ['Actual duration', sourceHours(item, true)], ['Rounded actual hours', roundedHours(item)],
       ['EVV punches', sourcePair(item, 'evvStart', 'evvEnd', 'EVVStartTime', 'EVVEndTime')], ['EVV duration', sourceReadable(item) ? duration(item.diagnosis.metrics.evvMinutes) : sourceUnavailable],
       ['Duration variance', !sourceReadable(item) ? sourceUnavailable : item.diagnosis.metrics.varianceMinutes === null ? 'Unknown' : `${item.diagnosis.metrics.varianceMinutes} minutes`], ['Location / GPS', 'Unavailable until supported source evidence is validated']
     ]));

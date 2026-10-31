@@ -241,6 +241,21 @@ test("V3 projects HHA schedule-duration components and preview retains them with
   assert.equal(absent.scheduleDurationHours, null); assert.equal(absent.scheduleDurationMinutes, null); assert.equal(absent.actualHours, null);
 });
 
+test("rounded HHA actual hours remain an independent raw field, never filling clocks or ActualHours", async () => {
+  for (const value of ["4.25", "0.00", "", null]) {
+    const f = fixture(["77"], { read: async input => {
+      if (input.operation === "SearchVisitsV2") return source(input.operation, [{ VisitID: "77" }]);
+      const record = detail(input.id!); record.records[0]!.ActualHoursRounded = value; record.records[0]!.ActualHours = null;
+      record.records[0]!.VisitEndTime = null; record.records[0]!.EVVEndTime = null; return record;
+    } });
+    const result = await visitPreview(f.service, { date: "2026-10-10" }, "owner"), row = result.items[0]!;
+    assert.equal(row.actualHoursRounded, value); assert.equal(row.actualHours, null);
+    assert.equal(row.actualEnd, null); assert.equal(row.evvEnd, null); assert.equal(result.totals, null);
+  }
+  const absent = await visitPreview(fixture().service, { date: "2026-10-10" }, "owner");
+  assert.equal(absent.items[0]!.actualHoursRounded, null);
+});
+
 test("empty discovery is empty source preview while vendor failure and malformed discovery cannot become empty success", async () => {
   const f = fixture([]), empty = await visitPreview(f.service, { date: "2026-10-10" }, "owner");
   assert.equal(empty.state, "empty"); assert.deepEqual(empty.items, []); assert.equal(empty.completeness.complete, false); assert.equal(f.calls.length, 1);

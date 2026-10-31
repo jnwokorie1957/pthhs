@@ -418,6 +418,16 @@ test('HHA source hours preserve zero, empty and missing components separately fr
   assert.equal(schedule(undefined, null), 'Not supplied by HHA');
 });
 
+test('rounded source hours preserve supplied values and never fall back to schedules, clocks or calculations', () => {
+  const rounded = dashboardModel().primetimeSourceTime.sourceRoundedActualHours;
+  assert.equal(rounded('0.00'), '0.00 h · HHA');
+  assert.equal(rounded('4.25'), '4.25 h · HHA');
+  assert.equal(rounded('4:15'), '4:15 · HHA');
+  assert.equal(rounded(''), 'Empty HHA ActualHoursRounded');
+  assert.equal(rounded(null, 240, '2026-10-10 08:00', '2026-10-10 12:00'), 'Not supplied by HHA');
+  assert.equal(rounded(undefined), 'Not supplied by HHA');
+});
+
 test('missing source hours use a labelled complete clock span without guessing missing ends, dates or DST offsets', () => {
   const { sourceClockSpan: span, sourceActualHours: actual, sourceScheduleHours: schedule } = dashboardModel().primetimeSourceTime;
   const start = '2026-10-10 08:00', end = '2026-10-10 12:15';
@@ -434,15 +444,18 @@ test('missing source hours use a labelled complete clock span without guessing m
 test('preview retains returned HHA duration fields and strips them from unavailable details', () => {
   const model = dashboardModel().primetimeDashboardModel, date = '2026-10-10';
   const payload = { ok: true, mode: 'live', source: 'hhaexchange', state: 'ready', scope: { officeId: '123', date }, validation: 'source_unvalidated', totals: null, items: [
-    { id: '77', state: 'source_unvalidated', actualHours: '0.00', scheduleDurationHours: '4', scheduleDurationMinutes: '15' }
+    { id: '77', state: 'source_unvalidated', actualHours: '0.00', actualHoursRounded: '0.25', scheduleDurationHours: '4', scheduleDurationMinutes: '15' }
   ] };
   const expected = { mode: 'live', officeId: '123', date };
   const result = model.normalizeVisitPreview(payload, expected).items[0];
-  assert.equal(result.actualHours, '0.00'); assert.equal(result.scheduleDurationHours, '4'); assert.equal(result.scheduleDurationMinutes, '15');
+  assert.equal(result.actualHoursRounded, '0.25'); assert.equal(result.actualHours, '0.00'); assert.equal(result.scheduleDurationHours, '4'); assert.equal(result.scheduleDurationMinutes, '15');
   payload.items[0].state = 'unavailable';
   assert.equal(model.normalizeVisitPreview(payload, expected).items[0].actualHours, null);
+  assert.equal(model.normalizeVisitPreview(payload, expected).items[0].actualHoursRounded, null);
   assert.equal(model.normalizeVisitPreview(payload, expected).items[0].scheduleDurationHours, null);
-  payload.items[0].state = 'source_unvalidated'; payload.items[0].actualHours = 4;
+  payload.items[0].state = 'source_unvalidated';
+  for (const value of [4, 'x'.repeat(129)]) { payload.items[0].actualHoursRounded = value; assert.throws(() => model.normalizeVisitPreview(payload, expected)); }
+  payload.items[0].actualHoursRounded = null; payload.items[0].actualHours = 4;
   assert.throws(() => model.normalizeVisitPreview(payload, expected));
 });
 
