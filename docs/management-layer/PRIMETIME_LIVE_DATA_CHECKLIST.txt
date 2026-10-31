@@ -17,6 +17,8 @@ EVIDENCE AND WORK RULES
 All thirteen navigation tabs were inspected in the signed-in Chrome session on
 October 24. Source/code matches this repository; API field contracts were checked
 against hharefs/hha-wdsl.xml. No source patient/staff values or IDs belong here.
+October31 adds Website analytics to this audit (TAB14 below); Settings remains
+outside the main navigation group. The newly added source is not assumed live.
 Use API reads, not a web-scraped import. Preserve live versus historical/saved
 labels, office/date/identity checks, throttling, auth and normal release controls.
 The owner requested connection work; investigate bounded read enablement under
@@ -63,7 +65,20 @@ TAB 01 - OVERVIEW
     retry loop or source time substitution. Access denials and omitted fields
     in readable records do not advertise this transient recovery path.
     Local evidence:533backend/332frontend-tooling tests and Windows release
-    checks passed. Normal release and native production acceptance are pending.
+    checks passed. Featurebddf7316d5cb1f32acafa3cf18a4cebc2823a29b plus generated
+    output follow-upd0c4cd6d3a0c399d7b1fe89998e9d77a5ec9a745 passed normal
+    workflow41225292511 (Hosting17:36:25UTC/backend17:36:45UTC). First Hosting
+    attempt correctly refused inherited analytics tag-placement drift in four
+    article/guide outputs; exact full generation was corrected and repeated
+    cleanly without removing tracking or bypassing the clean-tree check.
+    At17:37UTC ten app artifacts/eight anonymous401 boundaries matched; seven
+    additional analytics/article assets matched too. Native historical reads:
+    October24 first10 and next10 details readable with disjoint identities;
+    changing toOctober23 cleared prior rows and returned10readable details.
+    No details were deferred in those receipts; retry controls correctly stayed
+    hidden while missing EVV-end fields remained explicit. Exact quota/time-limit
+    recovery is covered by regressions, not claimed reproduced natively. No quota
+    was induced. Mobile390/desktop1280 geometry remained within the viewport.
 [ ] O03 Complete-office coverage is not established. Determine a supported bounded
     scan/refresh design before promising full-office totals or all-record search.
 [x] O04 Compact Open records disclosure plus responsive cards is deployed.
@@ -75,6 +90,11 @@ TAB 02 - VISIT REVIEW
     where interpretation is unaccepted; displayed original source fields remain
     readable. Unknown diagnosis is not proof that the data feed is disconnected.
 [ ] V02 Finish retry, next-page, changed-date and office-scope production checks.
+    October31 normal-release native evidence: October24 first and next pages
+    each returned10readable details with no overlap; changing toOctober23 cleared
+    older rows before returning10readable details. Actor/office/policy refusal
+    and quota/time-limit cases retain synthetic coverage and separate native
+    acceptance limits; these ordinary reads do not close the whole matrix.
 [ ] V03 Exception/requirement records: private Primetime records, not HHA visits.
     Confirm the local collections load and distinguish empty from failed reads.
 [ ] V04 Notification history/delivery: map exact existing provider configuration
@@ -366,6 +386,36 @@ TAB 13 - SETTINGS
     Advanced tools/Settings mouse clicks could not reach their controls. The
     sidebar is now scrollable. Native mouse navigation reaches Settings/Audit,
     keyboard access remains, and geometry checks passed390/1280/1920px.
+
+TAB 14 - WEBSITE ANALYTICS (ADDED OCTOBER31)
+[ ] GA01 Reporting is an independent Google Analytics source, not HHA.
+    Source: /primetime/api/website-analytics?site=pthhs&days=28 -> separately
+    deployed website-analytics Functions codebase -> Google Analytics Data API
+    historical and realtime reports. The owner authentication gate is separate
+    from HHA administrator/read settings. No HHA API credential belongs here.
+    Current implementation supports allowed site selectors and7/28/90completed
+    day periods, prior-period comparisons, daily/page/channel/contact metrics,
+    realtime visitors, reporting timezone and updatedAt. Server caching is60s,
+    after authentication, with private/no-store responses. Code supports the
+    PTHHS and Ride Primetime properties; this audit's native read selected PTHHS.
+    October31 native PTHHS read showed the explicit Google reporting-access
+    message, six awaiting-report cards, no chart/report rows and no update
+    receipt. This is ACCESS PENDING, not zero activity or connected live reports.
+    The separate completed analytics setup records the same unresolved issue:
+    owner-approved/reported Viewer grants have not yielded a successful report.
+    Precise next owner/vendor action: verify that GA4 Property access management
+    for the intended property grants Viewer to the CURRENT Cloud Run
+    websiteAnalytics runtime service identity, and verify Analytics Data API
+    activation in that identity's project; then refresh this protected report.
+    Do not duplicate grants or change permissions based only on a setup claim.
+    Existing setup: docs/analytics-setup-2026-10-31.md.
+[ ] GA02 Verify report validation, exact chart calculations and failure freshness
+    once authorized reports return. Code inspection: a failed refresh changes
+    its status but does not clear a previously rendered successful report or
+    realtime count. The current first-read failure had no older facts to expose;
+    a populated-to-failed native transition is not yet proved. Add meaningful
+    failure/context/number-shape regressions, preserve source empties separately
+    from invalid data and never leave an older realtime number labeled current.
 
 NEXT IMPLEMENTATION ORDER
 1. Investigate the next additional bounded staff, billing, authorization-detail

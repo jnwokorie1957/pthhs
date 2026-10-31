@@ -4,8 +4,11 @@ October 31 deferred-source recovery: Overview, Visit Preview and EVV can resume
 details deferred by source/time limits without skipping them via Next page.
 Source delays are honored, including a second quota response on the retry.
 Missing returned clock fields remain separate. 533 backend/332 frontend-tooling
-tests and Windows release checks passed; native acceptance is pending. See O02
-in the [live-data checklist](docs/management-layer/PRIMETIME_LIVE_DATA_CHECKLIST.txt).
+tests, Windows checks and both normal release jobs passed. Native October24
+returned two disjoint10-detail pages; October23 returned10readable details after
+clearing prior-day rows. Exact delay recovery remains regression-tested rather
+than induced in production. See O02 and the new analytics-source audit in the
+[live-data checklist](docs/management-layer/PRIMETIME_LIVE_DATA_CHECKLIST.txt).
 
 October 31 EVV source call events: administrators can inspect a bounded HHA
 response for the selected visit's patient, caregiver, office and day. The human
