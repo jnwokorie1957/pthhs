@@ -211,16 +211,34 @@ TAB 04 - VISIT PREVIEW
     labels. Keep patient, caregiver, visit, calendar, authorization, care-plan and
     document links tied to the same source context.
 
-[ ] P06 Rounded actual hours: the approved GetVisitInfoV3 operational read
+[x] P06 Rounded actual hours: the approved GetVisitInfoV3 operational read
     already returns ActualHoursRounded, but Preview DTO and Review projection
-    omitted it. Map VisitInfo/ActualHoursRounded (optional WSDL string) separately
-    to actualHoursRounded / rawDurations.ActualHoursRounded, with its own label.
-    Empty/absent/zero/unread values remain distinct; no local rounding or fallback
-    into ActualHours, original EVV punches, other clocks, charts or decisions.
-    October31 implementation passes534backend/333frontend-tooling tests; three
-    browser regressions fail before/pass after. Normal release/native acceptance
-    pending here. Source/read/interpretation grants unchanged. See
-    ROUNDED_SOURCE_HOURS_2026-10-31.md. P03/E04 original-punch gaps remain open.
+    omitted it. Exact optional WSDL path VisitInfo/ActualHoursRounded now maps
+    separately to actualHoursRounded / rawDurations.ActualHoursRounded with its
+    own label. Empty/absent/zero/unread values remain distinct; no local rounding
+    or fallback into ActualHours, clocks, original EVV punches, charts or decisions.
+    Feature8bc20ecfbe445bda0dcaf0754f68ce663cb88159 passed534backend/333root tests,
+    normalworkflow41237563885 (Hosting20:10:04UTC/backend20:11:11UTC), and at
+    20:11:55UTC twelve exact app assets/eight anonymous401 boundaries. Captured
+    WSDL optional string and operational field projection agree; a public
+    documentation-tool403 was not an authenticated source/read failure.
+    Native after both jobs: October23 same-identity Preview and Review rounded
+    values match an independent approved V3 read; actual hours and all four
+    recorded/EVV clocks remain unchanged. October24 returned10readable details,
+    10recorded pairs/7EVV pairs/7supplied rounded-hour values. Current office-day
+    minute cache returned10readable details and2supplied rounded-hour values.
+    The automatic receipt advanced20:15:04.468->20:16:04.795UTC with no manual
+    reads between; all6current field charts matched [10,10,7,2,7,2] over10readable
+    details. These are bounded receipts, not worked/billable/verified status or
+    a census. Original user-held historical tabs stayed untouched.
+    A natural source read limit on the October23 page left2details unavailable.
+    After the displayed cooldown expired, one Retry deferred details request
+    returned both exact prior identities as readable; one supplied recorded/EVV
+    pairs. No quota was induced, retry loop or substitute used. This advances
+    O02/V02 native recovery evidence; their broader acceptance matrix stays open.
+    Original October24 screenshot omission stays already resolved. Other genuine
+    original-punch/hour gaps and E04 retained-history/linkage evidence stay open.
+    See ROUNDED_SOURCE_HOURS_2026-10-31.md. No source/read/grant setting changed.
 
 TAB 05 - PATIENT WORKBENCH
 [x] T01 Main surface now starts with current patients from readable visits on the

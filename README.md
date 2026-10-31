@@ -3,7 +3,9 @@
 October 31 rounded actual-hour mapping now preserves HHA ActualHoursRounded
 separately in Review and Preview/feed. It never fills actual or EVV clocks or
 changes financial/clinical interpretation. All 534 backend/333 frontend-tooling
-tests pass; production acceptance remains pending at this checkpoint. See
+tests pass. Both normal release jobs and native same-identity Review/Preview
+checks passed; a real cooldown retry recovered two deferred historical details.
+Genuine original EVV omissions remain open. See
 [scope](docs/management-layer/ROUNDED_SOURCE_HOURS_2026-10-31.md).
 
 October 31 analytics validation clears older metrics after failed reads, keeps

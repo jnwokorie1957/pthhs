@@ -3,8 +3,9 @@
 - [x] October 31 rounded actual-hour source mapping: retain optional
   ActualHoursRounded through the existing visit/feed DTO and Review raw
   projection; expose it separately without filling clocks or ActualHours.
-  534 backend/333 frontend-tooling tests pass; normal release and native
-  acceptance remain pending at this checkpoint. See
+  534 backend/333 frontend-tooling tests, both normal jobs and native same-visit
+  Review/Preview checks pass. A real cooldown retry recovered two prior deferred
+  details; genuine source omissions remain open. See
   [scope](ROUNDED_SOURCE_HOURS_2026-10-31.md) and P06 in the
   [connection checklist](PRIMETIME_LIVE_DATA_CHECKLIST.txt).
 
