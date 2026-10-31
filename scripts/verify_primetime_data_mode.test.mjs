@@ -496,6 +496,104 @@ function installDashboard(app) {
   vm.runInContext(asset('dashboard.js'), app.context);
 }
 function nodeText(node) { return [node.textContent || '', ...node.children.map(child => child.children ? nodeText(child) : child.textContent || '')].join(' '); }
+
+function analyticsReport(site='pthhs',days=28){
+  const current={screenPageViews:7203,sessions:20,activeUsers:12,engagementRate:0.5,averageSessionDuration:75};
+  return {ok:true,site,days,name:site==='pthhs'?'PTHHS':'Ride Primetime',propertyId:site==='pthhs'?'546711548':'561765914',current,previous:{...current,screenPageViews:6000},
+    trend:[{date:'20261030',screenPageViews:9,sessions:3},{date:'20261028',screenPageViews:7,sessions:2}],
+    pages:[{pagePath:'/synthetic-public-page',screenPageViews:11,activeUsers:8}],channels:[{sessionDefaultChannelGroup:'Direct',sessions:10,activeUsers:8}],
+    events:[{eventName:'phone_click',eventCount:2},{eventName:'email_click',eventCount:3}],realtime:4,realtimeError:null,dataQuality:null,timeZone:'America/Chicago',
+    updatedAt:'2026-10-31T18:00:00.000Z',periodNote:'Synthetic report period; source dates only.'};
+}
+async function analyticsApp(read=()=>response(analyticsReport())){
+  const app=harness({storedDataMode:null,fetchSource:read});
+  const clock=deviceClock(app,'2026-10-31T18:00:00Z');
+  app.document.hidden=false;await app.signIn();
+  app.element('websiteAnalytics').classList.add('is-active');app.element('waSite').value='pthhs';app.element('waSite').selectedIndex=0;
+  app.element('waSite').options=[{text:'PTHHS · pthhs.net'},{text:'Ride Primetime · rideprimetime.net'}];app.element('waDays').value='28';
+  vm.runInContext(asset('analytics.js'),app.context);await tick();await tick();return {...app,clock};
+}
+test('analytics clears prior facts at refresh start and keeps failures distinct from zero',async()=>{
+  let next=null;const app=await analyticsApp(()=>next?next.promise:response(analyticsReport()));
+  assert.match(nodeText(app.element('waMetrics')),/7,203/);assert.equal(app.element('waLive').textContent,'4');
+  next=deferred();await app.click('waRefresh');
+  assert.doesNotMatch(nodeText(app.element('waMetrics')),/7,203/);assert.equal(app.element('waLive').textContent,'—');assert.equal(app.element('waUpdated').textContent,'');
+  next.resolve({...response({ok:false,error:'analytics_access_pending',message:'PRIVATE-UPSTREAM-ERROR'}),ok:false,status:503});await tick();await tick();
+  assert.match(app.element('waStatus').textContent,/reporting access still needs/);assert.doesNotMatch(app.element('waStatus').textContent,/PRIVATE/);
+  assert.equal(app.element('waStatus').classList.contains('wa-error'),true);assert.equal(app.element('waRefresh').disabled,false);
+  for(const id of ['waPages','waChannels','waDaily'])assert.equal(app.element(id).children.length,0);
+});
+test('analytics validates whole numeric, identity, date and receipt shapes before rendering',async()=>{
+  const changes=[d=>delete d.current.sessions,d=>d.current.sessions='20',d=>d.current.sessions=-1,d=>d.current.sessions=1.5,d=>d.current.averageSessionDuration=Infinity,
+    d=>d.current.engagementRate=1.1,d=>d.previous=null,d=>d.site='rideprimetime',d=>d.propertyId='561765914',d=>d.days=7,d=>d.updatedAt=null,
+    d=>d.updatedAt='2026-10-31T17:57:59.000Z',d=>d.updatedAt='2026-10-31T18:01:01.000Z',d=>d.timeZone='Invalid/Timezone',d=>d.trend[0].date='20260230',
+    d=>d.trend.push({...d.trend[0]}),d=>d.pages[0].activeUsers=null,d=>d.channels[0].sessions=NaN,d=>d.events.push({...d.events[0]}),d=>delete d.realtime,
+    d=>{d.realtime=null;d.realtimeError=null;},d=>d.events=[{eventName:'phone_click',eventCount:Number.MAX_SAFE_INTEGER},{eventName:'email_click',eventCount:1}]];
+  for(const change of changes){let invalid=false;const app=await analyticsApp(()=>{const d=analyticsReport();if(invalid)change(d);return response(d);});
+    invalid=true;await app.click('waRefresh');await tick();await tick();
+    assert.equal(app.element('waStatus').classList.contains('wa-error'),true,String(change));
+    assert.match(app.element('waStatus').textContent,/could not be verified/);assert.equal(app.element('waLive').textContent,'—');
+    assert.doesNotMatch(nodeText(app.element('waMetrics')),/7,203|NaN|Infinity/);assert.equal(app.element('waUpdated').textContent,'');
+  }
+});
+test('analytics plots source dates without invented zero days or lines across missing dates',async()=>{
+  const app=await analyticsApp();const daily=nodeText(app.element('waDaily'));
+  assert.ok(daily.indexOf('10/28/2026')<daily.indexOf('10/30/2026'));assert.doesNotMatch(daily,/10\/29\/2026/);
+  const svg=app.element('waChart').children[0];const paths=svg.children.filter(n=>n.d!==undefined);
+  assert.equal(paths.length,2);assert.ok(paths.every(n=>(n.d.match(/M/g)||[]).length===2&&!n.d.includes('L')));
+  assert.match(nodeText(app.element('waMetrics')),/50.0%|1m 15s/);assert.match(nodeText(app.element('waMetrics')),/Phone & email clicks 5/);
+});
+test('analytics preserves real zeros and distinguishes missing realtime from a zero count',async()=>{
+  for(const realtime of [0,null]){const app=await analyticsApp(()=>{const d=analyticsReport();for(const item of [d.current,d.previous])for(const key of Object.keys(item))item[key]=0;
+    Object.assign(d,{trend:[],pages:[],channels:[],events:[],realtime,realtimeError:realtime===null?'Unavailable at source':null});return response(d);});
+    assert.equal(app.element('waStatus').classList.contains('wa-error'),false);assert.equal(app.element('waLive').textContent,realtime===0?'0':'Unavailable');
+    assert.match(nodeText(app.element('waChart')),/No daily source rows/);assert.match(nodeText(app.element('waDaily')),/No source rows/);
+    assert.match(nodeText(app.element('waMetrics')),/0.0%/);assert.match(app.element('waUpdated').textContent,/Updated/);
+  }
+});
+test('analytics expires retained facts without making hidden source requests',async()=>{
+  const app=await analyticsApp(),count=app.calls.filter(c=>c.path.includes('/website-analytics?')).length;app.document.hidden=true;
+  app.clock.set('2026-10-31T18:02:01Z');app.clock.run();
+  assert.equal(app.calls.filter(c=>c.path.includes('/website-analytics?')).length,count);
+  assert.equal(app.element('waLive').textContent,'—');assert.equal(app.element('waUpdated').textContent,'');assert.match(app.element('waStatus').textContent,/freshness/);
+  assert.doesNotMatch(nodeText(app.element('waMetrics')),/7,203/);
+});
+test('analytics context changes and sign-out fence late source facts and errors',async()=>{
+  for(const boundary of ['site','days','view','signout']){
+    let next=null;const app=await analyticsApp(()=>next?next.promise:response(analyticsReport()));next=deferred();await app.click('waRefresh');
+    if(boundary==='site'){app.element('waSite').value='rideprimetime';app.element('waSite').selectedIndex=1;for(const fn of app.element('waSite').handlers.get('change')||[])fn(new Event('change'));}
+    if(boundary==='days'){app.element('waDays').value='7';for(const fn of app.element('waDays').handlers.get('change')||[])fn(new Event('change'));}
+    if(boundary==='view'){app.element('websiteAnalytics').classList.remove('is-active');app.document.dispatchEvent(new DetailEvent('primetime-view-changed',{detail:{view:'overview'}}));}
+    if(boundary==='signout'){app.auth.currentUser=null;app.dispatch('primetime-signed-out');}
+    next.resolve(response(analyticsReport()));await tick();await tick();
+    assert.doesNotMatch(nodeText(app.element('waMetrics')),/7,203/);assert.equal(app.element('waUpdated').textContent,'');assert.equal(app.element('waLive').textContent,'—');
+  }
+});
+test('late analytics success or failure cannot overwrite a newer website report',async()=>{
+  for(const outcome of ['success','error']){
+    let hold=false;const pending=deferred();
+    const app=await analyticsApp(path=>{const key=new URL(path,'https://fixture.test').searchParams.get('site');
+      if(hold&&key==='pthhs')return pending.promise;
+      const data=analyticsReport(key);if(key==='rideprimetime')data.current.screenPageViews=4321;return response(data);
+    });
+    hold=true;await app.click('waRefresh');await tick();app.element('waSite').value='rideprimetime';app.element('waSite').selectedIndex=1;
+    for(const fn of app.element('waSite').handlers.get('change')||[])fn(new Event('change'));await tick();await tick();
+    assert.match(nodeText(app.element('waMetrics')),/4,321/);
+    if(outcome==='success')pending.resolve(response(analyticsReport()));else pending.reject(new Error('PRIVATE-LATE-ERROR'));
+    await tick();await tick();assert.match(nodeText(app.element('waMetrics')),/4,321/);assert.doesNotMatch(nodeText(app.element('waMetrics')),/7,203/);
+    assert.doesNotMatch(app.element('waStatus').textContent,/PRIVATE|could not be verified/);assert.equal(app.element('waRefresh').disabled,false);
+  }
+});
+test('Demo clears analytics facts and pending bodies and prevents source reads until Live resumes',async()=>{
+  let hold=false;const pending=deferred(),app=await analyticsApp(()=>hold?pending.promise:response(analyticsReport()));
+  hold=true;await app.click('waRefresh');await tick();const count=app.calls.filter(c=>c.path.includes('/website-analytics?')).length;
+  await app.window.primetimeDataMode.setMode('demo');await tick();assert.equal(app.element('waRefresh').disabled,true);
+  pending.resolve(response(analyticsReport()));await tick();await tick();assert.doesNotMatch(nodeText(app.element('waMetrics')),/7,203/);
+  await app.click('waRefresh');app.clock.run();assert.equal(app.calls.filter(c=>c.path.includes('/website-analytics?')).length,count);
+  assert.match(app.element('waStatus').textContent,/paused in Demo/);
+  hold=false;await app.window.primetimeDataMode.setMode('live');await tick();await tick();
+  assert.match(nodeText(app.element('waMetrics')),/7,203/);assert.equal(app.element('waRefresh').disabled,false);
+});
 const liveMetadata = { ok: true, mode: 'live', dataApproved: true, settings: { officeId: '123', officeTimezone: 'America/Chicago' }, panels: { visits: { available: true } } };
 
 function scheduledFeedPage(path, overrides = {}) {

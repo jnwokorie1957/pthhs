@@ -8,6 +8,14 @@
   [scope](ROUNDED_SOURCE_HOURS_2026-10-31.md) and P06 in the
   [connection checklist](PRIMETIME_LIVE_DATA_CHECKLIST.txt).
 
+- [x] October 31 analytics report validation implementation: clear previous facts
+  on reads/errors; validate whole responses, retain explicit zeroes, plot only
+  returned dates, expire old receipts and fence Demo/selection/account/navigation
+  changes. Seven of eight new regressions fail against the old module; all202
+  data-mode/341frontend-tooling tests and Windows checks pass on the combined tree. Normal release and
+  native acceptance pending. Reporting access and upstream adapter semantics
+  remain open in GA01/GA03. See [scope](ANALYTICS_REPORT_VALIDATION_2026-10-31.md).
+
 - [x] October 31 deferred-source recovery implementation: retain a separate,
   caller/office/day/discovery-bound cursor for skipped details and honor source
   delays in Overview, Preview and EVV. A second quota response retains the same

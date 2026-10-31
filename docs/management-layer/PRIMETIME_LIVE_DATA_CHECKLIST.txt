@@ -427,6 +427,26 @@ TAB 14 - WEBSITE ANALYTICS (ADDED OCTOBER31)
     a populated-to-failed native transition is not yet proved. Add meaningful
     failure/context/number-shape regressions, preserve source empties separately
     from invalid data and never leave an older realtime number labeled current.
+    October31 implementation: clear prior reports before reads and on failures;
+    validate complete site/property/period/receipt/timezone/numeric/row shapes
+    before rendering. Genuine zero and unavailable realtime remain distinct.
+    Only returned dates are plotted; absent dates are not zero-filled or joined.
+    Demo now prevents analytics reads and clears pending results; source/account/
+    navigation changes fence old responses. Receipt expiry clears retained facts
+    under an explicit two-minute UI policy, including hidden reports. Seven of
+    eight new regressions failed against the old generated module; the combined
+    tree retains the concurrent rounded-hour mapping and passes534backend,
+    202data-mode and341totalfrontend/tooling tests plus full Windows release checks.
+    Normal release/native acceptance are pending. See the bounded scope in
+    docs/management-layer/ANALYTICS_REPORT_VALIDATION_2026-10-31.md.
+[ ] GA03 The existing independent server adapter still needs direct upstream
+    schema/empty-reason/sampling/truncation and explicit report-period evidence.
+    It currently defaults some omitted values/summary sections to zero and falls
+    back to a timezone. Frontend validation cannot distinguish those substituted
+    values from source-supplied zeroes. Do not claim the whole Google report path
+    is validated, a live report returned, or all calculations are accepted from
+    frontend fixtures alone. Preserve source access gates and the separate
+    website-analytics deployment boundary while addressing that adapter.
 
 NEXT IMPLEMENTATION ORDER
 1. Investigate the next additional bounded staff, billing, authorization-detail
