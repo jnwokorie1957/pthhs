@@ -1108,6 +1108,57 @@ test('live EVV search filters the connected table on input without making anothe
   assert.equal(rows.every(row => !row.hidden), true);
 });
 
+const callEventsPayload = (scope, records) => ({ ok: true, operation: 'GetCallDashBoardData', source: 'hhaexchange', validation: 'source_unvalidated', timezone: 'source_values_unconverted',
+  interpretation: 'call_events_unvalidated', relationship: 'same_patient_caregiver_day_only', visitLink: 'not_supplied_by_source', completeness: 'bounded_response_not_complete_history', truncated: false,
+  fetchedAt: '2026-10-31T16:00:00Z', membershipCheckedAt: '2026-10-31T15:59:59Z', scope, state: records?.length === 0 ? 'empty' : 'ready',
+  records: records || [{ CallDashboardID: '91', 'Patient/ID': scope.patientId, 'Caregiver/ID': scope.caregiverId, CallTime: scope.date + ' 09:00', CallType: 'TYPE_FROM_SOURCE', CallStatus: 'STATUS_FROM_SOURCE', privateExtra: 'MUST_NOT_RENDER' }] });
+async function callEventsFixture(read, available = true) {
+  const metadata = { ...liveMetadata, panels: { ...liveMetadata.panels, callEvents: { available } } };
+  const app = harness({ storedDataMode: null, metadata, fetchSource: (path, options) => path.includes('/views/visits?') ? response(livePreview(new URL(path, 'https://fixture.test').searchParams.get('date')))
+    : path.endsWith('/workspace/visit-calls') ? read(JSON.parse(options.body), options) : response({ ok: true }) });
+  installDashboard(app); await app.signIn(); await tick(); await tick(); return app;
+}
+const callEventButtons = app => descendants(app.element('dashboardExceptions')).filter(n => n.textContent === 'Read call events');
+test('raw-call source is gated before dispatch and never grants its own read control', async () => {
+  const app = await callEventsFixture(() => { throw new Error('gated source dispatched'); }, false), before = app.calls.length;
+  assert.equal(callEventButtons(app).length, 1); assert.equal(callEventButtons(app)[0].disabled, true); await clickNode(callEventButtons(app)[0]);
+  assert.equal(app.calls.length, before); assert.match(nodeText(app.element('dashboardCallEvents')), /GetCallDashBoardData is not enabled/);
+});
+test('raw-call panel uses exact scope and keeps raw event fields separate from visit clocks and counts', async () => {
+  const app = await callEventsFixture(input => response(callEventsPayload(input))), original = nodeText(app.element('dashboardExceptions')), chart = nodeText(app.element('dashboardEvidenceChart'));
+  await clickNode(callEventButtons(app)[0]); await tick(); await tick();
+  const call = app.calls.find(c => c.path.endsWith('/workspace/visit-calls')), input = JSON.parse(call.options.body);
+  assert.deepEqual(input, { visitId: '900001', patientId: '5', caregiverId: '6', officeId: '123', date: app.element('dashboardVisitDate').value });
+  const text = nodeText(app.element('dashboardCallEvents')); assert.match(text, /TYPE_FROM_SOURCE/); assert.match(text, /STATUS_FROM_SOURCE/); assert.match(text, /No visit ID is supplied/);
+  assert.match(text, /complete history is not established/); assert.doesNotMatch(text, /MUST_NOT_RENDER/); assert.equal(nodeText(app.element('dashboardExceptions')), original); assert.equal(nodeText(app.element('dashboardEvidenceChart')), chart);
+});
+test('call model rejects guessed visit linkage, foreign scope/subjects and duplicate event IDs', () => {
+  const scope = { visitId: '900001', patientId: '5', caregiverId: '6', officeId: '123', date: '2026-10-24' }, model = dashboardModel().primetimeDashboardModel;
+  const valid = callEventsPayload(scope); assert.equal(model.normalizeCallEvents(valid, scope).records[0].privateExtra, undefined);
+  for (const changes of [{ visitLink: 'matched' }, { scope: { ...scope, date: '2026-10-23' } }, { source: 'synthetic' }, { state: 'empty' }, { records: [valid.records[0], valid.records[0]] },
+    { records: [{ ...valid.records[0], 'Patient/ID': '99' }] }, { records: [{ ...valid.records[0], CallDashboardID: '0' }] }]) assert.throws(() => model.normalizeCallEvents({ ...valid, ...changes }, scope), /invalid_call_events/);
+  assert.equal(model.normalizeCallEvents(callEventsPayload(scope, []), scope).state, 'empty');
+});
+test('empty raw-call responses stay distinct from failed reads and never become zero visit hours', async () => {
+  const app = await callEventsFixture(input => response(callEventsPayload(input, []))); await clickNode(callEventButtons(app)[0]); await tick(); await tick();
+  const text = nodeText(app.element('dashboardCallEvents')); assert.match(text, /No source call events returned/); assert.match(text, /does not prove/); assert.doesNotMatch(text, /zero hours|0 h|verified visit/i);
+});
+test('call reads and detached buttons cannot outlive date/Clear/Demo/session context; quotas prevent repeat dispatch', async () => {
+  for (const change of ['date', 'clear', 'demo', 'session']) {
+    const late = deferred(); let input; const app = await callEventsFixture(value => { input = value; return late.promise; }), old = callEventButtons(app)[0];
+    await clickNode(old); await tick();
+    if (change === 'date') { app.element('dashboardVisitDate').value = '2026-10-23'; for (const fn of app.element('dashboardVisitDate').handlers.get('change')) fn(new Event('change')); }
+    if (change === 'clear') await app.click('dashboardVisitClear');
+    if (change === 'demo') app.window.primetimeDataMode.setMode('demo');
+    if (change === 'session') app.dispatch('primetime-signed-out');
+    late.resolve(response(callEventsPayload(input))); await tick(); await tick(); assert.doesNotMatch(nodeText(app.element('dashboardCallEvents')), /TYPE_FROM_SOURCE/);
+    const count = app.calls.length; await clickNode(old); await tick(); assert.equal(app.calls.length, count);
+  }
+  const limited = await callEventsFixture(() => ({ ...response({ ok: false, retryAfterSeconds: 60 }), ok: false, status: 429 }));
+  await clickNode(callEventButtons(limited)[0]); await tick(); await tick(); const count = limited.calls.length;
+  assert.match(nodeText(limited.element('dashboardCallEvents')), /Retry in 60 seconds/); await clickNode(callEventButtons(limited)[0]); await tick(); assert.equal(limited.calls.length, count);
+});
+
 const relatedPayload = ({ kind, ...scope }, fields = {}) => ({ ok: true, source: 'hhaexchange', validation: 'source_unvalidated', timezone: 'source_values_unconverted', truncated: false,
   operation: kind === 'caregiver' ? 'GetCaregiverDemographics' : 'GetVisitBillInfoV2', interpretation: kind === 'caregiver' ? 'caregiver_profile_unvalidated' : 'billing_source_unvalidated',
   fetchedAt: '2026-10-24T16:00:00Z', membershipCheckedAt: '2026-10-24T15:59:59Z', scope,

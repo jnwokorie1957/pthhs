@@ -115,14 +115,33 @@
     if (relatedFields[kind].some(key => record[key] !== null && record[key] !== undefined && (typeof record[key] !== 'string' || record[key].length > 1000))) throw new Error('invalid_visit_context');
     return { fields: Object.fromEntries(relatedFields[kind].map(key => [key, record[key] || null])), fetchedAt: payload.fetchedAt, membershipCheckedAt: payload.membershipCheckedAt };
   }
-  window.primetimeDashboardModel = Object.freeze({ filterExceptions, normalizeVisitPreview, sourceEvidence, sourceInterval, normalizePatientProfile, normalizeVisitContext });
+  function normalizeCallEvents(payload, expected) {
+    if (payload?.ok !== true || payload.operation !== 'GetCallDashBoardData' || payload.source !== 'hhaexchange' || payload.validation !== 'source_unvalidated'
+      || payload.timezone !== 'source_values_unconverted' || payload.interpretation !== 'call_events_unvalidated' || payload.relationship !== 'same_patient_caregiver_day_only'
+      || payload.visitLink !== 'not_supplied_by_source' || payload.completeness !== 'bounded_response_not_complete_history' || typeof payload.truncated !== 'boolean'
+      || !['visitId', 'patientId', 'caregiverId', 'officeId', 'date'].every(key => payload.scope?.[key] === expected[key])
+      || !['fetchedAt', 'membershipCheckedAt'].every(key => typeof payload[key] === 'string' && Number.isFinite(Date.parse(payload[key])))
+      || Date.parse(payload.membershipCheckedAt) > Date.parse(payload.fetchedAt) || !Array.isArray(payload.records) || payload.records.length > 200
+      || payload.state !== (payload.truncated ? 'partial' : payload.records.length ? 'ready' : 'empty')) throw new Error('invalid_call_events');
+    const ids = new Set();
+    const records = payload.records.map(row => {
+      if (!row || typeof row.CallDashboardID !== 'string' || !/^[1-9]\d{0,9}$/.test(row.CallDashboardID) || Number(row.CallDashboardID) > 2147483647 || ids.has(row.CallDashboardID)
+        || row['Patient/ID'] !== expected.patientId || row['Caregiver/ID'] !== expected.caregiverId) throw new Error('invalid_call_events');
+      ids.add(row.CallDashboardID);
+      const fields = ['CallDashboardID', 'CallTime', 'CallType', 'CallStatus'];
+      if (fields.some(key => row[key] !== null && row[key] !== undefined && (typeof row[key] !== 'string' || row[key].length > 1000))) throw new Error('invalid_call_events');
+      return Object.fromEntries(fields.map(key => [key, row[key] || null]));
+    });
+    return { records, fetchedAt: payload.fetchedAt, state: payload.state, truncated: payload.truncated };
+  }
+  window.primetimeDashboardModel = Object.freeze({ filterExceptions, normalizeVisitPreview, sourceEvidence, sourceInterval, normalizePatientProfile, normalizeVisitContext, normalizeCallEvents });
   if (typeof document === 'undefined') return;
   const controller = window.primetimeDataMode;
   const fixtures = window.primetimeDemoData;
   if (!controller || !fixtures) return;
   const get = id => document.getElementById(id);
   const hosts = ['dashboardOverviewMetrics', 'dashboardOverviewExceptions', 'dashboardCoverage', 'dashboardAlerts', 'dashboardTimeline', 'dashboardEvidenceChart',
-    'dashboardExceptions', 'dashboardVisitMetrics', 'dashboardVisitRows', 'dashboardPatients', 'dashboardPatientProfile', 'dashboardMessages', 'dashboardStaffing', 'dashboardCaregiverProfile',
+    'dashboardExceptions', 'dashboardCallEvents', 'dashboardVisitMetrics', 'dashboardVisitRows', 'dashboardPatients', 'dashboardPatientProfile', 'dashboardMessages', 'dashboardStaffing', 'dashboardCaregiverProfile',
     'dashboardBillingMetrics', 'dashboardBillingPipeline', 'dashboardBillingFacts'];
   const dateInput = get('dashboardVisitDate');
   let ready = false;
@@ -145,7 +164,8 @@
   let feedPolling = false;
   let patientAbort = null, patientRequest = 0, patientRetryAt = 0;
   let clearPatientFetchAge = () => {};
-  const relatedRequests = Object.fromEntries(['caregiver', 'billing'].map(kind => [kind, { abort: null, sequence: 0, retryAt: 0, clearAge: () => {} }]));
+  const relatedRequests = Object.fromEntries(['caregiver', 'billing', 'calls'].map(kind => [kind, { abort: null, sequence: 0, retryAt: 0, clearAge: () => {} }]));
+  const relatedHosts = { caregiver: 'dashboardCaregiverProfile', billing: 'dashboardBillingFacts', calls: 'dashboardCallEvents' };
   function stopFeedTimer() { if (feedTimer !== null) clearTimeout(feedTimer); feedTimer = null; }
   function cancelFeedRead() { feedAbort?.abort(); feedAbort = null; feedPolling = false; }
   function feedControls(message) {
@@ -183,7 +203,7 @@
     if (description.textContent !== message) description.textContent = message;
   }
   function pauseForSourceFocus() {
-    if (!document.activeElement?.closest?.('#dashboardVisitRows, #dashboardTimeline, #dashboardEvidenceChart, #dashboardPatients, #dashboardPatientProfile, #exceptionSearch, #dashboardStaffing, #dashboardCaregiverProfile, #dashboardBillingPipeline, #dashboardBillingFacts')) return false;
+    if (!document.activeElement?.closest?.('#dashboardVisitRows, #dashboardTimeline, #dashboardEvidenceChart, #dashboardPatients, #dashboardPatientProfile, #exceptionSearch, #dashboardCallEvents, #dashboardStaffing, #dashboardCaregiverProfile, #dashboardBillingPipeline, #dashboardBillingFacts')) return false;
     pauseFeed('Live feed display paused while working with source records. The server continues updating; Resume reads its latest page.');
     return true;
   }
@@ -315,7 +335,7 @@
     }));
   }
   function liveOverviewState(title, detail) {
-    ['dashboardOverviewMetrics', 'dashboardVisitMetrics', 'dashboardOverviewExceptions', 'dashboardCoverage', 'dashboardAlerts', 'dashboardTimeline', 'dashboardEvidenceChart', 'dashboardExceptions', 'dashboardStaffing', 'dashboardPatients', 'dashboardPatientProfile', 'dashboardCaregiverProfile', 'dashboardBillingPipeline', 'dashboardBillingFacts'].forEach(id => unavailable(id, title, detail));
+    ['dashboardOverviewMetrics', 'dashboardVisitMetrics', 'dashboardOverviewExceptions', 'dashboardCoverage', 'dashboardAlerts', 'dashboardTimeline', 'dashboardEvidenceChart', 'dashboardExceptions', 'dashboardCallEvents', 'dashboardStaffing', 'dashboardPatients', 'dashboardPatientProfile', 'dashboardCaregiverProfile', 'dashboardBillingPipeline', 'dashboardBillingFacts'].forEach(id => unavailable(id, title, detail));
     text('dashboardReadiness', detail);
   }
   function renderTimeline(view) {
@@ -383,10 +403,12 @@
     const sourceNote = () => node('p', `HHA API source page · ${view.scope.date} · fetched ${view.fetchedAt || 'time not supplied'}. The selected page follows Overview / Visit Preview; it is not the full office.`, 'source-metadata');
     const sourceField = (item, key) => item.state === 'unavailable' ? 'Detail unavailable' : item[key] || 'Not supplied by HHA';
     const unavailableDetail = item => 'Detail unavailable: ' + item.detailReason;
-    replace('dashboardExceptions', sourceNote(), table(['Visit', 'Patient', 'Caregiver', 'Actual start', 'Actual end', 'EVV start', 'EVV end', 'Source detail'],
+    const callContext = context();
+    replace('dashboardExceptions', sourceNote(), table(['Visit', 'Patient', 'Caregiver', 'Actual start', 'Actual end', 'EVV start', 'EVV end', 'Source detail', 'Call evidence'],
       view.items.map(item => [item.id, ...['patientId', 'caregiverId', 'actualStart', 'actualEnd', 'evvStart', 'evvEnd'].map(key => sourceField(item, key)),
-        item.state === 'unavailable' ? unavailableDetail(item) : 'Source detail returned · unvalidated']), 'exceptionTable'),
+        item.state === 'unavailable' ? unavailableDetail(item) : 'Source detail returned · unvalidated', () => callSourceControl(view, item, callContext)]), 'exceptionTable'),
       node('p', 'These are source clock fields. Missing values are not automatically late, missed or classified exceptions.', 'source-metadata'));
+    replace('dashboardCallEvents', node('p', metadata?.panels?.callEvents?.available ? 'Choose Read call events for a bounded raw-event response. Events remain unlinked to a specific visit.' : 'GetCallDashBoardData is not enabled for this source context. Review read controls in Settings.'));
     if (get('exceptionSearch')) get('exceptionSearch').disabled = false;
     if (get('priorityFilter')) { get('priorityFilter').value = 'all'; get('priorityFilter').disabled = true; }
     filterSourceExceptions();
@@ -428,7 +450,7 @@
       const row = node('tr');
       values.forEach((value, index) => {
         const cell = node('td');
-        if (['sourceVisitTable', 'sourceStaffingTable', 'sourceBillingTable'].includes(id)) cell.setAttribute('data-label', headers[index]);
+        if (['sourceVisitTable', 'sourceStaffingTable', 'sourceBillingTable', 'exceptionTable'].includes(id)) cell.setAttribute('data-label', headers[index]);
         if (typeof value === 'function') cell.append(value());
         else cell.textContent = value === null || value === undefined || value === '' ? 'Unavailable' : String(value);
         row.append(cell);
@@ -459,7 +481,7 @@
     clearPatientFetchAge(); replace('dashboardPatientProfile');
     for (const [kind, state] of Object.entries(relatedRequests)) {
       state.abort?.abort(); state.abort = null; state.sequence++; state.clearAge();
-      replace(kind === 'caregiver' ? 'dashboardCaregiverProfile' : 'dashboardBillingFacts');
+      replace(relatedHosts[kind]);
     }
     serial += 1;
     document.dispatchEvent(new Event('primetime-source-context-cleared'));
@@ -568,6 +590,7 @@
     unavailable('dashboardPatients', 'Current patient source is paused', 'Switch Demo data off to read real patients from the selected visit page.');
     replace('dashboardPatientProfile');
     replace('dashboardCaregiverProfile'); replace('dashboardBillingFacts');
+    unavailable('dashboardCallEvents', 'Call source is paused', 'Switch Demo data off to inspect current source events.');
     const pipeline = node('div', null, 'pipeline');
     [['Scheduled', hours(model.billing.projectedMinutes)], ['Completed', hours(model.billing.completedMinutes)], ['Ready', hours(model.billing.readyMinutes)], ['Submitted', 'Unavailable'], ['Paid', 'Unavailable']].forEach(([label, value]) => { const stage = node('div'); stage.append(node('span', label), node('strong', value)); pipeline.append(stage); });
     replace('dashboardBillingPipeline', pipeline);
@@ -614,6 +637,44 @@
       () => nodes.forEach(item => { item.hidden = true; item.textContent = ''; }));
   }
   function context() { return { generation: controller.getGeneration(), mode: controller.getMode(), session, serial }; }
+  function callSourceControl(view, item, captured) {
+    if (item.state === 'unavailable' || !item.patientId || !item.caregiverId) return node('span', 'Source identity unavailable');
+    const control = node('button', 'Read call events', 'btn secondary'); control.type = 'button';
+    control.disabled = metadata?.panels?.callEvents?.available !== true;
+    if (control.disabled) control.title = 'GetCallDashBoardData requires an approved read control.';
+    control.addEventListener('click', () => { if (!control.disabled) void loadCallEvents(view, item, captured); }); return control;
+  }
+  async function loadCallEvents(view, item, captured) {
+    if (!current(captured) || !controller.isLive() || metadata?.settings?.officeId !== view.scope.officeId) return;
+    const state = relatedRequests.calls, host = 'dashboardCallEvents';
+    if (Date.now() < state.retryAt) { replace(host, node('p', `Source read limit reached. Retry in ${Math.ceil((state.retryAt - Date.now()) / 1000)} seconds.`)); return; }
+    pauseFeed('Live feed display paused for raw call review. Resume returns to the latest visit page.');
+    state.abort?.abort(); state.clearAge();
+    const request = new AbortController(), sequence = ++state.sequence; state.abort = request;
+    const scope = { visitId: item.id, patientId: item.patientId, caregiverId: item.caregiverId, officeId: view.scope.officeId, date: view.scope.date };
+    const active = () => current(captured) && state.sequence === sequence && !request.signal.aborted;
+    replace(host, node('p', 'Reading source call events and checking current visit / patient / caregiver / office / day…'));
+    try {
+      const response = await window.primetimeApiFetch('/primetime/api/workspace/visit-calls', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(scope), signal: request.signal });
+      const payload = await response.json(); if (!active()) return;
+      if (!response.ok) {
+        if (response.status === 429 && Number.isSafeInteger(payload.retryAfterSeconds) && payload.retryAfterSeconds > 0 && payload.retryAfterSeconds <= 600) {
+          state.retryAt = Date.now() + payload.retryAfterSeconds * 1000; throw new Error(`Source read limit reached. Retry in ${payload.retryAfterSeconds} seconds.`);
+        }
+        throw new Error(({ read_not_owner_enabled: 'The raw-call read is not enabled. Review Settings.', visit_caregiver_changed_restart: 'The caregiver on this visit changed. Reload the source page.',
+          visit_call_date_mismatch: 'The current visit date differs from the selected source day. Reload the source page.', call_subject_mismatch: 'The call response did not match this patient and caregiver.',
+          call_source_date_unverified: 'The call source date could not be verified for this day.', office_policy_changed_restart: 'Office preferences changed. Reload the source page.',
+          operational_data_release_not_approved: 'Source access is locked pending operational data release.' })[payload.error] || 'The raw-call response could not be verified. Retry from the source page.');
+      }
+      const checked = normalizeCallEvents(payload, scope), age = node('p', null, 'source-metadata');
+      replace(host, node('p', `HHA GetCallDashBoardData · ${scope.date} · fetched ${checked.fetchedAt}. ${checked.records.length} event(s) in this bounded response${checked.truncated ? ' · source response truncated' : ''}; complete history is not established.`, 'source-metadata'), age,
+        node('p', 'Source events are filtered by patient, caregiver, office and day. No visit ID is supplied by this source. Event type/status is preserved without assigning a clock-in/out to this visit or replacing recorded/EVV fields.', 'source-metadata'),
+        ...(checked.records.length ? [table(['Call event ID', 'Call time (source)', 'Type (source)', 'Status (source)'], checked.records.map(row => [row.CallDashboardID, row.CallTime || 'Not supplied by HHA', row.CallType || 'Not supplied by HHA', row.CallStatus || 'Not supplied by HHA']))]
+          : [node('p', 'No source call events returned for this request. This does not prove that no visit or original punch exists.')]));
+      state.clearAge = window.primetimeSourceTime.watchFetchAge(window.primetimeSourceTime.timestampInstant(checked.fetchedAt), active, value => { age.textContent = value; }, () => { age.textContent = ''; });
+    } catch (error) { if (active()) replace(host, node('p', error.message === 'invalid_call_events' ? 'The raw-call response could not be verified. Reload the source page.' : error.message)); }
+    finally { if (state.abort === request) state.abort = null; }
+  }
   function relatedSourceControl(kind, view, item, captured) {
     if (item.state === 'unavailable' || !item.patientId || (kind === 'caregiver' && !item.caregiverId)) return node('span', 'Source identity unavailable');
     const control = node('button', kind === 'caregiver' ? 'View caregiver profile' : 'Read billing facts', 'btn secondary'); control.type = 'button';

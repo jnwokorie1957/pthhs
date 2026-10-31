@@ -85,6 +85,19 @@ TAB 03 - EVV EXCEPTIONS
 [ ] E02 Classified exception queue depends on accepted diagnosis/policy evidence
     and local revision exception records. Keep classification separate from raw
     punch presence, and connect genuine local follow-up where available.
+[ ] E03 Raw call evidence: GetCallDashBoardData filters by office, patient,
+    caregiver and day, returning CallDashboardID, CallTime, CallType and CallStatus
+    plus patient/caregiver references. The captured response has no VisitID.
+    A new protected /workspace/visit-calls route rechecks the fresh visit,
+    patient office, caregiver and date before the bounded query. Foreign subjects
+    or dates, duplicate event IDs and policy changes fail closed. Raw events do
+    not populate recorded/EVV fields, chart counts or operational decisions.
+    October31 implementation: per-row controls, source receipts/age, truthful
+    empty/truncated states, context fences and actual quota delays pass530backend
+    and324frontend/tooling tests plus full Windows checks. The source is bounded
+    to200records, not complete history or an accepted event-to-visit matching rule.
+    GetCallDashBoardData remains unselected in inspected read controls. Normal
+    release, explicit activation and native source acceptance are still pending.
 
 TAB 04 - VISIT PREVIEW
 [x] P01 Schedule times/duration: GetVisitInfoV3 ScheduleStartTime,
@@ -187,6 +200,10 @@ TAB 07 - STAFFING
     actions. No source operation was enabled in this pass. This accepts only
     the bounded profile; availability, discipline/assignment and matching remain
     separate, so S02 is still open. See LIVE_SOURCE_ACCEPTANCE_2026-10-28.md.
+    October31 control recheck confirms GetCaregiverDemographics remains selected.
+    The owner explicitly approved this and GetVisitBillInfoV2 on October27; only
+    those2reads were added and other preferences were preserved. The first native
+    caregiver profile then returned7fields with exact caregiver/office proof.
 [ ] S03 Open-shift/eligible staff matching needs verified schedule completeness,
     authorization, effective assignment/discipline and applicable availability
     rules. Do not create assignments or infer qualified staff from a nonempty ID.
@@ -217,6 +234,9 @@ TAB 08 - BILLING & AR
     facts or inferring zero charges/payment/AR. The vendor-side cause remains
     unknown; B02 still needs usable same-record facts and diagnostics. No source
     read was enabled. See EMPTY_RELATED_READS_2026-10-29.md.
+    October31 read controls still select GetVisitBillInfoV2 after the explicit
+    October27 owner approval. Do not request a duplicate activation for this read;
+    the outstanding issue is usable source facts and protected diagnostics.
 [ ] B03 GetVisitInfoV3 BilledAmount is a source field, not collected cash.
     Do not invent cash collections, paid-claim stages, billing readiness or AR
     totals from visit times, billed amount, payroll hours or absent records.
@@ -259,9 +279,11 @@ TAB 11 - AUDIT LOG
 TAB 12 - ADVANCED TOOLS
 [x] W01 Existing protected settings and operational GetVisitInfoV3 source reads
     work. One exact affected visit was reread during this investigation.
-[ ] W02 Only five read operations were selected in the inspected owner controls:
+[ ] W02 The initial October24 audit had five selected owner read operations:
     GetOfficesV2, SearchVisitsV2, SearchPatientAuthorizations, GetVisitInfoV3,
-    GetPatientDemographics. Other exposed operations must be mapped, scope-audited,
+    GetPatientDemographics. Owner-approved GetCaregiverDemographics and
+    GetVisitBillInfoV2 were added October27 and remain selected October31 (7total).
+    GetCallDashBoardData is not selected. Other operations must be mapped, scope-audited,
     entitlement-tested and enabled deliberately under the connection request.
 [ ] W03 Distinguish an owner-disabled operation, vendor-contract block, API quota,
     empty successful response, release lock and unexpected server failure in UI.
@@ -341,9 +363,9 @@ Unselected reads are work to scope and verify, not automatically failed APIs.
 [ ] GetScheduleInfo
 [ENABLED] GetVisitInfoV3
 [ENABLED] GetPatientDemographics
-[ ] GetCaregiverDemographics
+[ENABLED] GetCaregiverDemographics
 [ ] GetPatientAuthorizationInfo
-[ ] GetVisitBillInfoV2
+[ENABLED] GetVisitBillInfoV2
 [ ] GetCaregiverPermanentWeekAvailability
 [ ] GetCaregiverSpecialAvailability
 [ ] GetPatientContracts

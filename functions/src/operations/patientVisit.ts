@@ -41,7 +41,7 @@ export async function visitContextRead(workspace: Workspace, value: unknown, act
     interpretation: kind === "caregiver" ? "caregiver_profile_unvalidated" as const : "billing_source_unvalidated" as const };
 }
 
-async function checkedVisitPatient(workspace: Workspace, value: unknown, actor: string, extraReads: ReadOperation[] = []) {
+export async function checkedVisitPatient(workspace: Workspace, value: unknown, actor: string, extraReads: ReadOperation[] = []) {
   if (!value || typeof value !== "object" || Array.isArray(value)) throw new WorkflowError("invalid_patient_visit_query");
   const input = value as Record<string, unknown>;
   if (Object.keys(input).some(key => !["visitId", "patientId", "officeId"].includes(key))) throw new WorkflowError("invalid_patient_visit_query");
