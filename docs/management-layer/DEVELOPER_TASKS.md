@@ -1,5 +1,13 @@
 # PTHHS Management Layer — Developer Checklist
 
+- [x] October31,20:40UTC approved call-source recheck: fresh October24 preview
+  returned10readable details and3missing original EVV ends. One affected row's
+  normal GetCallDashBoardData action succeeded with0events; all missing ends
+  stayed explicit. This confirms enabled live reads and the empty state, without
+  recovering a punch or proving complete retained history. E04 remains open in
+  the [connection checklist](PRIMETIME_LIVE_DATA_CHECKLIST.txt). No source or
+  access setting changed.
+
 - [x] October31,20:36UTC analytics access diagnosis: directly verified the
   deployed service identity and existing Data API activation. Analytics-only
   runtime logs report Google403 insufficient property permissions; neither

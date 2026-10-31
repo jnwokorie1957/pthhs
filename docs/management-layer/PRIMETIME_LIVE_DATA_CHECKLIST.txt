@@ -141,6 +141,10 @@ TAB 03 - EVV EXCEPTIONS
     connection and truthful empty state, not recovery of a missing clock-out.
     That later page had eight readable details and two unavailable/deferred
     details; do not confuse those unread records with empty returned fields.
+    Fresh20:39:53.607UTC October24 page returned10readable details with3original
+    EVV ends still Not supplied by HHA. At20:40:22.558UTC an ordinary Read call
+    events action for one affected row succeeded again with0events. All3missing
+    ends remained unchanged. No grant, source write, import or substitute time.
     Mobile390px and normal1280px geometry: no page/panel overflow or clipped
     call controls. Tests cover populated/foreign/late/quota responses; populated
     raw call rows have not yet received native acceptance.
