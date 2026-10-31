@@ -20,7 +20,8 @@ let references = 0;
 
 for (const file of htmlFiles) {
   const original = await fs.readFile(file, "utf8");
-  const normalized = original
+  const withAnalytics = /<meta[^>]+content=["'][^"']*noindex/i.test(original) || !original.includes('rel="canonical"') || original.includes('/assets/analytics.js') ? original : original.replace('</head>', '<script src="/assets/analytics.js" defer></script></head>');
+  const normalized = withAnalytics
     .replace(/<p style=["']margin-top:26px["']>/g, '<p class="action-row-spaced">')
     .replace(/<div class=["']hero-actions["'] style=["']margin-top:26px["']>/g, '<div class="hero-actions hero-actions-spaced">')
     .replace(/<h2 class=["']section-title["'] style=["']margin-top:40px["']>/g, '<h2 class="section-title section-title-spaced">');

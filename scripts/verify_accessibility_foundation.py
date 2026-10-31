@@ -253,6 +253,7 @@ expected_runtime_assets = {
     "assets/polish.css",
     "assets/section-pages.css",
     "assets/site-enhancements.js",
+    "assets/analytics.js",
 }
 if runtime_assets != expected_runtime_assets:
     errors.append(

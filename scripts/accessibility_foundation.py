@@ -19,6 +19,7 @@ RUNTIME_ASSETS = {
     "assets/polish.css",
     "assets/section-pages.css",
     "assets/site-enhancements.js",
+    "assets/analytics.js",
 }
 
 

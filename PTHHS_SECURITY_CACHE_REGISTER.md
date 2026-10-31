@@ -17,6 +17,8 @@ HTML remains revalidated so a release can immediately advertise new asset versio
 
 ## Security response policy
 
+**October 31, 2026 update:** The public marketing CSP additionally permits the exact Google tag script host and the two documented GA4 collection hosts. The internal operations CSP remains separate and excludes those analytics origins. The owner-only reporting endpoint independently verifies Firebase identity and returns `private, no-store`; its numeric property and date-window allowlists prevent arbitrary Analytics queries. No Google reporting credentials are placed in public assets. See [the analytics register](docs/analytics-setup-2026-10-31.md).
+
 Firebase applies these headers to every response:
 
 - `Content-Security-Policy`

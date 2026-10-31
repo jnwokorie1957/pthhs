@@ -5,6 +5,8 @@
 
 ## Runtime dependency result
 
+**October 31, 2026 update:** Owner-authorized Google Analytics 4 now runs on public canonical marketing pages. The deferred first-party `assets/analytics.js` loads `https://www.googletagmanager.com/gtag/js` and sends sanitized public events to `https://www.google-analytics.com` or `https://region1.google-analytics.com`. Internal applications never load this marketing tag. Advertising features are disabled; browser privacy signals and noindex exclusions are honored. See [the current analytics register](docs/analytics-setup-2026-10-31.md) for event definitions and privacy controls. The following September inventory is historical.
+
 The public site has no third-party scripts, iframes, forms, analytics tags, embedded media, external fonts, or remote image assets. Every page loads only the shared first-party CSS and `assets/site-enhancements.js`. Google Fonts was removed in favor of one system-font stack, eliminating the only passive third-party request.
 
 The 138 external anchors are user-initiated navigation only:

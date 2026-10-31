@@ -3,7 +3,7 @@
   const initialSignInHref = location.href || '';
   const titles = {
     workbench: 'Advanced tools', revisions: 'Visit review', patients: 'Patient workbench',
-    overview: 'Operations overview', evv: 'EVV exceptions', visits: 'Visits',
+    analytics: 'Website analytics', overview: 'Operations overview', evv: 'EVV exceptions', visits: 'Visits',
     messages: 'Messages & alerts', staffing: 'Staffing', billing: 'Billing & AR',
     hha: 'HHA integration', audit: 'Audit log', settings: 'Settings', forms: 'Forms'
   };

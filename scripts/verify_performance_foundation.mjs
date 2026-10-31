@@ -192,8 +192,9 @@ if (publicBytes - internalBytes > 2_000_000) errors.push(`marketing output excee
 // Keep a bounded raw budget plus compressed-transfer and per-file
 // caps; the separate marketing budget remains unchanged.
 // Two protected source panels add caregiver profiles and exact-visit billing.
-// Include their code and the capability catalog in a bounded 400 KB allowance.
-if (internalBytes > 400_000) errors.push(`internal app output exceeds 400 KB budget: ${internalBytes}`);
+// Includes the owner-requested website analytics panel (~13 KB), with no chart library.
+// Keep the operations app and capability catalog within a bounded 420 KB allowance.
+if (internalBytes > 420_000) errors.push(`internal app output exceeds 420 KB budget: ${internalBytes}`);
 const internalFiles = publicFiles.filter(file => isInternalAppFile(file, publicDir));
 let compressedInternalBytes = 0;
 for (const file of internalFiles) {
@@ -201,7 +202,7 @@ for (const file of internalFiles) {
   compressedInternalBytes += gzipSync(bytes).length;
   if (bytes.length > 110_000) errors.push(`internal asset exceeds 110 KB budget: ${path.basename(file)}`);
 }
-if (compressedInternalBytes > 95_000) errors.push(`internal app gzip estimate exceeds 95 KB budget: ${compressedInternalBytes}`);
+if (compressedInternalBytes > 100_000) errors.push(`internal app gzip estimate exceeds 100 KB budget: ${compressedInternalBytes}`);
 if (pictureCount !== 4 || preloadCount !== 3) errors.push(`expected 4 responsive pictures and 3 LCP preloads, found ${pictureCount}/${preloadCount}`);
 if (externalRuntimeCount !== 0) errors.push(`expected zero external runtime resources, found ${externalRuntimeCount}`);
 

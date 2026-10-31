@@ -75,6 +75,7 @@ const expectedAssets = [
   "/assets/polish.css",
   "/assets/section-pages.css",
   "/assets/site-enhancements.js",
+  "/assets/analytics.js",
 ];
 for (const asset of expectedAssets) {
   if (!referencedAssets.has(asset)) fail(`Expected versioned runtime asset is not referenced: ${asset}`);
@@ -106,7 +107,7 @@ const requiredDirectives = [
   "object-src 'none'",
   "frame-ancestors 'none'",
   "form-action 'self'",
-  "script-src 'self' 'unsafe-inline'",
+  "script-src 'self' 'unsafe-inline' https://www.googletagmanager.com",
   "style-src 'self'",
   "img-src 'self' data:",
   "font-src 'self'",
