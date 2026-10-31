@@ -1,5 +1,12 @@
 # PTHHS
 
+October 31, 16:18 UTC role research separates recurring plans, current source
+schedules, proposed requests and recorded/EVV hours. Two new primary sources
+refine source-history and role-link acceptance without inferring rounding,
+confirmation or billing decisions. Current Forms release/native evidence is
+retained; source/B02/P1-B/P2 contracts stay open. See the dated
+[research](docs/management-layer/ROLE_WORKFLOW_RESEARCH.txt); runtime is unchanged.
+
 October 31 Forms file-list validation: the entire returned page must match the
 selected folder and stored-file metadata contract before rows or Download
 controls appear. Invalid pages leave a clear reload message and no partial list.

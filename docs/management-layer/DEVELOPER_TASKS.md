@@ -1,5 +1,12 @@
 # PTHHS Management Layer — Developer Checklist
 
+- [x] October 31, 16:18 UTC role research distinguishes recurring/generated
+  visits, current schedule and schedule-change requests from supplied actual/EVV
+  evidence. New R55/R56 and rechecked R17 refine source-history, exact role links
+  and acceptance without adopting rounding or operational decisions. Current
+  Forms release/native evidence retained; B02/source/P1-B/P2 contracts stay open.
+  See [research](ROLE_WORKFLOW_RESEARCH.txt); no runtime/read-setting change.
+
 - [x] October 31 Forms list validation: validate the complete page, selected
   folder, content-address identity/hash/media, filename, size, timestamp and
   bounded opaque cursor before rendering rows/actions. Invalid replacements
