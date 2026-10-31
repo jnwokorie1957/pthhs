@@ -62,7 +62,7 @@ function parseCursor(value: unknown): Cursor | null {
     if (Object.keys(cursor).sort().join(",") !== "discovery,offset,scope,version" || cursor.version !== 1
       || typeof cursor.scope !== "string" || !/^[a-f0-9]{64}$/.test(cursor.scope)
       || typeof cursor.discovery !== "string" || !/^[a-f0-9]{64}$/.test(cursor.discovery)
-      || !Number.isSafeInteger(cursor.offset) || Number(cursor.offset) < 1) throw new Error();
+      || !Number.isSafeInteger(cursor.offset) || Number(cursor.offset) < 0) throw new Error();
     return cursor as unknown as Cursor;
   } catch { throw new WorkflowError("invalid_visit_cursor"); }
 }
@@ -138,15 +138,18 @@ export async function visitPreview(workspace: Workspace, value: unknown, actor: 
   if (cursor && (cursor.discovery !== sourceFingerprint || cursor.offset >= ids.length)) throw new WorkflowError("visit_preview_changed_restart", 409);
   const offset = cursor?.offset ?? 0, page = ids.slice(offset, offset + limit), items: VisitPreviewItem[] = [];
   let deferred: string | null = null;
+  let retry: { offset: number; afterSeconds: number; reason: "read_limit" | "time_budget" | "source_unavailable" } | null = null;
+  const timeBudgetRetry = () => { retry ??= { offset: offset + items.length, afterSeconds: 0, reason: "time_budget" }; };
   for (const id of page) {
     if (deferred || clock() - started >= TIME_BUDGET_MS) {
+      if (!deferred) timeBudgetRetry();
       items.push(unavailable(id, deferred ? "not_attempted_after_batch_gate" : "not_attempted_batch_time_budget"));
       continue;
     }
     // Detail reads are not office-filtered themselves. A policy change after
     // discovery must stop further details and must never publish the old view.
     await assertCurrentScope();
-    if (clock() - started >= TIME_BUDGET_MS) { items.push(unavailable(id, "not_attempted_batch_time_budget")); continue; }
+    if (clock() - started >= TIME_BUDGET_MS) { timeBudgetRetry(); items.push(unavailable(id, "not_attempted_batch_time_budget")); continue; }
     try {
       const item = detailItem(id, date, await workspace.query({ operation: "GetVisitInfoV3", id }, actor));
       const patientId = identifier(item.patientId);
@@ -159,20 +162,26 @@ export async function visitPreview(workspace: Workspace, value: unknown, actor: 
     }
     catch (error) {
       const code = error instanceof WorkflowError ? error.code : "visit_preview_unavailable";
+      if (!(error instanceof WorkflowError) || error.status === 429 || error.status === 503) {
+        const wait = error instanceof WorkflowError ? error.retryAfterSeconds : undefined;
+        retry ??= { offset: offset + items.length, afterSeconds: Number.isSafeInteger(wait) && wait! > 0 && wait! <= 600 ? wait! : 60,
+          reason: error instanceof WorkflowError && error.status === 429 ? "read_limit" : "source_unavailable" };
+      }
       items.push(unavailable(id, code));
       if (!(error instanceof WorkflowError) || [429, 403, 423, 503].includes(error.status)) deferred = code;
     }
   }
   await assertCurrentScope();
+  const makeCursor = (offset: number) => Buffer.from(JSON.stringify({ version: 1, scope, discovery: sourceFingerprint, offset } satisfies Cursor)).toString("base64url");
   const nextOffset = offset + page.length;
-  const nextCursor = nextOffset < ids.length ? Buffer.from(JSON.stringify({ version: 1, scope, discovery: sourceFingerprint, offset: nextOffset } satisfies Cursor)).toString("base64url") : null;
+  const nextCursor = nextOffset < ids.length ? makeCursor(nextOffset) : null;
   const partial = discovery.truncated || nextCursor !== null || items.some(item => item.state === "unavailable");
   const unavailableCount = items.filter(item => item.state === "unavailable").length;
   return { ok: true, mode: "live" as const, source: "hhaexchange" as const,
     state: partial ? "partial" as const : items.length ? "ready" as const : "empty" as const,
     scope: { officeId, date, timezone }, fetchedAt: discovery.fetchedAt,
     validation: "source_unvalidated" as const, timezone: "source_values_unconverted" as const,
-    items, nextCursor,
+    items, nextCursor, retry: retry ? { ...retry, cursor: makeCursor(retry.offset) } : null,
     // Counts describe the bounded source response and detail page. They are not
     // operational totals or an assertion of vendor coverage or field semantics.
     discovery: { fingerprint: sourceFingerprint, selectedCount: ids.length, totalReceived: discovery.records.length, discoveryCompleteness: "unknown" as const, truncated: discovery.truncated },

@@ -104,9 +104,13 @@ export async function readLiveFeed(workspace: Workspace, store: FeedStore, query
   }
   // Stored cursors belong to the worker. Bind the continuation to this freshly
   // authorized caller so the ordinary detail endpoint keeps all existing checks.
-  const nextCursor = page.page.nextOffset === null ? null : Buffer.from(JSON.stringify({ version: 1,
-    scope: visitContextFingerprint(current, actor, selected.date), discovery: page.discovery.fingerprint, offset: page.page.nextOffset })).toString("base64url");
-  return { ...page, nextCursor, feed: { kind: "scheduled_api" as const, intervalSeconds: LIVE_FEED_INTERVAL_SECONDS,
+  const makeCursor = (offset: number) => Buffer.from(JSON.stringify({ version: 1,
+    scope: visitContextFingerprint(current, actor, selected.date), discovery: page.discovery.fingerprint, offset })).toString("base64url");
+  const nextCursor = page.page.nextOffset === null ? null : makeCursor(page.page.nextOffset);
+  const completed = Date.parse(record.completedAt);
+  const retry = page.retry ? { ...page.retry, cursor: makeCursor(page.retry.offset),
+    afterSeconds: Number.isFinite(completed) ? Math.max(0, Math.min(page.retry.afterSeconds, Math.ceil((completed + page.retry.afterSeconds * 1000 - now.getTime()) / 1000))) : page.retry.afterSeconds } : null;
+  return { ...page, nextCursor, retry, feed: { kind: "scheduled_api" as const, intervalSeconds: LIVE_FEED_INTERVAL_SECONDS,
     maxAgeSeconds: LIVE_FEED_MAX_AGE_SECONDS, checkedAt: now.toISOString(), updatedAt: record.completedAt,
     background: true, persistedImport: false, coverage: "first_source_page" as const } };
 }

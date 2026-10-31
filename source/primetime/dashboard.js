@@ -14,7 +14,7 @@
     const value = field => typeof field === 'string' && field.trim() !== '' ? field : null;
     const detailReasons = {
       not_attempted_batch_time_budget: 'Page time limit reached; retry this page',
-      not_attempted_after_batch_gate: 'Remaining details deferred after a source or read limit',
+      not_attempted_after_batch_gate: 'Remaining details deferred after a source or access limit',
       read_budget_exhausted_retry_next_minute: 'Shared read limit reached; retry next minute',
       vendor_backoff_active: 'Vendor retry delay active',
       visit_patient_office_mismatch: 'Patient office could not be verified',
@@ -53,7 +53,17 @@
         || candidate.offset + items.length > discovery.selectedCount) throw new Error('invalid_visit_preview');
       page = { offset: candidate.offset, selectedCount: candidate.selectedCount };
     }
-    return { mode: expected.mode, state: payload.state, scope: payload.scope, fetchedAt: value(payload.fetchedAt), items, discovery, page,
+    let retry = null;
+    if (live && payload.retry != null) {
+      const candidate = payload.retry;
+      if (!page || !candidate || typeof candidate.cursor !== 'string' || !/^[A-Za-z0-9_-]{1,512}$/.test(candidate.cursor)
+        || !Number.isSafeInteger(candidate.offset) || candidate.offset < page.offset || candidate.offset >= page.offset + items.length
+        || items[candidate.offset - page.offset]?.state !== 'unavailable'
+        || !Number.isSafeInteger(candidate.afterSeconds) || candidate.afterSeconds < 0 || candidate.afterSeconds > 600
+        || !['read_limit', 'time_budget', 'source_unavailable'].includes(candidate.reason)) throw new Error('invalid_visit_retry');
+      retry = { cursor: candidate.cursor, offset: candidate.offset, afterSeconds: candidate.afterSeconds };
+    }
+    return { mode: expected.mode, state: payload.state, scope: payload.scope, fetchedAt: value(payload.fetchedAt), items, discovery, page, retry,
       nextCursor: typeof payload.nextCursor === 'string' && payload.nextCursor ? payload.nextCursor : null,
       truncated: payload.completeness?.truncated === true, totals: null };
   }
@@ -152,6 +162,7 @@
   let nextCursor = null;
   let pageTrail = [null];
   let pagePosition = 0;
+  let retryRead = null, visitRetryAt = 0, visitRetryTimer = null, visitBusy = false;
   let demoOffset = 0;
   let dateChosen = false;
   let clearPageFetchAge = () => {};
@@ -302,16 +313,36 @@
     const element = get(id); if (element) element.textContent = value;
     if (overviewMirrors[id] && get(overviewMirrors[id])) get(overviewMirrors[id]).textContent = value;
   }
-  function refreshDisabled(disabled) { ['dashboardVisitRefresh', 'dashboardOverviewRefresh'].forEach(id => { if (get(id)) get(id).disabled = disabled; }); }
+  function syncVisitReads() {
+    const seconds = Math.max(0, Math.ceil((visitRetryAt - Date.now()) / 1000)), live = ready && controller.isLive();
+    for (const id of ['dashboardVisitRefresh', 'dashboardOverviewRefresh', 'dashboardVisitNext', 'dashboardOverviewNext', 'dashboardVisitPrevious', 'dashboardOverviewPrevious']) if (get(id)) get(id).disabled = visitBusy || (live && seconds > 0);
+    for (const id of ['dashboardVisitRetry', 'dashboardOverviewRetry', 'dashboardEvvRetry']) if (get(id)) {
+      get(id).hidden = !live || !retryRead;
+      get(id).disabled = visitBusy || seconds > 0;
+      get(id).textContent = seconds ? `Retry deferred details in ${seconds}s` : 'Retry deferred details';
+    }
+    const message = !live ? '' : seconds ? `HHA retry delay: ${seconds} seconds. Source reads paused.`
+      : retryRead ? 'Retry resumes deferred reads on a new page. Previous source page returns. Empty source fields stay unchanged.' : '';
+    for (const id of ['dashboardVisitRetryStatus', 'dashboardOverviewRetryStatus', 'dashboardEvvRetryStatus']) if (get(id)) { get(id).textContent = message; get(id).hidden = !message; }
+    if (!seconds && visitRetryTimer !== null) { clearInterval(visitRetryTimer); visitRetryTimer = null; }
+  }
+  function delayVisitReads(seconds) {
+    if (Number.isSafeInteger(seconds) && seconds > 0 && seconds <= 600) {
+      visitRetryAt = Math.max(visitRetryAt, Date.now() + seconds * 1000);
+      if (visitRetryTimer === null) visitRetryTimer = setInterval(syncVisitReads, 1000);
+    }
+    syncVisitReads();
+  }
+  function refreshDisabled(disabled) { visitBusy = disabled; syncVisitReads(); }
   function sourceClearControls(clearable) {
     sourceClearable = clearable;
     ['dashboardOverviewClear', 'dashboardVisitClear'].forEach(id => {
       if (get(id)) { get(id).hidden = !controller.isLive(); get(id).disabled = !clearable || !ready || !controller.isLive(); }
     });
   }
-  function nextPageButton(visible) { ['dashboardVisitNext', 'dashboardOverviewNext'].forEach(id => { if (get(id)) { get(id).hidden = !visible; get(id).disabled = false; } }); }
-  function previousPageButton(visible) { ['dashboardVisitPrevious', 'dashboardOverviewPrevious'].forEach(id => { if (get(id)) { get(id).hidden = !visible; get(id).disabled = false; } }); }
-  function resetPaging() { nextCursor = null; pageTrail = [null]; pagePosition = 0; nextPageButton(false); previousPageButton(false); }
+  function nextPageButton(visible) { ['dashboardVisitNext', 'dashboardOverviewNext'].forEach(id => { if (get(id)) get(id).hidden = !visible; }); syncVisitReads(); }
+  function previousPageButton(visible) { ['dashboardVisitPrevious', 'dashboardOverviewPrevious'].forEach(id => { if (get(id)) get(id).hidden = !visible; }); syncVisitReads(); }
+  function resetPaging() { nextCursor = null; retryRead = null; pageTrail = [null]; pagePosition = 0; nextPageButton(false); previousPageButton(false); }
   function replace(id, ...children) { get(id)?.replaceChildren(...children); }
   function unavailable(id, title, detail) {
     const box = node('div', null, 'dashboard-unavailable');
@@ -473,6 +504,9 @@
       rows.map(item => [item.id, item.issue, item.scheduledStart, item.scheduledEnd, item.visibility, item.priority]), 'exceptionTable'));
   }
   function invalidateSourceContext(fromFeed = false) {
+    retryRead = null;
+    if (!ready || !controller.isLive()) visitRetryAt = 0;
+    syncVisitReads();
     stopFeedTimer();
     if (!fromFeed) cancelFeedRead();
     feedReceipt = null;
@@ -599,6 +633,8 @@
   }
   function showVisitPreview(payload, expected) {
     const view = normalizeVisitPreview(payload, expected);
+    retryRead = view.retry ? { ...view.retry, samePage: view.retry.offset === view.page.offset, captured: context() } : null;
+    if (view.retry) delayVisitReads(view.retry.afterSeconds);
     nextCursor = view.nextCursor;
     if (view.mode === 'live') renderLiveOverview(view);
     else {
@@ -871,6 +907,10 @@
       refreshDisabled(false);
       return;
     }
+    if (Date.now() < visitRetryAt) {
+      text('dashboardVisitStatus', 'Read delayed. After the delay, read the selected date.');
+      refreshDisabled(false); scheduleFeed(); return;
+    }
     refreshDisabled(true);
     try {
       const query = new URLSearchParams({ date, limit: '10', officeId: metadata.settings.officeId });
@@ -880,6 +920,17 @@
       const payload = await response.json();
       if (!current(captured)) return;
       if (!response.ok) {
+        if ([429, 503].includes(response.status) && Number.isSafeInteger(payload.retryAfterSeconds) && payload.retryAfterSeconds > 0 && payload.retryAfterSeconds <= 600) {
+          pageTrail = trail; pagePosition = position;
+          retryRead = { cursor, samePage: true, captured: context() };
+          const detail = 'Prior facts cleared. Retry this page after the delay.';
+          unavailable('dashboardVisitRows', 'Source read delayed', detail);
+          liveOverviewState('Source read delayed', detail);
+          text('dataModeBadge', 'Live · read delayed'); text('environmentDetails', 'HHA read delayed');
+          text('dashboardVisitStatus', 'Source read delayed. The selected page is retained for retry.');
+          previousPageButton(position > 0);
+          delayVisitReads(payload.retryAfterSeconds); return;
+        }
         if (response.status === 409 || response.status === 423) {
           metadata = null;
           text('dataModeBadge', response.status === 409 ? 'Live · refresh required' : 'Live · unavailable');
@@ -924,10 +975,19 @@
     if (controller.isLive()) void loadVisits(); else { demoOffset = 0; renderMode(); }
   });
   const refresh = () => {
+    if (controller.isLive() && Date.now() < visitRetryAt) { syncVisitReads(); return; }
     if (controller.isLive()) { clearSource(); void loadMetadata(); } else { demoOffset = 0; showVisitPreview(fixtures.visitPage(dateInput.value), { mode: 'demo', date: dateInput.value }); }
   };
   get('dashboardVisitRefresh')?.addEventListener('click', refresh);
   get('dashboardOverviewRefresh')?.addEventListener('click', refresh);
+  const retryDeferred = () => {
+    const retry = retryRead;
+    if (!retry || !current(retry.captured) || !ready || !controller.isLive() || Date.now() < visitRetryAt) return;
+    if (feedInstalled) pauseFeed('Live feed display paused to retry deferred source details. Resume returns to the current day’s first source page.');
+    const trail = retry.samePage ? [...pageTrail.slice(0, pagePosition), retry.cursor] : [...pageTrail.slice(0, pagePosition + 1), retry.cursor];
+    void loadVisits(retry.cursor, trail, retry.samePage ? pagePosition : pagePosition + 1);
+  };
+  for (const id of ['dashboardVisitRetry', 'dashboardOverviewRetry', 'dashboardEvvRetry']) get(id)?.addEventListener('click', retryDeferred);
   for (const [clear, read] of [['dashboardOverviewClear', 'dashboardOverviewRefresh'], ['dashboardVisitClear', 'dashboardVisitRefresh']]) {
     get(clear)?.addEventListener('click', () => { if (clearLoadedPage()) get(read)?.focus(); });
   }

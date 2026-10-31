@@ -752,6 +752,90 @@ test('live evidence excludes unavailable detail fields and never classifies visi
   assert.throws(() => model.normalizeVisitPreview({ ...payload, items: [payload.items[0], payload.items[0]] }, { mode: 'live', date: '2026-10-10' }));
 });
 
+function deferredVisitPage(date, wait = 37) {
+  const page = livePreview(date); page.state = 'partial';
+  page.items.push({ id: '900002', state: 'unavailable', error: 'vendor_backoff_active' });
+  page.discovery = { fingerprint: 'a'.repeat(64), selectedCount: 3, truncated: false };
+  page.page = { offset: 0, selectedCount: 2, returnedCount: 1, unavailableCount: 1, nextOffset: 2 };
+  page.nextCursor = 'next-after-deferred';
+  page.retry = { cursor: 'retry-first-deferred', offset: 1, afterSeconds: wait, reason: 'read_limit' };
+  return page;
+}
+
+test('deferred retry metadata can target only an unavailable row inside the verified page', () => {
+  const model = dashboardModel().primetimeDashboardModel, date = '2026-10-10', page = deferredVisitPage(date);
+  const expected = { mode: 'live', officeId: '123', date };
+  assert.equal(model.normalizeVisitPreview(page, expected).retry.offset, 1);
+  for (const changed of [{offset:0},{offset:2},{offset:-1},{cursor:'https://foreign.test'},{cursor:''},{afterSeconds:601},{afterSeconds:-1},{reason:'source_gate'}]) {
+    assert.throws(()=>model.normalizeVisitPreview({...page,retry:{...page.retry,...changed}},expected),/invalid_visit_retry/);
+  }
+  assert.throws(()=>model.normalizeVisitPreview({...page,page:undefined},expected),/invalid_visit_retry/);
+});
+
+test('deferred reads honor source delay, resume at the skipped detail and preserve previous-page navigation', async () => {
+  const app = harness({storedDataMode:null,metadata:liveMetadata,fetchSource:path=>{
+    const query=new URL(path,'https://fixture.test').searchParams,date=query.get('date');
+    if(!query.has('cursor'))return response(deferredVisitPage(date));
+    assert.equal(query.get('cursor'),'retry-first-deferred');
+    const page=livePreview(date);page.items[0].id='900002';
+    page.discovery={fingerprint:'a'.repeat(64),selectedCount:3,truncated:false};
+    page.page={offset:1,selectedCount:1,returnedCount:1,unavailableCount:0,nextOffset:null};return response(page);
+  }});
+  const clock=deviceClock(app,'2026-10-10T12:00:00Z');installDashboard(app);await app.signIn();await tick();await tick();
+  for(const id of ['dashboardOverviewRetry','dashboardVisitRetry','dashboardEvvRetry']){assert.equal(app.element(id).hidden,false);assert.equal(app.element(id).disabled,true);await app.click(id);}
+  const initial=app.calls.filter(c=>c.path.includes('/views/visits?')).length;
+  await app.click('dashboardOverviewRefresh');assert.equal(app.calls.filter(c=>c.path.includes('/views/visits?')).length,initial);
+  assert.match(app.element('dashboardEvvRetryStatus').textContent,/37 seconds/);
+  clock.set('2026-10-10T12:00:37Z');clock.run();
+  assert.equal(app.element('dashboardEvvRetry').disabled,false);
+  await app.click('dashboardEvvRetry');await tick();await tick();
+  assert.equal(app.calls.filter(c=>c.path.includes('/views/visits?')).length,initial+1);
+  assert.match(nodeText(app.element('dashboardExceptions')),/900002/);assert.doesNotMatch(nodeText(app.element('dashboardExceptions')),/900001/);
+  assert.equal(app.element('dashboardEvvRetry').hidden,true);assert.equal(app.element('dashboardOverviewPrevious').hidden,false);
+  await app.click('dashboardOverviewPrevious');await tick();await tick();
+  assert.match(nodeText(app.element('dashboardExceptions')),/900001/);assert.equal(app.element('dashboardOverviewPrevious').hidden,true);
+});
+
+test('HTTP quota while resuming retains that exact cursor and never starts over silently', async () => {
+  let attempts=0;
+  const app=harness({storedDataMode:null,metadata:liveMetadata,fetchSource:path=>{
+    const query=new URL(path,'https://fixture.test').searchParams,date=query.get('date');
+    if(!query.has('cursor'))return response(deferredVisitPage(date,0));
+    assert.equal(query.get('cursor'),'retry-first-deferred');
+    if(++attempts===1)return {...response({ok:false,error:'vendor_backoff_active',retryAfterSeconds:21}),ok:false,status:429};
+    const page=livePreview(date);page.items[0].id='900002';return response(page);
+  }});
+  const clock=deviceClock(app,'2026-10-10T12:00:00Z');installDashboard(app);await app.signIn();await tick();await tick();
+  await app.click('dashboardVisitRetry');await tick();await tick();
+  assert.match(app.element('dashboardVisitStatus').textContent,/selected page is retained/);assert.equal(app.element('dashboardVisitRetry').disabled,true);
+  assert.doesNotMatch(nodeText(app.element('dashboardExceptions')),/900001/);
+  await app.click('dashboardVisitRetry');assert.equal(attempts,1);
+  clock.set('2026-10-10T12:00:21Z');clock.run();await app.click('dashboardVisitRetry');await tick();await tick();
+  assert.equal(attempts,2);assert.match(nodeText(app.element('dashboardExceptions')),/900002/);
+});
+
+test('changing date during a source delay clears old facts and retry scope without another source dispatch', async () => {
+  const app=harness({storedDataMode:null,metadata:liveMetadata,fetchSource:path=>response(deferredVisitPage(new URL(path,'https://fixture.test').searchParams.get('date')))});
+  const clock=deviceClock(app,'2026-10-10T12:00:00Z');installDashboard(app);await app.signIn();await tick();await tick();
+  const count=app.calls.filter(c=>c.path.includes('/views/visits?')).length;
+  app.element('dashboardOverviewDate').value='2026-10-09';
+  for(const fn of app.element('dashboardOverviewDate').handlers.get('change')||[])fn(new Event('change'));
+  await tick();assert.doesNotMatch(nodeText(app.element('dashboardExceptions')),/900001/);
+  assert.equal(app.element('dashboardEvvRetry').hidden,true);
+  await app.click('dashboardEvvRetry');assert.equal(app.calls.filter(c=>c.path.includes('/views/visits?')).length,count);
+  clock.set('2026-10-10T12:00:37Z');clock.run();await app.click('dashboardOverviewRefresh');await tick();await tick();
+  assert.equal(new URL(app.calls.filter(c=>c.path.includes('/views/visits?')).at(-1).path,'https://fixture.test').searchParams.get('date'),'2026-10-09');
+  await app.window.primetimeDataMode.setMode('demo');await tick();
+  assert.equal(app.element('dashboardEvvRetry').hidden,true);assert.equal(app.element('dashboardEvvRetryStatus').hidden,true);
+});
+
+test('returned missing clock fields alone never advertise a deferred-source retry', async () => {
+  const app=harness({storedDataMode:null,metadata:liveMetadata,fetchSource:path=>response(livePreview(new URL(path,'https://fixture.test').searchParams.get('date')))});
+  installDashboard(app);await app.signIn();await tick();await tick();
+  assert.match(nodeText(app.element('dashboardExceptions')),/Not supplied by HHA/);
+  assert.equal(app.element('dashboardEvvRetry').hidden,true);assert.equal(app.element('dashboardOverviewRetry').hidden,true);
+});
+
 test('source-clock timeline refuses cross-day, reversed, absent and mixed-offset intervals', () => {
   const interval = dashboardModel().primetimeDashboardModel.sourceInterval, date = '2026-10-10';
   const valid = interval(date + 'T06:00:00', date + 'T12:00:00', date);

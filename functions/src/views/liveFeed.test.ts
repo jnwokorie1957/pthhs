@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { refreshLiveFeed, readLiveFeed, officeDay, type FeedRecord, type FeedStore } from "./liveFeed.js";
 import { visitPreview } from "./visits.js";
+import { WorkflowError } from "../operations/reads.js";
 
 function fixture() {
   let time = new Date("2026-10-21T02:00:00.000Z");
@@ -51,6 +52,26 @@ test("feed is denied after read, deployment or office policy revocation", async 
     await assert.rejects(readLiveFeed(f.workspace, f.store, {}, "owner", f.now()));
     assert.equal(f.calls.length, count, "reading the cache makes no HHA request");
   }
+});
+
+test("cached deferred-detail cursor is rebound to each reader and its remaining delay ages", async () => {
+  const f = fixture(), original = f.workspace.query.bind(f.workspace);
+  let failed = true;
+  f.workspace.query = async (...args) => {
+    const input = args[0] as { operation: string; id?: string };
+    if (failed && input.operation === "GetVisitInfoV3" && input.id === "2") throw new WorkflowError("vendor_backoff_active", 429, 120);
+    return original(...args);
+  };
+  await refreshLiveFeed(f.workspace, f.store, f.now);
+  const first = await readLiveFeed(f.workspace, f.store, {}, "owner-a", f.now());
+  assert.equal(first.retry?.offset, 1); assert.equal(first.retry?.afterSeconds, 120);
+  f.setTime("2026-10-21T02:00:31.000Z");
+  const aged = await readLiveFeed(f.workspace, f.store, {}, "owner-b", f.now());
+  assert.equal(aged.retry?.afterSeconds, 89); assert.notEqual(aged.retry?.cursor, first.retry?.cursor);
+  failed = false;
+  const resumed = await visitPreview(f.workspace, { date: "2026-10-20", cursor: aged.retry!.cursor }, "owner-b");
+  assert.equal(resumed.items[0]?.id, "2"); assert.equal(resumed.retry, null);
+  await assert.rejects(visitPreview(f.workspace, { date: "2026-10-20", cursor: first.retry!.cursor }, "owner-b"), /scope_mismatch/);
 });
 test("wrong office/date/unknown query and stale or future receipts never produce a live feed", async () => {
   const f = fixture(); await refreshLiveFeed(f.workspace, f.store, f.now);

@@ -50,6 +50,20 @@ TAB 01 - OVERVIEW
     are connected. Counts describe the page, not an office census.
 [ ] O02 Audit all page and source-failure messages and make retry guidance match
     the actual error, retry seconds and current selected date.
+    October31 deferred-detail recovery: a time/read limit could leave unavailable
+    rows behind while Next source page advanced beyond them. The new separate
+    retry cursor starts at the first transiently failed/deferred detail, including
+    offset0, while retaining the ordinary next-page cursor. It stays bound to
+    actor, office, date, preferences and discovery. Server-cache retries are
+    rebound to the current administrator and their remaining delay ages.
+    Overview, Visit Preview and EVV expose Retry deferred details. Partial-page
+    and HTTP429/503 delays disable source navigation/read controls until expiry;
+    a second delayed response retains the selected cursor. Date/session/Demo/
+    Clear changes fence obsolete retry controls and responses. No background
+    retry loop or source time substitution. Access denials and omitted fields
+    in readable records do not advertise this transient recovery path.
+    Local evidence:533backend/332frontend-tooling tests and Windows release
+    checks passed. Normal release and native production acceptance are pending.
 [ ] O03 Complete-office coverage is not established. Determine a supported bounded
     scan/refresh design before promising full-office totals or all-record search.
 [x] O04 Compact Open records disclosure plus responsive cards is deployed.
@@ -129,6 +143,16 @@ TAB 03 - EVV EXCEPTIONS
     read, and establish which retained call statuses/dates this API exposes.
     Do not copy private examples to Git, substitute recorded/scheduled hours,
     broaden patient scope or assign events automatically to remove a gap.
+    October31 primary workflow research: HHA's Call Dashboard guidance describes
+    partial/unconfirmed EVV and its Visit Maintenance guidance separates linked,
+    suggested, non-matching and rejected attempts. These UI descriptions do not
+    establish which statuses/history the SOAP call endpoint retains. Do not
+    treat its successful empty response as proof of no original clock-out.
+    https://knowledge.hhaexchange.com/enterprise/Content/Troubleshooting/TR-Call-Dashboard.htm
+    https://knowledge.hhaexchange.com/enterprise/Content/Documentation/Visit/Visit-N-Visit-Maintenance-S.htm
+    Current authorized browser inventory has no HHA application tab. Next exact
+    owner/vendor evidence remains one affected visit's original EVV/call history
+    and the supported API's coverage/filter semantics. No source edits requested.
 
 TAB 04 - VISIT PREVIEW
 [x] P01 Schedule times/duration: GetVisitInfoV3 ScheduleStartTime,

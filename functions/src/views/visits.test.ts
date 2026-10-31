@@ -118,7 +118,7 @@ test("large discovery cursor rejects unsafe offsets, changed source and preserve
   const ids = Array.from({ length: 201 }, (_, i) => String(i + 1)), f = fixture(ids);
   const first = await visitPreview(f.service, { date: "2026-10-10" }, "owner");
   const decoded = JSON.parse(Buffer.from(first.nextCursor!, "base64url").toString());
-  for (const offset of [-1, 0, 1.5, Number.MAX_SAFE_INTEGER + 1]) {
+  for (const offset of [-1, 1.5, Number.MAX_SAFE_INTEGER + 1]) {
     const cursor = Buffer.from(JSON.stringify({ ...decoded, offset })).toString("base64url");
     await assert.rejects(visitPreview(f.service, { date: "2026-10-10", cursor }, "owner"), /invalid_visit_cursor/);
   }
@@ -355,6 +355,7 @@ test("time budget and vendor backoff preserve unattempted rows instead of hiding
   } });
   const result = await visitPreview(f.service, { date: "2026-10-10" }, "owner", () => elapsed);
   assert.deepEqual(result.items.map(item => item.error ?? null), [null, "not_attempted_batch_time_budget", "not_attempted_batch_time_budget"]); assert.equal(f.calls.length, 3);
+  assert.equal(result.retry?.offset, 1); assert.equal(result.retry?.afterSeconds, 0); assert.equal(result.retry?.reason, "time_budget");
   const backoff = fixture(["77", "88"], { read: async input => {
     if (input.operation === "SearchVisitsV2") return source(input.operation, [{ VisitID: "77" }, { VisitID: "88" }]);
     throw new WorkflowError("vendor_backoff_active", 429, 120);
@@ -362,6 +363,43 @@ test("time budget and vendor backoff preserve unattempted rows instead of hiding
   const deferred = await visitPreview(backoff.service, { date: "2026-10-10" }, "owner");
   assert.deepEqual(deferred.items.map(item => item.error), ["vendor_backoff_active", "not_attempted_after_batch_gate"]);
   assert.equal(backoff.calls.length, 2); assert.equal(backoff.repository.deferred, 120);
+  assert.equal(deferred.retry?.offset, 0); assert.equal(deferred.retry?.afterSeconds, 120); assert.equal(deferred.retry?.reason, "read_limit");
+  assert.equal(JSON.parse(Buffer.from(deferred.retry!.cursor, "base64url").toString()).offset, 0);
+});
+
+test("deferred retry resumes before skipped details with exact caller/date/discovery scope", async () => {
+  let limited = true;
+  const f = fixture(["77", "88", "99"], { read: async input => {
+    if (input.operation === "SearchVisitsV2") return source(input.operation, ["77", "88", "99"].map(VisitID => ({ VisitID })));
+    if (input.id === "88" && limited) throw new WorkflowError("read_budget_exhausted_retry_next_minute", 429, 37);
+    return detail(input.id!);
+  } });
+  const first = await visitPreview(f.service, { date: "2026-10-10" }, "owner");
+  assert.equal(first.page.returnedCount, 1); assert.equal(first.nextCursor, null);
+  assert.equal(first.retry?.offset, 1); assert.equal(first.retry?.afterSeconds, 37);
+  limited = false; f.calls.length = 0;
+  const resumed = await visitPreview(f.service, { date: "2026-10-10", cursor: first.retry!.cursor }, "owner");
+  assert.deepEqual(resumed.items.map(item => item.id), ["88", "99"]);
+  assert.deepEqual(f.calls.filter(call => call.operation === "GetVisitInfoV3").map(call => call.id), ["88", "99"]);
+  assert.equal(resumed.retry, null); assert.equal(resumed.completeness.complete, false);
+  await assert.rejects(visitPreview(f.service, { date: "2026-10-10", cursor: first.retry!.cursor }, "another-owner"), /scope_mismatch/);
+  await assert.rejects(visitPreview(f.service, { date: "2026-10-11", cursor: first.retry!.cursor }, "owner"), /scope_mismatch/);
+  f.repository.records.set("workspaceSettings/owner", { ...settings, revision: 2 });
+  await assert.rejects(visitPreview(f.service, { date: "2026-10-10", cursor: first.retry!.cursor }, "owner"), /scope_mismatch/);
+});
+
+test("first-detail retry works at offset zero while access refusals do not advertise automatic recovery", async () => {
+  for (const status of [403, 423, 429, 503]) {
+    let failed = true;
+    const f = fixture(["77"], { read: async input => input.operation === "SearchVisitsV2" ? source(input.operation, [{ VisitID: "77" }])
+      : failed ? (() => { throw new WorkflowError(status === 429 ? "vendor_backoff_active" : "source_gate", status, 21); })() : detail("77") });
+    const first = await visitPreview(f.service, { date: "2026-10-10" }, "owner");
+    if (status === 403 || status === 423) { assert.equal(first.retry, null); continue; }
+    assert.equal(first.retry?.offset, 0); assert.equal(first.retry?.afterSeconds, 21);
+    failed = false;
+    const resumed = await visitPreview(f.service, { date: "2026-10-10", cursor: first.retry!.cursor }, "owner");
+    assert.equal(resumed.items[0]?.state, "source_unvalidated"); assert.equal(resumed.retry, null);
+  }
 });
 
 test("workspace plus real SOAP transport reserves once per dispatch and quota denial never sends", async () => {

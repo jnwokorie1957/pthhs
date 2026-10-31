@@ -1,5 +1,13 @@
 # PTHHS Management Layer — Developer Checklist
 
+- [x] October 31 deferred-source recovery implementation: retain a separate,
+  caller/office/day/discovery-bound cursor for skipped details and honor source
+  delays in Overview, Preview and EVV. A second quota response retains the same
+  page; cache cursors are rebound and their delay ages. Missing returned fields
+  and access gates remain distinct. 533 backend/332 frontend-tooling tests and
+  Windows release checks passed; production acceptance remains pending in O02 of
+  the [live-data checklist](PRIMETIME_LIVE_DATA_CHECKLIST.txt).
+
 - [x] October 31 raw-call investigation: EVV now has a protected, scoped HHA
   call-event reader with independent receipts and truthful empty states. Normal
   Hosting/backend release passed; the human approved only the eighth read method.
