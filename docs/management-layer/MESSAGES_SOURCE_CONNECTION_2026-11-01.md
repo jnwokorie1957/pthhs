@@ -45,7 +45,31 @@ Demo and sign-out. Existing source/read/policy tests remain in the release suite
 
 Duplicate host/clock-key arrays were consolidated and source notices shortened
 without removing their page/coverage/import bounds. Existing420000raw/102000gzip
-budgets remain unchanged. Full354frontend-tooling/46analytics tests and Windows
-release checks pass; backend code is unchanged. Normal release/native acceptance
-is pending. Open M02 provider/history acceptance must not be inferred from fixtures
-or a closed production capability.
+budgets remain unchanged; actual419984raw/101647gzip passes. Full354frontend-tooling/
+46analytics tests and Windows release checks pass; backend code is unchanged.
+
+## Bounded production acceptance
+
+Runtimeb5caae78d66646f3e07539f1b8b22e042dcf6e99 passed all three jobs in
+[workflow41355010161](https://github.com/jnwokorie1957/pthhs/actions/runs/41355010161):
+Hosting22:02:25, core backend22:02:52 and separate analytics22:03:57UTC. At
+22:03:13UTC, after Hosting/backend completed,12exactappassets and9anonymous401/
+private/noindex boundaries passed. The alert-history route independently returned
+401 with no-store/noindex. No route, authentication or release gate changed.
+
+Native production loaded revisionasset9c5fffc37d8e and showed the actual office,
+Automatic text delivery is not enabled and Notification history is not enabled
+for this office. Refresh performed another protected check and retained this
+explicit state without a generic failure or an invented empty history. Demo hid
+the Live panel, cleared its status and showed3synthetic rule cards. Returning
+to Live rechecked the same actual gates. At1265px document/viewport widths match.
+No populated outbox record, live cursor, provider credential, delivery or mobile
+geometry was verified. No acknowledgement or communication was submitted.
+
+This closes M01's access/readiness wiring. M02 populated history/provider evidence
+remains open under its existing notification-release controls. A closed capability
+is neither an empty outbox nor a failed source connection. Do not open send or
+history gates merely to make this verification pass. No new owner approval is
+needed for this correction. The unrelated earlier Google Viewer proposal is
+superseded because both analytics connections already work; its delayed approval
+did not trigger an additional grant.

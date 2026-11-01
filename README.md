@@ -6,7 +6,9 @@ Messages now checks the existing protected Primetime status/outbox reader instea
 of displaying a permanent disconnected placeholder. History gates, empty pages,
 provider acceptance, delivery and office acknowledgement remain separate. Opening
 this tab does not read HHA visits, enable messaging or send anything. Three new
-regressions fail before/pass after. Normal release/native acceptance pending; see
+regressions fail before/pass after; all three release jobs pass. Native production
+shows the actual closed history/delivery gates, supports refresh and separates
+Demo. Populated history and provider delivery remain unverified; see
 [scope](docs/management-layer/MESSAGES_SOURCE_CONNECTION_2026-11-01.md).
 
 ## November 1 call-review context

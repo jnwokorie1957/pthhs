@@ -322,13 +322,21 @@ TAB 05 - PATIENT WORKBENCH
     office and release/access limits before enabling the bounded readers.
 
 TAB 06 - MESSAGES & ALERTS
-[ ] M01 Connect Messages to actual Primetime office-alert access/readiness.
+[x] M01 Connect Messages to actual Primetime office-alert access/readiness.
     November1 implementation replaces the permanent disconnected placeholder
     with existing protected GET /revisions/status and, only when its existing
     notificationRecords capability is true, GET /revisions/notifications.
     Exact persisted source: revisionNotificationOutbox_<officeId> through the
     existing NotificationOutbox.page access checks. This is not an HHA inbox.
-    Normal release/native readiness acceptance pending.
+    Releaseb5caae7 passed all three normal jobs in workflow41355010161:
+    Hosting22:02:25/backend22:02:52/analytics22:03:57UTC. Twelve exact assets and
+    nine anonymous401/noindex boundaries passed22:03:13UTC after Hosting/backend;
+    the alert-history route independently returned401/no-store/noindex.
+    Native revisionasset9c5fffc37d8e showed the actual office and closed automatic
+    text/history gates. Refresh retained the correct explicit state. Demo hid
+    Live records/status and showed3synthetic rule cards; returning to Live
+    rechecked the gates. Desktop1265px had no horizontal overflow. No new grant,
+    provider lookup, send or HHA source call was made by the Messages reader.
 [ ] M02 Expose actual provider/configuration/history state and persisted office
     follow-up in this tab; avoid a generic failure for a deliberately closed gate.
     The same history renderer/cursor now lives in Messages, with a Visit review
@@ -341,6 +349,12 @@ TAB 06 - MESSAGES & ALERTS
     replies after navigation/Demo/sign-out. No provider contact, send, grant,
     settings change, HHA note read or source write. Actual permitted history and
     provider/delivery evidence remain separately bounded acceptance.
+    Native production's closed notificationRecords gate prevents live history
+    record/cursor verification. This is deliberate access state, not an empty
+    outbox or a failed connection. Existing notification release approvals and
+    real outbox/provider evidence remain prerequisites; no send gate is opened
+    for feed verification. Current354frontend-tooling/46analytics and Windows
+    checks pass; app419984raw/101647gzip stays within unchanged budgets.
     See docs/management-layer/MESSAGES_SOURCE_CONNECTION_2026-11-01.md.
 [ ] M03 HHA patient/caregiver notes are separate: GetPatientNotes,
     GetCaregiverNotes and their change endpoints. Do not label these as delivered

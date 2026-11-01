@@ -6,8 +6,9 @@
   Messages; Visit review links to it. No new backend route, permission, provider
   lookup, HHA read or send. Three new regressions fail before/pass after; focused
   250tests and the full354frontend-tooling/46analytics tests pass. Full Windows
-  release checks pass with unchanged budgets. Normal release/native acceptance
-  pending. See
+  release checks pass with unchanged budgets. All three normal jobs pass. Native
+  production displays actual closed history/delivery gates, refreshes and clears
+  Live facts in Demo; populated history/provider delivery stay unverified. See
   [scope](MESSAGES_SOURCE_CONNECTION_2026-11-01.md).
 
 - [x] November1 call-review context implementation: display the selected visit
