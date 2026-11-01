@@ -1,5 +1,14 @@
 # PTHHS
 
+## November 1 visit source recovery
+
+Network/timeouts and selected gateway failures in the three approved visit reads
+now preserve the existing explicit, scoped recovery path. Empty fields, access
+refusals and source faults stay distinct; no additional source attempt or access
+is enabled. Local539backend/347frontend checks pass. Production acceptance is
+pending normal release. See [scope](docs/management-layer/VISIT_SOURCE_RECOVERY_2026-11-01.md).
+
+
 November1 realtime diagnostics now separate provider status/network failures
 from strict source-response rejection while keeping valid historical facts.
 Only fixed categories, bounded HTTP status and structural reasons reach the

@@ -128,9 +128,11 @@ function transportFailure(
   correlationId: string,
   attempts: number,
   durationMs: number,
+  code = "unclassified_transport_failure",
 ): HhaCallResponse {
   const error: HhaNormalizedError = {
     kind: "transport",
+    code,
     message: "HHA request failed before a valid SOAP response was received.",
   };
 
@@ -315,6 +317,10 @@ export class HhaSoapClient {
           correlationId,
           attempt,
           Date.now() - startedAt,
+          error instanceof BackoffPersistenceError ? "backoff_persistence_failed"
+            : error instanceof Error && error.message === "hha_response_size_limit" ? "response_size_limit"
+            : error instanceof Error && ["TypeError", "AbortError", "TimeoutError"].includes(error.name) ? "network_unavailable"
+            : "unclassified_transport_failure",
         );
         if (!retrySafe) {
           normalized.retryable = false;

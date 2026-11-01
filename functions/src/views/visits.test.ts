@@ -6,6 +6,93 @@ import { WorkflowError, operationalRead, type ReadInput, type OperationalRead } 
 import { parseHhaSoapResponse } from "../integrations/hhaexchange/parser.js";
 import { HhaSoapClient, boundedSoapText } from "../integrations/hhaexchange/client.js";
 
+test("visit source transport and gateway failures preserve explicit scoped recovery", async () => {
+  for (const failure of ["transport", "gateway"]) {
+    let failed = true, dispatches = 0;
+    const client = { async call(operation: string, _body: string, attempts: number) {
+      dispatches++; assert.equal(attempts, 1);
+      return { operation, ok: false, transportOk: false, httpStatus: failure === "transport" ? 0 : 502,
+        retryable: true, error: { kind: failure === "transport" ? "transport" : "protocol", code: "network_unavailable", message: "PRIVATE-SOURCE-ERROR" } };
+    } } as unknown as HhaSoapClient;
+    const f = fixture(["77", "88", "99"], { read: async input => {
+      if (input.operation === "SearchVisitsV2") return source(input.operation, ["77", "88", "99"].map(VisitID => ({ VisitID })));
+      return input.id === "88" && failed ? operationalRead(client, input) : detail(input.id!);
+    } });
+    const first = await visitPreview(f.service, { date: "2026-10-10" }, "owner");
+    assert.equal(first.page.returnedCount, 1);
+    assert.deepEqual(first.items.map(item => item.error ?? null), [null, "hha_source_temporarily_unavailable", "not_attempted_after_batch_gate"]);
+    assert.equal(first.retry?.offset, 1); assert.equal(first.retry?.reason, "source_unavailable");
+    assert.equal(first.retry?.afterSeconds, 60); assert.equal(dispatches, 1);
+    assert.equal(first.items[1]?.actualStart, null); assert.equal(first.items[1]?.detailFetchedAt, null);
+    assert.doesNotMatch(JSON.stringify(first), /PRIVATE-SOURCE-ERROR/);
+    failed = false; f.calls.length = 0;
+    const resumed = await visitPreview(f.service, { date: "2026-10-10", cursor: first.retry!.cursor }, "owner");
+    assert.deepEqual(resumed.items.map(item => item.id), ["88", "99"]);
+    assert.equal(resumed.items[0]?.state, "source_unvalidated");
+    assert.equal(resumed.items[0]?.actualEnd, null); assert.equal(resumed.retry, null);
+    await assert.rejects(visitPreview(f.service, { date: "2026-10-10", cursor: first.retry!.cursor }, "different-owner"), /scope_mismatch/);
+  }
+});
+
+test("visit-read recovery separates transport from faults, denied access, malformed success and vendor backoff", async () => {
+  const inputs: ReadInput[] = [{ operation: "SearchVisitsV2", officeId: "123", date: "2026-10-10" },
+    { operation: "GetVisitInfoV3", id: "77" }, { operation: "GetPatientDemographics", id: "5" }];
+  for (const input of inputs) for (const httpStatus of [0, 408, 500, 502, 503, 504]) {
+    let calls = 0;
+    const client = { async call(_operation: string, _body: string, attempts: number) {
+      calls++; assert.equal(attempts, 1);
+      return { ok: false, transportOk: false, httpStatus, retryable: false,
+        error: { kind: httpStatus === 0 ? "transport" : "protocol", code: "network_unavailable", message: "PRIVATE-UPSTREAM" } };
+    } } as unknown as HhaSoapClient;
+    await assert.rejects(operationalRead(client, input), (e: unknown) => e instanceof WorkflowError && e.code === "hha_source_temporarily_unavailable" && e.status === 503 && e.retryAfterSeconds === undefined);
+    assert.equal(calls, 1);
+  }
+  for (const [kind, httpStatus] of [["application", 200], ["application", 503], ["soap_fault", 500], ["protocol", 200], ["protocol", 401], ["protocol", 403], ["protocol", 501]] as const) {
+    const client = { async call() { return { ok: false, transportOk: false, httpStatus, error: { kind, message: "PRIVATE-UPSTREAM" } }; } } as unknown as HhaSoapClient;
+    await assert.rejects(operationalRead(client, inputs[1]!), (e: unknown) => e instanceof WorkflowError && e.code === "hha_read_failed" && e.status === 502);
+  }
+  const limited = { async call() { return { ok: false, httpStatus: 503, retryAfter: "120", error: { kind: "protocol" } }; } } as unknown as HhaSoapClient;
+  await assert.rejects(operationalRead(limited, inputs[1]!), (e: unknown) => e instanceof WorkflowError && e.code === "vendor_backoff_active" && e.status === 429 && e.retryAfterSeconds === 120);
+  const otherRead = { async call() { return { ok: false, httpStatus: 502, error: { kind: "protocol" } }; } } as unknown as HhaSoapClient;
+  await assert.rejects(operationalRead(otherRead, { operation: "GetVisitBillInfoV2", id: "77" }), (e: unknown) => e instanceof WorkflowError && e.code === "hha_read_failed" && e.status === 502);
+  for (const code of [undefined, "backoff_persistence_failed", "response_size_limit", "unclassified_transport_failure"]) {
+    const blocked = { async call() { return { ok: false, httpStatus: 0, error: { kind: "transport", code } }; } } as unknown as HhaSoapClient;
+    await assert.rejects(operationalRead(blocked, inputs[1]!), (e: unknown) => e instanceof WorkflowError && e.code === "hha_read_failed" && e.status === 502);
+  }
+});
+
+test("SOAP transport marks only known network failures for explicit visit recovery", async () => {
+  const prior = globalThis.fetch;
+  try {
+    const client = new HhaSoapClient("https://example.invalid", { appName: "synthetic", appKey: "synthetic", appSecret: "synthetic" });
+    for (const error of [new TypeError("PRIVATE-NETWORK"), Object.assign(new Error("PRIVATE-TIMEOUT"), { name: "TimeoutError" }), new Error("hha_response_size_limit"), new Error("PRIVATE-UNKNOWN")]) {
+      let calls = 0; globalThis.fetch = async () => { calls++; throw error; };
+      const response = await client.call("GetPatientDemographics", "<PatientInfo><ID>5</ID></PatientInfo>", 1);
+      assert.equal(response.error?.code, ["TypeError", "TimeoutError"].includes(error.name) ? "network_unavailable" : error.message === "hha_response_size_limit" ? "response_size_limit" : "unclassified_transport_failure");
+      assert.equal(calls, 1); assert.doesNotMatch(JSON.stringify(response), /PRIVATE-/);
+    }
+  } finally { globalThis.fetch = prior; }
+});
+
+test("failed office proof never exposes detail values and discovery outage cannot become empty success", async () => {
+  const f = fixture(["77"]), calls: string[] = [];
+  const failedClient = { async call() { return { ok: false, httpStatus: 504, error: { kind: "protocol" } }; } } as unknown as HhaSoapClient;
+  const service = new OperationsWorkspace(f.repository, async input => {
+    calls.push(input.operation);
+    return input.operation === "SearchVisitsV2" ? source(input.operation, [{ VisitID: "77" }])
+      : input.operation === "GetVisitInfoV3" ? detail("77") : operationalRead(failedClient, input);
+  }, true);
+  const page = await visitPreview(service, { date: "2026-10-10" }, "owner");
+  assert.deepEqual(calls, ["SearchVisitsV2", "GetVisitInfoV3", "GetPatientDemographics"]);
+  assert.equal(page.retry?.offset, 0); assert.equal(page.page.returnedCount, 0);
+  assert.equal(page.items[0]?.actualStart, null); assert.equal(page.items[0]?.patientId, null);
+  assert.equal(page.items[0]?.detailFetchedAt, null); assert.equal(page.items[0]?.officeCheckedAt, null);
+  const discovery = fixture([], { read: input => operationalRead(failedClient, input) });
+  const route = await viewRoute(discovery.service, "GET", "/views/visits", { date: "2026-10-10" }, "owner");
+  assert.equal(route?.status, 503); assert.equal((route?.body as any).ok, false);
+  assert.equal((route?.body as any).error, "hha_source_temporarily_unavailable");
+});
+
 test("large discovery keeps SOAP byte ceiling and strict identifiers", async () => {
   await assert.rejects(boundedSoapText(new Response("oversized", { headers: { "Content-Length": String(5 * 1024 * 1024 + 1) } })));
   await assert.rejects(boundedSoapText(new Response("x".repeat(5 * 1024 * 1024 + 1))));

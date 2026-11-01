@@ -79,6 +79,21 @@ TAB 01 - OVERVIEW
     hidden while missing EVV-end fields remained explicit. Exact quota/time-limit
     recovery is covered by regressions, not claimed reproduced natively. No quota
     was induced. Mobile390/desktop1280 geometry remained within the viewport.
+    November1 source-failure recovery implementation: operationalRead previously
+    collapsed network/timeout and gateway failures into generic502. Preview did
+    not retain a retry cursor for those failures, so Next page could pass them.
+    The three existing preview reads now map known network/timeout transport-kind/http0 or protocol-
+    kind/http408,500,502,503,504 to hha_source_temporarily_unavailable/http503.
+    Existing preview logic retains readable office-proved prefixes, defers later
+    details and offers the first failed offset after its local60second recovery
+    delay. This local delay is not claimed to be vendor Retry-After. An actual
+    supplied vendor delay remains authoritative. Application/SOAP faults, access
+    responses, malformed HTTP200 and source-empty clock/hour fields stay separate.
+    No call-loop retry, extra read/permission, source-time substitution or new
+    import. Two regressions fail before/pass after, with office-proof/discovery
+    checks;539backend/347frontend tests and unchanged generated assets pass.
+    Production acceptance pending normal release; source contracts/units in
+    P01/P02/P06 and remaining E04 evidence are unchanged.
 [ ] O03 Complete-office coverage is not established. Determine a supported bounded
     scan/refresh design before promising full-office totals or all-record search.
 [x] O04 Compact Open records disclosure plus responsive cards is deployed.

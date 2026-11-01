@@ -1,5 +1,12 @@
 # PTHHS Management Layer — Developer Checklist
 
+- [x] November1 visit-source transient recovery implementation: transport and
+  selected gateway failures in SearchVisitsV2/GetVisitInfoV3/GetPatientDemographics
+  now yield503 so the existing scoped deferred cursor and local recovery delay
+  apply. No automatic SOAP retry, clock fallback or permission change. Two new
+  regressions fail before/pass after;539backend/347frontend checks pass. Production
+  acceptance pending normal release. See [scope](VISIT_SOURCE_RECOVERY_2026-11-01.md).
+
 - [x] November1 realtime diagnostic implementation: retain historical results
   when the stream read fails; distinguish provider403/429/other HTTP, timeout,
   network and strict shape rejection. Protected metadata/logging contains only

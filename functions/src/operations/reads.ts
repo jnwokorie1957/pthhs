@@ -766,6 +766,15 @@ export async function operationalRead(client: Pick<HhaSoapClient, "call">, input
     else if (value && /^\d{1,2}:\d{2}:\d{2}$/.test(value)) { const parts = value.split(':').map(Number); wait = parts[0]! * 3600 + parts[1]! * 60 + parts[2]!; }
     else if (value && Number.isFinite(Date.parse(value))) wait = Math.max(0, Math.ceil((Date.parse(value) - Date.now()) / 1000));
     if (wait !== undefined && Number.isFinite(wait) && wait > 0) throw new WorkflowError("vendor_backoff_active", 429, wait);
+    // These three reads supply the scoped visit preview. A transport failure or
+    // gateway response must retain its explicit retry cursor, rather than become
+    // an omitted clock field or be skipped by Next page. This does not retry the
+    // SOAP call: the existing UI supplies a local recovery delay and owner action.
+    // Application/soap faults, access refusals and malformed HTTP200 stay distinct.
+    const previewRead = ["SearchVisitsV2", "GetVisitInfoV3", "GetPatientDemographics"].includes(input.operation);
+    const transient = response.error?.kind === "transport" && response.error.code === "network_unavailable" && response.httpStatus === 0
+      || response.error?.kind === "protocol" && [408, 500, 502, 503, 504].includes(response.httpStatus);
+    if (previewRead && transient) throw new WorkflowError("hha_source_temporarily_unavailable", 503);
     throw new WorkflowError("hha_read_failed", 502);
   }
   let records: Record<string, string | null>[];
