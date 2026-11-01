@@ -99,6 +99,13 @@ and [response metadata contract](https://developers.google.com/analytics/devguid
 
 ## Search Console and release verification
 
+November1 follow-up: PTHHS historical reports now return rows. The rendered
+summary/daily/SVG consistency check passes within the scope recorded in the
+[source-contract follow-up](management-layer/ANALYTICS_SOURCE_CONTRACT_2026-10-31.md#november-1-native-follow-up).
+Realtime is currently unavailable or invalid; GA04 requires separate protected
+status/shape diagnostics. October31's successful stream reads are not a claim
+of uninterrupted realtime availability. No further permission grant is requested.
+
 PTHHS domain verification already existed; its canonical sitemap was submitted successfully. Google showed 43 indexed URLs at the initial check. Ride Primetime's canonical HTTPS URL-prefix property was verified using `google42b973e2d43e4ad9.html`; the permanent file must remain deployed. Google successfully read its sitemap and discovered 34 URLs; URL inspection confirmed its homepage is indexed. The existing unverified Ride domain property was not removed. Google controls subsequent indexing timing.
 
 Hosting releases preserve the existing production file manifest and replace only reviewed analytics/dashboard files. Ride's production booking page differs from Git main; the release injected only the analytics tag into the existing live booking content. A concurrent PTHHS operations update was incorporated from `fbc16f8`, and the generated dashboard shell retains its latest operations assets.

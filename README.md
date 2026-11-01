@@ -1,5 +1,12 @@
 # PTHHS
 
+November1 native PTHHS historical reports now contain source rows. Its plotted
+values match the daily table, and the rendered views/sessions match daily sums;
+independent Google UI/source comparison remains open. Realtime is currently
+unavailable and has its own diagnostic follow-up, GA04. The older open analytics
+client was reloaded to the deployed report contract. See the
+[connection checklist](docs/management-layer/PRIMETIME_LIVE_DATA_CHECKLIST.txt).
+
 October31,22:37UTC role research keeps raw call attempts, visit association,
 confirmation evidence and clinical document review separate. Three new primary
 sources and rechecked clinical guidance refine proposed patient/staff/PT/office

@@ -89,6 +89,29 @@ variants, exact malformed responses or failure/expiry after historical facts.
 No HHA setting, grant, source record, form file, clinical/financial decision,
 communication, schedule or persistent-goal status changed.
 
+## November 1 native follow-up
+
+PTHHS now returns populated historical sections: one daily row, six page rows
+and two channel rows. Both SVG point titles exactly match the daily table;
+rendered view/session summary amounts equal their daily sums. No source traffic
+amounts are included here. This is actual rendered consistency, not an independent
+Google UI/raw-response comparison, every metric or every quality/failure variant.
+The source timezone remains `Etc/GMT+5`; explicit ranges advanced with its
+calendar. No local central-time fallback or zero-filled comparison was used.
+
+Realtime currently reports unavailable or invalid, despite successful historical
+data. GA04 now maps the exact stream/report and the next safe diagnostic change:
+separate provider status/timeout from strict response rejection without leaking
+tokens, bodies or private values. Do not infer a grant issue or fabricate zero.
+
+The user's older open analytics bundle461e27e76e85 rejected the new nullable
+summary contract. A normal reload of that read-only page loaded0724fd3720d3 and
+accepted the historical response. The browser observation timed out once during
+reload; its same handle was re-observed, without issuing another reload.
+Chrome later reconnected under a new surface after the former browser was
+unavailable. The documented inventory/recovery path located the same existing
+tab; no tokens, credentials or unrelated automation tabs were accessed.
+
 Primary contracts rechecked October31:
 
 - [Report response and rowCount](https://developers.google.com/analytics/devguides/reporting/data/v1/rest/v1beta/RunReportResponse)

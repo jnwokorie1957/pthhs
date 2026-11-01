@@ -496,6 +496,12 @@ TAB 14 - WEBSITE ANALYTICS (ADDED OCTOBER31)
     The switch is now reachable at390/1280px, with no page overflow. Populated,
     malformed and timed-expiry transitions retain synthetic acceptance limits;
     real Google report calculations and the broader GA02 requirement stay open.
+    November1 native PTHHS historical data now returns: one daily row, six page
+    rows and two channel rows. Both plotted points exactly match the daily
+    table; rendered page-view/session summaries equal their daily sums. This
+    accepts rendered consistency for that actual response, not an independent
+    Google UI/raw-response comparison or every metric/variant. No traffic
+    amounts/private response values are stored in this checklist.
     See docs/management-layer/ANALYTICS_REPORT_VALIDATION_2026-10-31.md.
     Later47a9e6c native acceptance adds successful empty-historical/populated-
     realtime responses for both properties and clears realtime/receipt on site
@@ -520,6 +526,24 @@ TAB 14 - WEBSITE ANALYTICS (ADDED OCTOBER31)
     both sites; populated historical/quality variants and calculations keep
     GA03 open. Combined535backend/347root/40analytics tests pass.
     See docs/management-layer/ANALYTICS_SOURCE_CONTRACT_2026-10-31.md.
+[ ] GA04 Diagnose current realtime unavailability independently of successful
+    historical reporting. Exact source: the same protected website-analytics
+    route -> Google Data API runRealtimeReport, activeUsers, configured streamId,
+    minutes29..0. Both streams returned counts October31, but November1 PTHHS
+    reports populated historical data with Realtime source unavailable or
+    invalid. This is not evidence that every report read lacks permission.
+    The current catch combines request failures and strict response rejection.
+    Next implementation: protected, bounded diagnostic categories/HTTP status
+    without tokens, response bodies, private metric values or raw upstream
+    messages in public source/logs. Distinguish provider403/429/timeout from a
+    malformed or unexpected response, inspect that exact condition, then fix
+    only supported behavior and verify natively. Do not invent zero or grant
+    broader permissions to remove this message. No current grant is requested.
+    An older open client also rejected the new empty-summary contract. Its
+    script hash differed from the deployed module; a normal readonly-page
+    reload loaded0724fd3720d3 and accepted the historical response. Reload a
+    stale client before classifying its generic verification message as a
+    new source-access failure. Other automation tabs were not taken over.
 
 NEXT IMPLEMENTATION ORDER
 1. Investigate the next additional bounded staff, billing, authorization-detail

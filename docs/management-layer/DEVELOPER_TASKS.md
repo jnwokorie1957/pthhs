@@ -1,5 +1,13 @@
 # PTHHS Management Layer — Developer Checklist
 
+- [x] November1 native historical-report consistency: PTHHS returns actual daily,
+  page and channel rows. Its two plotted points match the one daily row, and
+  rendered view/session totals match daily sums. This is bounded UI consistency,
+  not independent Google verification or all variant acceptance. An old open
+  client was reloaded to the current asset. Realtime remains unavailable;
+  GA04 maps the exact API and next protected diagnostic work without new grants.
+  See the [connection checklist](PRIMETIME_LIVE_DATA_CHECKLIST.txt).
+
 - [x] October31,22:37UTC role research separates call attempts/association,
   confirmed-time evidence and clinical document review. New R57/R58/R59 and
   rechecked R18 refine patient/staff/PT/office links, action permissions and
