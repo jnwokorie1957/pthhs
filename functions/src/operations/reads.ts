@@ -336,7 +336,7 @@ const projections: Record<Exclude<ReadOperation, "SearchVisitsV2" | "SearchPatie
   GetCaregiverNoteChanges: { record: "CaregiverNoteInfo", fields: ["CaregiverNoteID", "CaregiverID", "NoteDate", "Note", "CaregiverNotified", "SubjectID", "PatientID"] },
   GetPatientNotes: { record: "PatientNote", fields: ["PatientNoteID", "PatientID", "NoteReason/ID", "NoteDate", "NoteType", "FromDate", "ToDate", "Note", "EmergencyOfPriority", "Internal"] },
   GetCaregiverNotes: { record: "CaregiverNoteInfo", fields: ["CaregiverNoteID", "CaregiverID", "NoteDate", "Note", "CaregiverNotified"] },
-  GetCallDashBoardData: { record: "CallInfo", fields: ["CallDashboardID", "CallTime", "CallType", "CallStatus", "Patient/ID", "Caregiver/ID"] },
+  GetCallDashBoardData: { record: "CallInfo", fields: ["CallDashboardID", "CallTime", "CallType", "CallStatus", "Patient/ID", "Patient/AdmissionID", "Caregiver/ID"] },
   GetReferralSource: { record: "ReferralSourceInfo", fields: ["ReferralSourceID", "ReferralSourceName", "Status", "ParenetReferralSourceID", "ParentReferralsourceName", "ReferralSourceType", "AccountManagerId", "AccountMangerName", "MarketerId", "DefaultMarketer"] },
   GetReferralSourceContact: { record: "ReferralSourceContact", fields: ["ReferralSourceContactID", "ReferralSourceContactName", "Position", "Phone1", "Phone2", "EmailAddress", "OfficeHours", "IsPrimary"] },
   GetPatientAddress: { record: "Addresses", fields: ["AddressID", "Address1", "Address2", "State", "County", "City", "Zip5", "Zip4"] },
@@ -805,8 +805,8 @@ export async function operationalRead(client: Pick<HhaSoapClient, "call">, input
       if (["GetVisitInfoV2", "GetVisitInfoV3", "GetVisitBillInfoV2"].includes(input.operation)) {
         for (const name of ["ID", "Patient/ID", "Caregiver/ID", "VisitDate"]) projected[name] = directPathScalar(xml, name);
       }
-      if (input.operation === "GetCallDashBoardData") for (const name of ["CallDashboardID", "Patient/ID", "Caregiver/ID", "CallTime", "CallType", "CallStatus"]) projected[name] = directPathScalar(xml, name);
-      if (input.operation === "GetPatientDemographics") for (const name of ["PatientID", "OfficeID"]) projected[name] = directScalar(xml, name);
+      if (input.operation === "GetCallDashBoardData") for (const name of ["CallDashboardID", "Patient/ID", "Patient/AdmissionID", "Caregiver/ID", "CallTime", "CallType", "CallStatus"]) projected[name] = directPathScalar(xml, name);
+      if (input.operation === "GetPatientDemographics") for (const name of ["PatientID", "OfficeID", "AdmissionID"]) projected[name] = directScalar(xml, name);
       if (input.operation === "GetVisitInfoV2" || input.operation === "GetVisitInfoV3") Object.assign(projected, verificationReceiptFields(xml));
       if ((projectionScope === "medical_review" || projectionScope === "write_recovery") && input.operation === "GetCaregiverMedicalDetails") { for (const name of ["Notes", "Result", "DocumentName"]) projected[name] = extractExactElementText(xml, name) ?? null; }
       if ((projectionScope === "clinical_review" || projectionScope === "write_recovery") && input.operation === "GetPatientClinicalInfo") { projected.Comments = extractExactElementText(xml, "Comments") ?? null; projected.Allergies = extractExactElementText(xml, "Allergies") ?? null; }

@@ -212,7 +212,21 @@ TAB 03 - EVV EXCEPTIONS
     does not establish a particular raw XML shape. Numeric lexical similarity
     is diagnostic only and is never accepted as identity proof. Rejected rows
     remain hidden with the same403.541backend tests pass; one regression fails
-    before correction. Normal release/native diagnostic acceptance pending.
+    before correction.9b61103 passed workflow41356250354 all3jobs: Hosting22:16:33,
+    backend22:17:54, analytics22:18:11UTC. At22:18:36UTC twelve exact assets and
+    nine anonymous401/noindex boundaries passed. The same retained source-page
+    selection was explicitly queried once after release and remained refused.
+    Safe log at November1,16:18:29.253CST: patientIdentity invalid, caregiverIdentity
+    match. This is nonempty unusable patient proof, not a missed/null projection;
+    no raw identity value or source clock was inspected. No rejected row displayed.
+    Current inventory has no HHA application tab; this is availability, not proof
+    of an authentication error. Next independent API check: the captured response
+    also supplies Patient/AdmissionID. Compare it exactly with the already
+    verified patient's AdmissionID using unique direct scalar fields. This
+    diagnostic extension preserves the primary-ID refusal even on a match;
+    no namespace uniqueness, patient/visit association or missing clock is inferred.
+    Two added regressions fail before/pass after;543backend tests pass. Additional
+    comparison release/native acceptance pending; no new HHA method is needed.
     See docs/management-layer/CALL_SUBJECT_DIAGNOSTICS_2026-11-01.md.
     The October31 empty responses do not establish retention/filter semantics,
     complete history, absence of an original punch, or an event-to-visit join.

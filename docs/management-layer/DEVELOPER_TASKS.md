@@ -5,7 +5,12 @@
   scope recheck. No record values, source times, IDs, actors or request bodies
   are logged; a diagnostic failure cannot replace the403. Two new boundary tests
   and541backend tests pass; one regression fails against the prior module.
-  Normal release/native cause acceptance pending. E04 stays open. See
+  All three normal jobs passed for9b61103; native safe categories show invalid
+  patient proof and matching caregiver. The captured source also has AdmissionID:
+  an additional exact comparison uses unique direct fields from the same two
+  approved reads and never admits failed patient proof. Two additional regressions
+  fail before/pass after;543backend tests pass. Comparison release/native evidence
+  pending; E04 stays open. See
   [scope](CALL_SUBJECT_DIAGNOSTICS_2026-11-01.md).
 
 - [x] November1 office-alert reader implementation: connect Messages to existing

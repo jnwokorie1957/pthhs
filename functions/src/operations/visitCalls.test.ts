@@ -35,9 +35,19 @@ test("rejected call identity diagnostics distinguish unavailable, invalid and di
     const f = fixture();
     Object.assign(f.rows.GetCallDashBoardData.records[0]!, { "Patient/ID": patient, "Caregiver/ID": caregiver, CallTime: "PRIVATE-CLOCK", CallStatus: "PRIVATE-STATUS" });
     await assert.rejects(f.read(), error => (error as { code?: string; status?: number }).code === "call_subject_mismatch" && (error as { status?: number }).status === 403);
-    assert.deepEqual(f.diagnostics, [expected]);
+    assert.deepEqual(f.diagnostics, [{ ...expected, admissionIdentity: "expected_unavailable" }]);
     assert.doesNotMatch(JSON.stringify(f.diagnostics), /PRIVATE|"(?:patientId|caregiverId|CallTime|CallStatus|actor|visitId|officeId)"/);
     assert.equal(f.calls.length, 3, "diagnosis does not retry or fetch another source");
+  }
+});
+
+test("a separate admission reference is compared exactly for diagnosis without admitting failed patient proof", async () => {
+  for (const [expected, returned, state] of [["SYNTHETIC-ADMISSION", "SYNTHETIC-ADMISSION", "match"], ["00013", "13", "different"], ["Admission-A", "admission-a", "different"], ["SYNTHETIC-ADMISSION", null, "unavailable"], [null, "SYNTHETIC-ADMISSION", "expected_unavailable"], ["SYNTHETIC-ADMISSION", "bad\nvalue", "invalid"]] as const) {
+    const f = fixture(); f.rows.GetPatientDemographics.records[0]!.AdmissionID = expected;
+    Object.assign(f.rows.GetCallDashBoardData.records[0]!, { "Patient/ID": "0", "Patient/AdmissionID": returned });
+    await assert.rejects(f.read(), error => (error as { code?: string }).code === "call_subject_mismatch");
+    assert.deepEqual(f.diagnostics, [{ patientIdentity: "invalid", caregiverIdentity: "match", admissionIdentity: state }]);
+    assert.doesNotMatch(JSON.stringify(f.diagnostics), /SYNTHETIC|ADMISSION|00013|bad|value/); assert.equal(f.calls.length, 3);
   }
 });
 
@@ -94,4 +104,14 @@ test("call event projection excludes phone/PIN/name data and refuses borrowed or
   const result = await read(xml); assert.equal(result.records[0]!["Patient/ID"], "13"); assert.doesNotMatch(JSON.stringify(result), /PRIVATE|Phone1|TimeAndAttendancePIN/);
   const borrowed = await read(xml.replace('<Patient><ID>13</ID>', '<Patient><Nested><ID>13</ID></Nested>')); assert.equal(borrowed.records[0]!["Patient/ID"], null);
   const duplicate = await read(xml.replace('<CallDashboardID>16</CallDashboardID>', '<CallDashboardID>16</CallDashboardID><CallDashboardID>17</CallDashboardID>')); assert.equal(duplicate.records[0]!.CallDashboardID, null);
+});
+
+test("admission diagnostic references use unique direct source fields on both approved readers", async () => {
+  for (const operation of ["GetCallDashBoardData", "GetPatientDemographics"] as const) {
+    for (const [element, expected] of [["<AdmissionID>SYNTHETIC</AdmissionID>", "SYNTHETIC"], ["", null], ["<Nested><AdmissionID>SYNTHETIC</AdmissionID></Nested>", null], ["<AdmissionID>SYNTHETIC</AdmissionID><AdmissionID>OTHER</AdmissionID>", null], ["<AdmissionID xsi:nil=\"true\"/>", null]] as const) {
+      const xml = operation === "GetCallDashBoardData" ? `<Calls><CallInfo><CallDashboardID>16</CallDashboardID><Patient><ID>13</ID>${element}</Patient></CallInfo></Calls>` : `<PatientInfo><PatientID>13</PatientID><OfficeID>12</OfficeID>${element}</PatientInfo>`;
+      const result = await operationalRead({ async call() { return { operation, resultXml: xml, ok: true, transportOk: true, httpStatus: 200, correlationId: "synthetic", attempts: 1, durationMs: 1, retryable: false }; } }, operation === "GetCallDashBoardData" ? { operation, officeId: "12", patientId: "13", caregiverId: "15", date: "2026-10-24", lastId: "0" } : { operation, id: "13" });
+      assert.equal(result.records[0]![operation === "GetCallDashBoardData" ? "Patient/AdmissionID" : "AdmissionID"], expected);
+    }
+  }
 });
