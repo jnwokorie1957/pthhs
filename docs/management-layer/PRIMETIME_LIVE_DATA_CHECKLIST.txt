@@ -558,14 +558,14 @@ TAB 14 - WEBSITE ANALYTICS (ADDED OCTOBER31)
     both sites; populated historical/quality variants and calculations keep
     GA03 open. Combined535backend/347root/40analytics tests pass.
     See docs/management-layer/ANALYTICS_SOURCE_CONTRACT_2026-10-31.md.
-[ ] GA04 Diagnose current realtime unavailability independently of successful
+[x] GA04 Diagnose and correct the observed realtime rejection independently of
     historical reporting. Exact source: the same protected website-analytics
     route -> Google Data API runRealtimeReport, activeUsers, configured streamId,
-    minutes29..0. Both streams returned counts October31, but November1 PTHHS
-    reports populated historical data with Realtime source unavailable or
-    invalid. This is not evidence that every report read lacks permission.
-    The current catch combines request failures and strict response rejection.
-    Next implementation: protected, bounded diagnostic categories/HTTP status
+    minutes29..0. Both streams returned counts October31. An earlier November1
+    PTHHS read returned populated historical data but unavailable/invalid
+    realtime. This did not establish that every report read lacked permission.
+    The former catch combined request failures and strict response rejection.
+    Implemented below: protected, bounded diagnostic categories/HTTP status
     without tokens, response bodies, private metric values or raw upstream
     messages in public source/logs. Distinguish provider403/429/timeout from a
     malformed or unexpected response, inspect that exact condition, then fix
@@ -587,13 +587,26 @@ TAB 14 - WEBSITE ANALYTICS (ADDED OCTOBER31)
     Native PTHHS returned a realtime value; Ride kept valid historical facts
     but the safe log identified invalid_response / metric_headers / no provider
     status. This is strict parser rejection, not evidence for a new access grant.
-    Candidate repair: recognize only Google's exact realtime kind with omitted
+    Deployed repair: recognize only Google's exact realtime kind with omitted
     or empty row/header/aggregate arrays, absent-or-zero rowCount and no unknown
     keys/errors. Keep value null and source receipt; display No source rows.
     A source-supplied zero remains0; malformed/nonempty responses remain strict.
     Combined539backend/348frontend-tooling/46source tests and Windows checks
-    pass after preserving concurrent HHA recovery. Repair release/native
-    verification are pending.
+    pass after preserving concurrent HHA recovery. Repair153c75e passed normal
+    workflow41353015551: Hosting21:38:41/backend21:38:57/analytics21:40:13UTC.
+    At21:41:40UTC,12exactappassets and9anonymous401/private/noindex boundaries
+    passed for this release. The native client loaded analyticsa35d6fb2664d.
+    PTHHS returned a realtime value and actual historical rows. Ride showed
+    No source rows with actual historical rows retained; its safe INFO log at
+    November1,15:40:51.235CST identified empty_result / typed_empty_report /
+    no provider status, proving that the actual response met the strict guard.
+    Final Ride receipt was15:44:04Central. No raw body, credential or traffic
+    amount was saved; no permission changed and no active-user zero was made.
+    At1265px the widget fits and page width equals viewport width. Requested
+    390px overrides were not observed (1265/995px); mobile geometry remains
+    unverified. Overrides were reset and the temporary test tab closed.
+    This closes the observed typed-empty rejection only. GA02/GA03 independent
+    source comparison and remaining quality/failure/calendar variants stay open.
 
 NEXT IMPLEMENTATION ORDER
 1. Investigate the next additional bounded staff, billing, authorization-detail

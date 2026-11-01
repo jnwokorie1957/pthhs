@@ -99,8 +99,8 @@ Google UI/raw-response comparison, every metric or every quality/failure variant
 The source timezone remains `Etc/GMT+5`; explicit ranges advanced with its
 calendar. No local central-time fallback or zero-filled comparison was used.
 
-Realtime currently reports unavailable or invalid, despite successful historical
-data. GA04 now maps the exact stream/report and the next safe diagnostic change:
+At this earlier check, realtime reported unavailable or invalid despite successful
+historical data. GA04 mapped the exact stream/report and safe diagnostic change:
 separate provider status/timeout from strict response rejection without leaking
 tokens, bodies or private values. Do not infer a grant issue or fabricate zero.
 
@@ -135,7 +135,7 @@ quota failure. The existing frontend displayed the new bounded error message.
 
 ### Guarded empty-result correction
 
-The candidate correction accepts only the documented
+The deployed correction accepts only the documented
 `analyticsData#runRealtimeReport` kind when all row/header/aggregate arrays are
 absent or empty, rowCount is absent or zero, quota metadata is an object if
 present, and no unknown/error fields exist. ProtoJSON permits empty repeated
@@ -149,11 +149,34 @@ wrong kinds, hidden aggregate values or error objects. State changes log only
 the bounded diagnostic once per configured site/window in each instance;
 ordinary empty results use informational logging, not failure warnings.
 46source tests and the targeted UI cases pass. Repair release and native proof
-that the actual source satisfies this strict empty predicate are still pending.
+that the actual source satisfies this strict empty predicate are accepted below.
 The new UI regression fails against the prior module and passes after the
 correction. Concurrentc73dfba HHA source recovery was preserved; combined
 539backend/348frontend-tooling/46source tests and full Windows checks pass.
 App419369raw/101461gzip stays under the existing budgets; no budget changed.
+
+### November 1 production acceptance
+
+Repair153c75e passed all three jobs in
+[workflow41353015551](https://github.com/jnwokorie1957/pthhs/actions/runs/41353015551):
+Hosting21:38:41, core backend21:38:57 and separate analytics21:40:13UTC.
+At21:41:40UTC,12exactappassets and9anonymous401/private/noindex boundaries
+passed for that release. The existing native tab loaded analyticsa35d6fb2664d.
+
+PTHHS returned a realtime value and actual historical rows. Ride retained its
+historical rows and showed No source rows. The analytics-only safe INFO log at
+November1,15:40:51.235CST reported empty_result / typed_empty_report / null HTTP
+status. That branch establishes that the actual source matched the strict empty
+predicate; no raw body or private metric was read from logs. Final Ride receipt
+was15:44:04Central with its America/Chicago reporting zone; PTHHS retained its
+Etc/GMT+5 reporting zone. No new access grant was needed and no zero was invented.
+
+At1265px the widget fits and document width matches the viewport. Attempts to
+request390px returned observed widths1265/995px, so mobile geometry is not
+accepted. Overrides were reset and the temporary test tab closed. This closes
+only the observed typed-empty rejection (GA04). Independent Google comparison
+and remaining quality/failure/calendar variants keep GA02/GA03 open. No HHA
+clock, visit record, source permission or communications setting changed.
 
 Primary contracts rechecked November1:
 [realtime API](https://developers.google.com/analytics/devguides/reporting/data/v1/rest/v1beta/properties/runRealtimeReport),

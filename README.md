@@ -24,14 +24,16 @@ November1 deployed realtime diagnostics identified a strict metric-header
 rejection on Ride while historical data succeeded. A bounded correction now
 recognizes only Google's typed empty-report envelope and displays No source rows
 instead of a connection failure; it never creates a zero count.46source tests
-pass. Repair release and native acceptance are pending; GA04 remains open in the
+pass. Release153c75e passed all three normal jobs and native source checks:
+PTHHS returned a realtime value; Ride's actual response matched the strict empty
+predicate while historical rows stayed available. This closes bounded GA04 in the
 [connection checklist](docs/management-layer/PRIMETIME_LIVE_DATA_CHECKLIST.txt).
 
 November1 native PTHHS historical reports now contain source rows. Its plotted
 values match the daily table, and the rendered views/sessions match daily sums;
-independent Google UI/source comparison remains open. Realtime is currently
-unavailable and has its own diagnostic follow-up, GA04. The older open analytics
-client was reloaded to the deployed report contract. See the
+independent Google UI/source comparison remains open. Its earlier realtime
+failure was diagnosed and the guarded correction verified above. The older open
+analytics client was reloaded to the deployed report contract. See the
 [connection checklist](docs/management-layer/PRIMETIME_LIVE_DATA_CHECKLIST.txt).
 
 October31,22:37UTC role research keeps raw call attempts, visit association,

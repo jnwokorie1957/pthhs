@@ -23,15 +23,18 @@
   All three normal jobs passed. Native Ride and its safe log identified strict
   metric_headers rejection. The guarded typed-empty repair now passes46source
   tests; concurrent HHA recovery is preserved and539backend/348frontend-tooling
-  checks pass. Repair release/native acceptance remains pending in GA04 of
+  checks pass. Repair153c75e passed all three normal release jobs and native
+  checks: PTHHS returned a realtime value; Ride's actual typed-empty response
+  showed No source rows without discarding historical rows or inventing zero.
+  This closes the observed GA04 defect, not all analytics acceptance, in
   the [connection checklist](PRIMETIME_LIVE_DATA_CHECKLIST.txt).
 
 - [x] November1 native historical-report consistency: PTHHS returns actual daily,
   page and channel rows. Its two plotted points match the one daily row, and
   rendered view/session totals match daily sums. This is bounded UI consistency,
   not independent Google verification or all variant acceptance. An old open
-  client was reloaded to the current asset. Realtime remains unavailable;
-  GA04 maps the exact API and next protected diagnostic work without new grants.
+  client was reloaded to the current asset. The subsequent bounded GA04 realtime
+  repair and native source evidence are recorded above; no new grant was needed.
   See the [connection checklist](PRIMETIME_LIVE_DATA_CHECKLIST.txt).
 
 - [x] October31,22:37UTC role research separates call attempts/association,
