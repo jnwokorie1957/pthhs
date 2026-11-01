@@ -203,6 +203,17 @@ TAB 03 - EVV EXCEPTIONS
     the refused context's actual subject proof/filter behavior and supported
     Patient/ID, Caregiver/ID response paths. Do not repeat it automatically,
     relax scope checks or turn filtered-out foreign rows into a complete result.
+    November1 follow-up reproduced the subject refusal for the current first
+    source-page selection. Captured WSDL allows absent Patient/Caregiver; the
+    former error cannot distinguish unavailable projection from a different ID.
+    A bounded backend diagnostic now classifies only identity states after a
+    current scope recheck: match, unavailable, invalid, noncanonical_match or
+    different. Unavailable can mean missing/nil/blank/ambiguous projection; it
+    does not establish a particular raw XML shape. Numeric lexical similarity
+    is diagnostic only and is never accepted as identity proof. Rejected rows
+    remain hidden with the same403.541backend tests pass; one regression fails
+    before correction. Normal release/native diagnostic acceptance pending.
+    See docs/management-layer/CALL_SUBJECT_DIAGNOSTICS_2026-11-01.md.
     The October31 empty responses do not establish retention/filter semantics,
     complete history, absence of an original punch, or an event-to-visit join.
     The official contract rechecked October31 contains CallDashboardID,

@@ -1,5 +1,14 @@
 # PTHHS
 
+## November 1 rejected-call source diagnosis
+
+The existing call-subject refusal now records only fixed identity-state categories
+after rechecking current office access. This distinguishes unavailable/invalid
+source proof, a different subject and a noncanonical matching integer without
+returning rejected records or accepting any identity fallback.541backend tests
+pass; normal release/native diagnostic acceptance pending. See
+[scope](docs/management-layer/CALL_SUBJECT_DIAGNOSTICS_2026-11-01.md).
+
 ## November 1 office-alert source connection
 
 Messages now checks the existing protected Primetime status/outbox reader instead

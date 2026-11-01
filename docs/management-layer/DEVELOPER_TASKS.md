@@ -1,5 +1,13 @@
 # PTHHS Management Layer — Developer Checklist
 
+- [x] November1 rejected-call diagnostic implementation: an existing subject
+  refusal now emits only patient/caregiver identity-state enums after current
+  scope recheck. No record values, source times, IDs, actors or request bodies
+  are logged; a diagnostic failure cannot replace the403. Two new boundary tests
+  and541backend tests pass; one regression fails against the prior module.
+  Normal release/native cause acceptance pending. E04 stays open. See
+  [scope](CALL_SUBJECT_DIAGNOSTICS_2026-11-01.md).
+
 - [x] November1 office-alert reader implementation: connect Messages to existing
   revisions/status and gated office outbox history, with the same normalization,
   cursor and scope/session fences used in Visit review. Alert history moves to

@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { visitCallRead } from "./visitCalls.js";
+import { visitCallRead, type CallSubjectDiagnostic } from "./visitCalls.js";
 import { workspaceRoute } from "./routes.js";
 import type { OperationsWorkspace } from "./workspace.js";
 import { operationalRead, type OperationalRead, type ReadInput } from "./reads.js";
@@ -13,11 +13,42 @@ function fixture() {
     GetPatientDemographics: source("GetPatientDemographics", [{ PatientID: "13", OfficeID: "12" }]),
     GetCallDashBoardData: source("GetCallDashBoardData", [{ CallDashboardID: "16", "Patient/ID": "13", "Caregiver/ID": "15", CallTime: "2026-10-24 09:00", CallType: "Source type", CallStatus: "Source status" }])
   };
-  const calls: ReadInput[] = [];
+  const calls: ReadInput[] = [], diagnostics: CallSubjectDiagnostic[] = [];
   const workspace = { async settings() { return { dataApproved: state.approved, settings: { officeId: state.officeId, revision: state.revision, enabledReads: [...state.enabledReads] } }; },
     async query(value: ReadInput) { calls.push(value); if (value.operation === "GetCallDashBoardData" && state.revokeAfterCalls) state.approved = false; return rows[value.operation as keyof typeof rows]; } } as unknown as OperationsWorkspace;
-  return { state, rows, calls, workspace, read: (value: unknown = input) => visitCallRead(workspace, value, "synthetic-admin") };
+  return { state, rows, calls, workspace, diagnostics, read: (value: unknown = input) => visitCallRead(workspace, value, "synthetic-admin", diagnostic => diagnostics.push(diagnostic)) };
 }
+
+test("rejected call identity diagnostics distinguish unavailable, invalid and different subjects without source values", async () => {
+  for (const [patient, caregiver, expected] of [
+    [null, "15", { patientIdentity: "unavailable", caregiverIdentity: "match" }],
+    ["13", null, { patientIdentity: "match", caregiverIdentity: "unavailable" }],
+    [null, null, { patientIdentity: "unavailable", caregiverIdentity: "unavailable" }],
+    ["PRIVATE-UPSTREAM-VALUE", "15", { patientIdentity: "invalid", caregiverIdentity: "match" }],
+    ["13", "0", { patientIdentity: "match", caregiverIdentity: "invalid" }],
+    ["19", "15", { patientIdentity: "different", caregiverIdentity: "match" }],
+    ["13", "19", { patientIdentity: "match", caregiverIdentity: "different" }],
+    ["\n13\t", "15", { patientIdentity: "noncanonical_match", caregiverIdentity: "match" }],
+    ["13", "+00015", { patientIdentity: "match", caregiverIdentity: "noncanonical_match" }],
+    ["2147483648", "15", { patientIdentity: "invalid", caregiverIdentity: "match" }]
+  ] as const) {
+    const f = fixture();
+    Object.assign(f.rows.GetCallDashBoardData.records[0]!, { "Patient/ID": patient, "Caregiver/ID": caregiver, CallTime: "PRIVATE-CLOCK", CallStatus: "PRIVATE-STATUS" });
+    await assert.rejects(f.read(), error => (error as { code?: string; status?: number }).code === "call_subject_mismatch" && (error as { status?: number }).status === 403);
+    assert.deepEqual(f.diagnostics, [expected]);
+    assert.doesNotMatch(JSON.stringify(f.diagnostics), /PRIVATE|"(?:patientId|caregiverId|CallTime|CallStatus|actor|visitId|officeId)"/);
+    assert.equal(f.calls.length, 3, "diagnosis does not retry or fetch another source");
+  }
+});
+
+test("rejected call identity diagnostics require current scope and do not run for accepted or empty data", async () => {
+  const revoked = fixture(); revoked.state.revokeAfterCalls = true; revoked.rows.GetCallDashBoardData.records[0]!["Patient/ID"] = null;
+  await assert.rejects(revoked.read()); assert.deepEqual(revoked.diagnostics, []);
+  const accepted = fixture(); await accepted.read(); assert.deepEqual(accepted.diagnostics, []);
+  const empty = fixture(); empty.rows.GetCallDashBoardData.records = []; await empty.read(); assert.deepEqual(empty.diagnostics, []);
+  const failedLogger = fixture(); failedLogger.rows.GetCallDashBoardData.records[0]!["Patient/ID"] = null;
+  await assert.rejects(visitCallRead(failedLogger.workspace, input, "synthetic-admin", () => { throw new Error("diagnostic unavailable"); }), error => (error as { code?: string }).code === "call_subject_mismatch");
+});
 test("call evidence checks fresh visit and office before an exact filtered API read, without inferring visit linkage", async () => {
   const f = fixture(), result = await f.read();
   assert.deepEqual(f.calls, [{ operation: "GetVisitInfoV3", id: "14" }, { operation: "GetPatientDemographics", id: "13" }, { operation: "GetCallDashBoardData", patientId: "13", caregiverId: "15", officeId: "12", date: "2026-10-24", lastId: "0" }]);

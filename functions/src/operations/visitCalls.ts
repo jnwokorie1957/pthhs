@@ -1,9 +1,20 @@
 import type { OperationsWorkspace } from "./workspace.js";
 import { checkedVisitPatient } from "./patientVisit.js";
 import { identifier, readRequest, WorkflowError } from "./reads.js";
+import { warn } from "firebase-functions/logger";
 
 type Workspace = Pick<OperationsWorkspace, "settings" | "query">;
-export async function visitCallRead(workspace: Workspace, value: unknown, actor: string) {
+type IdentityState = "match" | "unavailable" | "invalid" | "noncanonical_match" | "different";
+export interface CallSubjectDiagnostic { patientIdentity: IdentityState; caregiverIdentity: IdentityState; }
+function identityState(value: string | null | undefined, expected: string): IdentityState {
+  if (value == null || value === "") return "unavailable";
+  const lexical = value.trim();
+  if (value !== expected && /^\+?\d+$/.test(lexical) && Number(lexical) <= 2147483647 && String(Number(lexical)) === expected) return "noncanonical_match";
+  if (!/^[1-9]\d{0,9}$/.test(value) || Number(value) > 2147483647) return "invalid";
+  return value === expected ? "match" : "different";
+}
+export async function visitCallRead(workspace: Workspace, value: unknown, actor: string,
+  diagnose: (diagnostic: CallSubjectDiagnostic) => void = diagnostic => warn("HHA call subject proof rejected", diagnostic)) {
   if (!value || typeof value !== "object" || Array.isArray(value)) throw new WorkflowError("invalid_visit_call_query");
   const input = value as Record<string, unknown>;
   if (Object.keys(input).some(key => !["visitId", "patientId", "caregiverId", "officeId", "date"].includes(key))) throw new WorkflowError("invalid_visit_call_query");
@@ -22,7 +33,11 @@ export async function visitCallRead(workspace: Workspace, value: unknown, actor:
     const id = identifier(row.CallDashboardID);
     if (ids.has(id)) throw new WorkflowError("call_source_unverified", 409);
     ids.add(id);
-    if (row["Patient/ID"] !== patientId || row["Caregiver/ID"] !== caregiverId) throw new WorkflowError("call_subject_mismatch", 403);
+    if (row["Patient/ID"] !== patientId || row["Caregiver/ID"] !== caregiverId) {
+      await checkScope();
+      try { diagnose({ patientIdentity: identityState(row["Patient/ID"], patientId), caregiverIdentity: identityState(row["Caregiver/ID"], caregiverId) }); } catch { /* Diagnostics never replace the access refusal. */ }
+      throw new WorkflowError("call_subject_mismatch", 403);
+    }
     if (row.CallTime && !inDay(row.CallTime)) throw new WorkflowError("call_source_date_unverified", 409);
   }
   await checkScope();
