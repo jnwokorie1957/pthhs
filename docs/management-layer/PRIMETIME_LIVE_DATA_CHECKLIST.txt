@@ -187,8 +187,22 @@ TAB 03 - EVV EXCEPTIONS
     explicit-zone valid calendar timestamps; a bare date is not a fetch receipt.
     Same subjects/day or equal numeric event/visit IDs do not establish a join.
     Three regressions fail before/pass after;351frontend checks/generated assets
-    and budgets pass. Normal release/native acceptance pending. E04 stays open.
+    and budgets pass. Workflow41353869240 passed all3jobs;12exact app artifacts/
+    8anonymous401 boundaries passed21:50:11UTC. Native one context failed existing
+    subject proof and remained hidden. Another exact current-day query returned
+    0events with matching selected-context/filter labels, independent receipts,
+    age and no-link/bounded-history labels. Clear removed the metadata; Resume
+    restored10readable current-day rows. Desktop1265px had no page overflow;
+    malformed/race/cross-namespace variants remain synthetic. E04 stays open.
 [ ] E04 Establish usable raw-call evidence and source linkage, if available.
+    November1 native current-day query failed the patient/caregiver subject-proof
+    check; no event facts were returned to the browser. Another authorized
+    context succeeded empty. Exact cause of the refusal is unproved: absent or
+    unsupported subject fields can fail this check too. Captured request filter
+    names/order match WSDL. Next protected owner/vendor evidence must include
+    the refused context's actual subject proof/filter behavior and supported
+    Patient/ID, Caregiver/ID response paths. Do not repeat it automatically,
+    relax scope checks or turn filtered-out foreign rows into a complete result.
     The October31 empty responses do not establish retention/filter semantics,
     complete history, absence of an original punch, or an event-to-visit join.
     The official contract rechecked October31 contains CallDashboardID,

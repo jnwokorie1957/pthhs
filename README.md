@@ -6,7 +6,9 @@ Call review now shows its selected visit context and exact patient/caregiver/
 office/day filters separately from unlinked source events. Independent call-read
 and office-check receipts remain distinct; ambiguous receipt timestamps fail
 validation. Three regressions fail before/pass after;351frontend checks pass.
-Normal release/native acceptance pending. See
+All three release jobs passed; native empty-result context/receipt/Clear checks
+passed. One other source context failed subject verification and stays an E04
+follow-up. See
 [scope](docs/management-layer/CALL_REVIEW_CONTEXT_2026-11-01.md).
 
 

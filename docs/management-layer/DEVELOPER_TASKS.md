@@ -4,7 +4,8 @@
   context and exact query filters separately from unlinked raw call events.
   Preserve existing call-read/patient-office receipts; reject ambiguous calendar
   timestamps. Three regressions fail before/pass after;351frontend checks pass,
-  generated assets and budgets pass. Normal release/native acceptance pending.
+  generated assets/budgets and all three normal jobs pass. Native empty-result
+  context/receipt/Clear checks pass; another subject-proof refusal stays in E04.
   See [scope](CALL_REVIEW_CONTEXT_2026-11-01.md). External-role grants/E04 remain open.
 
 - [x] November1 visit-source transient recovery implementation: transport and
