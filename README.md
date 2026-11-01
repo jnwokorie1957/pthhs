@@ -9,11 +9,11 @@ is enabled. Local539backend/347frontend checks pass. Production acceptance is
 pending normal release. See [scope](docs/management-layer/VISIT_SOURCE_RECOVERY_2026-11-01.md).
 
 
-November1 realtime diagnostics now separate provider status/network failures
-from strict source-response rejection while keeping valid historical facts.
-Only fixed categories, bounded HTTP status and structural reasons reach the
-protected response/logs.43source tests pass; release and actual-cause inspection
-are pending. GA04 remains open in the
+November1 deployed realtime diagnostics identified a strict metric-header
+rejection on Ride while historical data succeeded. A bounded correction now
+recognizes only Google's typed empty-report envelope and displays No source rows
+instead of a connection failure; it never creates a zero count.46source tests
+pass. Repair release and native acceptance are pending; GA04 remains open in the
 [connection checklist](docs/management-layer/PRIMETIME_LIVE_DATA_CHECKLIST.txt).
 
 November1 native PTHHS historical reports now contain source rows. Its plotted

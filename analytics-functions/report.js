@@ -128,6 +128,16 @@ export function shapeReports(reports, {days,timeZone,periods}) {
     timeZone,periods,dataQuality:warnings.length ? warnings.join(' ') : null};
 }
 export function shapeRealtime(report) {
+  const kind='analyticsData#runRealtimeReport';
+  if (report?.kind!==undefined && report.kind!==kind) fail('report_kind');
+  // ProtoJSON can omit empty repeated fields and the default zero row count.
+  // Recognize only the documented typed empty report, never an arbitrary {}.
+  const emptyFields=['dimensionHeaders','metricHeaders','rows','totals','maximums','minimums'];
+  const allowed=[...emptyFields,'rowCount','propertyQuota','kind'];
+  if (object(report) && report.kind===kind && Object.keys(report).every(key=>allowed.includes(key))
+    && emptyFields.every(key=>report[key]===undefined || Array.isArray(report[key])&&report[key].length===0)
+    && (report.rowCount===undefined || report.rowCount===0)
+    && (report.propertyQuota===undefined || object(report.propertyQuota))) return null;
   const result=rows(report,[],['activeUsers'],1);
   if (report.rowCount !== undefined && report.rowCount>1) fail('row_count');
   return result.length ? result[0].activeUsers : null;

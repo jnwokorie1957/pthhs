@@ -12,7 +12,10 @@
   network and strict shape rejection. Protected metadata/logging contains only
   fixed category/status/shape fields; source values and error bodies are excluded.
   43source tests pass, including privacy and no-retry/no-invented-zero cases.
-  Normal release/native cause inspection and repair remain pending in GA04 of
+  All three normal jobs passed. Native Ride and its safe log identified strict
+  metric_headers rejection. The guarded typed-empty repair now passes46source
+  tests; concurrent HHA recovery is preserved and539backend/348frontend-tooling
+  checks pass. Repair release/native acceptance remains pending in GA04 of
   the [connection checklist](PRIMETIME_LIVE_DATA_CHECKLIST.txt).
 
 - [x] November1 native historical-report consistency: PTHHS returns actual daily,

@@ -125,13 +125,41 @@ results and their receipt remain available when realtime fails.
 
 43source tests pass. Cases cover exact categories, rejection of arbitrary error
 content, a missing metric field, retained historical facts and no extra retry.
-Normal three-job release and current native/log cause inspection are pending;
-the diagnostic alone is not a repair or full GA04 acceptance. The existing
-frontend displays the bounded error message; no public asset/budget changed.
+Diagnostic3bf0665 passed [workflow41351454716](https://github.com/jnwokorie1957/pthhs/actions/runs/41351454716)
+with all three jobs;12exactassets/9anonymousboundaries passed21:27UTC. PTHHS
+returned a realtime value after deployment. Ride's historical read succeeded,
+but realtime was rejected; its safe analytics-only log showed invalid_response,
+metric_headers and null provider status. No source bodies or values were read
+from logs. This establishes the parser boundary without guessing permission or
+quota failure. The existing frontend displayed the new bounded error message.
+
+### Guarded empty-result correction
+
+The candidate correction accepts only the documented
+`analyticsData#runRealtimeReport` kind when all row/header/aggregate arrays are
+absent or empty, rowCount is absent or zero, quota metadata is an object if
+present, and no unknown/error fields exist. ProtoJSON permits empty repeated
+fields and default scalar values to be omitted. The result stays null with its
+source receipt and an empty-result diagnostic; no active-user zero is invented.
+The UI says No source rows. Explicit source0, a failed read and valid empty rows
+stay separate. Nonempty records still require every requested header/type/value.
+
+This does not accept arbitrary `{}`, null arrays, contradictory row counts,
+wrong kinds, hidden aggregate values or error objects. State changes log only
+the bounded diagnostic once per configured site/window in each instance;
+ordinary empty results use informational logging, not failure warnings.
+46source tests and the targeted UI cases pass. Repair release and native proof
+that the actual source satisfies this strict empty predicate are still pending.
+The new UI regression fails against the prior module and passes after the
+correction. Concurrentc73dfba HHA source recovery was preserved; combined
+539backend/348frontend-tooling/46source tests and full Windows checks pass.
+App419369raw/101461gzip stays under the existing budgets; no budget changed.
 
 Primary contracts rechecked November1:
 [realtime API](https://developers.google.com/analytics/devguides/reporting/data/v1/rest/v1beta/properties/runRealtimeReport),
 [separate realtime/core quotas](https://developers.google.com/analytics/devguides/reporting/data/v1/quotas).
+The correction also uses the primary
+[ProtoJSON presence/default-value contract](https://protobuf.dev/programming-guides/json/#presence-and-default-values).
 
 Primary contracts rechecked October31:
 

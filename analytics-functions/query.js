@@ -6,7 +6,7 @@ export function realtimeFailure(error) {
   let category='unavailable',shape=null,message='Realtime source request failed. Try again later.';
   if (error?.code==='ANALYTICS_SOURCE_INVALID') {
     category='invalid_response';
-    const known=['source_shape','dimension_headers','metric_headers','metric_type','rows','row_count','row_fields','dimension_value','duplicate_dimension','metric_value'];
+    const known=['source_shape','report_kind','dimension_headers','metric_headers','metric_type','rows','row_count','row_fields','dimension_value','duplicate_dimension','metric_value'];
     shape=known.includes(error.shape)?error.shape:'source_shape';
     message='Realtime response could not be verified.';
   } else if (httpStatus===403) {category='access_denied';message='Google realtime access is unavailable for this source.';}
@@ -35,7 +35,7 @@ export async function queryReports(client, siteKey, days, clock=()=>new Date()) 
       dimensionFilter:{filter:{fieldName:'streamId',stringFilter:{matchType:'EXACT',value:site.stream}}}},15000);
     realtime=shapeRealtime(live.data);
     realtimeUpdatedAt=clock().toISOString();
-    if (realtime===null) realtimeError='No realtime source row returned.';
+    if (realtime===null) {realtimeError='No realtime source rows returned.';realtimeDiagnostic={category:'empty_result',httpStatus:null,shape:live.data.metricHeaders?.length?null:'typed_empty_report'};}
   } catch(error) {const failure=realtimeFailure(error);realtimeError=failure.message;realtimeDiagnostic=failure.diagnostic;}
   return {ok:true,contractVersion:2,site:siteKey,name:site.name,days,propertyId:site.property,...shaped,realtime,realtimeError,realtimeUpdatedAt,realtimeDiagnostic,
     realtimeStreamId:site.stream,updatedAt,

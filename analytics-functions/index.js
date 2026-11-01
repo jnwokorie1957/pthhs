@@ -8,6 +8,7 @@ initializeApp();
 const auth = new GoogleAuth({scopes:['https://www.googleapis.com/auth/analytics.readonly']});
 const cache = new Map();
 const pending = new Map();
+const realtimeStates = new Map();
 async function owner(request) {
   const header=request.get('Authorization')||'';
   if (!header.startsWith('Bearer ')) return false;
@@ -21,7 +22,12 @@ async function owner(request) {
 async function query(siteKey,days) {
   const client=await auth.getClient();
   const result=await queryReports(client,siteKey,days);
-  if(result.realtimeDiagnostic) console.warn('Website analytics realtime unavailable',result.realtimeDiagnostic);
+  const diagnostic=result.realtimeDiagnostic,key=siteKey+':'+days,signature=JSON.stringify(diagnostic);
+  if(realtimeStates.get(key)!==signature){
+    realtimeStates.set(key,signature);
+    if(diagnostic?.category==='empty_result') console.info('Website analytics realtime source empty',diagnostic);
+    else if(diagnostic) console.warn('Website analytics realtime unavailable',diagnostic);
+  }
   return result;
 }
 export const websiteAnalytics=onRequest({region:'us-central1',memory:'256MiB',timeoutSeconds:60,maxInstances:1,concurrency:10,invoker:'public'},async(request,response)=>{

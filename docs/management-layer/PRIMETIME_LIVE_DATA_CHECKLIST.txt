@@ -564,8 +564,19 @@ TAB 14 - WEBSITE ANALYTICS (ADDED OCTOBER31)
     provider HTTP403/429/other responses, timeout and network failure. Logging
     emits only category/httpStatus/shape after owner authentication, once per
     failed uncached query; no tokens, bodies, metric values or raw messages.
-    Valid historical facts remain usable.43source tests pass. Normal release
-    and actual-cause inspection are pending; this does not yet fix realtime.
+    Valid historical facts remain usable.43source tests pass. Diagnostic3bf0665
+    passed normalworkflow41351454716: Hosting21:20:34/backend21:20:45/
+    analytics21:22:05UTC;12exactassets/9anonymousboundaries passed21:27UTC.
+    Native PTHHS returned a realtime value; Ride kept valid historical facts
+    but the safe log identified invalid_response / metric_headers / no provider
+    status. This is strict parser rejection, not evidence for a new access grant.
+    Candidate repair: recognize only Google's exact realtime kind with omitted
+    or empty row/header/aggregate arrays, absent-or-zero rowCount and no unknown
+    keys/errors. Keep value null and source receipt; display No source rows.
+    A source-supplied zero remains0; malformed/nonempty responses remain strict.
+    Combined539backend/348frontend-tooling/46source tests and Windows checks
+    pass after preserving concurrent HHA recovery. Repair release/native
+    verification are pending.
 
 NEXT IMPLEMENTATION ORDER
 1. Investigate the next additional bounded staff, billing, authorization-detail

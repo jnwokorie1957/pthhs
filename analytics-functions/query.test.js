@@ -72,3 +72,10 @@ test('provider errors and timeouts retain historical results without retry or in
     assert.equal(result.realtimeUpdatedAt,null);assert.notEqual(result.realtimeDiagnostic,null);assert.doesNotMatch(JSON.stringify(result),/PRIVATE/);
   }
 });
+test('typed source-empty realtime keeps receipt and historical facts without a failure or zero count',async()=>{
+  const client=source(o=>o.url.endsWith(':runRealtimeReport')?{data:{kind:'analyticsData#runRealtimeReport'}}:null);
+  const result=await queryReports(client,'rideprimetime',28,clock);
+  assert.equal(result.current.sessions,20);assert.equal(result.realtime,null);assert.equal(client.calls.length,3);
+  assert.equal(result.realtimeUpdatedAt,'2026-10-31T18:00:00.000Z');
+  assert.deepEqual(result.realtimeDiagnostic,{category:'empty_result',httpStatus:null,shape:'typed_empty_report'});assert.match(result.realtimeError,/No realtime source rows/);
+});

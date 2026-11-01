@@ -67,7 +67,7 @@
   }
   function render(data,label){const c=data.current,p=data.previous;
     $('waMetrics').replaceChildren(card('Page views',c?.screenPageViews??null,p?.screenPageViews??null),card('Sessions',c?.sessions??null,p?.sessions??null),card('Active visitors',c?.activeUsers??null,p?.activeUsers??null),card('Engagement rate',c?.engagementRate??null,p?.engagementRate??null,pct),card('Average session',c?.averageSessionDuration??null,p?.averageSessionDuration??null,duration),card('Reported phone & email clicks',data.contacts,undefined,num,'No contact event rows returned.'));
-    $('waLive').textContent=data.realtime===null?'Unavailable':num(data.realtime);chart(data.trend);
+    $('waLive').textContent=data.realtime===null?(data.realtimeDiagnostic?.category==='empty_result'?'No source rows':'Unavailable'):num(data.realtime);chart(data.trend);
     table($('waPages'),['Page','Views','Visitors'],data.pages.map(r=>[r.pagePath==='/'?'Home /':r.pagePath,num(r.screenPageViews),num(r.activeUsers)]));
     table($('waChannels'),['Channel','Sessions','Visitors'],data.channels.map(r=>[r.sessionDefaultChannelGroup,num(r.sessions),num(r.activeUsers)]));
     $('waUpdated').textContent='Updated '+new Date(data.updatedAt).toLocaleString('en-US',{timeZone:'America/Chicago'})+' Central · '+data.timeZone+' reporting time zone';

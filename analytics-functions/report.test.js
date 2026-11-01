@@ -59,3 +59,12 @@ test('realtime explicit zero is valid; empty or malformed response is never a ze
   assert.equal(shapeRealtime(report([],['activeUsers'],[[[],[0]]])),0);assert.equal(shapeRealtime(report([],['activeUsers'],[])),null);
   for(const r of [{},report([],['activeUsers'],[[[],['NaN']]]),report(['unexpected'],['activeUsers'],[[['x'],[2]]])])assert.throws(()=>shapeRealtime(r),/invalid_report/);
 });
+test('typed realtime empty report accepts omitted ProtoJSON defaults without creating a zero',()=>{
+  const kind='analyticsData#runRealtimeReport';
+  for(const value of [{kind},{kind,metricHeaders:[],dimensionHeaders:[],rows:[],rowCount:0,totals:[],maximums:[],minimums:[]},{kind,propertyQuota:{}}])assert.equal(shapeRealtime(value),null);
+});
+test('typed empty recognition cannot hide missing values, contradictory counts or unknown errors',()=>{
+  const base={kind:'analyticsData#runRealtimeReport'};
+  for(const value of [{},{kind:'analyticsData#runReport'},{...base,metricHeaders:null},{...base,rows:null},{...base,rowCount:1},{...base,error:{message:'PRIVATE'}},
+    {...base,totals:[{}]},{...base,rows:[{metricValues:[{value:'3'}]}]},{...base,propertyQuota:null}])assert.throws(()=>shapeRealtime(value),/invalid_report/);
+});

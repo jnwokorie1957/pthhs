@@ -615,6 +615,14 @@ test('analytics rejects wrong periods, stream or coverage instead of rendering m
     assert.equal(app.element('waStatus').classList.contains('wa-error'),true);assert.doesNotMatch(nodeText(app.element('waMetrics')),/7,203/);assert.equal(app.element('waLive').textContent,'—');
   }
 });
+test('analytics distinguishes connected empty realtime rows from a failed source and explicit zero',async()=>{
+  for(const state of ['empty','failed','zero']){
+    const app=await analyticsApp(()=>{const d=analyticsReport();d.realtime=state==='zero'?0:null;d.realtimeError=state==='empty'?'No realtime source rows returned.':state==='failed'?'Google realtime request timed out.':null;
+      d.realtimeDiagnostic=state==='empty'?{category:'empty_result',httpStatus:null,shape:null}:null;return response(d);});
+    assert.equal(app.element('waStatus').classList.contains('wa-error'),false);assert.match(nodeText(app.element('waMetrics')),/7,203/);
+    assert.equal(app.element('waLive').textContent,state==='empty'?'No source rows':state==='zero'?'0':'Unavailable');
+  }
+});
 test('analytics expires retained facts without making hidden source requests',async()=>{
   const app=await analyticsApp(),count=app.calls.filter(c=>c.path.includes('/website-analytics?')).length;app.document.hidden=true;
   app.clock.set('2026-10-31T18:02:01Z');app.clock.run();
