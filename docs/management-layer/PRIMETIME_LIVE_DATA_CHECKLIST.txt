@@ -179,6 +179,15 @@ TAB 03 - EVV EXCEPTIONS
     exactly matched that combined commit and all eight auth boundaries passed.
     Preserve that concurrent feature; the
     evidence-only acceptance update does not redeploy or rewrite its runtime.
+    November1 call-review context: selected visit context and exact patient/
+    caregiver/office/service-day query filters are visible separately from raw
+    event IDs. The existing GetCallDashBoardData fetchedAt and patient-office
+    membershipCheckedAt receipts display as Call read / Office check, with no
+    source-modified/atomicity claim or extra API call. Both receipts now require
+    explicit-zone valid calendar timestamps; a bare date is not a fetch receipt.
+    Same subjects/day or equal numeric event/visit IDs do not establish a join.
+    Three regressions fail before/pass after;351frontend checks/generated assets
+    and budgets pass. Normal release/native acceptance pending. E04 stays open.
 [ ] E04 Establish usable raw-call evidence and source linkage, if available.
     The October31 empty responses do not establish retention/filter semantics,
     complete history, absence of an original punch, or an event-to-visit join.

@@ -135,7 +135,7 @@
       || payload.timezone !== 'source_values_unconverted' || payload.interpretation !== 'call_events_unvalidated' || payload.relationship !== 'same_patient_caregiver_day_only'
       || payload.visitLink !== 'not_supplied_by_source' || payload.completeness !== 'bounded_response_not_complete_history' || typeof payload.truncated !== 'boolean'
       || !['visitId', 'patientId', 'caregiverId', 'officeId', 'date'].every(key => payload.scope?.[key] === expected[key])
-      || !['fetchedAt', 'membershipCheckedAt'].every(key => typeof payload[key] === 'string' && Number.isFinite(Date.parse(payload[key])))
+      || !['fetchedAt', 'membershipCheckedAt'].every(key => typeof payload[key] === 'string' && payload[key].length <= 40 && window.primetimeSourceTime.timestampInstant(payload[key]) !== null)
       || Date.parse(payload.membershipCheckedAt) > Date.parse(payload.fetchedAt) || !Array.isArray(payload.records) || payload.records.length > 200
       || payload.state !== (payload.truncated ? 'partial' : payload.records.length ? 'ready' : 'empty')) throw new Error('invalid_call_events');
     const ids = new Set();
@@ -147,7 +147,7 @@
       if (fields.some(key => row[key] !== null && row[key] !== undefined && (typeof row[key] !== 'string' || row[key].length > 1000))) throw new Error('invalid_call_events');
       return Object.fromEntries(fields.map(key => [key, row[key] || null]));
     });
-    return { records, fetchedAt: payload.fetchedAt, state: payload.state, truncated: payload.truncated };
+    return { records, fetchedAt: payload.fetchedAt, membershipCheckedAt: payload.membershipCheckedAt, state: payload.state, truncated: payload.truncated };
   }
   window.primetimeDashboardModel = Object.freeze({ filterExceptions, normalizeVisitPreview, sourceEvidence, sourceInterval, normalizePatientProfile, normalizeVisitContext, normalizeCallEvents });
   if (typeof document === 'undefined') return;
@@ -709,7 +709,10 @@
           operational_data_release_not_approved: 'Source access is locked pending operational data release.' })[payload.error] || 'The raw-call response could not be verified. Retry from the source page.');
       }
       const checked = normalizeCallEvents(payload, scope), age = node('p', null, 'source-metadata');
-      replace(host, node('p', `HHA GetCallDashBoardData · ${scope.date} · fetched ${checked.fetchedAt}. ${checked.records.length} event(s) in this bounded response${checked.truncated ? ' · source response truncated' : ''}; complete history is not established.`, 'source-metadata'), age,
+      replace(host, node('p', `Selected visit context: ${scope.visitId}.`, 'source-metadata'),
+        node('p', `Query filters: patient ${scope.patientId} · caregiver ${scope.caregiverId} · office ${scope.officeId} · service date ${scope.date}.`, 'source-metadata'),
+        node('p', `Call read: ${checked.fetchedAt} · Office check: ${checked.membershipCheckedAt}. Separate read receipts.`, 'source-metadata'),
+        node('p', `HHA GetCallDashBoardData · ${checked.records.length} event(s) in this bounded response${checked.truncated ? ' · source response truncated' : ''}; complete history is not established.`, 'source-metadata'), age,
         node('p', 'Filtered by patient/caregiver/office/day. No visit ID is supplied. Raw type/status assigns no punch and replaces no recorded/EVV field.', 'source-metadata'),
         ...(checked.records.length ? [table(['Call event ID', 'Call time (source)', 'Type (source)', 'Status (source)'], checked.records.map(row => [row.CallDashboardID, row.CallTime || 'Not supplied by HHA', row.CallType || 'Not supplied by HHA', row.CallStatus || 'Not supplied by HHA']))]
           : [node('p', 'No source call events returned. This does not prove absence of a visit or original punch.')]));

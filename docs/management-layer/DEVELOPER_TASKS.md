@@ -1,5 +1,12 @@
 # PTHHS Management Layer — Developer Checklist
 
+- [x] November1 call-review context implementation: display the selected visit
+  context and exact query filters separately from unlinked raw call events.
+  Preserve existing call-read/patient-office receipts; reject ambiguous calendar
+  timestamps. Three regressions fail before/pass after;351frontend checks pass,
+  generated assets and budgets pass. Normal release/native acceptance pending.
+  See [scope](CALL_REVIEW_CONTEXT_2026-11-01.md). External-role grants/E04 remain open.
+
 - [x] November1 visit-source transient recovery implementation: transport and
   selected gateway failures in SearchVisitsV2/GetVisitInfoV3/GetPatientDemographics
   now yield503 so the existing scoped deferred cursor and local recovery delay

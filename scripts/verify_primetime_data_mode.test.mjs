@@ -1379,13 +1379,52 @@ const callEventsPayload = (scope, records) => ({ ok: true, operation: 'GetCallDa
   interpretation: 'call_events_unvalidated', relationship: 'same_patient_caregiver_day_only', visitLink: 'not_supplied_by_source', completeness: 'bounded_response_not_complete_history', truncated: false,
   fetchedAt: '2026-10-31T16:00:00Z', membershipCheckedAt: '2026-10-31T15:59:59Z', scope, state: records?.length === 0 ? 'empty' : 'ready',
   records: records || [{ CallDashboardID: '91', 'Patient/ID': scope.patientId, 'Caregiver/ID': scope.caregiverId, CallTime: scope.date + ' 09:00', CallType: 'TYPE_FROM_SOURCE', CallStatus: 'STATUS_FROM_SOURCE', privateExtra: 'MUST_NOT_RENDER' }] });
-async function callEventsFixture(read, available = true) {
+async function callEventsFixture(read, available = true, preview = livePreview) {
   const metadata = { ...liveMetadata, panels: { ...liveMetadata.panels, callEvents: { available } } };
-  const app = harness({ storedDataMode: null, metadata, fetchSource: (path, options) => path.includes('/views/visits?') ? response(livePreview(new URL(path, 'https://fixture.test').searchParams.get('date')))
+  const app = harness({ storedDataMode: null, metadata, fetchSource: (path, options) => path.includes('/views/visits?') ? response(preview(new URL(path, 'https://fixture.test').searchParams.get('date')))
     : path.endsWith('/workspace/visit-calls') ? read(JSON.parse(options.body), options) : response({ ok: true }) });
   installDashboard(app); await app.signIn(); await tick(); await tick(); return app;
 }
 const callEventButtons = app => descendants(app.element('dashboardExceptions')).filter(n => n.textContent === 'Read call events');
+test('call evidence retains distinct office/read receipts and rejects ambiguous calendar timestamps', () => {
+  const scope = { visitId: '900001', patientId: '5', caregiverId: '6', officeId: '123', date: '2026-10-24' };
+  const model = dashboardModel().primetimeDashboardModel, payload = callEventsPayload(scope, []);
+  const checked = model.normalizeCallEvents(payload, scope);
+  assert.equal(checked.membershipCheckedAt, payload.membershipCheckedAt);
+  assert.notEqual(checked.membershipCheckedAt, checked.fetchedAt);
+  for (const field of ['membershipCheckedAt', 'fetchedAt']) for (const value of ['2026-10-31', '2026-10-31T15:59:59', '2026-02-31T15:59:59Z', 'October 31, 2026', '', null]) {
+    assert.throws(() => model.normalizeCallEvents({ ...payload, [field]: value }, scope), /invalid_call_events/);
+  }
+});
+test('empty call queries show selection context, filters and independent receipts without implying a visit link', async () => {
+  const app = await callEventsFixture(input => response(callEventsPayload(input, [])));
+  await clickNode(callEventButtons(app)[0]); await tick(); await tick();
+  const text = nodeText(app.element('dashboardCallEvents'));
+  assert.match(text, /Selected visit context: 900001/);
+  assert.match(text, /Query filters: patient 5 · caregiver 6 · office 123/);
+  assert.match(text, /Call read: 2026-10-31T16:00:00Z · Office check: 2026-10-31T15:59:59Z/);
+  assert.match(text, /Separate read receipts/); assert.match(text, /No visit ID is supplied/);
+  assert.match(text, /No source call events returned/);
+  assert.equal(app.calls.filter(c => c.path.endsWith('/workspace/visit-calls')).length, 1);
+  await app.click('dashboardVisitClear');
+  assert.doesNotMatch(nodeText(app.element('dashboardCallEvents')), /Selected visit context:|Query filters:|Office check:/);
+});
+test('same-day call query selection stays distinct from equal event IDs and stale query responses', async () => {
+  const pending = [], originalPage = date => {
+    const p = livePreview(date); p.items.push({ ...p.items[0], id: '900002' }); return p;
+  };
+  const app = await callEventsFixture(input => { const task = deferred(); pending.push({ input, task }); return task.promise; }, true, originalPage);
+  const before = nodeText(app.element('dashboardExceptions')), chart = nodeText(app.element('dashboardEvidenceChart'));
+  const buttons = callEventButtons(app); assert.equal(buttons.length, 2);
+  await clickNode(buttons[0]); await tick(); await clickNode(buttons[1]); await tick();
+  const payload = callEventsPayload(pending[1].input); payload.records[0].CallDashboardID = '900002';
+  pending[1].task.resolve(response(payload)); await tick(); await tick();
+  pending[0].task.resolve(response(callEventsPayload(pending[0].input))); await tick(); await tick();
+  const text = nodeText(app.element('dashboardCallEvents'));
+  assert.match(text, /Selected visit context: 900002/); assert.doesNotMatch(text, /Selected visit context: 900001/);
+  assert.match(text, /No visit ID is supplied/); assert.match(text, /complete history is not established/);
+  assert.equal(nodeText(app.element('dashboardExceptions')), before); assert.equal(nodeText(app.element('dashboardEvidenceChart')), chart);
+});
 test('raw-call source is gated before dispatch and never grants its own read control', async () => {
   const app = await callEventsFixture(() => { throw new Error('gated source dispatched'); }, false), before = app.calls.length;
   assert.equal(callEventButtons(app).length, 1); assert.equal(callEventButtons(app)[0].disabled, true); await clickNode(callEventButtons(app)[0]);

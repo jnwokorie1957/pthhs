@@ -1,5 +1,15 @@
 # PTHHS
 
+## November 1 call-review context
+
+Call review now shows its selected visit context and exact patient/caregiver/
+office/day filters separately from unlinked source events. Independent call-read
+and office-check receipts remain distinct; ambiguous receipt timestamps fail
+validation. Three regressions fail before/pass after;351frontend checks pass.
+Normal release/native acceptance pending. See
+[scope](docs/management-layer/CALL_REVIEW_CONTEXT_2026-11-01.md).
+
+
 ## November 1 visit source recovery
 
 Network/timeouts and selected gateway failures in the three approved visit reads
