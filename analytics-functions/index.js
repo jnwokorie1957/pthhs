@@ -20,7 +20,9 @@ async function owner(request) {
 }
 async function query(siteKey,days) {
   const client=await auth.getClient();
-  return queryReports(client,siteKey,days);
+  const result=await queryReports(client,siteKey,days);
+  if(result.realtimeDiagnostic) console.warn('Website analytics realtime unavailable',result.realtimeDiagnostic);
+  return result;
 }
 export const websiteAnalytics=onRequest({region:'us-central1',memory:'256MiB',timeoutSeconds:60,maxInstances:1,concurrency:10,invoker:'public'},async(request,response)=>{
   response.set({'Cache-Control':'private, no-store','X-Robots-Tag':'noindex, nofollow, noarchive','X-Content-Type-Options':'nosniff'});

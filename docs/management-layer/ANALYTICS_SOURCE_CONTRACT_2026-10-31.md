@@ -112,6 +112,27 @@ Chrome later reconnected under a new surface after the former browser was
 unavailable. The documented inventory/recovery path located the same existing
 tab; no tokens, credentials or unrelated automation tabs were accessed.
 
+## November 1 realtime diagnostics
+
+The realtime catch now distinguishes strict response rejection from provider
+HTTP403/429/other statuses, request timeout and network failure. The protected
+response adds `realtimeDiagnostic` with only a fixed category, bounded numeric
+HTTP status or null, and an allowlisted structural reason or null. The function
+logs only that object for a failed uncached owner query. Raw responses, errors,
+headers, tokens and metric values are never included in the new diagnostic.
+This adds no source read, retry, grant or default realtime zero. Historical
+results and their receipt remain available when realtime fails.
+
+43source tests pass. Cases cover exact categories, rejection of arbitrary error
+content, a missing metric field, retained historical facts and no extra retry.
+Normal three-job release and current native/log cause inspection are pending;
+the diagnostic alone is not a repair or full GA04 acceptance. The existing
+frontend displays the bounded error message; no public asset/budget changed.
+
+Primary contracts rechecked November1:
+[realtime API](https://developers.google.com/analytics/devguides/reporting/data/v1/rest/v1beta/properties/runRealtimeReport),
+[separate realtime/core quotas](https://developers.google.com/analytics/devguides/reporting/data/v1/quotas).
+
 Primary contracts rechecked October31:
 
 - [Report response and rowCount](https://developers.google.com/analytics/devguides/reporting/data/v1/rest/v1beta/RunReportResponse)

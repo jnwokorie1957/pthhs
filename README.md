@@ -1,5 +1,12 @@
 # PTHHS
 
+November1 realtime diagnostics now separate provider status/network failures
+from strict source-response rejection while keeping valid historical facts.
+Only fixed categories, bounded HTTP status and structural reasons reach the
+protected response/logs.43source tests pass; release and actual-cause inspection
+are pending. GA04 remains open in the
+[connection checklist](docs/management-layer/PRIMETIME_LIVE_DATA_CHECKLIST.txt).
+
 November1 native PTHHS historical reports now contain source rows. Its plotted
 values match the daily table, and the rendered views/sessions match daily sums;
 independent Google UI/source comparison remains open. Realtime is currently

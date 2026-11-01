@@ -5,7 +5,7 @@ export const SITES = Object.freeze({
 const summaryMetrics = ['screenPageViews', 'sessions', 'activeUsers', 'engagementRate', 'averageSessionDuration'];
 const events = ['phone_click', 'email_click', 'scroll', 'page_view', 'session_start', 'user_engagement'];
 const countMetrics = new Set(['screenPageViews', 'sessions', 'activeUsers', 'eventCount']);
-const fail = () => {throw new Error('invalid_report');};
+const fail = (shape='source_shape') => {throw Object.assign(new Error('invalid_report'),{code:'ANALYTICS_SOURCE_INVALID',shape});};
 const object = value => value !== null && typeof value === 'object' && !Array.isArray(value);
 const text = (value, max = 2048) => typeof value === 'string' && value.trim() !== '' && value.length <= max && !/[\x00-\x1f\x7f]/.test(value);
 const count = value => Number.isSafeInteger(value) && value >= 0;
@@ -41,32 +41,32 @@ export function reportRequests(siteKey, days, periods) {
     {...common,dimensions:[{name:'eventName'}],metrics:[{name:'eventCount'}],dimensionFilter:{andGroup:{expressions:[hostFilter,{filter:{fieldName:'eventName',inListFilter:{values:events}}}]}},limit:'10'}
   ]};
 }
-function headers(actual, expected) {
-  if (!Array.isArray(actual) || actual.length !== expected.length || actual.some(h=>!object(h)||!expected.includes(h.name)) || new Set(actual.map(h=>h.name)).size !== expected.length) fail();
+function headers(actual, expected, shape) {
+  if (!Array.isArray(actual) || actual.length !== expected.length || actual.some(h=>!object(h)||!expected.includes(h.name)) || new Set(actual.map(h=>h.name)).size !== expected.length) fail(shape);
   return actual.map(h=>h.name);
 }
 export function rows(report, dimensions, metrics, limit) {
   if (!object(report)) fail();
-  const dims = headers(report.dimensionHeaders === undefined ? [] : report.dimensionHeaders, dimensions);
-  const names = headers(report.metricHeaders, metrics);
+  const dims = headers(report.dimensionHeaders === undefined ? [] : report.dimensionHeaders, dimensions,'dimension_headers');
+  const names = headers(report.metricHeaders, metrics,'metric_headers');
   for (const h of report.metricHeaders) {
     const allowed = countMetrics.has(h.name) ? ['TYPE_INTEGER'] : h.name === 'averageSessionDuration' ? ['TYPE_SECONDS','TYPE_FLOAT'] : ['TYPE_FLOAT'];
-    if (!allowed.includes(h.type)) fail();
+    if (!allowed.includes(h.type)) fail('metric_type');
   }
   const sourceRows = report.rows === undefined ? [] : report.rows;
-  if (!Array.isArray(sourceRows) || sourceRows.length > limit) fail();
-  if (report.rowCount !== undefined && (!count(report.rowCount) || report.rowCount < sourceRows.length)) fail();
+  if (!Array.isArray(sourceRows) || sourceRows.length > limit) fail('rows');
+  if (report.rowCount !== undefined && (!count(report.rowCount) || report.rowCount < sourceRows.length)) fail('row_count');
   const seen = new Set();
   return sourceRows.map(row => {
-    if (!object(row) || !Array.isArray(row.metricValues) || row.metricValues.length !== metrics.length || !Array.isArray(row.dimensionValues === undefined ? [] : row.dimensionValues) || (row.dimensionValues === undefined ? [] : row.dimensionValues).length !== dimensions.length) fail();
+    if (!object(row) || !Array.isArray(row.metricValues) || row.metricValues.length !== metrics.length || !Array.isArray(row.dimensionValues === undefined ? [] : row.dimensionValues) || (row.dimensionValues === undefined ? [] : row.dimensionValues).length !== dimensions.length) fail('row_fields');
     const result = {};
-    dims.forEach((name,i) => {const value=row.dimensionValues[i]?.value;if(!text(value))fail();result[name]=value;});
-    const key = JSON.stringify(dims.map(name=>result[name]));if(seen.has(key))fail();seen.add(key);
+    dims.forEach((name,i) => {const value=row.dimensionValues[i]?.value;if(!text(value))fail('dimension_value');result[name]=value;});
+    const key = JSON.stringify(dims.map(name=>result[name]));if(seen.has(key))fail('duplicate_dimension');seen.add(key);
     names.forEach((name,i) => {
       const value=row.metricValues[i]?.value;
-      if (typeof value !== 'string' || !/^(?:0|[1-9]\d*)(?:\.\d+)?(?:[eE][+-]?\d+)?$/.test(value) || value.length>100) fail();
+      if (typeof value !== 'string' || !/^(?:0|[1-9]\d*)(?:\.\d+)?(?:[eE][+-]?\d+)?$/.test(value) || value.length>100) fail('metric_value');
       const number=Number(value);
-      if (!Number.isFinite(number) || number<0 || number>Number.MAX_SAFE_INTEGER || countMetrics.has(name) && (!/^\d+$/.test(value)||!count(number)) || name==='engagementRate' && number>1) fail();
+      if (!Number.isFinite(number) || number<0 || number>Number.MAX_SAFE_INTEGER || countMetrics.has(name) && (!/^\d+$/.test(value)||!count(number)) || name==='engagementRate' && number>1) fail('metric_value');
       result[name]=number;
     });
     return result;
@@ -129,6 +129,6 @@ export function shapeReports(reports, {days,timeZone,periods}) {
 }
 export function shapeRealtime(report) {
   const result=rows(report,[],['activeUsers'],1);
-  if (report.rowCount !== undefined && report.rowCount>1) fail();
+  if (report.rowCount !== undefined && report.rowCount>1) fail('row_count');
   return result.length ? result[0].activeUsers : null;
 }

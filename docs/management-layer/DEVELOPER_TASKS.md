@@ -1,5 +1,13 @@
 # PTHHS Management Layer — Developer Checklist
 
+- [x] November1 realtime diagnostic implementation: retain historical results
+  when the stream read fails; distinguish provider403/429/other HTTP, timeout,
+  network and strict shape rejection. Protected metadata/logging contains only
+  fixed category/status/shape fields; source values and error bodies are excluded.
+  43source tests pass, including privacy and no-retry/no-invented-zero cases.
+  Normal release/native cause inspection and repair remain pending in GA04 of
+  the [connection checklist](PRIMETIME_LIVE_DATA_CHECKLIST.txt).
+
 - [x] November1 native historical-report consistency: PTHHS returns actual daily,
   page and channel rows. Its two plotted points match the one daily row, and
   rendered view/session totals match daily sums. This is bounded UI consistency,

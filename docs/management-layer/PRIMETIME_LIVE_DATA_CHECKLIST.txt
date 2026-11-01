@@ -544,6 +544,13 @@ TAB 14 - WEBSITE ANALYTICS (ADDED OCTOBER31)
     reload loaded0724fd3720d3 and accepted the historical response. Reload a
     stale client before classifying its generic verification message as a
     new source-access failure. Other automation tabs were not taken over.
+    November1 diagnostic implementation: own strict validation errors carry
+    fixed structural reasons; protected realtimeDiagnostic separates those from
+    provider HTTP403/429/other responses, timeout and network failure. Logging
+    emits only category/httpStatus/shape after owner authentication, once per
+    failed uncached query; no tokens, bodies, metric values or raw messages.
+    Valid historical facts remain usable.43source tests pass. Normal release
+    and actual-cause inspection are pending; this does not yet fix realtime.
 
 NEXT IMPLEMENTATION ORDER
 1. Investigate the next additional bounded staff, billing, authorization-detail

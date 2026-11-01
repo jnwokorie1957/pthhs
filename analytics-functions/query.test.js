@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {queryReports} from './query.js';
+import {queryReports,realtimeFailure} from './query.js';
 import {reports,report,periods} from './test-fixtures.js';
 const clock=()=>new Date('2026-10-31T18:00:00.000Z');
 function source(override=()=>null) {
@@ -36,9 +36,39 @@ test('empty, invalid and failed realtime never replace valid historical facts or
   for(const mode of ['empty','invalid','failure']){
     const client=source(o=>{if(!o.url.endsWith(':runRealtimeReport'))return null;if(mode==='failure')throw new Error('private upstream detail');return {data:mode==='empty'?report([],['activeUsers'],[]):{}};});
     const result=await queryReports(client,'pthhs',28,clock);assert.equal(result.current.sessions,20);assert.equal(result.realtime,null);
-    assert.match(result.realtimeError,mode==='empty'?/No realtime source row/:/unavailable or invalid/);assert.doesNotMatch(result.realtimeError,/private/);
+    assert.match(result.realtimeError,mode==='empty'?/No realtime source row/:mode==='invalid'?/response could not be verified/:/request failed/);assert.doesNotMatch(result.realtimeError,/private/);
   }
 });
 test('query allowlist rejects unknown properties/windows before any source read',async()=>{
   const client=source();for(const args of [['__proto__',28],['pthhs',2]])await assert.rejects(queryReports(client,...args,clock),/invalid_query/);assert.equal(client.calls.length,0);
+});
+
+test('realtime failure categories expose only bounded status/shape, never upstream details',()=>{
+  const cases=[
+    [{response:{status:403}},'access_denied',403], [{response:{status:429}},'rate_limited',429],
+    [{response:{status:503}},'upstream_unavailable',503], [{response:{status:400}},'request_rejected',400],
+    [{code:'ETIMEDOUT'},'timeout',null], [{code:'ECONNRESET'},'network_unavailable',null],
+    [{response:{status:'PRIVATE'},code:'PRIVATE'},'unavailable',null],
+    [{code:'ANALYTICS_SOURCE_INVALID',shape:'metric_value'},'invalid_response',null],
+    [{code:'ANALYTICS_SOURCE_INVALID',shape:'PRIVATE'},'invalid_response',null]
+  ];
+  for(const [fields,category,status] of cases){
+    const error=Object.assign(new Error('PRIVATE raw message'),{config:{headers:{Authorization:'PRIVATE token'}},data:{private:'PRIVATE response body'}},fields);
+    const result=realtimeFailure(error);assert.equal(result.diagnostic.category,category);assert.equal(result.diagnostic.httpStatus,status);
+    assert.deepEqual(Object.keys(result.diagnostic),['category','httpStatus','shape']);assert.doesNotMatch(JSON.stringify(result),/PRIVATE|Authorization|raw message/);
+    if(fields.shape==='PRIVATE')assert.equal(result.diagnostic.shape,'source_shape');
+  }
+});
+test('real response-shape rejection is identified separately while historical facts survive',async()=>{
+  const client=source(o=>{if(!o.url.endsWith(':runRealtimeReport'))return null;const data=report([],['activeUsers'],[[[],[2]]]);delete data.rows[0].metricValues[0].value;return {data};});
+  const result=await queryReports(client,'pthhs',28,clock);assert.equal(result.current.sessions,20);assert.equal(result.realtime,null);
+  assert.deepEqual(result.realtimeDiagnostic,{category:'invalid_response',httpStatus:null,shape:'metric_value'});assert.equal(result.realtimeUpdatedAt,null);
+  assert.match(result.realtimeError,/could not be verified/);
+});
+test('provider errors and timeouts retain historical results without retry or invented realtime zero',async()=>{
+  for(const fields of [{response:{status:403}},{response:{status:429}},{code:'ETIMEDOUT'}]){
+    const client=source(o=>{if(o.url.endsWith(':runRealtimeReport'))throw Object.assign(new Error('PRIVATE'),fields);return null;});
+    const result=await queryReports(client,'pthhs',28,clock);assert.equal(client.calls.length,3);assert.equal(result.current.sessions,20);assert.equal(result.realtime,null);
+    assert.equal(result.realtimeUpdatedAt,null);assert.notEqual(result.realtimeDiagnostic,null);assert.doesNotMatch(JSON.stringify(result),/PRIVATE/);
+  }
 });
