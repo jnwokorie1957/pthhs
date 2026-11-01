@@ -1,5 +1,16 @@
 # PTHHS
 
+## November 1 visit billed amount connection
+
+Billing & AR now retains and displays the BilledAmount already supplied by the
+verified GetVisitInfoV3 page. The separate detailed-billing read remains distinct;
+its empty response does not erase this available visit field. No totals, currency,
+payments or AR are inferred. Two regressions fail before/pass after;
+356frontend/tooling and46analytics tests plus full release checks pass. Normal
+deployment/native acceptance is pending. A historical source comparison also
+confirms recorded visit ends and EVV ends remain separate; no EVV end was
+recovered. See [scope](docs/management-layer/VISIT_BILLED_AMOUNT_2026-11-01.md).
+
 ## November 1 rejected-call source diagnosis
 
 The existing call-subject refusal now records only fixed identity-state categories

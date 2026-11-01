@@ -1476,6 +1476,42 @@ async function relatedFixture(read, available = true) {
   installDashboard(app); await app.signIn(); await tick(); await tick(); return app;
 }
 const relatedButton = (app, kind) => descendants(app.element(kind === 'caregiver' ? 'dashboardStaffing' : 'dashboardBillingPipeline')).find(n => n.textContent === (kind === 'caregiver' ? 'View caregiver profile' : 'Read billing facts'));
+test('visit billed amount preserves exact supplied strings and rejects malformed values without borrowing other fields', () => {
+  const normalize = dashboardModel().primetimeDashboardModel.normalizeVisitPreview, date = '2026-10-10';
+  for (const amount of ['0', '0.00', '17.30', '-2.50', '', null, undefined]) {
+    const page = livePreview(date); page.items[0].billedAmount = amount;
+    assert.equal(normalize(page, { mode: 'live', date, officeId: '123' }).items[0].billedAmount, amount ?? null);
+  }
+  for (const amount of [0, false, {}, [], 'x'.repeat(129)]) {
+    const page = livePreview(date); page.items[0].billedAmount = amount;
+    assert.throws(() => normalize(page, { mode: 'live', date, officeId: '123' }), /invalid_visit_preview/);
+  }
+  const failed = livePreview(date); failed.items[0] = { ...failed.items[0], state: 'unavailable', billedAmount: 'PRIVATE_UNVERIFIED_AMOUNT' };
+  assert.equal(normalize(failed, { mode: 'live', date, officeId: '123' }).items[0].billedAmount, null);
+});
+
+test('visit billed amount appears in Billing from the verified visit page and clears with source context', async () => {
+  for (const change of ['clear', 'date', 'demo', 'session']) {
+    const app = await currentProfileFixture(() => { throw new Error('No extra read for visit amount'); }, date => {
+      const page = livePreview(date); page.items[0].billedAmount = '17.30';
+      page.items.push({ ...page.items[0], id: '900002', billedAmount: '0.00' }, { ...page.items[0], id: '900003', billedAmount: null },
+        { ...page.items[0], id: '900004', state: 'unavailable', billedAmount: 'PRIVATE_UNVERIFIED_AMOUNT', error: 'vendor_backoff_active' });
+      return page;
+    });
+    const before = nodeText(app.element('dashboardBillingPipeline'));
+    assert.match(before, /Visit billed amount/); assert.match(before, /17\.30/); assert.match(before, /0\.00/);
+    assert.match(before, /Not supplied by HHA/); assert.match(before, /Detail unavailable: Vendor retry delay active/);
+    assert.match(before, /GetVisitInfoV3 BilledAmount/); assert.match(before, /GetVisitBillInfoV2/);
+    assert.doesNotMatch(before, /PRIVATE_UNVERIFIED_AMOUNT/);
+    assert.equal(app.calls.filter(c => /visit-context|visit-patient/.test(c.path)).length, 0);
+    if (change === 'clear') await app.click('dashboardVisitClear');
+    if (change === 'date') { app.element('dashboardVisitDate').value = ''; for (const fn of app.element('dashboardVisitDate').handlers.get('change')) fn(new Event('change')); }
+    if (change === 'demo') app.window.primetimeDataMode.setMode('demo');
+    if (change === 'session') app.dispatch('primetime-signed-out');
+    await tick(); await tick(); assert.doesNotMatch(nodeText(app.element('dashboardBillingPipeline')), /17\.30|0\.00|PRIVATE_UNVERIFIED_AMOUNT/, change);
+  }
+});
+
 test('Staffing and Billing fetch guarded source context on demand and preserve zero and missing fields', async () => {
   const app = await relatedFixture(input => response(relatedPayload(input)));
   for (const kind of ['caregiver', 'billing']) {

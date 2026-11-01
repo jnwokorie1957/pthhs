@@ -1,5 +1,16 @@
 # PTHHS Management Layer — Developer Checklist
 
+- [x] November1 visit billed amount implementation: preserve the existing verified
+  GetVisitInfoV3 billedAmount through browser normalization and display it in
+  Billing & AR without new queries, totals or payment inference. Failed details
+  cannot supply amounts; zero strings remain exact. GetVisitBillInfoV2 stays a
+  separate empty/result-checked reader. Two regressions fail before/pass after;
+  356frontend-tooling/46analytics and full Windows release checks pass within
+  unchanged budgets. Deployment/native acceptance pending. Historical exact
+  source comparison found matching recorded start/end but no recovered EVV end.
+  B02/E04 and the overall goal remain open. See
+  [scope](VISIT_BILLED_AMOUNT_2026-11-01.md).
+
 - [x] November1 whole-call-response count implementation: preserve the original
   subject refusal while logging only disjoint bounded row counts and the actual
   truncation flag. Invalid/duplicate call IDs, unproved subjects/dates, target

@@ -30,10 +30,10 @@
       // Never count fields from a detail read the server could not verify.
       if (live && item.state === 'unavailable') return { id: item.id, state: 'unavailable', patientId: null, caregiverId: null,
         scheduledStart: null, scheduledEnd: null, actualStart: null, actualEnd: null, evvStart: null, evvEnd: null,
-        detailFetchedAt: null, officeCheckedAt: null, actualHours: null, actualHoursRounded: null, scheduleDurationHours: null, scheduleDurationMinutes: null,
+        detailFetchedAt: null, officeCheckedAt: null, actualHours: null, actualHoursRounded: null, scheduleDurationHours: null, scheduleDurationMinutes: null, billedAmount: null,
         detailReason: detailReasons[item.error] || 'Source detail could not be verified' };
       const result = Object.fromEntries(['id', 'patientId', 'caregiverId', ...clockFields, 'state'].map(key => [key, value(item[key])]));
-      for (const key of ['actualHours', 'actualHoursRounded', 'scheduleDurationHours', 'scheduleDurationMinutes']) {
+      for (const key of ['actualHours', 'actualHoursRounded', 'scheduleDurationHours', 'scheduleDurationMinutes', 'billedAmount']) {
         if (item[key] !== null && item[key] !== undefined && (typeof item[key] !== 'string' || item[key].length > 128)) throw new Error('invalid_visit_preview');
         result[key] = item[key] ?? null;
       }
@@ -455,9 +455,9 @@
         item.state === 'unavailable' ? unavailableDetail(item) : item.caregiverId ? 'Caregiver reference supplied' : 'Caregiver reference not supplied', () => relatedSourceControl('caregiver', view, item, relatedContext)]), 'sourceStaffingTable'),
       node('p', 'Assignments shown by HHA do not establish staff eligibility, availability, open-shift completeness or permission to reassign care.', 'source-metadata'));
     replace('dashboardCaregiverProfile', node('p', metadata?.panels?.caregiverProfile?.available ? 'Choose View caregiver profile to read fresh source fields and current office membership.' : 'GetCaregiverDemographics is not enabled for this source context. Review read controls in Settings.'));
-    replace('dashboardBillingPipeline', sourceNote(), table(['Visit', 'Patient reference', 'Source detail', 'Current billing read'], view.items.map(item => [item.id, sourceField(item, 'patientId'),
-      item.state === 'unavailable' ? unavailableDetail(item) : 'Source visit returned · billing fields not yet read', () => relatedSourceControl('billing', view, item, relatedContext)]), 'sourceBillingTable'),
-      node('p', 'Per-visit billed flags, rates, minutes and amounts come from GetVisitBillInfoV2. These are not collected cash, payer adjudication or an accounts-receivable ledger.', 'source-metadata'));
+    replace('dashboardBillingPipeline', sourceNote(), table(['Visit', 'Patient reference', 'Visit billed amount', 'Current billing read'], view.items.map(item => [item.id, sourceField(item, 'patientId'),
+      item.state === 'unavailable' ? unavailableDetail(item) : sourceField(item, 'billedAmount'), () => relatedSourceControl('billing', view, item, relatedContext)]), 'sourceBillingTable'),
+      node('p', 'Raw GetVisitInfoV3 BilledAmount; detailed read: GetVisitBillInfoV2. Neither proves collections, adjudication, billing approval or an AR ledger.', 'source-metadata'));
     replace('dashboardBillingFacts', node('p', metadata?.panels?.billingFacts?.available ? 'Choose Read billing facts for a current identity-checked source read.' : 'GetVisitBillInfoV2 is not enabled for this source context. Review read controls in Settings.'));
     renderSourcePatients(view, sourceNote());
     const coverage = node('div');

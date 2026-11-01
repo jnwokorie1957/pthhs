@@ -269,6 +269,17 @@ TAB 03 - EVV EXCEPTIONS
     historical absence. Next: compare an affected historical exact source visit
     and fresh API, then establish supported call status/retention/filter semantics.
     See docs/management-layer/CALL_SUBJECT_DIAGNOSTICS_2026-11-01.md.
+    Later November1 historical comparison: exact October24 Calendar visit and
+    fresh API patient/caregiver/day matched. Original Bill Time In/Out agree
+    with VisitStartTime/VisitEndTime; API EVVEndTime remains unavailable. Original
+    EVV section has Clock In without Clock Out label and1event matching EVV start,
+    none matching the recorded visit end. No event direction/manual-change cause
+    established. Scoped call API returned0events with separate call/office
+    receipts; bounded result does not negate linked original evidence. Official
+    Call Dashboard guide says unmatched EVV is held and removed after linking;
+    API-specific retention/status coverage still needs proof. No clock recovered
+    or recorded-to-EVV substitution. See VISIT_BILLED_AMOUNT_2026-11-01.md and
+    https://knowledge.hhaexchange.com/enterprise/Content/Documentation/Visit/Visit-N-Call-Dashboard-P.htm
     The October31 empty responses do not establish retention/filter semantics,
     complete history, absence of an original punch, or an event-to-visit join.
     The official contract rechecked October31 contains CallDashboardID,
@@ -492,6 +503,17 @@ TAB 08 - BILLING & AR
 [ ] B03 GetVisitInfoV3 BilledAmount is a source field, not collected cash.
     Do not invent cash collections, paid-claim stages, billing readiness or AR
     totals from visit times, billed amount, payroll hours or absent records.
+[x] B04 Visit billed amount browser connection implemented. Existing verified
+    GetVisitInfoV3 DTO already supplies billedAmount; browser normalization had
+    discarded it. Retain bounded nullable source strings and display the raw
+    amount in Billing & AR with its exact API label. Zero remains zero; failed
+    detail rows cannot supply amounts. No totals, currency or payment inference.
+    No new request/permission/backend/storage change. GetVisitBillInfoV2 remains
+    independently checked; historical same-record read still returned no billing
+    record despite a supplied GetVisitInfoV3 amount. B02 remains open. Two new
+    regressions fail before/pass after;356frontend-tooling/46analytics tests and
+    full Windows checks pass. Existing raw/gzip budgets pass. Normal release/
+    native acceptance pending. See VISIT_BILLED_AMOUNT_2026-11-01.md.
 
 TAB 09 - FORMS
 [x] F01 Connected private Firebase Storage template/submission library. Exact
