@@ -6,6 +6,7 @@ import type { OperationsWorkspace } from "./workspace.js";
 import { operationalRead, type OperationalRead, type ReadInput } from "./reads.js";
 const input = { visitId: "14", patientId: "13", caregiverId: "15", officeId: "12", date: "2026-10-24" };
 const source = (operation: ReadInput["operation"], records: OperationalRead["records"]): OperationalRead => ({ operation, records, source: "hhaexchange", validation: "source_unvalidated", timezone: "source_values_unconverted", fetchedAt: "2026-10-31T16:00:00Z", truncated: false });
+const oneRejectedRow = { sourceTruncated: false, rowCounts: { returned: 1, callIdentityUnproved: 0, subjectUnproved: 1, dateUnproved: 0, targetWithClock: 0, targetDateOnly: 0, targetWithoutTime: 0 } };
 function fixture() {
   const state = { approved: true, officeId: "12", revision: 1, enabledReads: ["GetVisitInfoV3", "GetPatientDemographics", "GetCallDashBoardData"], revokeAfterCalls: false };
   const rows = {
@@ -35,7 +36,7 @@ test("rejected call identity diagnostics distinguish unavailable, invalid and di
     const f = fixture();
     Object.assign(f.rows.GetCallDashBoardData.records[0]!, { "Patient/ID": patient, "Caregiver/ID": caregiver, CallTime: "PRIVATE-CLOCK", CallStatus: "PRIVATE-STATUS" });
     await assert.rejects(f.read(), error => (error as { code?: string; status?: number }).code === "call_subject_mismatch" && (error as { status?: number }).status === 403);
-    assert.deepEqual(f.diagnostics, [{ ...expected, admissionIdentity: "expected_unavailable" }]);
+    assert.deepEqual(f.diagnostics, [{ ...expected, admissionIdentity: "expected_unavailable", ...oneRejectedRow }]);
     assert.doesNotMatch(JSON.stringify(f.diagnostics), /PRIVATE|"(?:patientId|caregiverId|CallTime|CallStatus|actor|visitId|officeId)"/);
     assert.equal(f.calls.length, 3, "diagnosis does not retry or fetch another source");
   }
@@ -46,8 +47,41 @@ test("a separate admission reference is compared exactly for diagnosis without a
     const f = fixture(); f.rows.GetPatientDemographics.records[0]!.AdmissionID = expected;
     Object.assign(f.rows.GetCallDashBoardData.records[0]!, { "Patient/ID": "0", "Patient/AdmissionID": returned });
     await assert.rejects(f.read(), error => (error as { code?: string }).code === "call_subject_mismatch");
-    assert.deepEqual(f.diagnostics, [{ patientIdentity: "invalid", caregiverIdentity: "match", admissionIdentity: state }]);
+    assert.deepEqual(f.diagnostics, [{ patientIdentity: "invalid", caregiverIdentity: "match", admissionIdentity: state, ...oneRejectedRow }]);
     assert.doesNotMatch(JSON.stringify(f.diagnostics), /SYNTHETIC|ADMISSION|00013|bad|value/); assert.equal(f.calls.length, 3);
+  }
+});
+
+test("whole-response diagnosis counts mixed target, unproved and ambiguous rows without exposing or accepting them", async () => {
+  const f = fixture(), valid = { ...f.rows.GetCallDashBoardData.records[0]! };
+  f.rows.GetCallDashBoardData.truncated = true;
+  f.rows.GetCallDashBoardData.records = [
+    { ...valid, "Patient/ID": "0", CallStatus: "PRIVATE-STATUS" },
+    { ...valid, CallDashboardID: "17" },
+    { ...valid, CallDashboardID: "18", CallTime: input.date },
+    { ...valid, CallDashboardID: "19", CallTime: null },
+    { ...valid, CallDashboardID: "20", CallTime: "2026-10-23 09:00" },
+    { ...valid, CallDashboardID: "0" },
+    { ...valid, CallDashboardID: "21" },
+    { ...valid, CallDashboardID: "21" }
+  ];
+  await assert.rejects(f.read(), error => (error as { code?: string }).code === "call_subject_mismatch");
+  assert.deepEqual(f.diagnostics, [{ patientIdentity: "invalid", caregiverIdentity: "match", admissionIdentity: "expected_unavailable", sourceTruncated: true,
+    rowCounts: { returned: 8, callIdentityUnproved: 3, subjectUnproved: 1, dateUnproved: 1, targetWithClock: 1, targetDateOnly: 1, targetWithoutTime: 1 } }]);
+  assert.doesNotMatch(JSON.stringify(f.diagnostics), /PRIVATE|2026-|"(?:CallTime|CallStatus|CallDashboardID|patientId|caregiverId|visitId|officeId)"/);
+  assert.equal(f.calls.length, 3);
+});
+
+test("whole-response diagnosis remains bounded to the original source limit and keeps the refusal", async () => {
+  for (const count of [200, 201]) {
+    const f = fixture(), valid = { ...f.rows.GetCallDashBoardData.records[0]! };
+    f.rows.GetCallDashBoardData.records = Array.from({ length: count }, (_, i) => ({ ...valid, CallDashboardID: String(100 + i), "Patient/ID": i ? "13" : "0" }));
+    await assert.rejects(f.read());
+    if (count === 201) assert.deepEqual(f.diagnostics, []);
+    else {
+      assert.deepEqual(f.diagnostics[0]?.rowCounts, { returned: 200, callIdentityUnproved: 0, subjectUnproved: 1, dateUnproved: 0, targetWithClock: 199, targetDateOnly: 0, targetWithoutTime: 0 });
+    }
+    assert.equal(f.calls.length, 3);
   }
 });
 

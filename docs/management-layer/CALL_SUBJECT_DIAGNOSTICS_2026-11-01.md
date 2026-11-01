@@ -100,3 +100,29 @@ records and disclose rejected coverage. Do not turn filtering into apparent
 completeness. If no row can be proved, retain the refusal and request protected
 original HHA/vendor identity/filter/linkage evidence. No new method or grant is
 needed for the count diagnosis. E04 remains open; keep actual examples protected.
+
+## Whole-response count implementation
+
+On the same existing subject refusal, the diagnostic also includes a fixed
+`rowCounts` object and boolean `sourceTruncated`. It inspects the already returned
+maximum200rows, without another source request, and preserves the same refusal.
+No row or value is returned, admitted, replaced or linked to a visit.
+
+Each row enters exactly one bucket in this order: invalid/duplicate CallDashboardID;
+unproved exact patient/caregiver; failed existing day check; target without a time;
+target with only the source service date; target with a clock value passing the
+existing day check. All duplicate identities are counted as unproved, including
+earlier copies. Counts sum to returned rows. They are not complete retained history.
+Target buckets are per-row candidates only; any callIdentityUnproved count remains
+a whole-request ambiguity concern. A zero is a predicate count in this bounded
+response, never zero worked hours or proof that no original punch exists.
+
+Only fixed categories, bounded counts and the truncation boolean enter the log.
+Original identity/day/office/data/read-policy checks, scope revocation and logger
+failure handling remain in force. Successful/empty reads emit no new diagnostic;
+responses over200rows are rejected before count analysis. No source/filter or
+permission changes occur. Two count regressions fail against the previous module
+and pass after; all545backend tests pass. Cases include mixed subjects, duplicate
+and invalid IDs, wrong dates, date-only/missing times, truncation, maximum size,
+privacy and refusal preservation. Temporary compiled module restored byte-identically.
+Normal release/native whole-response count acceptance remains pending.

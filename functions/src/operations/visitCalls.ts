@@ -5,7 +5,12 @@ import { warn } from "firebase-functions/logger";
 
 type Workspace = Pick<OperationsWorkspace, "settings" | "query">;
 type IdentityState = "match" | "unavailable" | "invalid" | "noncanonical_match" | "different";
-export interface CallSubjectDiagnostic { patientIdentity: IdentityState; caregiverIdentity: IdentityState; admissionIdentity: "expected_unavailable" | "unavailable" | "invalid" | "match" | "different"; }
+export interface CallSubjectDiagnostic {
+  patientIdentity: IdentityState; caregiverIdentity: IdentityState;
+  admissionIdentity: "expected_unavailable" | "unavailable" | "invalid" | "match" | "different";
+  sourceTruncated: boolean;
+  rowCounts: { returned: number; callIdentityUnproved: number; subjectUnproved: number; dateUnproved: number; targetWithClock: number; targetDateOnly: number; targetWithoutTime: number; };
+}
 function identityState(value: string | null | undefined, expected: string): IdentityState {
   if (value == null || value === "") return "unavailable";
   const lexical = value.trim();
@@ -18,6 +23,21 @@ function admissionState(value: string | null | undefined, expected: string | nul
   if (!valid(expected)) return "expected_unavailable";
   if (value == null || value === "") return "unavailable";
   return !valid(value) ? "invalid" : value === expected ? "match" : "different";
+}
+function responseCounts(rows: Record<string, string | null>[], patientId: string, caregiverId: string, date: string, inDay: (value: unknown) => boolean): CallSubjectDiagnostic["rowCounts"] {
+  const validId = (value: string | null | undefined): value is string => typeof value === "string" && /^[1-9]\d{0,9}$/.test(value) && Number(value) <= 2147483647;
+  const frequencies = new Map<string, number>();
+  for (const row of rows) if (validId(row.CallDashboardID)) frequencies.set(row.CallDashboardID, (frequencies.get(row.CallDashboardID) ?? 0) + 1);
+  const counts = { returned: rows.length, callIdentityUnproved: 0, subjectUnproved: 0, dateUnproved: 0, targetWithClock: 0, targetDateOnly: 0, targetWithoutTime: 0 };
+  for (const row of rows) {
+    if (!validId(row.CallDashboardID) || frequencies.get(row.CallDashboardID) !== 1) counts.callIdentityUnproved++;
+    else if (row["Patient/ID"] !== patientId || row["Caregiver/ID"] !== caregiverId) counts.subjectUnproved++;
+    else if (row.CallTime && !inDay(row.CallTime)) counts.dateUnproved++;
+    else if (!row.CallTime) counts.targetWithoutTime++;
+    else if (row.CallTime === date) counts.targetDateOnly++;
+    else counts.targetWithClock++;
+  }
+  return counts;
 }
 export async function visitCallRead(workspace: Workspace, value: unknown, actor: string,
   diagnose: (diagnostic: CallSubjectDiagnostic) => void = diagnostic => warn("HHA call subject proof rejected", diagnostic)) {
@@ -41,7 +61,8 @@ export async function visitCallRead(workspace: Workspace, value: unknown, actor:
     ids.add(id);
     if (row["Patient/ID"] !== patientId || row["Caregiver/ID"] !== caregiverId) {
       await checkScope();
-      try { diagnose({ patientIdentity: identityState(row["Patient/ID"], patientId), caregiverIdentity: identityState(row["Caregiver/ID"], caregiverId), admissionIdentity: admissionState(row["Patient/AdmissionID"], patient.records[0]?.AdmissionID) }); } catch { /* Diagnostics never replace the access refusal. */ }
+      try { diagnose({ patientIdentity: identityState(row["Patient/ID"], patientId), caregiverIdentity: identityState(row["Caregiver/ID"], caregiverId), admissionIdentity: admissionState(row["Patient/AdmissionID"], patient.records[0]?.AdmissionID), sourceTruncated: data.truncated === true,
+        rowCounts: responseCounts(data.records, patientId, caregiverId, date, inDay) }); } catch { /* Diagnostics never replace the access refusal. */ }
       throw new WorkflowError("call_subject_mismatch", 403);
     }
     if (row.CallTime && !inDay(row.CallTime)) throw new WorkflowError("call_source_date_unverified", 409);

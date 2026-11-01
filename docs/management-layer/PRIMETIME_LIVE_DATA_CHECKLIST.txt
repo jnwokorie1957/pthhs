@@ -241,6 +241,15 @@ TAB 03 - EVV EXCEPTIONS
     Do not filter failures into an apparently complete response or infer a visit
     join. If none are verifiable, keep the refusal and obtain protected original
     HHA/vendor evidence. No new method is needed for this count diagnosis.
+    Count implementation now assesses every returned row (maximum200) while
+    preserving the original refusal and returning no records. A fixed rowCounts
+    object separates invalid/duplicate call identity, unproved subject/date,
+    targetWithClock, targetDateOnly and targetWithoutTime. Buckets sum to returned
+    rows; sourceTruncated stays explicit. Target counters are per-row candidates,
+    not whole-request acceptance; nonzero callIdentityUnproved remains a global
+    ambiguity concern. Two regressions fail before/pass after;545backend tests
+    pass. Normal release/native whole-response counts are pending. No raw values,
+    identities, clocks, source statuses, new read, permission or retry are added.
     See docs/management-layer/CALL_SUBJECT_DIAGNOSTICS_2026-11-01.md.
     The October31 empty responses do not establish retention/filter semantics,
     complete history, absence of an original punch, or an event-to-visit join.

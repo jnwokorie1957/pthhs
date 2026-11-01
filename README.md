@@ -12,6 +12,11 @@ call record.543backend tests and both normal releases pass; no clock was recover
 Other response rows and source linkage remain open. See
 [scope](docs/management-layer/CALL_SUBJECT_DIAGNOSTICS_2026-11-01.md).
 
+Whole-response diagnostic counts now distinguish per-row target clocks, date-only
+and missing-time values from unproved identity/date rows. Counts are bounded and
+do not expose or accept any rejected record.545backend tests pass; normal release
+and live count acceptance are pending in the same scope.
+
 ## November 1 office-alert source connection
 
 Messages now checks the existing protected Primetime status/outbox reader instead
