@@ -9,8 +9,10 @@
   patient proof and matching caregiver. The captured source also has AdmissionID:
   an additional exact comparison uses unique direct fields from the same two
   approved reads and never admits failed patient proof. Two additional regressions
-  fail before/pass after;543backend tests pass. Comparison release/native evidence
-  pending; E04 stays open. See
+  fail before/pass after;543backend tests and all three comparison release jobs
+  pass. Native first rejected row: invalid patient proof, matching caregiver,
+  unavailable AdmissionID despite a usable expected reference. No clock recovered;
+  other-row counts/linkage remain open in E04. See
   [scope](CALL_SUBJECT_DIAGNOSTICS_2026-11-01.md).
 
 - [x] November1 office-alert reader implementation: connect Messages to existing

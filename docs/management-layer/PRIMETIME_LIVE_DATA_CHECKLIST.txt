@@ -225,8 +225,22 @@ TAB 03 - EVV EXCEPTIONS
     verified patient's AdmissionID using unique direct scalar fields. This
     diagnostic extension preserves the primary-ID refusal even on a match;
     no namespace uniqueness, patient/visit association or missing clock is inferred.
-    Two added regressions fail before/pass after;543backend tests pass. Additional
-    comparison release/native acceptance pending; no new HHA method is needed.
+    Two added regressions fail before/pass after;543backend tests pass. Comparison
+    a81fdc8 passed workflow41357272462 all3jobs: Hosting22:28:40, backend22:30:28,
+    analytics22:30:15UTC. At22:31:14UTC12exactassets/9anonymous401 boundaries pass.
+    Native explicit recheck stayed refused. Safe log November1,16:31:06.885CST:
+    patientIdentity invalid, caregiverIdentity match, admissionIdentity unavailable.
+    The expected verified patient reference was available; the first rejected
+    call did not provide a unique usable reference. This says nothing about the
+    other source rows, exact raw values or original clock-out. No identity
+    fallback, patient association, source change or grant was introduced.
+    Next independent API work: count rows that pass all subject/day checks versus
+    rejected rows, using bounded counts only. If verified target rows coexist with
+    rejected rows, audit whether they can be shown with explicit partial/rejected
+    coverage while withholding every unproved row and preserving other guards.
+    Do not filter failures into an apparently complete response or infer a visit
+    join. If none are verifiable, keep the refusal and obtain protected original
+    HHA/vendor evidence. No new method is needed for this count diagnosis.
     See docs/management-layer/CALL_SUBJECT_DIAGNOSTICS_2026-11-01.md.
     The October31 empty responses do not establish retention/filter semantics,
     complete history, absence of an original punch, or an event-to-visit join.

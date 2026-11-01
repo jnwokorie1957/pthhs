@@ -72,7 +72,31 @@ association are not established by lexical equality. No extra API request, read
 method, permission or source change is added. Existing rejected rows stay hidden.
 
 Two additional regressions fail against9b61103 and pass after the extension.
-All543backend tests pass. Additional release/native comparison is pending. E04
-remains open for actual source identity/linkage, retained call coverage and original
-EVV history evidence. The diagnostic is not a recovered EVV end or permission to
-expose unproved events. Keep actual examples in the protected review.
+All543backend tests pass. Runtimea81fdc89ccbdf6a5cbe6680588459d9f3a7b86f7 passed
+all three jobs in [workflow41357272462](https://github.com/jnwokorie1957/pthhs/actions/runs/41357272462):
+Hosting22:28:40, backend22:30:28, analytics22:30:15UTC. At22:31:14UTC12exactassets
+and9anonymous401/private/noindex boundaries passed. Browser assets are unchanged.
+
+The next explicit scoped read stayed refused and displayed no records/context/
+receipts. Safe log November1,16:31:06.885CST shows patientIdentity invalid,
+caregiverIdentity match and admissionIdentity unavailable. The expected patient
+reference was usable; the first rejected call record did not provide a unique
+usable AdmissionID. No source value was inspected/exported. This establishes only
+the first rejected row, not every row in the response or absence of an original
+clock-out. No identity fallback, automatic association or source edit occurred.
+
+Primary guidance rechecked November1: the [system ID guide](https://knowledge.hhaexchange.com/enterprise/Content/Documentation/System-Intro/Sys-B-System-ID-Numbers-P.htm)
+describes Admission IDs as generated unique references that authorized agencies
+can change. The [EDI export contract](https://knowledge.hhaexchange.com/edi/Content/Documentation/EDI/EDI-Export-Interface-P.htm)
+distinguishes the numeric electronic-exchange Patient ID from Admission ID and
+the UI's MR-number label. Inference: preserve these namespaces; these general
+references do not establish a SOAP-call-specific fallback or event-to-visit join.
+
+Next independent API work is a bounded, values-free count of rows passing all
+subject/day checks versus rejected rows. If verified target rows coexist with
+rejected rows, audit a clearly partial display that retains every per-row check,
+source truncation, policy/freshness and ambiguity guard; withhold all unproved
+records and disclose rejected coverage. Do not turn filtering into apparent
+completeness. If no row can be proved, retain the refusal and request protected
+original HHA/vendor identity/filter/linkage evidence. No new method or grant is
+needed for the count diagnosis. E04 remains open; keep actual examples protected.

@@ -6,9 +6,10 @@ The existing call-subject refusal now records only fixed identity-state categori
 after rechecking current office access. This distinguishes unavailable/invalid
 source proof, a different subject and a noncanonical matching integer without
 returning rejected records or accepting an identity fallback. Deployed9b61103
-found invalid patient proof and a matching caregiver. A separate exact AdmissionID
-comparison now uses the same approved reads;543backend tests pass. Its release/
-native comparison remains pending. See
+found invalid patient proof and a matching caregiver. The separately deployed
+AdmissionID comparison found that reference unavailable in the first rejected
+call record.543backend tests and both normal releases pass; no clock was recovered.
+Other response rows and source linkage remain open. See
 [scope](docs/management-layer/CALL_SUBJECT_DIAGNOSTICS_2026-11-01.md).
 
 ## November 1 office-alert source connection
