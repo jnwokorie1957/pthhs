@@ -33,6 +33,25 @@ transport/gateway classes, faults/access/malformed success, authoritative vendor
 backoff and an unrelated billing operation. All539backend and347frontend/tooling
 tests pass; generated assets remain11files/374355bytes.
 
-Normal GitHub/Firebase release and native production acceptance remain pending.
-No native transport outage is induced; network variant acceptance is synthetic.
-Source E04 retained-call history/linkage and broader H03 coverage remain open.
+## Bounded production acceptance
+
+Normal workflow41352331116 passed all three jobs: Hosting21:30:52UTC,
+backend21:32:20UTC and website analytics21:32:43UTC, November1. At21:33:06UTC,
+12 exact app artifacts and8anonymous JSON401/no-store boundaries passed.
+
+After release, the authorized native session returned10readable current-day
+visits. The October24 page retained8readable details with2unavailable rows and
+an actual retry delay. Changing toOctober23 cleared prior rows and old deferred
+controls; reads stayed disabled during the observed13second remaining delay.
+After expiry, one explicit read returned10readable October23 details. The precise
+cause of that native partial response was not captured; do not label it a newly
+reproduced network failure or a specific quota. Known network/gateway recovery
+variants remain synthetic regressions; no outage or artificial quota was induced.
+
+Current-day source field counts10/10/7/2/7/2 matched the six plotted availability
+counts on the same ten-row page. Source search receipts advanced automatically
+from21:35:03.377Z to21:36:03.275Z; live feed remained active. These are field
+presence counts, not completed/verified/worked/payable/billable classifications.
+No new original EVV punch was recovered. Existing E04 retained-history/linkage,
+source-empty hour fields, full-office coverage and broader H03 remain open.
+The original October24 screenshot example remains resolved by prior evidence.

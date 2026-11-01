@@ -5,8 +5,9 @@
 Network/timeouts and selected gateway failures in the three approved visit reads
 now preserve the existing explicit, scoped recovery path. Empty fields, access
 refusals and source faults stay distinct; no additional source attempt or access
-is enabled. Local539backend/347frontend checks pass. Production acceptance is
-pending normal release. See [scope](docs/management-layer/VISIT_SOURCE_RECOVERY_2026-11-01.md).
+is enabled. Local539backend/347frontend checks and all three normal release jobs pass.
+Native current/historical reads, a real source delay and automatic receipts were
+checked; chart counts match the source table. Network variants remain synthetic. See [scope](docs/management-layer/VISIT_SOURCE_RECOVERY_2026-11-01.md).
 
 
 November1 deployed realtime diagnostics identified a strict metric-header

@@ -92,8 +92,16 @@ TAB 01 - OVERVIEW
     No call-loop retry, extra read/permission, source-time substitution or new
     import. Two regressions fail before/pass after, with office-proof/discovery
     checks;539backend/347frontend tests and unchanged generated assets pass.
-    Production acceptance pending normal release; source contracts/units in
-    P01/P02/P06 and remaining E04 evidence are unchanged.
+    Normal workflow41352331116 passed Hosting21:30:52UTC/backend21:32:20UTC/
+    analytics21:32:43UTC. Twelve exact app assets/eight anonymous401 boundaries
+    passed21:33:06UTC. Native current day returned10readable details; October24
+    retained8readable and2unavailable with an actual delay. Date change cleared
+    old rows/retry controls and respected the13second remaining wait; one read
+    after expiry returned10readable October23 details. The partial response's
+    exact failure category was not captured; new network variants stay synthetic.
+    Current-day field/chart counts10/10/7/2/7/2 match; automatic search receipts
+    advanced21:35:03.377Z to21:36:03.275Z. No new original punch was recovered;
+    P01/P02/P06 contracts/units, E04 source evidence and full H03 remain open.
 [ ] O03 Complete-office coverage is not established. Determine a supported bounded
     scan/refresh design before promising full-office totals or all-record search.
 [x] O04 Compact Open records disclosure plus responsive cards is deployed.
