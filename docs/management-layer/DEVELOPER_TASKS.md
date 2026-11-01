@@ -5,7 +5,12 @@
   truncation flag. Invalid/duplicate call IDs, unproved subjects/dates, target
   clocks, date-only values and missing times stay distinct. No row is admitted or
   source retry added. Two regressions fail before/pass after;545backend tests
-  pass. Normal release/native count acceptance pending. See
+  pass. Runtime809367e passed all three normal jobs; native counts show one
+  subject-unproved row, zero target rows and sourceTruncated false. Refusal stays
+  correct for this bounded response; no partial reader or recovered end claimed.
+  Original HHA Calendar confirms exact visit/patient/office. Fresh API starts
+  match labeled Bill Time In/EVV Clock In; original Bill Time Out and API ends
+  are empty. Current-day proof does not establish historical absence. See
   [scope](CALL_SUBJECT_DIAGNOSTICS_2026-11-01.md).
 
 - [x] November1 rejected-call diagnostic implementation: an existing subject
@@ -20,7 +25,8 @@
   fail before/pass after;543backend tests and all three comparison release jobs
   pass. Native first rejected row: invalid patient proof, matching caregiver,
   unavailable AdmissionID despite a usable expected reference. No clock recovered;
-  other-row counts/linkage remain open in E04. See
+  whole-response counts were subsequently accepted above; retained history and
+  supported event linkage remain open in E04. See
   [scope](CALL_SUBJECT_DIAGNOSTICS_2026-11-01.md).
 
 - [x] November1 office-alert reader implementation: connect Messages to existing

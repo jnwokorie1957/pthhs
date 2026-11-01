@@ -9,13 +9,22 @@ returning rejected records or accepting an identity fallback. Deployed9b61103
 found invalid patient proof and a matching caregiver. The separately deployed
 AdmissionID comparison found that reference unavailable in the first rejected
 call record.543backend tests and both normal releases pass; no clock was recovered.
-Other response rows and source linkage remain open. See
+The later whole-response check below resolves this response's row coverage;
+retained history and source linkage remain open. See
 [scope](docs/management-layer/CALL_SUBJECT_DIAGNOSTICS_2026-11-01.md).
 
 Whole-response diagnostic counts now distinguish per-row target clocks, date-only
 and missing-time values from unproved identity/date rows. Counts are bounded and
-do not expose or accept any rejected record.545backend tests pass; normal release
-and live count acceptance are pending in the same scope.
+do not expose or accept any rejected record.545backend tests and all three normal
+release jobs pass. Production returned one subject-unproved row, no target rows
+and sourceTruncated false. No partial reader is justified by this response.
+
+The authorized original HHA Calendar now confirms the exact API visit, patient
+and office. A fresh GetVisitInfoV3 read matches its labeled Bill Time In and EVV
+Clock In; the original Bill Time Out is empty and both API end fields are
+unavailable. This current-day comparison recovers no end time and proves no
+historical absence. Existing saved sign-in worked; no additional access grant
+or manual import was needed. Details and remaining checks are in the same scope.
 
 ## November 1 office-alert source connection
 

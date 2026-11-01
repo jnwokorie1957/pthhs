@@ -92,7 +92,7 @@ distinguishes the numeric electronic-exchange Patient ID from Admission ID and
 the UI's MR-number label. Inference: preserve these namespaces; these general
 references do not establish a SOAP-call-specific fallback or event-to-visit join.
 
-Next independent API work is a bounded, values-free count of rows passing all
+The next proposed API check at that checkpoint was a values-free count of rows passing all
 subject/day checks versus rejected rows. If verified target rows coexist with
 rejected rows, audit a clearly partial display that retains every per-row check,
 source truncation, policy/freshness and ambiguity guard; withhold all unproved
@@ -125,4 +125,50 @@ permission changes occur. Two count regressions fail against the previous module
 and pass after; all545backend tests pass. Cases include mixed subjects, duplicate
 and invalid IDs, wrong dates, date-only/missing times, truncation, maximum size,
 privacy and refusal preservation. Temporary compiled module restored byte-identically.
-Normal release/native whole-response count acceptance remains pending.
+Runtime809367e07b214876430e4bd6a7a14e49d97a26a2 passed all three normal jobs in
+[workflow41358716609](https://github.com/jnwokorie1957/pthhs/actions/runs/41358716609):
+Hosting22:45:59, backend22:47:36, analytics22:47:41UTC. At22:57:41.754UTC,
+12exactassets and9anonymous401/private/noindex boundaries passed. Browser assets
+and release budgets are unchanged.
+
+One explicit same-context postrelease read retained the subject refusal, without
+records, context or receipts. Safe event November1,16:51:48.241CST:
+patientIdentity invalid, caregiverIdentity match, admissionIdentity unavailable;
+sourceTruncated false. rowCounts returned1, subjectUnproved1, all other buckets0.
+Thus this bounded projected response has no verified target row hidden by the
+first-row refusal. A partial reader is not justified by this response. It does
+not prove absent original punches, complete retained history, provider paging
+or a supported event-to-visit join. No rejected values were exported.
+
+## Original HHA source comparison
+
+Normal saved sign-in succeeded in the authorized modern and original legacy HHA
+applications; no credential was retrieved, new grant made or source record changed.
+The modern Visit Maintenance search returned no rows for the exact member/company
+and displayed date/status/schedule-type filters. That empty search did not prove
+absence: the original tenant's patient Calendar contains the exact API VisitID.
+Its patient and office IDs match the existing protected API profile; the patient
+AdmissionID and names also match. Private identifiers remain outside this record.
+
+The Calendar's V: link initially opens Schedule. Its suggested schedule controls
+are not EVV evidence. The Visit Info modal stalled while loading, so the exact
+rendered NonskilledVisitInfo link was opened directly, without guessed endpoints
+or source writes. That page loaded. Its visible txtVisitStartTime/EndTime labels
+are Bill Time In/Out, separately from EVV Clock In. The Bill Time In input and
+EVV Clock In text match a fresh protected GetVisitInfoV3 response for the same
+visit/patient/caregiver and November1 service date. No timezone conversion or
+payable/billable inference was applied.
+
+The original Bill Time Out is empty; API VisitEndTime and EVVEndTime are
+unavailable. The rendered original EVV event table has one row whose clock
+matches API EVVStartTime. Its direction was not established; no outgoing event
+or end time was recovered. An EVV Clock Out label was not present in the
+inspected labeled section; this is not proof of absent retained history.
+No Save, Link Call, copy, correction, role-survey submission or financial action
+was performed. The existing refusal remains intact; no web-scraped import exists.
+
+Next independent work: inspect an affected historical exact visit's original
+EVV/history using these now-established source routes, then compare a fresh API
+read and supported call status/retention/filter semantics. Preserve namespaces
+and all guards. This current-day check cannot close all missing-time cases or
+owner clinical acceptance. E04 and the overall live-source goal stay open.

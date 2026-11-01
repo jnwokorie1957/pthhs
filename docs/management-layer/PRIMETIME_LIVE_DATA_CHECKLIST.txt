@@ -234,7 +234,7 @@ TAB 03 - EVV EXCEPTIONS
     call did not provide a unique usable reference. This says nothing about the
     other source rows, exact raw values or original clock-out. No identity
     fallback, patient association, source change or grant was introduced.
-    Next independent API work: count rows that pass all subject/day checks versus
+    Proposed at that checkpoint: count rows that pass all subject/day checks versus
     rejected rows, using bounded counts only. If verified target rows coexist with
     rejected rows, audit whether they can be shown with explicit partial/rejected
     coverage while withholding every unproved row and preserving other guards.
@@ -248,8 +248,26 @@ TAB 03 - EVV EXCEPTIONS
     rows; sourceTruncated stays explicit. Target counters are per-row candidates,
     not whole-request acceptance; nonzero callIdentityUnproved remains a global
     ambiguity concern. Two regressions fail before/pass after;545backend tests
-    pass. Normal release/native whole-response counts are pending. No raw values,
+    pass. No raw values,
     identities, clocks, source statuses, new read, permission or retry are added.
+    Runtime809367e passed workflow41358716609 all3jobs: Hosting22:45:59,
+    backend22:47:36, analytics22:47:41UTC. Public12exactassets/9anonymous401/private/
+    noindex boundaries passed22:57:41.754UTC. Native safe event16:51:48.241CST:
+    returned1, subjectUnproved1, all other buckets0; sourceTruncated false.
+    First rejected identity remains patient invalid/caregiver match/admission
+    unavailable. No target row is hidden by first-row refusal in THIS projected
+    response. No partial reader is justified; no clock recovered or history
+    completeness inferred. The refused rows/context/receipts remain hidden.
+    Authorized original HHA saved sign-in now works. The exact patient/office/
+    visit is rendered in the original legacy Calendar despite an empty scoped
+    modern Visit Maintenance search. Original Visit Info loaded from its exact
+    rendered link. Fresh GetVisitInfoV3 starts match labeled Bill Time In/EVV
+    Clock In. Original Bill Time Out is empty; API VisitEndTime/EVVEndTime are
+    unavailable. One original EVV table row matches the API EVV start; event
+    direction and broader retained history remain unproved. No source edit,
+    import, grant or clock-out recovery. This November1 case does not establish
+    historical absence. Next: compare an affected historical exact source visit
+    and fresh API, then establish supported call status/retention/filter semantics.
     See docs/management-layer/CALL_SUBJECT_DIAGNOSTICS_2026-11-01.md.
     The October31 empty responses do not establish retention/filter semantics,
     complete history, absence of an original punch, or an event-to-visit join.
@@ -517,6 +535,11 @@ TAB 10 - HHA INTEGRATION
 [ ] H04 Confirm intended tenant/application/office filters against owner-provided
     matching source evidence. No current HHA web tab was available in the prior
     scheduled review; connection work must not depend on web-scraped imports.
+    November1 technical source evidence now matches the original authorized
+    tenant's Calendar patient/office IDs and exact visit to the protected API.
+    AdmissionID/names also match. The modern scoped search's empty result is not
+    source absence; original Calendar contains this visit. No owner clinical
+    acceptance, complete-office census or other filter/tenant coverage inferred.
 
 TAB 11 - AUDIT LOG
 [x] A01 Replaced the disconnected preview using the existing protected
