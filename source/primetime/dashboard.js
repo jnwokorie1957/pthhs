@@ -1,5 +1,6 @@
 (() => {
   'use strict';
+  const clockFields = ['scheduledStart', 'scheduledEnd', 'actualStart', 'actualEnd', 'evvStart', 'evvEnd'];
   function filterExceptions(items, term = '', priority = 'all') {
     const search = term.trim().toLowerCase();
     return items.filter(item => (!search || `${item.id} ${item.issue}`.toLowerCase().includes(search)) && (priority === 'all' || item.priority === priority));
@@ -31,7 +32,7 @@
         scheduledStart: null, scheduledEnd: null, actualStart: null, actualEnd: null, evvStart: null, evvEnd: null,
         detailFetchedAt: null, officeCheckedAt: null, actualHours: null, actualHoursRounded: null, scheduleDurationHours: null, scheduleDurationMinutes: null,
         detailReason: detailReasons[item.error] || 'Source detail could not be verified' };
-      const result = Object.fromEntries(['id', 'patientId', 'caregiverId', 'scheduledStart', 'scheduledEnd', 'actualStart', 'actualEnd', 'evvStart', 'evvEnd', 'state'].map(key => [key, value(item[key])]));
+      const result = Object.fromEntries(['id', 'patientId', 'caregiverId', ...clockFields, 'state'].map(key => [key, value(item[key])]));
       for (const key of ['actualHours', 'actualHoursRounded', 'scheduleDurationHours', 'scheduleDurationMinutes']) {
         if (item[key] !== null && item[key] !== undefined && (typeof item[key] !== 'string' || item[key].length > 128)) throw new Error('invalid_visit_preview');
         result[key] = item[key] ?? null;
@@ -82,7 +83,7 @@
       evvPairs: count(item => Boolean(item.evvStart && item.evvEnd)),
       actualStartOnly: count(item => Boolean(item.actualStart && !item.actualEnd)),
       evvStartOnly: count(item => Boolean(item.evvStart && !item.evvEnd)),
-      fields: ['scheduledStart', 'scheduledEnd', 'actualStart', 'actualEnd', 'evvStart', 'evvEnd'].map(key => ({ key, count: count(item => Boolean(item[key])) })) };
+      fields: clockFields.map(key => ({ key, count: count(item => Boolean(item[key])) })) };
   }
   function sourceInterval(start, end, date) {
     // Position only same-day source wall times. No UTC conversion, duration,
@@ -570,6 +571,7 @@
     clearSource();
     feedControls();
     const live = controller.isLive();
+    if (get('dashboardMessages')) get('dashboardMessages').hidden = live;
     const date = dateInput?.value || localDay();
     const demo = !live;
     text('dashboardEvidenceTitle', demo ? 'Example EVV exception queue' : 'EVV source evidence');
@@ -586,10 +588,10 @@
     text('environmentDetails', demo ? 'Synthetic preview records' : 'Source validation pending');
     text('dashboardModeNotice', demo
       ? 'Demo data is on. All preview records are synthetic; messages and HHA changes are disabled.'
-      : feedInstalled ? 'Live HHA API mode. The server refreshes the current office day’s first source page every minute. Charts describe only this bounded page. Read source now and paging remain available; saved captures are separate.'
-      : 'Live HHA source mode. Read source now requests an on-demand source page; it does not save a visit import or start background synchronization. Charts describe this page only. Unavailable evidence is excluded from counts.');
+      : feedInstalled ? 'Live HHA API: the current office day’s first page refreshes each minute. Charts cover only this page; saved captures are separate. Read source now and paging are available.'
+      : 'On-demand HHA API page; it does not save a visit import or start background synchronization. Charts cover this page and exclude unavailable evidence.');
     ['exceptionSearch', 'priorityFilter'].forEach(id => { if (get(id)) get(id).disabled = live; });
-    text('dashboardReadiness', demo ? 'This preview uses synthetic records. Turn Demo data off to check live source availability.' : 'Source previews do not establish validated imports, complete counts, EVV exceptions, staffing eligibility or billable hours.');
+    text('dashboardReadiness', demo ? 'Synthetic records. Turn Demo data off to check live access.' : 'Source previews do not establish complete imports/counts, EVV exceptions, staff eligibility or billable hours.');
     const model = fixtures.dashboard(date);
     metrics('dashboardOverviewMetrics', [
       ['Scheduled visits', model.visits.length], ['EVV exceptions', model.exceptions.length, `${model.highPriority} example high priority`],
@@ -602,7 +604,6 @@
       unavailable('dashboardExceptions', 'EVV exceptions unavailable', 'The visit source preview keeps original values separate and does not classify exceptions.');
       unavailable('dashboardCoverage', 'Coverage unavailable', 'Validated schedules and availability are required.');
       unavailable('dashboardAlerts', 'Manager inbox unavailable', 'Alert evaluation and delivery are not active.');
-      unavailable('dashboardMessages', 'Messages unavailable', 'No live message feed or delivery channel is connected.');
       unavailable('dashboardStaffing', 'Open shifts unavailable', 'No staffing eligibility or assignment is inferred from the visit preview.');
       unavailable('dashboardBillingPipeline', 'Billing pipeline unavailable', 'No billing-ready totals, claims or payments are inferred.');
       unavailable('dashboardVisitRows', 'Visit preview unavailable', ready ? 'Checking source access…' : 'Sign in with an approved administrator account.');

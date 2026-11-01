@@ -169,8 +169,9 @@
   const get = id => document.getElementById(id);
   const panel = get('revisionWorkspace');
   if (!controller || !fixtures || !panel) return;
-  let ready = false, session = 0, serial = 0, active = false, loading = false, abort = null, status = null, visitPage = null, visitRetry = null, selectedId = null, demoOffset = 0, sourceRetryAt = 0;
+  let ready = false, session = 0, serial = 0, active = false, messagesActive = false, loading = false, abort = null, status = null, visitPage = null, visitRetry = null, selectedId = null, demoOffset = 0, sourceRetryAt = 0;
   const pages = { requirements: null, exceptions: null, notifications: null };
+  const recordHosts = ['revisionVisits', 'revisionDetail', 'revisionExceptions', 'revisionRequirements', 'revisionNotifications'];
   const localDay = () => { const now = new Date(); return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`; };
   const dateInput = get('revisionDate');
   if (dateInput) dateInput.value = localDay();
@@ -213,14 +214,14 @@
   function invalidate() {
     serial += 1; abort?.abort(); abort = null; loading = false; status = null; visitPage = null; visitRetry = null; selectedId = null; demoOffset = 0;
     for (const kind of Object.keys(pages)) pages[kind] = null;
-    for (const id of ['revisionVisits', 'revisionDetail', 'revisionExceptions', 'revisionRequirements', 'revisionNotifications']) replace(id);
+    for (const id of recordHosts) replace(id);
     for (const id of ['revisionNext', 'revisionRequirementsNext', 'revisionExceptionsNext', 'revisionNotificationsNext']) { if (get(id)) get(id).hidden = true; }
-    text('revisionScope', ''); text('revisionPageCount', ''); text('revisionCompleteness', '');
+    text('revisionScope', ''); text('revisionPageCount', ''); text('revisionCompleteness', ''); text('messagesStatus', '');
     if (get('revisionRequirementForm')) get('revisionRequirementForm').reset();
     controls();
   }
   function controls() {
-    if (get('revisionRefresh')) get('revisionRefresh').disabled = !ready || loading;
+    for (const id of ['revisionRefresh', 'messagesRefresh']) if (get(id)) get(id).disabled = !ready || loading;
     if (dateInput) dateInput.disabled = loading;
     if (get('revisionNext')) get('revisionNext').disabled = loading;
     const form = get('revisionRequirementForm');
@@ -231,13 +232,14 @@
   }
   function renderMode() {
     invalidate();
-    if (!ready) { text('revisionStatus', 'Sign in to open visit review.'); unavailable('revisionVisits', 'Visit review is unavailable until sign-in is complete.'); return; }
+    if (get('messagesLive')) get('messagesLive').hidden = !controller.isLive();
+    if (!ready) { text('messagesStatus', 'Sign in to read alerts.'); text('revisionStatus', 'Sign in to open visit review.'); unavailable('revisionVisits', 'Visit review is unavailable until sign-in is complete.'); return; }
     if (!controller.isLive()) {
       text('revisionStatus', 'Demo examples use the same synthetic visits as the dashboard. Follow-up changes and messages are disabled.');
       renderDemo();
     } else {
       text('revisionStatus', 'Open Visit review or refresh to check approved source access.');
-      for (const id of ['revisionVisits', 'revisionDetail', 'revisionExceptions', 'revisionRequirements', 'revisionNotifications']) unavailable(id, 'Unavailable until the server checks approved access.');
+      for (const id of recordHosts) unavailable(id, 'Unavailable until the server checks approved access.');
       if (active) void refresh();
     }
   }
@@ -351,7 +353,7 @@
   function clearRevokedAccess(error) {
     if (!['revision_policy_changed_restart', 'revision_discovery_changed_restart', 'operational_data_release_not_approved', 'office_timezone_not_configured', 'revision_management_role_required', 'office_scope_mismatch'].includes(error?.message)) return false;
     invalidate(); text('revisionStatus', errorText(error));
-    for (const id of ['revisionVisits', 'revisionDetail', 'revisionExceptions', 'revisionRequirements', 'revisionNotifications']) unavailable(id, 'Access or source scope changed. Refresh before reviewing or saving.');
+    for (const id of recordHosts) unavailable(id, 'Access or source scope changed. Refresh before reviewing or saving.');
     return true;
   }
   async function request(path, ticket, options = {}) {
@@ -372,24 +374,27 @@
   async function refresh() {
     if (!ready || !active || loading) return;
     if (!controller.isLive()) { demoOffset = 0; renderDemo(); return; }
-    if (!validDay(dateInput.value)) { text('revisionStatus', 'Choose a valid service date.'); return; }
+    if (!messagesActive && !validDay(dateInput.value)) { text('revisionStatus', 'Choose a valid service date.'); return; }
     invalidate();
     const { ticket, untrack } = begin();
-    text('revisionStatus', 'Checking review availability…');
+    text('revisionStatus', 'Checking review availability…'); text('messagesStatus', 'Checking office alert access…');
     try {
       status = normalizeStatus(await request('status', ticket));
       if (!current(ticket)) return;
         if (controller.observeScope?.(status.workspaceScope)) return;
       text('revisionScope', `Office ${status.officeId || 'not configured'} · ${ticket.date}`);
+      text('messagesStatus', `Office ${status.officeId || 'not configured'} · ${status.capabilities.sms ? 'Reminder gates open; delivery unverified.' : 'Automatic text delivery is not enabled.'}`);
       if (!status.dataApproved || !status.officeId) {
         text('revisionStatus', friendlyErrors[status.blockedReason] || 'Live review is unavailable until the office and data approvals are ready.');
-        for (const id of ['revisionVisits', 'revisionDetail', 'revisionExceptions', 'revisionRequirements', 'revisionNotifications']) unavailable(id, 'Unavailable. No synthetic values are shown in Live mode.');
+        text('messagesStatus', get('revisionStatus').textContent);
+        for (const id of recordHosts) unavailable(id, 'Unavailable. No synthetic values are shown in Live mode.');
         return;
       }
+      if (messagesActive) { await loadRecords('notifications', ticket); return; }
       text('revisionStatus', status.capabilities.diagnosis ? `Review is available. ${status.capabilities.sms ? 'Approved reminders are managed by the server.' : 'Automatic text delivery is not enabled.'} ${status.earlyReminderConfigured ? '' : 'Early-ending reminder threshold is not configured.'}` : 'Original source evidence may be previewed; accepted interpretation is pending. Diagnosis remains unknown.');
       // The source and persisted records fail independently; one unavailable area does not fabricate another.
       await Promise.allSettled([loadVisits(ticket, 0), ...Object.keys(pages).map(kind => loadRecords(kind, ticket))]);
-    } catch (error) { if (current(ticket)) { text('revisionStatus', errorText(error)); for (const id of ['revisionVisits', 'revisionDetail', 'revisionExceptions', 'revisionRequirements', 'revisionNotifications']) unavailable(id, 'Unavailable. Refresh to retry approved access.'); } }
+    } catch (error) { if (current(ticket)) { text('revisionStatus', errorText(error)); text('messagesStatus', errorText(error)); for (const id of recordHosts) unavailable(id, 'Unavailable. Refresh to retry approved access.'); } }
     finally { untrack?.(); if (current(ticket)) { loading = false; controls(); } }
   }
   async function loadVisits(ticket, offset) {
@@ -512,6 +517,7 @@
     }));
   }
   get('revisionRefresh')?.addEventListener('click', () => void refresh());
+  get('messagesRefresh')?.addEventListener('click', () => void refresh());
   get('revisionSearch')?.addEventListener('input', renderVisits);
   get('revisionSeverity')?.addEventListener('change', renderVisits);
   dateInput?.addEventListener('change', () => { invalidate(); if (!validDay(dateInput.value)) { text('revisionStatus', 'Choose a valid service date.'); return; } if (controller.isLive()) { if (active) void refresh(); } else if (ready) renderDemo(); });
@@ -533,9 +539,9 @@
     await mutate(form, message, () => ({ path: 'requirements/save', body }));
   });
   get('revisionRequirementForm')?.querySelector('[name="type"]')?.addEventListener('change', controls);
-  document.addEventListener('primetime-view-changed', event => { const next = event.detail?.view === 'revisions'; if (active && !next) { active = false; invalidate(); return; } active = next; if (active && ready) { if (controller.isLive()) void refresh(); else renderDemo(); } });
-  document.addEventListener('primetime-ready', () => { ready = true; session += 1; active = panel.classList.contains('is-active'); renderMode(); });
-  document.addEventListener('primetime-signed-out', () => { ready = false; session += 1; invalidate(); text('revisionStatus', 'Sign in to open visit review.'); });
+  document.addEventListener('primetime-view-changed', event => { active = false; invalidate(); messagesActive = event.detail?.view === 'messages'; active = messagesActive || event.detail?.view === 'revisions'; if (active && ready) { if (controller.isLive()) void refresh(); else renderDemo(); } });
+  document.addEventListener('primetime-ready', () => { ready = true; session += 1; messagesActive = get('messagesWorkspace')?.classList.contains('is-active'); active = messagesActive || panel.classList.contains('is-active'); renderMode(); });
+  document.addEventListener('primetime-signed-out', () => { ready = false; session += 1; invalidate(); text('messagesStatus', 'Sign in to read alerts.'); text('revisionStatus', 'Sign in to open visit review.'); });
   document.addEventListener('primetime-data-mode-changed', renderMode);
   renderMode();
 })();

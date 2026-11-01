@@ -1,5 +1,15 @@
 # PTHHS Management Layer — Developer Checklist
 
+- [x] November1 office-alert reader implementation: connect Messages to existing
+  revisions/status and gated office outbox history, with the same normalization,
+  cursor and scope/session fences used in Visit review. Alert history moves to
+  Messages; Visit review links to it. No new backend route, permission, provider
+  lookup, HHA read or send. Three new regressions fail before/pass after; focused
+  250tests and the full354frontend-tooling/46analytics tests pass. Full Windows
+  release checks pass with unchanged budgets. Normal release/native acceptance
+  pending. See
+  [scope](MESSAGES_SOURCE_CONNECTION_2026-11-01.md).
+
 - [x] November1 call-review context implementation: display the selected visit
   context and exact query filters separately from unlinked raw call events.
   Preserve existing call-read/patient-office receipts; reject ambiguous calendar

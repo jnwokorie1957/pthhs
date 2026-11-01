@@ -322,11 +322,26 @@ TAB 05 - PATIENT WORKBENCH
     office and release/access limits before enabling the bounded readers.
 
 TAB 06 - MESSAGES & ALERTS
-[ ] M01 Currently says no live message feed or delivery channel is connected.
-    Existing source for application reminders is the Primetime outbox/provider
-    delivery state, not HHA notes or a made-up HHA inbox endpoint.
+[ ] M01 Connect Messages to actual Primetime office-alert access/readiness.
+    November1 implementation replaces the permanent disconnected placeholder
+    with existing protected GET /revisions/status and, only when its existing
+    notificationRecords capability is true, GET /revisions/notifications.
+    Exact persisted source: revisionNotificationOutbox_<officeId> through the
+    existing NotificationOutbox.page access checks. This is not an HHA inbox.
+    Normal release/native readiness acceptance pending.
 [ ] M02 Expose actual provider/configuration/history state and persisted office
     follow-up in this tab; avoid a generic failure for a deliberately closed gate.
+    The same history renderer/cursor now lives in Messages, with a Visit review
+    shortcut. Closed history capability, successful empty pages, source failure,
+    acceptance, delivery and acknowledgement stay distinct. The status reports
+    server reminder gates, not verified provider credentials or future delivery.
+    Three new regressions fail against the former module and pass after the
+    correction (250focused tests). They cover Messages-only GETs without visits,
+    invalid unrelated visit dates, paging, closed/empty/failed access and late
+    replies after navigation/Demo/sign-out. No provider contact, send, grant,
+    settings change, HHA note read or source write. Actual permitted history and
+    provider/delivery evidence remain separately bounded acceptance.
+    See docs/management-layer/MESSAGES_SOURCE_CONNECTION_2026-11-01.md.
 [ ] M03 HHA patient/caregiver notes are separate: GetPatientNotes,
     GetCaregiverNotes and their change endpoints. Do not label these as delivered
     text messages or send new communications during connection verification.

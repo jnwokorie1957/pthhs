@@ -161,7 +161,7 @@ function harness(custom) {
   vm.runInContext(asset('data-source.js'), context); vm.runInContext(asset('demo-data.js'), context); vm.runInContext(asset('revisions.js'), context);
   const emit = (type, detail) => { const event = new Event(type); event.detail = detail; document.dispatchEvent(event); };
   return { element, window, calls, descendants, emit, advance(ms) { now += ms; },
-    async openLive() { emit('primetime-ready'); window.primetimeDataMode.setMode('live'); emit('primetime-view-changed', { view: 'revisions' }); await tick(); await tick(); },
+    async openLive(view = 'revisions') { emit('primetime-ready'); window.primetimeDataMode.setMode('live'); emit('primetime-view-changed', { view }); await tick(); await tick(); },
     async click(id) { for (const fn of element(id).handlers.get('click') || []) await fn({ currentTarget: element(id), preventDefault() {} }); },
     async submit(form) { for (const fn of form.handlers.get('submit') || []) await fn({ currentTarget: form, preventDefault() {} }); },
     async change(id) { for (const fn of element(id).handlers.get('change') || []) await fn({ currentTarget: element(id) }); },
@@ -433,6 +433,48 @@ test('provider acceptance is displayed separately from delivery and office ackno
   await app.openLive(); assert.ok(app.text('revisionNotifications').includes('Provider accepted · delivery unconfirmed'));
   assert.ok(app.text('revisionNotifications').includes('Acknowledge office alert'));
   assert.ok(!app.text('revisionNotifications').includes('Delivery confirmed'));
+});
+
+test('Messages reads only scoped internal status and paged outbox history, independent of visit date', async () => {
+  const app = harness(path => path.includes('/notifications') ? { ok: true, json: async () => ({ ...page([{ id: 'c'.repeat(64), officeId: '123', revision: 1, visitId: '55', rule: 'missing_clock_out', state: 'accepted', plannedSendAt: '2026-10-11T15:00:00Z', deadlineAt: null, acknowledgement: null }]), nextCursor: path.includes('?') ? null : 'opaque/+==' }) } : null);
+  app.element('revisionDate').value = '';
+  await app.openLive('messages');
+  assert.deepEqual(app.calls.map(call => call.path), ['/primetime/api/revisions/status', '/primetime/api/revisions/notifications']);
+  assert.match(app.text('messagesStatus'), /Office 123.*Automatic text delivery is not enabled/);
+  assert.match(app.text('revisionNotifications'), /Provider accepted · delivery unconfirmed/);
+  await app.click('revisionNotificationsNext'); await tick(); await tick();
+  assert.ok(app.calls.at(-1).path.endsWith('?cursor=opaque%2F%2B%3D%3D'));
+  assert.equal(app.element('revisionNotificationsNext').hidden, true);
+  assert.ok(app.calls.every(call => !call.options.method || call.options.method === 'GET'));
+});
+
+test('Messages distinguishes a closed history gate, successful empty history and failed access', async () => {
+  for (const state of ['closed', 'empty', 'failed']) {
+    const app = harness(path => path.endsWith('/status') ? { ok: true, json: async () => ({ ...clone(status), capabilities: { ...status.capabilities, notificationRecords: state !== 'closed' } }) }
+      : path.endsWith('/notifications') && state === 'failed' ? { ok: false, json: async () => ({ ok: false, error: 'operational_data_release_not_approved' }) } : null);
+    await app.openLive('messages');
+    assert.equal(app.calls.some(call => call.path.includes('/notifications')), state !== 'closed');
+    assert.match(app.text('revisionNotifications'), state === 'closed' ? /Notification history is not enabled/ : state === 'empty' ? /No persisted records/ : /Access or source scope changed/);
+    assert.equal(app.calls.some(call => call.path.includes('/visits')), false);
+  }
+});
+
+test('Messages clears scope facts and fences late status or history after navigation, Demo and sign-out', async () => {
+  for (const endpoint of ['status', 'notifications']) for (const exit of ['navigation', 'demo', 'signout']) {
+    const late = deferred();
+    const app = harness(path => path.endsWith('/' + endpoint) ? late.promise : null);
+    await app.openLive('messages');
+    if (exit === 'navigation') app.emit('primetime-view-changed', { view: 'billing' });
+    else if (exit === 'demo') app.window.primetimeDataMode.setMode('demo');
+    else app.emit('primetime-signed-out');
+    late.resolve({ ok: true, json: async () => endpoint === 'status' ? clone(status) : page([{ id: 'c'.repeat(64), officeId: '123', revision: 1, visitId: '55', rule: 'missing_clock_out', state: 'accepted', plannedSendAt: '2026-10-11T15:00:00Z', deadlineAt: null, acknowledgement: null }]) });
+    await tick(); await tick();
+    assert.doesNotMatch(app.text('messagesStatus'), /Office 123/);
+    assert.doesNotMatch(app.text('revisionNotifications'), /Provider accepted|Delivery confirmed/);
+    if (exit === 'demo') assert.equal(app.element('messagesLive').hidden, true);
+    if (endpoint === 'status') assert.equal(app.calls.some(call => call.path.includes('/notifications')), false);
+    assert.equal(app.calls.some(call => call.options.method === 'POST'), false);
+  }
 });
 
 test('overdue supervisor delivery explains the next office action without implying receipt or resending', async () => {

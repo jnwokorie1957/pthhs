@@ -1,5 +1,14 @@
 # PTHHS
 
+## November 1 office-alert source connection
+
+Messages now checks the existing protected Primetime status/outbox reader instead
+of displaying a permanent disconnected placeholder. History gates, empty pages,
+provider acceptance, delivery and office acknowledgement remain separate. Opening
+this tab does not read HHA visits, enable messaging or send anything. Three new
+regressions fail before/pass after. Normal release/native acceptance pending; see
+[scope](docs/management-layer/MESSAGES_SOURCE_CONNECTION_2026-11-01.md).
+
 ## November 1 call-review context
 
 Call review now shows its selected visit context and exact patient/caregiver/
