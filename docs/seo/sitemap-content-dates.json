@@ -56,8 +56,8 @@
     "evidence": "Added contextual home-care guide navigation: docs/seo/2026-10-18-seo-review.md"
   },
   "/home-care-blog": {
-    "lastmod": "2026-10-28",
-    "evidence": "Family first-call article and registry cards: docs/seo/2026-10-28-family-checklist.md"
+    "lastmod": "2026-11-01",
+    "evidence": "Household preferences article and registry cards: docs/seo/2026-11-01-household-preferences.md"
   },
   "/": {
     "lastmod": "2026-10-12",
@@ -72,11 +72,15 @@
     "evidence": "Approved alert-design insert: docs/seo/2026-10-28-alert-guidance.md"
   },
   "/articles": {
-    "lastmod": "2026-10-28",
-    "evidence": "Family first-call article and registry cards: docs/seo/2026-10-28-family-checklist.md"
+    "lastmod": "2026-11-01",
+    "evidence": "Household preferences article and registry cards: docs/seo/2026-11-01-household-preferences.md"
   },
   "/articles/home-care-first-call-checklist-houston": {
     "lastmod": "2026-10-28",
     "evidence": "Family first-call article and registry cards: docs/seo/2026-10-28-family-checklist.md"
+  },
+  "/articles/household-preferences-sheet-nonmedical-home-care": {
+    "lastmod": "2026-11-01",
+    "evidence": "Household preferences article and registry cards: docs/seo/2026-11-01-household-preferences.md"
   }
 }

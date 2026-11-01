@@ -13,6 +13,7 @@ PUBLIC = ROOT / "public"
 
 RUNTIME_ASSETS = {
     "assets/insurance-logos.css",
+    "assets/articles.css",
     "assets/components.css",
     "assets/home.css",
     "assets/modern.css",

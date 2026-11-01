@@ -134,6 +134,13 @@ def approved_articles(content_dir: Path | None = None) -> tuple[Article, ...]:
     return tuple(sorted(result, key=lambda a: (a.published, a.slug), reverse=True))
 
 
+def article_presentation(page: str) -> str:
+    """Attach isolated editorial styling, never changing the shared site shell."""
+    return page.replace('<body class="modern-page template-refresh">',
+                        '<body class="modern-page template-refresh article-page">', 1).replace(
+        '</head>', '<link rel="stylesheet" href="/assets/articles.css?v=20261031">\n</head>', 1)
+
+
 def render_article(article: Article) -> str:
     article.validate()
     metadata = ('<p>Published by Robert, AI CTO of Primetime Home Health Services</p>'
@@ -143,9 +150,9 @@ def render_article(article: Article) -> str:
         metadata += f' Updated <time datetime="{article.modified}">{article.modified}</time>.'
     metadata += '</p>'
     body = section(f'<article class="content-wrap" aria-label="{escape(article.title, quote=True)}">{metadata}<div data-article-body>{render_body(article.body)}</div><p><a href="/articles">Browse all articles</a> · <a href="/home-care-blog">Return to the Home Care Guide</a></p></article>')
-    return render_page(title=article.seo_title, description=article.description, path=article.path,
+    return article_presentation(render_page(title=article.seo_title, description=article.description, path=article.path,
                        eyebrow='Company perspective', heading=article.title,
-                       lead=article.description, body=body, current_nav='Articles').replace('property="og:type" content="website"', 'property="og:type" content="article"')
+                       lead=article.description, body=body, current_nav='Articles').replace('property="og:type" content="website"', 'property="og:type" content="article"'))
 
 
 def render_article_card(article: Article) -> str:
@@ -165,9 +172,9 @@ def is_approved_internal_citation(route: str, href: str) -> bool:
 def render_article_index(articles: tuple[Article, ...]) -> str:
     cards = ''.join(render_article_card(article) for article in articles)
     listing = '<div class="grid grid-2">' + cards + '</div>' if cards else '<p>No articles are currently published.</p>'
-    return render_page(title='Articles | Primetime Home Health Services',
+    return article_presentation(render_page(title='Articles | Primetime Home Health Services',
                        description='Read published company perspectives on non-medical home care and responsible administrative technology from Primetime Home Health Services.',
                        path='/articles', eyebrow='Company perspectives', heading='Articles',
                        lead='Read our published articles. For practical service questions, use the Home Care Guide.',
                        body=section(listing + '<p><a href="/home-care-blog">Explore the Home Care Guide</a></p>'),
-                       current_nav='Articles')
+                       current_nav='Articles'))

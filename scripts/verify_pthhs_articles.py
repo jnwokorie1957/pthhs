@@ -249,5 +249,68 @@ class ArticleTests(unittest.TestCase):
             self.assertNotIn('<loc>https://pthhs.net/' + slug + '</loc>', sitemap)
 
 
+class HouseholdAndStyleTests(unittest.TestCase):
+    def test_household_sheet_keeps_each_prompt_readable_and_scope_explicit(self):
+        article = next(a for a in approved_articles() if a.slug == 'household-preferences-sheet-nonmedical-home-care')
+        page = (ROOT / 'public' / (article.path.lstrip('/') + '.html')).read_text()
+        body = re.search(r'<div data-article-body>(.*?)</div>', page, re.S).group(1)
+        self.assertEqual(plaintext(body), plaintext(render_body(article.body)))
+        self.assertIn('<h2>My Household Preferences</h2>', body)
+        prompts = re.findall(r'<p><strong>(.*?)</strong>\s*_+</p>', body)
+        self.assertEqual(len(prompts), 14)
+        self.assertIn('Name I prefer:', prompts)
+        self.assertIn('Discussed on:', prompts)
+        for expected in ('optional family conversation aid', 'not an approved PTHHS procedure',
+                         'Do not use it to revise agency records or instructions',
+                         'do not send sensitive health information through ordinary email or social media'):
+            self.assertIn(expected, plaintext(body))
+        for forbidden in ('Release metadata', 'Unpublished draft', 'Canonical publication URL', '###'):
+            self.assertNotIn(forbidden, page)
+        for url in re.findall(r'\]\((https://[^)]+)\)', article.body):
+            self.assertIn('href="' + url + '"', body)
+        self.assertIn('href="https://pthhs.net/home-care-services"', body)
+
+    def test_household_sheet_metadata_and_discovery(self):
+        article = next(a for a in approved_articles() if a.slug == 'household-preferences-sheet-nonmedical-home-care')
+        page = (ROOT / 'public' / (article.path.lstrip('/') + '.html')).read_text()
+        graph = json.loads(re.search(r'<script type="application/ld\+json">(.*?)</script>', page, re.S).group(1))['@graph']
+        schema, = [x for x in graph if x['@type'] == 'Article']
+        self.assertEqual(schema, article.schema())
+        self.assertEqual(page.count('<h1>'), 1)
+        self.assertEqual(page.count('Published by Robert, AI CTO of Primetime Home Health Services'), 1)
+        self.assertIn('rel="canonical" href="https://pthhs.net' + article.path + '"', page)
+        for name in ('articles.html', 'home-care-blog.html'):
+            self.assertEqual((ROOT / 'public' / name).read_text().count('href="' + article.path + '"'), 1)
+        self.assertEqual((ROOT / 'public/sitemap.xml').read_text().count('<loc>https://pthhs.net' + article.path + '</loc>'), 1)
+
+    def test_article_only_styles_and_existing_focus_affordance(self):
+        from pthhs_articles import render_article_index
+        for page in (render_article(BASE), render_article_index((BASE,))):
+            self.assertEqual(page.count('article-page'), 1)
+            self.assertEqual(page.count('/assets/articles.css?'), 1)
+            self.assertIn('/assets/articles.css?v=20261031">\n</head>', page)
+        service = (ROOT / 'public/home-care-services.html').read_text()
+        self.assertNotIn('/assets/articles.css', service)
+        css = (ROOT / 'public/assets/articles.css').read_text()
+        self.assertIn('max-width:72ch', css)
+        self.assertIn('overflow-wrap:anywhere', css)
+        self.assertIn('.article-page .grid>.card:focus-within{box-shadow:0 0 0 3px #1768b5,var(--shadow)}', css)
+        self.assertIn('.article-page .page-hero h1{font-size:clamp(28px,7vw,36px)!important}', css.split('@media(max-width:600px)')[1])
+        self.assertNotIn('display:none', css)
+
+    def test_nonmedical_substring_does_not_exempt_medical_claims(self):
+        import ast
+        source = (ROOT / 'scripts/generate_sensitive_term_register.py').read_text()
+        function = next(node for node in ast.parse(source).body if isinstance(node, ast.FunctionDef) and node.name == 'classify')
+        namespace = {'re': re}
+        exec(compile(ast.Module(body=[function], type_ignores=[]), '<classifier>', 'exec'), namespace)
+        classify = namespace['classify']
+        self.assertEqual(classify('medical', 'Nonmedical household preferences.', False)[0], 'ALLOWED')
+        for claim in ('Medical household care.', 'Nonmedical support and medical treatment.',
+                      'Nonmedicalized treatment.', 'Nonmedical nursing treatment.'):
+            term = 'nursing' if 'nursing' in claim else 'medical'
+            self.assertEqual(classify(term, claim, False)[0], 'REVIEW_REQUIRED')
+
+
 if __name__ == '__main__':
     unittest.main()

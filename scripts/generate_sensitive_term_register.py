@@ -39,6 +39,8 @@ def classify(term: str, text: str, quarantined: bool) -> tuple[str, str]:
     low = text.lower()
     if quarantined:
         return "QUARANTINED", "Article is noindex and permanently redirected pending editorial review."
+    if term == "medical" and "nonmedical" in low and "medical" not in re.sub(r"\bnonmedical\b", "", low):
+        return "ALLOWED", "The only medical substring is inside the explicit nonmedical scope term."
     if term == "diagnose" and low == "a question about services should not require sending a detailed personal history through an ordinary message. pthhs's contact page asks people not to send diagnoses, medication lists or other sensitive health information through ordinary email or social media, and directs them to call for the appropriate next step.":
         return "ALLOWED", "Reviewed first-call article repeats the company's privacy warning, not a diagnosis service; docs/seo/2026-10-28-family-checklist.md."
     if term == "medical" and low == "to discuss your needs. services depend on applicable authorization and availability. this article provides general operational education, not individualized medical, legal or eligibility advice.":
