@@ -1,5 +1,17 @@
 # PTHHS
 
+## November 2 role and workflow research
+
+Current primary guidance and accepted authorization/staff source connections now
+support a more specific next administrator feature: a patient/office authorization
+pane using the existing approved reads, exact discovered identities and independent
+receipts. Raw units and periods, staff discipline, effective assignment and clinical
+form instances remain separate evidence. The research records role permissions,
+shared links and acceptance cases without reopening accepted T03/S04 activation or
+claiming external-role completion. Actual review was 13:21–13:28 UTC; earlier native
+checks remain dated. See [research](docs/management-layer/ROLE_WORKFLOW_RESEARCH.txt).
+No runtime or access setting changed.
+
 ## November 2 staff employment disciplines
 
 Staffing now retains the employment disciplines already returned by its approved

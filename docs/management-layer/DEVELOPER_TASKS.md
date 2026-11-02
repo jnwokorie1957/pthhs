@@ -1,5 +1,14 @@
 # PTHHS Management Layer — Developer Checklist
 
+- [x] November 2, 13:21–13:28 UTC role research: R60–R63 and current accepted
+  authorization/staff connections refine patient/family, PT/staff and office
+  experiences, shared identities, permissions and explicit acceptance cases.
+  Proposed next work is a patient/office authorization pane on the existing
+  approved discovery/detail reads, with independent receipts and raw-unit limits.
+  T03/S04 source acceptance stays complete; unit/period/service interpretation,
+  S02 and external P1-B/P2 contracts stay open. No runtime or permission change.
+  See [research](ROLE_WORKFLOW_RESEARCH.txt).
+
 - [x] November 2 staff employment-discipline implementation: connect the existing
   approved caregiver field to Staffing with its own receipt and independent
   office/visit/caregiver proof. Strict optional-list projection preserves empty
