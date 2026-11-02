@@ -1475,3 +1475,37 @@ https://knowledge.hhaexchange.com/enterprise/Content/Documentation/Patient/Pat-N
 https://knowledge.hhaexchange.com/texas/Content/Documentation/Admin/Admin-N-Permissions-Family-Dashboard-P.htm
 [R72] HHAeXchange, Navigate the Family Portal. Multiple patient contexts.
 https://knowledge.hhaexchange.com/texas/Content/Documentation/Patient/Pat-N-Navigate-Family-Portal-P.htm
+
+
+RAW EVV-TYPE CONNECTION — NOVEMBER 2 BOUNDED IMPLEMENTATION / ACCEPTANCE
+Implements the preceding research's conditional P0 after P10 raw source acceptance.
+Approved V3 ClockInEvvType/ClockOutEvvType now pass through the office-checked
+preview DTO and existing feed cache; Review whitelists them from its returned
+raw record. One shared formatter labels literal in/out types and unknown event
+status. Missing, explicit empty and zero remain distinct; no clock/hour fallback,
+extra source query, grant, event/history join or clinical/financial interpretation.
+
+Three regressions fail before/pass after; all 373 frontend/tooling/571 backend/
+46 analytics plus 24 generator-QA steps pass. Existing budgets remain unchanged:
+419148 raw/101999 gzip app; protected marketing whitespace/LF normalization funds
+the concurrent article and passes semantic comparison of 51 production pages.
+Runtime 1b9aa83, normal workflow 41507288295: Hosting 19:10:10/backend 19:11:21/
+analytics 19:11:55 UTC all success. Public 19:26:44UTC matches 12 assets/11 anonymous
+JSON401-no-store boundaries/noindex. Native 19:28–19:35 UTC: October 24 ten exact source
+page identities and clock/hour cells unchanged; exact V3/Preview/Review type
+pair matches. A contrasting exact visit retains empty out-type, unavailable EVV
+end and empty hours. Record ordering differed; exact visit references joined the
+comparison. Existing Review member/caregiver labels stay withheld pending source
+interpretation, not inferred from the newly displayed types. October 23/current November 2
+each have ten readable type labels and exact independent V3 type matches.
+
+Visible chart counts [10,10,7,3,7,3] match source clocks. Demo clears source types
+and raw results; Live Overview restored to officeNov2/10rows. Automatic receipts
+19:33:03.061→19:34:08.435 UTC advance without manual reads between; no desktop
+horizontal overflow. Private browser memory reset; no private values saved.
+Native error/revocation/quota/mobile variants not induced. P12 bounded admin
+display accepted; no missing clock/hour recovered. P03/E04/B02/T04/S02 and
+external P1-B/P2 contracts remain open. Existing P10/P11 and original screenshot
+acceptance are preserved. Earlier primary research remains dated; no new vendor
+configuration or clinical source acceptance is claimed. See
+EVV_TYPE_DISPLAY_2026-11-02.md. No source write/import/decision/communication.

@@ -493,17 +493,30 @@ TAB 04 - VISIT PREVIEW
     remain open. See SOURCE_READ_BUDGET_HANDLING_2026-11-02.md.
 
 
-[ ] P12 EVV source-type display in Preview/Review (November 2, 17:05 trigger).
+[x] P12 EVV source-type display in Preview/Review (November 2, 17:05 trigger).
     Existing approved V3 ClockInEvvType/ClockOutEvvType now flow through the
     office-checked preview DTO/cache and browser normalization; Review retains
     only those raw type fields from its existing record. Shared literal display
     preserves zero/empty/unknown; unavailable/context/Demo clears old values.
     No clock/hour fallback, event-status mapping, extra query or grant.
-    Three fail-before checks pass;373frontend/tooling/571backend/46analytics and
-    24generator-QA steps pass. App419148raw/101999gzip under unchanged budgets.
+    Three fail-before checks pass;373 frontend/tooling/571 backend/46 analytics and
+    24 generator-QA steps pass. App 419148 raw/101999 gzip under unchanged budgets.
     Equivalent UI copy/shared IDs and protected marketing whitespace compaction
-    fund the combined article+app;132page semantic comparison passes. Normal
-    release/native acceptance pending; P10/P11 stay accepted; P03/E04/B02 open.
+    fund the combined article+app;51 production-page semantic comparison passes.
+    Runtime 1b9aa83 passed workflow 41507288295 Hosting 19:10:10/backend 19:11:21/
+    analytics 19:11:55 UTC. Public 19:26:44 matches 12 assets/11 anonymous JSON401/
+    no-store/noindex. Native 19:28–19:35 UTC: October 24 ten exact page identities and all
+    clock/hour cells unchanged; both views match an independent exact V3 type
+    pair. Another exact visit keeps empty out-type, missing EVV end and empty hours.
+    Review member/caregiver labels remain withheld under existing interpretation
+    gates; row ordering differs, so comparison uses exact visit reference.
+    October 23/current November 2 each show 10 labels and match an independent exact V3 pair.
+    Current Review retains empty hours/unknown verification. Visible chart counts
+    [10,10,7,3,7,3] match source clocks; Demo clears labels/results. Live Overview
+    restored Nov 2/10 rows; automatic receipts 19:33:03.061→19:34:08.435 UTC advance
+    without manual source reads between. No horizontal desktop overflow; private
+    browser RAM reset. Native failure/mobile variants not induced. P10/P11 stay
+    accepted; no missing clock/hour recovered, P03/E04/B02/full coverage open.
     See EVV_TYPE_DISPLAY_2026-11-02.md.
 
 TAB 05 - PATIENT WORKBENCH

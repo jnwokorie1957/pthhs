@@ -9,6 +9,16 @@ tests pass. The additional search read remains disabled; normal release and nati
 acceptance are pending. No usable billing detail or missing EVV time is claimed.
 See [bounded scope](docs/management-layer/BILLED_DISCOVERY_2026-11-02.md).
 
+## November 2 EVV source types in Preview and Review
+
+Both views now show the raw in/out type fields already supplied by the approved
+HHA reader. Empty clock times and hours remain unchanged; types do not establish
+event status. All tests and normal release jobs passed. Exact October 23/24 and
+current-day comparisons, Demo clearing, chart counts and automatic feed advance
+pass. This completes the bounded P12 display connection; missing-time/history
+and billing source gaps remain open. See
+[verification](docs/management-layer/EVV_TYPE_DISPLAY_2026-11-02.md).
+
 ## November 2 EVV source metadata and read admission
 
 The existing V3 inspector now exposes both raw EVV type fields. Production checks

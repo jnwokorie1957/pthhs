@@ -8,6 +8,17 @@
   acceptance are pending. B02 usable facts remain open. See
   [scope and acceptance](BILLED_DISCOVERY_2026-11-02.md).
 
+- [x] November 2 raw EVV-type display: carry approved V3 in/out type strings
+  through office-checked Preview/cache and existing Review evidence. Keep literal
+  zero/empty/unknown, same receipts, no clock/hour fallback or event-status claim.
+  Three fail-before checks,373 frontend/tooling,571 backend,46 analytics and full
+  generator/budget checks pass. Runtime 1b9aa83 passed all three normal jobs;
+  12 public assets/11 anonymous boundaries/noindex and native October 23/24/current-day
+  exact-source comparisons pass. October 24 clocks/hours stay unchanged; empty out-type
+  evidence stays empty. Demo clears; visible chart counts match; automatic feed
+  advances after Live restoration. P12 accepted; P03/E04/B02 remain open.
+  See [scope and bounded acceptance](EVV_TYPE_DISPLAY_2026-11-02.md).
+
 - [x] November 2, 16:50–16:55 UTC role research: R64–R72 refine duty capture,
   configurable post-visit editing, compliance module differences, family patient
   selection and separate view/approve/resolve permissions. Captured POC contract
