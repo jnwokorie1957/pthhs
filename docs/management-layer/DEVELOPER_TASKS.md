@@ -1,5 +1,14 @@
 # PTHHS Management Layer — Developer Checklist
 
+- [x] November 2,20:30–20:34UTC clinical-role research: R73 adds skilled-visit
+  discipline/service/contract applicability; R10/R40 rechecks separate form
+  configuration, resource prefill/sync and historical plan/master-week evidence.
+  Captured POC, attachment/download and administrator FormRecord shapes do not
+  supply clinical instance/action/sharing joins. Proposed patient/PT/office links
+  and acceptance cases refine existing T04/P2 dependencies; no new grant, source
+  write, runtime or native clinical acceptance. T05/list-return/B05 stay accepted;
+  H03 remains concurrent work. See [cumulative research](ROLE_WORKFLOW_RESEARCH.txt).
+
 - [x] November 2 authorization-list return implemented locally: browser-memory-only
   restoration preserves original receipts, exact contract selectors and cautions
   without another HHA request. Scope/session/failed-detail fences and monotonic

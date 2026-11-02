@@ -1545,3 +1545,96 @@ mobile cases not induced. No private source IDs/values/screenshots saved.
 This is accepted office-admin navigation only; T05/P12/B05 remain accepted,
 H03 concurrent health/status work and broader P03/E04/B02/T04/S02/P1-B/P2 remain
 open. See PATIENT_AUTHORIZATION_RETURN_2026-11-02.md. No owner action/grant needed.
+
+
+CLINICAL DOCUMENT APPLICABILITY / RESOURCE PROVENANCE — NOVEMBER 2, 20:30–20:34 UTC
+Research-only refinement of T04/P2; observed implementation is separate below.
+
+CURRENT PRIMARY GUIDANCE, NOT TENANT CONFIGURATION
+[R73] Clinical E-Docs describes a skilled-visit document context whose availability
+depends on caregiver discipline and service code within a contract. This is more
+specific than finding a patient attachment or a generally published form.
+[R10, rechecked] distinguishes document category, published office assignment and
+payer/service/visit-type configuration. Its resource table also describes possible
+MD Order-to-Forms and Forms-to-MD Order synchronization. That statement does not
+prove such synchronization is enabled here or authorize a Primetime write.
+[R40, rechecked] lists different prefill origins, including latest patient POC and
+master-week data. A populated historical form is not independent proof of the
+applicable encounter plan or an original EVV punch. The documentation's UI field
+labels are not a verified SOAP field-path/units mapping or alternate time feed.
+Family Portal Users overview reaffirms agency-managed relationships and privacy
+policy. It does not grant family members general access to all clinical forms.
+
+CURRENT SOURCE / ACCEPTED UI EVIDENCE
+At upstream5e74fa1, captured PocInfoDetails has Patient/ID, plan ID/dates/number,
+notes/creation date and task definitions. It has no declared visit, contract,
+service-code, clinician/form-instance or signature association. PatientDocument
+has PatientDocID/PatientID/type and descriptive file metadata; it declares no
+encounter, form version, clinical approval or recipient sharing. The download
+shape has PatientDocID and bytes/file metadata but no PatientID: the parent cannot
+be established from those bytes alone. FormRecord in forms/library.ts remains an
+administrator file record with folder/kind, file/hash/size/time, not a clinical
+instance. No live patient document or new clinical API read was attempted.
+
+Fresh accepted Primetime evidence from20:21–20:23UTC supports only administrator
+authorization navigation:13 discovery rows,14-field exact detail, independent
+receipts, patient/date/Demo fences and original-list return. T05 and the new return
+remain accepted; neither proves clinical document applicability. No fresh HHA
+source UI acceptance is claimed; the previously recorded source login/verification
+interruption is not reopened or treated as API disconnection. B05 remains approved
+with a successful empty result. H03 is already owned by the concurrent goal chat.
+
+ROLE DESIGN INFERENCES / SHARED LINKS
+Patient/family: an explicitly permitted schedule entry may link to a specifically
+shared clinical instance or patient document. Keep the source module, instance
+and sharing receipt distinct from an uploaded file or unvalidated plan reference.
+Do not offer clinical edits, sign-off, source schedule changes or automatic holds.
+PT/staff: My day -> assigned exact encounter -> applicable source module and
+form/version -> document instance/history. Applicability needs its own office,
+effective assignment/discipline, contract/service and visit-type evidence where
+the selected module requires them. Unknown applicability stays unknown; never
+choose the newest plan, first template or matching filename as a substitute.
+Office: link the same exact instance from the patient, visit and permitted review
+queue. Keep unavailable read, empty result, missing applicability and clinical
+review state separate. A library upload or administrative proposal approval must
+not complete a therapy note, remove an EVV concern or produce a billable status.
+Public navigation points to secure entry; no patient roster or document metadata
+belongs in public pages. Shared links never confer account or action authority.
+
+PRIORITIES / DEPENDENCIES / ACCEPTANCE
+P0: preserve accepted navigation and H03 ownership; no new read activation needed.
+P1: before an administrator POC/document detail connection, use the existing T04
+scope design: fresh patient-office proof, direct unique parent/detail IDs, exact
+independent receipts and conservative completeness. Require parent proof for
+metadata AND download; do not turn a general attachment list into a skilled list.
+P2: before any clinical editor or resource prefill, obtain the existing protected
+representative source-module/form/version/office/encounter association and its
+action contract. Explicitly distinguish a read/prefill from any configured resource
+write-back. Current availability alone cannot prove historical applicability.
+Acceptance cases: two same-named forms or equal IDs in different modules; matching
+discipline but different contract/service; draft/unassigned/obsolete version;
+newer POC after the service date; patient/office or sharing revoked between list
+and bytes; a download with only its document ID; resource sync unknown versus a
+separately authorized write. Refuse unsupported associations without claiming no
+form is required. No clinical, EVV, financial or MD Order transition follows from
+viewing, uploading, copying or prepopulating a document.
+
+Next owner/vendor evidence remains the existing protected example: identify the
+actual clinical module and applicable form/version for one permitted encounter,
+its effective office/discipline/contract/service/visit-type configuration, any
+resource synchronization behavior, and clinician/reviewer/signature/sharing action
+authority. Do not repeat an already answered grant, request an urgent login or
+change configuration merely for this research. These acceptance cases are proposed,
+not exercised source transitions. No runtime/release/test rerun, source change,
+new permission, import, clinical/financial decision or communication.
+
+PRIMARY LINKS — RETRIEVED NOVEMBER 2, 2026, 20:30–20:33 UTC
+Retrieval dates only; no publication date or tenant enablement inferred.
+[R73] HHAeXchange, Clinical E-Docs. Skilled-visit and discipline/service/contract applicability.
+https://knowledge.hhaexchange.com/enterprise/Content/Documentation/Patient/Pat-N-Clinical-E-Docs-P.htm
+[R10, rechecked] HHAeXchange Forms. Configuration and resource-source/synchronization table.
+https://knowledge.hhaexchange.com/enterprise/Content/Documentation/Clinical/Clinical-N-HHAX-Forms-Basic.htm
+[R40, rechecked] Patient Forms Feature. Prefill origins and historical-copy provenance.
+https://knowledge.hhaexchange.com/texas/Content/Documentation/Patient/Pat-N-Forms-Feature-P.htm
+Family Portal (Users) Overview, supporting relationship/privacy recheck.
+https://knowledge.hhaexchange.com/enterprise/Content/Documentation/Patient/Pat-N-Family-Portal-Users-Overview-P.htm
