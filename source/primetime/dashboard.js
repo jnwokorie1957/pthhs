@@ -791,6 +791,7 @@
   }
   async function loadPatientProfile(view, item, captured) {
     if (!current(captured) || !controller.isLive() || metadata?.settings?.officeId !== view.scope.officeId) return;
+    document.dispatchEvent(new CustomEvent('primetime-patient-profile-selected', { detail: { patientId: item.patientId, officeId: view.scope.officeId } }));
     if (Date.now() < patientRetryAt) {
       replace('dashboardPatientProfile', node('p', `Source read limit reached. Retry in ${Math.ceil((patientRetryAt - Date.now()) / 1000)} seconds.`)); return;
     }

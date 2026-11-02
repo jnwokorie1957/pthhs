@@ -22,10 +22,20 @@
   let generation = 0, writesEnabled = false, settings = null, investigations = [], intents = [], pendingIntentId = null, pendingRateId = null;
   let investigationSequence = 0, investigationCursor = null, investigationsLoaded = false, investigationsLoading = false, investigationReadAt = null;
   const $ = id => document.getElementById(id);
+  const readHome = $('readForm').parentElement;
+  const inlineRead = () => readHome && $('readForm').parentElement === $('patientAuthorizationHost');
+  function dockRead(inline) {
+    if (!readHome) return;
+    const host = inline ? $('patientAuthorizationHost') : readHome;
+    host.append($('readForm'), $('readResults'));
+    $('readOperation').closest('label').hidden = inline;
+    $('readPatient').readOnly = $('readId').readOnly = inline;
+    if (!inline) $('patientAuthorizationMessage').textContent = 'Choose Open patient authorizations.';
+  }
   const investigationFilters = ['investigationStatusFilter', 'investigationAssignmentFilter', 'investigationFollowUpFilter'];
   let clearManualSnapshots = () => {};
-  const message = text => { $('workspaceMessage').textContent = text; };
-  function clearConnectedPanels(detail = 'Sign in with Demo data off to load protected workspace data.') {
+  const message = text => { $('workspaceMessage').textContent = text; if (inlineRead()) $('patientAuthorizationMessage').textContent = text; };
+  function clearConnectedPanels(detail = 'Sign in with Demo off to load protected data.') {
     for (const id of ['dashboardAudit', 'dashboardSettings']) $(id)?.replaceChildren(paragraph(detail));
   }
   function renderConnectedPanels() {
@@ -42,7 +52,7 @@
       audit.replaceChildren(paragraph(dataApproved ? 'Live Primetime audit history. This records application actions, not HHA’s full external audit trail.' : 'Audit history is locked pending operational data release.'), load); }
   }
   clearConnectedPanels();
-  const names = { "GetPatientContracts": "Patient contracts on selected date", "GetPatientDisciplines": "Patient disciplines", "GetPatientReferralInfo": "Patient referral status (optional for admission)", "GetPatientPreferences": "Patient staffing preferences", "GetPatientDeclinedCaregivers": "Patient declined caregivers", "GetCaregiverRates": "Caregiver pay rates", "GetCaregiverPayCodes": "Caregiver pay codes", "GetCaregiverInServices": "Caregiver training attendance", "GetCaregiverRestriction": "Caregiver restrictions", "GetCaregiverPreferences": "Caregiver staffing preferences", "SearchPayrollBatches": "Find payroll batches by date", "SearchPayrollBatchCaregivers": "Caregivers in selected batch (record ID = batch)", "GetVisitPayrollInfoV2": "Visit payroll facts", "SearchPatientPOC": "Patient care plans", "GetPatientPOCInfo": "Care plan tasks (record ID = plan)", SearchVisitsV2: 'Find visits by office and date', GetScheduleInfo: 'Schedule details', GetVisitInfoV3: 'Visit and EVV evidence', GetPatientDemographics: 'Patient overview', GetCaregiverDemographics: 'Caregiver overview', GetPatientAuthorizationInfo: 'Authorization units', GetVisitBillInfoV2: 'Visit billing facts', GetCaregiverPermanentWeekAvailability: 'Weekly availability', GetCaregiverSpecialAvailability: 'Special availability' };
+  const names = Object.fromEntries([...$('readOperation').options].map(option => [option.value, option.textContent]));
   const inputIds = { id: 'readId', patientId: 'readPatient', officeId: 'readOffice', date: 'readDate', term: 'readTerm', status: 'readStatus', contractId: 'readContract', caregiverId: 'readCaregiver', excludeZeroAmount: 'readExcludeZero', groupByVisit: 'readGroupVisit', modifiedAfter: 'readModifiedAfter', page: 'readPage', complianceType: 'readComplianceType', sequence: 'readSequence', documentTypeId: 'readDocumentType', scheduleType: 'readScheduleType', appliesTo: 'readAppliesTo', caregiverStatus: 'readCaregiverStatus', modifiedAfterUtc: 'readModifiedUtc', lastId: 'readLastId', phone: 'readPhone', noteId: 'readNoteId', referralStatusId: 'readReferralStatus', referralSourceId: 'readReferralSource', salesStaffId: 'readSalesStaff' };
   function showReadInputs() {
     const fields = readInputs[$('readOperation').value];
@@ -62,13 +72,19 @@
     if (kind === 'patient' || kind === 'patient-authorizations' || patientDiscovery) $('readPatient').value = id;
     if (kind === 'caregiver') $('readCaregiver').value = id;
     selectRead(operation);
-    document.dispatchEvent(new Event('primetime-workbench-selected'));
-    $(patientDiscovery ? 'readPatient' : 'readId').focus();
-    const label = kind === 'patient-authorizations' ? 'Patient authorization discovery'
+    dockRead(kind === 'patient-authorizations');
+    document.dispatchEvent(new CustomEvent('primetime-workbench-selected', { detail: { view: kind === 'patient-authorizations' ? 'patients' : 'workbench' } }));
+    $(patientDiscovery || kind === 'patient-authorizations' ? 'readPatient' : 'readId').focus();
+    const label = kind === 'patient-authorizations' ? 'Patient authorizations'
       : kind === 'patient-care-plans' ? 'Patient care-plan discovery' : kind === 'patient-documents' ? 'Patient document discovery' : kind[0].toUpperCase() + kind.slice(1);
     message(settings.enabledReads.includes(operation)
-      ? `${label} source ID selected from source evidence. Choose Read source records to fetch current evidence.`
+      ? `${label} source ID selected from source evidence. Choose Read source records to fetch evidence.`
       : `${label} source ID selected. This read requires owner enablement after entitlement review.`);
+  });
+  document.addEventListener('primetime-patient-profile-selected', event => {
+    if (inlineRead() && ($('readPatient').value !== event.detail?.patientId || settings?.officeId !== event.detail?.officeId)) {
+      selectRead('SearchPatientAuthorizations'); $('readPatient').value = ''; $('readId').value = ''; dockRead(false);
+    }
   });
   $('readOperation').addEventListener('change', () => selectRead($('readOperation').value));
   for (const id of Object.values(inputIds)) $(id).addEventListener('input', () => { readSequence++; authorizationSelection = null; $('readResults').replaceChildren(); });
@@ -88,11 +104,12 @@
   function paragraph(text) { const p = document.createElement('p'); p.textContent = text; return p; }
   function setDataAccess(enabled) {
     dataApproved = enabled;
+    if (!enabled) dockRead(false);
     if ($('investigationFilters')) $('investigationFilters').inert = !enabled || window.primetimeDataMode?.isLive() !== true;
     if (!enabled) { authorizationSelection = null; clearInvestigations(); }
     if ($('manualSnapshotPanel')) $('manualSnapshotPanel').inert = !enabled || window.primetimeDataMode?.isLive() !== true;
     if (!enabled) clearManualSnapshots();
-    for (const form of panel.querySelectorAll('form')) {
+    for (const form of new Set([...panel.querySelectorAll('form'), $('readForm')])) {
       if (form.id === 'ownerForm') continue;
       if (!enabled) form.reset();
       for (const input of form.querySelectorAll('input, select, textarea, button')) input.disabled = !enabled;
@@ -103,6 +120,7 @@
   function reset() { linkedScheduleCreationWritesEnabled = false; pendingLinkedScheduleCreationId = null; setDataAccess(false); collectionNoteWritesEnabled = false; pendingCollectionNoteId = null; referralCreationWritesEnabled = false; pendingReferralCreationId = null; contractCreationWritesEnabled = false; pendingContractCreationId = null; caregiverPictureWritesEnabled = false; pendingCaregiverPictureId = null; documentCreationWrites = []; pendingDocumentCreationId = null; documentReplacementWrites = []; pendingDocumentReplacementId = null; medicalCreationWritesEnabled = false; pendingMedicalCreationId = null; patientClinicalWritesEnabled = false; pendingPatientClinicalId = null; documentMetadataWrites = []; pendingDocumentMetadataId = null; patientNoteWritesEnabled = false; pendingPatientNoteId = null; $("patientNoteForm").reset(); $("patientNoteChanges").replaceChildren(); availabilityCreationWrites = []; pendingAvailabilityCreationId = null; $("availabilityCreationForm").reset(); $("availabilityCreations").replaceChildren(); patientContractWritesEnabled = false; pendingPatientContractId = null; $("patientContractForm").reset(); $("patientContractChanges").replaceChildren(); rateCreationWritesEnabled = false; pendingRateCreationId = null; $("rateCreationForm").reset(); $("rateCreations").replaceChildren(); topicWritesEnabled = false; pendingTopicId = null; $("topicForm").reset(); $("topicChanges").replaceChildren(); documentTypeWritesEnabled = false; pendingDocumentTypeId = null; $("documentTypeForm").reset(); $("documentTypeChanges").replaceChildren(); generation++; readSequence++; readInputs = {}; writesEnabled = false; settings = null; investigations = []; intents = []; pendingIntentId = null; pendingRateId = null; $('rateProposalForm').reset(); $('staffingReviewForm').reset(); $('availabilityForm').reset(); availabilityWrites = []; pendingAvailabilityId = null; for (const id of ['availabilityChanges', 'staffingEvidence', 'readResults', 'investigationList', 'intentList', 'workspaceAudit']) $(id)?.replaceChildren(); $('investigationForm').reset(); $('intentForm').reset(); $('readForm').reset(); $('ownerForm').reset(); $('readPermissions').replaceChildren(); $('readPermissionSearch').value = ''; $('readPermissionSelectedOnly').checked = false; $('readPermissionCount').textContent = 'Sign in to load available reads.'; message('Sign in to load operational controls.'); }
   document.addEventListener('primetime-signed-out', () => { reset(); clearConnectedPanels(); clearManualSnapshots(); if ($('manualPatientId')) $('manualPatientId').value = ''; });
   document.addEventListener('primetime-view-changed', event => {
+    if (event.detail?.view === 'workbench') dockRead(false);
     if (event.detail?.view === 'audit' && dataApproved && window.primetimeDataMode?.isLive() === true && window.primetimeDataMode.isActive?.()) void action(() => loadAudit(undefined, 'dashboardAudit'));
   });
   function applyMode() {
@@ -192,10 +210,11 @@
     try { data = await request(authorizationRead ? 'patient-authorizations' : 'read', input); }
     catch (error) { if (sequence !== readSequence) return; throw error; }
     if (sequence !== readSequence) return;
-    if (authorizationRead && (data.operation !== operation || data.source !== 'hhaexchange' || data.scope?.patientId !== input.patientId
+    if (authorizationRead && (data.operation !== operation || data.source !== 'hhaexchange' || window.primetimeSourceTime.timestampInstant(data.fetchedAt) === null || data.scope?.patientId !== input.patientId
       || data.scope?.officeId !== officeId || data.interpretation !== 'authorization_limits_unvalidated')) throw new Error('Authorization source context could not be verified.');
     const target = $('readResults'); target.append(paragraph(`${names[data.operation] || data.operation}: Fetched ${new Date(data.fetchedAt).toLocaleString()} from HHA. Source timestamps are not converted. Field interpretation is pending validation. ${data.truncated ? 'Only the first 200 rows are shown; narrow the request.' : ''}`));
-    if (authorizationRead) target.append(paragraph(`Patient ${input.patientId} · office ${officeId} · fetched ${data.fetchedAt}. ${data.operation === 'SearchPatientAuthorizations' ? `${data.records.length} authorization discovery row(s) returned${data.truncated ? ' · truncated; not a complete list' : ' for this request'}.` : 'Raw authorization detail fields.'} Source dates and values are preserved. Unit conversion, balance period, usage basis and limits remain unvalidated. This evidence does not establish scheduling eligibility, billable services or remaining hours.`));
+    if (authorizationRead && authorizationSelection) target.append(paragraph(`Discovery read: ${authorizationSelection.fetchedAt}. Detail read is independent.`));
+    if (authorizationRead) target.append(paragraph(`Patient ${input.patientId} · office ${officeId} · fetched ${data.fetchedAt}. ${data.operation === 'SearchPatientAuthorizations' ? `${data.records.length} authorization discovery row(s) returned${data.truncated ? ' · truncated; not a complete list' : ' for this request'}.` : 'Raw authorization detail fields.'} Independent of the visit date filter. Unit conversion, balance period, usage basis and limits remain unvalidated. This evidence does not establish scheduling eligibility, billable services or remaining hours.`));
     if (data.attachment) {
       const file = data.attachment;
       target.append(paragraph(`Attachment ready: ${file.filename}, ${file.byteLength} bytes. The file is not rendered in this page.`));
@@ -246,11 +265,11 @@
           for (const id of Object.values(inputIds)) $(id).value = '';
           $('readId').value = record.ID; $('readPatient').value = input.patientId; $('readOffice').value = officeId;
           selectRead('GetPatientAuthorizationInfo');
-          authorizationSelection = { id: record.ID, patientId: input.patientId, officeId, contractId: record.ContractID, generation };
+          authorizationSelection = { id: record.ID, patientId: input.patientId, officeId, contractId: record.ContractID, generation, fetchedAt: data.fetchedAt };
           $('readId').focus();
           message(settings.enabledReads.includes('GetPatientAuthorizationInfo')
-            ? 'Authorization detail selected by exact source IDs. Choose Read source records to fetch current evidence.'
-            : 'Authorization detail selected by exact source IDs. This read requires owner enablement after entitlement review.');
+            ? 'Exact authorization IDs selected. Choose Read source records to fetch evidence.'
+            : 'Exact authorization IDs selected. This read requires owner enablement after entitlement review.');
         }));
         else card.append(paragraph('Detail selection unavailable: authorization/contract identity is missing, invalid or ambiguous.'));
       }
@@ -286,7 +305,6 @@
       if (data.operation === 'GetPatientDemographics') card.append(button('Inspect clinical readiness intervals', async () => { $('readPatient').value = record.PatientID || record.ID; selectRead('GetPatientClinicalInfo'); message('Patient selected for source readiness intervals.'); }));
       if (data.operation === 'GetCaregiverDemographics') card.append(button('Inspect medical compliance dates', async () => { $('readCaregiver').value = record.CaregiverID || record.ID; $('readId').value = ''; $('readStatus').value = ''; selectRead('GetCaregiverMedicalDetails'); message('Caregiver selected. Source compliance dates do not establish fitness or assignment eligibility.'); }));
       if (data.operation === 'SearchPatients' || data.operation === 'SearchCaregivers') card.append(button('Select record', async () => { $('readId').value = record.PatientID || record.CaregiverID; $('readPatient').value = record.PatientID || ''; selectRead(data.operation === 'SearchPatients' ? 'GetPatientDemographics' : 'GetCaregiverDemographics'); message('Record selected for a targeted read.'); }));
-      if (data.operation === 'SearchPatientAuthorizations') card.append(button('Inspect authorization units', async () => { $('readId').value = record.ID; selectRead('GetPatientAuthorizationInfo'); message('Authorization selected. Patient ID is retained from the search.'); }));
       if (data.operation === 'SearchPayrollBatches') card.append(button('Inspect selected batch details', async () => { $('readId').value = record.BatchID; $('readCaregiver').value = ''; selectRead('GetPayrollBatchDetails'); message('Selected batch only. Source duration fields are minutes, including those named Hours. Grouping is a read filter; no payroll is recalculated.'); }));
       if (data.operation === 'SearchBilledVisits') card.append(button('Inspect collection follow-up', async () => { $('readId').value = record.VisitID; $('readPatient').value = record.PatientID; $('readContract').value = record.ContractID; selectRead('GetCollectionNotes'); message('Visit, patient and contract selected. Collection notes are not proof of cash received.'); }));
       if (data.operation === 'SearchPayrollBatches') card.append(button('Inspect selected batch caregivers', async () => { $('readId').value = record.BatchID; selectRead('SearchPayrollBatchCaregivers'); message('Selected batch only. No prior batch records are carried forward.'); }));
@@ -878,7 +896,8 @@
       $('readPatient').value = patient; $('readId').value = patient;
       $('readOffice').value = settings?.officeId || '';
     }
-    if (workflow === 'SearchPatients' || workflow === 'SearchCaregivers') $('readTerm').focus(); else $('readDate').focus();
+    if (workflow === 'SearchPatientAuthorizations') dockRead(true);
+    if (workflow === 'SearchPatients' || workflow === 'SearchCaregivers') $('readTerm').focus(); else $(workflow === 'SearchPatientAuthorizations' ? 'readPatient' : 'readDate').focus();
     message('Workflow selected. Supply the requested identifiers or date, then read source records.');
   }));
   if ($('manualSnapshotForm')) {

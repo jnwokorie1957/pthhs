@@ -1689,6 +1689,23 @@ function connectedWorkspace({ dataApproved = true, enabledReads = ['GetPatientDe
     if (path.endsWith('/workspace/patient-visit')) return patientVisit(path, options);
     return response({ ok: true });
   } });
+  // Model the shared source form's real DOM ownership and control reset. Moving
+  // it out of the operational root must not bypass disabling or duplicate it.
+  const home = app.element('fixtureReadHome'), inline = app.element('patientAuthorizationHost');
+  const form = app.element('readForm'), results = app.element('readResults');
+  for (const host of [home, inline]) host.append = function (...nodes) {
+    for (const node of nodes) {
+      if (node.parentElement) node.parentElement.children = node.parentElement.children.filter(child => child !== node);
+      node.parentElement = this; this.children.push(node);
+    }
+  };
+  home.append(form, results);
+  const inputs = ['readId', 'readPatient', 'readOperation', 'readDate'].map(app.element);
+  form.querySelectorAll = () => inputs;
+  form.reset = () => { inputs.forEach(input => { input.value = ''; }); };
+  app.element('operationalWorkspace').querySelectorAll = selector => selector === 'form' && form.parentElement === home ? [form] : [];
+  const operationLabel = app.element('fixtureOperationLabel');
+  app.element('readOperation').closest = () => operationLabel;
   installDashboard(app); vm.runInContext(asset('workspace.js'), app.context);
   return app;
 }
@@ -3100,6 +3117,93 @@ const authSource = (input, changes = {}) => ({ ok: true, operation: input.operat
 ], ...changes });
 async function submitRead(app) { for (const fn of app.element('readForm').handlers.get('submit')) fn({ preventDefault() {} }); await tick(); await tick(); }
 async function startAuthorizationRead(app, host) { await clickNode(authorizationButtons(app, host)[0]); await submitRead(app); }
+
+test('patient authorization selection opens one scoped reader in Patients and returns general reads to Advanced tools', async () => {
+  const app = connectedWorkspace({ enabledReads: ['GetPatientDemographics', 'SearchPatientAuthorizations'] }); await app.signIn(); await tick(); await tick();
+  const before = app.calls.length;
+  await clickNode(authorizationButtons(app)[0]);
+  assert.equal(app.element('readForm').parentElement, app.element('patientAuthorizationHost'));
+  assert.equal(app.element('readResults').parentElement, app.element('patientAuthorizationHost'));
+  assert.equal(app.element('fixtureReadHome').children.length, 0);
+  assert.match(app.window.location.href, /#patients$/);
+  assert.equal(app.element('readPatient').value, '5');
+  assert.equal(app.element('readPatient').readOnly, true); assert.equal(app.element('readId').readOnly, true);
+  assert.equal(app.element('fixtureOperationLabel').hidden, true);
+  assert.equal(app.document.activeElement, app.element('readPatient'));
+  assert.match(app.element('patientAuthorizationMessage').textContent, /Choose Read source records/);
+  assert.equal(app.calls.length, before);
+  app.document.dispatchEvent(new DetailEvent('primetime-view-changed', { detail: { view: 'workbench' } }));
+  assert.equal(app.element('readForm').parentElement, app.element('fixtureReadHome'));
+  assert.equal(app.element('readPatient').readOnly, false); assert.equal(app.element('fixtureOperationLabel').hidden, false);
+  assert.equal(app.calls.length, before);
+});
+
+test('inline authorization failures and exact contract selection remain visible without legacy ambiguous shortcuts', async () => {
+  let fail = false;
+  const app = connectedWorkspace({ enabledReads: ['GetPatientDemographics', 'SearchPatientAuthorizations', 'GetPatientAuthorizationInfo'], authorizations: (_path, options) => fail
+    ? { ...response({ ok: false, error: 'patient_office_mismatch' }), ok: false, status: 403 }
+    : response(authSource(JSON.parse(options.body))) });
+  await app.signIn(); await tick(); await tick(); await startAuthorizationRead(app);
+  assert.equal(descendants(app.element('readResults')).filter(n => n.textContent === 'Inspect authorization units').length, 0);
+  await clickNode(detailButtons(app)[0]);
+  fail = true; await submitRead(app);
+  assert.deepEqual(JSON.parse(authorizationCalls(app).at(-1).options.body), { operation: 'GetPatientAuthorizationInfo', patientId: '5', id: '71', officeId: '123', contractId: '81' });
+  assert.match(app.element('patientAuthorizationMessage').textContent, /patient office mismatch/);
+  assert.equal(app.element('readResults').children.length, 0);
+});
+
+test('changing the selected patient clears inline authorization evidence and fences its late response', async () => {
+  const late = deferred();
+  const app = connectedWorkspace({ enabledReads: ['GetPatientDemographics', 'SearchPatientAuthorizations'], authorizations: () => late.promise });
+  await app.signIn(); await tick(); await tick();
+  await clickNode(authorizationButtons(app)[0]);
+  const pending = submitRead(app); await tick();
+  app.document.dispatchEvent(new DetailEvent('primetime-patient-profile-selected', { detail: { patientId: '7', officeId: '123' } }));
+  late.resolve(response(authSource({ operation: 'SearchPatientAuthorizations', patientId: '5', officeId: '123' })));
+  await pending; await tick();
+  assert.equal(app.element('readResults').children.length, 0);
+  assert.equal(app.element('readPatient').value, '');
+  assert.equal(app.element('readForm').parentElement, app.element('fixtureReadHome'));
+  assert.doesNotMatch(app.element('patientAuthorizationMessage').textContent, /fetched|Working|Patient 5/);
+});
+
+test('authorization scope survives visit-date context changes but Demo and sign-out clear and disable the shared reader', async () => {
+  const app = connectedWorkspace({ enabledReads: ['GetPatientDemographics', 'SearchPatientAuthorizations'], authorizations: (_path, options) => response(authSource(JSON.parse(options.body))) });
+  await app.signIn(); await tick(); await tick(); await startAuthorizationRead(app);
+  assert.equal(app.element('readForm').parentElement, app.element('patientAuthorizationHost'));
+  const before = authorizationCalls(app).length, shown = nodeText(app.element('readResults'));
+  app.document.dispatchEvent(new DetailEvent('primetime-source-context-cleared', { detail: { date: '2026-10-11' } }));
+  assert.equal(nodeText(app.element('readResults')), shown);
+  assert.equal(authorizationCalls(app).length, before);
+  app.window.primetimeDataMode.setMode('demo'); await tick();
+  assert.equal(app.element('readForm').parentElement, app.element('fixtureReadHome'));
+  assert.equal(app.element('readResults').children.length, 0);
+  assert.equal(app.element('readPatient').disabled, true);
+  assert.equal(app.element('readPatient').value, '');
+  assert.equal(app.element('readId').readOnly, false);
+  app.dispatch('primetime-signed-out');
+  assert.equal(app.element('readPatient').disabled, true);
+  assert.equal(app.element('readResults').children.length, 0);
+});
+
+test('inline authorization receipts remain independent and malformed fetch timestamps cannot expose source facts', async () => {
+  let receipt = '2026-10-15T19:16:00.000Z';
+  const app = connectedWorkspace({ enabledReads: ['GetPatientDemographics', 'SearchPatientAuthorizations', 'GetPatientAuthorizationInfo'], authorizations: (_path, options) => {
+    const input = JSON.parse(options.body);
+    return response(authSource(input, { fetchedAt: receipt, ...(input.operation === 'GetPatientAuthorizationInfo' ? { truncated: false, records: [{ AuthorizationID: input.id, 'Patient/ID': input.patientId, 'Contract/ID': input.contractId, MaxUnits: '0' }] } : {}) }));
+  } });
+  await app.signIn(); await tick(); await tick(); await startAuthorizationRead(app);
+  await clickNode(detailButtons(app)[0]); receipt = '2026-10-15T19:17:00.000Z'; await submitRead(app);
+  const shown = nodeText(app.element('readResults'));
+  assert.match(shown, /Discovery read: 2026-10-15T19:16:00.000Z/);
+  assert.match(shown, /fetched 2026-10-15T19:17:00.000Z/);
+  assert.match(shown, /MaxUnits 0/); assert.match(shown, /limits remain unvalidated/);
+  for (receipt of ['2026-10-15', '2026-02-30T12:00:00Z', '2026-10-15T19:18:00']) {
+    await submitRead(app);
+    assert.equal(app.element('readResults').children.length, 0);
+    assert.match(app.element('patientAuthorizationMessage').textContent, /context could not be verified/);
+  }
+});
 
 test('both live source views select exact patient authorization discovery without fetching or granting reads', async () => {
   const app = connectedWorkspace(); await app.signIn(); await tick(); await tick();

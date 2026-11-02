@@ -514,6 +514,20 @@ TAB 05 - PATIENT WORKBENCH
     SearchPatientDocument and DownloadPatientDocument. Confirm exact ownership,
     office and release/access limits before enabling the bounded readers.
 
+
+[ ] T05 Patient-workbench authorization pane (November 2, 14:35 UTC trigger).
+    Reuses approved discovery/detail with exact patient/office/contract context
+    in Patient workbench. One shared reader; Advanced tools restores general
+    reads. Inline IDs are read-only; patient changes clear/fence former facts.
+    Discovery/detail receipts stay independent and malformed fetch dates fail.
+    Errors stay visible; selection makes no automatic request or new grant.
+    The obsolete unguarded duplicate detail shortcut is removed. Raw units and
+    balances remain uninterpreted. Five new checks,369frontend/tooling and
+    46analytics tests plus generator/asset checks pass within unchanged budgets.
+    Normal release/native acceptance pending; T03 remains accepted, P1-B/P2/
+    T04/S02/interpretation/full coverage remain open.
+    See docs/management-layer/PATIENT_AUTHORIZATION_PANE_2026-11-02.md.
+
 TAB 06 - MESSAGES & ALERTS
 [x] M01 Connect Messages to actual Primetime office-alert access/readiness.
     November1 implementation replaces the permanent disconnected placeholder
