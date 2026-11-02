@@ -1,4 +1,6 @@
 import type { OperationsWorkspace } from "./workspace.js";
+import { warn } from "firebase-functions/logger";
+import { safeBillingShape, type BillingResponseShape } from "./billingShape.js";
 import { identifier, WorkflowError, type ReadOperation } from "./reads.js";
 
 type Workspace = Pick<OperationsWorkspace, "settings" | "query">;
@@ -13,7 +15,8 @@ export async function visitPatientRead(workspace: Workspace, value: unknown, act
   return { ...patient, scope, membershipCheckedAt: patient.fetchedAt, interpretation: "patient_source_unvalidated" as const };
 }
 
-export async function visitContextRead(workspace: Workspace, value: unknown, actor: string) {
+export async function visitContextRead(workspace: Workspace, value: unknown, actor: string,
+  diagnose: (diagnostic: BillingResponseShape) => void = diagnostic => warn("HHA billing source returned no projected record", diagnostic)) {
   if (!value || typeof value !== "object" || Array.isArray(value)) throw new WorkflowError("invalid_visit_context_query");
   const input = value as Record<string, unknown>, kind = input.kind;
   if ((kind !== "caregiver" && kind !== "billing") || Object.keys(input).some(key => !["kind", "visitId", "patientId", "officeId", ...(kind === "caregiver" ? ["caregiverId"] : [])].includes(key))) throw new WorkflowError("invalid_visit_context_query");
@@ -23,7 +26,11 @@ export async function visitContextRead(workspace: Workspace, value: unknown, act
   if (expectedCaregiver !== null && visit.records[0]?.["Caregiver/ID"] !== expectedCaregiver) throw new WorkflowError("visit_caregiver_changed_restart", 409);
   const data = await workspace.query({ operation, id: kind === "caregiver" ? expectedCaregiver! : scope.visitId }, actor);
   if (data.operation !== operation || data.source !== "hhaexchange" || data.truncated) throw new WorkflowError("visit_context_source_not_unique", 409);
-  if (data.records.length === 0) throw new WorkflowError("visit_context_source_empty", 409);
+  if (data.records.length === 0) {
+    await checkScope();
+    if (kind === "billing") try { diagnose(safeBillingShape(data.billingShape)); } catch { /* Diagnostics never replace the refusal. */ }
+    throw new WorkflowError("visit_context_source_empty", 409);
+  }
   if (data.records.length !== 1) throw new WorkflowError("visit_context_source_not_unique", 409);
   const record = data.records[0]!;
   if (kind === "caregiver") {

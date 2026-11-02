@@ -111,3 +111,28 @@ test("caregiver membership projection uses only unique direct IDs in the direct 
   assert.equal((await read('<Other><ID>15</ID><CaregiverOffices><Office><OfficeID>12</OfficeID></Office></CaregiverOffices></Other>')).records[0]!.ID, null);
   assert.equal((await read('<ID>15</ID><Other><CaregiverOffices><Office><OfficeID>12</OfficeID></Office></CaregiverOffices></Other>')).records[0]!.OfficeIDs, '[]');
 });
+
+test("empty billing diagnostics contain fixed categories only after the final policy check", async () => {
+  const f = fixture(), captured: unknown[] = [];
+  f.rows.GetVisitBillInfoV2.records = [];
+  f.rows.GetVisitBillInfoV2.billingShape = Object.assign({ expected: "absent" as const, versioned: "paired" as const, encoded: false, successStatus: "explicit" as const }, { rawXml: "private-synthetic-marker", patientId: "private-synthetic-marker" });
+  await assert.rejects(visitContextRead(f.workspace, billingQuery, "private-synthetic-actor", d => captured.push(d)), /visit_context_source_empty/);
+  assert.deepEqual(captured, [{ expected: "absent", versioned: "paired", encoded: false, successStatus: "explicit" }]);
+  assert.equal(JSON.stringify(captured).includes("private-synthetic"), false);
+  const invalid = fixture(); invalid.rows.GetVisitBillInfoV2.records = [];
+  invalid.rows.GetVisitBillInfoV2.billingShape = { expected: "private-synthetic-marker", versioned: "unknown", encoded: "private-synthetic-marker", successStatus: "private-synthetic-marker" } as never;
+  await assert.rejects(visitContextRead(invalid.workspace, billingQuery, "actor", d => captured.push(d)), /visit_context_source_empty/);
+  assert.deepEqual(captured[1], { expected: "unknown", versioned: "unknown", encoded: false, successStatus: "unknown" });
+  await assert.rejects(visitContextRead(f.workspace, billingQuery, "actor", () => { throw Error("logger unavailable"); }), /visit_context_source_empty/);
+  for (const mode of ["policy", "withdraw", "truncated", "operation", "caregiver"] as const) {
+    const stopped = fixture(); stopped.rows.GetVisitBillInfoV2.records = [];
+    if (mode === "policy") stopped.state.changeAt = 3;
+    if (mode === "withdraw") stopped.state.withdrawAt = 3;
+    if (mode === "truncated") stopped.rows.GetVisitBillInfoV2.truncated = true;
+    if (mode === "operation") stopped.rows.GetVisitBillInfoV2.operation = "GetPatientDemographics";
+    if (mode === "caregiver") stopped.rows.GetCaregiverDemographics.records = [];
+    let emitted = 0;
+    await assert.rejects(visitContextRead(stopped.workspace, mode === "caregiver" ? caregiverQuery : billingQuery, "actor", () => { emitted++; }));
+    assert.equal(emitted, 0);
+  }
+});

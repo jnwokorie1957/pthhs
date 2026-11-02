@@ -1,5 +1,6 @@
 import { extractExactElementText } from "../integrations/hhaexchange/parser.js";
 import { XMLParser, XMLValidator } from "fast-xml-parser";
+import { billingResponseShape, type BillingResponseShape } from "./billingShape.js";
 import type { HhaSoapClient } from "../integrations/hhaexchange/client.js";
 import { extractElementBodies, extractElementBody, extractElementText } from "../integrations/hhaexchange/parser.js";
 
@@ -760,7 +761,7 @@ function visitEditReasonEvidence(xml: string): { reasons: VisitEditReasonEvidenc
   if (stack.length) invalid();
   return { reasons: result, truncated };
 }
-export interface OperationalRead { operation: ReadOperation; fetchedAt: string; source: "hhaexchange"; validation: "source_unvalidated"; timezone: "source_values_unconverted"; records: Record<string, string | null>[]; truncated: boolean; visitEditReasons?: VisitEditReasonEvidence[]; attachment?: { filename: string; byteLength: number; base64: string; contentType: "application/octet-stream" }; changePreview?: { timeBasis: "vendor_EST_wall_time_unconverted" | "UTC"; modifiedAfter: string; page: string | null; completeness: "not_inferred"; checkpointAdvanced: false }; }
+export interface OperationalRead { operation: ReadOperation; fetchedAt: string; source: "hhaexchange"; validation: "source_unvalidated"; timezone: "source_values_unconverted"; records: Record<string, string | null>[]; truncated: boolean; billingShape?: BillingResponseShape; visitEditReasons?: VisitEditReasonEvidence[]; attachment?: { filename: string; byteLength: number; base64: string; contentType: "application/octet-stream" }; changePreview?: { timeBasis: "vendor_EST_wall_time_unconverted" | "UTC"; modifiedAfter: string; page: string | null; completeness: "not_inferred"; checkpointAdvanced: false }; }
 export function boundedAttachment(record: Record<string, string | null>, identity: string, expected: string) {
   if (record[identity] !== expected) throw new WorkflowError("download_identity_mismatch", 502);
   const encoded = (record.StreamData || "").replace(/\s/g, "");
@@ -867,5 +868,5 @@ export async function operationalRead(client: Pick<HhaSoapClient, "call">, input
   // Only the bounded dashboard ID discovery retains every received identifier.
   // Other operational previews preserve their existing projection limit.
   const retainVisitIds = input.operation === "SearchVisitsV2" && projectionScope === "visit_discovery";
-  return { operation: input.operation, fetchedAt: new Date().toISOString(), source: "hhaexchange", validation: "source_unvalidated", timezone: "source_values_unconverted", records: retainVisitIds ? records : records.slice(0, 200), ...(attachment ? { attachment } : {}), ...(visitEditReasons ? { visitEditReasons } : {}), truncated: typedReasonsTruncated || (!retainVisitIds && records.length > 200), ...([...EST_CHANGE_READS, ...UTC_CHANGE_READS].includes(input.operation) ? { changePreview: { timeBasis: UTC_CHANGE_READS.includes(input.operation) ? "UTC" as const : "vendor_EST_wall_time_unconverted" as const, modifiedAfter: UTC_CHANGE_READS.includes(input.operation) ? input.modifiedAfterUtc! : input.modifiedAfter!, page: input.operation === "GetVisitChangesV4" ? input.page || "1" : null, completeness: "not_inferred" as const, checkpointAdvanced: false as const } } : {}) };
+  return { operation: input.operation, fetchedAt: new Date().toISOString(), source: "hhaexchange", validation: "source_unvalidated", timezone: "source_values_unconverted", records: retainVisitIds ? records : records.slice(0, 200), ...(attachment ? { attachment } : {}), ...(input.operation === "GetVisitBillInfoV2" && records.length === 0 ? { billingShape: billingResponseShape(response.resultXml, response.status) } : {}), ...(visitEditReasons ? { visitEditReasons } : {}), truncated: typedReasonsTruncated || (!retainVisitIds && records.length > 200), ...([...EST_CHANGE_READS, ...UTC_CHANGE_READS].includes(input.operation) ? { changePreview: { timeBasis: UTC_CHANGE_READS.includes(input.operation) ? "UTC" as const : "vendor_EST_wall_time_unconverted" as const, modifiedAfter: UTC_CHANGE_READS.includes(input.operation) ? input.modifiedAfterUtc! : input.modifiedAfter!, page: input.operation === "GetVisitChangesV4" ? input.page || "1" : null, completeness: "not_inferred" as const, checkpointAdvanced: false as const } } : {}) };
 }
