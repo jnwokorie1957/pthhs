@@ -14,20 +14,20 @@
 
 ## Start here
 
-- [ ] November 2 specific read decision: approve or decline read-only
+- [x] November 2 specific read decision: the user explicitly approved read-only
   GetVisitBillInfo for existing Primetime administrators as the deployed,
   identity/office-checked compatibility path after empty V2 billing results.
-  The original nine reads and zero write grants remain unchanged. Approval was
-  requested separately; it has not been inferred from the broader task.
-  See [reviewable scope and tests](LEGACY_BILLING_READ_READINESS_2026-11-02.md).
+  Exactly one read was added; saved/reloaded ten reads retain all old nine and
+  zero write grants. Actual legacy production execution succeeded with no record;
+  usable billing facts and B02 remain open. See [scope and trial](LEGACY_BILLING_READ_READINESS_2026-11-02.md).
 
-- [ ] November 2 source follow-up: sign in to the retained original HHA website
-  tab, then inspect the exact selected Calendar visit's Billing Info and retained
-  EVV/call history. Keep identifiers and source values protected. The approved
-  API remains connected; its scoped billing response reports success but omits
-  both checked record formats. Obtain supported vendor coverage/contract evidence
-  if the original form has usable detail. No repeat read grant or policy decision
-  is requested. See [bounded evidence](BILLING_SOURCE_SHAPE_2026-11-02.md).
+- [ ] November 2 remaining source follow-up: the exact original Calendar visit's
+  Visit Info, retained call row and Billing Info were inspected. Verification
+  navigation redirected HHA to login, so that page is still unverified. Obtain
+  supported billed-record/account/office coverage evidence for successful API
+  reads returning no record. Keep identifiers/values protected. The approved API
+  is connected; do not repeat the legacy grant or infer financial zero/EVV out
+  from absent data. See [current evidence](LEGACY_BILLING_READ_READINESS_2026-11-02.md).
 
 - [`DEVELOPER_TASKS.md`](./DEVELOPER_TASKS.md) — technical implementation/checkpoint tracker.
 - [`../../hharefs/endpoints.html`](../../hharefs/endpoints.html) — HHA capability map.

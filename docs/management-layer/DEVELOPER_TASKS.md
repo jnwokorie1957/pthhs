@@ -4,9 +4,11 @@
   gated GetVisitBillInfo read after verified empty GetVisitBillInfoV2, retaining
   current visit/patient/caregiver/date/office proof and actual-method provenance.
   563 backend and 364 browser/tooling checks pass; all three normal release jobs,
-  twelve exact assets and nine anonymous private boundaries pass. The legacy
-  permission is still unchecked; no source acceptance or B02 completion claimed.
-  See [activation gate](LEGACY_BILLING_READ_READINESS_2026-11-02.md).
+  twelve exact assets and nine anonymous private boundaries pass. The user then
+  explicitly approved legacy activation; saved/reloaded ten reads retain the old
+  nine and zero write grants. A real production legacy request returned HTTP200/
+  success but no record. B02 usable facts remain open. Current-day automatic
+  receipts advanced without manual reads. See [activation and trial](LEGACY_BILLING_READ_READINESS_2026-11-02.md).
 
 - [x] November 2 exact V3 time-field projection: preserve explicit empty,
   zero and exact text at the documented clock/hour/duration paths; withhold

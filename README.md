@@ -1,5 +1,15 @@
 # PTHHS
 
+## November 2 billing compatibility activation
+
+The owner explicitly approved the read-only legacy billing method. Saved and
+reloaded controls retain the original nine reads plus GetVisitBillInfo, with
+zero source-write grants. One same-visit production trial reached the legacy
+method after an empty V2 response: HTTP200/success, but no billing record. B02
+remains open for usable source detail. The automatic current-day feed advanced
+from16:07:07.853 to16:12:09.588UTC without a manual source read between.
+See [scope and evidence](docs/management-layer/LEGACY_BILLING_READ_READINESS_2026-11-02.md).
+
 ## November 2 exact visit time-field projection
 
 The approved V3 read now preserves explicit empty time/hour fields and zero

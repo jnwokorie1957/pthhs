@@ -1,7 +1,8 @@
 # Legacy billing compatibility read — November 2, 2026 UTC
 
-Status: deployed with the legacy read disabled. Separate owner enablement and
-production source acceptance remain pending. B02 is not complete.
+Status: deployed and explicitly enabled by the owner. The production legacy
+request succeeded but returned no record. Usable billing detail remains
+unverified; B02 is not complete.
 
 ## New protected source evidence
 
@@ -70,7 +71,7 @@ provenance, raw value states and source-context invalidation coverage.
 TypeScript compilation and all563backend tests pass. All364browser/tooling tests,
 generated assets, performance foundation and diff checks pass. App/catalog raw
 size419844bytes remains below420000; gzip budget102000 is unchanged. Public catalog
-is unchanged. No owner preference has been changed for this compatibility read.
+is unchanged. Those local checks preceded the explicit activation below.
 
 Runtime `3b560b6aa1493f3ab5774ab8de18d46d817826ac` passed all three normal jobs in
 [workflow41475728338](https://github.com/jnwokorie1957/pthhs/actions/runs/41475728338):
@@ -80,13 +81,33 @@ no-store/noindex boundaries at15:54:51.101UTC. A fresh signed-in Codex-browser l
 uses dashboard150e822db84b and shows the working automatic current-day API feed
 with receipt15:56:03.843UTC. Reloaded owner controls retain nine selected reads,
 GetVisitBillInfo unchecked and zero write grants. No legacy request was made.
-Specific activation approval has been requested; an answer is still required.
+That was the pre-activation state, not a current outstanding permission request.
 
-Before activation, obtain specific approval to enable read-only GetVisitBillInfo
-for existing Primetime administrators. Save only that additional read in current
-owner controls, retain the existing nine reads and zero write grants, then verify
-one exact source case through the ordinary Billing action. Accept usable fields
-only after source tuple, receipts, provenance, clearing behavior and production
-release checks pass. If legacy also supplies no verified record, leave B02 open
-and record that precise source result; do not claim the original form's values
-were imported or that all live sources are connected.
+## Approved activation and actual production trial
+
+The user answered the specific permission request: Enable the legacy billing
+read. Refreshed owner controls had nine reads selected and legacy unchecked.
+Exactly one checkbox was changed; the staged and saved/reloaded list has ten
+reads, retains all original nine, and adds only GetVisitBillInfo. Zero source-write
+workflows remain approved. Do not ask for this same permission again.
+
+The user's Chrome tab was refreshed to dashboard150e822db84b before testing.
+An ordinary October24 source read returned ten readable details. The exact
+affected visit's Read billing facts action still returned the explicit no-record
+state, with no facts table or financial receipt. The protected SOAP completion
+at16:02:23.928922UTC confirms operation GetVisitBillInfo, httpStatus200 and ok=true.
+Thus the approved legacy method actually ran after the empty V2 result and
+also supplied no projected billing record. This proves execution, not usable
+financial detail, the reason for omission, or a zero financial balance.
+
+Returning to office today and Overview restored the automatic current-day API
+feed. Its receipt advanced16:07:07.853 to16:12:09.588UTC without a manual source
+read between observations. The first page remains bounded to ten details.
+
+Next supported evidence: identify an actual billed visit through an authorized
+source and confirm the vendor's account/office/record coverage for these methods.
+SearchBilledVisits is not enabled; audit its exact request/office scope before
+requesting any separate activation. Original Billing Info rate/unit inputs may
+be configuration rather than finalized billed fields. Original Verification
+navigation still requires HHA authentication. No source values were imported,
+no clock-out/hour was invented, and no financial/clinical action was taken.

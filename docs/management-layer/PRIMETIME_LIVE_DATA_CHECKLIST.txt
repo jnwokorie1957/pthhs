@@ -458,6 +458,16 @@ TAB 04 - VISIT PREVIEW
     duplicate/zero cases remain synthetic; no source error or quota induced.
     See docs/management-layer/VISIT_TIME_FIELD_PROJECTION_2026-11-02.md.
 
+[ ] P10 EVV source-type projection. Captured GetVisitInfoDetailsV3 defines
+    ClockInEvvType/ClockOutEvvType; the approved V3 inspector omitted both. Add
+    unique direct optional scalar strings, retaining exact/empty/zero separately
+    from unknown/nil/nested/duplicate/non-scalar evidence. No field supplies a
+    missing clock/hour, event/visit link, accepted direction or complete history.
+    Two regressions fail before/pass after;565backend tests and unchanged assets
+    pass. No additional API request, permission, frontend DTO or chart change.
+    Normal release and native source acceptance remain pending. P03/E04 stay
+    open. See EVV_SOURCE_TYPES_2026-11-02.md.
+
 TAB 05 - PATIENT WORKBENCH
 [x] T01 Main surface now starts with current patients from readable visits on the
     selected source page. Calendar imports remain clearly separate saved history.
@@ -690,8 +700,15 @@ TAB 08 - BILLING & AR
     nineanonymous401/private/noindex checks pass15:54:51.101UTC. Fresh signed-in
     Codex-browser dashboard150e822db84b has working current-day automatic API
     receipt15:56:03.843UTC. Reloaded controls retain9reads, GetVisitBillInfo
-    unchecked and0write grants. Specific approval requested; no legacy query
-    made. Activation and live detail acceptance remain pending; B02 stays open.
+    unchecked and0write grants before activation. The user then explicitly
+    approved the legacy read. Exactly1checkbox added; saved/reloaded10reads retain
+    allold9 and0write grants. Same-visit native billing action still returns no
+    record; protected16:02:23.928922UTC SOAPevent confirms actual GetVisitBillInfo,
+    HTTP200/oktrue. Execution accepted; usable facts and omission cause unproved.
+    B02 stays open. Current-day automatic receipts advanced16:07:07.853 to
+    16:12:09.588UTC with no manual source read between. Do not ask legacy approval
+    again or infer financial zero. Next actual billed-visit/vendor coverage proof;
+    SearchBilledVisits remains disabled pending concrete scope review.
     See LEGACY_BILLING_READ_READINESS_2026-11-02.md.
 [ ] B03 GetVisitInfoV3 BilledAmount is a source field, not collected cash.
     Do not invent cash collections, paid-claim stages, billing readiness or AR
