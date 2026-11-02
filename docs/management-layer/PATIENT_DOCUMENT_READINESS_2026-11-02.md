@@ -2,11 +2,13 @@
 
 ## Status
 
-Implementation and local regression checks pass. Normal release, native readiness,
-the specific additional read decision and actual HHA retrieval are pending. No
-patient-document source read or grant has been made. Existing eleven approved
-reads and all source-write controls are unchanged. The separate care-plan access
-decision remains pending. T04/F03 and the wider source goal remain open.
+The owner approved and activated SearchPatientDocument and DownloadPatientDocument:
+exactly thirteen reads (prior eleven plus only these two), with other preferences
+unchanged. GetPatientDocumentType and both care-plan reads remain disabled. The
+first live metadata read was refused by a parser shape check; no file was returned.
+A BaseResponse Result correction now passes full-envelope and regression tests;
+its normal release and successful live retry are pending. T04/F03 and the wider
+source goal remain open. No source-write control has been changed.
 
 ## Exact source contract
 
@@ -71,6 +73,28 @@ The caregiver metadata/type action remains separate and unchanged.
 
 ## Verification and release boundary
 
+Runtime bcae55a passed all three normal jobs in workflow41534493045: Hosting
+22:08:12/backend22:09:52/analytics22:09:55UTC. Public22:12:38.649UTC checks match
+12exact assets;9existing plus2additional anonymous private boundaries pass.
+Native discovery and download inputs include patient/office, with exact ID for
+download. Both pre-enablement attempts were refused; private inputs were cleared.
+
+The subsequent specific owner approval was saved through the native Chrome UI.
+All thirteen selected reads exactly match the prior eleven plus the two approved
+methods. Office/timezone/policy/threshold values match before/after. The type lookup
+and both care-plan grants remain unchecked. A real metadata attempt then returned
+patient_document_response_shape_unverified, so retrieval was not accepted.
+
+The captured WSDL BaseResponse defines a direct Result with a Status attribute.
+The new strict plan/document parsers had incorrectly allowed a sibling Status but
+omitted Result. Four real-SOAP-parser regressions reproduced the error. The fix
+accepts only unique closed Result/ErrorInfo/Details metadata, excludes it from
+records and still refuses duplicated metadata or records nested inside Result.
+Six new tests cover all four resource methods and failed application results;
+all621backend tests pass. No new grant, client asset or relaxed record-identity/
+size/membership rule is introduced by this correction. Successful native retrieval
+must still be established after its normal release.
+
 Seven parser tests reproduced the prior failures before implementation. Eighteen
 new backend tests now pass: strict source shape/identities/filters, optional size,
 unknown/empty/zero, membership before bytes, transfers, metadata changes, closed
@@ -87,11 +111,12 @@ or actual source success is inferred from these synthetic checks.
 
 ## Required next acceptance
 
-1. Complete the normal release and verify exact production assets/private
-   boundaries, scoped input metadata and pre-enablement refusal.
-2. Obtain specific action-time approval for SearchPatientDocument and
-   DownloadPatientDocument for existing administrators. These expand access to
-   private patient file metadata and bounded content; no grant has been changed.
+1. Initial normal release, production assets/private boundaries, scoped input
+   metadata and pre-enablement refusal are DONE. Release the BaseResponse fix
+   normally and verify it before retrying the unchanged source context.
+2. DONE: specific action-time approval and exact thirteen-read activation for
+   existing administrators. This adds only private patient metadata/content reads;
+   it does not enable GetPatientDocumentType or either care-plan method.
 3. Retrieve one authorized patient's metadata through the deployed API. If a
    uniquely returned file exists, read that exact file through fresh membership
    checks. Inspect identity, source-empty/unknown states and attachment readiness

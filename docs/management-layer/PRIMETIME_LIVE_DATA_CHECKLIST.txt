@@ -845,8 +845,15 @@ TAB 09 - FORMS
     Metadata now selects an explicit attachment read with exact patient/office/ID;
     no automatic download/render/import.18newbackend/2browserchecks;615backend/
     383browser-tooling+publicanalyticsguard pass within original assetbudgets.
-    Normalrelease/native readiness, both specific read grants and actual source
-    retrieval PENDING. No document grant/HHAquery/write/clinicalform added.
+    Runtimebcae55a/41534493045 passesall3normaljobs through22:09:55UTC;
+    12exactassets/11anonymous privateboundaries/native input+gate checks pass.
+    Ownerexplicitlyapproved bothreads; nativeEXACT13grants=prior11+onlythese2,
+    otherprefsunchanged. GetPatientDocumentType+bothcareplanreads stayOFF.
+    First actualmetadata attempt refused patient_document_response_shape_unverified.
+    CapturedBaseResponse Result was omitted by newstrictparser.4fullSOAPcases
+    reproduce; closedResultmetadata fix +6newtests/full621backend nowPASS.
+    Correctionnormalrelease/successfulnative retry PENDING; noactualfileaccepted.
+    No sourcewrite/clinicalform/extra-role or automaticdownload/import added.
     See PATIENT_DOCUMENT_READINESS_2026-11-02.md. F03/T04 remain OPEN.
 
 TAB 10 - HHA INTEGRATION

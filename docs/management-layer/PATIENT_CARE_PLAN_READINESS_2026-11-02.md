@@ -62,6 +62,13 @@ retrieval must not be claimed until actual successful source reads after approva
 
 ## Released readiness evidence
 
+Follow-up source-contract correction: the shared strict resource parser now handles
+the captured BaseResponse Result/Status attribute. Four full SOAP tests reproduce
+the omitted-Result failure (including both care-plan methods); all621backend tests
+pass after the correction. Its release is pending. Care-plan grants remain OFF
+and no care-plan query has been made. The two separately approved patient-document
+methods bring the existing read set to13; no additional care-plan access is implied.
+
 Runtime d944e6e first passed all three normal jobs (workflow41531207860). Caption
 follow-up7d7d81d also passed all three (workflow41531680491): backend21:49:18,
 Hosting21:49:20, analytics21:51:11UTC. Public21:50:06.574UTC verification matches

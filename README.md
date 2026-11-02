@@ -6,8 +6,12 @@ Patient file reads now require fresh patient-office and document membership proo
 The parser preserves unknown sizes without rejecting valid bounded attachments;
 changed metadata and invalid sizes still refuse output. Metadata selects the exact
 file for an explicit read, with device saving separate. Full615backend/383browser-
-tooling+public analytics guard checks pass within original asset budgets. Normal
-release, native readiness, specific read grants and actual retrieval are pending.
+tooling+public analytics guard checks pass within original asset budgets. Initial
+normal release and native readiness pass. The owner approved onlythe2file reads;
+exact13total and other preferences are preserved. The first actual metadata read
+was refused because the strict parser omitted standard BaseResponse Result.
+FullSOAP regressions reproduce it; the correction passes all621backend tests.
+Its normal release and successful live retry are pending; no file is accepted yet.
 Clinical form/version/signature/sharing and wider source coverage remain open. See
 [scope](docs/management-layer/PATIENT_DOCUMENT_READINESS_2026-11-02.md).
 

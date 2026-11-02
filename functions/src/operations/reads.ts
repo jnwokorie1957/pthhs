@@ -578,6 +578,38 @@ function billedVisitRecords(xml: string, patientId: string): Record<string, stri
     return record;
   });
 }
+// BaseResponse supplies a direct Result element with a Status attribute, not
+// a sibling Status element. Validate its closed metadata shape, then omit it
+// from record projection. Never mistake data nested inside Result for no data.
+function sourceResultElements(xml: string, invalid: () => never, only: (body: string, children: string[]) => void): string[] {
+  const results = directChildElements(xml, "Result");
+  if (results.length > 1) invalid();
+  const nil = (element: string) => /\s(?:[A-Za-z_][\w.-]*:)?nil\s*=\s*(["'])\s*(?:true|1)\s*\1/i.test(element.match(/^<[^>]+>/)?.[0] ?? "");
+  const ordered = (body: string, children: string[]) => [...children].sort((a, b) => body.indexOf(a) - body.indexOf(b));
+  for (const result of results) {
+    if (nil(result)) invalid();
+    const body = extractElementBody(result, "Result") ?? "";
+    const children: string[] = [];
+    for (const [name, fields] of [["ErrorInfo", ["ErrorID", "ErrorMessage", "RetryAfter"]], ["Details", ["ProvidedPageNumber", "ErrorDetails"]]] as const) {
+      const members = directChildElements(body, name);
+      if (members.length > 1) invalid();
+      for (const member of members) {
+        if (nil(member)) invalid();
+        const memberBody = extractElementBody(member, name) ?? "", scalars: string[] = [];
+        for (const field of fields) {
+          const values = directChildElements(memberBody, field);
+          if (values.length > 1) invalid();
+          for (const value of values) { try { extractExactElementText(value, field); } catch { invalid(); } }
+          scalars.push(...values);
+        }
+        only(memberBody, ordered(memberBody, scalars));
+      }
+      children.push(...members);
+    }
+    only(body, ordered(body, children));
+  }
+  return results;
+}
 // These are source plan/task definitions, never completed visit duties. Use
 // direct paths: Category/Name precedes Task/Name in the captured contract.
 function carePlanRecords(xml: string, detail: boolean): Record<string, string | null>[] {
@@ -595,7 +627,7 @@ function carePlanRecords(xml: string, detail: boolean): Record<string, string | 
     }
     if (!blank(body.slice(offset))) invalid();
   };
-  const name = detail ? "POCInfo" : "PatientPOC", roots = directChildElements(xml, name), status = directChildElements(xml, "Status");
+  const name = detail ? "POCInfo" : "PatientPOC", roots = directChildElements(xml, name), status = sourceResultElements(xml, invalid, only);
   if (roots.length > 1 || status.length > 1) invalid();
   only(xml, [...roots, ...status].sort((a, b) => xml.indexOf(a) - xml.indexOf(b)));
   if (!roots.length) return [];
@@ -646,7 +678,7 @@ function patientDocumentRecords(xml: string, input: ReadInput, includeDescriptio
     }
     if (!blank(body.slice(offset))) invalid();
   };
-  const roots = directChildElements(xml, name), status = directChildElements(xml, "Status");
+  const roots = directChildElements(xml, name), status = sourceResultElements(xml, invalid, only);
   if (roots.length > 1 || status.length > 1) invalid();
   only(xml, [...roots, ...status].sort((a, b) => xml.indexOf(a) - xml.indexOf(b)));
   if (!roots.length) return [];

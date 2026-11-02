@@ -14,13 +14,15 @@
 
 ## Start here
 
-- [ ] Prepared November 2 patient-document decision: SearchPatientDocument and
-  DownloadPatientDocument for existing administrators only, after normal release
-  and bounded readiness. This exposes private patient file metadata and content
-  up to2MiB after fresh exact membership checks. No grant or source query made;
-  no staff/patient-role, clinical form/version/signature/sharing authority, source
-  write or automatic file saving/import is added. Existing eleven grants and the
-  separate pending care-plan decision are preserved. See
+- [x] November 2 patient-document decision: owner explicitly approved both
+  SearchPatientDocument and DownloadPatientDocument after normal release/readiness.
+  Native save confirms EXACT13reads = prior11plus onlythese2; office/timezone/
+  policy/threshold values preserved. GetPatientDocumentType and both care-plan
+  methods stay disabled. Content is bounded to2MiB with fresh exact membership
+  checks; no additional role, clinical form/version/signature/sharing authority,
+  write or automatic file save/import. Actual retrieval remains unaccepted: first
+  metadata attempt reached a shape check; a BaseResponse correction is pending
+  release/retry. The separate care-plan decision remains pending. See
   [scope](PATIENT_DOCUMENT_READINESS_2026-11-02.md).
 
 - [ ] Prepared November 2: specific additional read decision for SearchPatientPOC

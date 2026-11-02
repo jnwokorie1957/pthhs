@@ -22,7 +22,7 @@ test("patient document roots, duplicate IDs, nil-with-content and non-direct col
     '<PatientDocuments xsi:nil="true">' + row() + '</PatientDocuments>', '<PatientDocuments>' + row() + '</PatientDocument>']) {
     await assert.rejects(read(xml), /patient_document_response_shape_unverified|patient_document_identity_unverified/);
   }
-  for (const xml of ['<Status>Success</Status>', '<PatientDocuments/>', '<PatientDocuments xsi:nil="true"/>']) assert.deepEqual((await read(xml)).records, []);
+  for (const xml of ['<Result Status="Success"/>', '<PatientDocuments/>', '<PatientDocuments xsi:nil="true"/>']) assert.deepEqual((await read(xml)).records, []);
 });
 
 test("exact document/type filters must be honored by every source row", async () => {
