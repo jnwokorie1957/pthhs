@@ -432,7 +432,7 @@ const projections: Record<Exclude<ReadOperation, "SearchVisitsV2" | "SearchPatie
   SearchPatientAuthorizations: { record: "Authorization", fields: ["ID", "StartDate", "StopDate", "AuthorizationNumber", "ContractID", "ContractName"] },
   SearchBilledVisits: { record: "BilledVisits", fields: ["VisitID", "PatientID", "ContractID", "OtherChargeID"] },
   GetScheduleInfo: { record: "ScheduleInfo", fields: ["Caregiver/PayCode/ID", "PrimaryBillTo/ServiceCode/ID", "PrimaryBillTo/ServiceCode/BillType", "PrimaryBillTo/Hours", "PrimaryBillTo/Minutes", "SecondaryBillTo/ServiceCode/ID", "SecondaryBillTo/ServiceCode/BillType", "SecondaryBillTo/Hours", "SecondaryBillTo/Minutes", "ID", "Patient/ID", "Caregiver/ID", "PrimaryBillTo/Contract/ID", "SecondaryBillTo/Contract/ID", "VisitDate", "ScheduleStartTime", "ScheduleEndTime", "VisitType", "LastModifiedDate"] },
-  GetVisitInfoV3: { record: "VisitInfo", fields: ["ID", "Patient/ID", "Caregiver/ID", "VisitDate", "ScheduleStartTime", "ScheduleEndTime", "VisitStartTime", "VisitEndTime", "EVVStartTime", "EVVEndTime", "ScheduleDuration/ScheduleDurationHours", "ScheduleDuration/ScheduleDurationMinutes", "ActualHours", "ActualHoursRounded", "PayHours", "PayHoursUnrounded", "AdjustedHours", "BilledAmount", "TimeZone", "VisitType", "Verification/VerifiedBy", "Verification/Notes", "Verification/VerifiedDate", "Verification/VerifiedTime", "Verification/SupervisorName"] },
+  GetVisitInfoV3: { record: "VisitInfo", fields: ["ID", "Patient/ID", "Caregiver/ID", "VisitDate", "ScheduleStartTime", "ScheduleEndTime", "VisitStartTime", "VisitEndTime", "EVVStartTime", "EVVEndTime", "ScheduleDuration/ScheduleDurationHours", "ScheduleDuration/ScheduleDurationMinutes", "ActualHours", "ActualHoursRounded", "PayHours", "PayHoursUnrounded", "AdjustedHours", "BilledAmount", "TimeZone", "VisitType", "OriginalVisitID", "SplitVisitID", "Verification/VerifiedBy", "Verification/Notes", "Verification/VerifiedDate", "Verification/VerifiedTime", "Verification/SupervisorName"] },
   GetPatientDemographics: { record: "PatientInfo", fields: ["PatientID", "OfficeID", "FirstName", "LastName", "PatientStatusName", "AdmissionID", "PayerID", "PayerName", "MedicaidStartDate", "MedicaidEndDate", "ManagedCareStartDate", "ManagedCareEndDate", "LastModifiedDate"] },
   GetCaregiverDemographics: { record: "CaregiverInfo", fields: ["ID", "FirstName", "LastName", "CaregiverCode", "EmployeeID", "Status/Name", "TimeZone", "LastModifiedDate"] },
   GetPatientAuthorizationInfo: { record: "AuthorizationInfo", fields: ["AuthorizationID", "Patient/ID", "Contract/ID", "ServiceCode/ID", "AuthorizationNumber", "ServiceCode/Name", "StartDate", "StopDate", "MaxUnits", "RemainingUnits", "BankedHours", "WeeklyMaxAuthorization", "MonthlyMaxAuthorization", "EntirePeriodMaxAuthorization"] },
@@ -807,6 +807,12 @@ export async function operationalRead(client: Pick<HhaSoapClient, "call">, input
       }
       if (input.operation === "SearchPatientAuthorizations") for (const name of ["ID", "ContractID"]) projected[name] = directScalar(xml, name);
       if (input.operation === "GetPatientAuthorizationInfo") for (const name of ["AuthorizationID", "Patient/ID", "Contract/ID", "ServiceCode/ID"]) projected[name] = directPathScalar(xml, name);
+      // Optional raw references only. Preserve long lexical values without numeric
+      // coercion or dereferencing; they never supply another visit's times/identity.
+      if (input.operation === "GetVisitInfoV3") for (const name of ["OriginalVisitID", "SplitVisitID"]) {
+        try { projected[name] = directScalar(xml, name); }
+        catch { projected[name] = null; } // A nested/non-scalar reference is unproved.
+      }
       if (input.operation === "GetCallDashBoardData") for (const name of ["CallDashboardID", "Patient/ID", "Patient/AdmissionID", "Caregiver/ID", "CallTime", "CallType", "CallStatus"]) projected[name] = directPathScalar(xml, name);
       if (input.operation === "GetPatientDemographics") for (const name of ["PatientID", "OfficeID", "AdmissionID"]) projected[name] = directScalar(xml, name);
       if (input.operation === "GetVisitInfoV2" || input.operation === "GetVisitInfoV3") Object.assign(projected, verificationReceiptFields(xml));

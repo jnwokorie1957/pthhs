@@ -406,6 +406,19 @@ TAB 04 - VISIT PREVIEW
     correction, time substitution, new grant or owner decision.
     See ACTUAL_HOURS_SOURCE_SEPARATION_2026-11-02.md.
 
+[ ] P08 Original/split source references (November 2 UTC). The captured
+    GetVisitInfoV3/VisitInfo/OriginalVisitID and SplitVisitID fields were omitted
+    from the operational read projection. The existing approved V3 reader now
+    preserves their unique direct scalar strings, including long values and
+    distinct zero/empty/missing states. Nested/duplicate/nil/non-scalar values
+    remain unproved. No automatic follow, extra read, request-ID conversion,
+    clock substitution, source import or privilege change. Two regressions
+    fail before and pass after; 551 backend checks pass. Frontend unchanged.
+    Normal release and authenticated field acceptance pending. These references
+    do not establish same patient/caregiver/office/service day or explain any
+    missing punch. P03/E04 remain open; no new end recovered.
+    See VISIT_SOURCE_REFERENCES_2026-11-02.md.
+
 TAB 05 - PATIENT WORKBENCH
 [x] T01 Main surface now starts with current patients from readable visits on the
     selected source page. Calendar imports remain clearly separate saved history.

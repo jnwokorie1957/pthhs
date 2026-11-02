@@ -8,6 +8,13 @@
   read approval remain pending. T03 source acceptance remains open. See
   [scope](AUTHORIZATION_READ_READINESS_2026-11-02.md).
 
+- [x] November 2 source-reference implementation: preserve OriginalVisitID and
+  SplitVisitID from the existing approved GetVisitInfoV3 read as raw unique
+  direct scalars. No automatic dereference, time substitution or new permission.
+  Two regressions fail before and pass after; 551 backend tests pass. Normal
+  release/native acceptance pending; P03/E04 remain open.
+  See [scope](VISIT_SOURCE_REFERENCES_2026-11-02.md).
+
 - [x] November 2 UTC actual-hour display acceptance: preserve missing, empty and
   zero HHA ActualHours independently of accepted minutes and recorded clock
   spans. A written span stays beside its source pair in Preview/Review; no clock

@@ -9,6 +9,15 @@ parents. Four regressions fail before/pass after;549backend checks pass. No read
 permission changed; deployment and specific read approval remain pending. See
 [scope](docs/management-layer/AUTHORIZATION_READ_READINESS_2026-11-02.md).
 
+## November 2 original/split source references
+
+The approved GetVisitInfoV3 read now preserves OriginalVisitID and SplitVisitID
+in Advanced tools. These raw references were previously omitted. They are not
+automatically followed or used to fill missing times; cross-record linkage and
+office/date/identity proof remain separate. Two regressions fail before and pass
+after; 551 backend tests pass. Normal release/native acceptance is pending.
+See [scope](docs/management-layer/VISIT_SOURCE_REFERENCES_2026-11-02.md).
+
 ## November 2 UTC actual-hour source separation
 
 HHA ActualHours now displays only the supplied field. Calculated written-clock
