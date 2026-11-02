@@ -1,5 +1,14 @@
 # PTHHS
 
+## Authorization detail read readiness
+
+The enabled authorization discovery source returned four exact ID pairs in the
+protected session. Detail retrieval is implemented but remains disabled. Its
+identity projection now requires unique direct source fields and rejects nil
+parents. Four regressions fail before/pass after;549backend checks pass. No read
+permission changed; deployment and specific read approval remain pending. See
+[scope](docs/management-layer/AUTHORIZATION_READ_READINESS_2026-11-02.md).
+
 ## November 2 UTC actual-hour source separation
 
 HHA ActualHours now displays only the supplied field. Calculated written-clock

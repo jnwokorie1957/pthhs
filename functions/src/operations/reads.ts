@@ -534,7 +534,7 @@ function directPathScalar(xml: string, path: string): string | null {
   const names = path.split("/");
   for (const name of names.slice(0, -1)) {
     const elements = directChildElements(xml, name);
-    if (elements.length !== 1) return null;
+    if (elements.length !== 1 || /\s(?:[A-Za-z_][\w.-]*:)?nil\s*=\s*(["'])\s*(?:true|1)\s*\1/i.test(elements[0]!.match(/^<[^>]+>/)?.[0] ?? "")) return null;
     xml = extractElementBody(elements[0]!, name) ?? "";
   }
   return directScalar(xml, names.at(-1)!);
@@ -805,6 +805,8 @@ export async function operationalRead(client: Pick<HhaSoapClient, "call">, input
       if (["GetVisitInfoV2", "GetVisitInfoV3", "GetVisitBillInfoV2"].includes(input.operation)) {
         for (const name of ["ID", "Patient/ID", "Caregiver/ID", "VisitDate"]) projected[name] = directPathScalar(xml, name);
       }
+      if (input.operation === "SearchPatientAuthorizations") for (const name of ["ID", "ContractID"]) projected[name] = directScalar(xml, name);
+      if (input.operation === "GetPatientAuthorizationInfo") for (const name of ["AuthorizationID", "Patient/ID", "Contract/ID", "ServiceCode/ID"]) projected[name] = directPathScalar(xml, name);
       if (input.operation === "GetCallDashBoardData") for (const name of ["CallDashboardID", "Patient/ID", "Patient/AdmissionID", "Caregiver/ID", "CallTime", "CallType", "CallStatus"]) projected[name] = directPathScalar(xml, name);
       if (input.operation === "GetPatientDemographics") for (const name of ["PatientID", "OfficeID", "AdmissionID"]) projected[name] = directScalar(xml, name);
       if (input.operation === "GetVisitInfoV2" || input.operation === "GetVisitInfoV3") Object.assign(projected, verificationReceiptFields(xml));

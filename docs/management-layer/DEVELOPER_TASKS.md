@@ -1,5 +1,13 @@
 # PTHHS Management Layer — Developer Checklist
 
+- [x] Authorization detail readiness audit: current discovery returns four exact
+  ID pairs; GetPatientAuthorizationInfo is still unchecked. Discovery/detail
+  identities now require unique direct scalar paths, and nil parents cannot
+  supply scope proof. Four regressions fail before/pass after;549backend and
+  14focused checks pass. No access expanded; normal release and action-time
+  read approval remain pending. T03 source acceptance remains open. See
+  [scope](AUTHORIZATION_READ_READINESS_2026-11-02.md).
+
 - [x] November 2 UTC actual-hour display acceptance: preserve missing, empty and
   zero HHA ActualHours independently of accepted minutes and recorded clock
   spans. A written span stays beside its source pair in Preview/Review; no clock

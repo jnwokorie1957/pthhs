@@ -433,6 +433,17 @@ TAB 05 - PATIENT WORKBENCH
     exact detail uses GetPatientAuthorizationInfo and is not currently enabled.
     Establish detail entitlement and matching patient/office before activating.
     Units/remaining balance/approval semantics remain independent evidence.
+    November2UTC readiness review: current protected discovery returned4exact
+    authorization/contract pairs and4detail-selection controls with a source
+    receipt. Current owner controls still show GetPatientAuthorizationInfo
+    unchecked and the existing8reads selected. No access changed. An identity
+    projection correction now rejects nested/duplicate discovery/detail IDs
+    and nil parent scope proof. Four regressions fail before/pass after;
+    549backend/14focused checks pass. Browser assets/budgets unchanged. Normal
+    release and action-time approval for this ninth read remain pending. After
+    approval, use current settings and prove actual exact-record response/receipt;
+    do not treat enablement as entitlement or infer remaining hours from units.
+    See AUTHORIZATION_READ_READINESS_2026-11-02.md.
 [ ] T04 Care plans/documents: SearchPatientPOC, GetPatientPOCInfo,
     SearchPatientDocument and DownloadPatientDocument. Confirm exact ownership,
     office and release/access limits before enabling the bounded readers.
