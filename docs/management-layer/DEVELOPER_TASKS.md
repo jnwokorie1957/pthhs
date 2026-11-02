@@ -15,7 +15,9 @@
   cannot supply amounts; zero strings remain exact. GetVisitBillInfoV2 stays a
   separate empty/result-checked reader. Two regressions fail before/pass after;
   356frontend-tooling/46analytics and full Windows release checks pass within
-  unchanged budgets. Deployment/native acceptance pending. Historical exact
+  unchanged budgets. Runtime3b29a29 passed all three normal release jobs and
+  native production: eight supplied October24 amounts, exact API value match,
+  independent empty detailed reader and source Clear removal. Historical exact
   source comparison found matching recorded start/end but no recovered EVV end.
   B02/E04 and the overall goal remain open. See
   [scope](VISIT_BILLED_AMOUNT_2026-11-01.md).

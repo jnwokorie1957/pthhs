@@ -538,8 +538,17 @@ TAB 08 - BILLING & AR
     independently checked; historical same-record read still returned no billing
     record despite a supplied GetVisitInfoV3 amount. B02 remains open. Two new
     regressions fail before/pass after;356frontend-tooling/46analytics tests and
-    full Windows checks pass. Existing raw/gzip budgets pass. Normal release/
-    native acceptance pending. See VISIT_BILLED_AMOUNT_2026-11-01.md.
+    full Windows checks pass. Existing raw/gzip budgets pass:419978/101635bytes.
+    Runtime3b29a29 passed workflow41364522832 all3jobs: Hosting23:57:03,
+    backend23:57:18, analytics23:58:45UTC. Public12exactassets/9anonymous401/private/
+    noindex boundaries passed23:59:14.573UTC. Native normal session loaded
+    dashboard871cd256d94f. October24 page has10rows/eight supplied amounts; exact
+    checked visit/patient value matches the verified API source. Separate detailed
+    billing read still reports no record without removing the visit amount.
+    Clear removes all rows/new amounts and the detailed result. Date/Demo/sign-out
+    variants retain synthetic coverage. B02/B01/B03 remain open; no payments,
+    detailed billing success or overall goal completion claimed.
+    See VISIT_BILLED_AMOUNT_2026-11-01.md.
 
 TAB 09 - FORMS
 [x] F01 Connected private Firebase Storage template/submission library. Exact

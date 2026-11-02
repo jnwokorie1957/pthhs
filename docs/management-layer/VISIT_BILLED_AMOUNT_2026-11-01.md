@@ -62,9 +62,19 @@ tests and46analytics tests pass. Full Windows release checks, asset generation,
 performance, accessibility, preservation and repository checks pass.
 
 Generated assets total375029bytes across11files. Existing420000raw/102000gzip
-limits remain unchanged; raw internal output419978bytes passes. No dependency,
-minifier behavior or marketing output changed. Normal deployment and native
-production amount/source-boundary acceptance are pending.
+limits remain unchanged; internal output419978raw/101635gzip passes. No dependency,
+minifier behavior or marketing output changed.
+
+Runtime3b29a29f97b9238926f37ebd5c0376122f89dc77 passed all three normal jobs in
+[workflow41364522832](https://github.com/jnwokorie1957/pthhs/actions/runs/41364522832):
+Hosting23:57:03, backend23:57:18, analytics23:58:45UTC. At23:59:14.573UTC,
+12exactassets and9anonymous401/private/noindex boundaries passed. The normal
+authenticated browser loaded dashboard871cd256d94f and Live HHA mode. Its fresh
+October24 page has10rows and eight supplied amounts; the exact selected visit/
+patient value matches the verified GetVisitInfoV3 read. The detailed billing read
+still returns no record and does not erase the separate visit amount. Source
+Clear removes all rows/amounts and the detailed result. Other date/Demo/session
+variants remain synthetic checks; no source failure was induced in production.
 
 Remaining work: B02 still requires usable exact-record detailed billing fields
 or precise provider evidence explaining the empty result. B01/B03 operational
