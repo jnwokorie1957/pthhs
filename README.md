@@ -16,7 +16,10 @@ The approved GetVisitInfoV3 read now preserves OriginalVisitID and SplitVisitID
 in Advanced tools. These raw references were previously omitted. They are not
 automatically followed or used to fill missing times; cross-record linkage and
 office/date/identity proof remain separate. Two regressions fail before and pass
-after; 551 backend tests pass. Normal release/native acceptance is pending.
+after; 551 combined backend tests pass. Runtime f2166df passed all three normal
+release jobs, public checks and native exact-record checks on three dates.
+Those references supplied no distinct alternate record or recovered punch;
+broader time/history gaps remain open.
 See [scope](docs/management-layer/VISIT_SOURCE_REFERENCES_2026-11-02.md).
 
 ## November 2 UTC actual-hour source separation

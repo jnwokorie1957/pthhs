@@ -13,8 +13,12 @@
 - [x] November 2 source-reference implementation: preserve OriginalVisitID and
   SplitVisitID from the existing approved GetVisitInfoV3 read as raw unique
   direct scalars. No automatic dereference, time substitution or new permission.
-  Two regressions fail before and pass after; 551 backend tests pass. Normal
-  release/native acceptance pending; P03/E04 remain open.
+  Two regressions fail before and pass after; 551 combined backend tests pass.
+  Runtime f2166df passed all three normal jobs, public boundary/assets/noindex
+  and native exact-record checks on October 23/24 and current November 1.
+  The three raw OriginalVisitID values equal the selected visits and SplitVisitID
+  values are zero strings; no alternate record or missing punch was recovered.
+  P08 accepted; P03/E04 and reference/history semantics remain open.
   See [scope](VISIT_SOURCE_REFERENCES_2026-11-02.md).
 
 - [x] November 2 UTC actual-hour display acceptance: preserve missing, empty and

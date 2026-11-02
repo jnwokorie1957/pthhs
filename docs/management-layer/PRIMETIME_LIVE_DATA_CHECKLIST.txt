@@ -406,7 +406,7 @@ TAB 04 - VISIT PREVIEW
     correction, time substitution, new grant or owner decision.
     See ACTUAL_HOURS_SOURCE_SEPARATION_2026-11-02.md.
 
-[ ] P08 Original/split source references (November 2 UTC). The captured
+[x] P08 Original/split source references (November 2 UTC). The captured
     GetVisitInfoV3/VisitInfo/OriginalVisitID and SplitVisitID fields were omitted
     from the operational read projection. The existing approved V3 reader now
     preserves their unique direct scalar strings, including long values and
@@ -414,9 +414,17 @@ TAB 04 - VISIT PREVIEW
     remain unproved. No automatic follow, extra read, request-ID conversion,
     clock substitution, source import or privilege change. Two regressions
     fail before and pass after; 551 backend checks pass. Frontend unchanged.
-    Normal release and authenticated field acceptance pending. These references
-    do not establish same patient/caregiver/office/service day or explain any
-    missing punch. P03/E04 remain open; no new end recovered.
+    Runtime f2166df passed all three normal jobs in workflow 41384475329:
+    Hosting 03:42:14/backend 03:43:43/analytics 03:43:51 UTC. Twelve exact app
+    assets, nine anonymous JSON 401/no-store boundaries and noindex passed.
+    Native after all jobs: October 24 same exact visit/patient/caregiver read
+    exposed both fields that the earlier displayed projection omitted. Recorded/
+    EVV clocks and actual-hour displays were unchanged. October 23 and current
+    office-day November 1 exact examples also matched; all three exposed self
+    OriginalVisitID and zero SplitVisitID strings. No distinct alternate source
+    candidate or original end recovered; zero/history semantics remain unproved.
+    Overview/current-day live feed restored. These raw references do not establish
+    an accepted cross-record/date/office relationship. P03/E04 remain open.
     See VISIT_SOURCE_REFERENCES_2026-11-02.md.
 
 TAB 05 - PATIENT WORKBENCH
