@@ -14,6 +14,13 @@
 
 ## Start here
 
+- [x] November 2 bounded administrator navigation: Back to fetched authorizations
+  now restores the original list and receipt without a source request. Normal
+  release and actual 13-row/14-field identity/receipt, date/patient/Demo checks
+  pass. No new read decision or source-write authority; remaining-hour,
+  eligibility, missing-time and billing facts remain unestablished. See
+  [acceptance](PATIENT_AUTHORIZATION_RETURN_2026-11-02.md).
+
 - [x] November 2 additional read decision: the owner approved patient-scoped
   SearchBilledVisits for existing administrators after fresh patient-office proof.
   Saved/reloaded11reads retain all old10, other preferences and0write grants.

@@ -1526,3 +1526,22 @@ selection, plus patient/Demo clearing; no raw source values saved as evidence.
 Normal release/native acceptance pending. See PATIENT_AUTHORIZATION_RETURN_2026-11-02.md.
 Existing T05/P12/B05 acceptance remains; H03 is concurrent work, P03/E04/B02/T04/S02
 and external-role contracts remain open. No new vendor research/source claim.
+
+AUTHORIZATION LIST RETURN — NOVEMBER 2 BOUNDED PRODUCTION ACCEPTANCE
+Runtime915a87f, normal41517857604 all3jobs passed20:18:20/20:18:35/20:20:20UTC.
+376frontend/tooling+24generatorQA+12private byte preservation pass. App418658raw/
+101947gzip remains below unchanged420000/102000. Public12exactartifacts and
+11anonymousJSON401/no-store/noindex checks pass. Equivalent default HTML and
+seven unchanged JS bodies below shorter source comments checked.
+Native20:21–20:23UTC:13rows, original list/receipt exact before detail and after
+completed independent14field detail with exact patient/auth/contract; pending
+detail cannot overwrite returned list. Original scope/truncation/raw-unit cautions
+retained. Date-only October24 change preserves list; different patient clears.
+Fresh discovery creates new return; Demo clears it. Live Overview/officeNov2/feed
+restored with10readable partial-page rows and20:23:03.057Zreceipt, no horizontal
+overflow. No missing time/billing fact recovered. Zero Back API requests proved
+by synthetic counters, not native network measurement. Error/revocation/quota/
+mobile cases not induced. No private source IDs/values/screenshots saved.
+This is accepted office-admin navigation only; T05/P12/B05 remain accepted,
+H03 concurrent health/status work and broader P03/E04/B02/T04/S02/P1-B/P2 remain
+open. See PATIENT_AUTHORIZATION_RETURN_2026-11-02.md. No owner action/grant needed.

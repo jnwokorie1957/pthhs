@@ -1,5 +1,14 @@
 # PTHHS
 
+## November 2 return to fetched patient authorizations
+
+Administrators can return from an exact authorization detail to the original
+fetched list and receipt without another source request. Patient, office, session
+and Demo fences preserve the source context. All normal release jobs and bounded
+signed-in checks pass; Live office-today Overview/feed was restored. This closes
+the navigation improvement, not missing-time, billing or authorization-unit gaps.
+See [verification](docs/management-layer/PATIENT_AUTHORIZATION_RETURN_2026-11-02.md).
+
 ## November 2 patient-scoped billed discovery readiness
 
 SearchBilledVisits now requires the selected patient/day/office instead of ignoring

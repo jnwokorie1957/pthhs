@@ -4,7 +4,9 @@
   restoration preserves original receipts, exact contract selectors and cautions
   without another HHA request. Scope/session/failed-detail fences and monotonic
   stale-response guards pass three fail-before regressions and376frontend/tooling
-  tests. Normal release and native acceptance are pending. See
+  tests. All three normal release jobs,12exactassets/11anonymous boundaries and native
+  13-row/14-field exact-identity, original-receipt, date/patient/Demo acceptance
+  pass. Live November2 Overview/feed restored. See
   [scope and evidence](PATIENT_AUTHORIZATION_RETURN_2026-11-02.md).
 
 - [x] November 2 patient-scoped billed discovery: request now honors patient,
