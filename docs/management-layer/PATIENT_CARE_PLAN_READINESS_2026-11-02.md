@@ -41,8 +41,8 @@ clinically accepted snapshot.
 
 The existing metadata-driven screen exposes patient/office for discovery and
 patient/office/plan ID for detail. Selecting a returned plan preserves subject and
-office. Input changes, Demo and sign-out invalidate late results. No new client
-asset bytes, library, security rule, index, IAM grant or deployment bypass is used.
+office. Input changes, Demo and sign-out invalidate late results. The partial-result caption now covers row and task limits accurately. No new
+library, security rule, index, IAM grant or deployment bypass is used.
 
 ## Verification
 
@@ -54,7 +54,8 @@ metadata inputs, exact detail selection and late-result clearing.
 
 Full local checks: 597 backend, 378 browser/tooling plus 3 public analytics guard
 checks, and 46 analytics-backend tests pass. Generated assets remain current:
-11 generated files / 373874 bytes; catalog and original size budgets unchanged.
+11 generated files / 373868 bytes; catalog unchanged. Total418817raw/101980gzip
+remains within original420000raw/102000gzip/per-file110KB limits.
 Repository audit passes with existing duplicate/suffix warnings. Normal CI still
 runs the full generator/release checks before deployment. Native production
 retrieval must not be claimed until actual successful source reads after approval.

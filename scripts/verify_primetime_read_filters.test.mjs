@@ -36,11 +36,11 @@ function carePlanFixture() {
     get textContent(){return this.text??this.children.map(x=>x.textContent||'').join(' ')},set textContent(value){this.text=value} }; }
   const el=id=>{if(!elements.has(id))elements.set(id,node(id));return elements.get(id)};
   const settings={revision:1,officeId:'9',enabledReads:['SearchPatientPOC','GetPatientPOCInfo']};
-  const state={live:true,deferred:null};
+  const state={live:true,deferred:null,truncated:false};
   const document={getElementById:el,querySelectorAll:()=>[],createElement:()=>node(),createTextNode:text=>({textContent:text}),addEventListener:(e,f)=>events.set(e,f)};
   const window={primetimeDataMode:{isLive:()=>state.live},async primetimeApiFetch(path,options){
     sent.push({path,body:options?.body});
-    if(path.endsWith('/read')){if(state.deferred)await state.deferred;const input=JSON.parse(options.body);return {ok:true,json:async()=>({ok:true,operation:input.operation,source:'hhaexchange',fetchedAt:'2026-11-02T20:00:00.000Z',truncated:false,records:input.operation==='SearchPatientPOC'?[{ID:'7'}]:[{ID:'7',SourceElement:'POCInfo (plan header)',TaskListState:'Not supplied / unknown',Interpretation:'Plan/task definitions only.'}]})};}
+    if(path.endsWith('/read')){if(state.deferred)await state.deferred;const input=JSON.parse(options.body);return {ok:true,json:async()=>({ok:true,operation:input.operation,source:'hhaexchange',fetchedAt:'2026-11-02T20:00:00.000Z',truncated:state.truncated,records:input.operation==='SearchPatientPOC'?[{ID:'7'}]:[{ID:'7',SourceElement:'POCInfo (plan header)',TaskListState:'Not supplied / unknown',Interpretation:'Plan/task definitions only.'}]})};}
     return {ok:true,json:async()=>({ok:true,settings,dataApproved:true,supportedReads:settings.enabledReads,readInputs:{SearchPatientPOC:['patientId','officeId'],GetPatientPOCInfo:['patientId','officeId','id']}})};
   }};
   const mode=window.primetimeDataMode;
@@ -57,8 +57,9 @@ test('care-plan reader uses server metadata for patient/office fields and keeps 
   const card=f.el('readResults').children.find(x=>x.children.some(c=>c.textContent==='Inspect care plan tasks'));
   await card.children.find(c=>c.textContent==='Inspect care plan tasks').handlers.get('click')();
   assert.equal(f.el('readOperation').value,'GetPatientPOCInfo');assert.equal(f.el('readPatient').value,'8');assert.equal(f.el('readOffice').value,'9');assert.equal(f.el('readId').value,'7');
-  f.submit();await settleCarePlan();assert.deepEqual(JSON.parse(f.sent.at(-1).body),{operation:'GetPatientPOCInfo',patientId:'8',officeId:'9',id:'7'});
+  f.state.truncated=true;f.submit();await settleCarePlan();assert.deepEqual(JSON.parse(f.sent.at(-1).body),{operation:'GetPatientPOCInfo',patientId:'8',officeId:'9',id:'7'});
   assert.match(f.el('readResults').textContent,/Plan\/task definitions only/);assert.match(f.el('readResults').textContent,/Not supplied \/ unknown/);
+  assert.match(f.el('readResults').textContent,/Partial source result; row or task limits apply/);assert.doesNotMatch(f.el('readResults').textContent,/first 200 rows/);
 });
 
 test('late care-plan replies are discarded when patient context changes, Demo starts or the user signs out',async()=>{

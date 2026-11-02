@@ -6,7 +6,7 @@
   before/after retrieval and exact plan/patient identity. Metadata-driven screen
   preserves the scoped selection; fourteen new backend/two browser tests pass.
   Full 597 backend,381 browser/tooling+public analytics guard,46 analytics-backend
-  checks pass without client asset/budget changes. Normal release/production
+  checks pass within original client asset budgets. Normal release/production
   readiness and additional owner grants are pending. T04/F03 remain open. See
   [scope](PATIENT_CARE_PLAN_READINESS_2026-11-02.md).
 
