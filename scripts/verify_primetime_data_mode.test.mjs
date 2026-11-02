@@ -3705,3 +3705,70 @@ test('preview carries literal EVV source types beside independent clocks and cle
   app.window.primetimeDataMode.setMode('demo');
   assert.doesNotMatch(nodeText(app.element('dashboardVisitRows')), /<literal-type>|EVV types in/);
 });
+
+const authorizationBack = app => descendants(app.element('readForm')).find(n => n.tagName === 'BUTTON' && n.textContent === 'Back to fetched authorizations');
+function returningAuthorizations(options = {}) {
+  return connectedWorkspace({ enabledReads: ['GetPatientDemographics', 'SearchPatientAuthorizations', 'GetPatientAuthorizationInfo'], authorizations: (_path, request) => {
+    const input = JSON.parse(request.body);
+    if (options.read) return options.read(input);
+    return response(authSource(input, input.operation === 'GetPatientAuthorizationInfo' ? { truncated: false, records: [{ AuthorizationID: input.id, 'Patient/ID': input.patientId, 'Contract/ID': input.contractId, MaxUnits: '0' }] } : {}));
+  } });
+}
+test('fetched authorization list returns without another source request and retains exact contract selectors', async () => {
+  const app = returningAuthorizations(); await app.signIn(); await tick(); await tick(); await startAuthorizationRead(app);
+  const list = nodeText(app.element('readResults')), first = detailButtons(app)[0];
+  await clickNode(first);
+  assert.ok(authorizationBack(app), 'a return action must be available after selecting a detail');
+  assert.equal(authorizationBack(app).hidden, false);
+  await submitRead(app); const calls = authorizationCalls(app).length;
+  await clickNode(authorizationBack(app));
+  assert.equal(authorizationCalls(app).length, calls);
+  assert.equal(nodeText(app.element('readResults')), list);
+  assert.equal(app.element('readOperation').value, 'SearchPatientAuthorizations');
+  assert.equal(authorizationBack(app).hidden, true);
+  assert.match(app.element('patientAuthorizationMessage').textContent, /previously fetched.*refresh/i);
+  await clickNode(detailButtons(app)[1]); await submitRead(app);
+  assert.deepEqual(JSON.parse(authorizationCalls(app).at(-1).options.body), { operation: 'GetPatientAuthorizationInfo', patientId: '5', id: '72', officeId: '123', contractId: '82' });
+  assert.match(nodeText(app.element('readResults')), /Discovery read: 2026-10-15T19:16:00.000Z/);
+});
+test('returning to fetched authorizations fences a late detail and preserves independent visit-date scope', async () => {
+  const late = deferred();
+  const app = returningAuthorizations({ read: input => input.operation === 'GetPatientAuthorizationInfo' ? late.promise : response(authSource(input)) });
+  await app.signIn(); await tick(); await tick(); await startAuthorizationRead(app);
+  const list = nodeText(app.element('readResults'));
+  await clickNode(detailButtons(app)[0]); await submitRead(app);
+  assert.ok(authorizationBack(app));
+  await clickNode(authorizationBack(app));
+  app.document.dispatchEvent(new DetailEvent('primetime-source-context-cleared', { detail: { date: '2026-10-11' } }));
+  late.resolve(response({ ok: false, error: 'patient_office_mismatch' })); await tick(); await tick();
+  assert.equal(nodeText(app.element('readResults')), list);
+  assert.equal(app.element('readOperation').value, 'SearchPatientAuthorizations');
+  assert.doesNotMatch(app.element('patientAuthorizationMessage').textContent, /mismatch/);
+  await clickNode(detailButtons(app)[1]);
+  assert.equal(app.element('readId').value, '72');
+});
+test('retained authorization lists and detached return actions cannot cross input, profile, office or session changes', async () => {
+  for (const change of ['input', 'profile_general', 'office', 'demo', 'signout', 'failed_detail', 'malformed_detail', 'refresh', 'workflow']) {
+    const app = returningAuthorizations({ read: input => response(input.operation === 'GetPatientAuthorizationInfo'
+      ? change === 'malformed_detail' ? { ...authSource(input), fetchedAt: 'invalid' } : { ok: false, error: 'patient_office_mismatch' } : authSource(input)) });
+    await app.signIn(); await tick(); await tick(); await startAuthorizationRead(app);
+    const oldSelect = detailButtons(app)[0]; await clickNode(oldSelect);
+    const back = authorizationBack(app); assert.ok(back, change);
+    if (change === 'input') { app.element('readPatient').value = '6'; for (const fn of app.element('readPatient').handlers.get('input')) fn(new Event('input')); }
+    if (change === 'profile_general') {
+      app.document.dispatchEvent(new DetailEvent('primetime-view-changed', { detail: { view: 'workbench' } }));
+      app.document.dispatchEvent(new DetailEvent('primetime-patient-profile-selected', { detail: { patientId: '6', officeId: '123' } }));
+    }
+    if (change === 'office') app.window.primetimeDataMode.observeScope({ revision: 2, officeId: '999', officeTimezone: 'America/Chicago' });
+    if (change === 'demo') app.window.primetimeDataMode.setMode('demo');
+    if (change === 'signout') app.dispatch('primetime-signed-out');
+    if (['failed_detail', 'malformed_detail'].includes(change)) await submitRead(app);
+    if (change === 'refresh') { await clickNode(back); await submitRead(app); }
+    if (change === 'workflow') { app.element('readOperation').value = 'GetPatientDemographics'; for (const fn of app.element('readOperation').handlers.get('change')) fn(new Event('change')); }
+    await tick(); await tick(); const before = nodeText(app.element('readResults')), calls = authorizationCalls(app).length;
+    await clickNode(back); await clickNode(oldSelect);
+    assert.equal(nodeText(app.element('readResults')), before, change);
+    assert.equal(authorizationCalls(app).length, calls, change);
+    assert.equal(back.hidden, true, change);
+  }
+});

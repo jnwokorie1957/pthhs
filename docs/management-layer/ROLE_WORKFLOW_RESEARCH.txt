@@ -1509,3 +1509,20 @@ external P1-B/P2 contracts remain open. Existing P10/P11 and original screenshot
 acceptance are preserved. Earlier primary research remains dated; no new vendor
 configuration or clinical source acceptance is claimed. See
 EVV_TYPE_DISPLAY_2026-11-02.md. No source write/import/decision/communication.
+
+
+AUTHORIZATION LIST RETURN — NOVEMBER 2 IMPLEMENTATION CHECKPOINT
+Observed T05 exact selection replaces the discovery list with independent detail
+selection/results. Proposed bounded office follow-up: return to that already
+fetched list to choose another exact authorization/contract without re-reading HHA.
+Implemented in browser memory only, retaining original receipt/scope/truncation
+and unvalidated-unit/eligibility/remaining-hour cautions. Explicit new reads still
+require the same approved reader and fresh server identity/office proof. No new
+source grant, import, persistent private snapshot or external-role access.
+Three regressions failed before/pass after;376frontend/tooling pass. Nine
+invalidation cases and late-detail/date-only behavior covered. Acceptance requires
+real signed-in discovery, detail, exact list/receipt restoration and another exact
+selection, plus patient/Demo clearing; no raw source values saved as evidence.
+Normal release/native acceptance pending. See PATIENT_AUTHORIZATION_RETURN_2026-11-02.md.
+Existing T05/P12/B05 acceptance remains; H03 is concurrent work, P03/E04/B02/T04/S02
+and external-role contracts remain open. No new vendor research/source claim.

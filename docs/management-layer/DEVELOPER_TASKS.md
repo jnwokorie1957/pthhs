@@ -1,5 +1,12 @@
 # PTHHS Management Layer — Developer Checklist
 
+- [x] November 2 authorization-list return implemented locally: browser-memory-only
+  restoration preserves original receipts, exact contract selectors and cautions
+  without another HHA request. Scope/session/failed-detail fences and monotonic
+  stale-response guards pass three fail-before regressions and376frontend/tooling
+  tests. Normal release and native acceptance are pending. See
+  [scope and evidence](PATIENT_AUTHORIZATION_RETURN_2026-11-02.md).
+
 - [x] November 2 patient-scoped billed discovery: request now honors patient,
   day and office; fresh patient-office proof and strict direct collection/fields
   prevent cross-subject or nested evidence. Four regressions fail before/pass

@@ -32,7 +32,7 @@ export async function renderPrimetimeAssets(sourceDir = defaultSource) {
     if (name.endsWith('.js')) {
       const result = await minify(source, minifierOptions);
       if (typeof result.code !== 'string') throw new Error(`No generated code for ${name}`);
-      content = `/* Generated from source/primetime/${name}; run npm run build:primetime. */\n${result.code}\n`;
+      content = `/* source/primetime/${name} */\n${result.code}\n`;
     }
     output.set(name, content);
     const hash = createHash('sha256').update(content).digest('hex').slice(0, 12);
