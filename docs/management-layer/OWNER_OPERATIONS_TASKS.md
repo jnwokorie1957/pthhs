@@ -14,6 +14,15 @@
 
 ## Start here
 
+- [ ] Prepared November 2 patient-document decision: SearchPatientDocument and
+  DownloadPatientDocument for existing administrators only, after normal release
+  and bounded readiness. This exposes private patient file metadata and content
+  up to2MiB after fresh exact membership checks. No grant or source query made;
+  no staff/patient-role, clinical form/version/signature/sharing authority, source
+  write or automatic file saving/import is added. Existing eleven grants and the
+  separate pending care-plan decision are preserved. See
+  [scope](PATIENT_DOCUMENT_READINESS_2026-11-02.md).
+
 - [ ] Prepared November 2: specific additional read decision for SearchPatientPOC
   and GetPatientPOCInfo, existing administrators only. Normal release and bounded
   production readiness now pass; the specific action-time decision is pending. This exposes private plan/task definitions with

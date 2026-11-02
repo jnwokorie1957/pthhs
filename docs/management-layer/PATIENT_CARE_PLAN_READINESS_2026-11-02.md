@@ -91,6 +91,11 @@ decision has been requested. No actual care-plan source retrieval is accepted.
 
 ## Separate patient-document audit (F03; not implemented here)
 
+Follow-up: [patient-document readiness](PATIENT_DOCUMENT_READINESS_2026-11-02.md)
+implements the boundary and optional-size fix described below. Its release,
+additional grants and actual retrieval remain pending; this care-plan audit was
+the earlier finding, not current evidence that the fix is still unimplemented.
+
 SearchPatientDocument rows carry PatientID; DownloadPatientDocument returns only
 PatientDocID and optional FileSize. A safe future public path needs fresh
 patient-office proof, exact patient-document metadata membership before download,

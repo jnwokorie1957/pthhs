@@ -29,19 +29,23 @@ test('owner filtering preserves hidden selections through save and clears on sig
   assert.equal(el('readPermissions').children.length,0); assert.equal(el('readPermissionSearch').value,''); assert.equal(el('readPermissionSelectedOnly').checked,false);
 });
 
-function carePlanFixture() {
+function carePlanFixture(documents = false) {
   const elements = new Map(), events = new Map(), sent = [];
   function node(id = '') { const label = { hidden: false }; return { id, children: [], handlers: new Map(), options: [], value: '', checked: false, hidden: id === 'appShell', dataset: {}, classList: { add(){}, remove(){}, toggle(){} },
     addEventListener(e,f){this.handlers.set(e,f)}, append(...items){this.children.push(...items)}, replaceChildren(...items){this.text=undefined;this.children=items}, querySelectorAll(selector){if(this.id!=='readPermissions')return [];if(selector==='label')return this.children;if(selector==='input:checked')return this.children.map(x=>x.children[0]).filter(x=>x.checked);return []},querySelector(){return this.children[0]},closest(){return label},reset(){},focus(){},setAttribute(){},
     get textContent(){return this.text??this.children.map(x=>x.textContent||'').join(' ')},set textContent(value){this.text=value} }; }
   const el=id=>{if(!elements.has(id))elements.set(id,node(id));return elements.get(id)};
-  const settings={revision:1,officeId:'9',enabledReads:['SearchPatientPOC','GetPatientPOCInfo']};
-  const state={live:true,deferred:null,truncated:false};
+  const settings={revision:1,officeId:'9',enabledReads:documents?['SearchPatientDocument','DownloadPatientDocument']:['SearchPatientPOC','GetPatientPOCInfo']};
+  const state={live:true,deferred:null,truncated:false,dialogs:0};
   const document={getElementById:el,querySelectorAll:()=>[],createElement:()=>node(),createTextNode:text=>({textContent:text}),addEventListener:(e,f)=>events.set(e,f)};
-  const window={primetimeDataMode:{isLive:()=>state.live},async primetimeApiFetch(path,options){
+  const window={primetimeDataMode:{isLive:()=>state.live},confirm(){state.dialogs++;return false},async primetimeApiFetch(path,options){
     sent.push({path,body:options?.body});
-    if(path.endsWith('/read')){if(state.deferred)await state.deferred;const input=JSON.parse(options.body);return {ok:true,json:async()=>({ok:true,operation:input.operation,source:'hhaexchange',fetchedAt:'2026-11-02T20:00:00.000Z',truncated:state.truncated,records:input.operation==='SearchPatientPOC'?[{ID:'7'}]:[{ID:'7',SourceElement:'POCInfo (plan header)',TaskListState:'Not supplied / unknown',Interpretation:'Plan/task definitions only.'}]})};}
-    return {ok:true,json:async()=>({ok:true,settings,dataApproved:true,supportedReads:settings.enabledReads,readInputs:{SearchPatientPOC:['patientId','officeId'],GetPatientPOCInfo:['patientId','officeId','id']}})};
+    if(path.endsWith('/read')){
+      if(state.deferred)await state.deferred;const input=JSON.parse(options.body);
+      const records=input.operation==='SearchPatientPOC'?[{ID:'7'}]:input.operation==='SearchPatientDocument'?[{PatientDocID:'7',PatientID:'8',FileName:'synthetic.pdf'}]:input.operation==='DownloadPatientDocument'?[{PatientDocID:'7',FileName:'synthetic.pdf',FileSize:null}]:[{ID:'7',SourceElement:'POCInfo (plan header)',TaskListState:'Not supplied / unknown',Interpretation:'Plan/task definitions only.'}];
+      return {ok:true,json:async()=>({ok:true,operation:input.operation,source:'hhaexchange',fetchedAt:'2026-11-02T20:00:00.000Z',truncated:state.truncated,records,...(input.operation==='DownloadPatientDocument'?{attachment:{filename:'synthetic.pdf',byteLength:4,base64:'dGVzdA==',contentType:'application/octet-stream'}}:{})})};
+    }
+    return {ok:true,json:async()=>({ok:true,settings,dataApproved:true,supportedReads:settings.enabledReads,readInputs:{SearchPatientPOC:['patientId','officeId'],GetPatientPOCInfo:['patientId','officeId','id'],SearchPatientDocument:['patientId','officeId','documentTypeId','id','date'],DownloadPatientDocument:['patientId','officeId','id']}})};
   }};
   const mode=window.primetimeDataMode;
   vm.runInNewContext(readFileSync(new URL('../public/primetime/data-source.js',import.meta.url),'utf8'),{document,window,Event});window.primetimeDataMode=mode;
@@ -69,5 +73,24 @@ test('late care-plan replies are discarded when patient context changes, Demo st
     if(mode==='patient'){f.el('readPatient').value='88';f.el('readPatient').handlers.get('input')();}
     else {f.state.live=false;f.events.get(mode==='demo'?'primetime-data-mode-changed':'primetime-signed-out')();}
     release();await settleCarePlan();assert.doesNotMatch(f.el('readResults').textContent,/Inspect care plan tasks|Fetched/);
+  }
+});
+
+test('patient file selection retains exact subject/office, requests bytes explicitly and never saves automatically',async()=>{
+  const f=carePlanFixture(true);await settleCarePlan();f.el('readOperation').value='SearchPatientDocument';f.el('readPatient').value='8';f.el('readOffice').value='9';f.submit();await settleCarePlan();
+  const card=f.el('readResults').children.find(x=>x.children.some(c=>c.textContent==='Read attachment'));assert.ok(card);
+  const count=f.sent.length;await card.children.find(c=>c.textContent==='Read attachment').handlers.get('click')();assert.equal(f.sent.length,count);
+  assert.equal(f.el('readOperation').value,'DownloadPatientDocument');assert.equal(f.el('readId').value,'7');assert.equal(f.el('readPatient').value,'8');assert.equal(f.el('readOffice').value,'9');
+  f.submit();await settleCarePlan();assert.deepEqual(JSON.parse(f.sent.at(-1).body),{operation:'DownloadPatientDocument',patientId:'8',officeId:'9',id:'7'});
+  assert.match(f.el('readResults').textContent,/Attachment ready: synthetic.pdf, 4 bytes/);assert.doesNotMatch(f.el('readResults').textContent,/dGVzdA==/);assert.equal(f.state.dialogs,0);
+  const save=f.el('readResults').children.find(x=>x.textContent==='Save attachment to this device');assert.ok(save);await save.handlers.get('click')();assert.equal(f.state.dialogs,1);
+});
+
+test('late patient file bytes cannot repopulate results after subject, office, document, Demo or sign-out changes',async()=>{
+  for(const mode of ['readPatient','readOffice','readId','demo','sign-out']){
+    const f=carePlanFixture(true);await settleCarePlan();f.el('readOperation').value='DownloadPatientDocument';f.el('readPatient').value='8';f.el('readOffice').value='9';f.el('readId').value='7';
+    let release;f.state.deferred=new Promise(resolve=>release=resolve);f.submit();await settleCarePlan();
+    if(mode.startsWith('read')){f.el(mode).value='99';f.el(mode).handlers.get('input')();}else{f.state.live=false;f.events.get(mode==='demo'?'primetime-data-mode-changed':'primetime-signed-out')();}
+    release();await settleCarePlan();assert.doesNotMatch(f.el('readResults').textContent,/Attachment ready|Save attachment|synthetic.pdf/);assert.equal(f.state.dialogs,0);
   }
 });

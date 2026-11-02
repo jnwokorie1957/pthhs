@@ -444,6 +444,8 @@ const projections: Record<Exclude<ReadOperation, "SearchVisitsV2" | "SearchPatie
 };
 export const READ_PROJECTIONS = projections;
 export function readInputFields(operation: ReadOperation): string[] {
+  if (operation === "SearchPatientDocument") return ["patientId", "officeId", "documentTypeId", "id", "date"];
+  if (operation === "DownloadPatientDocument") return ["patientId", "officeId", "id"];
   if (operation === "SearchPatientPOC") return ["patientId", "officeId"];
   if (operation === "GetPatientPOCInfo") return ["patientId", "officeId", "id"];
   if (operation === "GetReferralProfile") return ["id", "officeId", "referralStatusId", "referralSourceId", "salesStaffId", "contractId"];
@@ -451,7 +453,7 @@ export function readInputFields(operation: ReadOperation): string[] {
   if (operation === "GetCaregiverMedicalDetails") return ["caregiverId", "id", "status"];
   if (operation === "GetNumberOfComplianceItemDue") return ["officeId", "id", "complianceType", "status"];
   if (operation === "GetCaregiverComplianceItemDue") return ["officeId", "id", "caregiverId", "complianceType", "status", "sequence"];
-  if (["SearchPatientDocument", "SearchCaregiverDocument"].includes(operation)) return [operation === "SearchPatientDocument" ? "patientId" : "caregiverId", "documentTypeId", "id", "date"];
+  if (operation === "SearchCaregiverDocument") return ["caregiverId", "documentTypeId", "id", "date"];
   if (["GetPatientDocumentType", "GetCaregiverDocumentType"].includes(operation)) return ["id", "status"];
   if (["GetCaregiverMedicals", "GetCaregiverOtherCompliance", "GetCaregiverMedicalResults", "GetCaregiverOtherComplianceResults"].includes(operation)) return ["officeId", "id"];
   if (operation === "GetCaregiverTrainingSchools") return ["caregiverId"];
@@ -624,6 +626,57 @@ function carePlanRecords(xml: string, detail: boolean): Record<string, string | 
             ["ID", "Code", "Name", "Required", "AsNeeded", "WeeklyMin", "WeeklyMax", ...days].map(key => [key, visitTimeField(task, "Task/" + key)]))));
           if (children.length > 200) record.TasksTruncated = "true";
         }
+      }
+    }
+    return record;
+  });
+}
+function patientDocumentRecords(xml: string, input: ReadInput, includeDescription: boolean): Record<string, string | null>[] {
+  const invalid = (): never => { throw new WorkflowError("patient_document_response_shape_unverified", 502); };
+  if (XMLValidator.validate("<DocumentRead>" + xml + "</DocumentRead>") !== true) invalid();
+  const download = input.operation === "DownloadPatientDocument", name = download ? "PatientDocument" : "PatientDocuments";
+  const nil = (element: string) => /\s(?:[A-Za-z_][\w.-]*:)?nil\s*=\s*(["'])\s*(?:true|1)\s*\1/i.test(element.match(/^<[^>]+>/)?.[0] ?? "");
+  const blank = (text: string) => !text.replace(/<!--[\s\S]*?-->/g, "").trim();
+  const only = (body: string, children: string[]) => {
+    let offset = 0;
+    for (const child of children) {
+      const start = body.indexOf(child, offset);
+      if (start < offset || !blank(body.slice(offset, start))) invalid();
+      offset = start + child.length;
+    }
+    if (!blank(body.slice(offset))) invalid();
+  };
+  const roots = directChildElements(xml, name), status = directChildElements(xml, "Status");
+  if (roots.length > 1 || status.length > 1) invalid();
+  only(xml, [...roots, ...status].sort((a, b) => xml.indexOf(a) - xml.indexOf(b)));
+  if (!roots.length) return [];
+  const body = extractElementBody(roots[0]!, name) ?? "";
+  if (nil(roots[0]!)) { if (!blank(body)) invalid(); return []; }
+  if (download && blank(body)) return [];
+  const rows = download ? roots : directChildElements(body, "PatientDocument");
+  if (!download) only(body, rows);
+  const seen = new Set<string>();
+  return rows.map(element => {
+    if (nil(element)) invalid();
+    const row = extractElementBody(element, "PatientDocument") ?? "";
+    const fields = download ? ["PatientDocID", "FileName", "FileSize", "ContentType", "StreamData"] : ["PatientDocID", "PatientID", "PatientDocumentTypeID", "PatientDocumentType", "FileName", "CreatedOn", "FileSize", ...(includeDescription ? ["Description"] : [])];
+    const record = Object.fromEntries(fields.map(key => [key, visitTimeField(element, "PatientDocument/" + key)]));
+    const id = record.PatientDocID;
+    if (!id || !/^[1-9]\d{0,9}$/.test(id) || Number(id) > 2147483647 || seen.has(id)) throw new WorkflowError("patient_document_identity_unverified", 502);
+    seen.add(id);
+    if (!download) {
+      if (!record.PatientID) throw new WorkflowError("patient_document_identity_unverified", 502);
+      if (record.PatientID !== input.patientId) throw new WorkflowError("patient_document_patient_mismatch", 403);
+      if (input.id && id !== input.id || input.documentTypeId && record.PatientDocumentTypeID !== input.documentTypeId) throw new WorkflowError("patient_document_filter_not_honored", 502);
+    }
+    // Ambiguous or non-scalar declared sizes must not become an unknown size
+    // that bypasses validation. Download content/name/type is scalar-only too.
+    for (const key of download ? fields : ["FileSize"]) {
+      const elements = directChildElements(row, key);
+      if (elements.length > 1) invalid();
+      if (elements.length) {
+        if (nil(elements[0]!)) { if (!blank(extractElementBody(elements[0]!, key) ?? "")) invalid(); record[key] = null; }
+        else { try { record[key] = extractExactElementText(elements[0]!, key) ?? null; } catch { invalid(); } }
       }
     }
     return record;
@@ -851,14 +904,16 @@ function visitEditReasonEvidence(xml: string): { reasons: VisitEditReasonEvidenc
   return { reasons: result, truncated };
 }
 export interface OperationalRead { operation: ReadOperation; fetchedAt: string; source: "hhaexchange"; validation: "source_unvalidated"; timezone: "source_values_unconverted"; records: Record<string, string | null>[]; truncated: boolean; billingShape?: BillingResponseShape; visitEditReasons?: VisitEditReasonEvidence[]; attachment?: { filename: string; byteLength: number; base64: string; contentType: "application/octet-stream" }; changePreview?: { timeBasis: "vendor_EST_wall_time_unconverted" | "UTC"; modifiedAfter: string; page: string | null; completeness: "not_inferred"; checkpointAdvanced: false }; }
+export function safeAttachmentFilename(value: string | null | undefined) {
+  return (value || "document.bin").replace(/[<>:"/\\|?*\x00-\x1f\x7f]/g, "_").replace(/^[. ]+|[. ]+$/g, "").slice(0, 100) || "document.bin";
+}
 export function boundedAttachment(record: Record<string, string | null>, identity: string, expected: string) {
   if (record[identity] !== expected) throw new WorkflowError("download_identity_mismatch", 502);
   const encoded = (record.StreamData || "").replace(/\s/g, "");
   if (!encoded || encoded.length > 2_796_204 || !/^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$/.test(encoded)) throw new WorkflowError("invalid_or_oversize_download", 502);
   const bytes = Buffer.from(encoded, "base64");
-  if (bytes.length > 2 * 1024 * 1024 || bytes.toString("base64") !== encoded || (record.FileSize !== undefined && (record.FileSize === null || !/^\d+$/.test(record.FileSize) || Number(record.FileSize) !== bytes.length))) throw new WorkflowError("download_size_mismatch", 502);
-  const original = record.FileName || "document.bin";
-  const filename = original.replace(/[<>:"/\\|?*\x00-\x1f\x7f]/g, "_").replace(/^[. ]+|[. ]+$/g, "").slice(0, 100) || "document.bin";
+  if (bytes.length > 2 * 1024 * 1024 || bytes.toString("base64") !== encoded || (record.FileSize != null && record.FileSize !== "" && (!/^\d+$/.test(record.FileSize) || Number(record.FileSize) !== bytes.length))) throw new WorkflowError("download_size_mismatch", 502);
+  const filename = safeAttachmentFilename(record.FileName);
   return { filename, byteLength: bytes.length, base64: encoded, contentType: "application/octet-stream" as const };
 }
 export async function operationalRead(client: Pick<HhaSoapClient, "call">, input: ReadInput, projectionScope?: "document_metadata" | "clinical_review" | "medical_review" | "write_recovery" | "visit_discovery"): Promise<OperationalRead> {
@@ -899,6 +954,8 @@ export async function operationalRead(client: Pick<HhaSoapClient, "call">, input
   } else if (input.operation === "SearchPatientPOC" || input.operation === "GetPatientPOCInfo") {
     records = carePlanRecords(response.resultXml, input.operation === "GetPatientPOCInfo");
     typedReasonsTruncated = records.some(row => row.TasksTruncated === "true");
+  } else if (input.operation === "SearchPatientDocument" || input.operation === "DownloadPatientDocument") {
+    records = patientDocumentRecords(response.resultXml, input, projectionScope === "document_metadata" || projectionScope === "write_recovery");
   } else if (input.operation === "SearchVisitsV2" || input.operation === "SearchPatients" || input.operation === "SearchCaregivers") {
     const [container, field] = input.operation === "SearchVisitsV2" ? ["Visits", "VisitID"] : input.operation === "SearchPatients" ? ["Patients", "PatientID"] : ["Caregivers", "CaregiverID"];
     const values = extractElementBody(response.resultXml, container!) ?? "";

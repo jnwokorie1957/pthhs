@@ -337,10 +337,10 @@
         $('readId').value = ''; $('readDocumentType').value = ''; $('readDate').value = '';
         selectRead(patient ? 'SearchPatientDocument' : 'SearchCaregiverDocument'); message('Subject selected. Metadata does not download document content. Optional filters narrow the search.');
       }));
-      if (['SearchPatientDocument', 'SearchCaregiverDocument'].includes(data.operation)) card.append(button('Inspect this document type', async () => {
+      if (['SearchPatientDocument', 'SearchCaregiverDocument'].includes(data.operation)) card.append(button(data.operation === 'SearchPatientDocument' ? 'Read attachment' : 'Inspect this document type', async () => {
         const patient = data.operation === 'SearchPatientDocument';
         $('readId').value = patient ? record.PatientDocID : record.CaregiverDocID; $('readStatus').value = '';
-        selectRead(patient ? 'GetPatientDocumentType' : 'GetCaregiverDocumentType'); message('Known document selected for its type metadata.');
+        selectRead(patient ? 'DownloadPatientDocument' : 'GetCaregiverDocumentType'); message('Document selected. Review the workflow before reading.');
       }));
       if (data.operation === 'GetPatientDemographics') card.append(button('Inspect clinical readiness intervals', async () => { $('readPatient').value = record.PatientID || record.ID; selectRead('GetPatientClinicalInfo'); message('Patient selected for source readiness intervals.'); }));
       if (data.operation === 'GetCaregiverDemographics') card.append(button('Inspect medical compliance dates', async () => { $('readCaregiver').value = record.CaregiverID || record.ID; $('readId').value = ''; $('readStatus').value = ''; selectRead('GetCaregiverMedicalDetails'); message('Caregiver selected. Source compliance dates do not establish fitness or assignment eligibility.'); }));

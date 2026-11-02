@@ -1,5 +1,16 @@
 # PTHHS
 
+## November 2 patient-document source readiness
+
+Patient file reads now require fresh patient-office and document membership proof.
+The parser preserves unknown sizes without rejecting valid bounded attachments;
+changed metadata and invalid sizes still refuse output. Metadata selects the exact
+file for an explicit read, with device saving separate. Full615backend/383browser-
+tooling+public analytics guard checks pass within original asset budgets. Normal
+release, native readiness, specific read grants and actual retrieval are pending.
+Clinical form/version/signature/sharing and wider source coverage remain open. See
+[scope](docs/management-layer/PATIENT_DOCUMENT_READINESS_2026-11-02.md).
+
 ## November 2 care-plan source readiness
 
 The administrator care-plan reader now requires fresh patient-office proof and

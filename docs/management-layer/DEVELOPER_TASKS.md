@@ -1,5 +1,16 @@
 # PTHHS Management Layer — Developer Checklist
 
+- [x] November 2 patient-document read implementation: direct identity/filter
+  projection; fresh patient-office and exact metadata membership before/after
+  bytes; metadata/release races and elapsed budget refuse unverified output.
+  Missing optional FileSize no longer rejects valid bounded attachments; declared
+  invalid sizes still fail. Metadata selects an explicit file read while device
+  saving remains separate. Eighteen new backend/two browser checks; full615backend/
+  383browser-tooling+public analytics guard pass within original asset budgets.
+  Normal release/native readiness, specific grants and actual retrieval pending.
+  Forms library and clinical form/version/signature/sharing contracts stay separate.
+  See [scope](PATIENT_DOCUMENT_READINESS_2026-11-02.md). F03/T04 remain open.
+
 - [x] November 2 care-plan read implementation: direct source paths fix nested
   category/task-name confusion; absent/nil/empty and truncated task definitions
   remain distinct. Public administrator reads require fresh subject-office proof

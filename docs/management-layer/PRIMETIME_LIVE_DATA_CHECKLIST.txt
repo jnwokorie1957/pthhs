@@ -837,11 +837,17 @@ TAB 09 - FORMS
     discovery/download). No clinical editable form instance, autofill schema,
     patient/visit linkage, reviewer/signature or sharing contract is established
     merely by stored bytes. Retain precise prerequisites for those features.
-    November2 audit: patient search has PatientID per row; download has document
-    ID only and optional FileSize. Require exact fresh metadata membership and
-    strict direct identities before download. Missing optional size currently
-    becomes null and is rejected by boundedAttachment: fix/test before exposing.
-    No document grant, source read, clinical form or acceptance added here.
+    November2 implementation: strict direct patient/document IDs and exact
+    filters; fresh patient-office proof before/after retrieval and exact metadata
+    membership before/after download. Changed metadata/release/preferences discard
+    bytes. Optional absent/nil/empty size staysunknown; valid bounded bytes no
+    longer fail for omitted size. Declared invalid/mismatched sizes still refuse.
+    Metadata now selects an explicit attachment read with exact patient/office/ID;
+    no automatic download/render/import.18newbackend/2browserchecks;615backend/
+    383browser-tooling+publicanalyticsguard pass within original assetbudgets.
+    Normalrelease/native readiness, both specific read grants and actual source
+    retrieval PENDING. No document grant/HHAquery/write/clinicalform added.
+    See PATIENT_DOCUMENT_READINESS_2026-11-02.md. F03/T04 remain OPEN.
 
 TAB 10 - HHA INTEGRATION
 [x] H01 Authenticated HHA reference read and scheduled visit-feed connectivity
