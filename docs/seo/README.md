@@ -3,6 +3,11 @@
 These files remain useful for planning, but they do not override current public
 facts, payer evidence, or claim-release controls.
 
+- [November 2 SEO and owner-task review](2026-11-02-seo-review.md) — 137 source
+  routes, 32 delivered sitemap URLs and four articles; successful dated Google
+  sitemap processing and a bounded settled comparison remain separate from
+  indexing, qualified leads and unavailable field-performance samples.
+
 - [October 28 public SEO and task review](2026-10-28-seo-review.md) — fresh
   production checks, earlier normal Chrome Search Console access and dated
   sitemap/field evidence; the 16:27 UTC follow-up preserves the current 30-URL

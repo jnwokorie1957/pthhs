@@ -1,5 +1,5 @@
 # PTHHS priority public-page review
-**Reviewed:** October 28, 2026 America/Chicago
+**Reviewed:** November 2, 2026 America/Chicago
 **Status:** Supersedes the August 19 assumed ranks, unverified network/county copy,
 FAQ rich-result tactics and page-creation instructions.
 
@@ -13,7 +13,13 @@ FAQ rich-result tactics and page-creation instructions.
 | Eight promoted locations and areas hub | Reviewed service/eligibility links exist | Retain them; verify another community before further promotion |
 | Privacy Policy and Terms of Use | Published canonical pages in sitemap | Shared footer links added October 16; policy content unchanged |
 | Home-care guide and care explainer | Resources -> guide -> explainer verified October 18 | Preserve useful question-led navigation and current approved scope |
-| Articles index and two published articles | Company perspective published October 27; family first-call checklist published October 28; bounded keyboard/browser and current delivery checks passed | Preserve approved attribution, prose, citations and actual content dates; measure later comparable periods |
+| Articles index and four published articles | October27 company perspective, October28 first-call checklist, November1 household preferences and November2 distant-family coordination; all four delivered Git blobs verified | Preserve approved attribution, prose, citations and actual content dates; keep earlier bounded browser evidence dated and measure later comparable periods |
+
+November 2 review: 137 source routes, 91 distinct final HTML pages, 89 indexable
+pages and 32 delivered sitemap URLs pass bounded technical checks. Fourteen public
+artifacts match Git blobs. Three dated Google sitemap rows report Success;
+current delivered inventory is not an indexing count. Both field-speed reports
+still lack sufficient samples. See [current review](2026-11-02-seo-review.md).
 
 October 28, 16:27 UTC review: the current production inventory is 135 source routes,
 89 distinct final HTML pages and 87 indexable pages, with 30 selected sitemap
@@ -74,7 +80,7 @@ Sitemap warning review and normal Google reprocessing were completed October 19.
 The October 28 normal Chrome Search Console view still shows both rows successful
 with 27 discovered pages; their last-read dates predate both new articles/index.
 Those 02:18 UTC observations were not refreshed in the 16:27 UTC pass. The current
-source has 30 URLs. Native seven-day performance observations are
+source then had 30 URLs. Native seven-day performance observations are
 bounded private evidence; both device field reports still lack enough samples.
 The current owner SEO action is actual location availability/useful-content
 validation before further promotion. Comparable settled outcomes and sufficient

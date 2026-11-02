@@ -1,5 +1,5 @@
 # PTHHS measured keyword review
-**Reviewed:** October 28, 2026
+**Reviewed:** November 2, 2026
 **Status:** Replaces the August 19 template's assumed positions, difficulty scores,
 conversion weights and improvement forecasts.
 
@@ -74,9 +74,16 @@ guide/navigation change addresses a separately demonstrated crawl gap, not an
 assumed query ranking gain. See [review](2026-10-18-seo-review.md).
 
 Next: continue candidate intent review and compare later settled outcomes. Preserve
-the 30 currently published sitemap URLs and eight promoted locations. The other 57 location
+the 32 currently published sitemap URLs and eight promoted locations. The other 57 location
 files require availability and useful-content review before further promotion.
 Outcome validation remains open pending comparable evidence.
+
+November 2,20:36 UTC review: four article routes now contribute to the delivered
+32-URL inventory. Normal Chrome's Web comparison covers October25–31 versus
+October18–24; rounded totals and small samples do not establish qualified demand,
+causes or an outcome for November's articles. Current sitemap processing is
+successful but dated; discovered-page counts are not indexing counts. Keep the
+existing intent/availability prerequisites. See [review](2026-11-02-seo-review.md).
 
 October 28, 02:18 UTC: the new Articles index and company article accounted for
 the then-current 29-URL source inventory. Normal signed-in Chrome Search Console access
