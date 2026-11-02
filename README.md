@@ -1,5 +1,16 @@
 # PTHHS
 
+## November 2 EVV source metadata and read admission
+
+The existing V3 inspector now exposes both raw EVV type fields. Production checks
+matched an affected visit with an empty out-type/end and a contrasting visit with
+both types/endpoints supplied. No missing clock or hour was manufactured.
+See [bounded acceptance](docs/management-layer/EVV_SOURCE_TYPES_2026-11-02.md).
+The [read-admission correction](docs/management-layer/SOURCE_READ_BUDGET_HANDLING_2026-11-02.md)
+preserves trusted retry cursors and avoids converting a local quota into a vendor
+hold. Local570backend/371browser-tooling checks pass; its release/native check is
+pending. Existing limits, vendor holds, write gates and asset budgets are unchanged.
+
 ## November 2 patient authorization workbench
 
 Open patient authorizations now opens the existing approved source reader inside

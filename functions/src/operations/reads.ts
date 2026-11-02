@@ -1,6 +1,7 @@
 import { extractExactElementText } from "../integrations/hhaexchange/parser.js";
 import { XMLParser, XMLValidator } from "fast-xml-parser";
 import { billingResponseShape, type BillingResponseShape } from "./billingShape.js";
+import { HhaNotSubmittedError } from "../integrations/hhaexchange/dispatch.js";
 import type { HhaSoapClient } from "../integrations/hhaexchange/client.js";
 import { extractElementBodies, extractElementBody, extractElementText } from "../integrations/hhaexchange/parser.js";
 
@@ -791,7 +792,15 @@ export function boundedAttachment(record: Record<string, string | null>, identit
 export async function operationalRead(client: Pick<HhaSoapClient, "call">, input: ReadInput, projectionScope?: "document_metadata" | "clinical_review" | "medical_review" | "write_recovery" | "visit_discovery"): Promise<OperationalRead> {
   const body = readRequest(input);
   // One attempt per owner-requested read; shared server quota controls requests.
-  const response = await client.call(input.operation, body, 1);
+  let response: Awaited<ReturnType<HhaSoapClient["call"]>>;
+  try { response = await client.call(input.operation, body, 1); }
+  catch (error) {
+    // Single-attempt reads still need the trusted admission cursor. Keep the
+    // transport's not-submitted classification for writes and unknown causes.
+    if (error instanceof HhaNotSubmittedError && error.cause instanceof WorkflowError && error.cause.status === 429
+      && ["read_budget_exhausted_retry_next_minute", "vendor_backoff_active"].includes(error.cause.code)) throw error.cause;
+    throw error;
+  }
   if (!response.ok || !response.resultXml) {
     let wait: number | undefined;
     const value = response.retryAfter?.trim();

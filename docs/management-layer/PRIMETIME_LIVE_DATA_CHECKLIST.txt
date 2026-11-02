@@ -458,15 +458,31 @@ TAB 04 - VISIT PREVIEW
     duplicate/zero cases remain synthetic; no source error or quota induced.
     See docs/management-layer/VISIT_TIME_FIELD_PROJECTION_2026-11-02.md.
 
-[ ] P10 EVV source-type projection. Captured GetVisitInfoDetailsV3 defines
+[x] P10 EVV source-type projection. Captured GetVisitInfoDetailsV3 defines
     ClockInEvvType/ClockOutEvvType; the approved V3 inspector omitted both. Add
     unique direct optional scalar strings, retaining exact/empty/zero separately
     from unknown/nil/nested/duplicate/non-scalar evidence. No field supplies a
     missing clock/hour, event/visit link, accepted direction or complete history.
     Two regressions fail before/pass after;565backend tests and unchanged assets
     pass. No additional API request, permission, frontend DTO or chart change.
-    Normal release and native source acceptance remain pending. P03/E04 stay
-    open. See EVV_SOURCE_TYPES_2026-11-02.md.
+    Runtimebd16ce8 passed workflow41479943139 all3jobs: Hosting16:17:51/
+    backend16:19:05/analytics16:19:29UTC;12exactassets/9anonymous401privateboundary
+    checks pass16:19:45.714UTC. Native retry honored saved16:21:00.333UTC hold;
+    after expiry exact affected visit/patient/caregiver/date matches. In-type
+    supplied, out-type explicitly empty beside supplied recorded pair/EVVin and
+    emptyEVVout/actual-hours. Contrasting October24 exact identity has both types,
+    bothEVVendpoints and bothactual-hour fields supplied. Raw fields accepted;
+    no inferred direction/history or recoveredmissing clock. P03/E04 stay open.
+    See EVV_SOURCE_TYPES_2026-11-02.md.
+[ ] P11 Source-read retry handling. Local admission refusal previously persisted
+    as a vendor hold; single-attempt approved reads could lose the trusted429
+    cursor inside HhaNotSubmittedError, including failed patient-office proof.
+    Correct classification/cursor without changing limits, retries, source-write
+    nondispatch or privacy/office gates. Show valid server429delay in read status;
+    no automatic retry. Five newbackend checks (two fail-before) and onebrowser
+    fail-before check pass;570backend/371browser-tooling and budgets pass.
+    Existing hold only inspected; no quota induced. Normal release and ordinary
+    postrelease source reads pending. See SOURCE_READ_BUDGET_HANDLING_2026-11-02.md.
 
 TAB 05 - PATIENT WORKBENCH
 [x] T01 Main surface now starts with current patients from readable visits on the

@@ -128,6 +128,14 @@ test("vendor backoff is persisted for all operational instances and returned to 
   assert.equal(response?.status, 429); assert.equal(repository.deferred, 120); assert.equal((response?.body as any).retryAfterSeconds, 120);
 });
 
+test("local read-budget refusals keep their retry cursor without creating a vendor hold", async () => {
+  const repository = new MemoryRepository(), service = new OperationsWorkspace(repository, async () => { throw new WorkflowError("read_budget_exhausted_retry_next_minute", 429, 17); }, true);
+  await service.saveSettings(preferences, "owner");
+  const response = await workspaceRoute(service, "POST", "/workspace/read", { operation: "SearchVisitsV2", officeId: "123", date: "2026-09-30" }, "owner");
+  assert.equal(response?.status, 429); assert.equal(repository.deferred, 0);
+  assert.deepEqual(response?.body, { ok: false, error: "read_budget_exhausted_retry_next_minute", retryAfterSeconds: 17 });
+});
+
 test("every supported read has a bounded typed request and rejects arbitrary operations", () => {
   for (const operation of READ_OPERATIONS) {
     const body = readRequest({ operation, id: "77", officeId: "123", referralStatusId:"1", referralSourceId:"2", salesStaffId:"3", patientId: "88", caregiverId: "7", complianceType: "Medical", sequence: "0", appliesTo: "Patient", caregiverStatus: "1", status: operation.includes("Compliance") || operation === "GetCaregiverMedicalDetails" ? "Pending" : "Active", date: "2026-09-30", term: "O'Brien", contractId: "99", modifiedAfter: "2026-09-30T00:00:00", modifiedAfterUtc: "2026-09-30T00:00:00Z", lastId: "0", phone: "5555550123", page: "1" });

@@ -274,7 +274,7 @@ export class HhaSoapClient {
     for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
       // A denied budget must never be interpreted as a retryable transport failure.
       try { await this.budget?.beforeRequest(); } catch (error) {
-        if (!retrySafe) throw new HhaNotSubmittedError();
+        if (!retrySafe) throw new HhaNotSubmittedError(error);
         throw error;
       }
       try {

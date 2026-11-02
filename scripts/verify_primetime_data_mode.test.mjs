@@ -1675,7 +1675,7 @@ test('an explicit empty related read replaces prior facts without a zero balance
   }
 });
 
-function connectedWorkspace({ dataApproved = true, enabledReads = ['GetPatientDemographics', 'GetVisitInfoV3'], preview = livePreview, history = () => response({ ok: true, items: [], nextCursor: null, source: 'manual_snapshot' }), authorizations = () => response({ ok: false, error: 'read_not_owner_enabled' }), patientVisit = () => response({ ok: false, error: 'read_not_owner_enabled' }) } = {}) {
+function connectedWorkspace({ dataApproved = true, enabledReads = ['GetPatientDemographics', 'GetVisitInfoV3'], preview = livePreview, read = (_path, options) => response({ ok: true, operation: JSON.parse(options.body).operation, fetchedAt: '2026-10-10T08:00:00Z', records: [] }), history = () => response({ ok: true, items: [], nextCursor: null, source: 'manual_snapshot' }), authorizations = () => response({ ok: false, error: 'read_not_owner_enabled' }), patientVisit = () => response({ ok: false, error: 'read_not_owner_enabled' }) } = {}) {
   const settings = { revision: 1, officeId: '123', officeTimezone: 'America/Chicago', policyReference: '', enabledReads };
   const app = harness({ storedDataMode: null, metadata: liveMetadata, fetchSource: (path, options) => {
     if (path.endsWith('/settings')) return response({ ok: true, settings, dataApproved, supportedReads: [], readInputs: {
@@ -1683,7 +1683,7 @@ function connectedWorkspace({ dataApproved = true, enabledReads = ['GetPatientDe
       SearchPatientPOC: ['patientId'], SearchPatientDocument: ['patientId', 'documentTypeId', 'id', 'date']
     } });
     if (path.includes('/views/visits?')) return response(preview(new URL(path, 'https://fixture.test').searchParams.get('date')));
-    if (path.endsWith('/workspace/read')) return response({ ok: true, operation: JSON.parse(options.body).operation, fetchedAt: '2026-10-10T08:00:00Z', records: [] });
+    if (path.endsWith('/workspace/read')) return read(path, options);
     if (path.includes('/workspace/manual-snapshots')) return history(path, options);
     if (path.endsWith('/workspace/patient-authorizations')) return authorizations(path, options);
     if (path.endsWith('/workspace/patient-visit')) return patientVisit(path, options);
@@ -3116,6 +3116,19 @@ const authSource = (input, changes = {}) => ({ ok: true, operation: input.operat
   { ID: '72', ContractID: '82', ContractName: 'Same synthetic name', StartDate: '2026-10-01', StopDate: '2026-10-31' }
 ], ...changes });
 async function submitRead(app) { for (const fn of app.element('readForm').handlers.get('submit')) fn({ preventDefault() {} }); await tick(); await tick(); }
+test('operational read errors show only a valid server 429 delay, clear old facts and never retry automatically', async () => {
+  for (const [status, retryAfterSeconds, shown] of [[429, 17, true], [429, 86400, true], [429, 0, false], [429, -1, false], [429, '17', false], [429, 1.5, false], [429, Infinity, false], [423, 17, false]]) {
+    const app = connectedWorkspace({ read: () => ({ ...response({ ok: false, error: 'vendor_backoff_active', retryAfterSeconds }), ok: false, status }) });
+    await app.signIn(); await tick(); await tick();
+    app.element('readOperation').value = 'GetVisitInfoV3'; app.element('readId').value = '900001'; app.element('readResults').append({ textContent: 'private-stale-facts' });
+    await submitRead(app);
+    const message = app.element('workspaceMessage').textContent;
+    assert.equal(message.includes('Retry in '), shown);
+    if (shown) assert.match(message, new RegExp(`Retry in ${retryAfterSeconds} seconds`));
+    assert.doesNotMatch(nodeText(app.element('readResults')), /private-stale-facts/);
+    assert.equal(app.calls.filter(call => call.path.endsWith('/workspace/read')).length, 1);
+  }
+});
 async function startAuthorizationRead(app, host) { await clickNode(authorizationButtons(app, host)[0]); await submitRead(app); }
 
 test('patient authorization selection opens one scoped reader in Patients and returns general reads to Advanced tools', async () => {

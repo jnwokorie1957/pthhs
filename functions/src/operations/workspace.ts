@@ -199,7 +199,9 @@ export class OperationsWorkspace {
       return result;
     }
     catch (error) {
-      if (error instanceof WorkflowError && error.retryAfterSeconds) await this.repository.deferReads(error.retryAfterSeconds);
+      // Local admission already enforces its minute boundary. Do not turn that
+      // refusal into a persisted vendor hold; retain every actual vendor delay.
+      if (error instanceof WorkflowError && error.retryAfterSeconds && error.code !== "read_budget_exhausted_retry_next_minute") await this.repository.deferReads(error.retryAfterSeconds);
       throw error;
     }
   }

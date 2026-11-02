@@ -554,8 +554,32 @@ test("workspace plus real SOAP transport reserves once per dispatch and quota de
     denied = true;
     await assert.rejects(service.query({ operation: "SearchVisitsV2", officeId: "123", date: "2026-10-10" }, "owner"), /read_budget_exhausted_retry_next_minute/);
     await assert.rejects(service.query({ operation: "GetVisitInfoV3", id: "77" }, "owner"), /read_budget_exhausted_retry_next_minute/);
-    assert.equal(calls, 1); assert.equal(repository.reservations, 1); assert.equal(repository.deferred, 20);
+    assert.equal(calls, 1); assert.equal(repository.reservations, 1); assert.equal(repository.deferred, 0);
   } finally { globalThis.fetch = originalFetch; }
+});
+
+test("patient-office admission refusal retains the preview retry page without another SOAP dispatch", async context => {
+  const repository = new Repository(); repository.records.set("workspaceSettings/owner", settings);
+  let calls = 0, admissions = 0;
+  context.mock.method(globalThis, "fetch", async () => {
+    calls++;
+    const operation = calls === 1 ? "SearchVisitsV2" : "GetVisitInfoV3";
+    const body = calls === 1 ? '<Visits><VisitID>77</VisitID><VisitID>88</VisitID></Visits>'
+      : '<VisitInfo><ID>77</ID><Patient><ID>5</ID></Patient><Caregiver><ID>6</ID></Caregiver><VisitDate>2026-10-10</VisitDate></VisitInfo>';
+    assert.ok(calls <= 2, "denied patient-office read must not dispatch");
+    return new Response(`<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/"><soap:Body><${operation}Response><${operation}Result><Result Status="Success"/>${body}</${operation}Result></${operation}Response></soap:Body></soap:Envelope>`);
+  });
+  const client = new HhaSoapClient("https://fixture.invalid", { appName: "synthetic", appKey: "synthetic", appSecret: "synthetic" }, {
+    async beforeRequest() { if (++admissions >= 3) throw new WorkflowError("read_budget_exhausted_retry_next_minute", 429, 20); await repository.reserveRead(); },
+    async defer(seconds) { await repository.deferReads(seconds); }
+  });
+  const service = new OperationsWorkspace(repository, input => operationalRead(client, input), true);
+  const result = await visitPreview(service, { date: "2026-10-10" }, "owner");
+  assert.equal(calls, 2); assert.equal(admissions, 3); assert.equal(repository.deferred, 0);
+  assert.equal(result.retry?.offset, 0); assert.equal(result.retry?.afterSeconds, 20);
+  assert.equal(result.items[0]?.error, "read_budget_exhausted_retry_next_minute");
+  assert.equal(result.items[1]?.error, "not_attempted_after_batch_gate");
+  assert.equal(result.items.every(item => item.state === "unavailable"), true);
 });
 
 for (const badPatient of [{ PatientID: "5", OfficeID: "999" }, { PatientID: "9", OfficeID: "123" }, { PatientID: "5", OfficeID: null }]) {

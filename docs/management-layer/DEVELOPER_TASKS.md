@@ -11,6 +11,17 @@
   No runtime, new grant, source change or fresh HHA UI acceptance.
   See [research and acceptance cases](ROLE_WORKFLOW_RESEARCH.txt).
 
+- [x] November 2 EVV type metadata: deployed both omitted V3 fields through the
+  existing approved inspector. Two regressions fail before/pass after;565backend
+  checks and all three normal release jobs pass. Native affected and contrasting
+  complete-pair cases match source identities and expose empty versus populated
+  type fields without filling clocks/hours. See [acceptance](EVV_SOURCE_TYPES_2026-11-02.md).
+- [ ] November 2 read-admission correction: preserve known429cursors for approved
+  single-attempt reads, avoid local-as-vendor persistence, show valid retry delay.
+  Five new backend tests (two fail-before) and one browser fail-before regression
+  pass;570backend/371browser-tooling checks and budgets pass. Normal release and
+  ordinary native source checks pending. See [scope](SOURCE_READ_BUDGET_HANDLING_2026-11-02.md).
+
 - [x] November 2 patient authorization pane: reuse the approved discovery/detail
   reader inside Patient workbench, exact patient/office/contract scope, separate
   receipts and one shared form. Patient/Demo transitions clear old facts;
