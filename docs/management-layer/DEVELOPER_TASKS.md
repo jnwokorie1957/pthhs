@@ -1,5 +1,12 @@
 # PTHHS Management Layer — Developer Checklist
 
+- [x] November 2 scoped billing-source diagnosis: deployed fixed response-shape
+  categories after final office/policy proof, with no private source values or
+  extra request. All 556 backend tests and all three normal release jobs pass.
+  One production request proves explicit success without either checked billing
+  record marker or encoded form; B02 remains open for usable source detail and
+  its supported vendor explanation. See [evidence](BILLING_SOURCE_SHAPE_2026-11-02.md).
+
 - [x] November 2, 13:21–13:28 UTC role research: R60–R63 and current accepted
   authorization/staff connections refine patient/family, PT/staff and office
   experiences, shared identities, permissions and explicit acceptance cases.

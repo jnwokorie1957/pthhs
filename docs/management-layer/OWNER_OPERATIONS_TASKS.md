@@ -14,6 +14,14 @@
 
 ## Start here
 
+- [ ] November 2 source follow-up: sign in to the retained original HHA website
+  tab, then inspect the exact selected Calendar visit's Billing Info and retained
+  EVV/call history. Keep identifiers and source values protected. The approved
+  API remains connected; its scoped billing response reports success but omits
+  both checked record formats. Obtain supported vendor coverage/contract evidence
+  if the original form has usable detail. No repeat read grant or policy decision
+  is requested. See [bounded evidence](BILLING_SOURCE_SHAPE_2026-11-02.md).
+
 - [`DEVELOPER_TASKS.md`](./DEVELOPER_TASKS.md) — technical implementation/checkpoint tracker.
 - [`../../hharefs/endpoints.html`](../../hharefs/endpoints.html) — HHA capability map.
 - [`../../hharefs/hha-wdsl.xml`](../../hharefs/hha-wdsl.xml) — exact HHA SOAP contract.

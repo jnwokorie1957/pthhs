@@ -428,7 +428,7 @@ TAB 04 - VISIT PREVIEW
     See VISIT_SOURCE_REFERENCES_2026-11-02.md.
 
 
-[ ] P09 Exact optional visit time-field projection (November 2, 13:51 UTC trigger).
+[x] P09 Exact optional visit time-field projection (November 2, 13:51 UTC trigger).
     Generic descendant extraction lost self-closing empties and could borrow
     nested/duplicate clock/hour values. V3 now preserves unique direct scalar
     fields at the documented paths, including empty, zero and exact text, while
@@ -436,8 +436,15 @@ TAB 04 - VISIT PREVIEW
     fallback, source write, import or interpretation approval. Two regressions
     fail before/pass after; a third XML-to-office-checked-preview integration
     test passes, with559backend/258relevant browser checks and unchanged assets.
-    Normal release and native acceptance remain pending. P03/E04 source gaps
-    and original screenshot acceptance stay separate.
+    Runtimeafc4f4a passed workflow41458487191 all3jobs: Hosting14:05:08,
+    backend14:06:31/analytics14:06:47UTC. Native after deployment: fresh October23
+    and24 pages each return10readable details,7EVVpairs and3explicitly empty
+    actual/rounded-hour fields; October23 has9recorded pairs, October24 has10.
+    An independent approved V3 read matches one affected visit identity: both
+    recorded endpoints supplied, EVVStartTime supplied, EVVEndTime explicitly
+    empty, both actual-hour fields explicitly empty. Browser Preview and direct
+    reader agree; no clock-out/hour is invented. Bounded projection accepted;
+    P03/E04 retained-source gaps and original screenshot acceptance stay separate.
     See docs/management-layer/VISIT_TIME_FIELD_PROJECTION_2026-11-02.md.
 
 TAB 05 - PATIENT WORKBENCH
@@ -630,6 +637,19 @@ TAB 08 - BILLING & AR
     October31 read controls still select GetVisitBillInfoV2 after the explicit
     October27 owner approval. Do not request a duplicate activation for this read;
     the outstanding issue is usable source facts and protected diagnostics.
+    November2UTC: bounded empty-response diagnostics deployed in6af8e87 through
+    workflow41454236089, all3jobs successful;556backend tests,12exactassets and
+    9anonymous401/private/noindex checks pass. One postrelease scoped read still
+    returned no billing record. Protected13:37:44.660229UTC categorical evidence:
+    explicit success, expected VisitBillInfo absent, versioned VisitBillInfoV2
+    absent, encoded marker false. No source values/IDs/XML logged, new request,
+    permission or alternate parser acceptance. This is source-omission evidence
+    within those checked formats, not zero charges/payment/AR or its business
+    cause. Original HHA website is at login. Owner: sign in, inspect the exact
+    selected Calendar/Billing Info record, then obtain supported vendor contract/
+    coverage evidence if the original has facts but the successful API omits
+    detail. Keep IDs/values protected; do not repeat unchanged reads or invent
+    aliases/financial values. B02 remains open. See BILLING_SOURCE_SHAPE_2026-11-02.md.
 [ ] B03 GetVisitInfoV3 BilledAmount is a source field, not collected cash.
     Do not invent cash collections, paid-claim stages, billing readiness or AR
     totals from visit times, billed amount, payroll hours or absent records.

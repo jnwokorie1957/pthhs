@@ -35,8 +35,28 @@ stay unknown and no transient retry is invented.
 TypeScript compilation and all 559 backend tests pass. The existing 258 relevant
 browser data-mode/review tests pass. Generated browser assets remain byte-current
 (11 files, 374641 bytes; catalog unchanged). Repository audit and diff checks pass;
-existing suffix/duplicate-content warnings remain. Runtime publication and native
-acceptance are pending; the checklist must not claim them complete yet.
+existing suffix/duplicate-content warnings remain. Runtime `afc4f4a` passed all
+three normal jobs in workflow41458487191: Hosting14:05:08, backend14:06:31 and
+analytics14:06:47UTC. Postrelease native acceptance is recorded below; broader
+remaining source coverage is not completed by this parser correction.
+
+## Postrelease native verification
+
+After all three jobs succeeded, fresh October23 and October24 first pages each
+returned10 readable details and7 complete EVV pairs. October23 supplied9 complete
+recorded pairs; October24 supplied10. Each page displayed3 explicitly empty
+ActualHours and ActualHoursRounded fields, with7 supplied fields of each kind.
+The October23 source receipt is14:07:39.627UTC; October24 was refreshed again
+afterward through the ordinary date picker. These are selected pages, not a census.
+
+One October24 row with empty actual-hour fields was selected through its existing
+Open records / Open visit read controls. An independent approved GetVisitInfoV3
+read returned one matching visit identity. Both scheduled and recorded endpoints
+were supplied; EVVStartTime was supplied; EVVEndTime, ActualHours and
+ActualHoursRounded were explicitly empty. Direct source states agree with the
+Preview. No identifier or private source value is retained in this document.
+This accepts the bounded projection/display behavior. An empty EVV endpoint
+still needs supported retained-call/visit evidence before it can be populated.
 
 ## Dated protected baseline and remaining source work
 
