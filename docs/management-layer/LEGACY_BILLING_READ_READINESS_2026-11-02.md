@@ -111,3 +111,25 @@ requesting any separate activation. Original Billing Info rate/unit inputs may
 be configuration rather than finalized billed fields. Original Verification
 navigation still requires HHA authentication. No source values were imported,
 no clock-out/hour was invented, and no financial/clinical action was taken.
+
+## Billed-visit discovery audit — 19:13 UTC
+
+The captured WSDL SearchBilledVisits contract takes StartDate, EndDate, nullable
+OfficeID and nullable PatientID. The existing builder sends the selected day
+00:00:00 through 23:59:59, the configured office ID and a nil patient filter.
+OperationsWorkspace checks the selected office before dispatch and unchanged
+settings after the read; the existing release and owner-read gates still apply.
+The generic screen projects VisitID, PatientID, ContractID and OtherChargeID,
+bounded to two hundred rows with truncation disclosed. There is no documented
+paging cursor, date/office receipt in each row, amount or clock field in this
+captured response type. Search-date semantics and completeness are unvalidated.
+
+This identifies a discovery candidate, not a newly connected billing source.
+SearchBilledVisits remains disabled and was not called. Before activation,
+review strict direct identity projection and a patient-filtered discovery path;
+the current builder ignores a supplied patient selector. A returned candidate
+would still require fresh approved visit/date/subject and patient-office proof
+before either scoped billing reader can supply financial facts. Discovery alone
+cannot establish cash, AR, a missing EVV event or why both billing reads were
+empty. No further permission question is pending for the already enabled legacy
+GetVisitBillInfo method.

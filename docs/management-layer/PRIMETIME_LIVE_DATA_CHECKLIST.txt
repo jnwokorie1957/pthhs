@@ -1193,7 +1193,7 @@ Unselected reads are work to scope and verify, not automatically failed APIs.
 [ ] GetReferralSourceContact
 [ ] GetPatientAddress
 [ ] GetPOCDutyLists
-[ ] GetVisitBillInfo
+[ENABLED] GetVisitBillInfo
 [ ] GetVisitInfoV2
 [ ] GetVisitPayrollInfo
 [ ] SearchPhoneNumber
