@@ -377,7 +377,11 @@ TAB 04 - VISIT PREVIEW
     a clock/hour field or diagnosis, verification, payroll or billing state.
     Three regressions fail before/pass after;359frontend/tooling tests and
     generated assets/budgets pass. Backend/source calls unchanged; normal
-    release and native display acceptance pending. The captured source field
+    release and native display acceptance pending. First runtime92c1468 Hosting
+    check correctly refused420468bytes against the420000limit. Only insignificant
+    HTML indentation was removed; corrected app/catalog419644bytes and full
+    generator/performance checks pass, without a cap or control change.
+    The captured source field
     path remains GetVisitInfoV3/VisitInfo/ActualHours, independent of
     ActualHoursRounded, VisitStartTime/VisitEndTime and EVVStartTime/EVVEndTime.
     November1,23:56:24UTC original historical comparison: an affected October24

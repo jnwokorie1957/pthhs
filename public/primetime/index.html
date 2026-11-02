@@ -1,123 +1,123 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="robots" content="noindex,nofollow,noarchive">
-  <meta name="theme-color" content="#0d4f8f">
-  <title>Primetime Operations</title>
-  <link rel="icon" href="/assets/meta/favicon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="/primetime/primetime.css?v=39e3b5418543">
-  <link rel="stylesheet" href="/primetime/analytics.css?v=ef1a38cc4b1a">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex,nofollow,noarchive">
+<meta name="theme-color" content="#0d4f8f">
+<title>Primetime Operations</title>
+<link rel="icon" href="/assets/meta/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="/primetime/primetime.css?v=39e3b5418543">
+<link rel="stylesheet" href="/primetime/analytics.css?v=ef1a38cc4b1a">
 </head>
 <body>
-  <div class="auth-shell" id="authShell">
-    <section class="auth-card" aria-labelledby="authTitle">
-      <img class="auth-logo" src="/wp-content/themes/primetimehomeie989/images/main-logo.png" alt="Primetime Home Health Services">
-      <p class="eyebrow">Internal operations</p>
-      <h1 id="authTitle">Sign in to Primetime</h1>
-      <p class="auth-copy" id="authCopy">Enter your approved administrator email. We will email you a link to sign in.</p>
-      <div class="auth-methods" role="group" aria-label="Sign-in method">
-        <button id="emailMethod" class="btn secondary" type="button" aria-pressed="true">Email link</button>
-        <button id="phoneMethod" class="btn secondary" type="button" aria-pressed="false">Text message</button>
-      </div>
-      <form id="loginForm" class="auth-form">
-        <label for="loginEmail">Email</label>
-        <input id="loginEmail" name="email" type="email" autocomplete="email" required>
-        <button id="loginSubmit" class="btn primary full" type="submit">Send sign-in link</button>
-        <button id="requestNewLink" class="btn secondary full" type="button" hidden>Request a new link</button>
-      </form>
-      <form id="phoneLoginForm" class="auth-form" hidden>
-        <label for="loginPhone">US phone number</label>
-        <input id="loginPhone" name="phone" type="tel" autocomplete="tel" inputmode="tel" required>
-        <div id="phoneCodeFields" hidden>
-          <label for="phoneCode">Verification code</label>
-          <input id="phoneCode" name="code" type="text" autocomplete="one-time-code" inputmode="numeric" pattern="[0-9]{6}" maxlength="6">
-        </div>
-        <div id="phoneRecaptcha"></div>
-        <button id="phoneSubmit" class="btn primary full" type="submit">Send text code</button>
-        <button id="requestNewPhoneCode" class="btn secondary full" type="button" hidden>Send a new code</button>
-        <p class="auth-help">A verification text is sent through Firebase. Message and data rates may apply.</p>
-      </form>
-      <p class="auth-help">You stay signed in on this browser until you sign out. Use a trusted device.</p>
-      <button id="retrySession" class="btn secondary full" type="button" hidden>Retry connection</button>
-      <p class="auth-message" id="authMessage" aria-live="polite"></p>
-      <a class="auth-back" href="/">← Public website</a>
-    </section>
-  </div>
-  <a class="skip-link" href="#workspace">Skip to workspace</a>
-  <div class="app-shell" id="appShell" hidden>
-    <aside class="sidebar" id="sidebar">
-      <a class="admin-brand" href="/primetime" aria-label="Primetime Operations home"><img src="/wp-content/themes/primetimehomeie989/images/main-logo.png" alt="Primetime Home Health Services"><span>Operations</span></a>
-      <nav class="admin-nav" aria-label="Primetime administration">
-        <button class="nav-item is-active" data-view="overview"><span class="nav-icon">⌂</span><span>Overview</span></button>
-        <button class="nav-item" data-view="analytics"><span class="nav-icon">▥</span><span>Website analytics</span></button>
-        <button class="nav-item" data-view="revisions"><span class="nav-icon">☑</span><span>Visit review</span></button>
-        <button class="nav-item" data-view="evv"><span class="nav-icon">✓</span><span>EVV Exceptions</span><span class="nav-badge" data-demo-badge="exceptions" hidden></span></button>
-        <button class="nav-item" data-view="visits"><span class="nav-icon">◷</span><span>Visit Preview</span></button>
-        <button class="nav-item" data-view="patients"><span class="nav-icon">▤</span><span>Patient workbench</span></button>
-        <button class="nav-item" data-view="messages"><span class="nav-icon">✉</span><span>Messages & Alerts</span><span class="nav-badge neutral" data-demo-badge="alerts" hidden></span></button>
-        <button class="nav-item" data-view="staffing"><span class="nav-icon">◎</span><span>Staffing</span></button>
-        <button class="nav-item" data-view="billing"><span class="nav-icon">$</span><span>Billing & AR</span></button>
-        <button class="nav-item" data-view="forms"><span class="nav-icon">▧</span><span>Forms</span></button>
-        <button class="nav-item" data-view="hha"><span class="nav-icon">↻</span><span>HHA Integration</span></button>
-        <button class="nav-item" data-view="audit"><span class="nav-icon">≡</span><span>Audit Log</span></button>
-        <button class="nav-item" data-view="workbench"><span class="nav-icon">☷</span><span>Advanced tools</span></button>
-      </nav>
-      <div class="sidebar-footer">
-        <div class="environment"><span class="dot warning"></span><div><strong id="environmentMode">Demo data</strong><small id="environmentDetails">Synthetic preview records</small></div></div>
-        <button class="nav-item compact" data-view="settings"><span class="nav-icon">⚙</span><span>Settings</span></button>
-        <a class="back-site" href="/">← Public website</a>
-      </div>
-    </aside>
-    <div class="main-area">
-      <header class="topbar">
-        <div class="topbar-left"><button class="menu-button" id="menuButton" aria-label="Toggle navigation" aria-expanded="false">☰</button><div><p class="eyebrow">Primetime Home Health Services</p><h1 id="pageTitle">Operations overview</h1></div></div>
-        <div class="topbar-actions">
-          <label class="data-mode-control" for="demoDataToggle"><span>Demo data</span><input id="demoDataToggle" type="checkbox" role="switch" aria-describedby="dataModeBadge"><span class="data-mode-track" aria-hidden="true"></span><strong id="demoToggleState">Off</strong></label>
-          <span id="dataModeBadge" class="data-mode-badge live" role="status" aria-live="polite">Live · sign in required</span>
-          <div class="sync-pill"><span class="dot warning" id="hhaSyncDot"></span><span id="hhaSyncStatus">HHA reference status unavailable</span></div>
-          <button class="icon-button" aria-label="Demo notifications" disabled title="Preview only; messages are not sent">●<span class="notification-count" data-demo-badge="alerts" hidden></span></button>
-          <button class="profile-button" id="signOutButton" aria-label="Sign out of Primetime"><span class="avatar">PT</span><span class="profile-copy"><strong>Administrator</strong><small id="signedInIdentity">Internal access · sign out</small></span></button>
-        </div>
-      </header>
-      <section id="fetchAgeControl" class="fetch-age-control" aria-label="Fetch age display" hidden>
-        <label for="automaticAgeUpdates"><input id="automaticAgeUpdates" type="checkbox" checked disabled aria-describedby="fetchAgeUpdateStatus"> Automatic age updates</label>
-        <p id="fetchAgeUpdateStatus" class="source-metadata" aria-live="polite"></p>
-      </section>
-      <section id="apiFeedControl" class="fetch-age-control" aria-label="Automatic HHA API feed" data-enabled="true" hidden>
-        <div class="heading-actions"><button id="apiFeedToggle" type="button" class="btn secondary" disabled>Pause live feed</button><button id="apiFeedToday" type="button" class="btn secondary" aria-describedby="apiFeedDateContext" disabled>Return to office today</button></div>
-        <p id="apiFeedDateContext" class="source-metadata" aria-live="off">Office date context is checked after sign-in.</p>
-        <p id="apiFeedStatus" class="source-metadata" role="status" aria-live="polite">Sign in to connect the HHA API feed.</p>
-      </section>
-      <main id="workspace" class="workspace" tabindex="-1">
-        <div class="notice" id="dashboardModeNotice" role="note">Live HHA data requires an approved administrator session. Checking source access…</div>
-        <section class="view is-active" data-view-panel="overview">
-          <section class="panel connected-tools"><h3>Operational tools</h3><button type="button" class="btn secondary" data-view-jump="workbench" data-workflow="SearchPatients">Find patient records</button><button type="button" class="btn secondary" data-view-jump="workbench" data-workflow="SearchCaregivers">Find caregiver records</button><button type="button" class="btn secondary" data-view-jump="workbench" data-workflow="SearchPayrollBatches">Review payroll batches</button></section>
-          <div class="section-heading"><div><p class="eyebrow">Selected office and day</p><h2>Live visit overview</h2><p>Every visualization uses the same source page. Office totals and policy classifications require validated evidence.</p></div><div class="heading-actions"><button id="dashboardOverviewRefresh" type="button" class="btn secondary">Read source now</button><button id="dashboardOverviewClear" type="button" class="btn secondary" disabled>Clear source page</button><button class="btn secondary" data-view-jump="visits">Source records</button></div></div>
-          <div class="filter-bar visit-controls"><label for="dashboardOverviewDate">Service date<input id="dashboardOverviewDate" type="date" required></label><p id="dashboardOverviewScope" class="scope-copy">Office not configured</p></div>
-          <p id="dashboardOverviewStatus" role="status" aria-live="polite"></p><p id="dashboardOverviewMetadata" class="source-metadata"></p><p id="dashboardOverviewFetchAge" class="source-metadata" aria-live="off" hidden></p>
-          <div id="dashboardOverviewMetrics" class="metric-grid"></div>
-          <div class="visit-pagination"><button id="dashboardOverviewPrevious" class="btn secondary" type="button" hidden>Previous source page</button><button id="dashboardOverviewNext" class="btn secondary" type="button" hidden>Next source page</button><button id="dashboardOverviewRetry" class="btn secondary" type="button" hidden>Retry deferred details</button><small id="dashboardOverviewCompleteness"></small></div><p id="dashboardOverviewRetryStatus" class="source-metadata" aria-live="off" hidden></p>
-          <div class="dashboard-grid"><section class="panel span-2"><h3>Visit windows</h3><div id="dashboardTimeline"></div></section><section class="panel"><h3>Source field availability</h3><div id="dashboardEvidenceChart"></div></section><section class="panel span-2"><div class="panel-head"><h3 id="dashboardEvidenceTitle">EVV source evidence</h3><button class="text-button" data-view-jump="visits">View records →</button></div><div id="dashboardOverviewExceptions"></div></section><section class="panel"><h3 id="dashboardCoverageTitle">Caregiver assignment evidence</h3><div id="dashboardCoverage"></div></section><section class="panel"><h3 id="dashboardAlertsTitle">Source evidence gaps</h3><div id="dashboardAlerts"></div></section><section class="panel span-2"><h3>Source readiness</h3><p id="dashboardReadiness">Live source validation is pending.</p><button class="btn secondary" data-view-jump="hha">Integration details</button></section></div>
-        </section>
+<div class="auth-shell" id="authShell">
+<section class="auth-card" aria-labelledby="authTitle">
+<img class="auth-logo" src="/wp-content/themes/primetimehomeie989/images/main-logo.png" alt="Primetime Home Health Services">
+<p class="eyebrow">Internal operations</p>
+<h1 id="authTitle">Sign in to Primetime</h1>
+<p class="auth-copy" id="authCopy">Enter your approved administrator email. We will email you a link to sign in.</p>
+<div class="auth-methods" role="group" aria-label="Sign-in method">
+<button id="emailMethod" class="btn secondary" type="button" aria-pressed="true">Email link</button>
+<button id="phoneMethod" class="btn secondary" type="button" aria-pressed="false">Text message</button>
+</div>
+<form id="loginForm" class="auth-form">
+<label for="loginEmail">Email</label>
+<input id="loginEmail" name="email" type="email" autocomplete="email" required>
+<button id="loginSubmit" class="btn primary full" type="submit">Send sign-in link</button>
+<button id="requestNewLink" class="btn secondary full" type="button" hidden>Request a new link</button>
+</form>
+<form id="phoneLoginForm" class="auth-form" hidden>
+<label for="loginPhone">US phone number</label>
+<input id="loginPhone" name="phone" type="tel" autocomplete="tel" inputmode="tel" required>
+<div id="phoneCodeFields" hidden>
+<label for="phoneCode">Verification code</label>
+<input id="phoneCode" name="code" type="text" autocomplete="one-time-code" inputmode="numeric" pattern="[0-9]{6}" maxlength="6">
+</div>
+<div id="phoneRecaptcha"></div>
+<button id="phoneSubmit" class="btn primary full" type="submit">Send text code</button>
+<button id="requestNewPhoneCode" class="btn secondary full" type="button" hidden>Send a new code</button>
+<p class="auth-help">A verification text is sent through Firebase. Message and data rates may apply.</p>
+</form>
+<p class="auth-help">You stay signed in on this browser until you sign out. Use a trusted device.</p>
+<button id="retrySession" class="btn secondary full" type="button" hidden>Retry connection</button>
+<p class="auth-message" id="authMessage" aria-live="polite"></p>
+<a class="auth-back" href="/">← Public website</a>
+</section>
+</div>
+<a class="skip-link" href="#workspace">Skip to workspace</a>
+<div class="app-shell" id="appShell" hidden>
+<aside class="sidebar" id="sidebar">
+<a class="admin-brand" href="/primetime" aria-label="Primetime Operations home"><img src="/wp-content/themes/primetimehomeie989/images/main-logo.png" alt="Primetime Home Health Services"><span>Operations</span></a>
+<nav class="admin-nav" aria-label="Primetime administration">
+<button class="nav-item is-active" data-view="overview"><span class="nav-icon">⌂</span><span>Overview</span></button>
+<button class="nav-item" data-view="analytics"><span class="nav-icon">▥</span><span>Website analytics</span></button>
+<button class="nav-item" data-view="revisions"><span class="nav-icon">☑</span><span>Visit review</span></button>
+<button class="nav-item" data-view="evv"><span class="nav-icon">✓</span><span>EVV Exceptions</span><span class="nav-badge" data-demo-badge="exceptions" hidden></span></button>
+<button class="nav-item" data-view="visits"><span class="nav-icon">◷</span><span>Visit Preview</span></button>
+<button class="nav-item" data-view="patients"><span class="nav-icon">▤</span><span>Patient workbench</span></button>
+<button class="nav-item" data-view="messages"><span class="nav-icon">✉</span><span>Messages & Alerts</span><span class="nav-badge neutral" data-demo-badge="alerts" hidden></span></button>
+<button class="nav-item" data-view="staffing"><span class="nav-icon">◎</span><span>Staffing</span></button>
+<button class="nav-item" data-view="billing"><span class="nav-icon">$</span><span>Billing & AR</span></button>
+<button class="nav-item" data-view="forms"><span class="nav-icon">▧</span><span>Forms</span></button>
+<button class="nav-item" data-view="hha"><span class="nav-icon">↻</span><span>HHA Integration</span></button>
+<button class="nav-item" data-view="audit"><span class="nav-icon">≡</span><span>Audit Log</span></button>
+<button class="nav-item" data-view="workbench"><span class="nav-icon">☷</span><span>Advanced tools</span></button>
+</nav>
+<div class="sidebar-footer">
+<div class="environment"><span class="dot warning"></span><div><strong id="environmentMode">Demo data</strong><small id="environmentDetails">Synthetic preview records</small></div></div>
+<button class="nav-item compact" data-view="settings"><span class="nav-icon">⚙</span><span>Settings</span></button>
+<a class="back-site" href="/">← Public website</a>
+</div>
+</aside>
+<div class="main-area">
+<header class="topbar">
+<div class="topbar-left"><button class="menu-button" id="menuButton" aria-label="Toggle navigation" aria-expanded="false">☰</button><div><p class="eyebrow">Primetime Home Health Services</p><h1 id="pageTitle">Operations overview</h1></div></div>
+<div class="topbar-actions">
+<label class="data-mode-control" for="demoDataToggle"><span>Demo data</span><input id="demoDataToggle" type="checkbox" role="switch" aria-describedby="dataModeBadge"><span class="data-mode-track" aria-hidden="true"></span><strong id="demoToggleState">Off</strong></label>
+<span id="dataModeBadge" class="data-mode-badge live" role="status" aria-live="polite">Live · sign in required</span>
+<div class="sync-pill"><span class="dot warning" id="hhaSyncDot"></span><span id="hhaSyncStatus">HHA reference status unavailable</span></div>
+<button class="icon-button" aria-label="Demo notifications" disabled title="Preview only; messages are not sent">●<span class="notification-count" data-demo-badge="alerts" hidden></span></button>
+<button class="profile-button" id="signOutButton" aria-label="Sign out of Primetime"><span class="avatar">PT</span><span class="profile-copy"><strong>Administrator</strong><small id="signedInIdentity">Internal access · sign out</small></span></button>
+</div>
+</header>
+<section id="fetchAgeControl" class="fetch-age-control" aria-label="Fetch age display" hidden>
+<label for="automaticAgeUpdates"><input id="automaticAgeUpdates" type="checkbox" checked disabled aria-describedby="fetchAgeUpdateStatus"> Automatic age updates</label>
+<p id="fetchAgeUpdateStatus" class="source-metadata" aria-live="polite"></p>
+</section>
+<section id="apiFeedControl" class="fetch-age-control" aria-label="Automatic HHA API feed" data-enabled="true" hidden>
+<div class="heading-actions"><button id="apiFeedToggle" type="button" class="btn secondary" disabled>Pause live feed</button><button id="apiFeedToday" type="button" class="btn secondary" aria-describedby="apiFeedDateContext" disabled>Return to office today</button></div>
+<p id="apiFeedDateContext" class="source-metadata" aria-live="off">Office date context is checked after sign-in.</p>
+<p id="apiFeedStatus" class="source-metadata" role="status" aria-live="polite">Sign in to connect the HHA API feed.</p>
+</section>
+<main id="workspace" class="workspace" tabindex="-1">
+<div class="notice" id="dashboardModeNotice" role="note">Live HHA data requires an approved administrator session. Checking source access…</div>
+<section class="view is-active" data-view-panel="overview">
+<section class="panel connected-tools"><h3>Operational tools</h3><button type="button" class="btn secondary" data-view-jump="workbench" data-workflow="SearchPatients">Find patient records</button><button type="button" class="btn secondary" data-view-jump="workbench" data-workflow="SearchCaregivers">Find caregiver records</button><button type="button" class="btn secondary" data-view-jump="workbench" data-workflow="SearchPayrollBatches">Review payroll batches</button></section>
+<div class="section-heading"><div><p class="eyebrow">Selected office and day</p><h2>Live visit overview</h2><p>Every visualization uses the same source page. Office totals and policy classifications require validated evidence.</p></div><div class="heading-actions"><button id="dashboardOverviewRefresh" type="button" class="btn secondary">Read source now</button><button id="dashboardOverviewClear" type="button" class="btn secondary" disabled>Clear source page</button><button class="btn secondary" data-view-jump="visits">Source records</button></div></div>
+<div class="filter-bar visit-controls"><label for="dashboardOverviewDate">Service date<input id="dashboardOverviewDate" type="date" required></label><p id="dashboardOverviewScope" class="scope-copy">Office not configured</p></div>
+<p id="dashboardOverviewStatus" role="status" aria-live="polite"></p><p id="dashboardOverviewMetadata" class="source-metadata"></p><p id="dashboardOverviewFetchAge" class="source-metadata" aria-live="off" hidden></p>
+<div id="dashboardOverviewMetrics" class="metric-grid"></div>
+<div class="visit-pagination"><button id="dashboardOverviewPrevious" class="btn secondary" type="button" hidden>Previous source page</button><button id="dashboardOverviewNext" class="btn secondary" type="button" hidden>Next source page</button><button id="dashboardOverviewRetry" class="btn secondary" type="button" hidden>Retry deferred details</button><small id="dashboardOverviewCompleteness"></small></div><p id="dashboardOverviewRetryStatus" class="source-metadata" aria-live="off" hidden></p>
+<div class="dashboard-grid"><section class="panel span-2"><h3>Visit windows</h3><div id="dashboardTimeline"></div></section><section class="panel"><h3>Source field availability</h3><div id="dashboardEvidenceChart"></div></section><section class="panel span-2"><div class="panel-head"><h3 id="dashboardEvidenceTitle">EVV source evidence</h3><button class="text-button" data-view-jump="visits">View records →</button></div><div id="dashboardOverviewExceptions"></div></section><section class="panel"><h3 id="dashboardCoverageTitle">Caregiver assignment evidence</h3><div id="dashboardCoverage"></div></section><section class="panel"><h3 id="dashboardAlertsTitle">Source evidence gaps</h3><div id="dashboardAlerts"></div></section><section class="panel span-2"><h3>Source readiness</h3><p id="dashboardReadiness">Live source validation is pending.</p><button class="btn secondary" data-view-jump="hha">Integration details</button></section></div>
+</section>
 
-        <section class="view web-analytics" data-view-panel="analytics" id="websiteAnalytics" aria-label="Website analytics">
-          <div class="wa-heading"><div><p class="eyebrow">YOUR WEBSITES, AT A GLANCE</p><h2>Website analytics</h2><p>See how people find and explore PTHHS and Ride Primetime.</p></div><div class="wa-live"><span>● STREAM ACTIVE USERS</span><strong id="waLive">—</strong><small>Selected web stream · last 30 minutes</small></div></div>
-          <div class="wa-toolbar"><label>Website<select id="waSite"><option value="pthhs">PTHHS · pthhs.net</option><option value="rideprimetime">Ride Primetime · rideprimetime.net</option></select></label><label>Time period<select id="waDays"><option value="7">Last 7 complete days</option><option value="28" selected>Last 28 complete days</option><option value="90">Last 90 complete days</option></select></label><button id="waRefresh" class="btn secondary wa-refresh" type="button">↻ Refresh</button></div>
-          <p id="waStatus" class="wa-status" role="status" aria-live="polite">Sign in to see your website traffic.</p>
-          <div id="waMetrics" class="wa-metrics"></div>
-          <section class="wa-card"><h3>Traffic over time</h3><p>Returned source dates only; gaps are not filled.</p><div class="wa-legend"><span>● Page views</span><span>● Sessions</span></div><div id="waChart" class="wa-chart"></div><details><summary>View daily numbers</summary><div id="waDaily" class="wa-table-wrap"></div></details></section>
-          <div class="wa-grid"><section class="wa-card"><h3>Most viewed pages</h3><p>Top 10 pages by views</p><div id="waPages" class="wa-table-wrap"></div></section><section class="wa-card"><h3>Where visitors come from</h3><p>Top traffic channels</p><div id="waChannels" class="wa-table-wrap"></div></section></div>
-          <p class="wa-footer" id="waUpdated"></p><p class="wa-footer" id="waNote">Historical reports end yesterday. New visits can take 24–48 hours to finish processing.</p>
-        </section>
-        <section class="view" data-view-panel="patients">
-          <div class="section-heading"><div><p class="eyebrow">Current HHA source</p><h2>Patients on the selected visit page</h2><p>Read current patient details with a fresh visit, patient and office check. This page is not the full patient census.</p></div><button class="btn secondary" data-view-jump="overview">Choose visit date / page</button></div>
-          <section class="panel"><div id="dashboardPatients"></div></section>
-          <section class="panel" aria-labelledby="dashboardPatientProfileTitle"><h3 id="dashboardPatientProfileTitle">Current patient source profile</h3><div id="dashboardPatientProfile" role="status" aria-live="polite"></div></section>
-          <div class="section-heading"><div><p class="eyebrow">Patient source history</p><h2>Calendar imports</h2><p>Keep HHA calendar evidence alongside live reads, with its original date and source.</p></div><button class="btn secondary" data-view-jump="overview">Live overview</button></div>
-          <section class="panel" id="manualSnapshotPanel">
-            <p class="notice">Manual snapshots preserve what was visible when captured. Current HHA changes appear in live reads; these imports do not calculate payable hours or classify EVV exceptions.</p>
+<section class="view web-analytics" data-view-panel="analytics" id="websiteAnalytics" aria-label="Website analytics">
+<div class="wa-heading"><div><p class="eyebrow">YOUR WEBSITES, AT A GLANCE</p><h2>Website analytics</h2><p>See how people find and explore PTHHS and Ride Primetime.</p></div><div class="wa-live"><span>● STREAM ACTIVE USERS</span><strong id="waLive">—</strong><small>Selected web stream · last 30 minutes</small></div></div>
+<div class="wa-toolbar"><label>Website<select id="waSite"><option value="pthhs">PTHHS · pthhs.net</option><option value="rideprimetime">Ride Primetime · rideprimetime.net</option></select></label><label>Time period<select id="waDays"><option value="7">Last 7 complete days</option><option value="28" selected>Last 28 complete days</option><option value="90">Last 90 complete days</option></select></label><button id="waRefresh" class="btn secondary wa-refresh" type="button">↻ Refresh</button></div>
+<p id="waStatus" class="wa-status" role="status" aria-live="polite">Sign in to see your website traffic.</p>
+<div id="waMetrics" class="wa-metrics"></div>
+<section class="wa-card"><h3>Traffic over time</h3><p>Returned source dates only; gaps are not filled.</p><div class="wa-legend"><span>● Page views</span><span>● Sessions</span></div><div id="waChart" class="wa-chart"></div><details><summary>View daily numbers</summary><div id="waDaily" class="wa-table-wrap"></div></details></section>
+<div class="wa-grid"><section class="wa-card"><h3>Most viewed pages</h3><p>Top 10 pages by views</p><div id="waPages" class="wa-table-wrap"></div></section><section class="wa-card"><h3>Where visitors come from</h3><p>Top traffic channels</p><div id="waChannels" class="wa-table-wrap"></div></section></div>
+<p class="wa-footer" id="waUpdated"></p><p class="wa-footer" id="waNote">Historical reports end yesterday. New visits can take 24–48 hours to finish processing.</p>
+</section>
+<section class="view" data-view-panel="patients">
+<div class="section-heading"><div><p class="eyebrow">Current HHA source</p><h2>Patients on the selected visit page</h2><p>Read current patient details with a fresh visit, patient and office check. This page is not the full patient census.</p></div><button class="btn secondary" data-view-jump="overview">Choose visit date / page</button></div>
+<section class="panel"><div id="dashboardPatients"></div></section>
+<section class="panel" aria-labelledby="dashboardPatientProfileTitle"><h3 id="dashboardPatientProfileTitle">Current patient source profile</h3><div id="dashboardPatientProfile" role="status" aria-live="polite"></div></section>
+<div class="section-heading"><div><p class="eyebrow">Patient source history</p><h2>Calendar imports</h2><p>Keep HHA calendar evidence alongside live reads, with its original date and source.</p></div><button class="btn secondary" data-view-jump="overview">Live overview</button></div>
+<section class="panel" id="manualSnapshotPanel">
+<p class="notice">Manual snapshots preserve what was visible when captured. Current HHA changes appear in live reads; these imports do not calculate payable hours or classify EVV exceptions.</p>
             <form id="manualPatientForm" class="operational-form"><label>HHA patient ID<input id="manualPatientId" inputmode="numeric" pattern="[1-9][0-9]*" required></label><button class="btn primary" type="submit">Load patient imports</button></form>
             <div class="connected-tools"><button class="btn secondary" type="button" data-view-jump="workbench" data-workflow="GetPatientDemographics" data-patient-source="manualPatientId">Live patient record</button><button class="btn secondary" type="button" data-view-jump="workbench" data-workflow="SearchPatientAuthorizations" data-patient-source="manualPatientId">Live authorizations</button></div>
             <p class="source-metadata">Open a saved month to filter its captured visits or read current HHA evidence separately.</p>

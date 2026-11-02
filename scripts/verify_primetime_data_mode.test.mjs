@@ -1473,7 +1473,9 @@ test('call model rejects guessed visit linkage, foreign scope/subjects and dupli
 });
 test('empty raw-call responses stay distinct from failed reads and never become zero visit hours', async () => {
   const app = await callEventsFixture(input => response(callEventsPayload(input, []))); await clickNode(callEventButtons(app)[0]); await tick(); await tick();
-  const text = nodeText(app.element('dashboardCallEvents')); assert.match(text, /No source call events returned/); assert.match(text, /does not prove/); assert.doesNotMatch(text, /zero hours|0 h|verified visit/i);
+  const text = nodeText(app.element('dashboardCallEvents')); assert.match(text, /No source call events returned/); assert.match(text, /does not prove/);
+  const sourceFacts = descendants(app.element('dashboardCallEvents')).filter(n => !n.textContent?.startsWith('Approximate fetch age:')).map(n => n.textContent || '').join(' ');
+  assert.doesNotMatch(sourceFacts, /zero hours|0 h|verified visit/i);
 });
 test('call reads and detached buttons cannot outlive date/Clear/Demo/session context; quotas prevent repeat dispatch', async () => {
   for (const change of ['date', 'clear', 'demo', 'session']) {
