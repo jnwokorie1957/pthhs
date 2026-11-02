@@ -11,8 +11,9 @@ full release checks pass. Runtime 8a340f2 passed all three normal jobs, public
 asset/authentication checks and native same-caregiver value/receipt/Clear checks.
 The live Overview is restored. A follow-up labels unproved lists unavailable
 rather than implying a source omission; its regression and all 362 frontend
-checks pass. Corrected release/native recheck is pending. Broader staff
-availability and role contracts remain open.
+checks pass. Corrected b583d35 passed all release jobs, public boundaries and
+native protected profile recheck. Broader staff availability and role contracts
+remain open.
 See [scope](docs/management-layer/STAFF_EMPLOYMENT_DISCIPLINES_2026-11-02.md).
 
 ## Authorization detail source connection

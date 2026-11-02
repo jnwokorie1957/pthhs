@@ -556,7 +556,7 @@ TAB 07 - STAFFING
     authorization, effective assignment/discipline and applicable availability
     rules. Do not create assignments or infer qualified staff from a nonempty ID.
 
-[ ] S04 Staffing employment disciplines (November 2 UTC). Existing approved
+[x] S04 Staffing employment disciplines (November 2 UTC). Existing approved
     GetCaregiverDemographics/EmploymentTypes/Discipline projected values were
     omitted from the profile. Connect the raw list with current identity/office
     proof and independent receipts, without qualification/availability/assignment
@@ -578,8 +578,14 @@ TAB 07 - STAFFING
     Unknown now says Source list unavailable, separate from No values returned
     and Empty source value. One added regression fails before/passes after;
     362 frontend/tooling tests and assets/performance pass, app/catalog419590.
-    No backend/read/control change. Corrected normal release/native recheck
-    pending before final S04 acceptance.
+    No backend/read/control change. Corrected b583d35 passed all three normal
+    jobs in workflow 41388977194 (Hosting04:32:20/backend04:32:39/analytics04:33:55
+    UTC), twelve exact assets/ten anonymous JSON401-no-store boundaries/noindex.
+    Native04:34:53UTC new dashboard1da35f29fdb0 still shows eight profile fields,
+    populated discipline/receipts/caution; desktop no overflow. Resume restores
+    November1 Overview/ten rows/live feed with04:34:12.010UTC receipt. Exact raw
+    value comparison remains the earlier dated check; unknown/empty variants
+    remain synthetic. Bounded S04 accepted; broader S02/P1-B/P2 remain open.
     See STAFF_EMPLOYMENT_DISCIPLINES_2026-11-02.md.
 
 TAB 08 - BILLING & AR

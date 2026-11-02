@@ -85,8 +85,8 @@ census or clinical qualification/availability acceptance. Malformed/empty-list,
 late-response, Demo and session variants remain synthetic regression coverage;
 no bad source response or source change was induced.
 
-The populated source-field connection is accepted for runtime 8a340f2; final
-S04 acceptance awaits the unproved-list label follow-up below. Existing external-role
+The populated source-field connection was accepted for runtime 8a340f2. Final
+S04 acceptance includes the unproved-list label follow-up below. Existing external-role
 permissions, effective clinical assignment, staffing eligibility, availability,
 document/version/reviewer and financial decisions remain independent work.
 
@@ -109,4 +109,21 @@ All 362 frontend/tooling tests, generated-asset and performance checks pass.
 This follow-up changes no backend source/read or permissions; the existing
 553 backend and 46 analytics evidence remains unchanged. Generated output is
 374641 bytes across 11 files; app/catalog is 419590 bytes within the unchanged
-420000-byte limit. The corrected normal release and native recheck are pending.
+420000-byte limit.
+
+Follow-up runtime **b583d350bc2687ed55f3a5b8a62e653bc7c950dd**, reviewed tree
+**85b6f3f808dfc8979661e238f7581d3b3c6eb80e**, passed all three normal jobs in
+[workflow 41388977194](https://github.com/jnwokorie1957/pthhs/actions/runs/41388977194):
+Hosting 04:32:20 UTC, backend 04:32:39 UTC and analytics 04:33:55 UTC.
+At 04:34:13 UTC, twelve exact assets, ten anonymous JSON 401/no-store boundaries
+and private noindex passed. The backend is unchanged by this follow-up.
+
+At 04:34:53 UTC, the ordinary signed-in browser loaded dashboard 1da35f29fdb0 and
+again returned an eight-field office-checked caregiver profile with a populated
+discipline, receipt labels and the qualification caution. This rechecks normal
+populated behavior; the exact raw-value comparison remains the earlier dated
+same-caregiver acceptance, and unknown/empty variants remain synthetic tests.
+Desktop viewport/scroll widths remained equal at 1265px. Resume restored current
+office-day November 1 Overview with ten rows and a 04:34:12.010 UTC source receipt.
+Private browser buffers were cleared. S04's bounded administrator source-field
+connection is complete; broader S02/P1-B/P2 work remains open.

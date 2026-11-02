@@ -10,8 +10,9 @@
   boundaries/noindex. Native same-caregiver profile now has eight fields; the
   new value matches the approved source and clears with context. Live Overview
   restored. A follow-up keeps unproved lists distinct from a claimed omission;
-  its fifth regression and all 362 frontend tests pass. Corrected release/native
-  recheck is pending before final S04 acceptance. S02/P1-B/P2 remain open.
+  its fifth regression and all 362 frontend tests pass. Corrected b583d35 passed
+  all normal jobs, public checks and native protected profile recheck; live
+  Overview restored. S04 accepted; S02/P1-B/P2 remain open.
   See [scope](STAFF_EMPLOYMENT_DISCIPLINES_2026-11-02.md).
 
 - [x] Authorization detail source connection: current discovery returns four exact
