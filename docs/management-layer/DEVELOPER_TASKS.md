@@ -1,5 +1,17 @@
 # PTHHS Management Layer — Developer Checklist
 
+- [x] November 2 exact V3 time-field projection: preserve explicit empty,
+  zero and exact text at the documented clock/hour/duration paths; withhold
+  nested/duplicate/nil/non-scalar evidence. Two regressions fail before/pass
+  after; one real-XML preview integration test,559backend and258relevant browser
+  checks pass. Runtime afc4f4a passed all three normal jobs and public boundaries.
+  Native exact historical read preserves six empty fields; October24 same-page
+  identities, clocks and populated hours stay unchanged. Preview/Review now show
+  explicit-empty hours. October23/current-day checks and live chart/receipt
+  acceptance pass. P09 accepted; no missing punch/hour value recovered and
+  P03/E04/interpretation/full coverage remain open. See
+  [scope](VISIT_TIME_FIELD_PROJECTION_2026-11-02.md).
+
 - [x] November 2 scoped billing-source diagnosis: deployed fixed response-shape
   categories after final office/policy proof, with no private source values or
   extra request. All 556 backend tests and all three normal release jobs pass.

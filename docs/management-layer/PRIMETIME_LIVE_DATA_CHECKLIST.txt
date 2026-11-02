@@ -445,6 +445,17 @@ TAB 04 - VISIT PREVIEW
     empty, both actual-hour fields explicitly empty. Browser Preview and direct
     reader agree; no clock-out/hour is invented. Bounded projection accepted;
     P03/E04 retained-source gaps and original screenshot acceptance stay separate.
+    Additional14:07:46UTC exact historical read matched visit/patient/caregiver:
+    supplied schedule endpoints unchanged; four clock and two hour fields
+    retained explicit empty strings. No missing time value recovered.
+    Additional October24 page11–20 receipt14:09:19.488UTC: ten same identities,
+    all schedule/clock cells and populated hour values unchanged; five explicit-
+    empty hour pairs. CurrentNovember2 Review has5cards with empty-hour labels
+    and unknown diagnosis/interpretation gate intact. Overview/live feed restored:
+    ten readable records/ten empty hour pairs; field/chart counts
+    [10,10,4,0,4,0] match. Automatic receipts14:12:05.698→14:13:03.826UTC
+    advanced without manual reads between; no desktop overflow. Invalid/nil/
+    duplicate/zero cases remain synthetic; no source error or quota induced.
     See docs/management-layer/VISIT_TIME_FIELD_PROJECTION_2026-11-02.md.
 
 TAB 05 - PATIENT WORKBENCH

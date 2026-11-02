@@ -1223,3 +1223,21 @@ https://knowledge.hhaexchange.com/texas/Content/Documentation/Caregiver/CG-N-Emp
 https://knowledge.hhaexchange.com/texas/Content/Documentation/Patient/Pat-N-Authorizations-P.htm
 [R63] HHAeXchange, Patient Visit Family Dashboard. Distinct requests/exceptions/history and consequential vendor concern behavior; no local source action authorized.
 https://knowledge.hhaexchange.com/enterprise/Content/Documentation/Admin/Admin-N-Patient-Visit-Family-Dashboard-P.htm
+
+
+EXACT VISIT TIME-FIELD SOURCE STATES — NOVEMBER 2, 13:51 UTC IMPLEMENTATION
+The existing approved V3 reader now preserves unique direct clock/hour/duration
+fields at their captured WSDL paths. Generic text extraction had collapsed
+self-closing empties and could borrow nested/duplicate text. Two regressions fail
+before/pass after; one XML-to-office-checked-preview integration test and all559
+backend/258relevant browser checks pass. Runtime afc4f4a passed all three normal
+jobs; native same-visit identity and supplied schedules matched, while four
+clock and two hour fields retained explicit empty strings. October24 same-page
+identities, clocks and populated hours stayed unchanged; empty-hour labels now
+render in Preview/Review. October23 and current-day live feed/chart/automatic
+receipt checks pass within their page bounds. No original punch, worked duration,
+clinical status or financial outcome was inferred or recovered. P09 accepted;
+P03/E04 and broader role/source interpretation remain open. This implements the
+research's separate evidence-state principle without a role grant or new source
+operation. Earlier primary research remains dated; no new external source review
+claimed. See VISIT_TIME_FIELD_PROJECTION_2026-11-02.md.

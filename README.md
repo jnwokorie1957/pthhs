@@ -1,5 +1,17 @@
 # PTHHS
 
+## November 2 exact visit time-field projection
+
+The approved V3 read now preserves explicit empty time/hour fields and zero
+values at their exact source paths, while withholding nested or ambiguous
+evidence. Three new checks plus559backend/258relevant browser checks pass.
+Runtime afc4f4a passed all normal jobs and native source/Preview/Review checks:
+supplied values are unchanged; empty HHA hours display explicitly. No missing
+clock-out or worked duration was recovered. October23/24 and current-day
+comparisons pass; the current live feed/chart counts and advancing receipts
+match. P03/E04 and full source interpretation remain open. See
+[scope](docs/management-layer/VISIT_TIME_FIELD_PROJECTION_2026-11-02.md).
+
 ## November 2 role and workflow research
 
 Current primary guidance and accepted authorization/staff source connections now
