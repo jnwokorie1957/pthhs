@@ -860,6 +860,19 @@ TAB 10 - HHA INTEGRATION
     source absence; original Calendar contains this visit. No owner clinical
     acceptance, complete-office census or other filter/tenant coverage inferred.
 
+[ ] H05 Saved per-read receipts. New protected GET /workspace/read-health reads
+    Primetime metadata, without an HHA query or new grant. Current enabled methods
+    have separate latest outcome/time, last success and one-response row count/
+    truncation. Unknown/current-scope-missing receipts do not claim disconnection;
+    successful empty is not a zero balance. Atomic metadata writes reject old
+    preferences/out-of-order events and strip private source/filter/actor values.
+    UI uses bounded plain-text rows and fences late Demo/session/scope responses.
+    Reference badge wording now names its separate reference check. Eight backend
+    and three browser tests (browser fail-before),583backend/379browser-tooling/
+    46analytics and unchanged budgets pass after concurrent authorization-return
+    integration. Normal release and protected native acceptance pending. H03 full
+    source/coverage acceptance remains open. See READ_SOURCE_HEALTH_2026-11-02.md.
+
 TAB 11 - AUDIT LOG
 [x] A01 Replaced the disconnected preview using the existing protected
     /workspace/audit endpoint and workspaceAudit Firestore collection.

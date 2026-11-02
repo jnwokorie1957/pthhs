@@ -23,6 +23,7 @@ node --test scripts/verify_primetime_file_session.test.mjs
 node --test scripts/verify_primetime_forms.test.mjs
 node --test scripts/verify_primetime_manual_snapshots.test.mjs
 node --test scripts/verify_primetime_read_filters.test.mjs
+node --test scripts/verify_primetime_read_health.test.mjs
 node --test scripts/verify_primetime_investigations.test.mjs
 node --test scripts/verify_primetime_assets.test.mjs
 node --test scripts/verify_primetime_data_mode.test.mjs

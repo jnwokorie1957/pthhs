@@ -110,7 +110,7 @@
   function setHhaStatus(text, ok = false) {
     if (hhaSyncStatus) hhaSyncStatus.textContent = text;
     if (hhaConnectionStatus) {
-      hhaConnectionStatus.textContent = ok ? 'Reference API reachable' : text.replace(/^HHA connection:\s*/i, '');
+      hhaConnectionStatus.textContent = ok ? 'Reference API reachable' : text;
       hhaConnectionStatus.classList.toggle('low', ok);
       hhaConnectionStatus.classList.toggle('pending', !ok);
     }
@@ -296,7 +296,7 @@
     const modeGeneration = window.primetimeDataMode?.getGeneration();
     const current = () => sequence === authSequence && window.primetimeDataMode?.isLive() === true && modeGeneration === window.primetimeDataMode.getGeneration();
     if (!current()) return;
-    setHhaStatus('HHA connection: checking');
+    setHhaStatus('HHA reference: checking');
     try {
       const response = await apiFetch('/primetime/api/hha/health');
       const payload = await response.json();
@@ -326,7 +326,7 @@
         setHhaStatus(diagnostics[payload?.error] || failures[payload?.hhaConnection] || 'HHA reference check: unverified response');
       }
     } catch {
-      if (current()) setHhaStatus('HHA connection: unavailable');
+      if (current()) setHhaStatus('HHA reference: unavailable');
     }
   }
 
@@ -361,7 +361,7 @@
   refreshButton?.addEventListener('click', refreshIntegration);
   document.addEventListener('primetime-data-mode-changed', () => {
     if (refreshButton) refreshButton.disabled = !window.primetimeDataMode?.isLive();
-    setHhaStatus(window.primetimeDataMode?.isLive() ? 'HHA connection: not checked' : 'Demo mode: HHA checks paused');
+    setHhaStatus(window.primetimeDataMode?.isLive() ? 'HHA reference: not checked' : 'Demo mode: HHA checks paused');
     if (syncDetails) syncDetails.textContent = window.primetimeDataMode?.isLive() ? 'Select Check connection and history to read reference connectivity and persisted import history. This does not start an import.' : 'Demo mode uses sample data. No live import or HHA check runs.';
   });
 

@@ -37,7 +37,7 @@
   let clearManualSnapshots = () => {};
   const message = (text, read = false) => { $('workspaceMessage').textContent = text; if (read && inlineRead()) $('patientAuthorizationMessage').textContent = text; };
   function clearConnectedPanels(detail = 'Sign in with Demo off for protected data.') {
-    for (const id of ['dashboardAudit', 'dashboardSettings']) $(id)?.replaceChildren(paragraph(detail));
+    for (const id of ['dashboardAudit', 'dashboardSettings', 'dashboardReadHealth']) $(id)?.replaceChildren(paragraph(detail));
   }
   function renderConnectedPanels() {
     if (!settings || window.primetimeDataMode?.isLive() !== true) return clearConnectedPanels();
@@ -46,11 +46,32 @@
       paragraph('Current preferences loaded from protected Primetime storage.'),
       paragraph(`Office: ${settings.officeId || 'Not configured'} · Timezone: ${settings.officeTimezone || 'Not configured'}`),
       paragraph(`${settings.enabledReads.length} HHA read operations enabled. Configuration revision ${settings.revision}. Last saved ${settings.updatedAt || 'not recorded'}.`),
-      paragraph('Use Open owner controls above to edit the existing preferences. Loading this tab does not change them.'),
+      paragraph('Open owner controls to edit preferences; loading Settings changes nothing.'),
       button('Reload current preferences', loadSettings)); host.replaceChildren(card); }
     const audit = $('dashboardAudit');
     if (audit) { const load = button('Load audit events', () => loadAudit(undefined, 'dashboardAudit')); load.disabled = !dataApproved;
       audit.replaceChildren(paragraph(dataApproved ? 'Live Primetime audit history. This records application actions, not HHA’s full external audit trail.' : 'Audit history is locked pending operational data release.'), load); }
+    const health = $('dashboardReadHealth');
+    if (health) { const load = button('Load read receipts', async () => {
+      const captured = generation;
+      health.replaceChildren(paragraph('Loading saved receipts…'));
+      try {
+        const data = await request('read-health');
+        if (data.officeId !== settings.officeId || data.settingsRevision !== settings.revision || !Array.isArray(data.rows)
+          || data.rows.length !== settings.enabledReads.length || new Set(data.rows.map(row => row?.[0])).size !== data.rows.length
+          || data.rows.some(row => !Array.isArray(row) || row.length !== 4 || !settings.enabledReads.includes(row[0])
+            || row.some(text => typeof text !== 'string' || text.length > 180))) throw new Error('Read receipts could not be verified. Reload controls.');
+        const table = document.createElement('table'), head = document.createElement('thead'), title = document.createElement('tr'), body = document.createElement('tbody');
+        for (const text of ['Source', 'Latest result', 'Last success', 'Last success rows']) { const cell = paragraph(text, 'th'); cell.scope = 'col'; title.append(cell); }
+        head.append(title); table.append(head, body);
+        for (const row of data.rows) { const tr = document.createElement('tr');
+          for (const text of row) tr.append(paragraph(text, 'td'));
+          body.append(tr); }
+        const wrap = document.createElement('div'); wrap.className = 'table-wrap'; wrap.append(table);
+        health.replaceChildren(paragraph(`${data.rows.length} enabled reads. Saved per-request receipts for current preferences; field meaning and office coverage remain unvalidated. This does not query HHA.`), load, wrap);
+      } catch (error) { if (captured === generation) health.replaceChildren(paragraph(error.message), load); }
+    }); load.disabled = !dataApproved;
+      health.replaceChildren(paragraph(dataApproved ? 'Inspect saved API read outcomes and timestamps. No extra HHA query.' : 'Read receipts require operational data release.'), load); }
   }
   clearConnectedPanels();
   const names = Object.fromEntries([...$('readOperation').options].map(option => [option.value, option.textContent]));
@@ -120,7 +141,7 @@
     message('Showing the previously fetched list. Read source records to refresh.', true); $('readPatient').focus();
   });
   authorizationBack.hidden = true; $('readForm').append(authorizationBack);
-  function paragraph(text) { const p = document.createElement('p'); p.textContent = text; return p; }
+  function paragraph(text, tag = 'p') { const p = document.createElement(tag); p.textContent = text; return p; }
   function setDataAccess(enabled) {
     dataApproved = enabled;
     if (!enabled) dockRead(false);
@@ -210,7 +231,7 @@
     const result = await request('settings', { revision: settings.revision, officeId: $('ownerOffice').value || null, officeTimezone: $('ownerTimezone').value || null, policyReference: $('ownerReference').value, enabledReads: [...$('readPermissions').querySelectorAll('input:checked')].map(input => input.value), missingClockInMinutes: threshold('ownerInMinutes'), missingClockOutMinutes: threshold('ownerOutMinutes') });
     settings = result.settings;
     if (window.primetimeDataMode?.observeScope?.(settings)) return;
-    $('readOffice').value = settings.officeId || ''; $('staffingOffice').value = settings.officeId || ''; message('Preferences saved with an audit event. Thresholds are review configuration; automated decisions remain disabled.');
+    $('readOffice').value = settings.officeId || ''; $('staffingOffice').value = settings.officeId || ''; message('Preferences saved and audited. Thresholds configure review; automated decisions stay disabled.');
   }); });
   $('readForm').addEventListener('submit', event => { event.preventDefault(); action(async () => {
     const sequence = ++readSequence; $('readResults').replaceChildren();
@@ -270,7 +291,7 @@
       }); target.append(review);
     }
     if (['GetCaregiverMedicalDetails', 'GetCaregiverComplianceItemDue', 'GetNumberOfComplianceItemDue'].includes(data.operation)) target.append(paragraph('Vendor compliance only; no fitness or scheduling eligibility established. Pending: next 90 days; overdue: prior six months. Sequence completeness unknown; counts cover only the chosen item and filters.'));
-    if (data.operation === 'GetPatientClinicalInfo') target.append(paragraph('Readiness intervals are source days, not calculated deadlines or clinical instructions. Missing values remain unknown.'));
+    if (data.operation === 'GetPatientClinicalInfo') target.append(paragraph('Source intervals are days, not calculated deadlines or clinical instructions. Missing values stay unknown.'));
     if (!data.records.length) target.append(paragraph('No records returned. This is not a zero census or a zero balance.'));
     for (const record of data.records) {
       const card = document.createElement('article'); card.className = 'panel';
@@ -324,7 +345,7 @@
       if (data.operation === 'GetPatientDemographics') card.append(button('Inspect clinical readiness intervals', async () => { $('readPatient').value = record.PatientID || record.ID; selectRead('GetPatientClinicalInfo'); message('Patient selected for source readiness intervals.'); }));
       if (data.operation === 'GetCaregiverDemographics') card.append(button('Inspect medical compliance dates', async () => { $('readCaregiver').value = record.CaregiverID || record.ID; $('readId').value = ''; $('readStatus').value = ''; selectRead('GetCaregiverMedicalDetails'); message('Caregiver selected. Source compliance dates do not establish fitness or assignment eligibility.'); }));
       if (data.operation === 'SearchPatients' || data.operation === 'SearchCaregivers') card.append(button('Select record', async () => { $('readId').value = record.PatientID || record.CaregiverID; $('readPatient').value = record.PatientID || ''; selectRead(data.operation === 'SearchPatients' ? 'GetPatientDemographics' : 'GetCaregiverDemographics'); message('Record selected for a targeted read.'); }));
-      if (data.operation === 'SearchPayrollBatches') card.append(button('Inspect selected batch details', async () => { $('readId').value = record.BatchID; $('readCaregiver').value = ''; selectRead('GetPayrollBatchDetails'); message('Selected batch only. Source duration fields are minutes, including those named Hours. Grouping is a read filter; no payroll is recalculated.'); }));
+      if (data.operation === 'SearchPayrollBatches') card.append(button('Inspect selected batch details', async () => { $('readId').value = record.BatchID; $('readCaregiver').value = ''; selectRead('GetPayrollBatchDetails'); message('Selected batch only. All source duration fields, even Hours, are minutes. Grouping filters the read; no payroll recalculation.'); }));
       if (data.operation === 'SearchBilledVisits') card.append(button('Inspect collection follow-up', async () => { $('readId').value = record.VisitID; $('readPatient').value = record.PatientID; $('readContract').value = record.ContractID; selectRead('GetCollectionNotes'); message('Visit, patient and contract selected. Collection notes are not proof of cash received.'); }));
       if (data.operation === 'SearchPayrollBatches') card.append(button('Inspect selected batch caregivers', async () => { $('readId').value = record.BatchID; selectRead('SearchPayrollBatchCaregivers'); message('Selected batch only. No prior batch records are carried forward.'); }));
       if (data.operation === 'SearchPayrollBatchCaregivers') card.append(button('Inspect caregiver pay rates', async () => { $('readId').value = record.CaregiverID; selectRead('GetCaregiverRates'); message('Caregiver selected. Source rates are not a payroll calculation or payment.'); }));
@@ -729,10 +750,10 @@
   }
   $('loadDocumentTypes').addEventListener('click', () => action(() => loadDocumentTypes()));
   function recoveryControls(proposal, family, reload) {
-    if (family === 'linked_schedule_create') return paragraph('Linked schedule recovery is blocked: no supported independent verifier for persisted schedule type is integrated. A checkbox or case-reference string is not proof. Keep the lock and use an authorized vendor investigation; do not resubmit.');
-    if (proposal.execution?.result === 'not_submitted') return paragraph('No vendor request was sent. This attempt is closed; prepare and independently review a new proposal when the service is available.');
+    if (family === 'linked_schedule_create') return paragraph('Linked schedule recovery stays blocked: no independent persisted schedule-type verifier. A checkbox/case reference proves nothing. Retain the lock; seek authorized vendor investigation. Do not resubmit.');
+    if (proposal.execution?.result === 'not_submitted') return paragraph('No vendor request sent; attempt closed. When service returns, prepare a new proposal for independent review.');
     const details = document.createElement('details'), summary = document.createElement('summary'); summary.textContent = 'Recover a blocked source target'; details.append(summary);
-    details.append(paragraph('This records verified operational evidence and releases only this proposal’s lock. It never submits or repeats an HHA change. First obtain vendor confirmation that the request completed or cannot still apply, and runtime evidence that its worker has terminated. A second administrator must independently verify both records. Elapsed time and matching source values alone are insufficient. Do not paste patient data or credentials.'));
+    details.append(paragraph('Releases only this proposal’s lock; never submits/repeats HHA changes. Require vendor proof the request completed or cannot still apply and runtime proof its worker terminated. A second administrator verifies both independently. Time elapsed or matching values alone is insufficient. Exclude patient data and credentials.'));
     const r = proposal.recovery;
     if (r) {
       details.append(paragraph(`Recovery: ${r.state}; outcome: ${r.outcome}; prepared by ${r.requestedBy}. Vendor evidence: ${r.vendorCaseReference}. Worker evidence: ${r.runtimeTerminationReference}. ${r.confirmedScheduleType ? "Vendor-confirmed persisted schedule type: " + r.confirmedScheduleType : ""}`));
@@ -875,7 +896,7 @@
         if (!item.execution && !item.recovery) {
           card.append(button('Recheck source rate', async () => { await request('rate-proposals/recheck', { id: item.id, revision: item.revision }); await loadIntents(); message('Source recheck recorded. Review its status before approval. No HHA write occurred.'); }));
           if (item.state === 'approved') {
-            const submit = button('Submit approved hourly-rate change once', async () => { if (!window.confirm('Submit this approved hourly-rate change to HHA once? Review the before/proposed rate and preserved fields above. A timeout will require reconciliation, not another submission.')) return; await request('rate-proposals/execute', { id: item.id, revision: item.revision }); await loadIntents(); message('Submission attempt recorded. Inspect its acknowledgement and source reconciliation; no automatic retry is permitted.'); });
+            const submit = button('Submit approved hourly-rate change once', async () => { if (!window.confirm('Submit this approved hourly-rate change to HHA once? Review the before/proposed rate and preserved fields above. A timeout will require reconciliation, not another submission.')) return; await request('rate-proposals/execute', { id: item.id, revision: item.revision }); await loadIntents(); message('Attempt recorded. Check acknowledgement and source reconciliation. No automatic retry.'); });
             submit.disabled = !writesEnabled; card.append(submit);
           }
         } else if (item.execution) {
@@ -888,7 +909,7 @@
     if (!intents.length) target.append(paragraph('No change requests recorded.'));
     if (result.nextCursor) { const more = button('Load older change requests', () => loadIntents(result.nextCursor)); more.dataset.more = ''; target.append(more); }
   }
-  $('rateProposalForm').addEventListener('submit', event => { event.preventDefault(); action(async () => { pendingRateId ||= crypto.randomUUID(); await request('rate-proposals', { id: pendingRateId, caregiverId: $('rateCaregiver').value, rateId: $('rateId').value, hourlyRate: $('rateAmount').value, rationale: $('rateRationale').value }); pendingRateId = null; $('rateProposalForm').reset(); await loadIntents(); message('Source-backed rate proposal saved. Recheck and independent review are required; source submission remains separately gated.'); }); });
+  $('rateProposalForm').addEventListener('submit', event => { event.preventDefault(); action(async () => { pendingRateId ||= crypto.randomUUID(); await request('rate-proposals', { id: pendingRateId, caregiverId: $('rateCaregiver').value, rateId: $('rateId').value, hourlyRate: $('rateAmount').value, rationale: $('rateRationale').value }); pendingRateId = null; $('rateProposalForm').reset(); await loadIntents(); message('Rate proposal saved from source evidence. Recheck and independent review required; submission stays separately gated.'); }); });
   $('loadIntents').addEventListener('click', () => action(loadIntents));
   $('intentForm').addEventListener('submit', event => { event.preventDefault(); action(async () => { pendingIntentId ||= crypto.randomUUID(); await request('intents', { id: pendingIntentId, revision: 0, visitId: $('intentVisit').value, kind: $('intentKind').value, rationale: $('intentRationale').value, proposed: $('intentProposed').value }); pendingIntentId = null; $('intentForm').reset(); await loadIntents(); message('Change request saved for independent review. Approval does not execute it in HHA.'); }); });
   async function loadAudit(cursor, targetId = 'workspaceAudit') {

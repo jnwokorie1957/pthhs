@@ -1,5 +1,16 @@
 # PTHHS
 
+## November 2 saved API read receipts
+
+HHA Integration now has a protected per-method receipt view: latest outcome,
+last success and single-response row/truncation evidence for current preferences.
+Refreshing it reads Primetime storage without querying HHA. The reference badge
+is labelled separately; empty success and missing current receipts are distinct.
+All583backend/379browser-tooling/46analytics checks pass within original budgets.
+Normal release and production acceptance remain pending; missing source values
+and complete-office coverage remain open. See
+[scope](docs/management-layer/READ_SOURCE_HEALTH_2026-11-02.md).
+
 ## November 2 return to fetched patient authorizations
 
 Administrators can return from an exact authorization detail to the original
@@ -8,6 +19,7 @@ and Demo fences preserve the source context. All normal release jobs and bounded
 signed-in checks pass; Live office-today Overview/feed was restored. This closes
 the navigation improvement, not missing-time, billing or authorization-unit gaps.
 See [verification](docs/management-layer/PATIENT_AUTHORIZATION_RETURN_2026-11-02.md).
+
 
 ## November 2 patient-scoped billed discovery readiness
 

@@ -1,5 +1,14 @@
 # PTHHS Management Layer — Developer Checklist
 
+- [ ] November 2 saved read receipts: protected per-method outcomes/time/counts
+  retain same-scope last success, separate local/vendor waits and reject stale or
+  malformed metadata. New Integration panel queries storage without extra HHA
+  reads; reference check wording is explicit. Eight backend and three browser
+  checks (browser fail-before),583backend/379browser-tooling/46analytics pass.
+  Concurrent authorization-return controls and original budgets are preserved.
+  Normal release/native acceptance pending; H03 full coverage/source semantics
+  remain open. See [scope](READ_SOURCE_HEALTH_2026-11-02.md).
+
 - [x] November 2,20:30–20:34UTC clinical-role research: R73 adds skilled-visit
   discipline/service/contract applicability; R10/R40 rechecks separate form
   configuration, resource prefill/sync and historical plan/master-week evidence.
@@ -8,6 +17,7 @@
   and acceptance cases refine existing T04/P2 dependencies; no new grant, source
   write, runtime or native clinical acceptance. T05/list-return/B05 stay accepted;
   H03 remains concurrent work. See [cumulative research](ROLE_WORKFLOW_RESEARCH.txt).
+
 
 - [x] November 2 authorization-list return implemented locally: browser-memory-only
   restoration preserves original receipts, exact contract selectors and cautions

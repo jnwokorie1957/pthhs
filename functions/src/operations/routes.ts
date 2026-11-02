@@ -17,6 +17,7 @@ export async function workspaceRoute(service: OperationsWorkspace, method: strin
   const linkedScheduleCreationAction = path.match(/^\/workspace\/linked-schedule-creations(?:\/(prepare|recheck|review|execute|reconcile))?$/)?.[1];
   const referralCreationAction = path.match(/^\/workspace\/referral-creations(?:\/(prepare|recheck|review|execute|reconcile))?$/)?.[1];
   const contractCreationAction = path.match(/^\/workspace\/contract-creations(?:\/(prepare|recheck|review|execute|reconcile))?$/)?.[1];
+  paths.push("/workspace/read-health");
   const pictureAction = path.match(/^\/workspace\/caregiver-pictures(?:\/(prepare|recheck|review|execute|reconcile))?$/)?.[1];
   const clinicalAction = path.match(/^\/workspace\/patient-clinical(?:\/(prepare|recheck|review|execute|reconcile))?$/)?.[1];
   const contractAction = path.match(/^\/workspace\/patient-contracts(?:\/(prepare|recheck|review|execute|reconcile))?$/)?.[1];
@@ -64,6 +65,7 @@ export async function workspaceRoute(service: OperationsWorkspace, method: strin
     else if (method === "GET" && path === "/workspace/topics") { const page = await service.page("topicChanges", body); result = { changes: page.items, nextCursor: page.nextCursor }; }
     else if (method === "POST" && documentAction) result = { change: await service.documentType(documentAction as "prepare" | "recheck" | "review" | "execute" | "reconcile", body, actor) };
     else if (method === "GET" && path === "/workspace/document-types") { const page = await service.page("documentTypeChanges", body); result = { changes: page.items, nextCursor: page.nextCursor }; }
+    else if (method === "GET" && path === "/workspace/read-health") result = await service.readHealth();
     else if (method === "GET" && path === paths[0]) result = await service.settings();
     else if (method === "POST" && path === paths[0]) result = { settings: await service.saveSettings(body, actor) };
     else if (method === "POST" && path === paths[1]) result = await service.query(body, actor);

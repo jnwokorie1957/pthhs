@@ -19,6 +19,8 @@ import { WriteRecoveryWorkflow, type WriteRecovery } from "./recovery.js";
 import { AvailabilityWorkflow, type AvailabilityOperation } from "./availability.js";
 import { randomUUID } from "node:crypto";
 import { FieldPath, getFirestore } from "firebase-admin/firestore";
+import { logger } from "firebase-functions";
+import { mergeReadHealth, readFailureOutcome, readHealthView, readHealthCells, type ReadHealthEvent } from "./readHealth.js";
 import { vendorContractBlocked } from "../integrations/hhaexchange/contractGates.js";
 import { rateWriteRequest, sameSourceFacts, sameDecimal } from "./writes.js";
 import { READ_OPERATIONS, OFFICE_SCOPED_READS, readInputFields, readRequest, WorkflowError, identifier, type ReadInput, type OperationalRead } from "./reads.js";
@@ -60,12 +62,31 @@ export interface WorkspaceRepository {
   change<T extends Versioned>(collection: string, id: string, expected: number, actor: string, action: string, update: (prior: T | null) => T): Promise<T>;
   reserveRead(): Promise<void>;
   deferReads(seconds: number): Promise<void>;
+  noteReadHealth?(event: ReadHealthEvent): Promise<void>;
+  getReadHealth?(operations: readonly string[]): Promise<unknown[]>;
   getWriteTarget(target: string): Promise<{ active: boolean; proposalId: string; updatedAt: string } | null>;
   reserveWriteTarget(target: string, proposalId: string): Promise<void>;
   releaseWriteTarget(target: string, proposalId: string): Promise<void>;
 }
 export class FirestoreWorkspaceRepository implements WorkspaceRepository {
   constructor(private db = getFirestore()) {}
+  async noteReadHealth(event: ReadHealthEvent) {
+    mergeReadHealth(null, event);
+    await this.db.runTransaction(async tx => {
+      const ref = this.db.collection("sourceReadHealth").doc(event.operation);
+      const [current, prior] = await Promise.all([tx.get(this.db.collection("workspaceSettings").doc("owner")), tx.get(ref)]);
+      if (current.data()?.revision !== event.settingsRevision || current.data()?.officeId !== event.officeId) return;
+      const next = mergeReadHealth(prior.data(), event);
+      if (next) tx.set(ref, next);
+    });
+  }
+  async getReadHealth(operations: readonly string[]) {
+    if (!operations.length) return [];
+    if (operations.some(op => !READ_OPERATIONS.includes(op as ReadInput["operation"]))) throw new WorkflowError("invalid_read_health_operation");
+    const snapshots = await this.db.getAll(...operations.map(op => this.db.collection("sourceReadHealth").doc(op)));
+    const byOperation = new Map(snapshots.map(snapshot => [snapshot.id, snapshot.exists ? snapshot.data() : null]));
+    return operations.map(operation => byOperation.get(operation) ?? null);
+  }
   async get<T extends Versioned>(collection: string, id: string): Promise<T | null> {
     const result = await this.db.collection(collection).doc(id).get();
     return result.exists ? result.data() as T : null;
@@ -206,14 +227,38 @@ export class OperationsWorkspace {
       const result = await this.read(input, projectionScope);
       const latest = (await this.settings()).settings;
       if (JSON.stringify(latest) !== JSON.stringify(settings)) throw new WorkflowError("office_policy_changed_restart", 409);
+      await this.observeRead(input, settings, result);
       return result;
     }
     catch (error) {
+      await this.observeRead(input, settings, undefined, error);
       // Local admission already enforces its minute boundary. Do not turn that
       // refusal into a persisted vendor hold; retain every actual vendor delay.
       if (error instanceof WorkflowError && error.retryAfterSeconds && error.code !== "read_budget_exhausted_retry_next_minute") await this.repository.deferReads(error.retryAfterSeconds);
       throw error;
     }
+  }
+  private async observeRead(input: ReadInput, settings: Settings, result?: OperationalRead, error?: unknown) {
+    if (!this.repository.noteReadHealth) return;
+    const valid = result?.operation === input.operation && result.source === "hhaexchange" && Array.isArray(result.records);
+    try {
+      await this.repository.noteReadHealth({ operation: input.operation, settingsRevision: settings.revision, officeId: settings.officeId,
+        checkedAt: valid ? result.fetchedAt : new Date().toISOString(), outcome: valid ? result.records.length ? "success" : "empty" : readFailureOutcome(error),
+        records: valid ? result.records.length : null, truncated: valid ? result.truncated : null });
+    } catch { logger.warn("Source read receipt could not be stored", { operation: input.operation }); }
+  }
+  async readHealth() {
+    this.requireData();
+    const { settings } = await this.settings();
+    if (!this.repository.getReadHealth) throw new WorkflowError("read_health_unavailable", 503);
+    const operations = READ_OPERATIONS.filter(op => settings.enabledReads.includes(op));
+    const stored = await this.repository.getReadHealth(operations);
+    if (!Array.isArray(stored) || stored.length !== operations.length) throw new WorkflowError("read_health_unavailable", 503);
+    if (JSON.stringify((await this.settings()).settings) !== JSON.stringify(settings)) throw new WorkflowError("office_policy_changed_restart", 409);
+    const sources = operations.map((operation, index) => ({ ...readHealthView(operation, settings.revision, settings.officeId, vendorContractBlocked(operation) ? null : stored[index]),
+      ...(vendorContractBlocked(operation) ? { outcome: "contract_blocked" as const } : {}) }));
+    return { officeId: settings.officeId, settingsRevision: settings.revision, checkedAt: new Date().toISOString(), disabledCount: READ_OPERATIONS.length - operations.length,
+      sources, rows: sources.map(readHealthCells) };
   }
   async investigations() { this.requireData(); return this.repository.list<Investigation>("investigations"); }
   async reviewSchedule(value: unknown, actor: string) {
