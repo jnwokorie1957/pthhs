@@ -1285,3 +1285,193 @@ completeness interpretation remain open; B02 needs usable billing source detail.
 The separately approved legacy billing grant is neither introduced nor reopened
 by this pane. No source write/import/clinical or financial decision/message.
 See PATIENT_AUTHORIZATION_PANE_2026-11-02.md for bounded acceptance details.
+
+
+DUTY CAPTURE, SOURCE TIME CONTEXT AND FAMILY ACTION PERMISSIONS — NOVEMBER 2, 2026 RESEARCH
+Actual source/code review: November 2, 16:50–16:55 UTC.
+Baseline: clean refreshed main 5dc1e0f749c26048eb4273f91a40f1b701c016f2.
+This is research and an implementation handoff; no runtime, grant or source state changes.
+
+ACCEPTED WORK AND DATED TENANT OBSERVATIONS
+T05 is now implemented and bounded production acceptance is complete. Do not
+repeat the earlier proposal to build the patient authorization pane. Its exact
+patient/office/authorization/contract scope, independent receipts and raw-unit
+caution remain the implementation baseline. Native acceptance was 16:17–16:24
+UTC: thirteen discovery records and fourteen detail fields matched the protected
+baseline; patient/Demo transitions cleared old facts and the live office Overview
+was restored. See PATIENT_AUTHORIZATION_PANE_2026-11-02.md.
+
+Original HHA Calendar/Visit Info/retained-call/Billing Info observations remain
+dated to the separate source investigation in the handoff. Verification
+navigation redirected that session to login; Verification remains unaccepted.
+No fresh original-HHA UI, clinical configuration or record read was performed
+in this research pass. Do not infer current session availability, missing-time
+cause or tenant settings from that dated redirect or from public product docs.
+The approved Primetime API connection and T03/S04/P09 acceptance remain intact.
+The separate user-approved legacy billing read is already enabled; B02 remains
+open because its actual successful compatibility trial returned no billing record.
+
+CURRENT PRIMARY GUIDANCE — PRODUCT OPTIONS, NOT THIS OFFICE'S CONFIGURATION
+R64 distinguishes visit duties from the general patient plan: unscheduled duty
+display depends on authorization/task context, and multiple service codes can
+require an explicit service choice. A discoverable plan or authorization alone
+does not prove which duties belong to an encounter.
+R65 describes an agency-configured post-visit duty-edit window; the documented
+default is not a universal deadline. R66 additionally documents a zero edit
+window and an office option that captures visit end at saving duties rather
+than at initiating clock-out. These are configurable capture behaviors. They
+do not identify which SOAP field reflects a given UI action or explain a
+particular missing punch. Do not alter any office setting to make fields agree.
+
+R67 explicitly separates legacy from redesigned caregiver compliance. The legacy
+description's treatment of skilled staff must not be copied into a PT eligibility
+rule. R68 describes agency-defined discipline rules in the redesigned feature;
+R69 describes a separate automated restriction feature including professional
+license/malpractice checks for skilled disciplines. These documents cover
+different feature/configuration contexts. Verify the active module and effective
+office/contract/discipline rules before interpreting an individual status.
+A missing medical/compliance item list cannot prove qualification or its absence.
+
+R70 documents family schedule requests, concern states and visit duty detail as
+distinct features. Its request timing and thirty-day list behavior describe that
+product, not Primetime's rule or complete record history. R71 distinguishes
+viewing the office family dashboard, approving schedule requests and resolving
+visit exceptions as separate permissions. R72 supports an explicit patient
+selector for a family account connected to multiple patients. No family account,
+operational action or vendor schedule rule is enabled by this research.
+
+CURRENT SOURCE CONTRACT / CONCRETE CONNECTION GAPS
+1. functions/src/operations/reads.ts now projects the optional raw
+   GetVisitInfoV3 VisitInfo/ClockInEvvType and VisitInfo/ClockOutEvvType strings.
+   P10 is still recorded pending source acceptance; do not mark it accepted from
+   this source review. functions/src/views/visits.ts VisitPreviewItem/detailItem
+   and source/primetime/dashboard.js normalizeVisitPreview do not carry these
+   type fields. The Preview/Review renderers do not display them. This is a
+   bounded field-connection opportunity, not newly recovered clock evidence.
+   Preserve actual/EVV endpoints, supplied hours and independent receipts.
+2. Captured hharefs/hha-wdsl.xml SearchPatientPOC takes
+   SearchFilters/PatientID; discovery POC entries have ID, StartDate, StopDate
+   and POCNumber. GetPatientPOCInfo takes POCInfo/POCID. PocInfoDetails has
+   Patient/ID and plan ID/dates plus Tasks; it declares no visit, authorization,
+   contract or service-code identity at that record level.
+   Task has ID/Code, Category, Name, AsNeeded, Required, WeeklyMin, WeeklyMax,
+   Instruction and day fields. The generic projection currently returns selected
+   task fields as a JSON string, omitting Category/Instruction and plan Notes.
+   These are plan definitions, not a performed/refused visit-duty log, clinical
+   encounter instance, signature or review status. Weekly counts are not hours.
+   The current Inspect care plan tasks shortcut sets a plan ID in the generic
+   reader; it is not T05's dedicated patient/office/contract-checked route.
+   Do not clone it into external clinical screens or expand sensitive text
+   projection without a scoped minimum-necessary field/action contract.
+3. The accepted administrator Forms library stores templates/submissions and
+   preserves exact file bytes/version. It does not establish a patient/visit/POC
+   clinical instance or convey patient/staff sharing rights. The currently
+   approved ten-read set is distinct from catalog availability. Do not silently
+   enable POC, document, compliance or service-code reads merely because their
+   source implementations exist.
+
+PROPOSED PATIENT / FAMILY EXPERIENCE — LOCAL DESIGN INFERENCE
+After a current verified account-to-patient relationship, make patient selection
+explicit before opening a schedule or shared document. Clear prior patient
+content, pending selections and permitted document URLs when switching context.
+Show appointments and requested changes with their own source/fetch status.
+Show encounter duties only after exact encounter and sharing proof; a general
+plan is a separate reference view. Preserve requested, acknowledged and decided
+states; an office viewing grant must not permit approval or resolution.
+Document availability, clinical review and patient acknowledgement remain
+separate. Public pages link to the secure entry only and contain no roster,
+clinical files or authenticated schedule data.
+
+PROPOSED PT / FIELD STAFF EXPERIENCE — LOCAL DESIGN INFERENCE
+Keep My day / assigned encounter / patient plan / clinical document as separate
+linked records. Confirm effective assignment, current membership and the correct
+plan/service/encounter before showing duties for completion. Track draft,
+submitted, reviewed and signed stages independently from clock-in/out.
+Do not hard-code a twenty-six-hour edit deadline or equate saving duties with
+an original EVV event. Until effective configuration is proved, deadline and
+capture interpretation stay unknown. A discipline label or a generic source
+compliance flag cannot confer professional qualification or scheduling authority.
+Any future clinical write/signature requires its existing explicit action and
+reviewer/version contract; this research authorizes none.
+
+PROPOSED OFFICE EXPERIENCE AND NEXT FEASIBLE WORK
+P0 (conditional proposal): after P10's exact-source/native acceptance, carry only
+the two raw EVV-type strings through the existing office-checked visit preview,
+live-feed cache and corresponding Preview/Review evidence path. Display them
+as source type fields without a value-to-event/status mapping. Unknown, explicit
+empty, zero text and supplied strings must remain distinct. Unavailable or
+foreign-scope details supply no type. Use the same detail receipt, no extra
+query, new source operation, grant, event join, eligibility or financial metric.
+Review every projection/normalizer/cache boundary; optional-field compatibility
+must not retain a prior visit's values. Stay within the unchanged asset budgets
+(the accepted app/catalog is already 419973 of 420000 raw bytes); fund additions
+by legitimate reuse, not by dropping warnings or increasing the caps. This
+proposal is not a deployed feature or an explanation for a missing clock-out.
+
+P1: design a separate scoped POC discovery/detail reader before clinical display:
+fresh patient/office proof, unique direct plan/patient IDs, bounded tasks,
+independent discovery/detail receipts, and a supported effective encounter/
+service/authorization link where required. Discovery alone is not that link.
+Retain the existing T04 read gates; do not ask to activate a catalog bundle.
+P2: a role/action matrix must distinguish account membership, source read,
+document sharing, clinical author/reviewer/signature, schedule-request approval
+and exception resolution. Shared navigation never upgrades any one of them.
+S02 availability/restrictions and effective assignments remain independent.
+B02 needs a supported same-billed-record coverage example/vendor explanation,
+not an inferred cash value from a bill rate, configured units or a clock span.
+
+ACCEPTANCE CASES FOR THE NEXT IMPLEMENTATION / ROLE CONTRACT
+- Raw EVV type supplied with empty clock-out: show the type and keep the endpoint
+  empty. A populated type does not prove a successful event, completed task or
+  verified/payable visit; unknown type text remains literal.
+- Type absent/empty/zero, malformed scalar, unavailable detail, cross-patient/
+  office/date, late response and policy/session/Demo change: preserve distinctions
+  and clear former values. A mixed release/cache shape must fail or degrade
+  explicitly without borrowing the last response.
+- POC list contains overlapping dates, same plan numbers or multiple active
+  authorizations/services: no name/date/numeric-namespace auto-join.
+- Required/AsNeeded/day/WeeklyMin/WeeklyMax are plan fields; never mark an actual
+  duty performed/refused from them. Omitted Instruction is not an empty clinical
+  instruction. Do not infer plan completeness from a bounded list.
+- Post-visit edit setting unknown/zero/custom, or end capture at duty save versus
+  clock-out: no hard-coded deadline, recomputed endpoint or inferred failure.
+- Skilled discipline with legacy/default status versus redesigned/automatic
+  restriction configuration: no qualification or scheduling decision.
+- Two family patients and independent office view/approve/resolve permissions:
+  no cross-patient leakage, stale action, approval via read access or source
+  concern/hold from a local comment.
+These are proposed acceptance cases, not newly exercised production transitions.
+
+PRECISE EXISTING OWNER / VENDOR EVIDENCE
+For the clinical/role work already pending, retain protected examples of:
+(a) intended application/office and relevant settings effective on the service
+date, including duty editing/end capture and active compliance module/rules;
+(b) exact patient-plan-task to permitted visit/service/authorization relationship,
+and whether the API has a supported actual-duty/clinical-instance read;
+(c) one family account-to-patient and staff effective-assignment mapping, plus
+separate document sharing, reviewer/signature and schedule approval/resolution
+authority. Current settings alone cannot establish historical capture behavior.
+These refine existing P1-B/P2/T04/S02 evidence; they are not a new urgent login,
+grant, attestation or instruction to change settings. No clinical/financial
+decision, source edit, automatic communication or external-role activation.
+
+PRIMARY SOURCES — RETRIEVED NOVEMBER 2, 2026, 16:50–16:53 UTC
+Retrieval dates only; no publication/release date or tenant enablement asserted.
+[R64] HHAeXchange, HHAeXchange+ Mobile App Duties.
+https://knowledge.hhaexchange.com/caregiver/Content/Documentation/Mobile/Mobi-CG-UW-Duties-P.htm
+[R65] HHAeXchange, Post-Visit POC Edit Time.
+https://knowledge.hhaexchange.com/texas/Content/Documentation/Mobile/Mobi-N-Post-Visit-POC-Edit-Time-P.htm
+[R66] HHAeXchange, Set Up a New Office. Mobile and scheduling configuration.
+https://knowledge.hhaexchange.com/texas/Content/Documentation/Admin/Admin-N-Set-Up-New-Office.htm
+[R67] HHAeXchange, Caregiver Compliance Page. Legacy versus redesigned context.
+https://knowledge.hhaexchange.com/enterprise/Content/Documentation/Caregiver/CG-N-Compliance-Page-P.htm
+[R68] HHAeXchange, Caregiver Compliance Overview. Discipline-specific setup.
+https://knowledge.hhaexchange.com/enterprise/Content/Documentation/Caregiver/CG-N-Caregiver-Compliance-Overview-P.htm
+[R69] HHAeXchange, Automated Non-Compliance Restriction.
+https://knowledge.hhaexchange.com/enterprise/Content/Documentation/Visit/Visit-N-Automated-Non-Compliance-Restriction-P.htm
+[R70] HHAeXchange, Family Portal Schedule Page functions.
+https://knowledge.hhaexchange.com/enterprise/Content/Documentation/Patient/Pat-N-Family-Portal-Schedule-Function-P.htm
+[R71] HHAeXchange, Family Dashboard Permissions.
+https://knowledge.hhaexchange.com/texas/Content/Documentation/Admin/Admin-N-Permissions-Family-Dashboard-P.htm
+[R72] HHAeXchange, Navigate the Family Portal. Multiple patient contexts.
+https://knowledge.hhaexchange.com/texas/Content/Documentation/Patient/Pat-N-Navigate-Family-Portal-P.htm

@@ -1,5 +1,16 @@
 # PTHHS Management Layer — Developer Checklist
 
+- [x] November 2, 16:50–16:55 UTC role research: R64–R72 refine duty capture,
+  configurable post-visit editing, compliance module differences, family patient
+  selection and separate view/approve/resolve permissions. Captured POC contract
+  provides plan/task definitions without an encounter/authorization/service join.
+  T05 stays accepted. Next conditional bounded feature is raw EVV-type display
+  through existing Preview/Review paths after P10 source acceptance; no endpoint,
+  extra query or inferred missing-time cause. Existing P1-B/P2/T04/S02 evidence
+  needs effective configuration and actual plan-to-encounter/action linkage.
+  No runtime, new grant, source change or fresh HHA UI acceptance.
+  See [research and acceptance cases](ROLE_WORKFLOW_RESEARCH.txt).
+
 - [x] November 2 patient authorization pane: reuse the approved discovery/detail
   reader inside Patient workbench, exact patient/office/contract scope, separate
   receipts and one shared form. Patient/Demo transitions clear old facts;
