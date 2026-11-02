@@ -31,7 +31,7 @@ class ArticleTests(unittest.TestCase):
         page = render_article(BASE)
         self.assertEqual(page.count('<h1>'), 1)
         for expected in ('href="#main-content"', 'aria-label="Breadcrumb"', PUBLISHER,
-                         'datetime="2026-10-27"', 'Published by Robert, AI CTO of Primetime Home Health Services',
+                         'datetime="2026-10-27"', 'Published by Robert, CTO of Primetime Home Health Services',
                          'href="https://pthhs.net/articles/synthetic-fixture"', 'href="/home-care-blog"'):
             self.assertIn(expected, page)
         self.assertNotIn('reviewedBy', page)
@@ -155,7 +155,7 @@ class ArticleTests(unittest.TestCase):
         self.assertEqual(hashlib.sha256(source.read_bytes()).hexdigest(), 'eb90423fa9b2b7e5ef777c0ddf596858a53bc8ef62cdaa10ed994efa1960a3c1')
         page = (ROOT / 'public' / (article.path.lstrip('/') + '.html')).read_text(encoding='utf-8')
         body = re.search(r'<div data-article-body>(.*?)</div>', page, re.S).group(1)
-        self.assertEqual(page.count('Published by Robert, AI CTO of Primetime Home Health Services'), 1)
+        self.assertEqual(page.count('Published by Robert, CTO of Primetime Home Health Services'), 1)
         self.assertNotIn('RidePrimetime', page)
         self.assertNotIn('Prepared with AI drafting assistance.', page)
         self.assertEqual(plaintext(body), plaintext(render_body(article.body)))
@@ -203,7 +203,7 @@ class ArticleTests(unittest.TestCase):
         body = re.search(r'<div data-article-body>(.*?)</div>', page, re.S).group(1)
         self.assertEqual(plaintext(body), plaintext(render_body(article.body)))
         self.assertEqual(page.count('<h1>'), 1)
-        self.assertEqual(page.count('Published by Robert, AI CTO of Primetime Home Health Services'), 1)
+        self.assertEqual(page.count('Published by Robert, CTO of Primetime Home Health Services'), 1)
         self.assertNotIn('Editorial handoff', page)
         self.assertNotIn('publication-ready draft', page)
         self.assertIn('<title>' + article.seo_title + '</title>', page)
@@ -277,7 +277,7 @@ class HouseholdAndStyleTests(unittest.TestCase):
         schema, = [x for x in graph if x['@type'] == 'Article']
         self.assertEqual(schema, article.schema())
         self.assertEqual(page.count('<h1>'), 1)
-        self.assertEqual(page.count('Published by Robert, AI CTO of Primetime Home Health Services'), 1)
+        self.assertEqual(page.count('Published by Robert, CTO of Primetime Home Health Services'), 1)
         self.assertIn('rel="canonical" href="https://pthhs.net' + article.path + '"', page)
         for name in ('articles.html', 'home-care-blog.html'):
             self.assertEqual((ROOT / 'public' / name).read_text().count('href="' + article.path + '"'), 1)
@@ -310,6 +310,39 @@ class HouseholdAndStyleTests(unittest.TestCase):
                       'Nonmedicalized treatment.', 'Nonmedical nursing treatment.'):
             term = 'nursing' if 'nursing' in claim else 'medical'
             self.assertEqual(classify(term, claim, False)[0], 'REVIEW_REQUIRED')
+
+
+class FamilyHandoffTests(unittest.TestCase):
+    def test_compact_article_attribution_resolves_to_company_graph(self):
+        for article in approved_articles():
+            page = (ROOT / 'public' / (article.path.lstrip('/') + '.html')).read_text(encoding='utf-8')
+            graph = json.loads(re.search(r'<script type="application/ld\+json">(.*?)</script>', page, re.S).group(1))['@graph']
+            organization = next(x for x in graph if x.get('@id') == 'https://pthhs.net/#organization')
+            schema = next(x for x in graph if x['@type'] == 'Article')
+            self.assertEqual(organization['name'], PUBLISHER)
+            for role in ('author', 'publisher'):
+                self.assertEqual(schema[role]['@id'], organization['@id'])
+            webpage = next(x for x in graph if x['@type'] == 'WebPage')
+            self.assertEqual(webpage['description'], article.description)
+
+    def test_reviewed_family_copy_and_discovery_exclude_private_handoff(self):
+        article = next(a for a in approved_articles() if a.slug == 'helping-houston-relative-from-another-city')
+        page = (ROOT / 'public' / (article.path.lstrip('/') + '.html')).read_text(encoding='utf-8')
+        body = re.search(r'<div data-article-body>(.*?)</div>', page, re.S).group(1)
+        self.assertEqual(plaintext(body), plaintext(render_body(article.body)))
+        self.assertEqual(body.count('<h2>'), 6)
+        self.assertIn('invented household example, not a PTHHS client story', plaintext(body))
+        self.assertIn('inquiry does not reserve a caregiver or confirm a start date', plaintext(body))
+        for private in ('Internal editorial handoff', 'PTHHS-DISTANCE-20261102', 'Suggested slug', 'Independent native agent review'):
+            self.assertNotIn(private, page)
+        self.assertEqual(page.count('Published by Robert, CTO of Primetime Home Health Services'), 1)
+        self.assertNotIn('Robert, AI CTO', page)
+        self.assertIn('https://www.nia.nih.gov/health/long-distance-caregiving/what-long-distance-caregiving', body)
+        self.assertIn('https://www.pa.gov/agencies/aging/pa-carekit/caregiving-resources/communication-tips', body)
+        self.assertIn('https://pthhs.net/home-care-contact-us', body)
+        self.assertIn('datetime="2026-11-02"', page)
+        for name in ('articles.html', 'home-care-blog.html', 'sitemap.xml'):
+            self.assertIn(article.path, (ROOT / 'public' / name).read_text(encoding='utf-8'))
 
 
 if __name__ == '__main__':

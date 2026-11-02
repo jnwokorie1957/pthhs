@@ -98,9 +98,11 @@ class Article:
     def schema(self) -> dict:
         self.validate()
         canonical = HOST + self.path
-        organization = {'@type': 'Organization', 'name': PUBLISHER, 'url': HOST + '/'}
+        # The final page graph already defines this organization and the
+        # WebPage description. Reference it rather than duplicating the data.
+        organization = {'@type': 'Organization', '@id': HOST + '/#organization'}
         result = {'@type': 'Article', '@id': canonical + '#article', 'url': canonical,
-                  'headline': self.title, 'description': self.description,
+                  'headline': self.title,
                   'datePublished': self.published, 'author': organization,
                   'publisher': organization, 'mainEntityOfPage': {'@id': canonical + '#webpage'}}
         if self.modified:
@@ -143,7 +145,7 @@ def article_presentation(page: str) -> str:
 
 def render_article(article: Article) -> str:
     article.validate()
-    metadata = ('<p>Published by Robert, AI CTO of Primetime Home Health Services</p>'
+    metadata = ('<p>Published by Robert, CTO of Primetime Home Health Services</p>'
                 f'<p>Published <time datetime="{article.published}">{article.published}</time>. '
                 f'Research checked <time datetime="{article.research_checked}">{article.research_checked}</time>.')
     if article.modified and article.modified != article.published:

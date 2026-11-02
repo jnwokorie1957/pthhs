@@ -36,8 +36,11 @@ for (const file of htmlFiles) {
       return `${attribute}${quote}${assetUrl}?v=${assetVersions.get(assetUrl)}${quote}`;
     },
   );
-  if (updated !== original) {
-    await fs.writeFile(file, updated);
+  const output = /(?:^|[\\/])articles(?:[\\/]|\.html$)/.test(file)
+    ? updated.replace(/>[ \t]*\r?\n\s*</g, '><')
+    : updated;
+  if (output !== original) {
+    await fs.writeFile(file, output);
     changed += 1;
   }
 }
