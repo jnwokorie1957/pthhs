@@ -14,6 +14,14 @@
 
 ## Start here
 
+- [ ] November 2 additional read decision: patient-scoped SearchBilledVisits is
+  deployed and its input metadata verified, but remains unchecked. The specific
+  question is pending for existing administrators to retrieve four raw billing
+  references after fresh patient-office proof, for one patient/day/office. No
+  request has been sent and no source/write access changed. This is separate
+  from the already-enabled GetVisitBillInfo grant. See
+  [scope and readiness](BILLED_DISCOVERY_2026-11-02.md).
+
 - [x] November 2 specific read decision: the user explicitly approved read-only
   GetVisitBillInfo for existing Primetime administrators as the deployed,
   identity/office-checked compatibility path after empty V2 billing results.

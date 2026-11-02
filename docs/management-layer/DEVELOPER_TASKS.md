@@ -4,8 +4,10 @@
   day and office; fresh patient-office proof and strict direct collection/fields
   prevent cross-subject or nested evidence. Four regressions fail before/pass
   after;575backend/373browser-tooling and unchanged assets/performance pass.
-  SearchBilledVisits remains disabled; normal release and protected native source
-  acceptance are pending. B02 usable facts remain open. See
+  All three normal release jobs and12exactassets/9anonymous401private checks
+  pass; refreshed signed-in form exposes patient/office/date with old10reads intact.
+  SearchBilledVisits remains disabled pending its separate specific decision;
+  actual source-result acceptance and B02 usable facts remain open. See
   [scope and acceptance](BILLED_DISCOVERY_2026-11-02.md).
 
 - [x] November 2 raw EVV-type display: carry approved V3 in/out type strings

@@ -1,8 +1,9 @@
 # Patient-scoped billed-visit discovery — November 2, 2026 UTC
 
-Status: implemented and locally tested; normal release and protected production
-acceptance are pending. SearchBilledVisits remains owner-disabled. This does not
-complete B02 or establish a usable billed record.
+Status: normally deployed; signed-in production input metadata verified.
+SearchBilledVisits remains owner-disabled, awaiting the separate specific read
+decision. Actual source-result acceptance remains pending. This does not complete
+B02 or establish a usable billed record.
 
 ## Problem and exact source
 
@@ -60,3 +61,28 @@ before trying either scoped billing reader. Keep actual-method receipts, no-reco
 outcomes and source coverage limits. Do not replace the already-approved legacy
 grant with a duplicate request, scrape/import website values, or label this
 discovery complete before production evidence exists.
+
+## Normal release and protected input acceptance
+
+Runtime `5642efcb02fba0c99d560636fda79e19fb10fb98`, tree
+`1453cb2b7e3f47ae100c0e408be839181cca5edd`, passed all three normal jobs in
+[workflow41511520697](https://github.com/jnwokorie1957/pthhs/actions/runs/41511520697):
+Hosting19:37:12, backend19:38:24 and analytics19:39:09UTC. Twelve exact assets and
+nine anonymous401/private/noindex boundaries passed at19:39:01.560UTC. No asset
+or read/write setting was changed by this backend release.
+
+The retained Chrome tab was refreshed and its existing sign-in restored normally.
+Selecting SearchBilledVisits now visibly exposes office, date and patient inputs,
+with the unrelated record-ID input hidden. Fresh owner controls retain exactly
+the original ten enabled reads, including the approved legacy billing method;
+SearchBilledVisits remains unchecked. No search request has been submitted.
+The automatic feed remains connected with a current-day receipt19:39:01.320UTC.
+The owner-control screenshot contains no source patient/staff values.
+
+A separate specific confirmation was requested to enable this additional
+read-only patient/office/day discovery for existing administrators. The browser
+confirmation policy requires action-time approval for expanded sensitive-data
+access; this is not a repeat of the already applied legacy billing grant. Keep
+that question pending and do not enable or query this source before the answer.
+No usable billed record, financial meaning, full-office completeness or recovered
+EVV time is claimed. P12's separate accepted display work is preserved.

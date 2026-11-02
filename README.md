@@ -5,8 +5,10 @@
 SearchBilledVisits now requires the selected patient/day/office instead of ignoring
 the patient selector. Fresh patient-office proof and strict direct response fields
 precede disclosure. Four fail-before regressions and575backend/373browser-tooling
-tests pass. The additional search read remains disabled; normal release and native
-acceptance are pending. No usable billing detail or missing EVV time is claimed.
+tests pass. All three normal release jobs and public boundaries pass; fresh
+signed-in input metadata now exposes the patient selector. The additional search
+read remains disabled pending its separate specific decision, so actual source
+result acceptance remains open. No usable billing detail or missing EVV time is claimed.
 See [bounded scope](docs/management-layer/BILLED_DISCOVERY_2026-11-02.md).
 
 ## November 2 EVV source types in Preview and Review

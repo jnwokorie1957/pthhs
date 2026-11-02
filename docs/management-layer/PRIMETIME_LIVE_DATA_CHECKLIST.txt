@@ -800,8 +800,11 @@ TAB 08 - BILLING & AR
     collection/subject/field projection rejects foreign or ambiguous evidence,
     including a foreign row beyond the200-row cap; empty and truncated results
     stay explicit. Four fail-before regressions,575backend/373browser-tooling,
-    current assets and performance pass. Additional search read remains disabled;
-    normal release and native acceptance are pending. B02 usable facts and
+    current assets and performance pass. Runtime5642efc passed normal workflow
+    41511520697 all3jobs;12exactassets/9anonymous401private checks pass. Refreshed
+    signed-in form exposes patient/office/date; old10reads retained, search still
+    unchecked. Specific additional-read decision pending; no search dispatched.
+    Actual source-result acceptance remains open. B02 usable facts and
     source-date/coverage semantics remain open. No amount/EVV/cash inference.
     See BILLED_DISCOVERY_2026-11-02.md.
 
