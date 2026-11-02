@@ -1,7 +1,7 @@
 # Legacy billing compatibility read — November 2, 2026 UTC
 
-Status: implemented and tested locally; normal release, separate owner enablement
-and production source acceptance remain pending. B02 is not complete.
+Status: deployed with the legacy read disabled. Separate owner enablement and
+production source acceptance remain pending. B02 is not complete.
 
 ## New protected source evidence
 
@@ -71,6 +71,16 @@ TypeScript compilation and all563backend tests pass. All364browser/tooling tests
 generated assets, performance foundation and diff checks pass. App/catalog raw
 size419844bytes remains below420000; gzip budget102000 is unchanged. Public catalog
 is unchanged. No owner preference has been changed for this compatibility read.
+
+Runtime `3b560b6aa1493f3ab5774ab8de18d46d817826ac` passed all three normal jobs in
+[workflow41475728338](https://github.com/jnwokorie1957/pthhs/actions/runs/41475728338):
+Hosting15:52:22, backend15:53:49 and analytics15:53:49UTC. Twelve deployed assets
+matched reviewed files and nine anonymous JSON requests retained401/private/
+no-store/noindex boundaries at15:54:51.101UTC. A fresh signed-in Codex-browser load
+uses dashboard150e822db84b and shows the working automatic current-day API feed
+with receipt15:56:03.843UTC. Reloaded owner controls retain nine selected reads,
+GetVisitBillInfo unchecked and zero write grants. No legacy request was made.
+Specific activation approval has been requested; an answer is still required.
 
 Before activation, obtain specific approval to enable read-only GetVisitBillInfo
 for existing Primetime administrators. Save only that additional read in current

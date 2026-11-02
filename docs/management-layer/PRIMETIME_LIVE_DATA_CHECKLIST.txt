@@ -671,8 +671,14 @@ TAB 08 - BILLING & AR
     read is implemented with the same identity/office/date proof and fourteen
     fields; it runs only after verified empty V2 and separate owner enablement.
     No permission changed. 563backend/364browser-tooling tests and unchanged
-    asset budgets pass. Normal release, activation and live source acceptance
-    remain pending. See LEGACY_BILLING_READ_READINESS_2026-11-02.md.
+    asset budgets pass. Runtime3b560b6 passed workflow41475728338 all3jobs:
+    Hosting15:52:22/backend15:53:49/analytics15:53:49UTC. Twelve exact assets and
+    nineanonymous401/private/noindex checks pass15:54:51.101UTC. Fresh signed-in
+    Codex-browser dashboard150e822db84b has working current-day automatic API
+    receipt15:56:03.843UTC. Reloaded controls retain9reads, GetVisitBillInfo
+    unchecked and0write grants. Specific approval requested; no legacy query
+    made. Activation and live detail acceptance remain pending; B02 stays open.
+    See LEGACY_BILLING_READ_READINESS_2026-11-02.md.
 [ ] B03 GetVisitInfoV3 BilledAmount is a source field, not collected cash.
     Do not invent cash collections, paid-claim stages, billing readiness or AR
     totals from visit times, billed amount, payroll hours or absent records.

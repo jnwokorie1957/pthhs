@@ -1,5 +1,13 @@
 # PTHHS Management Layer — Developer Checklist
 
+- [x] November 2 legacy billing compatibility readiness: deployed a separately
+  gated GetVisitBillInfo read after verified empty GetVisitBillInfoV2, retaining
+  current visit/patient/caregiver/date/office proof and actual-method provenance.
+  563 backend and 364 browser/tooling checks pass; all three normal release jobs,
+  twelve exact assets and nine anonymous private boundaries pass. The legacy
+  permission is still unchecked; no source acceptance or B02 completion claimed.
+  See [activation gate](LEGACY_BILLING_READ_READINESS_2026-11-02.md).
+
 - [x] November 2 exact V3 time-field projection: preserve explicit empty,
   zero and exact text at the documented clock/hour/duration paths; withhold
   nested/duplicate/nil/non-scalar evidence. Two regressions fail before/pass
