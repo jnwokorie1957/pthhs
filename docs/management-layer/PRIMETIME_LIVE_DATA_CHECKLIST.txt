@@ -452,8 +452,15 @@ TAB 05 - PATIENT WORKBENCH
     unchecked and the existing8reads selected. No access changed. An identity
     projection correction now rejects nested/duplicate discovery/detail IDs
     and nil parent scope proof. Four regressions fail before/pass after;
-    549backend/14focused checks pass. Browser assets/budgets unchanged. Normal
-    release and action-time approval for this ninth read remain pending. After
+    549backend/14focused checks pass. Browser assets/budgets unchanged.
+    Runtime4a8cae1 passed workflow41383781589 all3jobs: Hosting03:34:37,
+    backend03:36:02, analytics03:36:02UTC. At03:40:46.045UTC12exactassets and
+    9existing anonymous401/private/noindex checks passed; the authorization POST
+    independently returns401/no-store/noindex. Native postrelease discovery
+    returns4exact pairs/4selection controls with a receipt. Selecting one exact
+    detail shows owner enablement required; the request returns no detail fields.
+    Eight existing reads remain selected and this ninth read stays unchecked.
+    Action-time approval for this ninth read remains pending. After
     approval, use current settings and prove actual exact-record response/receipt;
     do not treat enablement as entitlement or infer remaining hours from units.
     See AUTHORIZATION_READ_READINESS_2026-11-02.md.

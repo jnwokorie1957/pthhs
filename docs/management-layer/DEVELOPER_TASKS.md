@@ -4,8 +4,10 @@
   ID pairs; GetPatientAuthorizationInfo is still unchecked. Discovery/detail
   identities now require unique direct scalar paths, and nil parents cannot
   supply scope proof. Four regressions fail before/pass after;549backend and
-  14focused checks pass. No access expanded; normal release and action-time
-  read approval remain pending. T03 source acceptance remains open. See
+  14focused checks pass. Runtime4a8cae1 passed all three normal jobs and native
+  four-row discovery. The detail gate withholds all records and says enablement
+  is required; existing eight reads are unchanged. Action-time approval and T03
+  actual detail source acceptance remain pending. See
   [scope](AUTHORIZATION_READ_READINESS_2026-11-02.md).
 
 - [x] November 2 source-reference implementation: preserve OriginalVisitID and

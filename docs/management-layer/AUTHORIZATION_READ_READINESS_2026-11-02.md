@@ -52,7 +52,21 @@ They cover duplicate scalars/parents, nested IDs, absent required proof, nil tru
 whitespace, explicit false and unchanged request order. TypeScript compilation,
 all549backend tests and14focused authorization/projection tests pass. Generated
 browser assets remain current and unchanged; the existing419644raw/101729gzip
-output remains under420000/102000 limits. Normal release is pending.
+output remains under420000/102000 limits.
+
+Runtime4a8cae1b454f5e266db99f22c1561f7863f4e1c1 passed all three normal jobs in
+[workflow41383781589](https://github.com/jnwokorie1957/pthhs/actions/runs/41383781589):
+Hosting03:34:37, backend03:36:02, analytics03:36:02UTC. At03:40:46.045UTC,
+12exactassets and9existing anonymous401/private/noindex checks passed. The
+patient-authorizations POST separately returned401 with no-store/noindex.
+
+The normal authenticated session then reread discovery through the deployed
+projection: four exact pairs and four selection controls with a source receipt.
+An exact detail selection displayed the owner-enablement requirement. Requesting
+that disabled read returned no fields and the message Enable this read in owner
+controls after entitlement review. The unchecked control and unchanged eight
+selected reads were confirmed. This verifies the closed gate, not detail API
+entitlement, populated source acceptance or operational meaning.
 
 ## Remaining activation and acceptance
 
