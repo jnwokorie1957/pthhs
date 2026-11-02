@@ -1,5 +1,14 @@
 # PTHHS
 
+## November 2 patient-scoped billed discovery readiness
+
+SearchBilledVisits now requires the selected patient/day/office instead of ignoring
+the patient selector. Fresh patient-office proof and strict direct response fields
+precede disclosure. Four fail-before regressions and575backend/373browser-tooling
+tests pass. The additional search read remains disabled; normal release and native
+acceptance are pending. No usable billing detail or missing EVV time is claimed.
+See [bounded scope](docs/management-layer/BILLED_DISCOVERY_2026-11-02.md).
+
 ## November 2 EVV source metadata and read admission
 
 The existing V3 inspector now exposes both raw EVV type fields. Production checks

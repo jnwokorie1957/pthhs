@@ -248,7 +248,7 @@ export function readRequest(input: ReadInput): string {
   if (input.operation === "SearchPatientAuthorizations") return `<SearchFilters><PatientID>${identifier(input.patientId)}</PatientID></SearchFilters>`;
   if (input.operation === "SearchBilledVisits") {
     const date = day(input.date);
-    return `<StartDate>${date}T00:00:00</StartDate><EndDate>${date}T23:59:59</EndDate><OfficeID>${identifier(input.officeId)}</OfficeID><PatientID xsi:nil="true"/>`;
+    return `<StartDate>${date}T00:00:00</StartDate><EndDate>${date}T23:59:59</EndDate><OfficeID>${identifier(input.officeId)}</OfficeID><PatientID>${identifier(input.patientId)}</PatientID>`;
   }
   if (input.operation === "SearchVisitsV2") {
     const date = day(input.date), office = identifier(input.officeId);
@@ -485,7 +485,7 @@ export function readInputFields(operation: ReadOperation): string[] {
   if (["SearchPatients", "SearchCaregivers"].includes(operation)) return ["term"];
   if (["SearchPatientAuthorizations", "SearchPatientPOC", "GetPatientDisciplines", "GetPatientReferralInfo", "GetPatientPreferences", "GetPatientDeclinedCaregivers", "GetMasterWeeks"].includes(operation)) return ["patientId"];
   if (operation === "SearchVisitsV2") return ["officeId", "date", "patientId", "caregiverId"];
-  if (operation === "SearchBilledVisits") return ["officeId", "date"];
+  if (operation === "SearchBilledVisits") return ["officeId", "date", "patientId"];
   if (operation === "SearchPayrollBatches") return ["date"];
   if (operation === "GetPatientContracts") return ["patientId", "date"];
   if (operation === "GetPatientAuthorizationInfo") return ["id", "patientId"];
@@ -556,6 +556,23 @@ function visitTimeField(xml: string, path: string): string | null {
     xml = extractElementBody(elements[0]!, name) ?? "";
   }
   return null;
+}
+function billedVisitRecords(xml: string, patientId: string): Record<string, string | null>[] {
+  const invalid = (): never => { throw new WorkflowError("billed_visit_response_shape_unverified", 502); };
+  if (XMLValidator.validate("<BilledRead>" + xml + "</BilledRead>") !== true) invalid();
+  const roots = directChildElements(xml, "SearchBilledVisits"), allRows = extractElementBodies(xml, "BilledVisits");
+  if (roots.length > 1 || (!roots.length && (allRows.length || extractElementBodies(xml, "SearchBilledVisits").length))) invalid();
+  if (!roots.length) return [];
+  const body = extractElementBody(roots[0]!, "SearchBilledVisits") ?? "";
+  const nil = /\s(?:[A-Za-z_][\w.-]*:)?nil\s*=\s*(["'])\s*(?:true|1)\s*\1/i.test(roots[0]!.match(/^<[^>]+>/)?.[0] ?? "");
+  if (nil && body.trim()) invalid();
+  const rows = directChildElements(body, "BilledVisits");
+  if (rows.length !== allRows.length || rows.reduce((rest, element) => rest.replace(element, ""), body).replace(/<!--[\s\S]*?-->/g, "").trim()) invalid();
+  return rows.map(element => {
+    const record = Object.fromEntries(["VisitID", "PatientID", "ContractID", "OtherChargeID"].map(name => [name, visitTimeField(element, "BilledVisits/" + name)]));
+    if (record.PatientID !== patientId) throw new WorkflowError("billed_visit_patient_mismatch", 403);
+    return record;
+  });
 }
 function caregiverEmploymentDisciplines(xml: string): string | null {
   const roots = directChildElements(xml, "EmploymentTypes");
@@ -822,7 +839,9 @@ export async function operationalRead(client: Pick<HhaSoapClient, "call">, input
   let records: Record<string, string | null>[];
   let visitEditReasons: VisitEditReasonEvidence[] | undefined;
   let typedReasonsTruncated = false;
-  if (input.operation === "SearchVisitsV2" || input.operation === "SearchPatients" || input.operation === "SearchCaregivers") {
+  if (input.operation === "SearchBilledVisits") {
+    records = billedVisitRecords(response.resultXml, identifier(input.patientId));
+  } else if (input.operation === "SearchVisitsV2" || input.operation === "SearchPatients" || input.operation === "SearchCaregivers") {
     const [container, field] = input.operation === "SearchVisitsV2" ? ["Visits", "VisitID"] : input.operation === "SearchPatients" ? ["Patients", "PatientID"] : ["Caregivers", "CaregiverID"];
     const values = extractElementBody(response.resultXml, container!) ?? "";
     records = input.operation === "SearchVisitsV2" && projectionScope === "visit_discovery"

@@ -188,11 +188,21 @@ export class OperationsWorkspace {
     const { settings } = await this.settings();
     if (!settings.enabledReads.includes(input.operation)) throw new WorkflowError("read_not_owner_enabled", 423);
     if (OFFICE_SCOPED_READS.includes(input.operation) && input.officeId !== settings.officeId) throw new WorkflowError("office_scope_mismatch", 403);
+    if (input.operation === "SearchBilledVisits") {
+      readRequest(input);
+      if (!settings.enabledReads.includes("GetPatientDemographics")) throw new WorkflowError("read_not_owner_enabled", 423);
+    }
     // The SOAP transport reserves the shared budget per actual dispatch. Do not
     // charge this service layer again; gated or invalid reads never dispatch.
     const id = randomUUID();
     await this.repository.change("readRequests", id, 0, actor, "read_requested_" + input.operation, () => ({ id, revision: 1, updatedAt: new Date().toISOString(), operation: input.operation }));
     try {
+      if (input.operation === "SearchBilledVisits") {
+        const patient = await this.query({ operation: "GetPatientDemographics", id: identifier(input.patientId) }, actor);
+        if (patient.operation !== "GetPatientDemographics" || patient.source !== "hhaexchange" || patient.truncated || patient.records.length !== 1
+          || patient.records[0]?.PatientID !== input.patientId || patient.records[0]?.OfficeID !== settings.officeId) throw new WorkflowError("patient_office_mismatch", 403);
+        if (JSON.stringify((await this.settings()).settings) !== JSON.stringify(settings)) throw new WorkflowError("office_policy_changed_restart", 409);
+      }
       const result = await this.read(input, projectionScope);
       const latest = (await this.settings()).settings;
       if (JSON.stringify(latest) !== JSON.stringify(settings)) throw new WorkflowError("office_policy_changed_restart", 409);

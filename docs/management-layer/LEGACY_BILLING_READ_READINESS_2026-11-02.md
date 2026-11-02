@@ -133,3 +133,8 @@ before either scoped billing reader can supply financial facts. Discovery alone
 cannot establish cash, AR, a missing EVV event or why both billing reads were
 empty. No further permission question is pending for the already enabled legacy
 GetVisitBillInfo method.
+
+The subsequent [patient-scoped discovery correction](BILLED_DISCOVERY_2026-11-02.md)
+implements the minimum scope and direct-identity review identified above. Its
+release/activation/native acceptance are tracked separately; the paragraph above
+describes the pre-correction builder. The search read remains disabled.

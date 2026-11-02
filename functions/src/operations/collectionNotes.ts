@@ -46,7 +46,7 @@ export async function currentCollectionNote(read:(input:ReadInput)=>Promise<Oper
  // This workflow targets the visit charge, never an ancillary other charge.
  // No amount-based or truthy-string inference: unknown billing states fail closed.
  if(billing[`${side}/Contract/ID`]!==facts.ContractID || billing[`${side}/IsBilled`]!=="Yes")throw new WorkflowError("verified_visit_billing_status_required",409);
- const billed=await read({operation:"SearchBilledVisits",officeId,date:date(visit.VisitDate)});
+ const billed=await read({operation:"SearchBilledVisits",officeId,patientId:identifier(facts.PatientID),date:date(visit.VisitDate)});
  const billedMatches=billed.records.filter(row=>row.VisitID===facts.VisitID&&row.PatientID===facts.PatientID&&row.ContractID===facts.ContractID&&row.OtherChargeID===null);
  if(billed.truncated||billedMatches.length!==1)throw new WorkflowError("verified_billed_contract_required",409);
  const metadata:Facts={PatientID:facts.PatientID!,VisitID:facts.VisitID!,ContractID:facts.ContractID!,OfficeID:officeId,BillingEvidence:JSON.stringify(billing),ScheduleEvidence:JSON.stringify(visit)};

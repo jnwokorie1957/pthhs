@@ -1,5 +1,13 @@
 # PTHHS Management Layer — Developer Checklist
 
+- [ ] November 2 patient-scoped billed discovery: request now honors patient,
+  day and office; fresh patient-office proof and strict direct collection/fields
+  prevent cross-subject or nested evidence. Four regressions fail before/pass
+  after;575backend/373browser-tooling and unchanged assets/performance pass.
+  SearchBilledVisits remains disabled; normal release and protected native source
+  acceptance are pending. B02 usable facts remain open. See
+  [scope and acceptance](BILLED_DISCOVERY_2026-11-02.md).
+
 - [x] November 2, 16:50–16:55 UTC role research: R64–R72 refine duty capture,
   configurable post-visit editing, compliance module differences, family patient
   selection and separate view/approve/resolve permissions. Captured POC contract
