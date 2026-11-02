@@ -522,7 +522,7 @@ TAB 05 - PATIENT WORKBENCH
     Discovery/detail receipts stay independent and malformed fetch dates fail.
     Errors stay visible; selection makes no automatic request or new grant.
     The obsolete unguarded duplicate detail shortcut is removed. Raw units and
-    balances remain uninterpreted. Five new checks,369frontend/tooling and
+    balances remain uninterpreted. Six new checks,370frontend/tooling and
     46analytics tests plus generator/asset checks pass within unchanged budgets.
     Normal release/native acceptance pending; T03 remains accepted, P1-B/P2/
     T04/S02/interpretation/full coverage remain open.

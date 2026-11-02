@@ -3205,6 +3205,16 @@ test('inline authorization receipts remain independent and malformed fetch times
   }
 });
 
+test('unrelated workspace activity cannot relabel an inline authorization read', async () => {
+  const app = connectedWorkspace({ enabledReads: ['GetPatientDemographics', 'SearchPatientAuthorizations'], authorizations: (_path, options) => response(authSource(JSON.parse(options.body))) });
+  await app.signIn(); await tick(); await tick(); await startAuthorizationRead(app);
+  const source = nodeText(app.element('readResults')), status = app.element('patientAuthorizationMessage').textContent;
+  await app.click('reloadWorkspace'); await tick();
+  assert.equal(nodeText(app.element('readResults')), source);
+  assert.equal(app.element('patientAuthorizationMessage').textContent, status);
+  assert.equal(authorizationCalls(app).length, 1);
+});
+
 test('both live source views select exact patient authorization discovery without fetching or granting reads', async () => {
   const app = connectedWorkspace(); await app.signIn(); await tick(); await tick();
   for (const host of ['dashboardTimeline', 'dashboardVisitRows']) {

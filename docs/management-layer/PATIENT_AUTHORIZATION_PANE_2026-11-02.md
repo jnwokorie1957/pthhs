@@ -33,8 +33,8 @@ remaining hours, service eligibility or financial outcome is computed.
 
 ## Verification and release readiness
 
-Four new behavioral regressions fail against the prior generated app. All five
-new checks pass, including independent/invalid receipt handling. All 369 frontend
+Four new behavioral regressions fail against the prior generated app. All six
+new checks pass, including independent/invalid receipt handling. All 370 frontend
 and tooling tests and 46 analytics tests pass. The concurrent legacy-billing implementation is preserved. The combined tree
 passes 563 backend tests; the pane adds no backend operation or grant. Normal
 backend CI still runs before production acceptance.
@@ -49,7 +49,9 @@ sharing those labels funds the pane without increasing a budget or removing a
 control. Owner read checkbox operation values and their existing labels remain
 the same.
 
-Production publication and native acceptance are pending. Do not mark this
+Initial runtime31344bfc2516e5990fb7c475b93b48afb14dcac4 passed all three normal
+jobs in workflow41477334165. The status-isolation follow-up and native acceptance
+are pending. Do not mark this
 connection complete from local tests alone. The protected pre-release session
 remains authorized; one current patient returned 13 exact discovery selections
 and 13 duplicate legacy shortcuts. Private identities and values remain in
@@ -68,3 +70,12 @@ the pane; source/test/checklist merges were retained and two generated conflicts
 were resolved by rebuilding from merged sources. The combined root/backend and
 asset/performance checks pass. Concise instructions and shared labels fund both
 features under the original budgets; no control or warning gate was removed.
+
+## Read-status isolation follow-up
+
+A sixth regression reproduces an unrelated owner-controls reload overwriting the
+inline authorization status. Only source-read selection, progress, completion
+and errors now address that status. Other workspace actions keep their own
+messages. The regression fails against31344b and all370frontend/tooling checks
+pass after the correction. No source query, value, read permission or backend
+behavior changes. Final normal release and native acceptance remain required.

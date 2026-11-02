@@ -30,12 +30,12 @@
     host.append($('readForm'), $('readResults'));
     $('readOperation').closest('label').hidden = inline;
     $('readPatient').readOnly = $('readId').readOnly = inline;
-    if (!inline) $('patientAuthorizationMessage').textContent = 'Choose Open patient authorizations.';
+    if (!inline) $('patientAuthorizationMessage').textContent = 'Use Open patient authorizations.';
   }
   const investigationFilters = ['investigationStatusFilter', 'investigationAssignmentFilter', 'investigationFollowUpFilter'];
   let clearManualSnapshots = () => {};
-  const message = text => { $('workspaceMessage').textContent = text; if (inlineRead()) $('patientAuthorizationMessage').textContent = text; };
-  function clearConnectedPanels(detail = 'Sign in with Demo off to load protected data.') {
+  const message = (text, read = false) => { $('workspaceMessage').textContent = text; if (read && inlineRead()) $('patientAuthorizationMessage').textContent = text; };
+  function clearConnectedPanels(detail = 'Sign in with Demo off for protected data.') {
     for (const id of ['dashboardAudit', 'dashboardSettings']) $(id)?.replaceChildren(paragraph(detail));
   }
   function renderConnectedPanels() {
@@ -79,7 +79,7 @@
       : kind === 'patient-care-plans' ? 'Patient care-plan discovery' : kind === 'patient-documents' ? 'Patient document discovery' : kind[0].toUpperCase() + kind.slice(1);
     message(settings.enabledReads.includes(operation)
       ? `${label} source ID selected from source evidence. Choose Read source records to fetch evidence.`
-      : `${label} source ID selected. This read requires owner enablement after entitlement review.`);
+      : `${label} source ID selected. This read requires owner enablement after entitlement review.`, true);
   });
   document.addEventListener('primetime-patient-profile-selected', event => {
     if (inlineRead() && ($('readPatient').value !== event.detail?.patientId || settings?.officeId !== event.detail?.officeId)) {
@@ -99,7 +99,7 @@
     if (!response.ok || !result.ok) throw new Error(({ operational_data_release_not_approved: 'Operational data is locked pending deployment and privacy approval. Owner preferences can still be configured.', read_not_owner_enabled: 'Enable this read in owner controls after entitlement review.', revision_conflict: 'Another administrator updated this record. Reload before retrying.', independent_reviewer_required: 'A different administrator must review this request.', vendor_contract_clarification_required: 'This operation is absent from or removed by the vendor guide. Vendor clarification is required before it can be enabled.', workspace_unavailable: 'Workspace storage is unavailable. Verify backend deployment and Firestore, then retry.' })[result.error] || (result.error || 'Request failed').replaceAll('_', ' '));
     return result;
   }
-  async function action(task) { const current = generation; try { message('Working…'); await task(); } catch (error) { if (current === generation) message(error.message); } }
+  async function action(task, read = false) { const current = generation; try { message('Working…', read); await task(); } catch (error) { if (current === generation) message(error.message, read); } }
   function button(label, click) { const b = document.createElement('button'); b.type = 'button'; b.className = 'btn secondary'; b.textContent = label; b.addEventListener('click', () => action(async () => { b.disabled = true; try { await click(); } finally { b.disabled = false; } })); return b; }
   function paragraph(text) { const p = document.createElement('p'); p.textContent = text; return p; }
   function setDataAccess(enabled) {
@@ -269,7 +269,7 @@
           $('readId').focus();
           message(settings.enabledReads.includes('GetPatientAuthorizationInfo')
             ? 'Exact authorization IDs selected. Choose Read source records to fetch evidence.'
-            : 'Exact authorization IDs selected. This read requires owner enablement after entitlement review.');
+            : 'Exact authorization IDs selected. This read requires owner enablement after entitlement review.', true);
         }));
         else card.append(paragraph('Detail selection unavailable: authorization/contract identity is missing, invalid or ambiguous.'));
       }
@@ -315,8 +315,8 @@
       if (visitId) card.append(button('Review this visit', async () => { $('investigationVisit').value = visitId; $('intentVisit').value = visitId; $('readId').value = visitId; selectRead('GetVisitInfoV3'); message('Visit selected. Open its evidence or create an investigation below.'); }));
       target.append(card);
     }
-    message(`Read completed: ${data.records.length} record(s). No source records changed.`);
-  }); });
+    message(`Read completed: ${data.records.length} record(s). No source records changed.`, true);
+  }, true); });
   $('availabilityForm').addEventListener('submit', event => { event.preventDefault(); action(async () => {
     pendingAvailabilityId ||= crypto.randomUUID();
     await request('availability-proposals', { id: pendingAvailabilityId, operation: $('availabilityOperation').value, caregiverId: $('availabilityCaregiver').value, recordId: $('availabilityRecord').value, day: $('availabilityDay').value, availabilityType: $('availabilityType').value, liveIn: $('availabilityLiveIn').value, from: $('availabilityFrom').value, to: $('availabilityTo').value, rationale: $('availabilityRationale').value });
@@ -898,7 +898,7 @@
     }
     if (workflow === 'SearchPatientAuthorizations') dockRead(true);
     if (workflow === 'SearchPatients' || workflow === 'SearchCaregivers') $('readTerm').focus(); else $(workflow === 'SearchPatientAuthorizations' ? 'readPatient' : 'readDate').focus();
-    message('Workflow selected. Supply the requested identifiers or date, then read source records.');
+    message('Review inputs, then choose Read source records.', true);
   }));
   if ($('manualSnapshotForm')) {
     let snapshotSequence = 0, snapshotSelection = 0, snapshotView = 0, sourcePatientSelected = false;
