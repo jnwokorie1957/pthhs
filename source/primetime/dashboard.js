@@ -649,11 +649,15 @@
     }
     const pair = (start, end) => `${start || 'Not supplied by HHA'}\n${end || 'Not supplied by HHA'}`;
     const captured = context();
-    const { sourceScheduleHours, sourceActualHours, sourceRoundedActualHours } = window.primetimeSourceTime;
+    const { sourceScheduleHours, sourceActualHours, sourceRoundedActualHours, sourceRecordedClockSpan } = window.primetimeSourceTime;
+    const recordedPair = item => {
+      const span = view.mode === 'live' ? sourceRecordedClockSpan(item.actualStart, item.actualEnd) : '';
+      return pair(item.actualStart, item.actualEnd) + (span ? '\n' + span : '');
+    };
     const detailCells = item => item.state === 'unavailable' ? Array(6).fill('Detail unavailable') : [
-      pair(item.scheduledStart, item.scheduledEnd), pair(item.actualStart, item.actualEnd), pair(item.evvStart, item.evvEnd),
+      pair(item.scheduledStart, item.scheduledEnd), recordedPair(item), pair(item.evvStart, item.evvEnd),
       view.mode === 'demo' ? 'Synthetic example' : sourceScheduleHours(item.scheduleDurationHours, item.scheduleDurationMinutes, null, item.scheduledStart, item.scheduledEnd),
-      view.mode === 'demo' ? 'Synthetic example' : sourceActualHours(item.actualHours, null, item.actualStart, item.actualEnd),
+      view.mode === 'demo' ? 'Synthetic example' : sourceActualHours(item.actualHours),
       view.mode === 'demo' ? 'Synthetic example' : sourceRoundedActualHours(item.actualHoursRounded)];
     replace('dashboardVisitRows', table(['Visit', 'Patient ID', 'Caregiver ID', 'Scheduled start / end', 'Actual start / end', 'EVV start / end', 'Expected hours (HHA)', 'Actual hours (HHA)', 'Rounded actual hours (HHA)', 'Evidence state', 'Source records'],
       view.items.map(item => [item.id, item.patientId, item.caregiverId, ...detailCells(item),

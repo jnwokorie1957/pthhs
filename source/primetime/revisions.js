@@ -189,13 +189,17 @@
     return clock(item.evidence.times[key] || (item.evidence.rawTimes?.[field] !== null && item.evidence.rawTimes?.[field] !== undefined ? { raw: item.evidence.rawTimes[field] } : null));
   }
   function sourcePair(item, start, end, startField, endField) {
-    return sourceReadable(item) ? `${sourceTime(item, start, startField)} → ${sourceTime(item, end, endField)}` : sourceUnavailable;
+    if (!sourceReadable(item)) return sourceUnavailable;
+    const times = item.evidence.rawTimes || {};
+    const span = !item.demo && startField === 'VisitStartTime' ? window.primetimeSourceTime.sourceRecordedClockSpan(
+      times.VisitStartTime ?? item.evidence.times.actualStart?.raw, times.VisitEndTime ?? item.evidence.times.actualEnd?.raw) : '';
+    return `${sourceTime(item, start, startField)} → ${sourceTime(item, end, endField)}` + (span ? '\n' + span : '');
   }
   function sourceHours(item, actual = false) {
     if (item.demo) return duration(item.diagnosis.metrics[actual ? 'actualMinutes' : 'scheduledMinutes']);
     if (!sourceReadable(item)) return sourceUnavailable;
     const raw = item.evidence.rawDurations || {}, times = item.evidence.rawTimes || {}, { sourceActualHours, sourceScheduleHours } = window.primetimeSourceTime;
-    return actual ? sourceActualHours(raw.ActualHours, item.diagnosis.metrics.actualMinutes, times.VisitStartTime, times.VisitEndTime)
+    return actual ? sourceActualHours(raw.ActualHours)
       : sourceScheduleHours(raw['ScheduleDuration/ScheduleDurationHours'], raw['ScheduleDuration/ScheduleDurationMinutes'], item.diagnosis.metrics.scheduledMinutes, times.ScheduleStartTime, times.ScheduleEndTime);
   }
   function roundedHours(item) {

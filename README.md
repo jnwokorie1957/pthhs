@@ -1,5 +1,16 @@
 # PTHHS
 
+## November 2 UTC actual-hour source separation
+
+HHA ActualHours now displays only the supplied field. Calculated written-clock
+spans remain beside the recorded clock pair in Preview and Visit review. A fresh
+October24 comparison matched the exact original HHA visit: recorded endpoints
+were supplied, while original EVV-out text and hour displays remained unavailable.
+Three regressions fail before/pass after;359frontend checks and asset budgets pass.
+Normal release/native acceptance pending. See
+[scope](docs/management-layer/ACTUAL_HOURS_SOURCE_SEPARATION_2026-11-02.md).
+
+
 ## November 1 visit billed amount connection
 
 Billing & AR now retains and displays the BilledAmount already supplied by the

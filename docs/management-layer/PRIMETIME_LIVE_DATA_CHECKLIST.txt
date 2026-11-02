@@ -367,6 +367,32 @@ TAB 04 - VISIT PREVIEW
     original-punch/hour gaps and E04 retained-history/linkage evidence stay open.
     See ROUNDED_SOURCE_HOURS_2026-10-31.md. No source/read/grant setting changed.
 
+[ ] P07 Actual-hour source/display separation (November1,23:40UTC trigger;
+    implementation November2UTC). Preview/Review previously put calculated
+    accepted minutes or a recorded clock span into the HHA ActualHours field's
+    display when the raw field was absent. This can obscure the source gap.
+    The formatter now preserves the raw HHA ActualHours field only; missing,
+    supplied-empty and explicit-zero states stay distinct. A valid written-clock
+    span remains separately labelled beside the recorded pair. It never fills
+    a clock/hour field or diagnosis, verification, payroll or billing state.
+    Three regressions fail before/pass after;359frontend/tooling tests and
+    generated assets/budgets pass. Backend/source calls unchanged; normal
+    release and native display acceptance pending. The captured source field
+    path remains GetVisitInfoV3/VisitInfo/ActualHours, independent of
+    ActualHoursRounded, VisitStartTime/VisitEndTime and EVVStartTime/EVVEndTime.
+    November1,23:56:24UTC original historical comparison: an affected October24
+    exact VisitID/patient/caregiver/day matched the original Calendar/Visit Info;
+    Calendar office matched API scope. Fresh approved GetVisitInfoV3 starts and
+    recorded end matched source Bill Time In/Out and EVV Clock In. Original
+    EVV-out text was empty, recorded/rounded EVV duration displays were
+    placeholders, and the one rendered EVV-row clock matched API EVVStartTime.
+    API EVVEndTime, ActualHours and ActualHoursRounded were unavailable. Event
+    direction/complete retained history were not established; no end recovered.
+    This is an additional historical case, not the already-resolved original
+    October24 screenshot visit. E04 retention/filter/subject/visit-link evidence
+    remains open; no web-scraped import, source correction or time substitution.
+    See ACTUAL_HOURS_SOURCE_SEPARATION_2026-11-02.md.
+
 TAB 05 - PATIENT WORKBENCH
 [x] T01 Main surface now starts with current patients from readable visits on the
     selected source page. Calendar imports remain clearly separate saved history.

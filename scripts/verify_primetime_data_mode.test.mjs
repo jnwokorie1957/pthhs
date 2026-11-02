@@ -410,7 +410,7 @@ test('HHA source hours preserve zero, empty and missing components separately fr
   assert.equal(actual('4:15'), '4:15 · HHA');
   assert.equal(actual(''), 'Empty HHA ActualHours');
   assert.equal(actual(null), 'Not supplied by HHA');
-  assert.equal(actual(null, 240), '4.00 h · calculated');
+  assert.equal(actual(null, 240), 'Not supplied by HHA');
   assert.equal(schedule('4', '15'), '4 h 15 min · HHA');
   assert.equal(schedule('0', '0'), '0 h 0 min · HHA');
   assert.equal(schedule(null, '30'), 'h not supplied 30 min · HHA');
@@ -428,17 +428,43 @@ test('rounded source hours preserve supplied values and never fall back to sched
   assert.equal(rounded(undefined), 'Not supplied by HHA');
 });
 
-test('missing source hours use a labelled complete clock span without guessing missing ends, dates or DST offsets', () => {
+test('schedule spans stay labelled while missing HHA actual hours never borrow a recorded span', () => {
   const { sourceClockSpan: span, sourceActualHours: actual, sourceScheduleHours: schedule } = dashboardModel().primetimeSourceTime;
   const start = '2026-10-10 08:00', end = '2026-10-10 12:15';
   assert.equal(span(start, end), 255);
   assert.equal(schedule(null, null, null, start, end), '4.25 h · source clock span');
-  assert.equal(actual(null, null, start, end), '4.25 h · source clock span');
+  assert.equal(actual(null, null, start, end), 'Not supplied by HHA');
   assert.equal(actual('0.00', null, start, end), '0.00 h · HHA');
   assert.equal(span('2026-10-10 23:00', '2026-10-11 02:00'), 180);
   assert.equal(actual(null, null, start, null), 'Not supplied by HHA');
   for (const [a, b] of [[end, start], [start, '2026-10-10 07:00'], ['08:00', '12:00'], ['2026-02-30 08:00', '2026-02-30 12:00'],
     ['2026-11-01T01:30:00-05:00', '2026-11-01T03:30:00-06:00'], ['0001-01-01 08:00', end], [start, '2026-10-13 12:00']]) assert.equal(span(a, b), null);
+});
+
+test('HHA actual hours and the independent written-clock span remain separate for missing, empty and zero values', () => {
+  const { sourceActualHours, sourceRecordedClockSpan } = dashboardModel().primetimeSourceTime;
+  const start = '2026-10-24 08:00', end = '2026-10-24 12:00';
+  assert.equal(sourceActualHours(null, 240, start, end), 'Not supplied by HHA');
+  assert.equal(sourceActualHours('', 240, start, end), 'Empty HHA ActualHours');
+  assert.equal(sourceActualHours('0.00', 240, start, end), '0.00 h · HHA');
+  assert.equal(sourceRecordedClockSpan(start, end), 'Recorded clock span: 4.00 h · written times');
+  for (const pair of [[start, null], [null, end], [end, start], ['2026-11-01T01:00:00-05:00', '2026-11-01T02:00:00-06:00']]) assert.equal(sourceRecordedClockSpan(...pair), '');
+});
+
+test('preview keeps recorded span beside its clock pair and preserves a missing HHA actual-hour cell', async () => {
+  const app = connectedWorkspace({ preview: date => {
+    const page = livePreview(date);
+    Object.assign(page.items[0], { actualStart: date + ' 08:00', actualEnd: date + ' 12:00', actualHours: null, actualHoursRounded: null });
+    return page;
+  } });
+  await app.signIn(); await tick(); await tick();
+  const cells = descendants(app.element('dashboardVisitRows'));
+  const rawHours = cells.find(e => e['data-label'] === 'Actual hours (HHA)');
+  const clocks = cells.find(e => e['data-label'] === 'Actual start / end');
+  assert.equal(nodeText(rawHours).trim(), 'Not supplied by HHA');
+  assert.match(nodeText(clocks), /Recorded clock span: 4\.00 h · written times/);
+  assert.doesNotMatch(nodeText(rawHours), /4\.00|calculated|clock span/);
+  assert.equal(app.calls.some(c => c.options?.method === 'POST'), false);
 });
 
 test('preview retains returned HHA duration fields and strips them from unavailable details', () => {

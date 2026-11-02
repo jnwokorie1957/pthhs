@@ -81,9 +81,14 @@
     const span = sourceClockSpan(start, end);
     return span === null ? 'Not supplied by HHA' : `${(span / 60).toFixed(2)} h · source clock span`;
   }
+  // Legacy optional arguments never fill this source field; spans render beside clocks.
   function sourceActualHours(raw, acceptedMinutes = null, start = null, end = null, field = 'ActualHours') {
     if (typeof raw === 'string') return raw === '' ? `Empty HHA ${field}` : `${raw}${/^\d+(?:\.\d+)?$/.test(raw) ? ' h' : ''} · HHA`;
-    return displayDuration(acceptedMinutes, start, end);
+    return 'Not supplied by HHA';
+  }
+  function sourceRecordedClockSpan(start, end) {
+    const minutes = sourceClockSpan(start, end);
+    return minutes === null ? '' : `Recorded clock span: ${(minutes / 60).toFixed(2)} h · written times`;
   }
   // No calculated or clock fallback for the independently supplied rounded field.
   function sourceRoundedActualHours(raw) { return sourceActualHours(raw, null, null, null, 'ActualHoursRounded'); }
@@ -94,7 +99,7 @@
     const part = (value, unit) => value === null || value === undefined ? `${unit} not supplied` : value === '' ? `empty ${unit}` : `${value} ${unit}`;
     return `${part(hours, 'h')} ${part(minutes, 'min')} · HHA`;
   }
-  window.primetimeSourceTime = Object.freeze({ timestampInstant, fetchAgeText, watchFetchAge, sourceActualHours, sourceRoundedActualHours, sourceScheduleHours, sourceClockSpan });
+  window.primetimeSourceTime = Object.freeze({ timestampInstant, fetchAgeText, watchFetchAge, sourceActualHours, sourceRoundedActualHours, sourceScheduleHours, sourceClockSpan, sourceRecordedClockSpan });
   const preferenceKey = 'primetime.dataMode';
   let mode = 'live';
   let generation = 0;

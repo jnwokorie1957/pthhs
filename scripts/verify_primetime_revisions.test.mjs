@@ -206,6 +206,27 @@ test('unaccepted review shows returned HHA times and durations without accepting
   assert.match(before, /Unknown evidence/);
 });
 
+test('review separates written recorded spans from absent HHA hours and accepted calculations', async () => {
+  const app = harness(path => {
+    if (!path.includes('/visits?')) return null;
+    const payload = visits(new URL(path, 'https://fixture.test').searchParams.get('date'));
+    const { evidence, diagnosis } = payload.items[0];
+    evidence.state = 'unaccepted'; evidence.provenance.acceptanceVersion = null;
+    evidence.raw = { VisitStartTime: '2026-10-11 08:05', VisitEndTime: '2026-10-11 12:05', ActualHours: null, ActualHoursRounded: null, PayHours: '99.00' };
+    for (const key of Object.keys(evidence.times)) evidence.times[key] = null;
+    diagnosis.state = 'unknown'; diagnosis.verification = 'unknown'; diagnosis.metrics.actualMinutes = 240;
+    return { ok: true, json: async () => payload };
+  });
+  await app.openLive();
+  assert.match(app.text('revisionVisits'), /Actual hours\s+Not supplied by HHA/);
+  assert.match(app.text('revisionDetail'), /Actual duration\s+Not supplied by HHA/);
+  for (const id of ['revisionVisits', 'revisionDetail']) {
+    assert.match(app.text(id), /Recorded clock span: 4\.00 h · written times/);
+    assert.doesNotMatch(app.text(id), /99\.00|4\.00 h · HHA|Verified/);
+  }
+  assert.equal(app.calls.some(call => call.options.method === 'POST'), false);
+});
+
 test('review can show scheduled clock span when HHA omits duration fields while diagnosis stays unknown', async () => {
   const app = harness(path => {
     if (!path.includes('/visits?')) return null;
