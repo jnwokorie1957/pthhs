@@ -34,3 +34,12 @@ export async function marketingHtmlFiles(publicDir) {
     .filter((file) => isMarketingHtml(file, publicDir))
     .sort();
 }
+
+
+// Keep a newline between inline elements. Preserve whitespace-sensitive blocks
+// after LF normalization; only layout indentation/blank lines outside are removed.
+export function stripLayoutIndentation(html) {
+  return html.replace(/\r\n/g, '\n').split(/(<pre\b[^>]*>[\s\S]*?<\/pre>|<textarea\b[^>]*>[\s\S]*?<\/textarea>|<script\b[^>]*>[\s\S]*?<\/script>|<style\b[^>]*>[\s\S]*?<\/style>)/gi)
+    .map((part, index) => index % 2 ? part : part.replace(/^[ \t]+/gm, '').replace(/^[ \t]*\r?\n/gm, ''))
+    .join('');
+}

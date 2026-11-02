@@ -99,7 +99,11 @@
     const part = (value, unit) => value === null || value === undefined ? `${unit} not supplied` : value === '' ? `empty ${unit}` : `${value} ${unit}`;
     return `${part(hours, 'h')} ${part(minutes, 'min')} · HHA`;
   }
-  window.primetimeSourceTime = Object.freeze({ timestampInstant, fetchAgeText, watchFetchAge, sourceActualHours, sourceRoundedActualHours, sourceScheduleHours, sourceClockSpan, sourceRecordedClockSpan });
+  function sourceEvvTypes(start, end) {
+    const value = raw => raw == null ? 'Unknown' : raw === '' ? 'Empty' : raw;
+    return 'EVV types in / out (source): ' + value(start) + ' / ' + value(end) + '. Event status unknown.';
+  }
+  window.primetimeSourceTime = Object.freeze({ timestampInstant, fetchAgeText, watchFetchAge, sourceActualHours, sourceRoundedActualHours, sourceScheduleHours, sourceClockSpan, sourceRecordedClockSpan, sourceEvvTypes });
   const preferenceKey = 'primetime.dataMode';
   let mode = 'live';
   let generation = 0;

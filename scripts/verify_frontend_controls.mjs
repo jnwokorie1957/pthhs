@@ -4,11 +4,21 @@ import { createHash } from "node:crypto";
 import { promises as fs } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { marketingHtmlFiles } from "./site-scope.mjs";
+import { marketingHtmlFiles, stripLayoutIndentation } from "./site-scope.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const publicDir = path.join(root, "public");
 const failures = [];
+
+const whitespaceFixture = '<div>\n    <span>A</span>\n    <span>B</span>\n\n</div>\n<pre>\n  keep\n\n</pre><textarea>  keep</textarea><script>const s = "\\n  keep";</script><style>\n  .keep { color: red }\n</style>';
+const whitespaceExpected = '<div>\n<span>A</span>\n<span>B</span>\n</div>\n<pre>\n  keep\n\n</pre><textarea>  keep</textarea><script>const s = "\\n  keep";</script><style>\n  .keep { color: red }\n</style>';
+if (stripLayoutIndentation(whitespaceFixture) !== whitespaceExpected
+  || stripLayoutIndentation(whitespaceFixture.replace(/\n/g, '\r\n')) !== whitespaceExpected
+  || stripLayoutIndentation(whitespaceExpected) !== whitespaceExpected
+  || stripLayoutIndentation('<script>const s = "</style>";\n  keep();\n</script>') !== '<script>const s = "</style>";\n  keep();\n</script>') {
+  throw new Error('Layout whitespace compaction changed protected content or inline separation');
+}
+
 
 function fail(message) {
   failures.push(message);

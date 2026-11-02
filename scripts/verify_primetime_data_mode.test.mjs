@@ -1174,7 +1174,7 @@ test('source read controls and persisted import history describe separate action
   }
   assert.match(html, /Persisted import history/);
   assert.match(html, /Check connection and history/);
-  assert.match(html, /CSV upload and starting an import are not available/);
+  assert.match(html, /CSV upload and starting (?:an import are not available|imports are unavailable)/);
 });
 
 for (const state of ['ready', 'partial', 'empty']) {
@@ -3685,4 +3685,23 @@ test('related record navigation is fenced when its receipt is superseded or cont
    assert.equal(app.events.filter(e => e.type === 'primetime-source-record-selected').at(-1).detail.id, kind === 'billing' ? '8' : '6');
   }
  }
+});
+
+test('preview carries literal EVV source types beside independent clocks and clears them with context', async () => {
+  const model = dashboardModel().primetimeDashboardModel, date = '2026-10-10', expected = { mode: 'live', officeId: '123', date };
+  const payload = livePreview(date); Object.assign(payload.items[0], { evvInType: '0', evvOutType: '', evvEnd: '', actualHours: '' });
+  let row = model.normalizeVisitPreview(payload, expected).items[0];
+  assert.equal(row.evvInType, '0'); assert.equal(row.evvOutType, ''); assert.equal(row.evvEnd, null); assert.equal(row.actualHours, '');
+  payload.items[0].state = 'unavailable';
+  row = model.normalizeVisitPreview(payload, expected).items[0];
+  assert.equal(row.evvInType, null); assert.equal(row.evvOutType, null);
+  payload.items[0].state = 'source_unvalidated';
+  for (const bad of [7, {}, 'x'.repeat(129)]) { payload.items[0].evvInType = bad; assert.throws(() => model.normalizeVisitPreview(payload, expected)); }
+  const app = connectedWorkspace({ preview: day => { const p = livePreview(day); Object.assign(p.items[0], { evvInType: '<literal-type>', evvOutType: '', evvEnd: null, actualHours: '' }); return p; } });
+  await app.signIn(); await tick(); await tick();
+  const shown = nodeText(app.element('dashboardVisitRows'));
+  assert.match(shown, /EVV types in \/ out \(source\): <literal-type> \/ Empty/);
+  assert.match(shown, /Event status unknown/); assert.match(shown, /Empty HHA ActualHours/);
+  app.window.primetimeDataMode.setMode('demo');
+  assert.doesNotMatch(nodeText(app.element('dashboardVisitRows')), /<literal-type>|EVV types in/);
 });

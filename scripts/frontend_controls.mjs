@@ -4,7 +4,7 @@ import { createHash } from "node:crypto";
 import { promises as fs, readFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { marketingHtmlFiles } from "./site-scope.mjs";
+import { marketingHtmlFiles, stripLayoutIndentation } from "./site-scope.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const publicDir = path.join(root, "public");
@@ -38,7 +38,7 @@ for (const file of htmlFiles) {
   );
   const output = /(?:^|[\\/])articles(?:[\\/]|\.html$)/.test(file)
     ? updated.replace(/>[ \t]*\r?\n\s*</g, '><')
-    : updated;
+    : stripLayoutIndentation(updated);
   if (output !== original) {
     await fs.writeFile(file, output);
     changed += 1;

@@ -658,3 +658,20 @@ test("discovery projects a near-byte-ceiling collection without a complete XML o
   assert.equal(result.records.length, 200000); assert.equal(result.truncated, false);
   assert.deepEqual(result.records[199999], { VisitID: "123456" });
 });
+
+test("office-checked preview retains raw EVV types without filling a missing endpoint or adding reads", async () => {
+  for (const raw of ["GPS-In", "", "0", null]) {
+    const f = fixture(["77"], { read: async input => input.operation === "SearchVisitsV2" ? source(input.operation, [{ VisitID: "77" }])
+      : source("GetVisitInfoV3", [{ ...detail("77").records[0]!, ClockInEvvType: raw, ClockOutEvvType: "unmapped-out", EVVEndTime: "", ActualHours: "" }]) });
+    const page = await visitPreview(f.service, { date: "2026-10-10" }, "owner");
+    const row = page.items[0]! as unknown as Record<string, unknown>;
+    assert.equal(row.evvInType, raw); assert.equal(row.evvOutType, "unmapped-out");
+    assert.equal(row.evvEnd, ""); assert.equal(row.actualHours, ""); assert.equal(page.totals, null);
+    assert.deepEqual(f.calls.map(c => c.operation), ["SearchVisitsV2", "GetVisitInfoV3", "GetPatientDemographics"]);
+  }
+  const f = fixture(["77"], { read: async input => input.operation === "SearchVisitsV2" ? source(input.operation, [{ VisitID: "77" }])
+    : source("GetVisitInfoV3", [{ ...detail("77").records[0]!, VisitDate: "2026-10-11", ClockInEvvType: "foreign-type", ClockOutEvvType: "foreign-type" }]) });
+  const row = (await visitPreview(f.service, { date: "2026-10-10" }, "owner")).items[0]! as unknown as Record<string, unknown>;
+  assert.equal(row.state, "unavailable"); assert.equal(row.evvInType, null); assert.equal(row.evvOutType, null);
+  assert.doesNotMatch(JSON.stringify(row), /foreign-type/);
+});

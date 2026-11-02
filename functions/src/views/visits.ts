@@ -71,6 +71,7 @@ export interface VisitPreviewItem {
   id: string; scheduledStart: string | null; scheduledEnd: string | null;
   actualStart: string | null; actualEnd: string | null; evvStart: string | null; evvEnd: string | null;
   patientId: string | null; caregiverId: string | null;
+  evvInType: string | null; evvOutType: string | null;
   visitType: string | null; sourceTimezone: string | null;
   actualHours: string | null; actualHoursRounded: string | null; payHours: string | null; billedAmount: string | null;
   scheduleDurationHours: string | null; scheduleDurationMinutes: string | null;
@@ -80,7 +81,7 @@ export interface VisitPreviewItem {
 }
 function unavailable(id: string, error: string): VisitPreviewItem {
   return { id, scheduledStart: null, scheduledEnd: null, actualStart: null, actualEnd: null,
-    evvStart: null, evvEnd: null, patientId: null, caregiverId: null, visitType: null, sourceTimezone: null,
+    evvStart: null, evvEnd: null, evvInType: null, evvOutType: null, patientId: null, caregiverId: null, visitType: null, sourceTimezone: null,
     actualHours: null, actualHoursRounded: null, payHours: null, billedAmount: null, scheduleDurationHours: null, scheduleDurationMinutes: null,
     verifiedBy: null, verifiedDate: null, detailFetchedAt: null, officeCheckedAt: null, state: "unavailable", error };
 }
@@ -105,6 +106,7 @@ function detailItem(id: string, date: string, source: OperationalRead): VisitPre
   return { id, scheduledStart: field("ScheduleStartTime"), scheduledEnd: field("ScheduleEndTime"),
     actualStart: field("VisitStartTime"), actualEnd: field("VisitEndTime"),
     evvStart: field("EVVStartTime"), evvEnd: field("EVVEndTime"),
+    evvInType: field("ClockInEvvType"), evvOutType: field("ClockOutEvvType"),
     patientId: field("Patient/ID"), caregiverId: field("Caregiver/ID"), visitType: field("VisitType"), sourceTimezone: field("TimeZone"),
     actualHours: field("ActualHours"), actualHoursRounded: field("ActualHoursRounded"), payHours: field("PayHours"), billedAmount: field("BilledAmount"),
     scheduleDurationHours: field("ScheduleDuration/ScheduleDurationHours"), scheduleDurationMinutes: field("ScheduleDuration/ScheduleDurationMinutes"),

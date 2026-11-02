@@ -78,6 +78,7 @@
       return { evidence: { visitId: evidence.visitId, state: evidence.state, patientId: evidence.patientId || null, caregiverId: evidence.caregiverId || null, times,
         recordReturned: evidence.raw !== null && typeof evidence.raw === 'object' && !Array.isArray(evidence.raw),
         rawTimes: Object.fromEntries(['ScheduleStartTime', 'ScheduleEndTime', 'VisitStartTime', 'VisitEndTime', 'EVVStartTime', 'EVVEndTime'].map(key => [key, short(evidence.raw?.[key], 128)])),
+        rawTypes: Object.fromEntries(['ClockInEvvType', 'ClockOutEvvType'].map(key => [key, short(evidence.raw?.[key], 128)])),
         rawDurations: Object.fromEntries(['ScheduleDuration/ScheduleDurationHours', 'ScheduleDuration/ScheduleDurationMinutes', 'ActualHours', 'ActualHoursRounded'].map(key => [key, short(evidence.raw?.[key], 128)])),
         reasons: Array.isArray(evidence.reasons) ? evidence.reasons.map(value => short(value)).filter(Boolean).slice(0, 30) : [],
         provenance: evidence.provenance ? { operation: short(evidence.provenance.operation, 128), fetchedAt: short(evidence.provenance.fetchedAt, 40), sourceRevision: short(evidence.provenance.sourceRevision, 128), acceptanceVersion: short(evidence.provenance.acceptanceVersion, 128) } : null, verificationReceipt },
@@ -297,6 +298,7 @@
       ['EVV punches', sourcePair(item, 'evvStart', 'evvEnd', 'EVVStartTime', 'EVVEndTime')], ['EVV duration', sourceReadable(item) ? duration(item.diagnosis.metrics.evvMinutes) : sourceUnavailable],
       ['Duration variance', !sourceReadable(item) ? sourceUnavailable : item.diagnosis.metrics.varianceMinutes === null ? 'Unknown' : `${item.diagnosis.metrics.varianceMinutes} minutes`], ['Location / GPS', 'Unavailable until supported source evidence is validated']
     ]));
+    if (!item.demo && sourceReadable(item)) box.append(node('p', window.primetimeSourceTime.sourceEvvTypes(item.evidence.rawTypes?.ClockInEvvType, item.evidence.rawTypes?.ClockOutEvvType)));
     for (const issue of item.diagnosis.issues) {
       const article = node('article', null, 'revision-issue');
       article.append(node('h4', issue.summary), node('p', `Next step: ${issue.nextAction || 'Review missing source evidence.'}`, 'revision-next-action'));

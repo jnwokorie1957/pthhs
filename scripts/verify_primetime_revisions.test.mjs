@@ -536,3 +536,23 @@ test('Demo review paging never reuses prior-page selection or performs source re
   assert.equal(app.element('revisionNext').hidden,true);
   assert.equal(app.calls.length,0);
 });
+
+test('review shows raw EVV types with empty clocks without accepting events or hours', async () => {
+  const payload = visits(), evidence = payload.items[0].evidence;
+  evidence.state = 'unaccepted'; evidence.raw = { ClockInEvvType: '0', ClockOutEvvType: '', EVVEndTime: '', ActualHours: '' };
+  payload.items[0].diagnosis.state = 'unknown'; payload.items[0].diagnosis.verification = 'unknown';
+  const row = pure().normalizeVisits(payload, { ...scope, offset: 0 }).items[0];
+  assert.equal(row.evidence.rawTypes.ClockInEvvType, '0'); assert.equal(row.evidence.rawTypes.ClockOutEvvType, '');
+  assert.equal(row.diagnosis.verification, 'unknown'); assert.equal(row.evidence.times.evvEnd, null);
+  const app = harness(path => path.includes('/visits?') ? { ok: true, json: async () => {
+    const p = clone(payload), date = new URL(path, 'https://fixture.test').searchParams.get('date');
+    p.scope.date = date; p.items[0].evidence.scope.date = date; p.items[0].diagnosis.scope.date = date; return p;
+  } } : null);
+  await app.openLive();
+  assert.match(app.text('revisionDetail'), /EVV types in \/ out \(source\): 0 \/ Empty/);
+  assert.match(app.text('revisionDetail'), /Event status unknown/);
+  assert.match(app.text('revisionDetail'), /Empty HHA ActualHours/);
+  assert.doesNotMatch(app.text('revisionDetail'), /Verified|0 h · HHA/);
+  app.window.primetimeDataMode.setMode('demo');
+  assert.doesNotMatch(app.text('revisionDetail'), /EVV types in \/ out \(source\): 0/);
+});

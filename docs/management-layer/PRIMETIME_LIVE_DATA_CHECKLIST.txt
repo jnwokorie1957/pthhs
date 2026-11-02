@@ -492,6 +492,20 @@ TAB 04 - VISIT PREVIEW
     Failure branches remain synthetic, not induced. B02/P03/E04/T04/full-office
     remain open. See SOURCE_READ_BUDGET_HANDLING_2026-11-02.md.
 
+
+[ ] P12 EVV source-type display in Preview/Review (November 2, 17:05 trigger).
+    Existing approved V3 ClockInEvvType/ClockOutEvvType now flow through the
+    office-checked preview DTO/cache and browser normalization; Review retains
+    only those raw type fields from its existing record. Shared literal display
+    preserves zero/empty/unknown; unavailable/context/Demo clears old values.
+    No clock/hour fallback, event-status mapping, extra query or grant.
+    Three fail-before checks pass;373frontend/tooling/571backend/46analytics and
+    24generator-QA steps pass. App419148raw/101999gzip under unchanged budgets.
+    Equivalent UI copy/shared IDs and protected marketing whitespace compaction
+    fund the combined article+app;132page semantic comparison passes. Normal
+    release/native acceptance pending; P10/P11 stay accepted; P03/E04/B02 open.
+    See EVV_TYPE_DISPLAY_2026-11-02.md.
+
 TAB 05 - PATIENT WORKBENCH
 [x] T01 Main surface now starts with current patients from readable visits on the
     selected source page. Calendar imports remain clearly separate saved history.

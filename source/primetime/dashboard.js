@@ -1,5 +1,6 @@
 (() => {
   'use strict';
+  const visitStatusId = 'dashboardVisitStatus', visitRowsId = 'dashboardVisitRows', environmentDetailsId = 'environmentDetails';
   const clockFields = ['scheduledStart', 'scheduledEnd', 'actualStart', 'actualEnd', 'evvStart', 'evvEnd'];
   function filterExceptions(items, term = '', priority = 'all') {
     const search = term.trim().toLowerCase();
@@ -30,10 +31,10 @@
       // Never count fields from a detail read the server could not verify.
       if (live && item.state === 'unavailable') return { id: item.id, state: 'unavailable', patientId: null, caregiverId: null,
         scheduledStart: null, scheduledEnd: null, actualStart: null, actualEnd: null, evvStart: null, evvEnd: null,
-        detailFetchedAt: null, officeCheckedAt: null, actualHours: null, actualHoursRounded: null, scheduleDurationHours: null, scheduleDurationMinutes: null, billedAmount: null,
+        detailFetchedAt: null, officeCheckedAt: null, evvInType: null, evvOutType: null, actualHours: null, actualHoursRounded: null, scheduleDurationHours: null, scheduleDurationMinutes: null, billedAmount: null,
         detailReason: detailReasons[item.error] || 'Source detail could not be verified' };
       const result = Object.fromEntries(['id', 'patientId', 'caregiverId', ...clockFields, 'state'].map(key => [key, value(item[key])]));
-      for (const key of ['actualHours', 'actualHoursRounded', 'scheduleDurationHours', 'scheduleDurationMinutes', 'billedAmount']) {
+      for (const key of ['actualHours', 'actualHoursRounded', 'scheduleDurationHours', 'scheduleDurationMinutes', 'billedAmount', 'evvInType', 'evvOutType']) {
         if (item[key] !== null && item[key] !== undefined && (typeof item[key] !== 'string' || item[key].length > 128)) throw new Error('invalid_visit_preview');
         result[key] = item[key] ?? null;
       }
@@ -163,7 +164,7 @@
   if (!controller || !fixtures) return;
   const get = id => document.getElementById(id);
   const hosts = ['dashboardOverviewMetrics', 'dashboardOverviewExceptions', 'dashboardCoverage', 'dashboardAlerts', 'dashboardTimeline', 'dashboardEvidenceChart',
-    'dashboardExceptions', 'dashboardCallEvents', 'dashboardVisitMetrics', 'dashboardVisitRows', 'dashboardPatients', 'dashboardPatientProfile', 'dashboardMessages', 'dashboardStaffing', 'dashboardCaregiverProfile',
+    'dashboardExceptions', 'dashboardCallEvents', 'dashboardVisitMetrics', visitRowsId, 'dashboardPatients', 'dashboardPatientProfile', 'dashboardMessages', 'dashboardStaffing', 'dashboardCaregiverProfile',
     'dashboardBillingMetrics', 'dashboardBillingPipeline', 'dashboardBillingFacts'];
   const dateInput = get('dashboardVisitDate');
   let ready = false;
@@ -255,11 +256,11 @@
       resetPaging();
       const detail = 'The office day changed. Reading the new day; prior-day source evidence has been removed.';
       liveOverviewState('Loading current office day', detail);
-      unavailable('dashboardVisitRows', 'Loading current office day', detail);
+      unavailable(visitRowsId, 'Loading current office day', detail);
       text('dashboardVisitMetadata', ''); text('dashboardVisitCompleteness', '');
-      text('dashboardVisitStatus', detail);
+      text(visitStatusId, detail);
       text('dashboardVisitScope', `Office: ${metadata.settings.officeId} · Date: ${officeDay} · Timezone: ${metadata.settings.officeTimezone}`);
-      text('dataModeBadge', 'Live · loading'); text('environmentDetails', 'Loading current office day');
+      text('dataModeBadge', 'Live · loading'); text(environmentDetailsId, 'Loading current office day');
       sourceClearControls(true);
       dateInput.value = officeDay;
       if (get('dashboardOverviewDate')) get('dashboardOverviewDate').value = officeDay;
@@ -297,11 +298,11 @@
       invalidateSourceContext(); abort?.abort(); abort = null; metadata = null;
       resetPaging(); sourceClearControls(false); refreshDisabled(!ready);
       liveOverviewState('Live API feed temporarily unavailable', 'The next automatic check will retry. Old source values have been removed.');
-      unavailable('dashboardVisitRows', 'Live API feed temporarily unavailable', 'Retrying automatically; no example values are substituted.');
+      unavailable(visitRowsId, 'Live API feed temporarily unavailable', 'Retrying automatically; no example values are substituted.');
       text('dashboardVisitMetadata', ''); text('dashboardVisitCompleteness', '');
       text('dashboardVisitScope', 'Source access will be checked on the next read.');
-      text('dataModeBadge', 'Live · feed unavailable'); text('environmentDetails', 'API feed update unavailable');
-      text('dashboardVisitStatus', 'API feed update unavailable. Automatic retry in one minute.');
+      text('dataModeBadge', 'Live · feed unavailable'); text(environmentDetailsId, 'API feed update unavailable');
+      text(visitStatusId, 'API feed update unavailable. Automatic retry in one minute.');
       feedControls('API feed update unavailable. Retrying in one minute; old source values are cleared.');
       scheduleFeed();
     } finally {
@@ -478,7 +479,7 @@
     gaps.append(node('small', 'Missing fields describe source evidence only. No alerts have been sent; no late or missed visits are inferred.'));
     replace('dashboardAlerts', gaps);
     text('dataModeBadge', 'Live · HHA source');
-    text('environmentDetails', 'Live HHA visit source returned');
+    text(environmentDetailsId, 'Live HHA visit source returned');
     text('dashboardReadiness', `Authenticated HHAeXchange visit search returned for office ${view.scope.officeId} on ${view.scope.date}. Fetched ${view.fetchedAt || 'time unavailable'}. ${evidence.readable} readable detail(s), ${evidence.unavailable} unavailable. Policy classifications, office-wide coverage, billing and message delivery are not established by this source page.`);
   }
   function table(headers, rows, id) {
@@ -543,10 +544,10 @@
     demoOffset = 0;
     if (controller.isLive()) {
       text('dataModeBadge', ready ? 'Live · access not checked' : 'Live · sign in required');
-      text('environmentDetails', ready ? 'Source access not checked' : 'Sign in required');
+      text(environmentDetailsId, ready ? 'Source access not checked' : 'Sign in required');
     }
     hosts.forEach(id => replace(id));
-    text('dashboardVisitStatus', 'Live visit preview unavailable until source access is checked.');
+    text(visitStatusId, 'Live visit preview unavailable until source access is checked.');
     text('dashboardVisitMetadata', '');
     text('dashboardVisitCompleteness', '');
     text('dashboardVisitScope', 'Office not configured');
@@ -563,12 +564,12 @@
     resetPaging(); sourceClearControls(false);
     const detail = 'No current source page is loaded. Read source now checks access and loads the selected day. Saved calendar imports remain stored separately.';
     liveOverviewState('Source page cleared', detail);
-    unavailable('dashboardVisitRows', 'Source page cleared', detail);
-    text('dashboardVisitStatus', 'Source page cleared from both live views. Choose Read source now to load a source page.');
+    unavailable(visitRowsId, 'Source page cleared', detail);
+    text(visitStatusId, 'Source page cleared from both live views. Choose Read source now to load a source page.');
     text('dashboardVisitMetadata', ''); text('dashboardVisitCompleteness', '');
     text('dashboardVisitScope', 'No source page loaded. Office access will be checked on the next read.');
     text('dataModeBadge', 'Live · no source page');
-    text('environmentDetails', 'No source page loaded');
+    text(environmentDetailsId, 'No source page loaded');
     refreshDisabled(!ready);
     renderDateContext();
     return true;
@@ -591,7 +592,7 @@
     text('dataModeBadge', demo ? 'Demo · synthetic' : 'Live · validation pending');
     if (get('dataModeBadge')) get('dataModeBadge').className = 'data-mode-badge ' + (demo ? 'demo' : 'live');
     text('environmentMode', demo ? 'Demo data' : 'Live source preview');
-    text('environmentDetails', demo ? 'Synthetic preview records' : 'Source validation pending');
+    text(environmentDetailsId, demo ? 'Synthetic preview records' : 'Source validation pending');
     text('dashboardModeNotice', demo
       ? 'Demo data is on. All preview records are synthetic; messages and HHA changes are disabled.'
       : feedInstalled ? 'Live HHA API: the current office day’s first page refreshes each minute. Charts cover only this page; saved captures are separate. Read source now and paging are available.'
@@ -612,7 +613,7 @@
       unavailable('dashboardAlerts', 'Manager inbox unavailable', 'Alert evaluation and delivery are not active.');
       unavailable('dashboardStaffing', 'Open shifts unavailable', 'No staffing eligibility or assignment is inferred from the visit preview.');
       unavailable('dashboardBillingPipeline', 'Billing pipeline unavailable', 'No billing-ready totals, claims or payments are inferred.');
-      unavailable('dashboardVisitRows', 'Visit preview unavailable', ready ? 'Checking source access…' : 'Sign in with an approved administrator account.');
+      unavailable(visitRowsId, 'Visit preview unavailable', ready ? 'Checking source access…' : 'Sign in with an approved administrator account.');
       liveOverviewState(ready ? 'Loading live source' : 'Sign in required', ready ? 'Checking HHA visit access for the selected office and date…' : 'Sign in with an approved administrator account to load HHA visit data.');
       return;
     }
@@ -655,20 +656,20 @@
     }
     const pair = (start, end) => `${start || 'Not supplied by HHA'}\n${end || 'Not supplied by HHA'}`;
     const captured = context();
-    const { sourceScheduleHours, sourceActualHours, sourceRoundedActualHours, sourceRecordedClockSpan } = window.primetimeSourceTime;
+    const { sourceScheduleHours, sourceActualHours, sourceRoundedActualHours, sourceRecordedClockSpan, sourceEvvTypes } = window.primetimeSourceTime;
     const recordedPair = item => {
       const span = view.mode === 'live' ? sourceRecordedClockSpan(item.actualStart, item.actualEnd) : '';
       return pair(item.actualStart, item.actualEnd) + (span ? '\n' + span : '');
     };
     const detailCells = item => item.state === 'unavailable' ? Array(6).fill('Detail unavailable') : [
-      pair(item.scheduledStart, item.scheduledEnd), recordedPair(item), pair(item.evvStart, item.evvEnd),
+      pair(item.scheduledStart, item.scheduledEnd), recordedPair(item), pair(item.evvStart, item.evvEnd) + (view.mode === 'live' ? '\n' + sourceEvvTypes(item.evvInType, item.evvOutType) : ''),
       view.mode === 'demo' ? 'Synthetic example' : sourceScheduleHours(item.scheduleDurationHours, item.scheduleDurationMinutes, null, item.scheduledStart, item.scheduledEnd),
       view.mode === 'demo' ? 'Synthetic example' : sourceActualHours(item.actualHours),
       view.mode === 'demo' ? 'Synthetic example' : sourceRoundedActualHours(item.actualHoursRounded)];
-    replace('dashboardVisitRows', table(['Visit', 'Patient ID', 'Caregiver ID', 'Scheduled start / end', 'Actual start / end', 'EVV start / end', 'Expected hours (HHA)', 'Actual hours (HHA)', 'Rounded actual hours (HHA)', 'Evidence state', 'Source records'],
+    replace(visitRowsId, table(['Visit', 'Patient ID', 'Caregiver ID', 'Scheduled start / end', 'Actual start / end', 'EVV start / end', 'Expected hours (HHA)', 'Actual hours (HHA)', 'Rounded actual hours (HHA)', 'Evidence state', 'Source records'],
       view.items.map(item => [item.id, item.patientId, item.caregiverId, ...detailCells(item),
         item.state === 'unavailable' ? 'Detail unavailable: ' + item.detailReason : view.mode === 'demo' ? 'Synthetic example' : 'Source unvalidated', view.mode === 'demo' ? 'Synthetic record' : () => sourceRecordTools(view, item, captured)]), 'sourceVisitTable'));
-    text('dashboardVisitStatus', view.mode === 'demo' ? 'Synthetic visit examples. No source request was made.' : view.state === 'partial' ? 'Partial source page returned. See limits and unavailable details below.' : view.state === 'empty' ? 'No visit identifiers returned; office coverage is unknown.' : 'Live HHA page; source fields unvalidated.');
+    text(visitStatusId, view.mode === 'demo' ? 'Synthetic visit examples. No source request was made.' : view.state === 'partial' ? 'Partial source page returned. See limits and unavailable details below.' : view.state === 'empty' ? 'No visit identifiers returned; office coverage is unknown.' : 'Live HHA page; source fields unvalidated.');
     text('dashboardVisitScope', `Office: ${view.scope.officeId || 'Unavailable'} · Date: ${view.scope.date} · Timezone: ${view.scope.timezone || 'Unconfigured'}`);
     text('dashboardVisitMetadata', view.mode === 'demo' ? 'Synthetic examples; no patient records.' : `Source: HHAeXchange · search fetched: ${view.fetchedAt || 'Unavailable'} · source unvalidated · on-demand read, not a persisted visit import · times unconverted. Clock spans use written times, not elapsed, payable or billable time.`);
     const pageScope = view.page && view.discovery ? `Showing source IDs ${view.items.length ? view.page.offset + 1 : 0}–${view.page.offset + view.items.length} of ${view.discovery.selectedCount} returned by search. ` : `${view.items.length} source record(s) on this page. `;
@@ -786,8 +787,8 @@
       [...grouped.values()].map(({ item, visits }) => [item.patientId, visits, () => {
         const control = node('button', 'View current profile', 'btn secondary'); control.type = 'button';
         control.addEventListener('click', () => { void loadPatientProfile(view, item, captured); }); return control;
-      }])), node('p', 'Only patients from readable visits on the selected page are listed. Choose a visit date or another source page in Overview to change this list.', 'source-metadata'));
-    replace('dashboardPatientProfile', node('p', 'Choose View current profile to read fresh HHA patient fields. Saved calendar captures remain separate.'));
+      }])), node('p', 'Patients from readable visits on this page only. Change the date or source page in Overview to update this list.', 'source-metadata'));
+    replace('dashboardPatientProfile', node('p', 'View current profile reads fresh HHA fields; saved calendar captures are separate.'));
   }
   async function loadPatientProfile(view, item, captured) {
     if (!current(captured) || !controller.isLive() || metadata?.settings?.officeId !== view.scope.officeId) return;
@@ -863,7 +864,7 @@
     refreshDisabled(true);
     liveOverviewState('Checking live source access', 'Loading the selected office settings and enabled HHA reads…');
     text('dataModeBadge', 'Live · checking access');
-    text('environmentDetails', 'Checking HHA source access');
+    text(environmentDetailsId, 'Checking HHA source access');
     try {
       const response = await window.primetimeApiFetch('/primetime/api/data/status', { signal: abort.signal });
       if (!current(captured)) return;
@@ -881,21 +882,21 @@
       if (payload.dataApproved !== true || payload.panels?.visits?.available !== true) {
         const detail = blockedMessage(payload.panels?.visits?.blockedReason);
         text('dataModeBadge', 'Live · unavailable');
-        text('environmentDetails', 'HHA visit source access unavailable');
-        unavailable('dashboardVisitRows', 'Visit preview unavailable', detail);
+        text(environmentDetailsId, 'HHA visit source access unavailable');
+        unavailable(visitRowsId, 'Visit preview unavailable', detail);
         liveOverviewState('Live visits unavailable', detail);
-        text('dashboardVisitStatus', detail);
+        text(visitStatusId, detail);
         refreshDisabled(false);
         return;
       }
       await loadVisits();
     } catch {
       if (!current(captured)) return;
-      unavailable('dashboardVisitRows', 'Visit preview unavailable', 'Source access status could not be loaded. Refresh to retry.');
+      unavailable(visitRowsId, 'Visit preview unavailable', 'Source access status could not be loaded. Refresh to retry.');
       liveOverviewState('Live visits unavailable', 'Source access status could not be loaded. Refresh to retry.');
-      text('dashboardVisitStatus', 'Source access status unavailable. No example values are shown.');
+      text(visitStatusId, 'Source access status unavailable. No example values are shown.');
       text('dataModeBadge', 'Live · unavailable');
-      text('environmentDetails', 'Source access status unavailable');
+      text(environmentDetailsId, 'Source access status unavailable');
     } finally {
       if (current(captured)) { refreshDisabled(false); scheduleFeed(); }
     }
@@ -910,26 +911,26 @@
     const date = dateInput?.value || '';
     sourceClearControls(true);
     resetPaging();
-    unavailable('dashboardVisitRows', 'Loading visit preview', 'Previous page values have been cleared.');
+    unavailable(visitRowsId, 'Loading visit preview', 'Previous page values have been cleared.');
     liveOverviewState('Loading live visits', 'Waiting for the selected source page. Previous page values have been cleared.');
     text('dataModeBadge', 'Live · loading');
-    text('environmentDetails', 'Loading HHA source data');
+    text(environmentDetailsId, 'Loading HHA source data');
     text('dashboardVisitMetadata', '');
     text('dashboardVisitCompleteness', '');
-    text('dashboardVisitStatus', 'Loading a bounded visit source preview…');
+    text(visitStatusId, 'Loading a bounded visit source preview…');
     text('dashboardVisitScope', `Office: ${metadata.settings.officeId} · Date: ${date} · Timezone: ${metadata.settings.officeTimezone || 'Unconfigured'}`);
     nextPageButton(false);
     if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
-      text('dashboardVisitStatus', 'Choose a service date.');
+      text(visitStatusId, 'Choose a service date.');
       text('dataModeBadge', 'Live · date required');
-      text('environmentDetails', 'Choose a service date');
-      unavailable('dashboardVisitRows', 'Service date required', 'Choose a service date to preview source visits.');
+      text(environmentDetailsId, 'Choose a service date');
+      unavailable(visitRowsId, 'Service date required', 'Choose a service date to preview source visits.');
       liveOverviewState('Service date required', 'Choose a service date to load HHA source visits.');
       refreshDisabled(false);
       return;
     }
     if (Date.now() < visitRetryAt) {
-      text('dashboardVisitStatus', 'Read delayed. After the delay, read the selected date.');
+      text(visitStatusId, 'Read delayed. After the delay, read the selected date.');
       refreshDisabled(false); scheduleFeed(); return;
     }
     refreshDisabled(true);
@@ -945,21 +946,21 @@
           pageTrail = trail; pagePosition = position;
           retryRead = { cursor, samePage: true, captured: context() };
           const detail = 'Prior facts cleared. Retry this page after the delay.';
-          unavailable('dashboardVisitRows', 'Source read delayed', detail);
+          unavailable(visitRowsId, 'Source read delayed', detail);
           liveOverviewState('Source read delayed', detail);
-          text('dataModeBadge', 'Live · read delayed'); text('environmentDetails', 'HHA read delayed');
-          text('dashboardVisitStatus', 'Source read delayed. The selected page is retained for retry.');
+          text('dataModeBadge', 'Live · read delayed'); text(environmentDetailsId, 'HHA read delayed');
+          text(visitStatusId, 'Source read delayed. The selected page is retained for retry.');
           previousPageButton(position > 0);
           delayVisitReads(payload.retryAfterSeconds); return;
         }
         if (response.status === 409 || response.status === 423) {
           metadata = null;
           text('dataModeBadge', response.status === 409 ? 'Live · refresh required' : 'Live · unavailable');
-          text('environmentDetails', response.status === 409 ? 'Source scope or evidence changed' : 'HHA visit source access unavailable');
+          text(environmentDetailsId, response.status === 409 ? 'Source scope or evidence changed' : 'HHA visit source access unavailable');
           const detail = response.status === 409 ? 'Source scope or visit evidence changed. Refresh to check access and restart from the first page.' : blockedMessage(payload?.error);
-          unavailable('dashboardVisitRows', 'Visit preview unavailable', detail);
+          unavailable(visitRowsId, 'Visit preview unavailable', detail);
           liveOverviewState('Live visits unavailable', detail);
-          text('dashboardVisitStatus', detail);
+          text(visitStatusId, detail);
           return;
         }
         throw new Error('visit_preview_unavailable');
@@ -971,11 +972,11 @@
     } catch {
       if (!current(captured)) return;
       resetPaging();
-      unavailable('dashboardVisitRows', 'Visit preview unavailable', 'Source response could not be verified. Reload the source page.');
+      unavailable(visitRowsId, 'Visit preview unavailable', 'Source response could not be verified. Reload the source page.');
       liveOverviewState('Live visits unavailable', 'Source response could not be verified. Reload the source page.');
       text('dataModeBadge', 'Live · unavailable');
-      text('environmentDetails', 'HHA visit source unavailable');
-      text('dashboardVisitStatus', 'Visit source preview unavailable. No example values are shown.');
+      text(environmentDetailsId, 'HHA visit source unavailable');
+      text(visitStatusId, 'Visit source preview unavailable. No example values are shown.');
     } finally {
       if (current(captured)) { refreshDisabled(false); scheduleFeed(); }
     }
@@ -1044,11 +1045,11 @@
     if (get('dashboardOverviewDate')) get('dashboardOverviewDate').value = day;
     const detail = 'Reading office today. Previous source page values have been cleared.';
     liveOverviewState('Loading office today', detail);
-    unavailable('dashboardVisitRows', 'Loading office today', detail);
+    unavailable(visitRowsId, 'Loading office today', detail);
     text('dashboardVisitMetadata', ''); text('dashboardVisitCompleteness', '');
-    text('dashboardVisitStatus', detail);
+    text(visitStatusId, detail);
     text('dashboardVisitScope', `Office: ${metadata.settings.officeId} · Date: ${day} · Timezone: ${metadata.settings.officeTimezone}`);
-    text('dataModeBadge', 'Live · loading'); text('environmentDetails', 'Loading office today');
+    text('dataModeBadge', 'Live · loading'); text(environmentDetailsId, 'Loading office today');
     sourceClearControls(true); refreshDisabled(false);
     feedEnabled = true; feedControls();
     get('apiFeedToday')?.focus();
