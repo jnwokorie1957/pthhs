@@ -7,8 +7,11 @@ last success and single-response row/truncation evidence for current preferences
 Refreshing it reads Primetime storage without querying HHA. The reference badge
 is labelled separately; empty success and missing current receipts are distinct.
 All583backend/379browser-tooling/46analytics checks pass within original budgets.
-Normal release and production acceptance remain pending; missing source values
-and complete-office coverage remain open. See
+All three normal release jobs and public boundaries pass. Native receipts include
+three ordinary feed sources and one successful empty billed search; reload
+persistence, Demo clearing/Live restoration and desktop layout pass. Today’s
+automatic feed is restored. Missing source values, unobserved methods and complete-
+office coverage remain open. See
 [scope](docs/management-layer/READ_SOURCE_HEALTH_2026-11-02.md).
 
 ## November 2 return to fetched patient authorizations

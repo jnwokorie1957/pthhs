@@ -9,14 +9,19 @@
   source/role dependencies remain open; H03 stays with its concurrent owner.
   See [review](../seo/2026-11-02-seo-review.md).
 
-- [ ] November 2 saved read receipts: protected per-method outcomes/time/counts
+- [x] November 2 saved read receipts: protected per-method outcomes/time/counts
+
   retain same-scope last success, separate local/vendor waits and reject stale or
   malformed metadata. New Integration panel queries storage without extra HHA
   reads; reference check wording is explicit. Eight backend and three browser
   checks (browser fail-before),583backend/379browser-tooling/46analytics pass.
   Concurrent authorization-return controls and original budgets are preserved.
-  Normal release/native acceptance pending; H03 full coverage/source semantics
-  remain open. See [scope](READ_SOURCE_HEALTH_2026-11-02.md).
+  Runtime87ea634 passed all three normal jobs,12exactassets/10anonymous private
+  boundaries. Native11-method view includes three successful feed sources and
+  one successful empty search; exact billed receipt persists after reload/Demo.
+  Desktop layout and restored today-feed pass. H05 bounded acceptance complete;
+  H03 full coverage/source semantics remain open. See
+  [scope](READ_SOURCE_HEALTH_2026-11-02.md).
 
 - [x] November 2,20:30–20:34UTC clinical-role research: R73 adds skilled-visit
   discipline/service/contract applicability; R10/R40 rechecks separate form

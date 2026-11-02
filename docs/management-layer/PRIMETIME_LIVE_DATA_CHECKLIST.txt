@@ -860,7 +860,7 @@ TAB 10 - HHA INTEGRATION
     source absence; original Calendar contains this visit. No owner clinical
     acceptance, complete-office census or other filter/tenant coverage inferred.
 
-[ ] H05 Saved per-read receipts. New protected GET /workspace/read-health reads
+[x] H05 Saved per-read receipts. New protected GET /workspace/read-health reads
     Primetime metadata, without an HHA query or new grant. Current enabled methods
     have separate latest outcome/time, last success and one-response row count/
     truncation. Unknown/current-scope-missing receipts do not claim disconnection;
@@ -870,8 +870,15 @@ TAB 10 - HHA INTEGRATION
     Reference badge wording now names its separate reference check. Eight backend
     and three browser tests (browser fail-before),583backend/379browser-tooling/
     46analytics and unchanged budgets pass after concurrent authorization-return
-    integration. Normal release and protected native acceptance pending. H03 full
-    source/coverage acceptance remains open. See READ_SOURCE_HEALTH_2026-11-02.md.
+    integration. Runtime87ea634 passed workflow41521239658 all3jobs,12exactassets/
+    10anonymous private/noindex checks (newroute also no-store). Native11-method
+    table shows three successful feed sources, one successful empty billed search
+    and seven honest current-scope-unobserved methods. Exact empty receipt
+    20:46:30.979UTC survives reload and Demo/Live; Demo clears all rows. Desktop
+    has no page overflow. Overview/today/livefeed restored, receipt20:55:03.059UTC,
+    ten rendered rows. Late/error/foreign/quota cases remain synthetic. H05 bounded
+    acceptance complete; H03 full source/coverage and missing-value evidence remain
+    open. See READ_SOURCE_HEALTH_2026-11-02.md.
 
 TAB 11 - AUDIT LOG
 [x] A01 Replaced the disconnected preview using the existing protected

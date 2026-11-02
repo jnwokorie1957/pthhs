@@ -1,7 +1,7 @@
 # Protected API read receipts — November 2, 2026 UTC
 
-Status: implemented and locally verified; normal release and production acceptance
-are pending. H03's full source/coverage acceptance remains open. This adds no HHA
+Status: normally deployed and accepted for the bounded saved-receipt view and
+pipeline. H03's full source/coverage acceptance remains open. This adds no HHA
 operation, permission or query and recovers no missing source time or billing fact.
 
 ## Source and meaning
@@ -76,3 +76,36 @@ normal source successes, one empty result and genuinely unobserved methods;
 do not induce source errors, quota exhaustion or permission revocation merely
 for a screenshot. Check Demo clearing, restore the current-day automatic feed
 and update the checklist only to the scope that production evidence supports.
+
+## Production acceptance
+
+Runtime `87ea6347000711f6dad1cd22a154613bb60b1b09`, tree
+`fc9b381b32ee5eae3475a18fd758306fdb7ba6ed`, passed all normal jobs in
+[workflow41521239658](https://github.com/jnwokorie1957/pthhs/actions/runs/41521239658):
+Hosting20:40:37, backend20:43:06 and analytics20:42:03UTC. Twelve exact assets and
+nine existing anonymous private/noindex boundaries passed20:44:02.935UTC. The
+new read-health route separately returned anonymous401 with no-store and
+noindex/nofollow/noarchive at20:44:03.529UTC.
+
+The refreshed signed-in Chrome page rendered eleven enabled methods. Ordinary
+automatic feed reads created actual stored discovery, visit-detail and patient-
+demographic receipts. Seven other methods correctly showed No current receipt;
+previous successful reads were not backfilled. A single ordinary approved billed
+search for the already-verified patient/office/October24 date completed with zero
+records, and the table showed Successful empty response with zero rows and exact
+source receipt20:46:30.979UTC. No candidate billing fact or balance was inferred.
+
+That exact billed receipt survived a full page reload and a new protected storage
+read. Demo removed all receipt rows; returning Live and loading restored eleven
+rows and the same exact billed receipt. Each row has four bounded plain-text
+cells. Desktop page width equals viewport1280px; no page overflow was observed.
+The settled receipt-table screenshot contains no patient/staff source values.
+Late/failure/foreign/revocation/quota and malformed cases remain synthetic; they
+were not forced in production. No new permission, HHA source edit or message.
+
+The user tab was restored to Overview, following office today November2, with an
+active API feed receipt20:55:03.059UTC and ten rendered visit rows (plus one table
+header). The first-page coverage limit remains explicit. No viewport override or
+extra browser tab was used. H05's bounded pipeline/view is accepted; unobserved
+methods, complete-office/field coverage and P03/E04/B02/T04/role evidence remain
+open. No missing time, hour or usable detailed billing value was recovered.
