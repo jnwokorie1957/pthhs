@@ -581,8 +581,11 @@ TAB 05 - PATIENT WORKBENCH
     preferences. Header/task cards preserve source values without clinical,
     visit-duty, authorization, form or signature inference.597backend,
     381browser/tooling+public analytics guard,46analytics-backend checks pass.
-    Normal release, production readiness and both additional read grants remain
-    pending; NO HHA care-plan read has been enabled or queried. T04 stays OPEN.
+    Runtime d944e6e + caption7d7d81d pass all3normaljobs; final41531680491
+    finishes21:51:11UTC.12exactassets/11anonymous privateboundaries pass. Native
+    scoped inputs and pre-enablement refusal/0cards pass; both grants unchecked
+    and11priorreads preserved. Specific owner decision pending; NO HHA care-plan
+    read enabled or queried. Actual retrieval/T04 remain OPEN.
     See PATIENT_CARE_PLAN_READINESS_2026-11-02.md for scope/acceptance steps.
 
 

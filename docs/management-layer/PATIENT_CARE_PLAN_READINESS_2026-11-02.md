@@ -2,8 +2,8 @@
 
 ## Status
 
-Implementation and synthetic checks pass. Normal release, production readiness
-and the two additional owner read grants are pending. No HHA care-plan method has
+Implementation, synthetic checks, normal release and bounded production readiness
+pass. The two additional owner read grants and actual source retrieval are pending. No HHA care-plan method has
 been queried or enabled by this change. T04, F03 and the wider source goal remain
 open. Existing eleven read grants and all source-write controls are preserved.
 
@@ -60,10 +60,26 @@ Repository audit passes with existing duplicate/suffix warnings. Normal CI still
 runs the full generator/release checks before deployment. Native production
 retrieval must not be claimed until actual successful source reads after approval.
 
+## Released readiness evidence
+
+Runtime d944e6e first passed all three normal jobs (workflow41531207860). Caption
+follow-up7d7d81d also passed all three (workflow41531680491): backend21:49:18,
+Hosting21:49:20, analytics21:51:11UTC. Public21:50:06.574UTC verification matches
+12exact assets;9existing anonymous boundaries plus generic source-read POST and
+read-health GET each return401 with no-store/noindex.
+
+Native signed-in metadata exposes patient/office for discovery and patient/office/
+plan for detail. Both owner grants are unchecked; all eleven approved reads remain.
+An explicit pre-enablement discovery attempt returns `Enable this read in owner
+controls after entitlement review.` with zero cards, before HHA dispatch. Patient
+input was then cleared. No new grant, HHA care-plan query or clinical action occurred.
+Owner controls show the two precise unchecked choices; a specific action-time
+decision has been requested. No actual care-plan source retrieval is accepted.
+
 ## Next acceptance
 
-1. Complete normal GitHub/Firebase release and verify production metadata and
-   disabled grants without source dispatch.
+1. DONE: normal GitHub/Firebase release and production metadata/disabled grants
+   verified without an HHA care-plan dispatch.
 2. Obtain the specific action-time decision for SearchPatientPOC and
    GetPatientPOCInfo for existing Primetime administrators only. Browser policy
    requires confirmation before expanding access to private care-plan data.

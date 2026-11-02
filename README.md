@@ -6,8 +6,8 @@ The administrator care-plan reader now requires fresh patient-office proof and
 exact plan/patient identity. Direct source paths fix task/category-name confusion;
 unknown, empty and partial task definitions remain distinct. All597backend/
 381browser-tooling+public analytics guard/46analytics-backend checks pass; original
-asset budgets are preserved. Normal release, production readiness
-and the two additional read grants are pending. T04/document/clinical-role work
+asset budgets are preserved. All three normal jobs and native input/gate readiness
+pass. The two additional read grants and actual source retrieval are pending. T04/document/clinical-role work
 remains open. See [scope](docs/management-layer/PATIENT_CARE_PLAN_READINESS_2026-11-02.md).
 
 ## November 2 saved API read receipts
