@@ -109,7 +109,7 @@
     return { fields: Object.fromEntries(fields.map(key => [key, record[key] || null])), fetchedAt: payload.fetchedAt };
   }
   const relatedFields = {
-    caregiver: ['ID', 'FirstName', 'LastName', 'CaregiverCode', 'Status/Name', 'TimeZone', 'LastModifiedDate'],
+    caregiver: ['ID', 'FirstName', 'LastName', 'CaregiverCode', 'Status/Name', 'TimeZone', 'LastModifiedDate', 'EmploymentDisciplines'],
     billing: ['ID', 'VisitDate', 'Patient/ID', 'Caregiver/ID', ...['PrimaryBillTo', 'SecondaryBillTo'].flatMap(prefix => ['Contract/ID', 'IsBilled', 'BilledRate', 'BilledMinutes', 'BilledAmount'].map(key => prefix + '/' + key))]
   };
   function normalizeVisitContext(payload, expected) {
@@ -129,7 +129,12 @@
         || new Set(offices).size !== offices.length || !offices.includes(expected.officeId)) throw new Error('invalid_visit_context');
     }
     if (relatedFields[kind].some(key => record[key] !== null && record[key] !== undefined && (typeof record[key] !== 'string' || record[key].length > 1000))) throw new Error('invalid_visit_context');
-    return { fields: Object.fromEntries(relatedFields[kind].map(key => [key, record[key] || null])), fetchedAt: payload.fetchedAt, membershipCheckedAt: payload.membershipCheckedAt };
+    let employmentDisciplines = null;
+    if (caregiver && record.EmploymentDisciplines != null) {
+      try { employmentDisciplines = JSON.parse(record.EmploymentDisciplines); } catch { throw new Error('invalid_visit_context'); }
+      if (!Array.isArray(employmentDisciplines) || employmentDisciplines.length > 200 || employmentDisciplines.some(value => typeof value !== 'string')) throw new Error('invalid_visit_context');
+    }
+    return { fields: Object.fromEntries(relatedFields[kind].map(key => [key, record[key] || null])), employmentDisciplines, fetchedAt: payload.fetchedAt, membershipCheckedAt: payload.membershipCheckedAt };
   }
   function normalizeCallEvents(payload, expected) {
     if (payload?.ok !== true || payload.operation !== 'GetCallDashBoardData' || payload.source !== 'hhaexchange' || payload.validation !== 'source_unvalidated'
@@ -757,13 +762,13 @@
           operational_data_release_not_approved: 'Source records are locked pending operational data release.' })[payload.error] || 'The source request could not be verified. Retry from the source page.');
       }
       const checked = normalizeVisitContext(payload, scope), age = node('p', null, 'source-metadata');
-      const labels = { ID: kind === 'caregiver' ? 'Caregiver ID' : 'Visit ID', FirstName: 'First name', LastName: 'Last name', CaregiverCode: 'Caregiver reference code', 'Status/Name': 'Status (source)', TimeZone: 'Timezone (source)', LastModifiedDate: 'Last modified (source)', VisitDate: 'Visit date (source)', 'Patient/ID': 'Patient ID', 'Caregiver/ID': 'Caregiver ID' };
+      const labels = { ID: kind === 'caregiver' ? 'Caregiver ID' : 'Visit ID', FirstName: 'First name', LastName: 'Last name', CaregiverCode: 'Caregiver reference code', 'Status/Name': 'Status (source)', TimeZone: 'Timezone (source)', LastModifiedDate: 'Last modified (source)', VisitDate: 'Visit date (source)', 'Patient/ID': 'Patient ID', 'Caregiver/ID': 'Caregiver ID', EmploymentDisciplines: 'Employment disciplines (source)' };
       const label = key => labels[key] || key.replace('PrimaryBillTo/', 'Primary · ').replace('SecondaryBillTo/', 'Secondary · ').replace('Contract/ID', 'Contract ID').replace('IsBilled', 'Is billed (source)').replace('BilledRate', 'Billed rate (source)').replace('BilledMinutes', 'Billed minutes (source)').replace('BilledAmount', 'Billed amount (source)');
       const caregiverId = kind === 'billing' ? checked.fields['Caregiver/ID'] : checked.fields.ID;
       const currentItem = { ...item, caregiverId: typeof caregiverId === 'string' && /^[1-9]\d{0,9}$/.test(caregiverId) && Number(caregiverId) <= 2147483647 ? caregiverId : null };
       replace(host, node('p', `HHA ${payload.operation} · fetched ${checked.fetchedAt} · patient office checked ${checked.membershipCheckedAt}. Independent source reads; source values remain unvalidated.`, 'source-metadata'), age,
         node('p', kind === 'caregiver' ? 'Current office membership is checked from CaregiverOffices/Office/OfficeID. This profile does not establish qualification, eligibility or availability.' : 'Visit, patient, caregiver and source visit date matched current visit evidence. Billed source fields do not establish cash received, billable approval or a complete ledger.', 'source-metadata'),
-        table(['Source field', 'Source value'], Object.entries(checked.fields).map(([key, value]) => [label(key), value || 'Not supplied by HHA'])), sourceRecordTools(view, currentItem, captured, active));
+        table(['Source field', 'Source value'], Object.entries(checked.fields).map(([key, value]) => [label(key), key === 'EmploymentDisciplines' && checked.employmentDisciplines ? checked.employmentDisciplines.map(value => value || 'Empty source value').join(' · ') || 'No values returned' : value || 'Not supplied by HHA'])), sourceRecordTools(view, currentItem, captured, active));
       state.clearAge = window.primetimeSourceTime.watchFetchAge(window.primetimeSourceTime.timestampInstant(checked.fetchedAt), active, value => { age.textContent = value; }, () => { age.textContent = ''; });
     } catch (error) { if (active()) replace(host, node('p', error.message === 'invalid_visit_context' ? 'The source response could not be verified. Reload the source page.' : error.message)); }
     finally { if (state.abort === request) state.abort = null; }

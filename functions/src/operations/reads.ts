@@ -539,6 +539,22 @@ function directPathScalar(xml: string, path: string): string | null {
   }
   return directScalar(xml, names.at(-1)!);
 }
+function caregiverEmploymentDisciplines(xml: string): string | null {
+  const roots = directChildElements(xml, "EmploymentTypes");
+  const nil = (element: string) => /\s(?:[A-Za-z_][\w.-]*:)?nil\s*=\s*(["'])\s*(?:true|1)\s*\1/i.test(element.match(/^<[^>]+>/)?.[0] ?? "");
+  if (roots.length !== 1 || nil(roots[0]!)) return null;
+  const body = extractElementBody(roots[0]!, "EmploymentTypes") ?? "";
+  const children = directChildElements(body, "Discipline");
+  if (children.length > 200 || children.some(nil)) return null;
+  // Unexpected nested content is not an empty or complete source list.
+  if (children.reduce((rest, child) => rest.replace(child, ""), body).replace(/<!--[\s\S]*?-->/g, "").trim()) return null;
+  try {
+    const values = children.map(child => extractExactElementText(child, "Discipline"));
+    if (values.some(value => value === undefined || value.length > 1000)) return null;
+    const encoded = JSON.stringify(values);
+    return encoded.length <= 1000 ? encoded : null;
+  } catch { return null; }
+}
 function caregiverOfficeIds(xml: string): string | null {
   const roots = directChildElements(xml, "CaregiverOffices");
   if (!roots.length) return "[]";
@@ -827,7 +843,7 @@ export async function operationalRead(client: Pick<HhaSoapClient, "call">, input
       if (input.operation === "GetCaregiverDemographics") {
         projected.ID = directScalar(xml, "ID");
         projected.OfficeIDs = caregiverOfficeIds(xml);
-        projected.EmploymentDisciplines = JSON.stringify(extractElementBodies(extractElementBody(xml, "EmploymentTypes") || "", "Discipline").map(value => extractElementText(`<Discipline>${value}</Discipline>`, "Discipline")));
+        projected.EmploymentDisciplines = caregiverEmploymentDisciplines(xml);
       }
       if (input.operation === "GetPatientPOCInfo") projected.Tasks = JSON.stringify(extractElementBodies(xml, "Task").map(task => Object.fromEntries(["ID", "Code", "Name", "Required", "AsNeeded", "WeeklyMin", "WeeklyMax", ...days].map(name => [name, field(task, name)]))));
       if (input.operation === "GetPatientPreferences" || input.operation === "GetCaregiverPreferences") projected.Preferences = JSON.stringify(extractElementBodies(xml, input.operation === "GetPatientPreferences" ? "PreferenceInfo" : "Preference").map(pref => Object.fromEntries(["PreferenceID", "PreferenceName", "PreferenceValue", "PreferenceType"].map(name => [name, field(pref, name)]))));

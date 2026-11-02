@@ -1,5 +1,15 @@
 # PTHHS
 
+## November 2 staff employment disciplines
+
+Staffing now retains the employment disciplines already returned by its approved
+caregiver read, with current office proof and separate receipts. Missing, empty
+and supplied lists remain distinct; the field does not establish therapist
+qualification, assignment eligibility or availability. Four regressions fail
+before and pass after; 553 backend/361 frontend-tooling/46 analytics checks and
+full release checks pass. Normal release/native acceptance pending.
+See [scope](docs/management-layer/STAFF_EMPLOYMENT_DISCIPLINES_2026-11-02.md).
+
 ## Authorization detail source connection
 
 After explicit owner approval, only GetPatientAuthorizationInfo was added to the

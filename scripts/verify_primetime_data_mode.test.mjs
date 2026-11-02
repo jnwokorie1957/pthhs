@@ -1504,6 +1504,35 @@ async function relatedFixture(read, available = true) {
   installDashboard(app); await app.signIn(); await tick(); await tick(); return app;
 }
 const relatedButton = (app, kind) => descendants(app.element(kind === 'caregiver' ? 'dashboardStaffing' : 'dashboardBillingPipeline')).find(n => n.textContent === (kind === 'caregiver' ? 'View caregiver profile' : 'Read billing facts'));
+test('caregiver employment disciplines retain a bounded string list independently of qualification', () => {
+  const normalize = dashboardModel().primetimeDashboardModel.normalizeVisitContext;
+  const input = { kind: 'caregiver', visitId: '900001', patientId: '5', officeId: '123', caregiverId: '6' };
+  for (const values of [null, undefined, '[]', '["SOURCE_DISCIPLINE", ""]']) {
+    const result = normalize(relatedPayload(input, { EmploymentDisciplines: values }), input);
+    assert.deepEqual(Array.from(result.employmentDisciplines ?? []), values == null ? [] : JSON.parse(values));
+    assert.equal(result.fields.EmploymentDisciplines, values ?? null);
+  }
+  for (const values of ['bad', '{}', '[null]', '[1]', '[{}]', JSON.stringify(Array(201).fill('A')), 'x'.repeat(1001)]) {
+    assert.throws(() => normalize(relatedPayload(input, { EmploymentDisciplines: values }), input), /invalid_visit_context/);
+  }
+});
+
+test('Staffing shows source employment disciplines without extra reads and clears them with the source context', async () => {
+  for (const change of ['clear', 'date', 'demo', 'session']) {
+    const app = await relatedFixture(input => response(relatedPayload(input, { EmploymentDisciplines: '["SOURCE_DISCIPLINE", ""]' })));
+    await clickNode(relatedButton(app, 'caregiver')); await tick(); await tick();
+    const text = nodeText(app.element('dashboardCaregiverProfile'));
+    assert.match(text, /Employment disciplines \(source\).*SOURCE_DISCIPLINE.*Empty source value/);
+    assert.match(text, /does not establish qualification, eligibility or availability/);
+    assert.equal(app.calls.filter(c => c.path.endsWith('/workspace/visit-context')).length, 1);
+    if (change === 'clear') await app.click('dashboardVisitClear');
+    if (change === 'date') { app.element('dashboardVisitDate').value = '2026-10-23'; for (const fn of app.element('dashboardVisitDate').handlers.get('change')) fn(new Event('change')); }
+    if (change === 'demo') app.window.primetimeDataMode.setMode('demo');
+    if (change === 'session') app.dispatch('primetime-signed-out');
+    await tick(); await tick();
+    assert.doesNotMatch(nodeText(app.element('dashboardCaregiverProfile')), /SOURCE_DISCIPLINE/);
+  }
+});
 test('visit billed amount preserves exact supplied strings and rejects malformed values without borrowing other fields', () => {
   const normalize = dashboardModel().primetimeDashboardModel.normalizeVisitPreview, date = '2026-10-10';
   for (const amount of ['0', '0.00', '17.30', '-2.50', '', null, undefined]) {

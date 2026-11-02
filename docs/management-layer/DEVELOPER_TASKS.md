@@ -1,5 +1,14 @@
 # PTHHS Management Layer — Developer Checklist
 
+- [x] November 2 staff employment-discipline implementation: connect the existing
+  approved caregiver field to Staffing with its own receipt and independent
+  office/visit/caregiver proof. Strict optional-list projection preserves empty
+  versus unknown; no PT qualification, assignment or availability inference.
+  Four regressions fail before and pass after; 553 backend, 361 frontend/tooling
+  and 46 analytics tests plus full release checks pass within unchanged budgets.
+  Normal release/native acceptance pending; broader S02/P1-B/P2 remain open.
+  See [scope](STAFF_EMPLOYMENT_DISCIPLINES_2026-11-02.md).
+
 - [x] Authorization detail source connection: current discovery returns four exact
   ID pairs; owner-approved GetPatientAuthorizationInfo is now the ninth read. Discovery/detail
   identities now require unique direct scalar paths, and nil parents cannot

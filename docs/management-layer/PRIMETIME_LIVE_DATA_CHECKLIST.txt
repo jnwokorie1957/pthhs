@@ -556,6 +556,18 @@ TAB 07 - STAFFING
     authorization, effective assignment/discipline and applicable availability
     rules. Do not create assignments or infer qualified staff from a nonempty ID.
 
+[ ] S04 Staffing employment disciplines (November 2 UTC). Existing approved
+    GetCaregiverDemographics/EmploymentTypes/Discipline projected values were
+    omitted from the profile. Connect the raw list with current identity/office
+    proof and independent receipts, without qualification/availability/assignment
+    inference. Strict optional direct-list projection distinguishes unproved,
+    empty and supplied values; malformed browser responses replace old facts.
+    No extra request/grant, source edit or financial decision. Four regressions
+    fail before/pass after; 553 backend/361 frontend-tooling/46 analytics checks
+    and full release checks pass. Normal release/native acceptance pending.
+    S02 and external-role P1-B/P2 contracts remain open.
+    See STAFF_EMPLOYMENT_DISCIPLINES_2026-11-02.md.
+
 TAB 08 - BILLING & AR
 [ ] B01 Operational billing pipeline/AR remains unconnected. Source facts can come from
     SearchBilledVisits, GetVisitBillInfoV2, GetBillingServiceCodes, GetContracts,
