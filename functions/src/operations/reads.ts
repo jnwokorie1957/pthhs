@@ -540,6 +540,22 @@ function directPathScalar(xml: string, path: string): string | null {
   }
   return directScalar(xml, names.at(-1)!);
 }
+// Visit times and durations are optional strings at exact WSDL paths. Preserve
+// an explicit empty element instead of treating it as absent; never borrow a
+// nested/duplicate value or flatten markup into a plausible clock/hour value.
+function visitTimeField(xml: string, path: string): string | null {
+  const names = path.split("/");
+  for (let index = 0; index < names.length; index++) {
+    const name = names[index]!, elements = directChildElements(xml, name);
+    if (elements.length !== 1 || /\s(?:[A-Za-z_][\w.-]*:)?nil\s*=\s*(["'])\s*(?:true|1)\s*\1/i.test(elements[0]!.match(/^<[^>]+>/)?.[0] ?? "")) return null;
+    if (index === names.length - 1) {
+      try { return extractExactElementText(elements[0]!, name) ?? null; }
+      catch { return null; } // Non-scalar time evidence remains unproved.
+    }
+    xml = extractElementBody(elements[0]!, name) ?? "";
+  }
+  return null;
+}
 function caregiverEmploymentDisciplines(xml: string): string | null {
   const roots = directChildElements(xml, "EmploymentTypes");
   const nil = (element: string) => /\s(?:[A-Za-z_][\w.-]*:)?nil\s*=\s*(["'])\s*(?:true|1)\s*\1/i.test(element.match(/^<[^>]+>/)?.[0] ?? "");
@@ -830,6 +846,7 @@ export async function operationalRead(client: Pick<HhaSoapClient, "call">, input
         try { projected[name] = directScalar(xml, name); }
         catch { projected[name] = null; } // A nested/non-scalar reference is unproved.
       }
+      if (input.operation === "GetVisitInfoV3") for (const name of ["ScheduleStartTime", "ScheduleEndTime", "VisitStartTime", "VisitEndTime", "EVVStartTime", "EVVEndTime", "ActualHours", "ActualHoursRounded", "ScheduleDuration/ScheduleDurationHours", "ScheduleDuration/ScheduleDurationMinutes"]) projected[name] = visitTimeField(xml, name);
       if (input.operation === "GetCallDashBoardData") for (const name of ["CallDashboardID", "Patient/ID", "Patient/AdmissionID", "Caregiver/ID", "CallTime", "CallType", "CallStatus"]) projected[name] = directPathScalar(xml, name);
       if (input.operation === "GetPatientDemographics") for (const name of ["PatientID", "OfficeID", "AdmissionID"]) projected[name] = directScalar(xml, name);
       if (input.operation === "GetVisitInfoV2" || input.operation === "GetVisitInfoV3") Object.assign(projected, verificationReceiptFields(xml));

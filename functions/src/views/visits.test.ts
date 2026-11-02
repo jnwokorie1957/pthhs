@@ -343,6 +343,21 @@ test("rounded HHA actual hours remain an independent raw field, never filling cl
   assert.equal(absent.items[0]!.actualHoursRounded, null);
 });
 
+test("real V3 XML empty and ambiguous time fields remain distinct through the office-checked preview", async () => {
+  const projected = await operationalRead({ async call() { return { ok: true, resultXml: '<VisitInfo><ID>77</ID><VisitDate>2026-10-10</VisitDate><Patient><ID>5</ID></Patient><ScheduleStartTime>2026-10-10 08:00</ScheduleStartTime><ScheduleEndTime>2026-10-10 12:00</ScheduleEndTime><VisitStartTime/><Other><VisitEndTime>foreign-clock</VisitEndTime></Other><EVVEndTime/><ActualHours/><ActualHoursRounded>0</ActualHoursRounded><ScheduleDuration><ScheduleDurationHours>4</ScheduleDurationHours><ScheduleDurationMinutes/></ScheduleDuration><PayHours>99</PayHours></VisitInfo>' }; } } as never, { operation: 'GetVisitInfoV3', id: '77' });
+  const f = fixture(['77'], { read: async input => input.operation === 'SearchVisitsV2' ? source(input.operation, [{ VisitID: '77' }]) : projected });
+  const result = await visitPreview(f.service, { date: '2026-10-10' }, 'owner');
+  const row = result.items[0]!;
+  assert.equal(row.state, 'source_unvalidated');
+  assert.equal(row.actualStart, ''); assert.equal(row.actualEnd, null);
+  assert.equal(row.evvStart, null); assert.equal(row.evvEnd, '');
+  assert.equal(row.actualHours, ''); assert.equal(row.actualHoursRounded, '0');
+  assert.equal(row.scheduleDurationHours, '4'); assert.equal(row.scheduleDurationMinutes, '');
+  assert.equal(row.officeCheckedAt, '2026-10-10T08:00:00.000Z');
+  assert.equal(result.totals, null); assert.equal(result.retry, null);
+  assert.doesNotMatch(JSON.stringify(result), /foreign-clock/);
+});
+
 test("each readable visit retains its independent detail and patient-office read receipts", async () => {
   const f = fixture(["77"], { read: async input => {
     if (input.operation === "SearchVisitsV2") return source(input.operation, [{ VisitID: "77" }]);

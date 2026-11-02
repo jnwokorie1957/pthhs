@@ -427,6 +427,19 @@ TAB 04 - VISIT PREVIEW
     an accepted cross-record/date/office relationship. P03/E04 remain open.
     See VISIT_SOURCE_REFERENCES_2026-11-02.md.
 
+
+[ ] P09 Exact optional visit time-field projection (November 2, 13:51 UTC trigger).
+    Generic descendant extraction lost self-closing empties and could borrow
+    nested/duplicate clock/hour values. V3 now preserves unique direct scalar
+    fields at the documented paths, including empty, zero and exact text, while
+    withholding nil/ambiguous/non-scalar evidence. No additional read, time
+    fallback, source write, import or interpretation approval. Two regressions
+    fail before/pass after; a third XML-to-office-checked-preview integration
+    test passes, with559backend/258relevant browser checks and unchanged assets.
+    Normal release and native acceptance remain pending. P03/E04 source gaps
+    and original screenshot acceptance stay separate.
+    See docs/management-layer/VISIT_TIME_FIELD_PROJECTION_2026-11-02.md.
+
 TAB 05 - PATIENT WORKBENCH
 [x] T01 Main surface now starts with current patients from readable visits on the
     selected source page. Calendar imports remain clearly separate saved history.
@@ -909,8 +922,9 @@ verified before S02/B02 can be checked complete.
 READ OPERATION INVENTORY
 The following generated appendix names every read exposed in Advanced tools and
 the initial October24 owner selection, with affected entries updated by the
-October28 patient/caregiver/billing observations and October31 explicit call-read
-approval and native empty acceptance above. Other entries remain dated evidence,
+October28 patient/caregiver/billing observations, October31 explicit call-read
+approval/native empty acceptance, and November2 owner-approved authorization
+detail acceptance above. Other entries remain dated evidence,
 not a fresh exhaustive settings audit. A selected read is
 not proof of full field semantics, successful entitlement or complete coverage.
 Unselected reads are work to scope and verify, not automatically failed APIs.
@@ -931,7 +945,7 @@ Unselected reads are work to scope and verify, not automatically failed APIs.
 [ENABLED] GetVisitInfoV3
 [ENABLED] GetPatientDemographics
 [ENABLED] GetCaregiverDemographics
-[ ] GetPatientAuthorizationInfo
+[ENABLED] GetPatientAuthorizationInfo
 [ENABLED] GetVisitBillInfoV2
 [ ] GetCaregiverPermanentWeekAvailability
 [ ] GetCaregiverSpecialAvailability
