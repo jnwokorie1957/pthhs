@@ -474,15 +474,23 @@ TAB 04 - VISIT PREVIEW
     bothEVVendpoints and bothactual-hour fields supplied. Raw fields accepted;
     no inferred direction/history or recoveredmissing clock. P03/E04 stay open.
     See EVV_SOURCE_TYPES_2026-11-02.md.
-[ ] P11 Source-read retry handling. Local admission refusal previously persisted
+[x] P11 Source-read retry handling. Local admission refusal previously persisted
     as a vendor hold; single-attempt approved reads could lose the trusted429
     cursor inside HhaNotSubmittedError, including failed patient-office proof.
     Correct classification/cursor without changing limits, retries, source-write
     nondispatch or privacy/office gates. Show valid server429delay in read status;
     no automatic retry. Five newbackend checks (two fail-before) and onebrowser
     fail-before check pass;570backend/371browser-tooling and budgets pass.
-    Existing hold only inspected; no quota induced. Normal release and ordinary
-    postrelease source reads pending. See SOURCE_READ_BUDGET_HANDLING_2026-11-02.md.
+    Existing hold only inspected; no quota induced. Runtimebcbecfb passed all3
+    normal jobs in41487089158: Hosting17:01:54/backend17:03:25/analytics17:03:31UTC.
+    Twelve exact assets/nineanonymous401private checks pass17:08:56.763UTC.
+    Native current patient/office proof returns1record/13fields; subsequentV3
+    returns1record/29fields with exactvisit/patient/caregiver/date and prior
+    type/clock/hour states. Refreshed both usertabs toworkspace99c3e9997320;
+    Overview/current-day auto-feed restored, tenreadable details, source receipts
+    18:59:03.178 and19:00:03.831UTC. Raw419947/gzip101945within unchanged budgets.
+    Failure branches remain synthetic, not induced. B02/P03/E04/T04/full-office
+    remain open. See SOURCE_READ_BUDGET_HANDLING_2026-11-02.md.
 
 TAB 05 - PATIENT WORKBENCH
 [x] T01 Main surface now starts with current patients from readable visits on the

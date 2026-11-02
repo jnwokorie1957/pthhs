@@ -1,7 +1,7 @@
 # Source-read admission and retry evidence — November 2, 2026 UTC
 
-Status: implemented and tested locally; normal release and postrelease normal-read
-verification pending. No quota fault was deliberately induced in production.
+Status: deployed; ordinary live-read verification accepted. Quota/write refusal
+branches remain synthetic tests; no quota fault was deliberately induced in production.
 
 During EVV field acceptance the inspector reported a backoff. The existing
 Firestore (default) Standard database integration-limit document was inspected
@@ -51,8 +51,33 @@ before and passes after: only valid429 intervals display, old facts clear and on
 human action makes one request. All371browser/tooling checks and unchanged asset/
 performance budgets pass. No new HHA method or owner decision is required.
 
-After normal deployment, verify one ordinary single-attempt patient read and
-the existing V3 inspector with matching current source context. Keep synthetic
-quota/write tests distinct from native source acceptance. Do not generate traffic
-to force a vendor limit; a naturally occurring later429 may provide additional
-production failure-path evidence.
+## Release and native verification
+
+Runtime `bcbecfb7d00cde126a4ef75f9476b5452dacc4f9` passed all three normal jobs in
+[workflow41487089158](https://github.com/jnwokorie1957/pthhs/actions/runs/41487089158):
+Hosting17:01:54, backend17:03:25 and analytics17:03:31UTC. Twelve exact deployed
+assets and nine anonymous401/private/no-store/noindex boundaries passed at
+17:08:56.763UTC. App/catalog419947raw and101945gzip bytes remain within the
+unchanged420000/102000budgets. The concurrent d11c23c research update was retained;
+its developer-checklist insertion was merged with this evidence, never forced over.
+
+Chrome and Codex-browser user tabs were refreshed to workspace99c3e9997320 with
+dashboard77a1e2f112c2. One ordinary single-attempt GetPatientDemographics read
+returned one record/thirteen fields matching the selected patient and currently
+configured office. A subsequent GetVisitInfoV3 read returned one record/twenty-nine
+fields matching visit/patient/caregiver/date. Its type/clock/hour field states
+agreed with the already-inspected affected case: in-type and EVV start supplied,
+out-type/end and both actual-hour fields explicitly empty, recorded pair supplied.
+No HHA source record changed and no absent field was substituted.
+
+Both user-facing tabs were restored to current-day Overview with the automatic
+API feed. Chrome showed ten of ten readable details and receipt18:59:03.178UTC;
+Codex browser then showed connected receipt19:00:03.831UTC, first source page only.
+The separate postgrant automatic advancement16:07:07.853 to16:12:09.588UTC remains
+accepted without a manual source read between those observations.
+
+Quota/write refusal and invalid-delay variants were not induced natively. Their
+regressions remain explicitly synthetic. No new permission, dispatch retry,
+limit increase, hold clearing, source edit or communication occurred. P11 is
+accepted for the bounded handling correction; B02/P03/E04/T04/full-office and
+broader source/role acceptance remain open.

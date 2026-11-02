@@ -16,11 +16,14 @@
   checks and all three normal release jobs pass. Native affected and contrasting
   complete-pair cases match source identities and expose empty versus populated
   type fields without filling clocks/hours. See [acceptance](EVV_SOURCE_TYPES_2026-11-02.md).
-- [ ] November 2 read-admission correction: preserve known429cursors for approved
+- [x] November 2 read-admission correction: preserve known429cursors for approved
   single-attempt reads, avoid local-as-vendor persistence, show valid retry delay.
   Five new backend tests (two fail-before) and one browser fail-before regression
-  pass;570backend/371browser-tooling checks and budgets pass. Normal release and
-  ordinary native source checks pending. See [scope](SOURCE_READ_BUDGET_HANDLING_2026-11-02.md).
+  pass;570backend/371browser-tooling checks and budgets pass. Runtimebcbecfb passed
+  all three normal jobs;12exactassets/9anonymous401private checks and native
+  patient-office/V3 reads pass. Both usertabs restored to current-day automatic
+  source feed. Quota refusals remain synthetic; no limit/hold was bypassed.
+  See [scope and production evidence](SOURCE_READ_BUDGET_HANDLING_2026-11-02.md).
 
 - [x] November 2 patient authorization pane: reuse the approved discovery/detail
   reader inside Patient workbench, exact patient/office/contract scope, separate
