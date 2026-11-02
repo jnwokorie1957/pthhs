@@ -1,5 +1,16 @@
 # PTHHS Management Layer — Developer Checklist
 
+- [x] November 2 patient authorization pane: reuse the approved discovery/detail
+  reader inside Patient workbench, exact patient/office/contract scope, separate
+  receipts and one shared form. Patient/Demo transitions clear old facts;
+  visit-date changes retain independent scope; settings messages preserve status.
+  Six new checks, 370 frontend/tooling, 563 backend, 46 analytics and release checks
+  pass. Final fcbe699 passed all three normal jobs; 12 public assets and 11 anonymous
+  boundaries/noindex and native comparison of 13 discovery rows and all 14 detail fields,
+  exact selectors, patient change, reader restoration and Demo/Live checks pass.
+  Live Nov2 Overview restored with 10 bounded rows. T05 accepted; raw units,
+  T04/S02/B02/P1-B/P2 remain open. See [scope](PATIENT_AUTHORIZATION_PANE_2026-11-02.md).
+
 - [x] November 2 legacy billing compatibility readiness: deployed a separately
   gated GetVisitBillInfo read after verified empty GetVisitBillInfoV2, retaining
   current visit/patient/caregiver/date/office proof and actual-method provenance.

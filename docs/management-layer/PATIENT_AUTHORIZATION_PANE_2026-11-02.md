@@ -31,51 +31,81 @@ unit, zero/empty limit or same-name contract is replaced by a label or inference
 MaxUnits, RemainingUnits, BankedHours and period limits stay raw; no utilization,
 remaining hours, service eligibility or financial outcome is computed.
 
-## Verification and release readiness
+## Verification and bounded production acceptance
 
-Four new behavioral regressions fail against the prior generated app. All six
-new checks pass, including independent/invalid receipt handling. All 370 frontend
-and tooling tests and 46 analytics tests pass. The concurrent legacy-billing implementation is preserved. The combined tree
-passes 563 backend tests; the pane adds no backend operation or grant. Normal
-backend CI still runs before production acceptance.
+Six new checks pass, including independent/invalid receipt handling and isolation
+from unrelated owner-control messages. Four behavioral regressions fail against
+the prior generated app; the status regression fails against the first release.
+All 370 frontend/tooling tests, 563 backend tests and 46 analytics tests pass.
+The pane adds no backend operation or grant. Concurrent billing code is preserved.
 
-Forty-eight syntax/prechecks and all 24 generator/QA steps pass. The marketing
-generators preserve private app bytes, and no generated release inputs drift.
-Local Bash syntax could not run because Bash is unavailable; shell files are
-unchanged and the normal CI workflow supplies that check. The app/catalog is
-419973 bytes and gzip estimate below 102000, within unchanged 420000/102000 limits.
-Twenty-four duplicate aliases already exactly matched the HTML option labels;
-sharing those labels funds the pane without increasing a budget or removing a
-control. Owner read checkbox operation values and their existing labels remain
-the same.
+Forty-eight syntax/prechecks and all 24 generator/QA steps pass. Marketing
+generators preserve private app bytes. Local Bash syntax was unavailable;
+unchanged shell files were checked by successful normal CI. Final app/catalog
+output is 419973 bytes with gzip below 102000, within unchanged 420000/102000
+limits. Twenty-four duplicate aliases exactly matched the HTML labels; sharing
+them and shortening instructions funds both concurrent features without removing
+controls, cautions or increasing budgets. Owner checkbox values/labels are intact.
 
-Initial runtime31344bfc2516e5990fb7c475b93b48afb14dcac4 passed all three normal
-jobs in workflow41477334165. The status-isolation follow-up and native acceptance
-are pending. Do not mark this
-connection complete from local tests alone. The protected pre-release session
-remains authorized; one current patient returned 13 exact discovery selections
-and 13 duplicate legacy shortcuts. Private identities and values remain in
-temporary browser memory only for an exact before/after comparison.
+Runtime 31344bfc2516e5990fb7c475b93b48afb14dcac4 passed all three normal jobs in
+workflow 41477334165. Final status-isolation runtime
+fcbe699db5e17c655325a65d45083299b6ba26a3 passed workflow 41478278435:
+Hosting 16:07:36, backend 16:08:10 and analytics 16:09:11 UTC on November 2.
+Public verification at 16:14:43 UTC matched twelve exact app artifacts,
+eleven anonymous JSON401/no-store private boundaries and private noindex.
+The later concurrent backend-only EVV projection bd16ce83a836ade938b4bc3f90167b769a37e535
+was fast-forwarded without changing pane assets; its workflow 41479943139
+also completed successfully. Existing billing activation/trial evidence is retained.
 
-This does not activate external patient/family/staff/PT access, clinical forms,
-source writes, billing decisions or communications. T03 source acceptance,
-P09 time-field acceptance and the resolved original screenshot case stay accepted.
-Broader P1-B/P2 membership/assignment/form/sharing/action evidence, S02, T04 and
-remaining source/unit/coverage interpretation remain separate. No new owner read
-grant or policy attestation is needed for this administrator pane.
+Authorized native acceptance, November 2, 16:17–16:24 UTC:
+- Open patient authorizations routes to Patient workbench with one shared form,
+  exact source-patient context, read-only inline IDs and hidden workflow selector.
+  Selecting the action clears prior facts and makes no automatic source request.
+- The first explicit discovery returns the same thirteen source records as the
+  protected baseline. Thirteen exact selectors remain; thirteen obsolete duplicate
+  selectors are gone. One exact patient/authorization/contract selection returns
+  fourteen detail fields, all unchanged from baseline, with separate discovery
+  and detail receipts and raw-unit caution.
+- An unrelated successful Reload current preferences does not overwrite the
+  authorization completion status or its fourteen facts. Changing the visit
+  date to October 24 retains the independent patient/office authorization facts.
+- Selecting a different current patient profile clears those facts, IDs and
+  selection, restores the general reader and rejects former context. Reopening
+  authorization discovery binds the new source patient with one shared form.
+  Its explicit read returns twelve exact selections; no source write occurs.
+- Advanced tools restores the workflow selector and editable general ID inputs.
+  Demo clears populated results/inputs, restores and disables the source reader;
+  returning Live retains no old authorization facts.
+- Overview is restored to office day November 2 with live API feed active, ten
+  readable first-page visit rows, source receipt 16:23:04.581 UTC and no horizontal
+  page overflow at a 1280px desktop viewport. This is bounded page evidence.
 
-The first expected-head publication met a concurrent billing commit3b560b6. The
-unpublished own commit was not forced over it. A path-limited stash preserved
-the pane; source/test/checklist merges were retained and two generated conflicts
-were resolved by rebuilding from merged sources. The combined root/backend and
-asset/performance checks pass. Concise instructions and shared labels fund both
-features under the original budgets; no control or warning gate was removed.
+Private identities, raw fields and before/after comparisons existed only in
+temporary browser memory, which was reset after acceptance. No source values
+were written to research, logs, assets or Git. Native mobile, sign-out/revocation,
+malformed receipt, quota and late-response variants were not induced; applicable
+failure/race cases remain covered by synthetic tests. No screenshot acceptance
+is claimed.
 
-## Read-status isolation follow-up
+## Status isolation and concurrent work
 
-A sixth regression reproduces an unrelated owner-controls reload overwriting the
-inline authorization status. Only source-read selection, progress, completion
-and errors now address that status. Other workspace actions keep their own
-messages. The regression fails against31344b and all370frontend/tooling checks
-pass after the correction. No source query, value, read permission or backend
-behavior changes. Final normal release and native acceptance remain required.
+The first release exposed a UI-only issue: Reload current preferences could
+overwrite the pane's read status. Only source-read selection/progress/completion/
+error messages now address that status. The sixth regression and native reload
+check pass. Other workspace actions retain their own messages. Source requests,
+permissions and backend behavior did not change.
+
+The first expected-head publication met concurrent billing commit 3b560b6. It
+was not forced over that work. A path-limited stash preserved this pane; source,
+tests and checklist merges were retained, and generated conflicts were resolved
+by rebuilding merged sources. Billing readiness 82dcf0a and later bd16ce8 EVV/
+billing evidence are retained. No grant was changed by this pane implementation;
+the separate owner-approved legacy billing activation belongs to its own record.
+
+T05 is accepted for this bounded administrator connection. This does not
+activate external patient/family/staff/PT access, clinical forms, source writes,
+billing decisions or communications. T03, P09 and the resolved original
+screenshot case stay accepted. P1-B/P2 membership/assignment/form/sharing/action
+evidence, S02, T04, B02 usable billing detail and source unit/period/service/
+coverage interpretation remain separate. No new owner read grant or policy
+attestation is needed for this administrator pane.

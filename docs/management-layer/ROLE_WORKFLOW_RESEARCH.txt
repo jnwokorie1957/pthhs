@@ -1241,3 +1241,47 @@ P03/E04 and broader role/source interpretation remain open. This implements the
 research's separate evidence-state principle without a role grant or new source
 operation. Earlier primary research remains dated; no new external source review
 claimed. See VISIT_TIME_FIELD_PROJECTION_2026-11-02.md.
+
+
+PATIENT AUTHORIZATION PANE — NOVEMBER 2 BOUNDED IMPLEMENTATION AND ACCEPTANCE
+Queued trigger 14:35:12 UTC; native acceptance 16:17–16:24 UTC. Implements this
+research's proposed P0 administrator pane using the already approved
+SearchPatientAuthorizations/GetPatientAuthorizationInfo path. Shared reader
+nodes move into Patient workbench; exact patient/office scope and discovered
+authorization/contract selection remain independent of the visit date filter.
+Discovery/detail receipts and raw limits remain distinct; no utilization,
+remaining-hour, service eligibility or visit-authorization relationship inferred.
+The obsolete duplicate unguarded detail shortcut is removed. Inline IDs are
+read-only. Patient/profile change clears facts and selection; generation/sequence
+fences reject stale replies. Advanced tools restores the general form. Demo
+clears and disables protected data. No new backend operation/read grant/role.
+
+Six new checks pass; four behavioral regressions fail on the prior app and the
+status-isolation regression fails on the first pane release. All370 frontend/
+tooling, 563 backend, 46 analytics plus syntax/generator/asset/budget checks pass.
+Runtime 31344b passed all normal jobs; final fcbe699 passed workflow 41478278435
+(Hosting 16:07:36/backend 16:08:10/analytics 16:09:11 UTC). Public 16:14:43UTC matched
+12 exact artifacts/11 anonymous JSON401-no-store boundaries/noindex. Concurrent
+billing 3b560b6/readiness 82dcf0a and backend EVV/billing bd16ce8 remain preserved;
+the latter's normal workflow 41479943139 also succeeds.
+
+Native exact before/after comparison retains all 13 source discovery records and
+all 14 detail fields, with exact patient/authorization/contract selection and
+independent receipts. Another patient profile clears the old facts/IDs; its
+explicit discovery returns 12 exact selections. Date changes preserve independent
+scope; successful Reload current preferences preserves auth read status/facts.
+General reader restoration, Demo populated-data clearing and Live empty reset
+pass. Overview restored to office Nov 2/live API/first-page 10 rows, receipt 16:23:04.581 UTC,
+no horizontal page overflow at 1280px. Private comparison memory reset. No native
+mobile/revocation/error/quota transitions induced; those broader cases remain
+synthetic or unexercised. No source values in public artifacts/research/logs.
+
+T05 bounded administrator acceptance complete. Earlier primary sources remain
+dated; no new primary-source retrieval is claimed here. External patient/family/
+staff/PT access and clinical/document/action workflows still need P1-B/P2's
+protected membership, effective assignment, instance/version/sharing/reviewer/
+signature/action evidence. S02/T04 and authorization unit/period/service/usage/
+completeness interpretation remain open; B02 needs usable billing source detail.
+The separately approved legacy billing grant is neither introduced nor reopened
+by this pane. No source write/import/clinical or financial decision/message.
+See PATIENT_AUTHORIZATION_PANE_2026-11-02.md for bounded acceptance details.

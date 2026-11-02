@@ -525,18 +525,27 @@ TAB 05 - PATIENT WORKBENCH
     office and release/access limits before enabling the bounded readers.
 
 
-[ ] T05 Patient-workbench authorization pane (November 2, 14:35 UTC trigger).
-    Reuses approved discovery/detail with exact patient/office/contract context
-    in Patient workbench. One shared reader; Advanced tools restores general
-    reads. Inline IDs are read-only; patient changes clear/fence former facts.
-    Discovery/detail receipts stay independent and malformed fetch dates fail.
-    Errors stay visible; selection makes no automatic request or new grant.
-    The obsolete unguarded duplicate detail shortcut is removed. Raw units and
-    balances remain uninterpreted. Six new checks,370frontend/tooling and
-    46analytics tests plus generator/asset checks pass within unchanged budgets.
-    Normal release/native acceptance pending; T03 remains accepted, P1-B/P2/
-    T04/S02/interpretation/full coverage remain open.
-    See docs/management-layer/PATIENT_AUTHORIZATION_PANE_2026-11-02.md.
+[x] T05 Patient-workbench authorization pane (November 2, 14:35 UTC trigger).
+    Existing approved discovery/detail now opens inside Patient workbench with
+    exact patient/office/authorization/contract scope and independent receipts.
+    One shared reader; inline IDs read-only; Advanced tools restores it.
+    Patient changes and Demo clear old facts; date changes retain independent
+    authorization scope. Only source-read messages update the inline status.
+    Six new checks, 370 frontend/tooling, 563 backend, 46 analytics and full generator/
+    asset/budget checks pass. Runtime 31344b and final fcbe699 pass all normal jobs;
+    final workflow 41478278435 finished Hosting 16:07:36/backend 16:08:10/
+    analytics 16:09:11 UTC. Public 16:14:43 matched 12 assets/11 anonymous 401-no-store/
+    noindex. Native 16:17–16:24 UTC matches 13 discovery rows and all 14 detail fields
+    to baseline, exact contract selection and independent receipts; obsolete
+    duplicate shortcuts removed. Reload preferences preserves status; visit-date
+    changes preserve scoped facts; different patient clears facts/IDs; another
+    discovery returns 12 exact selections. General reader restoration/Demo/Live
+    clearing pass. Overview restored Nov 2/live API/first-page 10 rows/no 1280px
+    overflow. Private browser memory reset; no new grant/source write/import.
+    Concurrent billing/EVV changes preserved. Raw limits remain uninterpreted;
+    T03/P09 accepted, P1-B/P2/T04/S02/B02/interpretation/full coverage stay open.
+    Native failure/mobile variants remain synthetic or unexercised; no complete
+    role workflow claim. See PATIENT_AUTHORIZATION_PANE_2026-11-02.md.
 
 TAB 06 - MESSAGES & ALERTS
 [x] M01 Connect Messages to actual Primetime office-alert access/readiness.

@@ -1,5 +1,17 @@
 # PTHHS
 
+## November 2 patient authorization workbench
+
+Open patient authorizations now opens the existing approved source reader inside
+Patient workbench, with exact patient/office/contract selection and separate
+discovery/detail receipts. Patient changes and Demo clear old facts; unrelated
+settings messages preserve the read status. Six new checks, 370 frontend/tooling,
+563 backend and 46 analytics tests pass. Final fcbe699 passed all normal jobs;
+native production checks match 13 discovery rows and all 14 detail fields to baseline
+and verify context clearing/restoration. Live Overview is restored. T05 is
+accepted within these bounds; raw units and external-role contracts remain open.
+See [scope and evidence](docs/management-layer/PATIENT_AUTHORIZATION_PANE_2026-11-02.md).
+
 ## November 2 billing compatibility activation
 
 The owner explicitly approved the read-only legacy billing method. Saved and
