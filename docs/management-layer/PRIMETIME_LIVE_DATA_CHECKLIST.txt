@@ -367,34 +367,43 @@ TAB 04 - VISIT PREVIEW
     original-punch/hour gaps and E04 retained-history/linkage evidence stay open.
     See ROUNDED_SOURCE_HOURS_2026-10-31.md. No source/read/grant setting changed.
 
-[ ] P07 Actual-hour source/display separation (November1,23:40UTC trigger;
-    implementation November2UTC). Preview/Review previously put calculated
-    accepted minutes or a recorded clock span into the HHA ActualHours field's
-    display when the raw field was absent. This can obscure the source gap.
-    The formatter now preserves the raw HHA ActualHours field only; missing,
-    supplied-empty and explicit-zero states stay distinct. A valid written-clock
-    span remains separately labelled beside the recorded pair. It never fills
-    a clock/hour field or diagnosis, verification, payroll or billing state.
-    Three regressions fail before/pass after;359frontend/tooling tests and
-    generated assets/budgets pass. Backend/source calls unchanged; normal
-    release and native display acceptance pending. First runtime92c1468 Hosting
-    check correctly refused420468bytes against the420000limit. Only insignificant
-    HTML indentation was removed; corrected app/catalog419644bytes and full
-    generator/performance checks pass, without a cap or control change.
-    The captured source field
-    path remains GetVisitInfoV3/VisitInfo/ActualHours, independent of
+[x] P07 Actual-hour source/display separation (November 1, 23:40 UTC trigger;
+    production acceptance November 2 UTC). Preview/Review previously displayed
+    accepted calculated minutes or a recorded clock span in HHA ActualHours
+    when the raw field was absent. Missing, supplied-empty and explicit-zero
+    source states now stay distinct. A valid written-clock span remains beside
+    the recorded pair; it never fills an hour/clock or diagnosis, verification,
+    payroll or billing state. Three regressions fail before and pass after;
+    359 frontend/tooling tests, 46 analytics tests and full release checks pass.
+    Backend/source calls unchanged. Runtime 372b2cf passed all three normal jobs
+    in workflow 41380526324 on November 2 UTC: Hosting 02:59:09, backend 02:59:20,
+    analytics 03:00:50. Public acceptance matched 12 app assets, nine anonymous
+    401/no-store boundaries and private noindex. Native Preview 03:04 and Review
+    03:11 matched the exact October 24 Visit reference/recorded pair; missing
+    raw ActualHours/rounded hours stayed explicit and the span remained beside
+    the pair. The existing interpretation gate still withholds Review patient/
+    caregiver references. October 23 and current office-day November 1 previews
+    each had 10 rows and no calculated span in any ActualHours cell; recorded-
+    pair span counts were nine and three. Bounded source-unvalidated receipts
+    remain incomplete; no worked/verified/billable state inferred. Overview and
+    current-day live feed restored.
+    First runtime 92c1468 correctly failed Hosting's existing 420000-byte limit
+    at 420468 bytes. Insignificant HTML indentation removal brought app/catalog
+    to 419644 bytes without changing a cap, control or functionality.
+    Exact path: GetVisitInfoV3/VisitInfo/ActualHours, independent of
     ActualHoursRounded, VisitStartTime/VisitEndTime and EVVStartTime/EVVEndTime.
-    November1,23:56:24UTC original historical comparison: an affected October24
-    exact VisitID/patient/caregiver/day matched the original Calendar/Visit Info;
-    Calendar office matched API scope. Fresh approved GetVisitInfoV3 starts and
-    recorded end matched source Bill Time In/Out and EVV Clock In. Original
-    EVV-out text was empty, recorded/rounded EVV duration displays were
-    placeholders, and the one rendered EVV-row clock matched API EVVStartTime.
-    API EVVEndTime, ActualHours and ActualHoursRounded were unavailable. Event
-    direction/complete retained history were not established; no end recovered.
-    This is an additional historical case, not the already-resolved original
-    October24 screenshot visit. E04 retention/filter/subject/visit-link evidence
-    remains open; no web-scraped import, source correction or time substitution.
+    November 1, 23:56:24 UTC original historical comparison: one affected
+    October 24 exact VisitID/patient/caregiver/day matched Calendar/Visit Info;
+    Calendar office matched API scope. Approved fresh V3 recorded endpoints/
+    EVV start matched original Bill Time In/Out and EVV Clock In. Original
+    EVV-out text was empty and recorded/rounded EVV duration displays were
+    placeholders. One rendered EVV-row clock matched API EVVStartTime; event
+    direction was not adopted. API EVVEndTime, ActualHours and ActualHoursRounded
+    were unavailable. Complete retained history was not established; no end
+    recovered. This is an additional historical case, not the already-resolved
+    original October 24 screenshot. P03/E04 retained date/status/filter coverage
+    and exact event-to-visit linkage remain open. No web-scraped import, source
+    correction, time substitution, new grant or owner decision.
     See ACTUAL_HOURS_SOURCE_SEPARATION_2026-11-02.md.
 
 TAB 05 - PATIENT WORKBENCH

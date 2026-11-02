@@ -1,15 +1,16 @@
 # PTHHS Management Layer — Developer Checklist
 
-- [x] November2UTC actual-hour display implementation: preserve missing/empty/
+- [x] November 2 UTC actual-hour display acceptance: preserve missing, empty and
   zero HHA ActualHours independently of accepted minutes and recorded clock
   spans. A written span stays beside its source pair in Preview/Review; no clock
-  field, diagnosis or financial result changes. Three regressions fail before/
-  pass after;359frontend checks/generated assets/budgets pass on the combined
-  billed-amount tree. Original October24 source/API comparison is recorded;
-  initial Hosting byte gate was preserved and corrected by HTML whitespace only;
-  full generator/performance checks pass. Normal release/native display acceptance
-  pending. See
-  [scope](ACTUAL_HOURS_SOURCE_SEPARATION_2026-11-02.md).
+  field, diagnosis or financial result changes. Three regressions fail before
+  and pass after; 359 frontend checks, 46 analytics tests and the full release
+  checks pass on the combined billed-amount tree. Corrected 372b2cf passed all
+  three normal jobs in workflow 41380526324 within unchanged budgets. Public
+  12-asset/nine-401/no-store/noindex checks and native October 24 Preview/Review
+  acceptance passed, with October 23/current-day separation checked. Existing
+  interpretation gates and broader P03/E04 remain open; no source punch recovered.
+  See [scope](ACTUAL_HOURS_SOURCE_SEPARATION_2026-11-02.md).
 
 - [x] November1 visit billed amount implementation: preserve the existing verified
   GetVisitInfoV3 billedAmount through browser normalization and display it in

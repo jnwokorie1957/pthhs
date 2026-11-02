@@ -3,14 +3,17 @@
 ## November 2 UTC actual-hour source separation
 
 HHA ActualHours now displays only the supplied field. Calculated written-clock
-spans remain beside the recorded clock pair in Preview and Visit review. A fresh
-October24 comparison matched the exact original HHA visit: recorded endpoints
-were supplied, while original EVV-out text and hour displays remained unavailable.
-Three regressions fail before/pass after;359frontend checks and asset budgets pass.
-The strict Hosting byte check was preserved; insignificant indentation removal
-restores the existing budget. Corrected normal release/native acceptance pending.
+spans remain beside the recorded clock pair in Preview and Visit review. The
+November 1 historical comparison matched the exact original October 24 HHA visit:
+recorded endpoints were supplied, while original EVV-out text and duration
+displays remained unavailable. Three regressions fail before and pass after;
+359 frontend checks and asset budgets pass. The strict Hosting byte check was
+preserved; insignificant indentation removal restores the existing budget.
+Corrected 372b2cf passed all three normal release jobs. Production assets,
+authentication, noindex and native Preview/Review checks passed, including
+October 23/current-day separation. The inspected original EVV end remains
+unavailable; broader source coverage is open.
 See [scope](docs/management-layer/ACTUAL_HOURS_SOURCE_SEPARATION_2026-11-02.md).
-
 
 ## November 1 visit billed amount connection
 
