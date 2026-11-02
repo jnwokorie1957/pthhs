@@ -1,13 +1,15 @@
 # PTHHS Management Layer — Developer Checklist
 
-- [x] Authorization detail readiness audit: current discovery returns four exact
-  ID pairs; GetPatientAuthorizationInfo is still unchecked. Discovery/detail
+- [x] Authorization detail source connection: current discovery returns four exact
+  ID pairs; owner-approved GetPatientAuthorizationInfo is now the ninth read. Discovery/detail
   identities now require unique direct scalar paths, and nil parents cannot
   supply scope proof. Four regressions fail before/pass after;549backend and
   14focused checks pass. Runtime4a8cae1 passed all three normal jobs and native
-  four-row discovery. The detail gate withholds all records and says enablement
-  is required; existing eight reads are unchanged. Action-time approval and T03
-  actual detail source acceptance remain pending. See
+  four-row discovery. Only the approved checkbox changed in fresh preferences;
+  the original eight reads and all write controls remain unchanged. One exact
+  detail returned14fields with matching patient/authorization/contract and source
+  receipt. Patient input clear removes fields/receipt; fresh selection restores.
+  T03 bounded source acceptance passes; unit/business interpretation stays open. See
   [scope](AUTHORIZATION_READ_READINESS_2026-11-02.md).
 
 - [x] November 2 source-reference implementation: preserve OriginalVisitID and

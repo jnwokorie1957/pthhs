@@ -1,10 +1,10 @@
-# Authorization detail read readiness — November 2 UTC
+# Authorization detail source connection — November 2 UTC
 
-This is technical readiness for T03, not authorization to expand access or proof
-of a working detail response. GetPatientAuthorizationInfo remains disabled.
-The existing eight selected reads and all source-write controls are unchanged.
+This records T03 readiness, explicit owner approval and bounded live acceptance.
+GetPatientAuthorizationInfo is now enabled for existing Primetime administrators.
+The original eight selected reads and all source-write controls are unchanged.
 
-## Current source and exact method
+## Pre-activation source and exact method
 
 The normal protected administrator session successfully read the already enabled
 SearchPatientAuthorizations for a patient independently verified by GetVisitInfoV3.
@@ -12,10 +12,10 @@ Four discovery rows had exact authorization/contract ID pairs and four detail
 selection controls. A source fetch receipt was present. No source identifiers,
 names, authorization numbers, dates, limits or balances are stored in this record.
 
-The current owner-control screen shows Authorization units unchecked; its exact
-operation value is GetPatientAuthorizationInfo. The other eight approved reads
-remain selected. The existing detail screen and backend route are implemented.
-Enabling this ninth read would let existing Primetime administrators retrieve
+Before approval, the owner-control screen showed Authorization units unchecked;
+its exact operation value is GetPatientAuthorizationInfo. The other eight approved
+reads were selected. The existing detail screen and backend route were implemented.
+The approved ninth read lets existing Primetime administrators retrieve
 private authorization references, service dates, contract/service-code IDs and
 raw limit/remaining-unit fields. It does not add users, public access or writes.
 
@@ -68,16 +68,36 @@ controls after entitlement review. The unchecked control and unchanged eight
 selected reads were confirmed. This verifies the closed gate, not detail API
 entitlement, populated source acceptance or operational meaning.
 
-## Remaining activation and acceptance
+## Approved activation and live acceptance
 
-Obtain action-time approval for this specific read before changing its checkbox.
-Use the latest owner preferences and add only GetPatientAuthorizationInfo; retain
-all existing reads, office, timezone, privacy and write settings. Do not reuse a
-stale settings form if another change lands. No new Google/GA4 grant is needed.
+The user explicitly answered Enable authorization details to the specific
+GetPatientAuthorizationInfo approval question. Owner controls were reloaded from
+the latest preferences before the change. Every nonhidden owner-form control was
+compared before/after selection: exactly one checkbox changed. Saved preferences
+then reloaded with nine selected reads, retaining all original eight. Zero specific
+write workflows remained approved; no user, office, timezone or other policy setting changed.
+No Google/GA4 grant or source-write permission was requested or changed.
 
-After approval, select an exact current discovery result, read details, verify
-patient/authorization/contract and source receipt, then confirm Clear/context
-changes remove stale facts. An enabled flag is not API entitlement or successful
-source acceptance. A source refusal/empty/ambiguous response stays explicit; no
-calculation or alternate identity bypass is permitted. T03 stays open until actual
-authorized source acceptance; other live-source checklist items remain independent.
+Fresh patient discovery again returned four exact selections. One fresh source
+selection produced one detail record with 14 projected fields. AuthorizationID,
+Patient/ID and Contract/ID match the selected source context; ServiceCode/ID is
+supplied. MaxUnits and RemainingUnits are supplied, and a source fetch receipt
+and the unvalidated-unit explanation are visible. No private values are recorded here.
+
+Clearing the patient input immediately removed all detail fields and the source
+receipt. Fresh discovery and the same exact authorization/contract selection
+restored 14 fields with matching identities and a new receipt. Other mode/session/
+late-response cases retain existing automated coverage; no real sign-out induced.
+Authorization scope is patient/office, independent of the visit date picker.
+
+After activation, the anonymous authorization POST was rechecked at
+04:13:06.407UTC and still returned401 with no-store/noindex. The new read does
+not expose records publicly. Only nonsensitive counts/booleans and the selected
+read-control proof were saved; patient identifiers, authorization numbers,
+service dates and unit values remain outside public artifacts and logs.
+
+T03's bounded discovery/detail source connection is accepted. This is one checked
+record, not a complete authorization census or acceptance of unit conversions,
+period balances, utilization, scheduling eligibility or billing decisions. Remaining
+source refusals/empty/ambiguous results must stay explicit. No input/label fallback
+or clock/hour substitution is permitted. Other checklist items remain independent.

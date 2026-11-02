@@ -1,13 +1,13 @@
 # PTHHS
 
-## Authorization detail read readiness
+## Authorization detail source connection
 
-The enabled authorization discovery source returned four exact ID pairs in the
-protected session. Detail retrieval is implemented but remains disabled. Its
-identity projection now requires unique direct source fields and rejects nil
-parents. Four regressions fail before/pass after;549backend checks pass. No read
-permission changed. All three normal release jobs and postrelease discovery checks
-pass; detail access remains closed pending specific approval and source acceptance. See
+After explicit owner approval, only GetPatientAuthorizationInfo was added to the
+existing eight reads. Fresh discovery and an exact selection returned a 14-field
+detail record with matching patient, authorization and contract identities.
+Source unit values remain raw; no remaining-hour or eligibility inference is made.
+Patient input clearing removes fields/receipt, and fresh selection restores them.
+Identity guards,549backend checks and all normal release jobs pass. See
 [scope](docs/management-layer/AUTHORIZATION_READ_READINESS_2026-11-02.md).
 
 ## November 2 original/split source references

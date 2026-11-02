@@ -450,9 +450,9 @@ TAB 05 - PATIENT WORKBENCH
     Demo removed source actions/fields; live mode was restored.517backend and
     297root tests passed. All10published artifacts matched; anonymous profilePOST
     and5other protected reads returned401 with private noindex headers.
-[ ] T03 Authorization discovery is enabled (SearchPatientAuthorizations), but
-    exact detail uses GetPatientAuthorizationInfo and is not currently enabled.
-    Establish detail entitlement and matching patient/office before activating.
+[x] T03 Authorization discovery/detail source connection uses the enabled
+    SearchPatientAuthorizations and owner-approved GetPatientAuthorizationInfo.
+    Actual detail entitlement and matching patient/office are now verified.
     Units/remaining balance/approval semantics remain independent evidence.
     November2UTC readiness review: current protected discovery returned4exact
     authorization/contract pairs and4detail-selection controls with a source
@@ -468,9 +468,16 @@ TAB 05 - PATIENT WORKBENCH
     returns4exact pairs/4selection controls with a receipt. Selecting one exact
     detail shows owner enablement required; the request returns no detail fields.
     Eight existing reads remain selected and this ninth read stays unchecked.
-    Action-time approval for this ninth read remains pending. After
-    approval, use current settings and prove actual exact-record response/receipt;
-    do not treat enablement as entitlement or infer remaining hours from units.
+    The user then explicitly approved Enable authorization details. Reloaded
+    owner preferences, changed exactly1checkbox, saved/reloaded9selected reads;
+    all original8retained and0write workflows approved. Fresh discovery4exact
+    selections and one selected detail returned1record/14fields. Authorization,
+    patient and contract IDs match; service-code ID, maximum/remaining-unit
+    fields and source receipt supplied. Unit conversion/period/usage/eligibility
+    remain unvalidated. Clearing patient input removed all fields/receipt;
+    fresh exact discovery/selection restored14fields with matching identities.
+    Accept bounded connection only; no source write, remaining-hour conversion,
+    operational approval or complete authorization census is established.
     See AUTHORIZATION_READ_READINESS_2026-11-02.md.
 [ ] T04 Care plans/documents: SearchPatientPOC, GetPatientPOCInfo,
     SearchPatientDocument and DownloadPatientDocument. Confirm exact ownership,
@@ -669,6 +676,10 @@ TAB 12 - ADVANCED TOOLS
     GetVisitBillInfoV2 were added October27. On October31 the human explicitly
     approved GetCallDashBoardData; only that eighth read was added. Three live
     historical reads returned successful empty results (E03), not recovered times.
+    On November2UTC the owner explicitly approved GetPatientAuthorizationInfo.
+    Only this ninth read was added after identity audit; a real exact selected
+    detail returned14fields with matching patient/authorization/contract and a
+    source receipt. See T03; unit/period/business interpretation stays separate.
     Other operations must be mapped, scope-audited,
     entitlement-tested and enabled deliberately under the connection request.
 [ ] W03 Distinguish an owner-disabled operation, vendor-contract block, API quota,
