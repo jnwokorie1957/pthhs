@@ -1,9 +1,9 @@
 # Patient-scoped billed-visit discovery — November 2, 2026 UTC
 
-Status: normally deployed; signed-in production input metadata verified.
-SearchBilledVisits remains owner-disabled, awaiting the separate specific read
-decision. Actual source-result acceptance remains pending. This does not complete
-B02 or establish a usable billed record.
+Status: normally deployed, explicitly enabled by the owner, and accepted for one
+successful patient-scoped empty production result. Returned-row and usable billing
+fact acceptance remain unverified. This does not complete B02 or establish a
+usable billed record.
 
 ## Problem and exact source
 
@@ -86,3 +86,27 @@ access; this is not a repeat of the already applied legacy billing grant. Keep
 that question pending and do not enable or query this source before the answer.
 No usable billed record, financial meaning, full-office completeness or recovered
 EVV time is claimed. P12's separate accepted display work is preserved.
+
+## Approved activation and actual empty source result
+
+The user answered Enable patient-scoped billed search. Freshly reloaded controls
+had ten reads and SearchBilledVisits unchecked. Only that checkbox was changed;
+the staged and saved/reloaded list has eleven reads and retains all original ten.
+Office, timezone, policy reference and both thresholds are unchanged. The fresh
+UI still reports zero specific source-write workflows approved. The earlier
+pending question is answered and must not be repeated.
+
+An ordinary Advanced tools request used the already-verified affected patient,
+configured office and October24 service-day selector. The deployed reader first
+required fresh patient-office proof and then completed SearchBilledVisits. The
+visible result says Read completed: 0 record(s), with a browser-local fetched
+label November2 at13:49:16. The source explicitly reports no records returned,
+not a zero census or balance. No candidate was available to pass to a scoped
+billing reader, so no additional detailed billing request was issued.
+
+This accepts the bounded live connection and its honest empty-result path, not
+returned-row identities, source-date semantics, full-office coverage, a finalized
+billed status, financial facts or a missing EVV event. Positive/foreign/malformed/
+truncated row cases remain synthetic. B02 still needs an actual supported billed
+record and account/office/date/filter coverage evidence. No arbitrary date grid,
+website import, source write, clinical/financial decision or communication occurred.

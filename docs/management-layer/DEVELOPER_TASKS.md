@@ -1,13 +1,15 @@
 # PTHHS Management Layer — Developer Checklist
 
-- [ ] November 2 patient-scoped billed discovery: request now honors patient,
+- [x] November 2 patient-scoped billed discovery: request now honors patient,
   day and office; fresh patient-office proof and strict direct collection/fields
   prevent cross-subject or nested evidence. Four regressions fail before/pass
   after;575backend/373browser-tooling and unchanged assets/performance pass.
   All three normal release jobs and12exactassets/9anonymous401private checks
   pass; refreshed signed-in form exposes patient/office/date with old10reads intact.
-  SearchBilledVisits remains disabled pending its separate specific decision;
-  actual source-result acceptance and B02 usable facts remain open. See
+  The owner approved SearchBilledVisits; saved/reloaded11reads retain the old10,
+  other preferences and0write grants. Native scoped October24 result completed
+  successfully with0records; empty-result connection accepted. Returned-row,
+  source-date/coverage and B02 usable-fact acceptance remain open. See
   [scope and acceptance](BILLED_DISCOVERY_2026-11-02.md).
 
 - [x] November 2 raw EVV-type display: carry approved V3 in/out type strings

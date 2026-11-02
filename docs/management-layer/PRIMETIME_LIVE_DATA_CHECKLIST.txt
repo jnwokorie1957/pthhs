@@ -794,7 +794,7 @@ TAB 08 - BILLING & AR
     detailed billing success or overall goal completion claimed.
     See VISIT_BILLED_AMOUNT_2026-11-01.md.
 
-[ ] B05 Patient-scoped billed discovery. SearchBilledVisits now requires the
+[x] B05 Patient-scoped billed discovery. SearchBilledVisits now requires the
     exact patient, configured office and day; a fresh approved patient-office
     read precedes search dispatch, with policy checks before/after. Direct
     collection/subject/field projection rejects foreign or ambiguous evidence,
@@ -803,8 +803,12 @@ TAB 08 - BILLING & AR
     current assets and performance pass. Runtime5642efc passed normal workflow
     41511520697 all3jobs;12exactassets/9anonymous401private checks pass. Refreshed
     signed-in form exposes patient/office/date; old10reads retained, search still
-    unchecked. Specific additional-read decision pending; no search dispatched.
-    Actual source-result acceptance remains open. B02 usable facts and
+    unchecked before activation. The owner then explicitly approved this read.
+    Saved/reloaded11reads preserve all old10, other preferences and0write grants.
+    A real scoped October24 search completed successfully with0records and a
+    browser-local November2/13:49:16 receipt. Bounded empty-result connection
+    accepted; no candidate available for another billing read. Returned-row and
+    source-date/coverage acceptance remain unverified. B02 usable facts and
     source-date/coverage semantics remain open. No amount/EVV/cash inference.
     See BILLED_DISCOVERY_2026-11-02.md.
 
@@ -1094,7 +1098,7 @@ Unselected reads are work to scope and verify, not automatically failed APIs.
 [ ] SearchPatients
 [ ] SearchCaregivers
 [ENABLED] SearchPatientAuthorizations
-[ ] SearchBilledVisits
+[ENABLED] SearchBilledVisits
 [ ] GetScheduleInfo
 [ENABLED] GetVisitInfoV3
 [ENABLED] GetPatientDemographics
