@@ -14,6 +14,14 @@
 
 ## Start here
 
+- [ ] Prepared November 2: specific additional read decision for SearchPatientPOC
+  and GetPatientPOCInfo, existing administrators only, after normal release and
+  bounded production readiness. This exposes private plan/task definitions with
+  exact patient/office/plan checks. No care-plan read is enabled yet; no clinical
+  notes, instructions, edits, staff/patient-role access or signature authority is
+  added. The existing eleven approved reads remain intact. See
+  [scope](PATIENT_CARE_PLAN_READINESS_2026-11-02.md).
+
 - [x] November 2 bounded administrator navigation: Back to fetched authorizations
   now restores the original list and receipt without a source request. Normal
   release and actual 13-row/14-field identity/receipt, date/patient/Demo checks

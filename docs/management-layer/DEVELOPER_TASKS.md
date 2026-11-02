@@ -1,5 +1,15 @@
 # PTHHS Management Layer — Developer Checklist
 
+- [x] November 2 care-plan read implementation: direct source paths fix nested
+  category/task-name confusion; absent/nil/empty and truncated task definitions
+  remain distinct. Public administrator reads require fresh subject-office proof
+  before/after retrieval and exact plan/patient identity. Metadata-driven screen
+  preserves the scoped selection; fourteen new backend/two browser tests pass.
+  Full 597 backend,381 browser/tooling+public analytics guard,46 analytics-backend
+  checks pass without client asset/budget changes. Normal release/production
+  readiness and additional owner grants are pending. T04/F03 remain open. See
+  [scope](PATIENT_CARE_PLAN_READINESS_2026-11-02.md).
+
 - [x] November2 SEO/task review:137public source routes/91finalHTML/89indexable,
   14exactGit artifacts,32canonical sitemapURLs and private noindex/anonymous401
   checks pass. Native Google processing is successful but dated; current settled

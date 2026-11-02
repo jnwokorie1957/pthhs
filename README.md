@@ -1,5 +1,15 @@
 # PTHHS
 
+## November 2 care-plan source readiness
+
+The administrator care-plan reader now requires fresh patient-office proof and
+exact plan/patient identity. Direct source paths fix task/category-name confusion;
+unknown, empty and partial task definitions remain distinct. All597backend/
+381browser-tooling+public analytics guard/46analytics-backend checks pass; client
+assets and original budgets are unchanged. Normal release, production readiness
+and the two additional read grants are pending. T04/document/clinical-role work
+remains open. See [scope](docs/management-layer/PATIENT_CARE_PLAN_READINESS_2026-11-02.md).
+
 ## November 2 saved API read receipts
 
 HHA Integration now has a protected per-method receipt view: latest outcome,

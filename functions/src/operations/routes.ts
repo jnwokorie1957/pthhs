@@ -1,6 +1,7 @@
 import { OperationsWorkspace } from "./workspace.js";
 import { WorkflowError } from "./reads.js";
 import { patientAuthorizationRead } from "./patientAuthorizations.js";
+import { patientCarePlanRead } from "./patientCarePlans.js";
 import { patientVisitRead, visitPatientRead, visitContextRead } from "./patientVisit.js";
 import { visitCallRead } from "./visitCalls.js";
 
@@ -68,7 +69,8 @@ export async function workspaceRoute(service: OperationsWorkspace, method: strin
     else if (method === "GET" && path === "/workspace/read-health") result = await service.readHealth();
     else if (method === "GET" && path === paths[0]) result = await service.settings();
     else if (method === "POST" && path === paths[0]) result = { settings: await service.saveSettings(body, actor) };
-    else if (method === "POST" && path === paths[1]) result = await service.query(body, actor);
+    else if (method === "POST" && path === paths[1]) result = body && typeof body === "object" && ["SearchPatientPOC", "GetPatientPOCInfo"].includes(String((body as Record<string, unknown>).operation))
+      ? await patientCarePlanRead(service, body, actor) : await service.query(body, actor);
     else if (method === "GET" && path === paths[2]) { const page = await service.page("investigations", body); result = { investigations: page.items, nextCursor: page.nextCursor, limit: 100 }; }
     else if (method === "POST" && path === paths[2]) result = { investigation: await service.saveInvestigation(body, actor) };
     else if (method === "GET" && path === paths[3]) { const page = await service.page("writeIntents", body); result = { intents: page.items, nextCursor: page.nextCursor, limit: 100, submissionAutomatic: false }; }

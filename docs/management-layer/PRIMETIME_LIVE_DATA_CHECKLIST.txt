@@ -574,6 +574,16 @@ TAB 05 - PATIENT WORKBENCH
 [ ] T04 Care plans/documents: SearchPatientPOC, GetPatientPOCInfo,
     SearchPatientDocument and DownloadPatientDocument. Confirm exact ownership,
     office and release/access limits before enabling the bounded readers.
+    November2 care-plan readiness: strict direct-path parser fixes Category/Name
+    borrowing and distinguishes absent/nil/empty/truncated task definitions.
+    Admin-only public read boundary requires fresh patient-office proof before
+    and after retrieval, exact detail patient/plan IDs and unchanged release/
+    preferences. Header/task cards preserve source values without clinical,
+    visit-duty, authorization, form or signature inference.597backend,
+    381browser/tooling+public analytics guard,46analytics-backend checks pass.
+    Normal release, production readiness and both additional read grants remain
+    pending; NO HHA care-plan read has been enabled or queried. T04 stays OPEN.
+    See PATIENT_CARE_PLAN_READINESS_2026-11-02.md for scope/acceptance steps.
 
 
 [x] T05 Patient-workbench authorization pane (November 2, 14:35 UTC trigger).
@@ -824,6 +834,11 @@ TAB 09 - FORMS
     discovery/download). No clinical editable form instance, autofill schema,
     patient/visit linkage, reviewer/signature or sharing contract is established
     merely by stored bytes. Retain precise prerequisites for those features.
+    November2 audit: patient search has PatientID per row; download has document
+    ID only and optional FileSize. Require exact fresh metadata membership and
+    strict direct identities before download. Missing optional size currently
+    becomes null and is rejected by boundedAttachment: fix/test before exposing.
+    No document grant, source read, clinical form or acceptance added here.
 
 TAB 10 - HHA INTEGRATION
 [x] H01 Authenticated HHA reference read and scheduled visit-feed connectivity

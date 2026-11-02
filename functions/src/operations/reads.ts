@@ -444,6 +444,8 @@ const projections: Record<Exclude<ReadOperation, "SearchVisitsV2" | "SearchPatie
 };
 export const READ_PROJECTIONS = projections;
 export function readInputFields(operation: ReadOperation): string[] {
+  if (operation === "SearchPatientPOC") return ["patientId", "officeId"];
+  if (operation === "GetPatientPOCInfo") return ["patientId", "officeId", "id"];
   if (operation === "GetReferralProfile") return ["id", "officeId", "referralStatusId", "referralSourceId", "salesStaffId", "contractId"];
   if (["GetPatientClinicalInfo", "GetCaregiversAccessPatientInfoToMobileApp"].includes(operation)) return ["patientId"];
   if (operation === "GetCaregiverMedicalDetails") return ["caregiverId", "id", "status"];
@@ -571,6 +573,59 @@ function billedVisitRecords(xml: string, patientId: string): Record<string, stri
   return rows.map(element => {
     const record = Object.fromEntries(["VisitID", "PatientID", "ContractID", "OtherChargeID"].map(name => [name, visitTimeField(element, "BilledVisits/" + name)]));
     if (record.PatientID !== patientId) throw new WorkflowError("billed_visit_patient_mismatch", 403);
+    return record;
+  });
+}
+// These are source plan/task definitions, never completed visit duties. Use
+// direct paths: Category/Name precedes Task/Name in the captured contract.
+function carePlanRecords(xml: string, detail: boolean): Record<string, string | null>[] {
+  const invalid = (): never => { throw new WorkflowError("care_plan_response_shape_unverified", 502); };
+  if (XMLValidator.validate("<CarePlanRead>" + xml + "</CarePlanRead>") !== true) invalid();
+  const nil = (element: string) => /\s(?:[A-Za-z_][\w.-]*:)?nil\s*=\s*(["'])\s*(?:true|1)\s*\1/i.test(element.match(/^<[^>]+>/)?.[0] ?? "");
+  const blank = (text: string) => !text.replace(/<!--[\s\S]*?-->/g, "").trim();
+  // Linear scan avoids repeated replacement of a potentially large collection.
+  const only = (body: string, children: string[]) => {
+    let offset = 0;
+    for (const child of children) {
+      const start = body.indexOf(child, offset);
+      if (start < offset || !blank(body.slice(offset, start))) invalid();
+      offset = start + child.length;
+    }
+    if (!blank(body.slice(offset))) invalid();
+  };
+  const name = detail ? "POCInfo" : "PatientPOC", roots = directChildElements(xml, name), status = directChildElements(xml, "Status");
+  if (roots.length > 1 || status.length > 1) invalid();
+  only(xml, [...roots, ...status].sort((a, b) => xml.indexOf(a) - xml.indexOf(b)));
+  if (!roots.length) return [];
+  const root = roots[0]!, body = extractElementBody(root, name) ?? "";
+  if (nil(root)) { if (!blank(body)) invalid(); return []; }
+  if (detail && blank(body)) return [];
+  const rows = detail ? [root] : directChildElements(body, "POC");
+  if (!detail) only(body, rows);
+  const seen = new Set<string>();
+  return rows.map(row => {
+    const prefix = (detail ? "POCInfo" : "POC") + "/";
+    const fields = detail ? ["Patient/ID", "ID", "StartDate", "StopDate", "POCNumber", "CreatedDate"] : ["ID", "StartDate", "StopDate", "POCNumber"];
+    const record: Record<string, string | null> = Object.fromEntries(fields.map(key => [key, visitTimeField(row, prefix + key)]));
+    const id = record.ID;
+    if (!id || !/^[1-9]\d{0,9}$/.test(id) || Number(id) > 2147483647 || seen.has(id)) invalid();
+    seen.add(id!);
+    if (detail) {
+      const tasks = directChildElements(body, "Tasks");
+      if (tasks.length > 1) invalid();
+      record.Tasks = null;
+      if (tasks.length) {
+        const taskBody = extractElementBody(tasks[0]!, "Tasks") ?? "";
+        if (nil(tasks[0]!)) { if (!blank(taskBody)) invalid(); }
+        else {
+          const children = directChildElements(taskBody, "Task"); only(taskBody, children);
+          if (children.some(nil)) invalid();
+          record.Tasks = JSON.stringify(children.slice(0, 200).map(task => Object.fromEntries(
+            ["ID", "Code", "Name", "Required", "AsNeeded", "WeeklyMin", "WeeklyMax", ...days].map(key => [key, visitTimeField(task, "Task/" + key)]))));
+          if (children.length > 200) record.TasksTruncated = "true";
+        }
+      }
+    }
     return record;
   });
 }
@@ -841,6 +896,9 @@ export async function operationalRead(client: Pick<HhaSoapClient, "call">, input
   let typedReasonsTruncated = false;
   if (input.operation === "SearchBilledVisits") {
     records = billedVisitRecords(response.resultXml, identifier(input.patientId));
+  } else if (input.operation === "SearchPatientPOC" || input.operation === "GetPatientPOCInfo") {
+    records = carePlanRecords(response.resultXml, input.operation === "GetPatientPOCInfo");
+    typedReasonsTruncated = records.some(row => row.TasksTruncated === "true");
   } else if (input.operation === "SearchVisitsV2" || input.operation === "SearchPatients" || input.operation === "SearchCaregivers") {
     const [container, field] = input.operation === "SearchVisitsV2" ? ["Visits", "VisitID"] : input.operation === "SearchPatients" ? ["Patients", "PatientID"] : ["Caregivers", "CaregiverID"];
     const values = extractElementBody(response.resultXml, container!) ?? "";
@@ -901,7 +959,6 @@ export async function operationalRead(client: Pick<HhaSoapClient, "call">, input
         projected.OfficeIDs = caregiverOfficeIds(xml);
         projected.EmploymentDisciplines = caregiverEmploymentDisciplines(xml);
       }
-      if (input.operation === "GetPatientPOCInfo") projected.Tasks = JSON.stringify(extractElementBodies(xml, "Task").map(task => Object.fromEntries(["ID", "Code", "Name", "Required", "AsNeeded", "WeeklyMin", "WeeklyMax", ...days].map(name => [name, field(task, name)]))));
       if (input.operation === "GetPatientPreferences" || input.operation === "GetCaregiverPreferences") projected.Preferences = JSON.stringify(extractElementBodies(xml, input.operation === "GetPatientPreferences" ? "PreferenceInfo" : "Preference").map(pref => Object.fromEntries(["PreferenceID", "PreferenceName", "PreferenceValue", "PreferenceType"].map(name => [name, field(pref, name)]))));
       if (input.operation === "GetCollectionNotes" && (projected.Notes?.length ?? 0) > 4000) { projected.Notes = projected.Notes!.slice(0, 4000); projected.NotesTruncated = "true"; }
       if (input.operation === "GetReferralSource") projected.OfficeIDs = JSON.stringify(extractElementBodies(extractElementBody(xml, "Offices") || "", "Office").map(office => field(office, "OfficeID")));
