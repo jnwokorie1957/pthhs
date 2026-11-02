@@ -7,7 +7,12 @@ caregiver read, with current office proof and separate receipts. Missing, empty
 and supplied lists remain distinct; the field does not establish therapist
 qualification, assignment eligibility or availability. Four regressions fail
 before and pass after; 553 backend/361 frontend-tooling/46 analytics checks and
-full release checks pass. Normal release/native acceptance pending.
+full release checks pass. Runtime 8a340f2 passed all three normal jobs, public
+asset/authentication checks and native same-caregiver value/receipt/Clear checks.
+The live Overview is restored. A follow-up labels unproved lists unavailable
+rather than implying a source omission; its regression and all 362 frontend
+checks pass. Corrected release/native recheck is pending. Broader staff
+availability and role contracts remain open.
 See [scope](docs/management-layer/STAFF_EMPLOYMENT_DISCIPLINES_2026-11-02.md).
 
 ## Authorization detail source connection

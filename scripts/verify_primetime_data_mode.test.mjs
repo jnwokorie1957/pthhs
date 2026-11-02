@@ -1533,6 +1533,17 @@ test('Staffing shows source employment disciplines without extra reads and clear
     assert.doesNotMatch(nodeText(app.element('dashboardCaregiverProfile')), /SOURCE_DISCIPLINE/);
   }
 });
+test('Staffing keeps an unproved discipline list separate from a genuinely empty list and empty item', async () => {
+  for (const [value, label] of [[null, 'Source list unavailable'], ['[]', 'No values returned'], ['[""]', 'Empty source value']]) {
+    const app = await relatedFixture(input => response(relatedPayload(input, { EmploymentDisciplines: value })));
+    await clickNode(relatedButton(app, 'caregiver')); await tick(); await tick();
+    const host = app.element('dashboardCaregiverProfile');
+    const row = descendants(host).find(n => n.tagName === 'TR' && nodeText(n).includes('Employment disciplines (source)'));
+    assert.ok(row); assert.match(nodeText(row), new RegExp(label));
+    assert.match(nodeText(host), /Synthetic caregiver/);
+    assert.equal(app.calls.filter(c => c.path.endsWith('/workspace/visit-context')).length, 1);
+  }
+});
 test('visit billed amount preserves exact supplied strings and rejects malformed values without borrowing other fields', () => {
   const normalize = dashboardModel().primetimeDashboardModel.normalizeVisitPreview, date = '2026-10-10';
   for (const amount of ['0', '0.00', '17.30', '-2.50', '', null, undefined]) {

@@ -6,7 +6,12 @@
   versus unknown; no PT qualification, assignment or availability inference.
   Four regressions fail before and pass after; 553 backend, 361 frontend/tooling
   and 46 analytics tests plus full release checks pass within unchanged budgets.
-  Normal release/native acceptance pending; broader S02/P1-B/P2 remain open.
+  Runtime 8a340f2 passed all three normal jobs and public assets/ten anonymous
+  boundaries/noindex. Native same-caregiver profile now has eight fields; the
+  new value matches the approved source and clears with context. Live Overview
+  restored. A follow-up keeps unproved lists distinct from a claimed omission;
+  its fifth regression and all 362 frontend tests pass. Corrected release/native
+  recheck is pending before final S04 acceptance. S02/P1-B/P2 remain open.
   See [scope](STAFF_EMPLOYMENT_DISCIPLINES_2026-11-02.md).
 
 - [x] Authorization detail source connection: current discovery returns four exact

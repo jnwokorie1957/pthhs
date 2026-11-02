@@ -23,7 +23,8 @@ discarded it from the profile field allowlist.
 Staffing now displays Employment disciplines (source), using the current profile's
 own fetch and patient-office receipts. Values are rendered as text in source
 order. A supplied empty list says No values returned; an empty item says Empty
-source value. An absent or unproved list remains Not supplied by HHA. No string is
+source value. An absent or unproved list says Source list unavailable; it does not claim that
+HHA omitted every value. No string is
 treated as a license, PT qualification, effective clinical assignment, patient-
 information grant, availability or eligible staffing candidate. The existing
 qualification/eligibility/availability caution remains visible.
@@ -49,7 +50,8 @@ Four new regressions fail before and pass after: two backend source-list cases
 and two browser normalization/render/context cases. They cover exact/empty source
 text, genuine empty lists versus absent/nil/ambiguous lists, namespaces, bounds,
 no extra reads and removal after date, Clear, Demo and session changes.
-All 553 backend, 361 frontend/tooling and 46 analytics tests pass.
+All 553 backend and 46 analytics tests passed for the original feature; the
+label follow-up now passes 362 frontend/tooling tests.
 
 The full Windows generator/QA sequence passes. Removing 572 bytes of remaining
 static HTML indentation kept the private app within unchanged limits; an HTML
@@ -57,9 +59,54 @@ token comparison preserved markup, non-whitespace data and all pre/textarea/
 script/style content. Generated Primetime assets total 374616 bytes across
 11 files; app/catalog total is 419565 bytes against the existing 420000 limit.
 Marketing generation preserved the new private assets byte-for-byte.
-Normal release and authenticated Staffing acceptance remain pending.
+Runtime **8a340f2460090530f33cca2683facbff0005b464**, reviewed tree
+**97ebf19d1522dd5a7d3d9482ac1d0706a01179de**, passed all three normal jobs in
+[workflow 41387973431](https://github.com/jnwokorie1957/pthhs/actions/runs/41387973431):
+Hosting 04:21:40 UTC, backend 04:23:00 UTC and analytics 04:23:19 UTC.
+Public verification at 04:24:10 UTC matched 12 deployed app assets and ten
+anonymous JSON 401/no-store boundaries, including POST /workspace/visit-context.
+Private noindex protection remains.
+
+## Authenticated production acceptance
+
+The normal signed-in browser loaded dashboard c5ddf3671fba after one reload.
+At 04:24:59 UTC, the same exact caregiver's office-checked Staffing profile
+displayed eight fields. The new discipline value matched the independent
+approved raw read; the other seven profile values remained unchanged. Its own
+HHA fetch and independent patient-office receipt labels remained present, as did
+the qualification/eligibility/availability caution. No source value is saved here.
+Desktop viewport and scroll widths both measured 1265px.
+
+Source Clear removed the discipline row with the profile. Resume live feed then
+restored Overview and the current office date, November 1, with ten source rows.
+At 04:26:40 UTC the live HHA page carried the 04:26:03.488 UTC search receipt and
+an explicit partial-page status. These are bounded source records, not a staff
+census or clinical qualification/availability acceptance. Malformed/empty-list,
+late-response, Demo and session variants remain synthetic regression coverage;
+no bad source response or source change was induced.
+
+The populated source-field connection is accepted for runtime 8a340f2; final
+S04 acceptance awaits the unproved-list label follow-up below. Existing external-role
+permissions, effective clinical assignment, staffing eligibility, availability,
+document/version/reviewer and financial decisions remain independent work.
 
 S02 availability/effective assignment and P1-B/P2 external-role, document/version,
 reviewer, signature and action contracts remain open. Authorization detail
 was independently accepted in the concurrent owner-approved connection; no
 enablement or duplicate permission request is made here.
+
+## Unproved-list label follow-up
+
+The first rendering fallback called a missing/unproved discipline list Not
+supplied by HHA. Because the server can also withhold an ambiguous source list,
+that text could imply a source omission that was not established. A fifth
+regression fails against runtime 8a340f2 and passes after the correction.
+Unknown lists now say Source list unavailable, explicit empty lists say
+No values returned, and empty items say Empty source value. Other profile fields
+and populated discipline rendering are unchanged.
+
+All 362 frontend/tooling tests, generated-asset and performance checks pass.
+This follow-up changes no backend source/read or permissions; the existing
+553 backend and 46 analytics evidence remains unchanged. Generated output is
+374641 bytes across 11 files; app/catalog is 419590 bytes within the unchanged
+420000-byte limit. The corrected normal release and native recheck are pending.
