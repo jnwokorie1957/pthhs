@@ -114,8 +114,9 @@
   };
   function normalizeVisitContext(payload, expected) {
     const caregiver = expected?.kind === 'caregiver', kind = caregiver ? 'caregiver' : 'billing';
+    const billing = payload?.operation === 'GetVisitBillInfoV2' ? payload.billingFallbackFrom === undefined : payload?.operation === 'GetVisitBillInfo' && payload.billingFallbackFrom === 'GetVisitBillInfoV2';
     if (!expected || !['caregiver', 'billing'].includes(expected.kind) || !payload || payload.ok !== true
-      || payload.operation !== (caregiver ? 'GetCaregiverDemographics' : 'GetVisitBillInfoV2') || payload.source !== 'hhaexchange'
+      || (caregiver ? payload.operation !== 'GetCaregiverDemographics' : !billing) || payload.source !== 'hhaexchange'
       || payload.validation !== 'source_unvalidated' || payload.timezone !== 'source_values_unconverted' || payload.truncated !== false
       || payload.interpretation !== (caregiver ? 'caregiver_profile_unvalidated' : 'billing_source_unvalidated') || !Array.isArray(payload.records) || payload.records.length !== 1
       || !['fetchedAt', 'membershipCheckedAt'].every(key => typeof payload[key] === 'string' && Number.isFinite(Date.parse(payload[key])))
@@ -134,7 +135,7 @@
       try { employmentDisciplines = JSON.parse(record.EmploymentDisciplines); } catch { throw new Error('invalid_visit_context'); }
       if (!Array.isArray(employmentDisciplines) || employmentDisciplines.length > 200 || employmentDisciplines.some(value => typeof value !== 'string')) throw new Error('invalid_visit_context');
     }
-    return { fields: Object.fromEntries(relatedFields[kind].map(key => [key, record[key] || null])), employmentDisciplines, fetchedAt: payload.fetchedAt, membershipCheckedAt: payload.membershipCheckedAt };
+    return { fields: Object.fromEntries(relatedFields[kind].map(key => [key, record[key] ?? null])), employmentDisciplines, fetchedAt: payload.fetchedAt, membershipCheckedAt: payload.membershipCheckedAt };
   }
   function normalizeCallEvents(payload, expected) {
     if (payload?.ok !== true || payload.operation !== 'GetCallDashBoardData' || payload.source !== 'hhaexchange' || payload.validation !== 'source_unvalidated'
@@ -462,7 +463,7 @@
     replace('dashboardCaregiverProfile', node('p', metadata?.panels?.caregiverProfile?.available ? 'Choose View caregiver profile to read fresh source fields and current office membership.' : 'GetCaregiverDemographics is not enabled for this source context. Review read controls in Settings.'));
     replace('dashboardBillingPipeline', sourceNote(), table(['Visit', 'Patient reference', 'Visit billed amount', 'Current billing read'], view.items.map(item => [item.id, sourceField(item, 'patientId'),
       item.state === 'unavailable' ? unavailableDetail(item) : sourceField(item, 'billedAmount'), () => relatedSourceControl('billing', view, item, relatedContext)]), 'sourceBillingTable'),
-      node('p', 'Raw GetVisitInfoV3 BilledAmount; detailed read: GetVisitBillInfoV2. Neither proves collections, adjudication, billing approval or an AR ledger.', 'source-metadata'));
+      node('p', 'Raw GetVisitInfoV3 BilledAmount; detail: GetVisitBillInfoV2, then owner-enabled GetVisitBillInfo if empty. Neither proves collections, approval or an AR ledger.', 'source-metadata'));
     replace('dashboardBillingFacts', node('p', metadata?.panels?.billingFacts?.available ? 'Choose Read billing facts for a current identity-checked source read.' : 'GetVisitBillInfoV2 is not enabled for this source context. Review read controls in Settings.'));
     renderSourcePatients(view, sourceNote());
     const coverage = node('div');
@@ -766,9 +767,9 @@
       const label = key => labels[key] || key.replace('PrimaryBillTo/', 'Primary · ').replace('SecondaryBillTo/', 'Secondary · ').replace('Contract/ID', 'Contract ID').replace('IsBilled', 'Is billed (source)').replace('BilledRate', 'Billed rate (source)').replace('BilledMinutes', 'Billed minutes (source)').replace('BilledAmount', 'Billed amount (source)');
       const caregiverId = kind === 'billing' ? checked.fields['Caregiver/ID'] : checked.fields.ID;
       const currentItem = { ...item, caregiverId: typeof caregiverId === 'string' && /^[1-9]\d{0,9}$/.test(caregiverId) && Number(caregiverId) <= 2147483647 ? caregiverId : null };
-      replace(host, node('p', `HHA ${payload.operation} · fetched ${checked.fetchedAt} · patient office checked ${checked.membershipCheckedAt}. Independent source reads; source values remain unvalidated.`, 'source-metadata'), age,
+      replace(host, node('p', `HHA ${payload.operation}${payload.billingFallbackFrom ? ' after empty GetVisitBillInfoV2' : ''} · fetched ${checked.fetchedAt} · patient office checked ${checked.membershipCheckedAt}. Independent source reads; source values remain unvalidated.`, 'source-metadata'), age,
         node('p', kind === 'caregiver' ? 'Current office membership is checked from CaregiverOffices/Office/OfficeID. This profile does not establish qualification, eligibility or availability.' : 'Visit, patient, caregiver and source visit date matched current visit evidence. Billed source fields do not establish cash received, billable approval or a complete ledger.', 'source-metadata'),
-        table(['Source field', 'Source value'], Object.entries(checked.fields).map(([key, value]) => [label(key), key === 'EmploymentDisciplines' ? checked.employmentDisciplines ? checked.employmentDisciplines.map(value => value || 'Empty source value').join(' · ') || 'No values returned' : 'Source list unavailable' : value || 'Not supplied by HHA'])), sourceRecordTools(view, currentItem, captured, active));
+        table(['Source field', 'Source value'], Object.entries(checked.fields).map(([key, value]) => [label(key), key === 'EmploymentDisciplines' ? checked.employmentDisciplines ? checked.employmentDisciplines.map(value => value || 'Empty source value').join(' · ') || 'No values returned' : 'Source list unavailable' : value === null ? 'Not supplied by HHA' : value === '' ? 'Empty source value' : value])), sourceRecordTools(view, currentItem, captured, active));
       state.clearAge = window.primetimeSourceTime.watchFetchAge(window.primetimeSourceTime.timestampInstant(checked.fetchedAt), active, value => { age.textContent = value; }, () => { age.textContent = ''; });
     } catch (error) { if (active()) replace(host, node('p', error.message === 'invalid_visit_context' ? 'The source response could not be verified. Reload the source page.' : error.message)); }
     finally { if (state.abort === request) state.abort = null; }

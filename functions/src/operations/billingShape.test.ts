@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { operationalRead } from "./reads.js";
+import { billingResponseShape } from "./billingShape.js";
 
 async function read(resultXml: string, status?: string) {
   return operationalRead({ async call(operation) { return { operation, ok: true, transportOk: true, httpStatus: 200, correlationId: "synthetic", attempts: 1, durationMs: 1, retryable: false, resultXml, ...(status ? { status } : {}) }; } }, { operation: "GetVisitBillInfoV2", id: "14" });
@@ -13,8 +14,7 @@ test("empty billing diagnostics distinguish absent, nil, versioned and encoded m
     ["<VisitBillInfo/>", "self_closed", "absent", false],
     ["<VisitBillInfoV2><ID>private-synthetic-marker</ID></VisitBillInfoV2>", "absent", "paired", false],
     ["&lt;VisitBillInfo&gt;private-synthetic-marker&lt;/VisitBillInfo&gt;", "absent", "absent", true],
-    ["<!-- <VisitBillInfo/> --><![CDATA[<VisitBillInfo/>]]>", "absent", "absent", false],
-    ["<VisitBillInfo/><VisitBillInfo/>", "multiple", "absent", false]
+    ["<!-- <VisitBillInfo/> --><![CDATA[<VisitBillInfo/>]]>", "absent", "absent", false]
   ] as const) {
     const data = await read(xml, "Success"), shape = Reflect.get(data, "billingShape");
     assert.equal(data.records.length, 0);
@@ -22,6 +22,7 @@ test("empty billing diagnostics distinguish absent, nil, versioned and encoded m
     assert.equal(JSON.stringify(shape).includes("private-synthetic-marker"), false);
   }
   assert.equal((await read("<Result/>")).billingShape?.successStatus, "implicit");
+  assert.equal(billingResponseShape('<VisitBillInfo/><VisitBillInfo/>', 'Success').expected, 'multiple');
 });
 
 test("a projected billing record receives no empty-source diagnostic and retains exact identity", async () => {

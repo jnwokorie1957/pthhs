@@ -1504,6 +1504,32 @@ async function relatedFixture(read, available = true) {
   installDashboard(app); await app.signIn(); await tick(); await tick(); return app;
 }
 const relatedButton = (app, kind) => descendants(app.element(kind === 'caregiver' ? 'dashboardStaffing' : 'dashboardBillingPipeline')).find(n => n.textContent === (kind === 'caregiver' ? 'View caregiver profile' : 'Read billing facts'));
+test('legacy billing requires explicit fallback provenance and retains the exact source scope', () => {
+  const normalize = dashboardModel().primetimeDashboardModel.normalizeVisitContext;
+  const input = { kind: 'billing', visitId: '900001', patientId: '5', officeId: '123' };
+  const payload = { ...relatedPayload(input, { 'PrimaryBillTo/BilledRate': '' }), operation: 'GetVisitBillInfo', billingFallbackFrom: 'GetVisitBillInfoV2' };
+  assert.equal(normalize(payload, input).fields['PrimaryBillTo/BilledAmount'], '0');
+  assert.equal(normalize(payload, input).fields['PrimaryBillTo/BilledRate'], '');
+  for (const change of [{ billingFallbackFrom: undefined }, { billingFallbackFrom: 'GetVisitInfoV3' }, { operation: 'GetVisitBillInfoV2' },
+    { scope: { ...payload.scope, patientId: '99' } }, { records: [{ ...payload.records[0], ID: '99' }] }]) {
+    assert.throws(() => normalize({ ...payload, ...change }, input), /invalid_visit_context/);
+  }
+});
+test('legacy billing labels its actual method and empty V2 provenance, and clears old results', async () => {
+  for (const change of ['clear', 'date', 'demo', 'session']) {
+    const app = await relatedFixture(input => response({ ...relatedPayload(input, { 'PrimaryBillTo/BilledRate': '' }), operation: 'GetVisitBillInfo', billingFallbackFrom: 'GetVisitBillInfoV2' }));
+    await clickNode(relatedButton(app, 'billing')); await tick(); await tick();
+    const host = app.element('dashboardBillingFacts');
+    assert.match(nodeText(host), /HHA GetVisitBillInfo after empty GetVisitBillInfoV2/);
+    assert.match(nodeText(host), /Billed amount \(source\) 0/);
+    assert.match(nodeText(host), /Billed rate \(source\) Empty source value/);
+    if (change === 'clear') await app.click('dashboardVisitClear');
+    if (change === 'date') { app.element('dashboardVisitDate').value = '2026-10-23'; for (const fn of app.element('dashboardVisitDate').handlers.get('change')) fn(new Event('change')); }
+    if (change === 'demo') app.window.primetimeDataMode.setMode('demo');
+    if (change === 'session') app.dispatch('primetime-signed-out');
+    await tick(); await tick(); assert.doesNotMatch(nodeText(host), /HHA GetVisitBillInfo|Billed amount \(source\) 0/);
+  }
+});
 test('caregiver employment disciplines retain a bounded string list independently of qualification', () => {
   const normalize = dashboardModel().primetimeDashboardModel.normalizeVisitContext;
   const input = { kind: 'caregiver', visitId: '900001', patientId: '5', officeId: '123', caregiverId: '6' };

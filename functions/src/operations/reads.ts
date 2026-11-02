@@ -342,7 +342,7 @@ const projections: Record<Exclude<ReadOperation, "SearchVisitsV2" | "SearchPatie
   GetReferralSourceContact: { record: "ReferralSourceContact", fields: ["ReferralSourceContactID", "ReferralSourceContactName", "Position", "Phone1", "Phone2", "EmailAddress", "OfficeHours", "IsPrimary"] },
   GetPatientAddress: { record: "Addresses", fields: ["AddressID", "Address1", "Address2", "State", "County", "City", "Zip5", "Zip4"] },
   GetPOCDutyLists: { record: "DutyLists", fields: ["DutyListId", "DutyListName", "DutyListStatus"] },
-  GetVisitBillInfo: { record: "VisitBillInfo", fields: ["ID", "VisitDate", "Patient/ID", "Caregiver/ID", "PrimaryBillTo/IsBilled", "PrimaryBillTo/BilledRate", "PrimaryBillTo/BilledMinutes", "PrimaryBillTo/BilledAmount", "SecondaryBillTo/IsBilled", "SecondaryBillTo/BilledAmount"] },
+  GetVisitBillInfo: { record: "VisitBillInfo", fields: ["PrimaryBillTo/Contract/ID", "SecondaryBillTo/Contract/ID", "ID", "VisitDate", "Patient/ID", "Caregiver/ID", "PrimaryBillTo/IsBilled", "PrimaryBillTo/BilledRate", "PrimaryBillTo/BilledMinutes", "PrimaryBillTo/BilledAmount", "SecondaryBillTo/IsBilled", "SecondaryBillTo/BilledRate", "SecondaryBillTo/BilledMinutes", "SecondaryBillTo/BilledAmount"] },
   GetVisitInfoV2: { record: "VisitInfo", fields: ["VisitType", "ScheduleDuration/ScheduleDurationHours", "ScheduleDuration/ScheduleDurationMinutes", "IsScheduleTemporary", "IsCaregiverTemporary", "BudgetNumber", "SuggestedStartTime", "SuggestedEndTime", "BilledAmount", "ID", "VisitDate", "Patient/ID", "Caregiver/ID", "ScheduleStartTime", "ScheduleEndTime", "VisitStartTime", "VisitEndTime", "EVVStartTime", "EVVEndTime", "ActualHours", "PayHours", "AdjustedHours", "TimeZone", "IsMissedVisit", "VisitAggregationStatus/Status", "Verification/VerifiedBy", "Verification/Notes", "Verification/VerifiedDate", "Verification/VerifiedTime", "Verification/SupervisorName"] },
   GetVisitPayrollInfo: { record: "VisitPayrollInfo", fields: ["ID", "VisitDate", "Caregiver/ID", "Caregiver/CaregiverCode", "PayrollAdjustmentMinutes", "Payrolldate", "RegularHours/Minutes", "RegularHours/Amount", "OTHours/Minutes", "OTHours/Amount", "HolidayHours/Minutes", "HolidayHours/Amount"] },
   SearchPhoneNumber: { record: "$result", fields: ["Patients/Patient/PatientID", "Patients/Patient/FirstName", "Patients/Patient/LastName", "Caregivers/Caregiver/CaregiverID", "Caregivers/Caregiver/FirstName", "Caregivers/Caregiver/LastName"] },
@@ -822,6 +822,16 @@ export async function operationalRead(client: Pick<HhaSoapClient, "call">, input
   } else {
     const projection = projections[input.operation];
     let bodies = projection.record === "$result" ? [response.resultXml] : extractElementBodies(response.resultXml, projection.record);
+    if (input.operation === "GetVisitBillInfo" || input.operation === "GetVisitBillInfoV2") {
+      const roots = directChildElements(response.resultXml, "VisitBillInfo");
+      if (roots.length > 1 || (!roots.length && (bodies.length || billingResponseShape(response.resultXml, response.status).expected !== "absent"))) throw new WorkflowError("billing_record_shape_unverified", 502);
+      if (roots.length === 1) {
+        const body = extractElementBody(roots[0]!, "VisitBillInfo");
+        const nil = /\s(?:[A-Za-z_][\w.-]*:)?nil\s*=\s*(["'])\s*(?:true|1)\s*\1/i.test(roots[0]!.match(/^<[^>]+>/)?.[0] ?? "");
+        if (nil && body?.trim()) throw new WorkflowError("billing_record_shape_unverified", 502);
+        bodies = nil || !body?.trim() ? [] : [body];
+      }
+    }
     // The v3.30 guide and captured WSDL disagree on this response element name.
     // Accept either observed contract shape for preview; never infer sync completion.
     if (input.operation === "GetVisitChangesV4") {
@@ -835,7 +845,7 @@ export async function operationalRead(client: Pick<HhaSoapClient, "call">, input
     }
     records = bodies.map(xml => {
       const projected = Object.fromEntries(projection.fields.map(name => [name, field(xml, name)]));
-      if (["GetVisitInfoV2", "GetVisitInfoV3", "GetVisitBillInfoV2"].includes(input.operation)) {
+      if (["GetVisitInfoV2", "GetVisitInfoV3", "GetVisitBillInfoV2", "GetVisitBillInfo"].includes(input.operation)) {
         for (const name of ["ID", "Patient/ID", "Caregiver/ID", "VisitDate"]) projected[name] = directPathScalar(xml, name);
       }
       if (input.operation === "SearchPatientAuthorizations") for (const name of ["ID", "ContractID"]) projected[name] = directScalar(xml, name);

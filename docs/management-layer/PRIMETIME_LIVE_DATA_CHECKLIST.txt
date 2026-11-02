@@ -661,6 +661,18 @@ TAB 08 - BILLING & AR
     coverage evidence if the original has facts but the successful API omits
     detail. Keep IDs/values protected; do not repeat unchanged reads or invent
     aliases/financial values. B02 remains open. See BILLING_SOURCE_SHAPE_2026-11-02.md.
+    Additional original-source comparison: restored Codex HHA session, fresh
+    patient/office proof, exact member link and October Calendar visit match.
+    Visit Info has both recorded Bill Time endpoints but one retained GPS In/
+    Success event and no rendered EVV-out text. Billing Info has populated rate
+    and unit inputs; no invoice/cash/AR inference. Verification navigation then
+    redirects to HHA login. Same-visit V2 still omits both checked record markers
+    at15:34:31.033788UTC. A separately gated legacy GetVisitBillInfo compatibility
+    read is implemented with the same identity/office/date proof and fourteen
+    fields; it runs only after verified empty V2 and separate owner enablement.
+    No permission changed. 563backend/364browser-tooling tests and unchanged
+    asset budgets pass. Normal release, activation and live source acceptance
+    remain pending. See LEGACY_BILLING_READ_READINESS_2026-11-02.md.
 [ ] B03 GetVisitInfoV3 BilledAmount is a source field, not collected cash.
     Do not invent cash collections, paid-claim stages, billing readiness or AR
     totals from visit times, billed amount, payroll hours or absent records.

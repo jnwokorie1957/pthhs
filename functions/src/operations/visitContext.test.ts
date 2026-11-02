@@ -15,7 +15,8 @@ function fixture() {
     GetVisitInfoV3: source("GetVisitInfoV3", [{ ID: "14", "Patient/ID": "13", "Caregiver/ID": "15", VisitDate: "2026-10-24" }]),
     GetPatientDemographics: source("GetPatientDemographics", [{ PatientID: "13", OfficeID: "12" }]),
     GetCaregiverDemographics: source("GetCaregiverDemographics", [{ ID: "15", FirstName: "Synthetic", OfficeIDs: '["12","99"]' }]),
-    GetVisitBillInfoV2: source("GetVisitBillInfoV2", [{ ID: "14", "Patient/ID": "13", "Caregiver/ID": "15", VisitDate: "2026-10-24", "PrimaryBillTo/BilledAmount": "0", "SecondaryBillTo/BilledMinutes": null }])
+    GetVisitBillInfoV2: source("GetVisitBillInfoV2", [{ ID: "14", "Patient/ID": "13", "Caregiver/ID": "15", VisitDate: "2026-10-24", "PrimaryBillTo/BilledAmount": "0", "SecondaryBillTo/BilledMinutes": null }]),
+    GetVisitBillInfo: source("GetVisitBillInfo", [{ ID: "14", "Patient/ID": "13", "Caregiver/ID": "15", VisitDate: "2026-10-24", "PrimaryBillTo/BilledAmount": "0" }])
   };
   const calls: ReadInput[] = [];
   const workspace = {
@@ -134,5 +135,60 @@ test("empty billing diagnostics contain fixed categories only after the final po
     let emitted = 0;
     await assert.rejects(visitContextRead(stopped.workspace, mode === "caregiver" ? caregiverQuery : billingQuery, "actor", () => { emitted++; }));
     assert.equal(emitted, 0);
+  }
+});
+
+test("owner-enabled legacy billing is attempted once only after an empty verified V2 result", async () => {
+  const f = fixture(); f.state.enabledReads.push("GetVisitBillInfo"); f.rows.GetVisitBillInfoV2.records = [];
+  const data = await visitContextRead(f.workspace, billingQuery, "actor", () => {});
+  assert.equal(data.operation, "GetVisitBillInfo");
+  assert.equal(Reflect.get(data, "billingFallbackFrom"), "GetVisitBillInfoV2");
+  assert.equal(data.records[0]?.["PrimaryBillTo/BilledAmount"], "0");
+  assert.deepEqual(f.calls.map(c => c.operation), ["GetVisitInfoV3", "GetPatientDemographics", "GetVisitBillInfoV2", "GetVisitBillInfo"]);
+  const primary = fixture(); primary.state.enabledReads.push("GetVisitBillInfo");
+  assert.equal((await primary.read(billingQuery)).operation, "GetVisitBillInfoV2"); assert.equal(primary.calls.length, 3);
+  const disabled = fixture(); disabled.rows.GetVisitBillInfoV2.records = [];
+  await assert.rejects(visitContextRead(disabled.workspace, billingQuery, "actor", () => {}), /visit_context_source_empty/);
+  assert.equal(disabled.calls.length, 3);
+  const failed = fixture(); failed.state.enabledReads.push("GetVisitBillInfo");
+  const original = failed.workspace.query.bind(failed.workspace);
+  failed.workspace.query = async (input, actor) => { if ((input as ReadInput).operation === "GetVisitBillInfoV2") throw Error("synthetic_source_failure"); return original(input, actor); };
+  await assert.rejects(failed.read(billingQuery), /synthetic_source_failure/);
+  assert.equal(failed.calls.some(c => c.operation === "GetVisitBillInfo"), false);
+});
+
+test("legacy billing cannot rescue an unverified primary or escape final identity and policy proof", async () => {
+  for (const mode of ["primary-truncated", "primary-operation", "primary-identity", "primary-policy", "legacy-identity", "legacy-date", "legacy-caregiver", "legacy-empty", "legacy-truncated", "legacy-operation", "legacy-policy", "legacy-withdraw"] as const) {
+    const f = fixture(); f.state.enabledReads.push("GetVisitBillInfo"); f.rows.GetVisitBillInfoV2.records = [];
+    if (mode === "primary-truncated") f.rows.GetVisitBillInfoV2.truncated = true;
+    if (mode === "primary-operation") f.rows.GetVisitBillInfoV2.operation = "GetVisitInfoV3";
+    if (mode === "primary-identity") f.rows.GetVisitBillInfoV2.records = [{ ID: "99" }];
+    if (mode === "primary-policy") f.state.changeAt = 3;
+    if (mode === "legacy-identity") f.rows.GetVisitBillInfo.records[0]!.ID = "99";
+    if (mode === "legacy-date") f.rows.GetVisitBillInfo.records[0]!.VisitDate = "2026-10-23";
+    if (mode === "legacy-caregiver") f.rows.GetVisitBillInfo.records[0]!["Caregiver/ID"] = "99";
+    if (mode === "legacy-empty") f.rows.GetVisitBillInfo.records = [];
+    if (mode === "legacy-truncated") f.rows.GetVisitBillInfo.truncated = true;
+    if (mode === "legacy-operation") f.rows.GetVisitBillInfo.operation = "GetVisitBillInfoV2";
+    if (mode === "legacy-policy") f.state.changeAt = 4;
+    if (mode === "legacy-withdraw") f.state.withdrawAt = 4;
+    await assert.rejects(visitContextRead(f.workspace, billingQuery, "actor", () => {}));
+    assert.equal(f.calls.length, mode.startsWith("primary-") ? 3 : 4, mode);
+  }
+});
+
+test("legacy billing identity fields require unique direct paths too", async () => {
+  const data = await operationalRead({ async call(operation) { return { operation, ok: true, transportOk: true, httpStatus: 200, correlationId: "synthetic", attempts: 1, durationMs: 1, retryable: false,
+    resultXml: '<VisitBillInfo><Other><ID>14</ID></Other><Patient><Other><ID>13</ID></Other></Patient><Caregiver><ID>15</ID><ID>16</ID></Caregiver><VisitDate>2026-10-24</VisitDate><VisitDate>2026-10-23</VisitDate></VisitBillInfo>' }; } }, { operation: "GetVisitBillInfo", id: "14" });
+  for (const key of ["ID", "Patient/ID", "Caregiver/ID", "VisitDate"]) assert.equal(data.records[0]?.[key], null, key);
+});
+
+test("billing record roots cannot borrow nested, nil or ambiguous source identities", async () => {
+  const valid = '<VisitBillInfo><ID>14</ID><Patient><ID>13</ID></Patient></VisitBillInfo>';
+  for (const operation of ["GetVisitBillInfoV2", "GetVisitBillInfo"] as const) {
+    const read = (xml: string) => operationalRead({ async call() { return { operation, ok: true, transportOk: true, httpStatus: 200, correlationId: "synthetic", attempts: 1, durationMs: 1, retryable: false, resultXml: xml }; } }, { operation, id: "14" });
+    for (const xml of [`<Other>${valid}</Other>`, valid + '<VisitBillInfo/>', valid.replace('<VisitBillInfo>', '<VisitBillInfo xsi:nil="true">'), '<VisitBillInfo><ID>14</ID>']) await assert.rejects(read(xml), /billing_record_shape_unverified/);
+    for (const xml of ['', '<VisitBillInfo/>', '<VisitBillInfo xsi:nil="true"/>', '<VisitBillInfo></VisitBillInfo>']) assert.equal((await read(xml || '<Result Status="Success"/>')).records.length, 0);
+    assert.equal((await read(valid)).records[0]?.ID, "14");
   }
 });

@@ -24,12 +24,19 @@ export async function visitContextRead(workspace: Workspace, value: unknown, act
   const operation = kind === "caregiver" ? "GetCaregiverDemographics" : "GetVisitBillInfoV2";
   const { visit, patient, scope, checkScope } = await checkedVisitPatient(workspace, { visitId: input.visitId, patientId: input.patientId, officeId: input.officeId }, actor, [operation]);
   if (expectedCaregiver !== null && visit.records[0]?.["Caregiver/ID"] !== expectedCaregiver) throw new WorkflowError("visit_caregiver_changed_restart", 409);
-  const data = await workspace.query({ operation, id: kind === "caregiver" ? expectedCaregiver! : scope.visitId }, actor);
+  let data = await workspace.query({ operation, id: kind === "caregiver" ? expectedCaregiver! : scope.visitId }, actor);
   if (data.operation !== operation || data.source !== "hhaexchange" || data.truncated) throw new WorkflowError("visit_context_source_not_unique", 409);
   if (data.records.length === 0) {
     await checkScope();
     if (kind === "billing") try { diagnose(safeBillingShape(data.billingShape)); } catch { /* Diagnostics never replace the refusal. */ }
-    throw new WorkflowError("visit_context_source_empty", 409);
+    // The legacy contract has the same identity/billing paths. It is a separate
+    // owner-controlled read, never an automatic retry after errors or bad proof.
+    if (kind === "billing" && (await workspace.settings()).settings.enabledReads.includes("GetVisitBillInfo")) {
+      await checkScope();
+      data = await workspace.query({ operation: "GetVisitBillInfo", id: scope.visitId }, actor);
+      if (data.operation !== "GetVisitBillInfo" || data.source !== "hhaexchange" || data.truncated) throw new WorkflowError("visit_context_source_not_unique", 409);
+    }
+    if (data.records.length === 0) throw new WorkflowError("visit_context_source_empty", 409);
   }
   if (data.records.length !== 1) throw new WorkflowError("visit_context_source_not_unique", 409);
   const record = data.records[0]!;
@@ -44,7 +51,7 @@ export async function visitContextRead(workspace: Workspace, value: unknown, act
       || record["Caregiver/ID"] !== visit.records[0]?.["Caregiver/ID"]) throw new WorkflowError("billing_source_changed_restart", 409);
   }
   await checkScope();
-  return { ...data, scope: { ...scope, ...(expectedCaregiver ? { caregiverId: expectedCaregiver } : {}) }, membershipCheckedAt: patient.fetchedAt,
+  return { ...data, ...(data.operation === "GetVisitBillInfo" ? { billingFallbackFrom: "GetVisitBillInfoV2" as const } : {}), scope: { ...scope, ...(expectedCaregiver ? { caregiverId: expectedCaregiver } : {}) }, membershipCheckedAt: patient.fetchedAt,
     interpretation: kind === "caregiver" ? "caregiver_profile_unvalidated" as const : "billing_source_unvalidated" as const };
 }
 
