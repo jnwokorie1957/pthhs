@@ -2000,3 +2000,27 @@ Primary technique rechecked November 3: W3C ARIA22, brief role=status feedback
 separate from complete result content. Not a demonstrated privacy defect or a
 screen-reader/full-WCAG result. No new owner decision or duplicate source retry.
 https://www.w3.org/WAI/WCAG22/Techniques/aria/ARIA22
+
+EXACT GENERIC READ RECEIPTS — NOVEMBER 3, 18:51 UTC IMPLEMENTATION
+
+Runtime acf7e6d preserves the full validated fetchedAt string in Advanced tools
+instead of a locale display that loses offset/milliseconds. Missing/malformed/
+timezone-ambiguous receipts remain Unavailable; source fields, truncation cautions,
+request/context fences and permissions remain. This implements the existing
+independent-receipt requirement for administrator source reads, not new external
+patient/PT roles. Future permitted schedules, caseloads/documents and office
+authorization/EVV/billing links still need their own receipts separately from
+clinical event time, last-modified time, document completion or action authority.
+
+Both new regressions fail before/pass after; 392 frontend/tooling/25 site checks and
+original asset caps pass. Normal workflow 41700783544 succeeds in all three jobs; twelve
+exact assets/eleven anonymous boundaries pass. Native same-visit GetVisitInfoV3
+read after release shows the full 2026-11-03T19:15:11.855Z receipt and exact identities/four
+clocks/both raw hour fields matching the current Preview; clocks also match the
+held pre-release comparison. Live Overview/office-today feed restored and selected
+ID/result/private buffers cleared. Source end/hour availability on two current
+rows was already present before this receipt change, not recovered by its code.
+No completed/verified/payable/billable state, older-cohort recovery or original
+device event join accepted. P03/E04/B02 and membership/assignment/form-version/
+sharing/reviewer/action dependencies remain open. No grant, source write/import,
+clinical/financial decision or communication. See SOURCE_READ_RECEIPTS_2026-11-03.md.

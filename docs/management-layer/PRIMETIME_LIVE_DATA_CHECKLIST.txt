@@ -50,6 +50,17 @@ TAB 01 - OVERVIEW
     office proof; server refreshes the bounded first page each minute. Live read
     receipts, schedules, actual/EVV fields, six field-presence charts and paging
     are connected. Counts describe the page, not an office census.
+    November3 18:51UTC follow-up: automatic receipt18:59:03.066UTC has ten readable
+    details, zero unavailable; Preview/chart counts10/10/6/2/6/2 agree. Two rows
+    supply all four clocks and both raw HHA hour values; eight hour pairs remain
+    explicit-empty, zero unknown labels. One newly populated exact visit is held
+    at19:00:04.407UTC and independently read through approved GetVisitInfoV3;
+    visit/patient/caregiver/day, four clocks and both raw hour fields all match.
+    Post-release19:15UTC comparison matches again with a full read receipt.
+    Availability preceded the receipt-format fix; no older-cohort recovery,
+    completed/verified/financial state or device-event join is established.
+    Original screenshot remains resolved; remaining P03/E04 gaps stay open.
+    SOURCE_READ_RECEIPTS_2026-11-03.md records exact scope/limits.
     November 3 12:19 UTC current-day observation, using the existing automatic
     feed without a manual source read: ten readable details, zero unavailable.
     GetVisitInfoV3/VisitInfo VisitStartTime and EVVStartTime are now supplied on
@@ -80,6 +91,16 @@ TAB 01 - OVERVIEW
     call read repeated. Runtime/source grants unchanged; no new owner action.
 [ ] O02 Audit all page and source-failure messages and make retry guidance match
     the actual error, retry seconds and current selected date.
+    November3 generic receipt correction acf7e6d: local display formatting had
+    discarded UTC/offset and milliseconds. Exact validated fetchedAt now remains
+    visible; missing/malformed/unzoned receipts say Fetched Unavailable without
+    discarding fields or partial-result cautions. Two regressions fail before/
+    pass after,392frontend/tooling/25site checks and unchanged budgets pass.
+    Workflow41700783544 all3 jobs pass19:11:20/19:11:46/19:13:03UTC; twelve exact
+    deployed assets/eleven anonymous boundaries pass. Native exact visit reread
+    shows full19:15:11.855UTC receipt and matching clocks/hours; Overview/Live/
+    automatic feed restored19:16:21UTC with selected result/ID cleared. No HHA
+    clock/hour mapping or new grant; broader O02/native/AT matrices stay open.
     November 3 07:41 UTC extension: d411b27 adds stable concise staff-profile and
     billing status siblings; full fields/receipts remain ordinary result tables.
     Normal workflow 41600294604 all 3 jobs pass 08:02:42/08:02:57/08:04:31 UTC.

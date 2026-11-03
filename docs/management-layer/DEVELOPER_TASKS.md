@@ -1,5 +1,15 @@
 # PTHHS Management Layer — Developer Checklist
 
+- [x] November3 exact generic read receipts: acf7e6d retains validated fetchedAt
+  offsets/milliseconds and labels missing/ambiguous receipts Unavailable. Two
+  fail-before regressions,392 frontend/tooling and25 site checks pass within
+  original asset caps. All3 normal release jobs,12exact assets and11anonymous
+  boundaries pass. Native same-visit V3 identities/four clocks/both raw hours
+  match Preview; full UTC receipt retained. Live feed restored and private
+  buffers cleared. Current-day end/hour availability preceded this display fix;
+  historical P03/E04 and interpretation remain open. No new source grant/write.
+  See [scope and evidence](SOURCE_READ_RECEIPTS_2026-11-03.md).
+
 - [x] November 3 staff/billing read-status extension: runtime d411b27 uses brief
   sibling status messages while preserving ordinary source tables and receipts.
   All 390 frontend/tooling tests, 25 site checks, all 3 normal release jobs,
