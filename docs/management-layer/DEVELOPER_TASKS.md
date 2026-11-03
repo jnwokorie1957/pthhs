@@ -1,5 +1,15 @@
 # PTHHS Management Layer — Developer Checklist
 
+- [ ] November3 research follow-up: availability primary-office governance must
+  not be inferred from caregiver OfficeIDs or a foreign SOAP row. Preserve the
+  current exact-office refusal while the other goal completes its bounded sample
+  verification. Vendor Carematch product capabilities and differing mobile
+  offline feature lists do not establish this tenant's entitlement/app/API scope.
+  Future staff/patient links retain separate preference, assignment, appointment,
+  note-author/time and document-action evidence. No new urgent owner question or
+  runtime change. See the dated 03:38UTC section in
+  [role research](ROLE_WORKFLOW_RESEARCH.txt).
+
 - [x] November3 source-read status acceptance: runtime84c26e5 separates concise
   patient-profile and call-event messages from full result tables. All387
   frontend/tooling tests,25site checks and1,722parsed attribute comparisons pass;

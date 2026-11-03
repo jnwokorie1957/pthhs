@@ -1737,3 +1737,128 @@ compaction funds the change without raising budgets; parsed HTML confirms all
 See SOURCE_READ_STATUS_2026-11-03.md for release times and exact acceptance.
 Other goal retains document-file comparison, pending care-plan and caregiver-read
 decisions. No grants, source writes, imports, clock/hour fallback or communications.
+
+
+MULTI-OFFICE AVAILABILITY / MOBILE PRODUCT CONTEXT — NOVEMBER 3, 03:38 UTC TRIGGER
+Research-only delta against82f003f; primary pages retrieved03:39–03:40UTC.
+No fresh tenant HHA UI observation or source-data query is claimed. The working
+HHA file tab is still awaiting its existing same-profile connector handoff.
+
+OBSERVED IMPLEMENTATION AND IMPLEMENTATION EVIDENCE
+Caregiver availability readiness9138161 remains the other goal's work. Source
+caregiverAvailability.ts requires configured-office membership before/after the
+read and exact caregiver/office identities on every returned row. Its raw weekly
+and special fields remain unvalidated strings; foreign offices refuse instead of
+becoming empty success. GetCaregiverDemographics exposes OfficeIDs and discipline
+strings but does not project the Office/IsPrimary marker. Membership therefore
+cannot identify the office controlling an availability preference or grant edit
+rights. No new grant, source query, interpretation or staffing match is made here.
+The latest R75 status change84c26e5 is already released and accepted within its
+recorded limits; this research does not propose rebuilding it.
+
+CURRENT PRIMARY-SOURCE FINDINGS
+[R77] says primary-office settings govern the vendor Availability tab. Editing
+requires its distinct permission; weekly, maximum-visit and special preferences
+can influence availability searches across a caregiver's offices. This documents
+UI behavior, not the meaning of SOAP row OfficeID, the agency's configuration,
+a tenant entitlement, a qualified PT assignment or permission to edit in Primetime.
+
+[R78], the October2026 vendor release, describes embedded Carematch shift actions
+and synchronization for agencies using that product. It also adds author/date/time
+presentation to mobile visit notes. This is vendor product capability, not proof
+of this tenant's subscription, a documented SOAP action/event schema or enabled
+Primetime booking/note/signature workflow. No medication, activation-code sending,
+financial routing or clinical write capability is adopted from the release.
+
+PRODUCT-SPECIFIC OFFLINE DISTINCTION
+Rechecked [R15] HHAeXchange+ guidance includes patient-note and existing-patient
+functions among its offline capabilities. [R79], a different caregiver mobile
+page, excludes Notes and Patients and describes agency-configured visit syncing.
+Both discuss offline operation and later synchronization; do not combine their
+feature lists into one product contract or infer which app/version this tenant
+uses. Neither document establishes a Primetime offline queue or proves that a
+missing API clock is an unsynchronized device event. Source API fetch time,
+mobile device event time and source synchronization time remain separate facts.
+
+PROPOSED PATIENT / FAMILY EXPERIENCE — NOT ENABLED ROLE
+Continue a named office-date schedule and permitted patient/document links. A
+staff preference or shift-interest request must not appear as a confirmed patient
+appointment. Any later assigned-staff link must use the exact authorized visit
+and family-sharing policy; it must not expose cross-office staff preferences.
+If offline display is ever approved, name its saved date/coverage and provide
+explicit reconnect/refresh state. Do not call cached appointments live or imply
+an unavailable document has been reviewed. Sharing/retrieval and clinical review
+retain separate current permissions and receipts. Existing family membership and
+document-sharing contracts are prerequisites, not supplied by admin access.
+
+PROPOSED PT / STAFF EXPERIENCE — NOT ENABLED ROLE
+Keep My day/caseload, work preferences and encounter documentation distinct.
+Display the applicable office/date and source receipts separately from raw weekly
+or special preferences. Do not add Available/Eligible/Confirmed badges from these
+strings. Exact account, effective assignment, verified discipline and encounter/
+plan/form version still determine permitted record links and document actions.
+A future shift-interest/request/accept/decline history needs distinct authenticated
+actor, immutable target and source transition evidence; interest cannot silently
+assign a clinician or retarget an open document. Source note author/event time,
+source-read time and local request actor/time need different labels. Do not fill
+missing author/time from a profile identity, session user or fetch receipt.
+Clinical draft/save/submit/review/sign and amendment retain their own contracts.
+
+PROPOSED OFFICE MANAGER CONNECTIONS / DEPENDENCIES
+P0: retain the current availability boundary and existing pending read decision.
+During its already planned authorized sample validation, distinguish a same-office
+sample from a multi-office sample and preserve precise refusal versus successful
+empty evidence. Primary-office governance in [R77] is an investigation dependency,
+not justification to accept any office row. If the API returns a controlling-
+office row for another selected office, retain refusal; prove exact caregiver,
+current membership, primary-office authority and documented row scope before a
+separately reviewed server contract could support it. Do not silently filter,
+substitute offices, infer the primary office from list order or broaden grants.
+
+P1: after source acceptance, propose an on-demand raw-preference section linked
+from the exact caregiver profile, with separate receipts for weekly and special
+reads. Show period strings, unknown/empty values and truncation honestly. Keep
+availability separate from complete schedules, max-visit policy, discipline,
+patient preferences/restrictions, authorization, EVV and billing follow-up. Do
+not copy Carematch booking buttons until actual product entitlement, supported
+integration/event identities and existing action authority have been proved.
+A vendor release note is not an API implementation or owner approval.
+
+P2: offline role design requires the exact app/product version, enabled office
+configuration, actor/device identity, record/version scope and approved storage/
+synchronization policy. Define pending, acknowledged, conflicted and refused
+transitions before any offline clinical or clock submission. Current read-only
+Primetime source pages do not satisfy those dependencies. No offline record,
+credential/PIN store, new notification or source mutation is created here.
+
+ACCEPTANCE CRITERIA / PRECISE FOLLOW-UP
+- Preserve actual primary/secondary office distinctions without exposing unrelated
+  office/staff records. Foreign rows must remain refusal until a supported scoped
+  contract is accepted; failed membership cannot be reported as zero preferences.
+- Test overlapping special/weekly periods and omitted/nil/empty/zero strings as
+  raw evidence. Precedence, cross-midnight interpretation, total hours and staff
+  matching remain unknown until independently validated; no automatic conversion.
+- A changed office, reassignment, disabled read, sign-out or Demo switch clears
+  the context and fences late responses. Preserve initiating focus and receipts.
+- Keep shift-interest, source assignment, patient-facing appointment, authorization,
+  recorded actual/EVV fields, clinical documentation and billing evidence separate.
+  One transition must not claim another without its own accepted source proof.
+- Verify app-specific offline availability and note-author/time paths using the
+  existing representative acceptance process before promising them in role UI.
+  No native mobile, actual therapist-role or offline reconciliation accepted here.
+- Existing next owner actions remain the pending care-plan decision and same-
+  profile working-file handoff; caregiver native readiness/read decision remains
+  owned by the other goal. This research creates no new urgent approval request.
+
+PRIMARY SOURCES — RETRIEVED NOVEMBER 3, 2026, 03:39–03:40 UTC
+[R77] HHAeXchange, Caregiver Availability Page. Primary-office governance and
+availability edit permission; not a SOAP OfficeID or eligibility contract.
+https://knowledge.hhaexchange.com/enterprise/Content/Documentation/Caregiver/CG-N-Caregiver-Availability-Page-P.htm
+[R78] HHAeXchange, What's New: October2026. Product-conditional Carematch workflow
+and mobile visit-note provenance; tenant enablement and API mappings unverified.
+https://knowledge.hhaexchange.com/enterprise/Content/Release-Notes/New-UI/RN-N-Release-Notes-26.10.01.htm
+[R15] rechecked: HHAeXchange+ Mobile App Offline Mode. Keep its product context.
+https://knowledge.hhaexchange.com/enterprise/Content/Documentation/Mobile/Mobi-CG-UW-Offline-Mode-P.htm
+[R79] HHAeXchange, Mobile Offline Mode (caregiver documentation). Its feature list
+is different from [R15]; tenant app/configuration has not been observed here.
+https://knowledge.hhaexchange.com/caregiver/Content/Documentation/Mobile/Mobi-CG-Offline-Mode-P.htm
