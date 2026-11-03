@@ -1,5 +1,15 @@
 # PTHHS Management Layer — Developer Checklist
 
+- [x] November3 source-read status acceptance: runtime84c26e5 separates concise
+  patient-profile and call-event messages from full result tables. All387
+  frontend/tooling tests,25site checks and1,722parsed attribute comparisons pass;
+  original asset limits preserved. All3normal release jobs/12exact production
+  assets/11anonymous boundaries pass. Native patient loading/success preserves
+  table/receipt/controls/focus; Demo clears and office-today live feed restored.
+  Call outcomes/races are synthetic; actual assistive technology remains open.
+  No HHA time recovery or permission change. O02's wider matrix stays open. See
+  [scope and evidence](SOURCE_READ_STATUS_2026-11-03.md).
+
 - [x] November3 caregiver availability implementation: strict weekly/special
   projection and exact caregiver/office public boundary; fresh membership before
   and after, settings/release fences and elapsed budget. Five fail-before source/

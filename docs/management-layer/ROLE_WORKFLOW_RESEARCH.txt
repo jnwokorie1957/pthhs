@@ -1718,3 +1718,22 @@ https://www.w3.org/WAI/WCAG22/Understanding/pause-stop-hide.html
 https://www.w3.org/WAI/WCAG22/Understanding/status-messages.html
 [R76] W3C WAI-ARIA APG, Date Picker Dialog Example.
 https://www.w3.org/WAI/ARIA/apg/patterns/dialog-modal/examples/datepicker-dialog/
+
+
+IMPLEMENTATION EVIDENCE — NOVEMBER 3, 2026, SOURCE-READ STATUS
+Runtime84c26e5 applies the bounded R75 candidate: stable concise patient-profile
+and raw-call status siblings, with ordinary result tables and unchanged source
+controls. All3normal workflow41572326447 jobs pass; twelve exact production
+assets and eleven anonymous boundaries pass.387frontend/tooling/25site checks
+pass, including new synthetic focus/request-count/call outcome/context-race cases.
+Signed-in production patient loading/success preserves its source table, receipt,
+record controls and initiating focus. Demo clears patient data/status; call pane
+shows only paused guidance, no table. Live office-today automatic feed restored.
+Native call outcome/race variants and actual screen-reader/mobile AT acceptance
+remain open; no full WCAG, clinical-role or recovered-time claim. A cleared-panel
+screenshot attempt timed out; no private image saved. Safe static attribute
+compaction funds the change without raising budgets; parsed HTML confirms all
+1,722attribute values unchanged, apart from intentional version-hash updates.
+See SOURCE_READ_STATUS_2026-11-03.md for release times and exact acceptance.
+Other goal retains document-file comparison, pending care-plan and caregiver-read
+decisions. No grants, source writes, imports, clock/hour fallback or communications.

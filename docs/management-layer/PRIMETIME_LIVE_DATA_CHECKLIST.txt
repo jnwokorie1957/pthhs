@@ -52,6 +52,17 @@ TAB 01 - OVERVIEW
     are connected. Counts describe the page, not an office census.
 [ ] O02 Audit all page and source-failure messages and make retry guidance match
     the actual error, retry seconds and current selected date.
+    November3 bounded status improvement:84c26e5 separates concise patient/call
+    messages from source result tables. All3normal workflow41572326447 jobs pass;
+    12exact assets/11anonymous boundaries,387frontend/tooling and25site checks pass.
+    Signed-in patient loading/success retains source table, timestamp, membership
+    receipt, record controls and button focus. Demo clears the profile; call area
+    has paused guidance/no table. Live office-today feed restored03:32:19.972UTC.
+    Synthetic call populated/empty/refusal and six late-response clear/Demo/signout
+    combinations pass. No new native call acceptance, AT/WCAG certification or
+    recovered time fields. HTML quote compaction preserves1,722attribute values;
+    416962raw/101992gzip within unchanged limits. Screenshot capture timed out;
+    no private image saved. SOURCE_READ_STATUS_2026-11-03.md records exact scope.
     October31 deferred-detail recovery: a time/read limit could leave unavailable
     rows behind while Next source page advanced beyond them. The new separate
     retry cursor starts at the first transiently failed/deferred detail, including
