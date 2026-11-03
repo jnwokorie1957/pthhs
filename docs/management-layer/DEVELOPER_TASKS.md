@@ -1,5 +1,16 @@
 # PTHHS Management Layer — Developer Checklist
 
+- [x] November 3 staff/billing read-status extension: runtime d411b27 uses brief
+  sibling status messages while preserving ordinary source tables and receipts.
+  All 390 frontend/tooling tests, 25 site checks, all 3 normal release jobs,
+  twelve exact deployed assets and eleven anonymous boundaries pass. Native
+  staff loading/success and source-empty billing retain focus; Demo clears,
+  office-today Live feed restored. Provenance-comment whitespace funds the
+  markup within original asset caps; seven other script bodies unchanged.
+  Actual AT, populated billing and native refusal/race variants remain open;
+  O02 is partial. No missing time, billing fact or new permission accepted. See
+  [scope and evidence](STAFF_BILLING_READ_STATUS_2026-11-03.md).
+
 - [ ] November3 time-source follow-up: fresh October23/24/current-day first pages
   distinguish explicit empty hours from unknown/failed detail reads. A new
   current-day guarded call read refuses subject proof; exact displayed identities

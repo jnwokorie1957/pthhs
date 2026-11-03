@@ -1969,3 +1969,34 @@ configuration and separate transactions; no source reconstruction authorized.
 https://knowledge.hhaexchange.com/texas/Content/Documentation/Admin/Admin-N-Automatic-Splitting-Overnight-Shifts-P.htm
 [R24] rechecked: Prebilling Hold: Schedule Visit Start Date Mismatch.
 https://knowledge.hhaexchange.com/texas/Content/Documentation/Billing/Bill-N-Prebilling-Schedule-Visit-Start-Date-Mismatch.htm
+
+NOVEMBER 3, 2026, 07:41 UTC IMPLEMENTATION — R75 STAFF/BILLING STATUS EXTENSION
+
+Observed implementation d411b27 extends the accepted patient/call pattern to
+staff-profile and billing reads. Stable role=status/aria-live=polite paragraphs
+carry concise progress/outcome text; complete returned fields/source receipts
+and record controls remain ordinary sibling tables. No focus move, extra request,
+new read grant, mapping or clinical/financial interpretation. This supports the
+office manager's exact visit->staff/billing navigation; it does not open patient
+or therapist permissions or establish staff availability/qualification.
+
+Acceptance: 390 frontend/tooling tests and 25site checks pass; both source kinds
+cover success/empty/refusal/quota/cooldown and ten late clear/date/Demo/office/
+session cases. Normal workflow 41600294604 all 3 jobs pass; twelve exact assets and
+eleven anonymous boundaries pass. Native 08:08-08:10 UTC: one staff loading/success
+retains eight field rows, source/fetch/office receipts, seven controls and button
+focus; one billing loading/source-empty outcome retains its no-zero-balance
+caution and focus. Demo clears both; Live Overview/office-today automatic feed
+restored. This is empty billing presentation acceptance, not usable billing facts.
+
+Existing asset caps retained through provenance-comment whitespace only;
+seven other script bodies unchanged. Source/generated 1,724 attribute values match.
+Actual screen-reader/mobile AT, native populated billing/refusal/race variants,
+external-role assignment/sharing, source-time and financial contracts remain
+open. Status-only screenshot attempt timed out, no image saved. O02 stays partial.
+See STAFF_BILLING_READ_STATUS_2026-11-03.md for exact scope and output evidence.
+
+Primary technique rechecked November 3: W3C ARIA22, brief role=status feedback
+separate from complete result content. Not a demonstrated privacy defect or a
+screen-reader/full-WCAG result. No new owner decision or duplicate source retry.
+https://www.w3.org/WAI/WCAG22/Techniques/aria/ARIA22

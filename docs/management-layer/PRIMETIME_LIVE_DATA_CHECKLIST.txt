@@ -62,6 +62,22 @@ TAB 01 - OVERVIEW
     call read repeated. Runtime/source grants unchanged; no new owner action.
 [ ] O02 Audit all page and source-failure messages and make retry guidance match
     the actual error, retry seconds and current selected date.
+    November 3 07:41 UTC extension: d411b27 adds stable concise staff-profile and
+    billing status siblings; full fields/receipts remain ordinary result tables.
+    Normal workflow 41600294604 all 3 jobs pass 08:02:42/08:02:57/08:04:31 UTC.
+    Twelve exact assets/eleven anonymous boundaries,390 frontend/tooling and 25
+    site checks pass. Native 08:08-08:10 UTC staff loading/success retains eight
+    field rows, fetch/office receipts, seven controls and initiating focus.
+    One billing read returns source-empty with no invented table/zero balance;
+    caution and focus retained. Demo clears both messages/tables; Live Overview,
+    following office today November 3 and connected automatic feed restored.
+    Both source kinds' synthetic empty/refusal/quota/cooldown and ten late clear/
+    date/Demo/office/session cases pass. Native populated billing, refusal/race
+    variants and actual AT remain open. No missing time or billing fact recovered.
+    Generated comment whitespace only changes seven other script prefixes;
+    parsed HTML 1,724 attributes equal,417061 raw / 101987 gzip within original caps.
+    Status-only screenshot timed out; no image saved. Exact scope/evidence:
+    STAFF_BILLING_READ_STATUS_2026-11-03.md. No extra automatic read/new grant.
     November3 bounded status improvement:84c26e5 separates concise patient/call
     messages from source result tables. All3normal workflow41572326447 jobs pass;
     12exact assets/11anonymous boundaries,387frontend/tooling and25site checks pass.
