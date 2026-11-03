@@ -3829,3 +3829,73 @@ test('source status clears with its records and cannot be restored by a late pat
     assert.doesNotMatch(nodeText(app.element(host)),/Synthetic profile|TYPE_FROM_SOURCE/);
   }
 });
+
+test('staff and billing statuses report read progress and success without announcing source fields or moving focus', async () => {
+  for (const kind of ['caregiver', 'billing']) {
+    const pending = deferred(); let scope;
+    const app = await relatedFixture(input => { scope = input; return pending.promise; });
+    const host = kind === 'caregiver' ? 'dashboardCaregiverProfile' : 'dashboardBillingFacts';
+    const control = relatedButton(app, kind); control.focus(); await clickNode(control); await tick();
+    assert.match(app.element(host + 'Status').textContent, /Reading current source/);
+    pending.resolve(response(relatedPayload(scope))); await tick(); await tick();
+    const status = app.element(host + 'Status').textContent;
+    assert.match(status, /Source record returned/);
+    assert.doesNotMatch(status, /Synthetic caregiver|900001|Billed amount|2026-10-24/);
+    assert.match(nodeText(app.element(host)), kind === 'caregiver' ? /Synthetic caregiver/ : /Billed amount \(source\) 0/);
+    assert.match(nodeText(app.element(host)), /HHA Get.*fetched.*patient office checked/);
+    assert.ok(descendants(app.element(host)).some(n => n.textContent === 'Open visit read'));
+    assert.equal(app.document.activeElement, control);
+    assert.equal(app.calls.filter(c => c.path.endsWith('/workspace/visit-context')).length, 1);
+    const html = readFileSync(new URL('../source/primetime/index.html', import.meta.url), 'utf8');
+    assert.match(html, new RegExp('<p[^>]*id="' + host + 'Status"[^>]*role="status"[^>]*aria-live="polite"'));
+    const container = html.match(new RegExp('<div[^>]*id="' + host + '"[^>]*>'))?.[0];
+    assert.ok(container); assert.doesNotMatch(container, /role="status"|aria-live/);
+  }
+});
+
+test('staff and billing statuses distinguish empty source, identity refusal and cooldown after replacing old facts', async () => {
+  for (const kind of ['caregiver', 'billing']) for (const outcome of ['empty', 'refusal', 'quota']) {
+    const pending = deferred(); let first = true;
+    const app = await relatedFixture(input => { if (first) { first = false; return response(relatedPayload(input)); } return pending.promise; });
+    const host = kind === 'caregiver' ? 'dashboardCaregiverProfile' : 'dashboardBillingFacts';
+    const control = relatedButton(app, kind); await clickNode(control); await tick(); await tick();
+    assert.ok(descendants(app.element(host)).some(n => n.tagName === 'TABLE'));
+    control.focus(); await clickNode(control); await tick();
+    assert.match(app.element(host + 'Status').textContent, /Reading current source/);
+    assert.ok(!descendants(app.element(host)).some(n => n.tagName === 'TABLE'));
+    const error = outcome === 'empty' ? 'visit_context_source_empty' : kind === 'caregiver' ? 'caregiver_office_mismatch' : 'billing_visit_patient_mismatch';
+    const result = response({ ok: false, error, ...(outcome === 'quota' ? { retryAfterSeconds: 60 } : {}) });
+    result.ok = false; result.status = outcome === 'quota' ? 429 : 409;
+    pending.resolve(result); await tick(); await tick();
+    const status = app.element(host + 'Status').textContent;
+    assert.match(status, outcome === 'empty' ? /This read returned no/ : outcome === 'quota' ? /Retry in 60 seconds/ : /could not be verified|did not match/);
+    assert.doesNotMatch(status, /Synthetic caregiver|900001|Billed amount/);
+    assert.ok(!descendants(app.element(host)).some(n => n.tagName === 'TABLE'));
+    assert.equal(app.document.activeElement, control);
+    const calls = app.calls.filter(c => c.path.endsWith('/workspace/visit-context')).length;
+    assert.equal(calls, 2);
+    if (outcome === 'quota') { await clickNode(control); await tick(); assert.equal(app.calls.filter(c => c.path.endsWith('/workspace/visit-context')).length, calls); }
+  }
+});
+
+test('staff and billing statuses cannot restore old source messages after a late response crosses a context boundary', async () => {
+  for (const kind of ['caregiver', 'billing']) for (const change of ['clear', 'date', 'demo', 'office', 'session']) {
+    const pending = deferred(); let scope;
+    const app = await relatedFixture(input => { scope = input; return pending.promise; });
+    if (change === 'office') app.window.primetimeDataMode.observeScope({ revision: 1, officeId: '123', officeTimezone: 'America/Chicago' });
+    const host = kind === 'caregiver' ? 'dashboardCaregiverProfile' : 'dashboardBillingFacts';
+    await clickNode(relatedButton(app, kind)); await tick();
+    assert.match(app.element(host + 'Status').textContent, /Reading current source/);
+    if (change === 'clear') await app.click('dashboardVisitClear');
+    if (change === 'date') { app.element('dashboardVisitDate').value = '2026-10-23'; for (const fn of app.element('dashboardVisitDate').handlers.get('change')) fn(new Event('change')); }
+    if (change === 'demo') app.window.primetimeDataMode.setMode('demo');
+    if (change === 'office') app.window.primetimeDataMode.observeScope({ revision: 2, officeId: '999', officeTimezone: 'America/Chicago' });
+    if (change === 'session') app.dispatch('primetime-signed-out');
+    await tick(); await tick(); const before = app.element(host + 'Status').textContent;
+    assert.doesNotMatch(before, /Reading current source/, kind + '/' + change);
+    pending.resolve(response(relatedPayload(scope))); await tick(); await tick();
+    assert.equal(app.element(host + 'Status').textContent, before, kind + '/' + change);
+    assert.doesNotMatch(nodeText(app.element(host)), /Synthetic caregiver|Billed amount \(source\) 0/);
+    assert.equal(app.calls.filter(c => c.path.endsWith('/workspace/visit-context')).length, 1);
+  }
+});
