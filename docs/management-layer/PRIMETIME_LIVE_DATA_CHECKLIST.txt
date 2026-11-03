@@ -118,8 +118,19 @@ TAB 02 - VISIT REVIEW
     older rows before returning10readable details. Actor/office/policy refusal
     and quota/time-limit cases retain synthetic coverage and separate native
     acceptance limits; these ordinary reads do not close the whole matrix.
-[ ] V03 Exception/requirement records: private Primetime records, not HHA visits.
-    Confirm the local collections load and distinguish empty from failed reads.
+[x] V03 Exception/requirement read connections: private Primetime records, not HHA
+    visits. November3 signed-in production reads successfully return empty current
+    pages in both Office follow-up and Supervisory visits & orientation. Source:
+    GET /revisions/exceptions -> revisionExceptions_office_{configuredOffice};
+    GET /revisions/requirements -> revisionRequirements_office_{configuredOffice}
+    in protected Firestore. Both show No persisted records were returned on this
+    page, with no next-page control; errors follow a separate rejected-read path.
+    Both anonymous routes independently return401/no-store/noindex01:11:45UTC.
+    Existing admin/supervisor, data-release, office and cursor checks remain.
+    No record write, clinical rule, completion, resolution or HHA verification
+    accepted. Populated/paged and induced-failure native variants remain untested;
+    this accepts the actual empty read connections only. See
+    LOCAL_RECORDS_ACCEPTANCE_2026-11-03.md. Broader goal remains OPEN.
 [ ] V04 Notification history/delivery: map exact existing provider configuration
     and owner acceptance evidence. Preserve the separate history/send gates.
 [ ] V05 Accepted diagnosis/overlap/member-rule interpretation remains GATED.
@@ -1011,6 +1022,19 @@ TAB 14 - WEBSITE ANALYTICS (ADDED OCTOBER31)
     populated historical chart/calculation or all quality-variant acceptance.
     Existing setup: docs/analytics-setup-2026-10-31.md.
 [ ] GA02 Complete real report/chart calculation and failure-freshness acceptance.
+    November3 independent signed-in Google UI comparison: property IDs, inclusive
+    October5–November1 period and exact configured hostname sets match. Explicit
+    case-insensitive temporary source filters retain bare+www hosts. PTHHS and
+    Ride Primetime session totals, displayed engagement rates, page-view and
+    active-user totals, all returned channel session counts and page rows match.
+    Both sites' returned daily session/view counts match independent complete
+    source rows. Neither complete event list includes phone_click/email_click,
+    matching unavailable contact clicks. Source row bodies, not just pagination
+    counters, must finish loading before comparisons. No private traffic values
+    saved/published, new grant, saved Google report edit or runtime patch.
+    Average session duration, realtime, all quality/failure variants and actual
+    SVG-coordinate acceptance remain separate. See
+    ANALYTICS_INDEPENDENT_COMPARISON_2026-11-03.md. GA02/GA03 remain OPEN.
     Initial code inspection found a failed refresh changed its status without
     clearing previous successful metrics/realtime. That first-read failure had
     no older facts to expose;

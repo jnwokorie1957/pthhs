@@ -1,5 +1,21 @@
 # PTHHS
 
+## November 3 independent source acceptance
+
+Visit review's private office follow-up and supervisory/orientation collections
+both load successfully in production and return empty current pages. Their exact
+anonymous routes retain HTTP 401/no-store/noindex protections; no record was written.
+See [local read acceptance](docs/management-layer/LOCAL_RECORDS_ACCEPTANCE_2026-11-03.md).
+
+Independent signed-in Google Analytics reports now match PTHHS and Ride Primetime
+session totals, engagement rates at displayed precision, all returned channel
+session counts, page-view/active-user totals and returned page rows for October 5
+through November 1. Both sites' daily views/sessions and absent contact-event rows
+also match. Comparisons use the exact property, complete-day period and configured
+hostname set. No private traffic values are published. Broader analytics quality,
+freshness/failure variants, session-duration and realtime source comparison remain
+open; see [comparison evidence](docs/management-layer/ANALYTICS_INDEPENDENT_COMPARISON_2026-11-03.md).
+
 ## November 2 patient-document source readiness
 
 Patient file reads now require fresh patient-office and document membership proof.

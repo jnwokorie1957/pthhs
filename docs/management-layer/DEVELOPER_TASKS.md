@@ -1,5 +1,23 @@
 # PTHHS Management Layer — Developer Checklist
 
+- [x] November3 local record reads: signed-in production Office follow-up and
+  Supervisory visits & orientation both successfully return empty current pages.
+  Exact private Firestore collection patterns and guarded GET routes are mapped;
+  two anonymous boundary checks return401/no-store/noindex. No record or source
+  writes, clinical-rule acceptance or permission change. V03 read connection is
+  accepted within actual empty-page limits. See
+  [local source acceptance](LOCAL_RECORDS_ACCEPTANCE_2026-11-03.md).
+
+- [x] November3 independent analytics source comparison: signed-in Google UI,
+  matching property/October5–November1/configured hostnames, matches both sites'
+  session/engagement/page-view/active-user totals and returned channel-session/
+  page rows. Both sites' daily view/session counts and absent contact rows match.
+  Source completeness requires rendered row count to match pagination metadata;
+  a newly changed counter alone is insufficient during report loading. No
+  private traffic values, Google settings/permissions or runtime change. Remaining
+  GA02/GA03 limits stay open. See
+  [independent comparison](ANALYTICS_INDEPENDENT_COMPARISON_2026-11-03.md).
+
 - [x] November3 01:03UTC document-source acceptance update: d4ae367 normal workflow
   41552527544 passes Hosting00:24:19/backend00:25:39/analytics00:26:10UTC;
   twelve exact production assets and eleven anonymous private boundaries pass.
