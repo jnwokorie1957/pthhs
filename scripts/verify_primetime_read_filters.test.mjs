@@ -29,23 +29,28 @@ test('owner filtering preserves hidden selections through save and clears on sig
   assert.equal(el('readPermissions').children.length,0); assert.equal(el('readPermissionSearch').value,''); assert.equal(el('readPermissionSelectedOnly').checked,false);
 });
 
-function carePlanFixture(documents = false) {
+function carePlanFixture(documents = false, visits = false) {
   const elements = new Map(), events = new Map(), sent = [];
   function node(id = '') { const label = { hidden: false }; return { id, children: [], handlers: new Map(), options: [], value: '', checked: false, hidden: id === 'appShell', dataset: {}, classList: { add(){}, remove(){}, toggle(){} },
-    addEventListener(e,f){this.handlers.set(e,f)}, append(...items){this.children.push(...items)}, replaceChildren(...items){this.text=undefined;this.children=items}, querySelectorAll(selector){if(this.id!=='readPermissions')return [];if(selector==='label')return this.children;if(selector==='input:checked')return this.children.map(x=>x.children[0]).filter(x=>x.checked);return []},querySelector(){return this.children[0]},closest(){return label},reset(){},focus(){},setAttribute(){},
+    addEventListener(e,f){this.handlers.set(e,f)}, append(...items){this.children.push(...items)}, prepend(...items){this.children.unshift(...items)}, remove(){this.removed=true}, replaceChildren(...items){this.text=undefined;this.children=items}, querySelectorAll(selector){if(this.id!=='readPermissions')return [];if(selector==='label')return this.children;if(selector==='input:checked')return this.children.map(x=>x.children[0]).filter(x=>x.checked);return []},querySelector(){return this.children[0]},closest(){return label},reset(){this.resets=(this.resets||0)+1},focus(){},setAttribute(){},
     get textContent(){return this.text??this.children.map(x=>x.textContent||'').join(' ')},set textContent(value){this.text=value} }; }
   const el=id=>{if(!elements.has(id))elements.set(id,node(id));return elements.get(id)};
-  const settings={revision:1,officeId:'9',enabledReads:documents?['SearchPatientDocument','DownloadPatientDocument']:['SearchPatientPOC','GetPatientPOCInfo']};
+  const settings={revision:1,officeId:'9',enabledReads:visits?['SearchVisitsV2','GetVisitInfoV3']:documents?['SearchPatientDocument','DownloadPatientDocument']:['SearchPatientPOC','GetPatientPOCInfo']};
   const state={live:true,deferred:null,truncated:false,dialogs:0,fetchedAt:'2026-11-02T20:00:00.000Z'};
   const document={getElementById:el,querySelectorAll:()=>[],createElement:()=>node(),createTextNode:text=>({textContent:text}),addEventListener:(e,f)=>events.set(e,f)};
   const window={primetimeDataMode:{isLive:()=>state.live},confirm(){state.dialogs++;return false},async primetimeApiFetch(path,options){
     sent.push({path,body:options?.body});
+    if(path.endsWith('/visit-review')){
+      if(state.reviewDeferred)await state.reviewDeferred;
+      if(state.reviewError)return {ok:false,status:429,json:async()=>({ok:false,error:'source_rate_limited',retryAfterSeconds:30})};
+      return {ok:true,json:async()=>({ok:true,state:'source_unvalidated',visits:JSON.parse(options.body).visitIds.map(visitId=>({visitId,state:'source_unvalidated',fetchedAt:state.fetchedAt,flags:[],facts:{VisitStartTime:'synthetic start'}}))})};
+    }
     if(path.endsWith('/read')){
       if(state.deferred)await state.deferred;const input=JSON.parse(options.body);
-      const records=input.operation==='SearchPatientPOC'?[{ID:'7'}]:input.operation==='SearchPatientDocument'?[{PatientDocID:'7',PatientID:'8',FileName:'synthetic.pdf'}]:input.operation==='DownloadPatientDocument'?[{PatientDocID:'7',FileName:'synthetic.pdf',FileSize:null}]:[{ID:'7',SourceElement:'POCInfo (plan header)',TaskListState:'Not supplied / unknown',Interpretation:'Plan/task definitions only.'}];
+      const records=input.operation==='SearchVisitsV2'?Array.from({length:12},(_,i)=>({VisitID:String(101+i)})):input.operation==='SearchPatientPOC'?[{ID:'7'}]:input.operation==='SearchPatientDocument'?[{PatientDocID:'7',PatientID:'8',FileName:'synthetic.pdf'}]:input.operation==='DownloadPatientDocument'?[{PatientDocID:'7',FileName:'synthetic.pdf',FileSize:null}]:[{ID:'7',SourceElement:'POCInfo (plan header)',TaskListState:'Not supplied / unknown',Interpretation:'Plan/task definitions only.'}];
       return {ok:true,json:async()=>({ok:true,operation:input.operation,source:'hhaexchange',fetchedAt:state.fetchedAt,truncated:state.truncated,records,...(input.operation==='DownloadPatientDocument'?{attachment:{filename:'synthetic.pdf',byteLength:4,base64:'dGVzdA==',contentType:'application/octet-stream'}}:{})})};
     }
-    return {ok:true,json:async()=>({ok:true,settings,dataApproved:true,supportedReads:settings.enabledReads,readInputs:{SearchPatientPOC:['patientId','officeId'],GetPatientPOCInfo:['patientId','officeId','id'],SearchPatientDocument:['patientId','officeId','documentTypeId','id','date'],DownloadPatientDocument:['patientId','officeId','id']}})};
+    return {ok:true,json:async()=>({ok:true,settings,dataApproved:true,supportedReads:settings.enabledReads,readInputs:{SearchVisitsV2:['officeId','date'],SearchPatientPOC:['patientId','officeId'],GetPatientPOCInfo:['patientId','officeId','id'],SearchPatientDocument:['patientId','officeId','documentTypeId','id','date'],DownloadPatientDocument:['patientId','officeId','id']}})};
   }};
   const mode=window.primetimeDataMode;
   vm.runInNewContext(readFileSync(new URL('../public/primetime/data-source.js',import.meta.url),'utf8'),{document,window,Event});window.primetimeDataMode=mode;
@@ -53,6 +58,60 @@ function carePlanFixture(documents = false) {
   return {el,events,sent,state,submit(){el('readForm').handlers.get('submit')({preventDefault(){}})}};
 }
 const settleCarePlan=()=>new Promise(resolve=>setImmediate(resolve));
+
+async function visitReviewFixture(){
+  const f=carePlanFixture(false,true);await settleCarePlan();
+  f.el('readOperation').value='SearchVisitsV2';f.el('readOperation').handlers.get('change')();
+  f.el('readOffice').value='9';f.el('readDate').value='2026-11-03';f.submit();await settleCarePlan();
+  f.review=f.el('readResults').children.find(x=>x.textContent==='Inspect next 10 visits for EVV evidence');assert.ok(f.review);
+  return f;
+}
+
+test('advanced visit review ignores obsolete controls and late successes after source filters change',async()=>{
+  for(const field of ['readDate','readOffice','readPatient','operation']){
+    const f=await visitReviewFixture();let release;f.state.reviewDeferred=new Promise(resolve=>release=resolve);
+    f.review.handlers.get('click')();await settleCarePlan();
+    if(field==='operation'){f.el('readOperation').value='GetVisitInfoV3';f.el('readOperation').handlers.get('change')();}
+    else{f.el(field).value=field==='readDate'?'2026-11-04':'99';f.el(field).handlers.get('input')();}
+    release();await settleCarePlan();
+    assert.equal(f.el('readResults').children.length,0,field+' must not receive the old review');
+    const count=f.sent.length;f.review.handlers.get('click')();await settleCarePlan();assert.equal(f.sent.length,count,'obsolete control must not request old visit IDs');
+  }
+});
+
+test('advanced visit review suppresses obsolete failures while current quota errors remain retryable',async()=>{
+  for(const stale of [false,true]){
+    const f=await visitReviewFixture();let release;f.state.reviewDeferred=new Promise(resolve=>release=resolve);f.state.reviewError=true;
+    f.review.handlers.get('click')();await settleCarePlan();
+    if(stale){f.el('readDate').value='2026-11-04';f.el('readDate').handlers.get('input')();}
+    release();await settleCarePlan();
+    assert.equal(f.review.disabled,false,'failed action unlocks its button');
+    if(stale)assert.doesNotMatch(f.el('workspaceMessage').textContent,/Retry in 30 seconds/);
+    else{assert.match(f.el('workspaceMessage').textContent,/Retry in 30 seconds/);f.state.reviewError=false;f.state.reviewDeferred=null;f.review.handlers.get('click')();await settleCarePlan();assert.deepEqual(JSON.parse(f.sent.at(-1).body).visitIds,Array.from({length:10},(_,i)=>String(101+i)));}
+  }
+});
+
+test('advanced visit review cannot overwrite a newer discovery or return after Demo or sign-out',async()=>{
+  for(const context of ['new-discovery','demo','sign-out']){
+    const f=await visitReviewFixture();let release;f.state.reviewDeferred=new Promise(resolve=>release=resolve);
+    f.review.handlers.get('click')();await settleCarePlan();
+    if(context==='new-discovery'){f.el('readDate').value='2026-11-04';f.submit();await settleCarePlan();}
+    else{f.state.live=false;f.events.get(context==='demo'?'primetime-data-mode-changed':'primetime-signed-out')();}
+    const before=f.el('readResults').textContent;release();await settleCarePlan();
+    assert.equal(f.el('readResults').textContent,before,context+' must retain only current content');
+    assert.doesNotMatch(f.el('readResults').textContent,/synthetic start/);
+  }
+});
+
+test('advanced visit review keeps current batch order, raw fields and receipts without writing an investigation',async()=>{
+  const f=await visitReviewFixture();f.review.handlers.get('click')();await settleCarePlan();
+  assert.match(f.el('readResults').textContent,/synthetic start/);assert.match(f.el('readResults').textContent,/2026-11-02T20:00:00.000Z/);
+  const queue=f.el('readResults').children[0],investigate=queue.children[1].children.find(x=>x.textContent==='Investigate visit 101');assert.ok(investigate);
+  f.review.handlers.get('click')();await settleCarePlan();assert.deepEqual(JSON.parse(f.sent.at(-1).body),{visitIds:['111','112']});assert.equal(f.review.removed,true);
+  assert.equal(f.sent.some(x=>x.path.endsWith('/investigations')),false);
+  f.el('readDate').value='2026-11-04';f.el('readDate').handlers.get('input')();const resets=f.el('investigationForm').resets||0;
+  investigate.handlers.get('click')();await settleCarePlan();assert.equal(f.el('investigationForm').resets||0,resets,'obsolete visit action cannot retarget the draft');
+});
 
 test('raw read receipts preserve exact offsets and milliseconds through repeated local times',async()=>{
   const f=carePlanFixture(true);await settleCarePlan();f.el('readOperation').value='SearchPatientDocument';f.el('readPatient').value='8';f.el('readOffice').value='9';

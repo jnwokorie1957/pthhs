@@ -270,19 +270,24 @@
     if (data.changePreview) target.append(paragraph(`Change preview only. Request boundary ${data.changePreview.modifiedAfter} uses ${data.changePreview.timeBasis === "UTC" ? "explicit UTC" : "vendor EST wall time without conversion"}. Completeness is not inferred; no durable sync checkpoint was advanced. ${data.changePreview.page ? 'Requested page ' + data.changePreview.page + '. Confirm vendor paging termination before import.' : ''}`));
     if (data.operation === 'SearchVisitsV2' && data.records.length) {
       const ids = data.records.map(record => record.VisitID).filter(Boolean); let offset = 0;
+      const current = () => sequence === readSequence && canRead();
       const review = button('Inspect next 10 visits for EVV evidence', async () => {
-        const batch = ids.slice(offset, offset + 10), reviewData = await request('visit-review', { visitIds: batch });
+        if (!current()) return;
+        const batch = ids.slice(offset, offset + 10); let reviewData;
+        try { reviewData = await request('visit-review', { visitIds: batch }); }
+        catch (error) { if (current()) throw error; return; }
+        if (!current()) return;
         offset += batch.length;
         const queue = document.createElement('section'); queue.className = 'panel';
-        queue.append(paragraph(`Visit evidence review ${reviewData.state}. Source fields remain unvalidated. No lateness, payroll or billing policy was applied.`));
+        queue.append(paragraph(`Visit evidence review ${reviewData.state}. Source fields unvalidated; no lateness, payroll or billing policy applied.`));
         for (const row of reviewData.visits) {
           const card = document.createElement('article'); card.className = 'panel';
           card.append(paragraph(`Visit ${row.visitId}: ${row.state}. ${row.fetchedAt ? 'Fetched ' + row.fetchedAt : 'No successful read.'}`));
           if (row.error) card.append(paragraph(row.error.replaceAll('_', ' ')));
           else {
-            card.append(paragraph(row.flags.length ? row.flags.join('; ') : 'Both EVV clock fields were returned. Validity is not yet established.'));
+            card.append(paragraph(row.flags.length ? row.flags.join('; ') : 'Both EVV clock fields returned; validity unvalidated.'));
             for (const name of ['VisitStartTime', 'VisitEndTime', 'EVVStartTime', 'EVVEndTime', 'ActualHours', 'PayHours', 'AdjustedHours']) card.append(paragraph(`${name}: ${row.facts[name] ?? 'Not supplied / unknown'}`));
-            card.append(button('Investigate visit ' + row.visitId, async () => { $('investigationForm').reset(); $('investigationVisit').value = row.visitId; $('investigationTitle').value = 'Review source EVV evidence'; $('investigationNote').focus(); message('Visit selected for investigation. Record the verified findings.'); }));
+            card.append(button('Investigate visit ' + row.visitId, async () => { if (!current()) return; $('investigationForm').reset(); $('investigationVisit').value = row.visitId; $('investigationTitle').value = 'Review source EVV evidence'; $('investigationNote').focus(); message('Visit selected. Record verified findings.'); }));
           }
           queue.append(card);
         }
