@@ -21,9 +21,15 @@
   methods stay disabled. Content is bounded to2MiB with fresh exact membership
   checks; no additional role, clinical form/version/signature/sharing authority,
   write or automatic file save/import. Actual retrieval remains unaccepted: first
-  metadata attempt reached a shape check; the Result fix is now released and six
-  scoped metadata reads succeed. Two returned entries fail exact file retrieval;
-  safe protocol diagnosis is in progress. No complete source-file/form acceptance.
+  metadata attempt reached a shape check; the released Result fix now succeeds in
+  eleven bounded patient contexts (eight empty/three nonempty/four entries).
+  Three distinct source-identified file reads fail upstream; latest HTTP400 /
+  application / vendor-310 / unclassified reason. The meaning is unproven.
+  Owner confirms a working HHA file is open in Chrome. It is not exposed by the
+  connected Chrome profile: bring that tab forward and enable the Codex connector
+  in that same profile; keep the file private. Compare that exact file through
+  fresh patient/office/document membership proof before assigning a vendor cause.
+  Private inputs cleared; office-today automatic feed restored. No complete source-file/form acceptance.
   The separate care-plan decision remains pending. See
   [scope](PATIENT_DOCUMENT_READINESS_2026-11-02.md).
 

@@ -126,9 +126,10 @@ The [current official operation page](https://app.hhaexchange.com/Integration/EN
 confirms the PatientDocID request and expected file fields. Public primary-source
 search did not establish what-310 means; do not invent a permission/file diagnosis.
 
-The next patch reduces the vendor message to a closed access/method/file/null-
+Runtime d4ae367 reduces the vendor message to a closed access/method/file/null-
 reference/unclassified hint without emitting message text. One additional privacy
-test and all624backend checks pass; normal release and actual hint are pending.
+test and all624backend checks pass; normal release and the actual unclassified
+hint are verified below.
 All13approved reads, strict subject/metadata/byte checks and source-write gates are
 preserved. No client asset or additional read grant is changed.
 
@@ -148,11 +149,43 @@ or actual source success is inferred from these synthetic checks.
 
 ## Required next acceptance
 
+Acceptance update, November3 01:03UTC: runtime d4ae367fdf4379785f84aafc4a50a4c3dc3baea9
+passed normal workflow41552527544 (Hosting00:24:19, backend00:25:39,
+analytics00:26:10UTC). Public00:28:35.637UTC checks match twelve exact assets and
+eleven anonymous private boundaries. The reason hint on a new distinct document
+is `patient_document_download_failed_application_http_400_vendor_negative_310_reason_unclassified`.
+This establishes the refusal category only; it does not establish why HHA refuses.
+All624backend checks pass; client assets and their original budgets are unchanged.
+
+The completed bounded sample is eleven patient contexts: eight successful empty
+searches and three nonempty searches returning four metadata entries. Three
+distinct, source-returned document IDs were selected for exact downloads; none
+returned an accepted attachment. No file bytes were saved, rendered or copied to
+Forms. Empty filenames and omitted sizes do not prove absent physical files.
+Private lookup inputs/results are cleared and the office-today automatic API feed
+is restored. Saved per-method receipts show metadata success and file-read failure
+separately; missing current receipts on other methods are not new failures.
+
+The owner confirms a working HHA file is open in Chrome. Fresh connector inventory,
+all connected Chrome user tabs and the desktop window do not expose that HHA/PDF
+tab. The retained Codex HHA page cannot currently be inspected through its browser
+binding. This is a source-comparison access problem, separate from the functioning
+Primetime API connection. Next owner action: bring the working file's Chrome tab
+forward and enable the Codex connector in that same profile. Keep its private
+contents out of chat, artifacts and Git. Then identify that exact patient's file
+through fresh metadata/office checks and compare its API result. Do not substitute
+a guessed ID, switch production credentials/endpoints blindly, retry unchanged
+failures repeatedly or weaken membership/byte checks. If the exact known-working
+file also fails, record the method, UTC time, HTTP400 and vendor-310 for the
+authorized integration support workflow; no support communication is sent here.
+
 1. Initial normal release, production assets/private boundaries, scoped input
    metadata and pre-enablement refusal are DONE. Release the BaseResponse fix
    normally and verify it before retrying the unchanged source context. DONE:
    Result correction released and metadata retrieval verified. Complete the
    bounded download-diagnostic release and inspect the actual refusal category.
+   DONE: diagnostic and closed-reason releases pass; latest category is the
+   upstream application HTTP400/vendor-310/unclassified refusal above.
 2. DONE: specific action-time approval and exact thirteen-read activation for
    existing administrators. This adds only private patient metadata/content reads;
    it does not enable GetPatientDocumentType or either care-plan method.

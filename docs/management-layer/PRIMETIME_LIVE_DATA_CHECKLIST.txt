@@ -862,7 +862,17 @@ TAB 09 - FORMS
     12exactassets/11anonprivateboundaries pass. ExactsourceDocretry=>HTTP400,
     application/vendor-310. NOT EVVreason310; no file. OfficialopPage confirms
     PatientDocIDshape, no public-310meaningestablished. Closedreasonhint+1privacy
-    check/full624backendPASS; hintnormalrelease/actualreason PENDING. NoFileaccepted.
+    check/full624backendPASS. Hint runtime d4ae367 / workflow41552527544 all3jobs
+    PASS throughNov3 00:26:10UTC;12exactassets/11private anonymous boundaries pass.
+    Native latest distinct document: HTTP400/application/vendor-310/reason
+    unclassified. Three distinct source-identified files attempted; noFileaccepted.
+    Completed bounded metadata checks:11patient contexts,8empty/3nonempty,
+    4metadata entries; exact patient/selected-document checks retained.
+    Private inputs cleared, office-today automatic feed restored. Saved read
+    receipts show metadata success and download failure separately. Owner confirms
+    working HHA file open in Chrome; connected profile exposes no HHA/PDF tab.
+    Exact-file comparison awaits the same-profile connector; do not infer error
+    meaning or use a guessed file ID, weaker scope check or repeated blind retry.
     No sourcewrite/clinicalform/extra-role or automaticdownload/import added.
     See PATIENT_DOCUMENT_READINESS_2026-11-02.md. F03/T04 remain OPEN.
 
@@ -1247,8 +1257,8 @@ Unselected reads are work to scope and verify, not automatically failed APIs.
 [ ] GetNumberOfComplianceItemDue
 [ ] GetPatientClinicalInfo
 [ ] GetCaregiversAccessPatientInfoToMobileApp
-[x] SearchPatientDocument (bounded live patient/office metadata; six contexts;
-    four empty/two returned entries. Blob/clinical-form coverage remains OPEN.)
+[x] SearchPatientDocument (bounded live patient/office metadata; eleven contexts;
+    eight empty/three nonempty/four entries. Blob/clinical-form coverage remains OPEN.)
 [ ] SearchCaregiverDocument
 [ ] GetPatientDocumentType
 [ ] GetCaregiverDocumentType

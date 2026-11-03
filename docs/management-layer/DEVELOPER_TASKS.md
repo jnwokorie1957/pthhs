@@ -1,5 +1,19 @@
 # PTHHS Management Layer — Developer Checklist
 
+- [x] November3 01:03UTC document-source acceptance update: d4ae367 normal workflow
+  41552527544 passes Hosting00:24:19/backend00:25:39/analytics00:26:10UTC;
+  twelve exact production assets and eleven anonymous private boundaries pass.
+  All624backend checks pass. Eleven bounded patient metadata searches succeed:
+  eight empty/three nonempty/four entries. Three distinct source-identified file
+  reads fail upstream; latest HTTP400/application/vendor-310/reason unclassified.
+  No bytes, device save or Forms copy accepted. Inputs cleared; office-today
+  automatic API feed restored. Saved receipts independently distinguish successful
+  metadata from failed download. Owner's working Chrome file is not exposed by
+  the connected profile; exact-file comparison awaits same-profile connection.
+  No new source grant, relaxed membership check or runtime patch is justified by
+  the unproven error meaning. F03/T04 remain open. See
+  [scope](PATIENT_DOCUMENT_READINESS_2026-11-02.md).
+
 - [x] Patient-file refusal diagnosis: fc9c218 all3normaljobs/12exactassets/
   11anonymous boundaries pass. Exact live document fails HTTP400/application-310;
   metadata is verified but no bytes returned. Official operation page confirms

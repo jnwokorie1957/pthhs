@@ -12,11 +12,15 @@ exact13total and other preferences are preserved. The first actual metadata read
 was refused because the strict parser omitted standard BaseResponse Result.
 FullSOAP regressions reproduce it; the correction passes all621backend tests.
 The correction passed all3normaljobs and native metadata retrieval now succeeds
-for six patient contexts (four empty/two returned entries). Both exact file reads
-fail upstream, with no attachment released. Closed protocol diagnostics pass all
-623backend tests and normal release; native refusal is HTTP400/application-310.
-Its meaning is unproven. A private-text-free reason hint passes624backend tests;
-hint release/retry is pending. No file is accepted.
+for eleven bounded patient contexts (eight empty/three nonempty, four metadata
+entries). Three distinct source-identified document downloads fail upstream, with
+no attachment released. Runtime d4ae367 passes all three normal release jobs and
+624 backend tests; twelve production assets and eleven anonymous private-route
+checks pass. The latest actual refusal is HTTP400/application/vendor-310, with
+an unclassified closed reason hint; its meaning remains unproven. Private lookup
+inputs are cleared and the office-today automatic API feed is restored. The owner
+confirms a working file is open in Chrome, but its tab is not exposed by the
+connected profile; exact-file comparison awaits that connection. No file is accepted.
 Clinical form/version/signature/sharing and wider source coverage remain open. See
 [scope](docs/management-layer/PATIENT_DOCUMENT_READINESS_2026-11-02.md).
 
