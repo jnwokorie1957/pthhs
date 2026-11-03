@@ -18,6 +18,12 @@
   relaxed identity check, new read grant or runtime change. Preserve existing
   protected owner/vendor follow-up; P03/E04 stay open. See
   [source comparison](VISIT_SOURCE_COMPARISON_2026-11-03.md).
+  November 3 12:19 UTC automatic-feed observation adds current-day start evidence:
+  three actual starts/three EVV starts among ten readable rows, no supplied ends and
+  ten explicit-empty actual/rounded-hour pairs. Preview/chart counts agree and
+  automatic receipts advance; no manual source request or runtime fix. This is
+  page availability, not individual recovery, completion or historical-gap closure.
+  O01 in the live-data checklist records the dated evidence; P03/E04 stay open.
 
 - [x] November3 public metadata production check: the ten-page sample extends at
   09:47 UTC to 137 source routes/91 distinct pages/89 indexable pages. All indexable
