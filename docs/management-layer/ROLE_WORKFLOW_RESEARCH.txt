@@ -2024,3 +2024,10 @@ No completed/verified/payable/billable state, older-cohort recovery or original
 device event join accepted. P03/E04/B02 and membership/assignment/form-version/
 sharing/reviewer/action dependencies remain open. No grant, source write/import,
 clinical/financial decision or communication. See SOURCE_READ_RECEIPTS_2026-11-03.md.
+
+PRIMARY TECHNICAL REFERENCE — NOVEMBER 3, 19:23 UTC RESEARCH RECHECK
+[R82] MDN, Date.prototype.toLocaleString(). Default output depends on the host
+locale/timezone and may vary between implementations. This supports the existing
+exact-receipt display correction, not new HHA time/unit semantics or patient/PT/
+office action authority. Source event time and read time remain separate.
+https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/toLocaleString

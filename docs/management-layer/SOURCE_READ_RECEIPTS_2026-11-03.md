@@ -29,6 +29,12 @@ reused. No extra source request, clock/hour mapping, rounding or conversion is
 introduced. A read receipt is not the source record's last-modified time or a
 clinical event timestamp. It does not establish complete source coverage.
 
+Technical reference, rechecked November 3 at 19:23 UTC: MDN documents the default
+locale/timezone dependence and permitted variation of
+[`Date.toLocaleString()`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/toLocaleString).
+This supports retaining the original receipt separately from a localized display;
+it supplies no HHA clock-field, unit, verification or clinical-authority contract.
+
 Two regressions fail before and pass after: repeated local times with distinct
 offsets/milliseconds retain their exact receipts, and four unavailable-receipt
 cases preserve fields and truncation warnings without showing Invalid Date.
