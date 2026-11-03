@@ -338,6 +338,18 @@ TAB 04 - VISIT PREVIEW
 [ ] P03 Verify additional affected examples, including a completed historical
     visit, and cross-check any documented alternate endpoint only after its
     identity/office boundary and entitlement are established.
+    November3 04:10UTC follow-up: approved API first pages for October23/24/current
+    November2 each have10readable/0unavailable details. Recorded pairs10/10/5,
+    EVV pairs8/7/5; explicit-empty actual/rounded-hour pairs2/3/5. Missing hour
+    cases are explicit empty, not unknown/deferred. Earlier exact page cohorts
+    were not reconciled; no individual time recovery or completed/verified status
+    is inferred from counts. One NEW current-day affected raw-call context refuses
+    patient/caregiver proof, exposes0records, and is not retried. Exact identities
+    and all time/hour cells remain unchanged within that read. Preserve refusal;
+    existing protected owner/vendor subject/filter/retention/linkage evidence is
+    still required. Original October24 screenshot remains resolved as dated.
+    Overview/office-today automaticfeed restored04:18:04.108UTC. Runtime unchanged;
+    see VISIT_SOURCE_COMPARISON_2026-11-03.md. P03/E04 remainOPEN.
     October31 native API check: the October24 first page returned10readable visits,
     all10with recorded start/end pairs and7with both original EVV punches. The
     original screenshot visit was present; an independent exact GetVisitInfoV3

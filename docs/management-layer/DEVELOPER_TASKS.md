@@ -1,5 +1,13 @@
 # PTHHS Management Layer — Developer Checklist
 
+- [ ] November3 time-source follow-up: fresh October23/24/current-day first pages
+  distinguish explicit empty hours from unknown/failed detail reads. A new
+  current-day guarded call read refuses subject proof; exact displayed identities
+  and time/hour fields remain unchanged. No recovery/cohort-continuity claim,
+  relaxed identity check, new read grant or runtime change. Preserve existing
+  protected owner/vendor follow-up; P03/E04 stay open. See
+  [source comparison](VISIT_SOURCE_COMPARISON_2026-11-03.md).
+
 - [x] November3 public metadata production check: ten exact Git-blob pages retain
   complete HTML/WebPage title/description agreement, including055edfd's quoted
   staff-description correction delivered through84c26e5.32canonical sitemap URLs,
