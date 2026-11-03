@@ -416,6 +416,18 @@ TAB 04 - VISIT PREVIEW
 [ ] P03 Verify additional affected examples, including a completed historical
     visit, and cross-check any documented alternate endpoint only after its
     identity/office boundary and entitlement are established.
+    November3 20:48UTC access follow-up: the previously used Primetime tab is
+    unavailable. A separate temporary tab shows the normal sign-in form; the
+    connector times out attaching to another existing Primetime tab. This does
+    not establish that other tabs are signed out. No sign-in link was sent or
+    source query made, and the existing tab's view/inputs were not changed.
+    Next owner step: make an already signed-in Primetime tab available through
+    the same Chrome connector profile and leave that working tab open. Resume
+    the approved October23/24/current-day comparison after attachment succeeds;
+    existing HHA subject/filter/retention/linkage evidence remains required.
+    Local direct VisitInfo clock/hour mappings are unchanged; no new field/unit
+    evidence, time recovery, runtime fix, test rerun or deployment is claimed.
+    Original October24 screenshot stays resolved; historical gaps remain open.
     November3 04:10UTC follow-up: approved API first pages for October23/24/current
     November2 each have10readable/0unavailable details. Recorded pairs10/10/5,
     EVV pairs8/7/5; explicit-empty actual/rounded-hour pairs2/3/5. Missing hour
