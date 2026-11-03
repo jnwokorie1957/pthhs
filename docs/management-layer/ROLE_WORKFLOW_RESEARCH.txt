@@ -1638,3 +1638,83 @@ https://knowledge.hhaexchange.com/enterprise/Content/Documentation/Clinical/Clin
 https://knowledge.hhaexchange.com/texas/Content/Documentation/Patient/Pat-N-Forms-Feature-P.htm
 Family Portal (Users) Overview, supporting relationship/privacy recheck.
 https://knowledge.hhaexchange.com/enterprise/Content/Documentation/Patient/Pat-N-Family-Portal-Users-Overview-P.htm
+
+
+ASYNC STATUS / ROLE CALENDAR ACCEPTANCE — NOVEMBER 3, 00:02 UTC / NOVEMBER 2 LOCAL
+Research-only delta; current source baseline8851ae0. No new clinical source read.
+
+Current source already has explicit feed Pause/Resume, source-focus pause before
+and after a pending feed response, separate age-update controls, office-date
+context and conservative stale-response fences. Earlier FEED_CONTINUATION and
+FETCH_AGE acceptance remain dated and accepted; do not propose rebuilding these.
+index.html uses brief polite status nodes for feed/read progress and sets ordinary
+fetch-age/retry text aria-live off. However, dashboardPatientProfile and
+dashboardCallEvents place role=status on entire result containers. This is a
+candidate announcement-scope review, not a demonstrated WCAG failure or a new
+assistive-technology acceptance result.
+
+W3C GUIDANCE AND LOCAL DESIGN INFERENCE
+[R74] explains control of automatically updating content; the five-second allowance
+for movement is not an exception for auto-updating information. Preserve both
+source-display pause and local age controls; pausing presentation must not imply
+that HHA stopped changing or that retained evidence became a fresh source read.
+[R75] distinguishes a brief progress/result-count/error message from the full
+result list. Proposed bounded next review: separate a stable, concise status node
+from patient-profile/call-result tables. Preserve meaningful headings, table
+semantics and explicit source receipts, without making every returned identifier
+or clinical field part of a live announcement. Do not move focus merely to report
+success, empty data or a source refusal. Which announcements are useful still
+needs actual browser/assistive-technology acceptance.
+[R76] is an illustrative calendar-dialog/grid pattern, not production-ready code.
+Its keyboard/focus model and mobile/assistive-technology support need testing.
+For proposed external roles, begin with a named date control and chronological
+list; add a month grid only with its complete supported interaction model. Do not
+add a grid role to ordinary date cells as a cosmetic calendar improvement.
+
+PATIENT / PT / OFFICE CONNECTIONS — PROPOSED, NOT ENABLED ROLES
+Patient/family: explicitly select the permitted patient, office date and shared
+record. Announce request/read progress and the resulting count separately from
+the schedule or document body. A requested date never becomes a confirmed visit;
+a shared-file read never becomes permission to approve a concern or change.
+PT/staff: My day/caseload and encounter documentation retain exact effective
+assignment, patient/visit and approved form/version links. Background status must
+not replace an editor or disclose another encounter. Save, submit, review and
+signature need their own authorized transition and receipt, not a generic success.
+Office: patient/visit/authorization/EVV/billing sections retain independent scope
+and receipts. Distinguish waiting, successful empty, failed/refused and stale data;
+do not announce a failed metadata read as zero files or a completed clinical task.
+Public entry links stay separate from private role records and announcements.
+
+CURRENT IMPLEMENTATION EVIDENCE / DEPENDENCIES
+At the00:02UTC handoff checkpoint, patient-file SearchPatientDocument and
+DownloadPatientDocument had a specific owner approval and exact13-read activation
+(old11plus2); do not ask that decision again. GetPatientDocumentType and both
+care-plan reads remained disabled; the care-plan question was pending. Initial
+metadata retrieval failed a shape check;8851ae0 corrects standard BaseResponse
+Result handling. The other goal chat owns its normal release and actual source
+retry/acceptance. File retrieval and clinical-role acceptance are not established
+by readiness, parser tests or the owner's grant. Do not duplicate that work.
+
+P0 preserve accepted controls and in-flight source recovery. P1 inspect status
+versus result containers using synthetic profiles/calls and the existing source
+pause/fences before making an announcement-only change. P2 calendars/editors stay
+behind existing family membership, staff assignment, sharing and clinical-action
+contracts; current administrator access supplies none of those relationships.
+Acceptance cases: keyboard focus while a feed response arrives; paused display
+versus separately updating source; successful empty versus source refusal; changing
+patient/office or revoking access before a response; long result tables; explicit
+resume and office-day rollover; date-dialog cancel/commit and focus return; screen
+reader/mobile reading without repeated full-record announcements. Verify that
+status-only changes add no HHA calls and alter no source/clinical/financial state.
+Actual assistive-technology, role-account and clinical cases remain unverified.
+No new urgent owner question, grant, source write, import or communication.
+
+PRIMARY SOURCES — RETRIEVED NOVEMBER 3, 2026, 00:03 UTC
+W3C Understanding material explains the criteria; APG is illustrative. Retrieval
+does not certify this application or establish a tenant clinical configuration.
+[R74] W3C, Understanding SC2.2.2 Pause, Stop, Hide.
+https://www.w3.org/WAI/WCAG22/Understanding/pause-stop-hide.html
+[R75] W3C, Understanding SC4.1.3 Status Messages.
+https://www.w3.org/WAI/WCAG22/Understanding/status-messages.html
+[R76] W3C WAI-ARIA APG, Date Picker Dialog Example.
+https://www.w3.org/WAI/ARIA/apg/patterns/dialog-modal/examples/datepicker-dialog/

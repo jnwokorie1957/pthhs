@@ -1,5 +1,14 @@
 # PTHHS Management Layer — Developer Checklist
 
+- [x] November3 00:02UTC / November2 local role research: preserve accepted feed
+  focus-pause/age controls; W3C R74–R76 refine brief async status versus full results
+  and tested calendar keyboard/focus behavior. Whole-profile/call live containers
+  are a review candidate, not a proved conformance failure. Patient/PT/office
+  acceptance cases retain membership, assignment and action gates. Document reads
+  were specifically approved; care-plan decision and source-file acceptance remain
+  with the concurrent goal chat. No runtime or native AT/clinical claim. See
+  [cumulative research](ROLE_WORKFLOW_RESEARCH.txt).
+
 - [x] November 2 patient-document read implementation: direct identity/filter
   projection; fresh patient-office and exact metadata membership before/after
   bytes; metadata/release races and elapsed budget refuse unverified output.
