@@ -65,7 +65,8 @@ retrieval must not be claimed until actual successful source reads after approva
 Follow-up source-contract correction: the shared strict resource parser now handles
 the captured BaseResponse Result/Status attribute. Four full SOAP tests reproduce
 the omitted-Result failure (including both care-plan methods); all621backend tests
-pass after the correction. Its release is pending. Care-plan grants remain OFF
+pass after the correction. Runtime8851ae0 passes all3normaljobs and actual document
+metadata retrieval; care-plan retrieval remains untested. Care-plan grants remain OFF
 and no care-plan query has been made. The two separately approved patient-document
 methods bring the existing read set to13; no additional care-plan access is implied.
 

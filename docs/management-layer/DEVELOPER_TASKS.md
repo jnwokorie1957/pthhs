@@ -1,5 +1,15 @@
 # PTHHS Management Layer — Developer Checklist
 
+- [x] November 2 live document metadata recovery: Result correction8851ae0 passes
+  all3normaljobs/12exactassets/11anonymous boundaries. Six actual scoped patient
+  searches succeed (4empty/2distinctentries); exactsubject and selectedID checks
+  pass. Both blob attempts fail upstream without releasing files. Closed download
+  protocol diagnostics exclude messages/XML/filenames/credentials and preserve
+  backoff; two new tests/full623backend pass. Diagnostic release/classification
+  pending. Only bounded metadata is accepted; F03/blob/clinical-role work stays
+  open. Concurrent role/status research preserved. See
+  [scope](PATIENT_DOCUMENT_READINESS_2026-11-02.md).
+
 - [x] November3 00:02UTC / November2 local role research: preserve accepted feed
   focus-pause/age controls; W3C R74–R76 refine brief async status versus full results
   and tested calendar keyboard/focus behavior. Whole-profile/call live containers

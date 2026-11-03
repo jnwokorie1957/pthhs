@@ -976,6 +976,14 @@ export async function operationalRead(client: Pick<HhaSoapClient, "call">, input
     const transient = response.error?.kind === "transport" && response.error.code === "network_unavailable" && response.httpStatus === 0
       || response.error?.kind === "protocol" && [408, 500, 502, 503, 504].includes(response.httpStatus);
     if (previewRead && transient) throw new WorkflowError("hha_source_temporarily_unavailable", 503);
+    if (input.operation === "DownloadPatientDocument") {
+      // Expose only protocol diagnostics, never vendor messages, XML, filenames,
+      // subject identifiers, credentials or opaque error/detail strings.
+      const kind = ["application", "soap_fault", "protocol", "transport"].includes(response.error?.kind ?? "") ? response.error!.kind : "unclassified";
+      const http = Number.isInteger(response.httpStatus) && response.httpStatus >= 0 && response.httpStatus <= 599 ? String(response.httpStatus) : "unknown";
+      const vendor = Number.isInteger(response.error?.id) && Math.abs(response.error!.id!) <= 99_999 ? String(response.error!.id).replace("-", "negative_") : "unknown";
+      throw new WorkflowError(`patient_document_download_failed_${kind}_http_${http}_vendor_${vendor}`, 502);
+    }
     throw new WorkflowError("hha_read_failed", 502);
   }
   let records: Record<string, string | null>[];

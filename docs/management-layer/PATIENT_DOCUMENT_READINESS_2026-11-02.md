@@ -5,10 +5,13 @@
 The owner approved and activated SearchPatientDocument and DownloadPatientDocument:
 exactly thirteen reads (prior eleven plus only these two), with other preferences
 unchanged. GetPatientDocumentType and both care-plan reads remain disabled. The
-first live metadata read was refused by a parser shape check; no file was returned.
-A BaseResponse Result correction now passes full-envelope and regression tests;
-its normal release and successful live retry are pending. T04/F03 and the wider
-source goal remain open. No source-write control has been changed.
+first live metadata read was refused by a parser shape check. The BaseResponse
+correction is now released, and six live patient scopes pass metadata retrieval:
+four source-empty responses and two distinct returned document entries with exact
+subject/selection checks. Both file reads failed upstream; no attachment was
+released or saved. Bounded protocol diagnostics pass623backend tests and await
+normal release/retry. T04/F03 and the wider source goal remain open. No source-write
+control has been changed.
 
 ## Exact source contract
 
@@ -95,6 +98,24 @@ all621backend tests pass. No new grant, client asset or relaxed record-identity/
 size/membership rule is introduced by this correction. Successful native retrieval
 must still be established after its normal release.
 
+The Result correction8851ae0 passed all three normal jobs in workflow41538205284:
+Hosting22:33:52/analytics22:35:32/backend22:35:50UTC. Public22:37:47.803UTC
+verification matches12assets and11anonymous private boundaries (9plus2separate).
+Native retries now prove bounded metadata retrieval for six authorized patient
+contexts, including four empty responses and two distinct document entries.
+Returned PatientID and selected document ID match the actual form/source record.
+Both entries have empty filenames and omitted sizes; this does not prove that
+they lack physical files. Both exact download attempts return hha_read_failed;
+no Attachment ready or Save attachment control is rendered. No file is accepted.
+
+The follow-up error path exposes only a closed protocol kind, bounded HTTP status
+and a bounded numeric vendor error ID. It excludes vendor messages, XML, opaque
+error codes/details, filenames, subject IDs and credentials. Retry-After controls
+retain precedence; no retry, fallback or looser membership/byte validation is
+added. Two additional tests cover privacy and backoff; full623backend checks pass.
+Its normal release and an evidence-driven retry are pending. Existing383frontend
+and46analytics-backend acceptance remain separate and unchanged.
+
 Seven parser tests reproduced the prior failures before implementation. Eighteen
 new backend tests now pass: strict source shape/identities/filters, optional size,
 unknown/empty/zero, membership before bytes, transfers, metadata changes, closed
@@ -113,11 +134,13 @@ or actual source success is inferred from these synthetic checks.
 
 1. Initial normal release, production assets/private boundaries, scoped input
    metadata and pre-enablement refusal are DONE. Release the BaseResponse fix
-   normally and verify it before retrying the unchanged source context.
+   normally and verify it before retrying the unchanged source context. DONE:
+   Result correction released and metadata retrieval verified. Complete the
+   bounded download-diagnostic release and inspect the actual refusal category.
 2. DONE: specific action-time approval and exact thirteen-read activation for
    existing administrators. This adds only private patient metadata/content reads;
    it does not enable GetPatientDocumentType or either care-plan method.
-3. Retrieve one authorized patient's metadata through the deployed API. If a
+3. DONE: authorized patient metadata retrieval through the deployed API. If a
    uniquely returned file exists, read that exact file through fresh membership
    checks. Inspect identity, source-empty/unknown states and attachment readiness
    without persisting private source values or file bytes in artifacts/logs/Git.

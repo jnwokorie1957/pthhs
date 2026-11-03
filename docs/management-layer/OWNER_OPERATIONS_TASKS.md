@@ -21,8 +21,10 @@
   methods stay disabled. Content is bounded to2MiB with fresh exact membership
   checks; no additional role, clinical form/version/signature/sharing authority,
   write or automatic file save/import. Actual retrieval remains unaccepted: first
-  metadata attempt reached a shape check; a BaseResponse correction is pending
-  release/retry. The separate care-plan decision remains pending. See
+  metadata attempt reached a shape check; the Result fix is now released and six
+  scoped metadata reads succeed. Two returned entries fail exact file retrieval;
+  safe protocol diagnosis is in progress. No complete source-file/form acceptance.
+  The separate care-plan decision remains pending. See
   [scope](PATIENT_DOCUMENT_READINESS_2026-11-02.md).
 
 - [ ] Prepared November 2: specific additional read decision for SearchPatientPOC

@@ -852,7 +852,13 @@ TAB 09 - FORMS
     First actualmetadata attempt refused patient_document_response_shape_unverified.
     CapturedBaseResponse Result was omitted by newstrictparser.4fullSOAPcases
     reproduce; closedResultmetadata fix +6newtests/full621backend nowPASS.
-    Correctionnormalrelease/successfulnative retry PENDING; noactualfileaccepted.
+    Correction8851ae0/41538205284 all3jobsPASS through22:35:50UTC;12exactassets/
+    11anonymousprivateboundaries pass. Native6patientmetadatareads succeed:
+    4empty +2distinctdocumententries, exactsubject/selectedIDmatches. Bounded
+    SearchPatientDocument connection accepted; no complete-document census.
+    BOTHexactfile attempts hha_read_failed; noattachmentready/savecontrol/file.
+    Closedkind/HTTP/boundedvendorID diagnostics +2tests/full623backendPASS;
+    diagnosticnormalrelease/actualrefusalclassification PENDING. NoFileaccepted.
     No sourcewrite/clinicalform/extra-role or automaticdownload/import added.
     See PATIENT_DOCUMENT_READINESS_2026-11-02.md. F03/T04 remain OPEN.
 
@@ -1237,7 +1243,8 @@ Unselected reads are work to scope and verify, not automatically failed APIs.
 [ ] GetNumberOfComplianceItemDue
 [ ] GetPatientClinicalInfo
 [ ] GetCaregiversAccessPatientInfoToMobileApp
-[ ] SearchPatientDocument
+[x] SearchPatientDocument (bounded live patient/office metadata; six contexts;
+    four empty/two returned entries. Blob/clinical-form coverage remains OPEN.)
 [ ] SearchCaregiverDocument
 [ ] GetPatientDocumentType
 [ ] GetCaregiverDocumentType
