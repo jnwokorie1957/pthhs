@@ -19,10 +19,11 @@
   protected owner/vendor follow-up; P03/E04 stay open. See
   [source comparison](VISIT_SOURCE_COMPARISON_2026-11-03.md).
 
-- [x] November3 public metadata production check: ten exact Git-blob pages retain
-  complete HTML/WebPage title/description agreement, including055edfd's quoted
-  staff-description correction delivered through84c26e5.32canonical sitemap URLs,
-  robots and private noindex/anonymous401/no-store boundaries pass. Dated Search
+- [x] November3 public metadata production check: the ten-page sample extends at
+  09:47 UTC to 137 source routes/91 distinct pages/89 indexable pages. All indexable
+  HTML/WebPage title/description pairs agree, including the retained 055edfd staff
+  correction. Fifteen exact Git blobs, 32 canonical sitemap URLs, robots and private
+  noindex/anonymous401/no-store boundaries pass. Dated Search
   Console/field evidence and owner claim decisions remain open; no runtime change
   or repeat release. See [SEO review](../seo/2026-11-03-seo-review.md).
 

@@ -82,3 +82,34 @@ owners and precise pending actions; no duplicate question was sent.
 Evidence: private `outputs/primetime-seo-metadata-delivery-2026-11-03-0343.json`.
 Documentation diff and repository/link audit pass; existing suffix/duplicate-group
 warnings remain. Runtime assets, release controls and source records are unchanged.
+
+## 09:46 UTC follow-up after the private application release
+
+At 09:47:52 UTC, all 137 public source routes ended at HTTP200, yielding 91
+distinct HTML pages and 89 indexable pages. Every indexable page has nonempty,
+unique title/description metadata, its expected canonical and one H1. The new
+whole-inventory check confirms each indexable page's WebPage name/description
+matches its parsed HTML title/description; no JSON-LD parse error was found.
+Viewport metadata and image alt attributes are present. These HTML checks do not
+establish full accessibility, rich-result eligibility or real-user speed.
+
+Fifteen public artifacts match exact current Git blobs, including the staff
+page, all four articles, robots and both sitemap files. The sitemap still has
+32 canonical-host URLs with the private application excluded. Private entry
+meta/header noindex and anonymous session HTTP401/no-store remain intact.
+No authenticated patient/staff record was requested.
+
+The same 37 indexable location pages remain outside the homepage HTML graph;
+this is neither a new regression nor evidence of Google indexing or service
+availability. Their promotion still needs verified local coverage/useful content.
+The payer evidence register and claim gate retain the existing six approved
+displays, non-medical service scope and case-specific eligibility qualifiers.
+
+The dated November2 Search Console/field-data limits above are unchanged; the
+optional paid-reporting refusal was not retried. Google's snippet, structured-
+data and noindex guidance linked above was rechecked during this follow-up.
+No new business decision or runtime defect was established, so no copy/schema
+change, repeat runtime suite or deployment was warranted. The already accepted
+private release d411b27 does not imply an SEO outcome.
+
+Evidence: private `outputs/primetime-public-seo-crawl-2026-11-03-0946.json`.
