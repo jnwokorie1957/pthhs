@@ -9,8 +9,9 @@ first live metadata read was refused by a parser shape check. The BaseResponse
 correction is now released, and six live patient scopes pass metadata retrieval:
 four source-empty responses and two distinct returned document entries with exact
 subject/selection checks. Both file reads failed upstream; no attachment was
-released or saved. Bounded protocol diagnostics pass623backend tests and await
-normal release/retry. T04/F03 and the wider source goal remain open. No source-write
+released or saved. Protocol diagnostics are released and prove HTTP400/application
+error-310 for an exact source document. A closed reason hint passes624backend tests
+and awaits normal release/retry. T04/F03 and the wider source goal remain open. No source-write
 control has been changed.
 
 ## Exact source contract
@@ -115,6 +116,21 @@ retain precedence; no retry, fallback or looser membership/byte validation is
 added. Two additional tests cover privacy and backoff; full623backend checks pass.
 Its normal release and an evidence-driven retry are pending. Existing383frontend
 and46analytics-backend acceptance remain separate and unchanged.
+
+Diagnosticfc9c218 passed workflow41551081518 all3jobs on November3UTC:
+Hosting00:12:17/analytics00:13:43/backend00:13:48. Public00:16:04.007UTC checks
+match12assets/11private anonymous boundaries. The exact second document now
+returns `patient_document_download_failed_application_http_400_vendor_negative_310`.
+This is a vendor application error, not EVV exception reason310. No file is returned.
+The [current official operation page](https://app.hhaexchange.com/Integration/ENT/V1.8/ws.asmx?op=DownloadPatientDocument)
+confirms the PatientDocID request and expected file fields. Public primary-source
+search did not establish what-310 means; do not invent a permission/file diagnosis.
+
+The next patch reduces the vendor message to a closed access/method/file/null-
+reference/unclassified hint without emitting message text. One additional privacy
+test and all624backend checks pass; normal release and actual hint are pending.
+All13approved reads, strict subject/metadata/byte checks and source-write gates are
+preserved. No client asset or additional read grant is changed.
 
 Seven parser tests reproduced the prior failures before implementation. Eighteen
 new backend tests now pass: strict source shape/identities/filters, optional size,

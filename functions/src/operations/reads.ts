@@ -982,7 +982,12 @@ export async function operationalRead(client: Pick<HhaSoapClient, "call">, input
       const kind = ["application", "soap_fault", "protocol", "transport"].includes(response.error?.kind ?? "") ? response.error!.kind : "unclassified";
       const http = Number.isInteger(response.httpStatus) && response.httpStatus >= 0 && response.httpStatus <= 599 ? String(response.httpStatus) : "unknown";
       const vendor = Number.isInteger(response.error?.id) && Math.abs(response.error!.id!) <= 99_999 ? String(response.error!.id).replace("-", "negative_") : "unknown";
-      throw new WorkflowError(`patient_document_download_failed_${kind}_http_${http}_vendor_${vendor}`, 502);
+      const message = response.error?.message ?? "";
+      const reason = /(?:not\s+authori[sz]ed|access\s+denied|permission|authentication|invalid\s+credentials)/i.test(message) ? "access_refused"
+        : /(?:SOAPAction|method.{0,60}(?:not\s+supported|not\s+available|disabled)|operation.{0,60}not\s+supported)/i.test(message) ? "method_refused"
+        : /(?:(?:file|document).{0,100}(?:not\s+found|does\s+not\s+exist|not\s+available)|could\s+not\s+find.{0,60}file)/i.test(message) ? "file_unavailable"
+        : /(?:nullreferenceexception|object\s+reference\s+not\s+set)/i.test(message) ? "source_null_reference" : "unclassified";
+      throw new WorkflowError(`patient_document_download_failed_${kind}_http_${http}_vendor_${vendor}_reason_${reason}`, 502);
     }
     throw new WorkflowError("hha_read_failed", 502);
   }

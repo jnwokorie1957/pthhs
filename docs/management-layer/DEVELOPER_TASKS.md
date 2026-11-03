@@ -1,5 +1,13 @@
 # PTHHS Management Layer — Developer Checklist
 
+- [x] Patient-file refusal diagnosis: fc9c218 all3normaljobs/12exactassets/
+  11anonymous boundaries pass. Exact live document fails HTTP400/application-310;
+  metadata is verified but no bytes returned. Official operation page confirms
+  request shape; error meaning remains unproven. Closed message-to-reason hint
+  excludes private text; one new test/full624backend pass. Hint release/retry
+  pending; no new grant or weaker membership/size check. See
+  [scope](PATIENT_DOCUMENT_READINESS_2026-11-02.md).
+
 - [x] November 2 live document metadata recovery: Result correction8851ae0 passes
   all3normaljobs/12exactassets/11anonymous boundaries. Six actual scoped patient
   searches succeed (4empty/2distinctentries); exactsubject and selectedID checks

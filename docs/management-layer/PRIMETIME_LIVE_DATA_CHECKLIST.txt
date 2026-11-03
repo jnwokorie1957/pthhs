@@ -858,7 +858,11 @@ TAB 09 - FORMS
     SearchPatientDocument connection accepted; no complete-document census.
     BOTHexactfile attempts hha_read_failed; noattachmentready/savecontrol/file.
     Closedkind/HTTP/boundedvendorID diagnostics +2tests/full623backendPASS;
-    diagnosticnormalrelease/actualrefusalclassification PENDING. NoFileaccepted.
+    Diagnosticfc9c218/41551081518 all3jobsPASS throughNov3 00:13:48UTC;
+    12exactassets/11anonprivateboundaries pass. ExactsourceDocretry=>HTTP400,
+    application/vendor-310. NOT EVVreason310; no file. OfficialopPage confirms
+    PatientDocIDshape, no public-310meaningestablished. Closedreasonhint+1privacy
+    check/full624backendPASS; hintnormalrelease/actualreason PENDING. NoFileaccepted.
     No sourcewrite/clinicalform/extra-role or automaticdownload/import added.
     See PATIENT_DOCUMENT_READINESS_2026-11-02.md. F03/T04 remain OPEN.
 

@@ -14,7 +14,9 @@ FullSOAP regressions reproduce it; the correction passes all621backend tests.
 The correction passed all3normaljobs and native metadata retrieval now succeeds
 for six patient contexts (four empty/two returned entries). Both exact file reads
 fail upstream, with no attachment released. Closed protocol diagnostics pass all
-623backend tests; release/refusal classification is pending. No file is accepted.
+623backend tests and normal release; native refusal is HTTP400/application-310.
+Its meaning is unproven. A private-text-free reason hint passes624backend tests;
+hint release/retry is pending. No file is accepted.
 Clinical form/version/signature/sharing and wider source coverage remain open. See
 [scope](docs/management-layer/PATIENT_DOCUMENT_READINESS_2026-11-02.md).
 

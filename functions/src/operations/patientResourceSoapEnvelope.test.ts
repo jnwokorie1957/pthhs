@@ -30,9 +30,17 @@ test("failed SOAP application results do not become patient files, plans or succ
 
 test("document download failures expose bounded protocol codes without leaking vendor messages, XML or credentials", async () => {
   await assert.rejects(operationalRead(client('<Result Status="Failure"><ErrorInfo><ErrorID>1095</ErrorID><ErrorMessage>private-credential private-filename private-patient</ErrorMessage></ErrorInfo><Details><ErrorDetails>private-details</ErrorDetails></Details></Result>'), { operation: "DownloadPatientDocument", id: "9" }), error => {
-    assert.equal((error as { code: string }).code, "patient_document_download_failed_application_http_200_vendor_1095");
+    assert.equal((error as { code: string }).code, "patient_document_download_failed_application_http_200_vendor_1095_reason_unclassified");
     assert.doesNotMatch(String(error), /private-|Result|ErrorMessage/); return true;
   });
+});
+
+test("download refusal messages are reduced to closed hints without returning any private message text", async () => {
+  for (const [message, reason] of [['Access denied for private-filename', 'access_refused'], ['SOAPAction private-action was not recognized', 'method_refused'], ['File private-filename was not found', 'file_unavailable'], ['Object reference not set to private-object', 'source_null_reference'], ['private-credential and private-patient only', 'unclassified']]) {
+    await assert.rejects(operationalRead(client('<Result Status="Failure"><ErrorInfo><ErrorID>-310</ErrorID><ErrorMessage>' + message + '</ErrorMessage></ErrorInfo></Result>'), { operation: "DownloadPatientDocument", id: "9" }), error => {
+      assert.ok((error as { code: string }).code.endsWith('_reason_' + reason)); assert.doesNotMatch(String(error), /private-/); return true;
+    });
+  }
 });
 
 test("unknown failure fields stay closed and existing read backoff retains precedence over download diagnostics", async () => {
