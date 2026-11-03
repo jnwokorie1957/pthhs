@@ -36,14 +36,14 @@ function carePlanFixture(documents = false) {
     get textContent(){return this.text??this.children.map(x=>x.textContent||'').join(' ')},set textContent(value){this.text=value} }; }
   const el=id=>{if(!elements.has(id))elements.set(id,node(id));return elements.get(id)};
   const settings={revision:1,officeId:'9',enabledReads:documents?['SearchPatientDocument','DownloadPatientDocument']:['SearchPatientPOC','GetPatientPOCInfo']};
-  const state={live:true,deferred:null,truncated:false,dialogs:0};
+  const state={live:true,deferred:null,truncated:false,dialogs:0,fetchedAt:'2026-11-02T20:00:00.000Z'};
   const document={getElementById:el,querySelectorAll:()=>[],createElement:()=>node(),createTextNode:text=>({textContent:text}),addEventListener:(e,f)=>events.set(e,f)};
   const window={primetimeDataMode:{isLive:()=>state.live},confirm(){state.dialogs++;return false},async primetimeApiFetch(path,options){
     sent.push({path,body:options?.body});
     if(path.endsWith('/read')){
       if(state.deferred)await state.deferred;const input=JSON.parse(options.body);
       const records=input.operation==='SearchPatientPOC'?[{ID:'7'}]:input.operation==='SearchPatientDocument'?[{PatientDocID:'7',PatientID:'8',FileName:'synthetic.pdf'}]:input.operation==='DownloadPatientDocument'?[{PatientDocID:'7',FileName:'synthetic.pdf',FileSize:null}]:[{ID:'7',SourceElement:'POCInfo (plan header)',TaskListState:'Not supplied / unknown',Interpretation:'Plan/task definitions only.'}];
-      return {ok:true,json:async()=>({ok:true,operation:input.operation,source:'hhaexchange',fetchedAt:'2026-11-02T20:00:00.000Z',truncated:state.truncated,records,...(input.operation==='DownloadPatientDocument'?{attachment:{filename:'synthetic.pdf',byteLength:4,base64:'dGVzdA==',contentType:'application/octet-stream'}}:{})})};
+      return {ok:true,json:async()=>({ok:true,operation:input.operation,source:'hhaexchange',fetchedAt:state.fetchedAt,truncated:state.truncated,records,...(input.operation==='DownloadPatientDocument'?{attachment:{filename:'synthetic.pdf',byteLength:4,base64:'dGVzdA==',contentType:'application/octet-stream'}}:{})})};
     }
     return {ok:true,json:async()=>({ok:true,settings,dataApproved:true,supportedReads:settings.enabledReads,readInputs:{SearchPatientPOC:['patientId','officeId'],GetPatientPOCInfo:['patientId','officeId','id'],SearchPatientDocument:['patientId','officeId','documentTypeId','id','date'],DownloadPatientDocument:['patientId','officeId','id']}})};
   }};
@@ -53,6 +53,28 @@ function carePlanFixture(documents = false) {
   return {el,events,sent,state,submit(){el('readForm').handlers.get('submit')({preventDefault(){}})}};
 }
 const settleCarePlan=()=>new Promise(resolve=>setImmediate(resolve));
+
+test('raw read receipts preserve exact offsets and milliseconds through repeated local times',async()=>{
+  const f=carePlanFixture(true);await settleCarePlan();f.el('readOperation').value='SearchPatientDocument';f.el('readPatient').value='8';f.el('readOffice').value='9';
+  for(const receipt of ['2026-11-01T01:30:00.123-05:00','2026-11-01T01:30:00.123-06:00','2026-11-03T19:00:00.456Z']){
+    f.state.fetchedAt=receipt;f.submit();await settleCarePlan();
+    assert.ok(f.el('readResults').textContent.includes(`Fetched ${receipt} from HHA.`));
+    assert.match(f.el('readResults').textContent,/synthetic\.pdf/);
+  }
+  assert.equal(f.sent.filter(x=>x.path.endsWith('/read')).length,3);
+});
+
+test('raw read receipts with missing or ambiguous instants remain unavailable without discarding source fields',async()=>{
+  const f=carePlanFixture(true);await settleCarePlan();f.el('readOperation').value='SearchPatientDocument';f.el('readPatient').value='8';f.el('readOffice').value='9';f.state.truncated=true;
+  for(const receipt of [undefined,'','2026-11-01T01:30:00','not a timestamp']){
+    f.state.fetchedAt=receipt;f.submit();await settleCarePlan();
+    assert.match(f.el('readResults').textContent,/Fetched Unavailable from HHA\./);
+    assert.match(f.el('readResults').textContent,/synthetic\.pdf/);
+    assert.match(f.el('readResults').textContent,/Partial source result; row or task limits apply/);
+    assert.doesNotMatch(f.el('readResults').textContent,/Invalid Date/);
+  }
+  assert.equal(f.sent.filter(x=>x.path.endsWith('/read')).length,4);
+});
 
 test('care-plan reader uses server metadata for patient/office fields and keeps exact context when selecting detail',async()=>{
   const f=carePlanFixture();await settleCarePlan();f.el('readOperation').value='SearchPatientPOC';f.el('readOperation').handlers.get('change')();

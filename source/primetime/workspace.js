@@ -253,7 +253,8 @@
     if (sequence !== readSequence) return;
     if (authorizationRead && (data.operation !== operation || data.source !== 'hhaexchange' || window.primetimeSourceTime.timestampInstant(data.fetchedAt) === null || data.scope?.patientId !== input.patientId
       || data.scope?.officeId !== officeId || data.interpretation !== 'authorization_limits_unvalidated')) { clearAuthorizationList(); throw new Error('Authorization source context could not be verified.'); }
-    const target = $('readResults'); target.append(paragraph(`${names[data.operation] || data.operation}: Fetched ${new Date(data.fetchedAt).toLocaleString()} from HHA. Source timestamps are not converted. Field interpretation is pending validation. ${data.truncated ? 'Partial source result; row or task limits apply.' : ''}`));
+    const fetched = window.primetimeSourceTime.timestampInstant(data.fetchedAt) === null ? 'Unavailable' : data.fetchedAt;
+    const target = $('readResults'); target.append(paragraph(`${names[data.operation] || data.operation}: Fetched ${fetched} from HHA. Source times unconverted; interpretation unvalidated. ${data.truncated ? 'Partial source result; row or task limits apply.' : ''}`));
     if (authorizationRead && authorizationSelection) target.append(paragraph(`Discovery read: ${authorizationSelection.fetchedAt}. Detail read is independent.`));
     if (authorizationRead) target.append(paragraph(`Patient ${input.patientId} · office ${officeId} · fetched ${data.fetchedAt}. ${data.operation === 'SearchPatientAuthorizations' ? `${data.records.length} authorization discovery row(s) returned${data.truncated ? ' · truncated; not a complete list' : ' for this request'}.` : 'Raw authorization detail fields.'} Independent of the visit date filter. Unit conversion, balance period, usage basis and limits remain unvalidated. This evidence does not establish scheduling eligibility, billable services or remaining hours.`));
     if (data.attachment) {
