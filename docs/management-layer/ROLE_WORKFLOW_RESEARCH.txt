@@ -1862,3 +1862,110 @@ https://knowledge.hhaexchange.com/enterprise/Content/Documentation/Mobile/Mobi-C
 [R79] HHAeXchange, Mobile Offline Mode (caregiver documentation). Its feature list
 is different from [R15]; tenant app/configuration has not been observed here.
 https://knowledge.hhaexchange.com/caregiver/Content/Documentation/Mobile/Mobi-CG-Offline-Mode-P.htm
+
+
+CONSECUTIVE / OVERNIGHT VISITS AND ROLE RECORD BOUNDARIES — NOVEMBER 3, 06:42 UTC
+Research-only refinement against1a72128; sources retrieved during this run.
+No new HHA tenant UI observation, source query, time recovery or feature grant.
+
+OBSERVED IMPLEMENTATION AND EVIDENCE
+The06:13UTC administrator observation follows November3 office today, with
+consistent date/Preview scope and advancing receipts. This proves an observed
+post-midnight client state, not vendor split/consecutive configuration or an
+in-flight transition race. The04:10UTC source comparison leaves P03/E04 gaps open.
+P08 preserves raw V3 OriginalVisitID/SplitVisitID without automatic follow or an
+accepted relation/namespace. Those references and missing clocks do not establish
+a consecutive sequence or overnight-split transaction. Existing R75 status and
+source-date controls remain accepted; no replacement implementation is proposed.
+
+PRIMARY FINDINGS — PRODUCT CAPABILITIES, TENANT USE UNVERIFIED
+[R80] describes agency-enabled consecutive visits sharing a clock-in/out flow.
+The visits later become individual records; documentation proceeds by shift and
+patient. The vendor describes using scheduled duration for its timing behavior.
+This does not identify which API fields represent physical events, allocated
+boundaries or confirmed times for this tenant. No vendor timing rule is adopted
+as a replacement for a missing source value.
+
+[R81] describes an optional office overnight-split feature producing two visit
+transactions. Configuration includes a minimum duration and a choice of first-
+segment end boundary; the POC applies to both records. Rechecked [R24] distinguishes
+a schedule/start-date hold from other remaining holds. No affected agency visit
+has been proved to use either feature. No setting, visit date, clock, POC or
+billing hold was changed, nor was a midnight endpoint or duration reconstructed.
+
+PROPOSED PATIENT / FAMILY SCHEDULE AND DOCUMENTS
+Keep each permitted patient/visit and explicitly shared document version as the
+record boundary. A linked schedule or common address does not grant a relative
+access to another patient's identity, document, signature or financial record.
+Even if a staff vendor screen lists sequence members, a family view needs its own
+server patient-membership and sharing checks. Selecting today or a sequence header
+cannot confirm a request, disclose another patient or merge visit history. A
+shared plan/template does not establish performed duties or a reviewed/signed
+encounter. Public entry links remain separate from private schedule records.
+
+PROPOSED PHYSICAL THERAPIST / STAFF CASELOAD AND DOCUMENTATION
+Retain individual encounter links within any explicitly proved grouping. A
+combined clock action must not become one clinical note or mark every visit's
+documentation submitted, reviewed or signed. Exact clinician identity, effective
+assignment, verified discipline and approved encounter/form version still govern
+each action. Changing the displayed shift cannot silently retarget a draft or
+copy responses/signatures between patients. A later permitted sequence display
+should identify the open encounter and preserve each document state and receipt.
+Continuing a vendor sequence and editing an individual completed record remain
+different source transitions; neither is authorized by this research.
+
+PROPOSED OFFICE SCHEDULING / AUTHORIZATION / EVV / BILLING CONNECTIONS
+Keep the selected office/day, original service-date context and individual visit
+visible when opening detail from a proposed group. Related visits need explicit
+supported linkage and current office/subject proof for each member; caregiver,
+address, nearby clock text and matching numeric IDs cannot supply that proof.
+Retain independent schedule, actual, EVV, actual-hour, authorization/contract,
+clinical-document and billing receipts. Group spans, copied plans and allocated
+segment boundaries do not prove original device punches, care delivery, verified
+time, consumed authorization, billing/pay or completed office follow-up.
+
+P0: include a conditional question in the existing protected source/vendor case:
+does the exact affected record use consecutive or automatic-split processing,
+and which documented identities/fields prove that? Establish provenance and link
+semantics before interpreting generated boundaries. Do not enable either feature
+to remove an unknown field, infer a relation from OriginalVisitID/SplitVisitID
+alone, or reconstruct EVV from schedules. Existing refusals/no-fallback rules stay.
+
+P1, conditional proposal: after relation/permission/source acceptance, consider
+read-only navigation between independently scoped related visits, with separate
+receipts and incomplete-group labels. A ten-record page cannot prove the complete
+sequence. No grouping control or automatic related-read is implemented now.
+P2: external actions still need patient membership, staff assignment, approved
+form/version/action and sharing contracts. Readable administrator metadata does
+not release those roles or authorize a signing/editing workflow.
+
+ACCEPTANCE CRITERIA / DEPENDENCIES
+- Distinguish disabled/unknown feature configuration, failed relation proof,
+  successful empty lookup and partial sequence; never silently join rows.
+- Test one-patient sequences, separately authorized linked patients, missing or
+  foreign children, cycles/duplicates, relation changes and revoked membership.
+  A visible list cannot authorize hidden/unreturned records or another patient.
+- Preserve source clock/duration fields when a boundary resembles midnight or
+  scheduled duration. No ActualHours/rounded-hour fallback, copied punch, local
+  rounding or group-total billing calculation is supported.
+- Test an overnight date change and late response with an open exact encounter.
+  Following-today cannot retarget its draft/version, approve hours, close follow-
+  up or change authorization allocation. Native transition-race acceptance stays
+  separate from the06:13UTC post-midnight observation.
+- Keep early exit, individual source status, document completion/review/signature
+  and family sharing separate. Vendor behavior is not a new Primetime rule.
+- Existing protected source/vendor follow-up, same-profile HHA tab handoff and
+  pending care-plan/caregiver decisions remain the next actions. No duplicate
+  question or new urgent owner request. No actual sequence, split transaction,
+  PT role, clinical transition or cross-patient sharing is accepted in this pass.
+
+PRIMARY SOURCES — RETRIEVED NOVEMBER 3, 2026, 06:42 UTC RESEARCH RUN
+[R80] HHAeXchange, What is the consecutive shifts feature? Agency-enabled flow,
+individual record/document boundaries and vendor timing description; tenant/API
+field meaning and entitlement remain unverified.
+https://knowledge.hhaexchange.com/Caregiver/Content/Documentation/Mobile/FAQ-Mobi-CG-UW-Consecutive-Shifts-S.htm
+[R81] HHAeXchange, Automatic Splitting of Overnight Shifts. Optional office
+configuration and separate transactions; no source reconstruction authorized.
+https://knowledge.hhaexchange.com/texas/Content/Documentation/Admin/Admin-N-Automatic-Splitting-Overnight-Shifts-P.htm
+[R24] rechecked: Prebilling Hold: Schedule Visit Start Date Mismatch.
+https://knowledge.hhaexchange.com/texas/Content/Documentation/Billing/Bill-N-Prebilling-Schedule-Visit-Start-Date-Mismatch.htm
