@@ -1,5 +1,14 @@
 # PTHHS Management Layer — Developer Checklist
 
+- [ ] November 3 keyboard-focus diagnosis: the dated Advanced EVV trial did not
+  retain initiating-button focus; its next keyboard target was not captured.
+  Reproduce Enter/Space/Tab behavior before changing shared button disabling.
+  R83/R84 add current primary guidance and proposed success/empty/refusal/quota,
+  repeat-activation, moved-focus/draft and stale-context acceptance cases.
+  Preserve locks and 9fb89f1's request/context fences. Native checks need the
+  existing signed-in tab handoff; no new permission question or runtime claim.
+  See [proposed review](ROLE_WORKFLOW_RESEARCH.txt).
+
 - [x] November 3 Advanced EVV context correction: 9fb89f1 fences nested visit
   reviews and draft selection to the current source-read sequence/access. Three
   regressions fail before/pass after; all 396 frontend/tooling and 25 site checks

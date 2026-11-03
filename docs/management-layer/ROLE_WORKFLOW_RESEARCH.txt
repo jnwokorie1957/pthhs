@@ -1,7 +1,8 @@
 PRIMETIME ROLE AND WORKFLOW RESEARCH
 Updated: November 3, 2026, America/Chicago
 Scope: PTHHS /primetime, repository jnwokorie1957/pthhs.
-Latest research review: November 3, 2026, 09:42 UTC heartbeat. Rechecked the official Family Dashboard [R63] and Forms [R60] guidance against repository 9821769 and the cumulative role proposals below. Requests, source holds, encounter documentation and review remain distinct; no new tenant UI or source-read acceptance is claimed by that research pass. Latest bounded implementation: 9fb89f1 Advanced EVV source-context fences, accepted 19:55-19:57 UTC; acf7e6d exact read receipts accepted 19:15 UTC. Patient/PT role, document/action, source-time/E04, usable billing/B02 and availability dependencies remain open. Dated primary links and acceptance evidence follow; earlier next-task statements are historical checkpoints.
+Latest focused research: November 3, 2026, 22:24 UTC. R83/R84 ground a proposed keyboard-focus review of the dated Advanced EVV observation. This is a diagnostic candidate, with no new HHA UI, external-role or WCAG acceptance.
+Broad role review: November 3, 2026, 09:42 UTC heartbeat. Rechecked the official Family Dashboard [R63] and Forms [R60] guidance against repository 9821769 and the cumulative role proposals below. Requests, source holds, encounter documentation and review remain distinct; no new tenant UI or source-read acceptance is claimed by that research pass. Latest bounded implementation: 9fb89f1 Advanced EVV source-context fences, accepted 19:55-19:57 UTC; acf7e6d exact read receipts accepted 19:15 UTC. Patient/PT role, document/action, source-time/E04, usable billing/B02 and availability dependencies remain open. Dated primary links and acceptance evidence follow; earlier next-task statements are historical checkpoints.
 
 EVIDENCE BASELINE — DATED OBSERVATIONS; LATER UPDATES BELOW
 The initially observed authorized HHA member calendar showed a patient summary, separate navigation for authorizations, visits, recurring schedules, documents and clinical records, and month navigation. Calendar tiles kept scheduled times, actual times, caregiver names and billed-hour evidence together. The visible authorization grid included payer, dates, discipline, service codes, limits and weekday allowances. Calendar records are observations, not validated business rules. The reviewed source used PCA discipline; it did not establish that those caregivers were physical therapists. At the October 16 review, the HHA browser requires normal sign-in; these are earlier observations, not new tenant evidence.
@@ -2055,3 +2056,53 @@ roles, source time/hour recovery, device-event joins, new grants, record writes/
 imports, clinical/financial decisions or communications. Existing role membership,
 assignment/form-version/sharing/reviewer/action and P03/E04/B02 dependencies and
 other goal decisions remain open. See ADVANCED_EVV_REVIEW_CONTEXT_2026-11-03.md.
+
+ASYNC READ KEYBOARD FOCUS — NOVEMBER 3, 22:24 UTC RESEARCH
+Observed, not a new source trial: the 19:55-19:57 UTC Advanced EVV acceptance
+recorded that the initiating button did not retain focus. Its next keyboard
+destination and an actual keyboard/assistive-technology session were not captured.
+Current workspace.js button() temporarily sets native disabled around awaited
+actions. R84 explains that disabled controls cannot receive focus; this makes
+that lifecycle a candidate to investigate, not a proved cause or WCAG failure.
+
+R83 recommends visible, predictable focus and context-sensitive disabled-control
+conventions. Native disabled controls and focusable disabled states have different
+discoverability tradeoffs; the guidance does not require a blanket replacement.
+Preserve request suppression, permission/release locks, existing source-context
+fences, source receipts and the ordinary result tables while evaluating any fix.
+
+NEXT BOUNDED DEVELOPER REVIEW — PROPOSED ACCEPTANCE
+- Start the existing exact-source read with Enter and Space. Record active focus,
+  visible focus and Tab/Shift-Tab destination while pending and after success,
+  source-empty data, refusal and quota feedback. Confirm the actual keyboard
+  problem before changing the shared helper; no source failure need be induced.
+- Repeated activation while busy must not add requests. Preserve real cooldown
+  guidance, retry state and current batch identity. Exercise these synthetically.
+- If the user moves to another control or starts editing a draft, completion
+  must preserve that new focus and content. No unconditional focus restoration.
+- A changed date/office/subject/operation, Demo or sign-out must not revive old
+  controls, results or draft selection. Keep 9fb89f1's accepted stale-response
+  behavior. Native variants and actual AT remain separate acceptance evidence.
+
+ROLE CONNECTIONS — INFERENCE FOR FUTURE PERMITTED EXPERIENCES
+Patient/family: schedule and shared-document reads need clear progress and a
+predictable next keyboard target within the selected membership/sharing scope.
+PT/staff: caseload/encounter reads must preserve the active form version, draft
+and deliberate focus choice; reading is not documentation/signature authority.
+Office manager: prioritize the existing exact-visit EVV action and its date/filter
+and investigation-draft context before extending the pattern to other workflows.
+These are design acceptance cases, not enabled patient/PT or write capabilities.
+
+The existing signed-in Primetime connector handoff is needed for new native
+checks; this research does not repeat attachment failures or a login request.
+HHA subject/filter/retention/linkage and role membership/assignment/form-version/
+sharing/reviewer/action evidence and pending care-plan/availability decisions
+remain with their existing owners. No new HHA UI/read, grant, source write/import,
+clinical/financial decision, communication, runtime test or deployment this pass.
+
+PRIMARY REFERENCES — NOVEMBER 3, 2026, 22:24 UTC RESEARCH RUN
+[R83] W3C WAI APG, Developing a Keyboard Interface: predictable focus and
+Focusability of disabled controls. Design guidance; no tenant or WCAG verdict.
+https://www.w3.org/WAI/ARIA/apg/practices/keyboard-interface/
+[R84] MDN, disabled HTML attribute. Native disabled-control focus behavior.
+https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Attributes/disabled
