@@ -356,11 +356,15 @@
   function nextPageButton(visible) { ['dashboardVisitNext', 'dashboardOverviewNext'].forEach(id => { if (get(id)) get(id).hidden = !visible; }); syncVisitReads(); }
   function previousPageButton(visible) { ['dashboardVisitPrevious', 'dashboardOverviewPrevious'].forEach(id => { if (get(id)) get(id).hidden = !visible; }); syncVisitReads(); }
   function resetPaging() { nextCursor = null; retryRead = null; pageTrail = [null]; pagePosition = 0; nextPageButton(false); previousPageButton(false); }
-  function replace(id, ...children) { get(id)?.replaceChildren(...children); }
+  function replace(id, ...children) {
+    get(id)?.replaceChildren(...children);
+    text(id + 'Status', children.length === 1 && children[0].tagName === 'P' ? children[0].textContent : '');
+  }
   function unavailable(id, title, detail) {
     const box = node('div', null, 'dashboard-unavailable');
     box.append(node('strong', title), node('p', detail));
     replace(id, box);
+    text(id + 'Status', title);
   }
   function metrics(id, entries, demo) {
     replace(id, ...entries.map(([label, value, detail]) => {
@@ -728,6 +732,7 @@
         node('p', 'Filtered by patient/caregiver/office/day. No visit ID is supplied. Raw type/status assigns no punch and replaces no recorded/EVV field.', 'source-metadata'),
         ...(checked.records.length ? [table(['Call event ID', 'Call time (source)', 'Type (source)', 'Status (source)'], checked.records.map(row => [row.CallDashboardID, row.CallTime || 'Not supplied by HHA', row.CallType || 'Not supplied by HHA', row.CallStatus || 'Not supplied by HHA']))]
           : [node('p', 'No source call events returned. This does not prove absence of a visit or original punch.')]));
+      text(host + 'Status', `${checked.records.length} call event(s) in response.`);
       state.clearAge = window.primetimeSourceTime.watchFetchAge(window.primetimeSourceTime.timestampInstant(checked.fetchedAt), active, value => { age.textContent = value; }, () => { age.textContent = ''; });
     } catch (error) { if (active()) replace(host, node('p', error.message === 'invalid_call_events' ? 'The raw-call response could not be verified. Reload the source page.' : error.message)); }
     finally { if (state.abort === request) state.abort = null; }
@@ -824,6 +829,7 @@
       const receipt = node('p', `HHA GetPatientDemographics · fetched ${profile.fetchedAt} · current visit / patient / office checked. Source fields are unvalidated; this does not establish coverage or clinical acceptance.`, 'source-metadata');
       const age = node('p', null, 'source-metadata');
       replace('dashboardPatientProfile', receipt, age, table(['Source field', 'Source value'], Object.entries(profile.fields).map(([key, value]) => [labels[key], value || 'Not supplied by HHA'])), sourceRecordTools(view, item, captured, active));
+      text('dashboardPatientProfileStatus', 'Profile returned.');
       clearPatientFetchAge = window.primetimeSourceTime.watchFetchAge(window.primetimeSourceTime.timestampInstant(profile.fetchedAt), active,
         value => { age.textContent = value; }, () => { age.textContent = ''; });
     } catch (error) {

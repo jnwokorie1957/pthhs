@@ -32,6 +32,6 @@ test('dashboard inventory covers exactly the captured SOAP contract', () => {
   const operations = new Set([...reads.matchAll(/"([A-Za-z0-9]+)"/g)].map(match => match[1]));
   assert.deepEqual(new Set(catalog.items.filter(item => item.workspaceRead).map(item => item.name)), operations);
   const html = readFileSync(new URL('../public/primetime/index.html', import.meta.url), 'utf8');
-  const select = html.match(/<select id="readOperation">([\s\S]*?)<\/select>/)[1];
-  assert.deepEqual(new Set([...select.matchAll(/<option\b([^>]*)>([^<]*)<\/option>/g)].map(match => match[1].match(/\bvalue="([^"]*)"/)?.[1] ?? match[2])), operations, 'Every typed read needs a dashboard control');
+  const select = html.match(/<select id=(?:"readOperation"|readOperation)>([\s\S]*?)<\/select>/)[1];
+  assert.deepEqual(new Set([...select.matchAll(/<option\b([^>]*)>([^<]*)<\/option>/g)].map(match => ((a) => a?.[1] ?? a?.[2] ?? match[2])(match[1].match(/\bvalue=(?:"([^"]*)"|([^\s>]+))/)))), operations, 'Every typed read needs a dashboard control');
 });

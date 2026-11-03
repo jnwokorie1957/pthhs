@@ -1170,7 +1170,7 @@ test('overview date change is shared with Visits and clears source records befor
 test('source read controls and persisted import history describe separate actions', () => {
   const html = asset('index.html');
   for (const id of ['dashboardOverviewRefresh', 'dashboardVisitRefresh']) {
-    assert.match(html, new RegExp(`id="${id}"[^>]*>Read source now</button>`));
+    assert.match(html, new RegExp(`id=(?:"${id}"|${id})[^>]*>Read source now</button>`));
   }
   assert.match(html, /Persisted import history/);
   assert.match(html, /Check connection and history/);
@@ -2939,7 +2939,7 @@ test('one live-page timer updates both views while raw receipts, page evidence a
   assert.equal(app.document.activeElement,app.element('dashboardVisitRefresh')); assert.equal(app.element('dashboardVisitStatus').textContent,status);
   assert.equal(app.element('dashboardVisitMetadata').textContent,raw); assert.deepEqual(evidenceIds.map(id=>nodeText(app.element(id))),evidence);
   const html = asset('index.html');
-  for (const id of ['dashboardOverviewFetchAge','dashboardVisitFetchAge']) assert.match(html,new RegExp(`id="${id}"[^>]*aria-live="off"[^>]*hidden`));
+  for (const id of ['dashboardOverviewFetchAge','dashboardVisitFetchAge']) assert.match(html,new RegExp(`id=(?:"${id}"|${id})[^>]*aria-live=(?:"off"|off)[^>]*hidden`));
 });
 
 test('live-page absent, malformed, impossible or ambiguous receipts never borrow source times or start timers', async () => {
@@ -3047,7 +3047,7 @@ test('explicit clear removes both source views and timers without fetching, chan
     const events=app.events.length;clock.set('2026-10-19T23:22:00Z');lateTick();await app.click(prefix+'Clear');
     assert.equal(app.events.length,events);assert.equal(app.calls.length,calls);assertSourcePageCleared(app);
   }
-  const html=asset('index.html');for(const prefix of ['dashboardOverview','dashboardVisit'])assert.match(html,new RegExp(`id="${prefix}Clear"[^>]*type="button"[^>]*disabled>Clear source page</button>`));
+  const html=asset('index.html');for(const prefix of ['dashboardOverview','dashboardVisit'])assert.match(html,new RegExp(`id=(?:"${prefix}Clear"|${prefix}Clear)[^>]*type=(?:"button"|button)[^>]*disabled>Clear source page</button>`));
 });
 
 test('clearing a pending page fences its late success/error and leaves an explicit new read in charge', async () => {
@@ -3770,5 +3770,62 @@ test('retained authorization lists and detached return actions cannot cross inpu
     assert.equal(nodeText(app.element('readResults')), before, change);
     assert.equal(authorizationCalls(app).length, calls, change);
     assert.equal(back.hidden, true, change);
+  }
+});
+
+test('patient read status announces progress and success separately from returned private fields without moving focus', async () => {
+  const pending = deferred();
+  const app = await currentProfileFixture(() => pending.promise);
+  const control = currentProfileButtons(app)[0]; control.focus(); await clickNode(control);
+  assert.match(app.element('dashboardPatientProfileStatus').textContent, /Reading/);
+  pending.resolve(response(currentProfilePayload({visitId:'900001',patientId:'5',officeId:'123'})));
+  await tick(); await tick();
+  const status = app.element('dashboardPatientProfileStatus').textContent;
+  assert.match(status, /profile returned/i); assert.doesNotMatch(status, /Synthetic profile|900001|16:00/);
+  assert.match(nodeText(app.element('dashboardPatientProfile')), /Synthetic profile/);
+  assert.equal(app.document.activeElement, control);
+  assert.equal(app.calls.filter(c=>c.path.endsWith('/workspace/visit-patient')).length,1);
+  const html = readFileSync(new URL('../source/primetime/index.html', import.meta.url),'utf8');
+  for (const id of ['dashboardPatientProfile','dashboardCallEvents']) {
+    assert.match(html,new RegExp('<p[^>]*id="'+id+'Status"[^>]*role="status"'));
+    const container = html.match(new RegExp('<div[^>]*id="'+id+'"[^>]*>'))?.[0];
+    assert.ok(container); assert.doesNotMatch(container,/role="status"|aria-live/);
+  }
+});
+
+test('call read status distinguishes records, successful empty and refusal without announcing raw event fields', async () => {
+  for (const outcome of ['records','empty','refusal']) {
+    const pending=deferred(), app=await callEventsFixture(()=>pending.promise);
+    const control=callEventButtons(app)[0];control.focus();await clickNode(control);await tick();
+    assert.match(app.element('dashboardCallEventsStatus').textContent,/Reading/);
+    const scope=JSON.parse(app.calls.find(c=>c.path.endsWith('/workspace/visit-calls')).options.body);
+    const result=outcome==='refusal'?response({ok:false,error:'call_subject_mismatch'}):response(callEventsPayload(scope,outcome==='empty'?[]:undefined));
+    if(outcome==='refusal'){result.ok=false;result.status=409;}
+    pending.resolve(result);await tick();await tick();
+    const status=app.element('dashboardCallEventsStatus').textContent;
+    assert.match(status,outcome==='refusal'?/mismatch/i:new RegExp((outcome==='empty'?'0':'1')+' call event'));
+    assert.doesNotMatch(status,/900001|TYPE_FROM_SOURCE|STATUS_FROM_SOURCE|16:00/);
+    assert.equal(app.document.activeElement,control);
+    assert.equal(app.calls.filter(c=>c.path.endsWith('/workspace/visit-calls')).length,1);
+    assert.match(nodeText(app.element('dashboardCallEvents')),outcome==='refusal'?/mismatch/:outcome==='empty'?/No source call events/:/TYPE_FROM_SOURCE/);
+  }
+});
+
+test('source status clears with its records and cannot be restored by a late patient or call read', async () => {
+  for (const kind of ['patient','calls']) for (const change of ['clear','demo','signout']) {
+    const pending=deferred();let scope;
+    const app=kind==='patient'?await currentProfileFixture(input=>{scope=input;return pending.promise;}):await callEventsFixture(input=>{scope=input;return pending.promise;});
+    const host=kind==='patient'?'dashboardPatientProfile':'dashboardCallEvents';
+    await clickNode((kind==='patient'?currentProfileButtons(app):callEventButtons(app))[0]);await tick();
+    assert.match(app.element(host+'Status').textContent,/Reading/);
+    if(change==='clear')await app.click('dashboardVisitClear');
+    if(change==='demo')app.window.primetimeDataMode.setMode('demo');
+    if(change==='signout')app.dispatch('primetime-signed-out');
+    await tick();const before=app.element(host+'Status').textContent;
+    assert.doesNotMatch(before,/Reading/);
+    pending.resolve(response(kind==='patient'?currentProfilePayload(scope):callEventsPayload(scope)));
+    await tick();await tick();
+    assert.equal(app.element(host+'Status').textContent,before,kind+'/'+change);
+    assert.doesNotMatch(nodeText(app.element(host)),/Synthetic profile|TYPE_FROM_SOURCE/);
   }
 });

@@ -114,7 +114,7 @@
 <section class="view" data-view-panel="patients">
 <div class="section-heading"><div><p class="eyebrow">Current HHA source</p><h2>Patients on the selected visit page</h2><p>Current patient details require fresh visit/patient/office checks. This is not the full patient census.</p></div><button class="btn secondary" data-view-jump="overview">Choose visit date / page</button></div>
 <section class="panel"><div id="dashboardPatients"></div></section>
-<section class="panel" aria-labelledby="dashboardPatientProfileTitle"><h3 id="dashboardPatientProfileTitle">Current patient source profile</h3><div id="dashboardPatientProfile" role="status" aria-live="polite"></div></section>
+<section class="panel" aria-labelledby="dashboardPatientProfileTitle"><h3 id="dashboardPatientProfileTitle">Current patient source profile</h3><p id="dashboardPatientProfileStatus" role="status" aria-live="polite"></p><div id="dashboardPatientProfile"></div></section>
 <section class="panel" id="patientAuthorizationHost"><h3>Patient authorizations</h3><p id="patientAuthorizationMessage" role="status">Use Open patient authorizations.</p></section>
 <div class="section-heading"><div><p class="eyebrow">Patient source history</p><h2>Calendar imports</h2><p>Keep HHA calendar evidence alongside live reads, with its original date and source.</p></div><button class="btn secondary" data-view-jump="overview">Live overview</button></div>
 <section class="panel" id="manualSnapshotPanel">
@@ -132,7 +132,7 @@
 <div class="section-heading"><div><p class="eyebrow">Compliance workflow</p><h2 id="evvPanelTitle">EVV source clock evidence</h2><p>Source evidence must be validated before policy rules can classify an exception.</p></div></div>
 <div class="filter-bar"><label for="exceptionSearch">Search preview<input id="exceptionSearch" type="search" placeholder="Visit or exception"></label><label for="priorityFilter">Priority<select id="priorityFilter"><option value="all">All priorities</option><option value="high">High</option><option value="medium">Review</option><option value="low">Low</option></select></label></div>
 <section class="panel"><div id="dashboardExceptions"></div><button id="dashboardEvvRetry" class="btn secondary" type="button" hidden>Retry deferred details</button><p id="dashboardEvvRetryStatus" class="source-metadata" aria-live="off" hidden></p></section>
-<section class="panel"><h3>Source call events</h3><p>Inspect raw calls for the selected visit's patient, caregiver and day. No visit ID is supplied; calls stay separate from recorded actual and EVV times.</p><div id="dashboardCallEvents" role="status" aria-live="polite"></div></section>
+<section class="panel"><h3>Source call events</h3><p>Inspect raw calls for the selected visit's patient, caregiver and day. No visit ID is supplied; calls stay separate from recorded actual and EVV times.</p><p id="dashboardCallEventsStatus" role="status" aria-live="polite"></p><div id="dashboardCallEvents"></div></section>
 </section>
 <section class="view" data-view-panel="visits">
 <div class="section-heading"><div><p class="eyebrow">Selected office and day</p><h2>Visit source preview</h2><p>Scheduled, actual and EVV values remain separate. Source interpretation is pending.</p></div><div class="heading-actions"><button id="dashboardVisitRefresh" type="button" class="btn secondary">Read source now</button><button id="dashboardVisitClear" type="button" class="btn secondary" disabled>Clear source page</button></div></div>

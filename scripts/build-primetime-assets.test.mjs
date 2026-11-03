@@ -5,7 +5,7 @@ import { tmpdir } from 'node:os';
 import { resolve, sep } from 'node:path';
 import test from 'node:test';
 import vm from 'node:vm';
-import { buildPrimetimeAssets, PRIMETIME_ASSETS, renderPrimetimeAssets } from './build-primetime-assets.mjs';
+import { buildPrimetimeAssets, compactStaticAttributes, PRIMETIME_ASSETS, renderPrimetimeAssets } from './build-primetime-assets.mjs';
 
 const sample = `(() => {
   function retainedFunctionName() { const descriptiveLocalVariable = 7; return descriptiveLocalVariable; }
@@ -14,6 +14,14 @@ const sample = `(() => {
     className: RetainedClassName.name, quoted: { 'source-field': 'preserved' },
     regexResult: /^https:\\/\\/pthhs\\.net\\/primetime$/.test('https://pthhs.net/primetime') };
 })();\n`;
+
+test('attribute compaction preserves quoted content, protected blocks and DOM attribute values', () => {
+  const protectedText = '<script>const value = \'<input id="private">\';</script><textarea>id="literal"</textarea><pre>class="literal"</pre><style>.x{content:\'id="literal"\'}</style>';
+  const input = '<input id="scope" type="text" name="subject" maxlength="10" aria-label="Source subject" pattern="[1-9][0-9]+" title=\'a > role="status"\'><p class="two classes" role="status"></p>' + protectedText;
+  const expected = '<input id=scope type=text name=subject maxlength=10 aria-label="Source subject" pattern="[1-9][0-9]+" title=\'a > role="status"\'><p class="two classes" role=status></p>' + protectedText;
+  assert.equal(compactStaticAttributes(input), expected);
+  assert.equal(compactStaticAttributes(expected), expected);
+});
 
 async function fixture(t, newline = '\n') {
   const prefix = resolve(tmpdir(), 'pthhs-primetime-build-');

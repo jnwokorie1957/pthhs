@@ -13,6 +13,20 @@ const defaultSource = fileURLToPath(new URL('../source/primetime/', import.meta.
 const defaultOutput = fileURLToPath(new URL('../public/primetime/', import.meta.url));
 const lf = text => text.replace(/\r\n?/g, '\n');
 
+// Safe one-token attributes do not require HTML quotes. Keep authoring readable,
+// preserve quoted text and whitespace-sensitive content, and leave URL/pattern/
+// free-form attribute serialization alone. DOM values and public IDs stay unchanged.
+export function compactStaticAttributes(html) {
+  const names = new Set(['id', 'class', 'type', 'name', 'value', 'for', 'role', 'maxlength', 'min', 'max', 'step', 'tabindex', 'aria-live', 'aria-hidden', 'aria-controls', 'aria-expanded', 'aria-pressed', 'aria-describedby', 'aria-labelledby']);
+  return html.split(/(<pre\b[^>]*>[\s\S]*?<\/pre>|<textarea\b[^>]*>[\s\S]*?<\/textarea>|<script\b[^>]*>[\s\S]*?<\/script>|<style\b[^>]*>[\s\S]*?<\/style>)/gi)
+    .map((part, index) => index % 2 ? part : part.replace(/<[a-z](?:[^"'<>]|"[^"]*"|'[^']*')*>/gi, tag =>
+      tag.replace(/(\s+)([^\s"'<>\/=]+)(\s*=\s*)(?:"([^"]*)"|'([^']*)'|([^\s>]+))/g,
+        (all, space, name, equals, double, single, plain) => {
+          const value = double ?? single ?? plain;
+          return names.has(name) && /^[a-z0-9_.:-]+$/i.test(value) ? `${space}${name}=${value}` : all;
+        }))).join('');
+}
+
 // Only local identifiers change. Compression and property renaming stay off;
 // function/class names and the public DOM/API contracts remain intact.
 const minifierOptions = Object.freeze({
@@ -41,7 +55,7 @@ export async function renderPrimetimeAssets(sourceDir = defaultSource) {
     assetPattern.lastIndex = 0;
     html = html.replace(assetPattern, `$1?v=${hash}`);
   }
-  output.set('index.html', html);
+  output.set('index.html', compactStaticAttributes(html));
   return output;
 }
 
