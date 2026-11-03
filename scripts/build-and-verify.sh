@@ -42,6 +42,7 @@ python3 scripts/sync_article_navigation.py
 node scripts/site-polish.mjs
 node scripts/site-polish-finalize.mjs
 python3 scripts/seo_foundation.py
+python3 scripts/verify_seo_metadata.py
 python3 scripts/verify_sitemap_dates.py
 python3 scripts/verify_pthhs_articles.py
 python3 scripts/accessibility_foundation.py

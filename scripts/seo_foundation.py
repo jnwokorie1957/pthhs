@@ -92,11 +92,11 @@ def file_for_route(route: str) -> Path:
     raise FileNotFoundError(f"no HTML page for sitemap route {route}")
 
 
-def head_value(text: str, pattern: str, label: str, path: Path) -> str:
+def head_value(text: str, pattern: str, label: str, path: Path, *, capture_group: int = 1) -> str:
     match = re.search(pattern, text, re.I | re.S)
     if not match:
         raise RuntimeError(f"missing {label}: {path.relative_to(ROOT)}")
-    return html.unescape(re.sub(r"\s+", " ", match.group(1)).strip())
+    return html.unescape(re.sub(r"\s+", " ", match.group(capture_group)).strip())
 
 
 def is_noindex(text: str) -> bool:
@@ -315,9 +315,10 @@ def process_html(path: Path, facts: dict) -> tuple[str, bool]:
         title = head_value(text, r"<title>(.*?)</title>", "title", path)
         description = head_value(
             text,
-            r'<meta\s+name=["\']description["\'][^>]*content=["\']([^"\']*)',
+            r'<meta\s+name=["\']description["\'][^>]*content=(["\'])(.*?)\1',
             "description",
             path,
+            capture_group=2,
         )
         breadcrumbs = breadcrumb_items(route, text)
         text = normalize_visible_breadcrumb(text, breadcrumbs, path)
