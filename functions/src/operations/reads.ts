@@ -446,6 +446,7 @@ export const READ_PROJECTIONS = projections;
 export function readInputFields(operation: ReadOperation): string[] {
   if (operation === "SearchPatientDocument") return ["patientId", "officeId", "documentTypeId", "id", "date"];
   if (operation === "DownloadPatientDocument") return ["patientId", "officeId", "id"];
+  if (operation === "GetCaregiverPermanentWeekAvailability" || operation === "GetCaregiverSpecialAvailability") return ["id", "officeId"];
   if (operation === "SearchPatientPOC") return ["patientId", "officeId"];
   if (operation === "GetPatientPOCInfo") return ["patientId", "officeId", "id"];
   if (operation === "GetReferralProfile") return ["id", "officeId", "referralStatusId", "referralSourceId", "salesStaffId", "contractId"];
@@ -660,6 +661,53 @@ function carePlanRecords(xml: string, detail: boolean): Record<string, string | 
         }
       }
     }
+    return record;
+  });
+}
+function caregiverAvailabilityRecords(xml: string, input: ReadInput): Record<string, string | null>[] {
+  const invalid = (): never => { throw new WorkflowError("caregiver_availability_response_shape_unverified", 502); };
+  if (XMLValidator.validate("<AvailabilityRead>" + xml + "</AvailabilityRead>") !== true) invalid();
+  const permanent = input.operation === "GetCaregiverPermanentWeekAvailability";
+  const name = permanent ? "PermanentWeekAvailability" : "SpecialAvailability";
+  const tag = permanent ? "PermanentWeekAvailabilityInfo" : "SpecialAvailabilityInfo";
+  const key = permanent ? "PermanentWeekID" : "SpecialAvailabilityID";
+  const nil = (element: string) => /\s(?:[A-Za-z_][\w.-]*:)?nil\s*=\s*(["'])\s*(?:true|1)\s*\1/i.test(element.match(/^<[^>]+>/)?.[0] ?? "");
+  const blank = (text: string) => !text.replace(/<!--[\s\S]*?-->/g, "").trim();
+  const only = (body: string, children: string[]) => {
+    let offset = 0;
+    for (const child of children) {
+      const start = body.indexOf(child, offset);
+      if (start < offset || !blank(body.slice(offset, start))) invalid();
+      offset = start + child.length;
+    }
+    if (!blank(body.slice(offset))) invalid();
+  };
+  const roots = directChildElements(xml, name), status = sourceResultElements(xml, invalid, only);
+  if (roots.length > 1) invalid();
+  only(xml, [...roots, ...status].sort((a, b) => xml.indexOf(a) - xml.indexOf(b)));
+  if (!roots.length) return [];
+  const root = roots[0]!, body = extractElementBody(root, name) ?? "";
+  if (nil(root)) { if (!blank(body)) invalid(); return []; }
+  const rows = directChildElements(body, tag); only(body, rows);
+  const seen = new Set<string>();
+  return rows.map(element => {
+    if (nil(element)) invalid();
+    const row = extractElementBody(element, tag) ?? "";
+    const fields = [key, "CaregiverID", "OfficeID", ...(permanent ? [] : ["FromDate", "ToDate"]), ...days.flatMap(day => [day + "AvailabilityType", day + "From", day + "To", day + "LiveIn"])];
+    const record: Record<string, string | null> = {};
+    for (const field of fields) {
+      const values = directChildElements(row, field);
+      if (values.length > 1) invalid();
+      if (values.length) {
+        if (nil(values[0]!) && !blank(extractElementBody(values[0]!, field) ?? "")) invalid();
+        try { extractExactElementText(values[0]!, field); } catch { invalid(); }
+      }
+      record[field] = visitTimeField(element, tag + "/" + field);
+    }
+    for (const field of [key, "CaregiverID", "OfficeID"]) if (!record[field] || !/^[1-9]\d{0,9}$/.test(record[field]!) || Number(record[field]) > 2147483647) throw new WorkflowError("caregiver_availability_identity_unverified", 502);
+    if (seen.has(record[key]!)) throw new WorkflowError("caregiver_availability_identity_unverified", 502);
+    seen.add(record[key]!);
+    if (record.CaregiverID !== input.id) throw new WorkflowError("caregiver_availability_caregiver_mismatch", 403);
     return record;
   });
 }
@@ -999,6 +1047,8 @@ export async function operationalRead(client: Pick<HhaSoapClient, "call">, input
   } else if (input.operation === "SearchPatientPOC" || input.operation === "GetPatientPOCInfo") {
     records = carePlanRecords(response.resultXml, input.operation === "GetPatientPOCInfo");
     typedReasonsTruncated = records.some(row => row.TasksTruncated === "true");
+  } else if (input.operation === "GetCaregiverPermanentWeekAvailability" || input.operation === "GetCaregiverSpecialAvailability") {
+    records = caregiverAvailabilityRecords(response.resultXml, input);
   } else if (input.operation === "SearchPatientDocument" || input.operation === "DownloadPatientDocument") {
     records = patientDocumentRecords(response.resultXml, input, projectionScope === "document_metadata" || projectionScope === "write_recovery");
   } else if (input.operation === "SearchVisitsV2" || input.operation === "SearchPatients" || input.operation === "SearchCaregivers") {

@@ -1,5 +1,16 @@
 # PTHHS
 
+## November 3 caregiver availability readiness
+
+Weekly and special availability reads now require fresh caregiver-office proof
+before and after retrieval, exact row identities and unchanged release/settings.
+Strict projection preserves empty/unknown/zero source fields without inferring
+eligible staff, worked time or EVV punches. All 641 backend and 383 browser/tooling
+checks pass within the original asset budgets. The two reads remain disabled;
+normal release, native readiness, specific owner approval and actual source
+acceptance are pending. See
+[scope](docs/management-layer/CAREGIVER_AVAILABILITY_READINESS_2026-11-03.md).
+
 ## November 3 independent source acceptance
 
 Visit review's private office follow-up and supervisory/orientation collections

@@ -673,6 +673,18 @@ TAB 07 - STAFFING
 [ ] S02 Staff profile source: GetCaregiverDemographics. Availability sources:
     GetCaregiverPermanentWeekAvailability, GetCaregiverSpecialAvailability;
     restrictions/preferences/discipline and office membership remain separate.
+    November3 readiness: both raw availability readers now use direct collection/
+    field paths, validated IDs, strict office/subject rows and fresh caregiver-
+    office proof before+after. Ambiguous fields refuse; unknown/empty/zero remain
+    distinct. Release/settings fences and elapsed budget preserve existingquota.
+    Public generic read metadata requires caregiver-record ID+configured office;
+    existing workflow UI needs explicit read, with no automatic query/assignment.
+    5fail-before source/input regressions + fullSOAP +11boundary tests pass;
+    full641backend/383browser-tooling/assets/site/performance/schema preservation
+    pass within original418867raw/101997gzip budgets. Normal release/native
+    readiness and specific2read approval/source retrieval remain PENDING.
+    BothmethodsOFF,13existingreads/sourcewritesunchanged. See
+    CAREGIVER_AVAILABILITY_READINESS_2026-11-03.md. No source result accepted yet.
     Verify exact caregiver/office proof and then enable a bounded source reader.
     October27 iteration: the existing OfficeIDs projection maps the WSDL's
     CaregiverOffices/Office/OfficeID list. It is now restricted to unique direct

@@ -14,6 +14,16 @@
 
 ## Start here
 
+- [ ] Prepared November 3: additional read decision for only
+  GetCaregiverPermanentWeekAvailability and GetCaregiverSpecialAvailability,
+  existing administrators only. These expose private staff availability strings
+  through fresh caregiver-office and exact row checks. Implementation/tests pass;
+  normal release and native readiness must pass before the action-time question.
+  Neither read is enabled or queried. Current thirteen grants, source-write gates
+  and the separate pending care-plan decision are preserved. This does not approve
+  eligibility, staffing matches, schedule changes, EVV time or payroll decisions.
+  See [scope](CAREGIVER_AVAILABILITY_READINESS_2026-11-03.md).
+
 - [x] November 2 patient-document decision: owner explicitly approved both
   SearchPatientDocument and DownloadPatientDocument after normal release/readiness.
   Native save confirms EXACT13reads = prior11plus onlythese2; office/timezone/

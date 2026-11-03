@@ -1,5 +1,15 @@
 # PTHHS Management Layer — Developer Checklist
 
+- [x] November3 caregiver availability implementation: strict weekly/special
+  projection and exact caregiver/office public boundary; fresh membership before
+  and after, settings/release fences and elapsed budget. Five fail-before source/
+  input regressions, full-SOAP coverage and eleven boundary tests; all641backend/
+  383browser-tooling checks, assets/site/performance/schema preservation pass.
+  Original budgets retained. Normal release/native readiness and specific two-
+  read approval remain pending; no availability source call/grant/write is made.
+  Staff matching and interpretation remain gated. See
+  [scope](CAREGIVER_AVAILABILITY_READINESS_2026-11-03.md). S02 remains open.
+
 - [x] November3 local record reads: signed-in production Office follow-up and
   Supervisory visits & orientation both successfully return empty current pages.
   Exact private Firestore collection patterns and guarded GET routes are mapped;
