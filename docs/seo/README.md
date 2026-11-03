@@ -3,6 +3,11 @@
 These files remain useful for planning, but they do not override current public
 facts, payer evidence, or claim-release controls.
 
+- [November 3 metadata delivery review](2026-11-03-seo-review.md) — ten exact
+  public pages confirm complete HTML/WebPage metadata, including the previously
+  repaired staff description. Sitemap/robots/private boundaries pass; dated
+  Search Console and field-data limits remain explicit. No new runtime change.
+
 - [November 2 SEO and owner-task review](2026-11-02-seo-review.md) — 137 source
   routes, 32 delivered sitemap URLs and four articles; successful dated Google
   sitemap processing and a bounded settled comparison remain separate from

@@ -1,5 +1,12 @@
 # PTHHS Management Layer — Developer Checklist
 
+- [x] November3 public metadata production check: ten exact Git-blob pages retain
+  complete HTML/WebPage title/description agreement, including055edfd's quoted
+  staff-description correction delivered through84c26e5.32canonical sitemap URLs,
+  robots and private noindex/anonymous401/no-store boundaries pass. Dated Search
+  Console/field evidence and owner claim decisions remain open; no runtime change
+  or repeat release. See [SEO review](../seo/2026-11-03-seo-review.md).
+
 - [ ] November3 research follow-up: availability primary-office governance must
   not be inferred from caregiver OfficeIDs or a foreign SOAP row. Preserve the
   current exact-office refusal while the other goal completes its bounded sample
