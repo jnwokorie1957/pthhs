@@ -1,7 +1,7 @@
 PRIMETIME ROLE AND WORKFLOW RESEARCH
 Updated: November 3, 2026, America/Chicago
 Scope: PTHHS /primetime, repository jnwokorie1957/pthhs.
-Latest research review: November 3, 2026, 09:42 UTC heartbeat. Rechecked the official Family Dashboard [R63] and Forms [R60] guidance against repository 9821769 and the cumulative role proposals below. Requests, source holds, encounter documentation and review remain distinct; no new tenant UI or source-read acceptance is claimed. Latest bounded implementation: d411b27 staff/billing status messages, accepted 08:08-08:10 UTC. Patient/PT role, document/action, source-time/E04, usable billing/B02 and availability dependencies remain open. Dated primary links and acceptance evidence follow; earlier next-task statements are historical checkpoints.
+Latest research review: November 3, 2026, 09:42 UTC heartbeat. Rechecked the official Family Dashboard [R63] and Forms [R60] guidance against repository 9821769 and the cumulative role proposals below. Requests, source holds, encounter documentation and review remain distinct; no new tenant UI or source-read acceptance is claimed by that research pass. Latest bounded implementation: 9fb89f1 Advanced EVV source-context fences, accepted 19:55-19:57 UTC; acf7e6d exact read receipts accepted 19:15 UTC. Patient/PT role, document/action, source-time/E04, usable billing/B02 and availability dependencies remain open. Dated primary links and acceptance evidence follow; earlier next-task statements are historical checkpoints.
 
 EVIDENCE BASELINE — DATED OBSERVATIONS; LATER UPDATES BELOW
 The initially observed authorized HHA member calendar showed a patient summary, separate navigation for authorizations, visits, recurring schedules, documents and clinical records, and month navigation. Calendar tiles kept scheduled times, actual times, caregiver names and billed-hour evidence together. The visible authorization grid included payer, dates, discipline, service codes, limits and weekday allowances. Calendar records are observations, not validated business rules. The reviewed source used PCA discipline; it did not establish that those caregivers were physical therapists. At the October 16 review, the HHA browser requires normal sign-in; these are earlier observations, not new tenant evidence.
@@ -2031,3 +2031,27 @@ locale/timezone and may vary between implementations. This supports the existing
 exact-receipt display correction, not new HHA time/unit semantics or patient/PT/
 office action authority. Source event time and read time remain separate.
 https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/toLocaleString
+
+ADVANCED EVV SOURCE CONTEXT — NOVEMBER 3, 19:46 UTC IMPLEMENTATION
+Runtime9fb89f1 corrects an administrator workflow supported by the existing exact
+source-selection/race acceptance requirements. A nested SearchVisitsV2 review
+could restore old results/errors after filters changed; an obsolete investigation
+control could retarget an unsaved draft. Current sequence/access now fence the
+request, reply/error and draft action. Current quota guidance, batch order/retry,
+raw fields/receipts and source-unvalidated/no-policy cautions remain.
+
+Three regressions fail before/pass after; all396frontend-tooling/25site checks
+pass within unchanged caps. Workflow41707155154 all3jobs succeeds, twelve exact
+assets/noindexheaders and eleven anonymous boundaries pass. Native19:55-19:57UTC:
+one200-ID partial discovery and one10-card review match exact first10IDs, seven
+raw field labels/receipt/control per card; a date change clears results. No
+investigation created. In-flight/quota/obsolete-control variants remain synthetic;
+native initiating focus was not retained and actualAT/fullWCAG is not accepted.
+Status-only screenshot timed out, no image saved. Live Overview/office-today/feed
+restored, source selection/results and private comparison buffers cleared.
+
+This connects office review to its chosen source evidence without new patient/PT
+roles, source time/hour recovery, device-event joins, new grants, record writes/
+imports, clinical/financial decisions or communications. Existing role membership,
+assignment/form-version/sharing/reviewer/action and P03/E04/B02 dependencies and
+other goal decisions remain open. See ADVANCED_EVV_REVIEW_CONTEXT_2026-11-03.md.

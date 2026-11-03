@@ -91,6 +91,19 @@ TAB 01 - OVERVIEW
     call read repeated. Runtime/source grants unchanged; no new owner action.
 [ ] O02 Audit all page and source-failure messages and make retry guidance match
     the actual error, retry seconds and current selected date.
+    November3 Advanced tools context correction9fb89f1: nested SearchVisitsV2
+    EVV review replies/errors and old draft controls respect the source-read
+    sequence/access before requests, replies and selection. Three fail-before
+    regressions/all396frontend-tooling/25site checks pass; original caps retained.
+    Workflow41707155154 all3jobs pass19:52:11/19:52:35/19:53:43UTC; twelve exact
+    assets/noindexheaders and eleven anonymous401JSON/no-store boundaries pass.
+    Native19:55-19:57UTC one200-ID partial discovery/one10-card review match exact
+    first10IDs,7rawfieldlabels/receipt/control per card and unvalidated cautions;
+    date changes clear results. In-flight/quota/obsolete-control races remain
+    synthetic; native focus/actualAT not accepted. Overview/Live/office-today/feed
+    restored with IDs/results/tables/private buffers clear. No missing time/hour
+    recovery, new grant/write/import or source verification claimed. O02/P03/E04
+    remain open. See ADVANCED_EVV_REVIEW_CONTEXT_2026-11-03.md.
     November3 generic receipt correction acf7e6d: local display formatting had
     discarded UTC/offset and milliseconds. Exact validated fetchedAt now remains
     visible; missing/malformed/unzoned receipts say Fetched Unavailable without

@@ -1,5 +1,14 @@
 # PTHHS Management Layer — Developer Checklist
 
+- [x] November 3 Advanced EVV context correction: 9fb89f1 fences nested visit
+  reviews and draft selection to the current source-read sequence/access. Three
+  regressions fail before/pass after; all 396 frontend/tooling and 25 site checks
+  pass within original asset caps. All three release jobs, twelve exact assets
+  and eleven anonymous boundaries pass. Native ten-card IDs/fields/receipts match
+  discovery and date changes clear results. In-flight races remain synthetic;
+  focus/actual AT and wider O02 stay open. No new read grant or record write. See
+  [bounded acceptance](ADVANCED_EVV_REVIEW_CONTEXT_2026-11-03.md).
+
 - [x] November3 exact generic read receipts: acf7e6d retains validated fetchedAt
   offsets/milliseconds and labels missing/ambiguous receipts Unavailable. Two
   fail-before regressions,392 frontend/tooling and25 site checks pass within
