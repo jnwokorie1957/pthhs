@@ -345,5 +345,82 @@ class FamilyHandoffTests(unittest.TestCase):
             self.assertIn(article.path, (ROOT / 'public' / name).read_text(encoding='utf-8'))
 
 
+class DifferentCaregiverTests(unittest.TestCase):
+    def setUp(self):
+        self.article = next(a for a in approved_articles()
+                            if a.slug == 'preparing-for-different-home-care-caregiver')
+        self.page = (ROOT / 'public' / (self.article.path.lstrip('/') + '.html')).read_text(encoding='utf-8')
+
+    def test_reviewed_body_boundaries_and_readable_lists(self):
+        body = re.search(r'<div data-article-body>(.*?)</div>', self.page, re.S).group(1)
+        self.assertEqual(plaintext(body), plaintext(render_body(self.article.body)))
+        headings = re.findall(r'<h2>(.*?)</h2>', body)
+        self.assertEqual(headings, [
+            'Confirm the visit before preparing the handoff',
+            'Read the arrangement back in plain words',
+            'Let the person choose what matters most',
+            'Keep household preferences separate from service instructions',
+            'If two instructions do not match',
+            'Make one short, dated note',
+            'Leave room for feedback after the visit',
+        ])
+        lists = re.findall(r'<ul>(.*?)</ul>', body, re.S)
+        self.assertEqual([items.count('<li>') for items in lists], [3, 5])
+        for expected in (
+            'optional family planning aid, not an agency procedure or a promise that a replacement caregiver will be available',
+            'hypothetical call script, not a required agency process',
+            'These examples are hypothetical',
+            'Do not include medical details or other sensitive information in a general family message',
+            'Leave sensitive records, passwords, identification numbers and door codes off this general household note',
+            'Availability and individual arrangements must be confirmed with the office',
+            'Editorial note: Prepared with AI assistance as general, nonmedical information.',
+        ):
+            self.assertIn(expected, plaintext(body))
+        for private in ('Editorial handoff', 'not for public rendering', 'Suggested title:',
+                        'Proposed slug:', 'Primary sources re-read', 'November 4 substantive additions'):
+            self.assertNotIn(private, self.page)
+        self.assertNotIn('Published by Robert', self.article.body)
+        self.assertEqual(self.page.count('<h1>'), 1)
+        self.assertEqual(self.page.count('Published by Robert, CTO of Primetime Home Health Services'), 1)
+        urls = re.findall(r'\]\((https://[^)]+)\)', self.article.body)
+        self.assertEqual(set(urls), {
+            'https://pthhs.net/home-care-services/personal-care',
+            'https://acl.gov/programs/consumer-control/person-centered-planning',
+            'https://pthhs.net/articles/household-preferences-sheet-nonmedical-home-care',
+            'https://pthhs.net',
+            'https://pthhs.net/home-care-contact-us',
+        })
+        for url in urls:
+            self.assertIn('href="' + url + '"', body)
+
+    def test_release_metadata_organization_graph_and_discovery(self):
+        article, page = self.article, self.page
+        self.assertEqual(article.published, '2026-11-05')
+        self.assertEqual(article.research_checked, '2026-11-04')
+        self.assertIsNone(article.modified)
+        self.assertEqual(page.count('datetime="2026-11-04"'), 1)
+        self.assertEqual(page.count('datetime="2026-11-05"'), 1)
+        self.assertNotIn('Updated <time', page)
+        self.assertIn('<title>' + article.seo_title + '</title>', page)
+        self.assertIn('name="description" content="' + article.description + '"', page)
+        self.assertEqual(page.count('rel="canonical" href="https://pthhs.net' + article.path + '"'), 1)
+        self.assertEqual(re.findall(r'property="og:type" content="([^"]+)"', page), ['article'])
+        graph = json.loads(re.search(r'<script type="application/ld\+json">(.*?)</script>', page, re.S).group(1))['@graph']
+        schema, = [item for item in graph if item['@type'] == 'Article']
+        self.assertEqual(schema, article.schema())
+        self.assertNotIn('dateModified', schema)
+        organization = next(item for item in graph if item.get('@id') == 'https://pthhs.net/#organization')
+        self.assertEqual(organization['@type'], 'Organization')
+        self.assertEqual(organization['name'], PUBLISHER)
+        for role in ('author', 'publisher'):
+            self.assertEqual(schema[role], {'@type': 'Organization', '@id': organization['@id']})
+        breadcrumb, = [item for item in graph if item['@type'] == 'BreadcrumbList']
+        self.assertEqual([item['name'] for item in breadcrumb['itemListElement']], ['Home', 'Articles', article.title])
+        for name in ('articles.html', 'home-care-blog.html'):
+            self.assertEqual((ROOT / 'public' / name).read_text(encoding='utf-8').count('href="' + article.path + '"'), 1)
+        sitemap = (ROOT / 'public/sitemap.xml').read_text(encoding='utf-8')
+        self.assertEqual(sitemap.count('<loc>https://pthhs.net' + article.path + '</loc>'), 1)
+
+
 if __name__ == '__main__':
     unittest.main()
