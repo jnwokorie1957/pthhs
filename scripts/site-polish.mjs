@@ -424,12 +424,12 @@ async function generateMetaAssets() {
       ['android-chrome-512x512.png', 512]
     ];
     for (const [name, size] of sizes) {
-      await sharp(favBuffer).resize(size, size).png().toFile(path.join(metaDir, name));
+      await sharp(favBuffer).resize(size, size).png({ compressionLevel: 9 }).toFile(path.join(metaDir, name));
     }
-    const png32 = await sharp(favBuffer).resize(32, 32).png().toBuffer();
+    const png32 = await sharp(favBuffer).resize(32, 32).png({ compressionLevel: 9 }).toBuffer();
     await fs.writeFile(path.join(metaDir, 'favicon.ico'), pngToIco(png32));
     for (const [name, [label, subtitle]] of Object.entries(ogs)) {
-      await sharp(Buffer.from(ogSvg(label, subtitle))).png().toFile(path.join(metaDir, `${name}.png`));
+      await sharp(Buffer.from(ogSvg(label, subtitle))).png({ compressionLevel: 9 }).toFile(path.join(metaDir, `${name}.png`));
     }
     console.log('Generated PNG/ICO favicon and Open Graph image set.');
   } catch (error) {
