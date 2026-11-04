@@ -1,6 +1,7 @@
 PRIMETIME ROLE AND WORKFLOW RESEARCH
 Updated: November 3, 2026, America/Chicago
 Scope: PTHHS /primetime, repository jnwokorie1957/pthhs.
+Latest engineering evidence: November4, 01:24UTC local-helper diagnosis narrows the focus candidate without a runtime change; whole-widget/source/AT acceptance remains open. V2 projection15ba09d was released01:16UTC with actual-source acceptance still pending.
 Latest focused research: November 3, 2026, 22:24 UTC. R83/R84 ground a proposed keyboard-focus review of the dated Advanced EVV observation. This is a diagnostic candidate, with no new HHA UI, external-role or WCAG acceptance.
 Broad role review: November 3, 2026, 09:42 UTC heartbeat. Rechecked the official Family Dashboard [R63] and Forms [R60] guidance against repository 9821769 and the cumulative role proposals below. Requests, source holds, encounter documentation and review remain distinct; no new tenant UI or source-read acceptance is claimed by that research pass. Latest bounded implementation: 9fb89f1 Advanced EVV source-context fences, accepted 19:55-19:57 UTC; acf7e6d exact read receipts accepted 19:15 UTC. Patient/PT role, document/action, source-time/E04, usable billing/B02 and availability dependencies remain open. Dated primary links and acceptance evidence follow; earlier next-task statements are historical checkpoints.
 
@@ -2106,3 +2107,25 @@ Focusability of disabled controls. Design guidance; no tenant or WCAG verdict.
 https://www.w3.org/WAI/ARIA/apg/practices/keyboard-interface/
 [R84] MDN, disabled HTML attribute. Native disabled-control focus behavior.
 https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Attributes/disabled
+
+ISOLATED KEYBOARD DIAGNOSIS — NOVEMBER4, 01:24UTC FEATURE PASS
+Six local Chrome scenarios copy production action()/button() verbatim and use
+only synthetic callbacks. Enter/Space success, empty and refusal cases leave
+BODY active while disabled/settled, yet the next Tab reaches the fixture's After
+control and matches :focus-visible. A deliberate pending Tab/draft edit retains
+focus/text after completion; two busy Enter keys still produce one callback.
+No broken Tab sequence is reproduced in that isolated arrangement. This narrows
+the candidate, not the full source-widget, native race or AT/WCAG result.
+
+The callback does not create the real inserted EVV result controls, load product
+styles, authenticate or exercise source/permission transitions. Keep the actual
+widget check pending after the existing connector handoff; no automatic global
+disabled-control replacement or unconditional focus restoration follows. The
+patient/shared-document, PT caseload/form and office visit/draft acceptance cases
+above retain their membership, assignment, version, sharing and action gates.
+
+No product code/assets, source read/import/write, grant, clinical/financial
+decision or communication. Local server/tab closed; a long-delay text-locator
+timeout was resolved by fresh AX/DOM observation, not called a product failure.
+See KEYBOARD_HELPER_DIAGNOSIS_2026-11-04.md. Current backend15ba09d has only V2 code
+projection acceptance; no actual V2 time recovery or external-role grant is added.

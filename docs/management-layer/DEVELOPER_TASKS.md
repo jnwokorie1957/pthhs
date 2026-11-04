@@ -17,7 +17,12 @@
   repeat-activation, moved-focus/draft and stale-context acceptance cases.
   Preserve locks and 9fb89f1's request/context fences. Native checks need the
   existing signed-in tab handoff; no new permission question or runtime claim.
-  See [proposed review](ROLE_WORKFLOW_RESEARCH.txt).
+  November4 isolated Chrome copy: six synthetic scenarios retain logical Tab
+  order, deliberate draft focus/text and a single callback under busy keys.
+  BODY focus alone does not prove a broken sequence. Whole-widget/source/AT
+  acceptance stays pending; no global helper rewrite is justified by this copy.
+  See [proposed review](ROLE_WORKFLOW_RESEARCH.txt) and
+  [isolated diagnosis](KEYBOARD_HELPER_DIAGNOSIS_2026-11-04.md).
 
 - [x] November 3 Advanced EVV context correction: 9fb89f1 fences nested visit
   reviews and draft selection to the current source-read sequence/access. Three
