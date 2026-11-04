@@ -416,6 +416,22 @@ TAB 04 - VISIT PREVIEW
 [ ] P03 Verify additional affected examples, including a completed historical
     visit, and cross-check any documented alternate endpoint only after its
     identity/office boundary and entitlement are established.
+    November3 22:52UTC trigger / November4 UTC release:15ba09d corrects the
+    existing V2 reader against captured GetVisitInfoDetailsV2. VisitInfo/
+    ActualHoursRounded was omitted; V2 clock parsing could borrow nested text.
+    Six direct clock fields, both actual-hour strings and both ScheduleDuration
+    components now use exact scalar projection; empty/absent/zero stay distinct,
+    ambiguous/nil/nonscalar data stays unknown. Strings do not prove units or
+    rounding meaning; no calculated fallback, V3/feed change or grant added.
+    Two regressions fail before/pass after;643backend and unchanged asset/budget
+    checks pass. Workflow41752622722 all3jobs pass Nov4 01:14:50/01:16:06/01:16:19
+    UTC; twelve exact noindex assets and twelve anonymous401JSON/no-store
+    boundaries pass. No authenticated V2 request/output or recovered source
+    time accepted. Existing tab handoff remains; confirm saved approved scope
+    before any later V2 trial, retaining its gate if not approved. Exact subject/
+    office/day linkage, independent receipts and actual source comparison remain
+    required. P03/E04 open; original screenshot stays resolved. See
+    VISIT_V2_TIME_PROJECTION_2026-11-03.md.
     November3 20:48UTC access follow-up: the previously used Primetime tab is
     unavailable. A separate temporary tab shows the normal sign-in form; the
     connector times out attaching to another existing Primetime tab. This does

@@ -1,5 +1,15 @@
 # PTHHS Management Layer — Developer Checklist
 
+- [x] November 3 V2 time projection / November4 UTC release: 15ba09d adds the
+  captured-contract ActualHoursRounded field and exact direct scalar parsing
+  for V2 clocks/durations. Two regressions fail before/pass after; all 643 backend
+  checks and unchanged client asset/performance checks pass. All three normal
+  release jobs, twelve exact assets/noindex and twelve anonymous boundaries pass.
+  V3/live-feed selection and permissions are unchanged. No authenticated V2 read
+  or missing-time recovery accepted; P03/E04 remain open. Confirm authorized scope
+  only after the existing signed-in connector handoff. See
+  [bounded code/source distinction](VISIT_V2_TIME_PROJECTION_2026-11-03.md).
+
 - [ ] November 3 keyboard-focus diagnosis: the dated Advanced EVV trial did not
   retain initiating-button focus; its next keyboard target was not captured.
   Reproduce Enter/Space/Tab behavior before changing shared button disabling.
