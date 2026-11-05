@@ -9,7 +9,7 @@ const from="2026-10-23",to="2026-11-05",stamp=to+"T18:00:00.000Z";
 function fixture(count=3){
   const records=new Map<string,Versioned>(),queries:ReadInput[]=[];
   const state={dataApproved:true,settings:{officeId:"123",revision:1,enabledReads:["SearchVisitsV2","GetVisitInfoV3","GetPatientDemographics","GetCaregiverDemographics"]}};
-  const options={foreign:false,failureAt:"",billingEmpty:false,contract:"75",date:from};
+  const options={foreign:false,failureAt:"",billingEmpty:false,contract:"75",secondary:"0",date:from};
   const repository={async get<T extends Versioned>(collection:string,id:string){return structuredClone(records.get(collection+'/'+id) as T??null);},async change<T extends Versioned>(collection:string,id:string,revision:number,_actor:string,_action:string,update:(prior:T|null)=>T){const key=collection+'/'+id,prior=records.get(key) as T??null;if((prior?.revision??0)!==revision)throw new WorkflowError('revision_conflict',409);const next=update(prior);records.set(key,structuredClone(next));return next;}};
   const workspace={settings:async()=>structuredClone(state),query:async(input:ReadInput)=>{queries.push(input);if(input.id===options.failureAt)throw new WorkflowError('read_budget_exhausted_retry_next_minute',429,11);
     let rows:Record<string,string|null>[]=[];
@@ -20,7 +20,7 @@ function fixture(count=3){
       case 'GetCaregiverDemographics':rows=[{ID:input.id!,OfficeIDs:'["123"]',FirstName:'Synthetic',LastName:'Caregiver',CaregiverCode:'CG-TEST'}];break;
       case 'GetVisitBillInfoV2':rows=options.billingEmpty?[]:[{ID:input.id!,'Patient/ID':'25','Caregiver/ID':'35',VisitDate:options.date,'PrimaryBillTo/Contract/ID':options.contract}];break;
       case 'GetVisitBillInfo':rows=[{ID:input.id!,'Patient/ID':'25','Caregiver/ID':'35',VisitDate:options.date,'PrimaryBillTo/Contract/ID':options.contract}];break;
-      case 'GetScheduleInfo':rows=[{ID:input.id!,'Patient/ID':'25','Caregiver/ID':'35',VisitDate:options.date,'PrimaryBillTo/Contract/ID':options.contract}];break;
+      case 'GetScheduleInfo':rows=[{ID:input.id!,'Patient/ID':'25','Caregiver/ID':'35',VisitDate:options.date,'PrimaryBillTo/Contract/ID':options.contract,'SecondaryBillTo/Contract/ID':options.secondary}];break;
       case 'SearchPatients':rows=[{PatientID:'25'}];break;
       case 'SearchCaregivers':rows=[{CaregiverID:'35'}];break;
       case 'GetContracts':rows=[{ContractID:'75',ContractName:'Synthetic payer',Active:'source-status'}];break;
@@ -68,6 +68,10 @@ test('the separately approved legacy billing read can fill a V2-empty payer refe
 test('unbilled payer filtering prefers the exact office-checked schedule and generic schedule reads stay closed',async()=>{
  const f=fixture(1);f.options.billingEmpty=true;f.state.settings.enabledReads.push('GetScheduleInfo');const result=await f.service.search({from,to,contractId:'75'},'synthetic-admin');assert.equal(result.items.length,1);assert.equal(result.unknownPayers,0);assert.ok(f.queries.some(q=>q.operation==='GetScheduleInfo'));assert.equal(f.queries.some(q=>q.operation==='GetVisitBillInfoV2'),false);
  const response=await workspaceRoute({query:async()=>{throw new Error('must not dispatch');}} as never,'POST','/workspace/read',{operation:'GetScheduleInfo',id:'15'},'synthetic-admin');assert.equal(response?.status,423);assert.equal((response?.body as {error:string}).error,'use_scoped_maintenance_payer_read');
+});
+test('an unused zero payer reference does not discard a valid primary or secondary match',async()=>{
+ const f=fixture(1);f.state.settings.enabledReads.push('GetScheduleInfo');let result=await f.service.search({from,to,contractId:'75'},'synthetic-admin');assert.equal(result.items.length,1);assert.deepEqual(result.items[0]?.contractIds,['75']);
+ f.options.contract='0';f.options.secondary='75';result=await f.service.search({from,to,contractId:'75'},'synthetic-admin');assert.equal(result.items.length,1);f.options.secondary='0';result=await f.service.search({from,to,contractId:'75'},'synthetic-admin');assert.equal(result.unknownPayers,1);assert.equal(result.complete,false);
 });
 test('profile lookups and payer catalog stay source scoped and do not create HHA records',async()=>{
   const f=fixture();const people=await f.service.people({kind:'patient',firstName:'Synthetic',lastName:'Patient'},'synthetic-admin');assert.equal(people.items.length,1);

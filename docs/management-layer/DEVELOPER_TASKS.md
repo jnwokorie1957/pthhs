@@ -2,9 +2,11 @@
 
 - [x] Implemented the requested maintenance From/To range, separate patient/member
   and caregiver name/code lookups, bill-to payer/contract filtering, actionable
-  rows/cards, deadline recovery and source-bound reason/action staging. Normal
-  release, the five new scoped read decisions and signed-in production acceptance
-  are pending. [Implementation and controls](MAINTENANCE_RANGE_SEARCH_2026-11-05.md).
+  rows/cards, deadline recovery and source-bound reason/action staging. Initial
+  normal release passed; fourteen of fourteen source visits and both name lookups
+  are accepted. Five reads were explicitly approved and saved. Payer zero-reference
+  repair and empty reason disclosure are in follow-up verification.
+  [Implementation and controls](MAINTENANCE_RANGE_SEARCH_2026-11-05.md).
   HHA confirmation writes and authoritative event links remain open M02 work.
 
 - [ ] November 5 restricted-role design (19:43UTC): current maintenance queues

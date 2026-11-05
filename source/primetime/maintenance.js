@@ -231,13 +231,14 @@
     const readReasons = button('Load HHA reason / action codes', () => action(async ticket => {
       await ensureCase(ticket);
       const value = await request('/maintenance/reasons',ticket,{date:serviceDate(row),visitId:row.id,revision:cases.get(row.id).revision});
-      cases.set(row.id,verifyCase(value.item)); render(); detail(); message('HHA reason/action choices retained for this visit. Select a matching pair and enter your note to stage the review. No HHA submission occurred.');
+      cases.set(row.id,verifyCase(value.item)); render(); detail(); message(value.item.reasonCatalog?.reasons.length ? 'HHA reason/action choices retained for this visit. Select a matching pair and enter your note to stage the review. No HHA submission occurred.' : 'HHA returned no reason/action choices for this visit. No source code can be staged from this response.');
     }));
     readReasons.dataset.sourceRead = 'true'; readReasons.dataset.sourceLabel = 'Load HHA reason / action codes'; readReasons.dataset.locked = String(!caseKnown.has(row.id)||reasonPermission===false); reasonSection.append(readReasons);
     if(reasonPermission===false)reasonSection.append(el('p','The scoped reason/action read awaits the office permission. Other visit reviews remain available.'));
     const catalog = item?.reasonCatalog;
     if (catalog) {
       reasonSection.append(el('p',`Reason source fetched ${catalog.fetchedAt}. ${catalog.truncated ? 'Partial catalog returned.' : 'Source-returned choices.'}`));
+      if(!catalog.reasons.length)reasonSection.append(el('p','HHA returned no reason/action choices for this visit. Keep the review note; use HHA for the source action until the applicable catalog and confirmation contract are available.','maintenance-empty'));
       const reasonLabel = el('label','Visit edit reason'), reason = el('select'); reason.id='maintenanceReason';
       const placeholder=el('option','Select source reason'); placeholder.value=''; reason.append(placeholder);
       for (const choice of catalog.reasons) { const opt=el('option',`${choice.id} · ${choice.name || 'No description'} · ${choice.status || 'status not supplied'}`); opt.value=choice.id; reason.append(opt); }
@@ -322,10 +323,10 @@
     if(value?.ok!==true||value.source!=='hhaexchange'||value.mode!=='live'||value.scope?.from!==from||value.scope?.to!==to||!validId(value.scope.officeId)||!Array.isArray(value.items)||value.items.some(row=>!validId(row.id)||typeof row.serviceDate!=='string'||row.serviceDate<from||row.serviceDate>to)) {message('Search response could not be verified. Search again.');return;}
     const previous=searchMode&&day?.scope.officeId===value.scope.officeId?day.items:[];
     const combined=new Map(previous.map(row=>[row.id,row]));for(const row of value.items)combined.set(row.id,row);
-    searchMode={...value.scope,...value,unknownPayers:(searchMode?.unknownPayers||0)+value.unknownPayers,unavailableCount:(searchMode?.unavailableCount||0)+value.unavailable.length};
+    searchMode={...value.scope,...value,unknownPayers:(searchMode?.unknownPayers||0)+value.unknownPayers,unavailableCount:(searchMode?.unavailableCount||0)+value.unavailable.length,unavailableCodes:[...new Set([...(searchMode?.unavailableCodes||[]),...value.unavailable.map(row=>row.error)])].slice(0,10)};
     searchMode.complete=value.complete&&searchMode.unknownPayers===0&&searchMode.unavailableCount===0;
     day={scope:{officeId:value.scope.officeId,date:from},items:[...combined.values()]};
-    render(); detail(); message(`${day.items.length} matching readable source visits loaded. ${value.checkedThrough} of ${value.totalIds} source IDs checked.${value.nextCursor?' Continue source search for remaining visits.':''}${searchMode.unavailableCount?` ${searchMode.unavailableCount} source detail reads were unavailable.`:''}`);
+    render(); detail(); message(`${day.items.length} matching readable source visits loaded. ${value.checkedThrough} of ${value.totalIds} source IDs checked.${value.nextCursor?' Continue source search for remaining visits.':''}${searchMode.unavailableCount?` ${searchMode.unavailableCount} source detail reads were unavailable (${searchMode.unavailableCodes.join(', ')}).`:''}`);
   });
   document.addEventListener('primetime-maintenance-search-error',event=>message(event.detail||'HHA search did not finish. Loaded visits remain available.'));
   document.addEventListener('primetime-maintenance-capabilities',event=>{if(day&&event.detail?.officeId!==day.scope.officeId){clear('Office context changed. Refresh to load its source data.');return;}const draft=$('maintenanceNote')?.value;reasonPermission=event.detail?.enabledReads?.includes('GetVisitEditReasonActionTaken')===true;if(day){detail();if(typeof draft==='string'&&$('maintenanceNote'))$('maintenanceNote').value=draft;}});

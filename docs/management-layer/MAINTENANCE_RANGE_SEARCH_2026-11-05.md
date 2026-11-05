@@ -95,4 +95,43 @@ Protected assets measure approximately 488 KB raw / 124 KB Node gzip across 16
 files. The reviewed allowance is 490000 / 125000 bytes; 110000 per-file and the
 separate marketing limits are unchanged. No runtime dependency was added.
 
-Production acceptance and permission decision: pending normal release.
+## November 5 production acceptance
+
+Initial runtime [1083e6f](https://github.com/jnwokorie1957/pthhs/commit/1083e6f9077a398b3849d22aa080d9f529bcbe02)
+passed all four jobs in [42108212755](https://github.com/jnwokorie1957/pthhs/actions/runs/42108212755).
+All 16 deployed assets matched local bytes. Six new API paths reject anonymous
+requests with 401 JSON, no-store and noindex protections. Local suites passed
+771 backend and 555 frontend/tooling tests before the initial release.
+
+Signed-in acceptance read October 23 through November 5 for one source-selected
+patient: all 14 returned IDs checked, 14 readable matching visits, no unavailable
+details or truncated discovery. This is one tested query, not the entire office
+history. October 23 and October 24 are visibly present. Native source read limits
+paused partial prefixes; continuation preserved rows and reached completion.
+Opening a historical row, returning to the queue and desktop/narrow layouts
+(1425px and 465px, no horizontal overflow) worked. A neutral, explicitly labelled
+connectivity office case was retained under its historical date; no clinical
+determination, call/time change or HHA confirmation was made.
+
+The owner approved all five scoped reads. Normal owner-form save and reload
+confirmed 18 selected reads, preserving the previous 13. Patient first/last name
+plus admission lookup and caregiver first/last name plus code lookup each returned
+one office-checked source profile. GetContracts returned 48 office contracts.
+No write workflow gained release approval.
+
+An independent approved V2 billing read proved the exact selected visit, patient,
+date and primary contract. Its unused secondary contract was literally zero.
+The initial payer filter rejected that non-reference. The follow-up ignores only
+zero/empty references, keeps positive primary/secondary IDs, discloses absent
+usable evidence and preserves all subject/office/date checks. Matching and
+zero-only fixtures cover this repair. Production payer retest is pending.
+
+The scoped reason read succeeded at 21:16:26.248Z with no typed reason/action
+choices. No choice or meaning was invented. Follow-up UI explicitly explains this
+empty catalog, and parsing rejects an unrecognized wrapper containing legacy
+reason records instead of silently treating it as empty. Synthetic nonempty
+catalog staging is tested; a real nonempty catalog and real-code staging are not
+accepted. Source/vendor follow-up must establish the applicable reason/action
+catalog for the exact payer/visit and the supported confirmation/link/readback
+contract. Prepared vendor questions remain unsent. HHA source submission stays
+disabled; this delivery does not complete M02 or restricted staff-account access.

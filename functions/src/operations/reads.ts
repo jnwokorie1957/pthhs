@@ -1086,6 +1086,7 @@ export async function operationalRead(client: Pick<HhaSoapClient, "call">, input
     }
     if (input.operation === "GetVisitEditReasonActionTaken") {
       const evidence = visitEditReasonEvidence(response.resultXml);
+      if (bodies.length && !evidence.reasons.length) throw new WorkflowError("invalid_reason_evidence_xml", 502);
       visitEditReasons = evidence.reasons; typedReasonsTruncated = evidence.truncated;
     }
     records = bodies.map(xml => {

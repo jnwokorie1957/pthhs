@@ -130,7 +130,7 @@ export class MaintenanceSearch {
           const record = billing.records[0];
           if (billing.source !== "hhaexchange" || !["GetScheduleInfo", "GetVisitBillInfoV2", "GetVisitBillInfo"].includes(billing.operation)) throw new WorkflowError("billing_source_context_mismatch", 403);
           if (billing.truncated || billing.records.length > 1 || record && (record.ID !== id || record["Patient/ID"] !== base.patientId || record["Caregiver/ID"] !== cgId || record.VisitDate?.slice(0, 10) !== date)) throw new WorkflowError("billing_source_context_mismatch", 403);
-          contractIds = record ? [record["PrimaryBillTo/Contract/ID"], record["SecondaryBillTo/Contract/ID"]].filter((id): id is string => Boolean(id)).map(identifier) : null;
+          contractIds = record ? [record["PrimaryBillTo/Contract/ID"], record["SecondaryBillTo/Contract/ID"]].filter((id): id is string => Boolean(id) && id !== "0").map(identifier) : null;
           if (!contractIds?.length) { unknownPayers++; contractIds = null; }
         }
         await ctx.check();
