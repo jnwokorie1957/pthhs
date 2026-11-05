@@ -130,12 +130,12 @@ export const primetimeRevisionMonitor = process.env.PRIMETIME_API_ONLY_DEPLOY ==
   // The owner-authorized read-only feed is independent of diagnosis/SMS stages.
   // Existing operational release, office/read policy and shared quotas still apply.
   try {
-    logger.info("Primetime live API feed", await refreshLiveFeed(liveReadWorkspace(), new FirestoreFeedStore()));
+    logger.info("Primetime live API feed", await refreshLiveFeed(liveReadWorkspace("background"), new FirestoreFeedStore()));
   } catch {
     logger.warn("Primetime live API feed deferred", { code: "feed_storage_unavailable" });
   }
   try {
-    logger.info("Primetime office-day API cache", await refreshOfficeDay(liveReadWorkspace(), new FirestoreOfficeDayStore()));
+    logger.info("Primetime office-day API cache", await refreshOfficeDay(liveReadWorkspace("background"), new FirestoreOfficeDayStore()));
   } catch {
     logger.warn("Primetime office-day API cache deferred", { code: "office_day_cache_unavailable" });
   }
@@ -154,11 +154,11 @@ function apiPath(path: string): string {
   return path || "/";
 }
 
-function liveReadWorkspace() {
+function liveReadWorkspace(lane: "interactive" | "background" = "interactive") {
   const repository = new FirestoreWorkspaceRepository();
   let client: HhaSoapClient | undefined;
   return new OperationsWorkspace(repository, (input, scope) => {
-    client ??= new HhaSoapClient(hhaBaseUrl.value(), getHhaCredentials(), { beforeRequest: () => repository.reserveRead(), defer: seconds => repository.deferReads(seconds) });
+    client ??= new HhaSoapClient(hhaBaseUrl.value(), getHhaCredentials(), { beforeRequest: () => repository.reserveRead(lane), defer: seconds => repository.deferReads(seconds) });
     return operationalRead(client, input, scope);
   }, operationalDataApproved.value() === "true");
 }

@@ -19,6 +19,7 @@ find scripts public source/primetime -type f \( -name '*.js' -o -name '*.mjs' \)
 node scripts/build-primetime-assets.mjs --check
 node scripts/build-workforce-assets.mjs --check
 node --test scripts/build-primetime-assets.test.mjs
+node --test scripts/build-workforce-assets.test.mjs
 node --test scripts/verify_primetime_auth.test.mjs
 node --test scripts/verify_workforce.test.mjs
 node --test scripts/verify_primetime_file_session.test.mjs

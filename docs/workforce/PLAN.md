@@ -1,6 +1,6 @@
 # PTHHS caregiver workforce plan
 
-Authoritative architecture, implementation backlog and acceptance record. Version 2, November 5, 2026. Initial audit baseline: `93707e3` on `main`; integrated current `main` through `8a1d866` before this packet handoff, preserving concurrent source-access documentation and the maintenance-report evidence projection. This file owns workforce delivery status; existing management and release documentation continues to own its established workflows.
+Authoritative architecture, implementation backlog and acceptance record. Version 2, November 5, 2026. Initial audit baseline: `93707e3` on `main`; integrated current `main` through `f66950b` before this packet handoff, preserving concurrent source-access documentation and the maintenance-report evidence projection. This file owns workforce delivery status; existing management and release documentation continues to own its established workflows.
 
 ## Scope and release state
 
@@ -150,7 +150,7 @@ Complete WF-005: validate the staff/owner identity bootstrap and office scopes i
 
 ### Final local results
 
-- Node 22.22.0: **791 backend tests passed**, including 41 workforce tests; **549 site/tooling/analytics tests passed**, including seven workforce/browser-contract tests. 1,340 Node tests total after integrating the concurrent visit-maintenance workspace; no failures or skipped tests. Prior foundation commits passed GitHub Repository quality, including its Linux release wrapper; this packet update requires a new CI run.
+- Node 22.22.0: **796 backend tests passed**, including 41 workforce tests; **551 site/tooling/analytics tests passed**, including seven workforce/browser-contract tests. 1,347 Node tests total after integrating the concurrent visit-maintenance workspace; no failures or skipped tests. Prior foundation commits passed GitHub Repository quality, including its Linux release wrapper; this packet update requires a new CI run.
 - TypeScript compilation passed. Generated Primetime assets and workforce asset hashes are current.
 - Individual release generation/verification commands passed: HHA preservation evidence, article generation/tests, SEO metadata, sitemap dates, site output, insurance-logo integrity, Batch A/B1–B4, structured navigation, accessibility, performance, frontend controls and repository integrity audit.
 - The Windows environment lacks Bash, so the Bash release wrapper itself and its shell-syntax sweep were not run. Its applicable generation/verification commands were executed individually with UTF-8 Python; generator stability was checked with `git diff --exit-code` for public/source/scripts/config. Existing CI retains the full Linux release wrapper.
@@ -162,3 +162,5 @@ Complete WF-005: validate the staff/owner identity bootstrap and office scopes i
 ### Packet update verification
 
 The 27-page scan was rendered locally; no source PDF, page render, ID image or completed applicant data is committed. Actual decoding/EXIF stripping, ownership, direct-object denial, active/former-account preservation, version/signature binding, office-scoped HR reads, grant revocation, upload/metadata failure, integrity checks, recent authentication and quota limits pass synthetic tests. Browser testing verified step navigation, server-backed resume after reload, review/signature submission, native file selection, local image preview and an uploaded/pending-HR receipt using an image explicitly marked SYNTHETIC / NOT AN ID DOCUMENT. Phone camera permission/capture and real Firebase/Storage behavior remain device/deployment acceptance, not claimed tested.
+
+The first packet-update CI run found CRLF-derived CSS hashes that differed from canonical Git/Linux bytes. The workforce asset builder now normalizes its text assets before hashing, rejects noncanonical source line endings in check mode, and has a Windows-to-Linux regression test. Regenerated private/marketing references match committed bytes. The current source includes main's follow-up HHA read-budget changes without altering their approved behavior.

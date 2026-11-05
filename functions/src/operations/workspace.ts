@@ -18,6 +18,7 @@ import { DocumentTypeWorkflow } from "./documentTypes.js";
 import { WriteRecoveryWorkflow, type WriteRecovery } from "./recovery.js";
 import { AvailabilityWorkflow, type AvailabilityOperation } from "./availability.js";
 import { randomUUID } from "node:crypto";
+import { readReservation, type ReadLane } from "./readBudget.js";
 import { FieldPath, getFirestore } from "firebase-admin/firestore";
 import { logger } from "firebase-functions";
 import { mergeReadHealth, readFailureOutcome, readHealthView, readHealthCells, type ReadHealthEvent } from "./readHealth.js";
@@ -60,7 +61,7 @@ export interface WorkspaceRepository {
   page<T extends Versioned>(collection: string, cursor?: string): Promise<WorkspacePage<T>>;
   pageActiveNotifications?<T extends Versioned>(collection: string, afterId?: string): Promise<WorkspacePage<T>>;
   change<T extends Versioned>(collection: string, id: string, expected: number, actor: string, action: string, update: (prior: T | null) => T): Promise<T>;
-  reserveRead(): Promise<void>;
+  reserveRead(lane?: ReadLane): Promise<void>;
   deferReads(seconds: number): Promise<void>;
   noteReadHealth?(event: ReadHealthEvent): Promise<void>;
   getReadHealth?(operations: readonly string[]): Promise<unknown[]>;
@@ -122,16 +123,11 @@ export class FirestoreWorkspaceRepository implements WorkspaceRepository {
       return next;
     });
   }
-  async reserveRead(): Promise<void> {
+  async reserveRead(lane: ReadLane = "interactive"): Promise<void> {
     // Shared across instances, with conservative headroom under vendor limits.
     await this.db.runTransaction(async tx => {
       const ref = this.db.collection("integrationLimits").doc("interactive_reads"), snapshot = await tx.get(ref);
-      const minute = Math.floor(Date.now() / 60000), prior = snapshot.data();
-      const nextAllowedAt = Number(prior?.nextAllowedAt ?? 0);
-      if (nextAllowedAt > Date.now()) throw new WorkflowError("vendor_backoff_active", 429, Math.ceil((nextAllowedAt - Date.now()) / 1000));
-      const count = prior?.minute === minute ? Number(prior.count) : 0;
-      if (count >= 60) throw new WorkflowError("read_budget_exhausted_retry_next_minute", 429, 60 - Math.floor(Date.now() / 1000) % 60);
-      tx.set(ref, { minute, count: count + 1, nextAllowedAt: prior?.nextAllowedAt ?? 0 });
+      tx.set(ref, readReservation(snapshot.data(), Date.now(), lane));
     });
   }
   async getWriteTarget(target: string) {
