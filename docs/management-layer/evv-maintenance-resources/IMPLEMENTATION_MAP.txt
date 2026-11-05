@@ -3,6 +3,28 @@ Baseline: 7afe49f8c1967a82529404db2964493761ebae5d, checked November 5, 2026.
 Paths are relative to the repository. These are reusable components and next
 steps, not claims that the requested maintenance workflow is already complete.
 
+CURRENT RECONCILIATION - NOVEMBER 5, 19:43UTC RESEARCH
+The initial baseline and next-build sections below are dated resource mapping.
+Administrator workbench/local-report portions of M01/M04 are now implemented:
+  functions/src/maintenance/service.ts and service.test.ts
+  source/primetime/maintenance.js and maintenance.css
+  scripts/verify_primetime_maintenance.test.mjs
+VISIT_MAINTENANCE_WORKSPACE_2026-11-05.md records normal releases and production
+save/reload/report/local-completion acceptance; checked call responses were empty.
+Do not rebuild the completed administrator queue/export or claim populated calls,
+authoritative event links, named staff access or HHA execution are accepted.
+
+M03 next contract: assigned-account identity and effective office/client/team
+membership, separate from queue labels. Existing shell and maintenance routes
+require admin; report/export currently covers all loaded administrator cases.
+Apply future restricted authorization before source projection, paging, counts,
+cursors and report/byte delivery, with revocation and asynchronous response/save
+checks. Do not grant admin simply to admit a staff session. Public sign-in, family
+membership and PT/clinical form rights retain separate destination contracts.
+The November5 19:43UTC section of ../ROLE_WORKFLOW_RESEARCH.txt records observed
+code, current primary R88-R91, precise activation inputs and eight proposed
+acceptance cases. These are research proposals, not deployed staff permissions.
+
 M02/M04 CANDIDATE FOUNDATION - REVIEW HOLD, NOVEMBER 5
 Candidate base: 93707e31d5473ef2f41304199110a70fdd5a566f.
   functions/src/revisions/maintenanceReport.ts
