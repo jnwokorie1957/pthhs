@@ -1,5 +1,13 @@
 # PTHHS
 
+## November 4 office-day Overview implementation
+
+Overview now collects all returned visit-detail batches for the selected office
+and day, with progress, consistent source counts/charts and quota-aware recovery.
+Visit Preview retains independent paging. All499 checks and26 ordered site gates
+pass; normal release and actual full-day production reconciliation remain open.
+See [scope and acceptance](docs/management-layer/OFFICE_DAY_OVERVIEW_2026-11-04.md).
+
 ## November 3 caregiver availability readiness
 
 Weekly and special availability reads now require fresh caregiver-office proof

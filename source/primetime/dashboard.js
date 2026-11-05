@@ -157,7 +157,45 @@
     });
     return { records, fetchedAt: payload.fetchedAt, membershipCheckedAt: payload.membershipCheckedAt, state: payload.state, truncated: payload.truncated };
   }
-  window.primetimeDashboardModel = Object.freeze({ filterExceptions, normalizeVisitPreview, sourceEvidence, sourceInterval, normalizePatientProfile, normalizeVisitContext, normalizeCallEvents });
+  async function collectOfficeDay(first, expected, read, progress, active, wait) {
+    let payload = first, offset = 0, fingerprint = null, total = null, startedAt = null, attempts = 0, truncated = false, timezone = null;
+    const rows = [], positions = new Map();
+    for (;;) {
+      if (!active()) throw new Error('office_day_cancelled');
+      const page = normalizeVisitPreview(payload, expected), discovery = payload.discovery;
+      if (!page.page || !discovery || page.page.offset !== offset || !page.fetchedAt
+        || window.primetimeSourceTime.timestampInstant(page.fetchedAt) === null
+        || (fingerprint !== null && (fingerprint !== discovery.fingerprint || total !== discovery.selectedCount || timezone !== page.scope.timezone))) throw new Error('office_day_changed_restart');
+      fingerprint = discovery.fingerprint; total = discovery.selectedCount; startedAt ??= page.fetchedAt;
+      timezone = page.scope.timezone; truncated ||= discovery.truncated || page.truncated;
+      page.items.forEach((item, index) => {
+        const position = offset + index;
+        if (position > rows.length || (positions.has(item.id) && positions.get(item.id) !== position)
+          || (rows[position] && rows[position].id !== item.id)) throw new Error('office_day_changed_restart');
+        positions.set(item.id, position); rows[position] = item;
+      });
+      const end = offset + page.items.length;
+      if ((payload.page.nextOffset !== (end < total ? end : null)) || Boolean(page.nextCursor) !== (end < total)
+        || (end < total && !page.items.length)) throw new Error('office_day_incomplete_cursor');
+      const done = !page.nextCursor && !page.retry && rows.length === total;
+      const view = { ...page, items: [...rows], officeDay: { done, complete: done && !truncated
+        && rows.every(item => item.state !== 'unavailable'), startedAt, latestSearchAt: page.fetchedAt },
+        discovery: { ...page.discovery, selectedCount: total, truncated } };
+      if (!active()) throw new Error('office_day_cancelled');
+      progress(view);
+      if (done) return view;
+      let cursor = page.nextCursor;
+      if (page.retry) {
+        attempts = page.retry.offset === offset ? attempts + 1 : 1;
+        if (attempts > 3) throw new Error('office_day_source_delayed');
+        cursor = page.retry.cursor; offset = page.retry.offset;
+        await wait(page.retry.afterSeconds);
+      } else { attempts = 0; offset = end; }
+      if (!active()) throw new Error('office_day_cancelled');
+      payload = await read(cursor);
+    }
+  }
+  window.primetimeDashboardModel = Object.freeze({ filterExceptions, normalizeVisitPreview, sourceEvidence, sourceInterval, normalizePatientProfile, normalizeVisitContext, normalizeCallEvents, collectOfficeDay });
   if (typeof document === 'undefined') return;
   const controller = window.primetimeDataMode;
   const fixtures = window.primetimeDemoData;
@@ -176,6 +214,7 @@
   let pageTrail = [null];
   let pagePosition = 0;
   let retryRead = null, visitRetryAt = 0, visitRetryTimer = null, visitBusy = false;
+  let officeAbort = null, officeView = null, officeKey = null;
   let demoOffset = 0;
   let dateChosen = false;
   let clearPageFetchAge = () => {};
@@ -240,6 +279,9 @@
   }
   function pauseFeed(message) {
     feedEnabled = false; stopFeedTimer(); cancelFeedRead();
+    if (officeAbort) feedReceipt = null;
+    officeAbort?.abort();
+    if (officeView && !officeView.officeDay.done) text('dashboardOverviewStatus', 'Office-day read paused. Read entire day to restart.');
     feedControls(message);
   }
   async function pollFeed() {
@@ -251,6 +293,7 @@
     if (!dateChosen && officeDay && dateInput.value !== officeDay) {
       // The untouched default follows the office calendar, never the device's zone.
       // Clear yesterday's evidence and cursors before asking for today's feed.
+      clearOfficeDay();
       invalidateSourceContext();
       abort?.abort(); abort = null;
       resetPaging();
@@ -289,6 +332,8 @@
         showVisitPreview(payload, { mode: 'live', date: dateInput.value, officeId: metadata.settings.officeId });
         nextPageButton(Boolean(nextCursor));
         feedReceipt = payload.fetchedAt;
+        await loadOfficeDay(payload);
+        if (!ready || !controller.isLive() || request.signal.aborted || dateInput.value !== payload.scope.date || metadata?.settings.officeId !== payload.scope.officeId) return;
       }
       text('dashboardVisitMetadata', `Source: HHAeXchange API · search fetched: ${payload.fetchedAt} · server updates every minute · first source page only · source unvalidated · not a manual capture or persisted visit import.`);
       feedControls(`Connected to HHA API · latest fetch ${payload.fetchedAt} · server updates every minute · first source page, up to ten details. No web scraping.`);
@@ -321,7 +366,7 @@
     if (className) element.className = className;
     return element;
   }
-  const overviewMirrors = { dashboardVisitStatus: 'dashboardOverviewStatus', dashboardVisitMetadata: 'dashboardOverviewMetadata', dashboardVisitScope: 'dashboardOverviewScope', dashboardVisitCompleteness: 'dashboardOverviewCompleteness' };
+  const overviewMirrors = { dashboardVisitScope: 'dashboardOverviewScope' };
   function text(id, value) {
     const element = get(id); if (element) element.textContent = value;
     if (overviewMirrors[id] && get(overviewMirrors[id])) get(overviewMirrors[id]).textContent = value;
@@ -385,6 +430,8 @@
   function liveOverviewState(title, detail) {
     ['dashboardOverviewMetrics', 'dashboardVisitMetrics', 'dashboardOverviewExceptions', 'dashboardCoverage', 'dashboardAlerts', 'dashboardTimeline', 'dashboardEvidenceChart', 'dashboardExceptions', 'dashboardCallEvents', 'dashboardStaffing', 'dashboardPatients', 'dashboardPatientProfile', 'dashboardCaregiverProfile', 'dashboardBillingPipeline', 'dashboardBillingFacts'].forEach(id => unavailable(id, title, detail));
     text('dashboardReadiness', detail);
+    if (officeView && officeKey === selectedOfficeKey()) renderLiveOverview(officeView, true);
+    else { text('dashboardOverviewStatus', `${title}. ${detail}`); text('dashboardOverviewMetadata', ''); text('dashboardOverviewCompleteness', ''); }
   }
   function renderTimeline(view) {
     const captured = context();
@@ -421,19 +468,69 @@
     }
     replace('dashboardTimeline', timeline);
   }
-  function renderLiveOverview(view) {
+  function selectedOfficeKey() {
+    return JSON.stringify([session, controller.getGeneration(), controller.getMode(), metadata?.settings, dateInput?.value]);
+  }
+  function clearOfficeDay() {
+    officeAbort?.abort(); officeAbort = null; officeView = null; officeKey = null;
+    const age = get('dashboardOverviewFetchAge'); if (age) { age.hidden = true; age.textContent = ''; }
+  }
+  async function loadOfficeDay(first) {
+    if (first.page?.offset !== 0 || !ready || !controller.isLive() || !get('officeDayOverview')?.classList.contains('is-active')) return;
+    clearOfficeDay(); officeKey = selectedOfficeKey();
+    const key = officeKey, request = new AbortController(); officeAbort = request;
+    const expected = { mode: 'live', date: dateInput.value, officeId: metadata.settings.officeId };
+    const active = () => ready && controller.isLive() && key === selectedOfficeKey() && !request.signal.aborted;
+    const wait = seconds => new Promise(resolve => {
+      const finish = () => { clearTimeout(timer); request.signal.removeEventListener('abort', finish); resolve(); };
+      const timer = setTimeout(finish, Math.max(0, seconds) * 1000);
+      request.signal.addEventListener('abort', finish, { once: true });
+      if (request.signal.aborted) finish();
+    });
+    refreshDisabled(true);
+    try {
+      await collectOfficeDay(first, expected, async cursor => {
+        for (let attempt = 0; ; attempt++) {
+          if (!active()) throw new Error('office_day_cancelled');
+          const query = new URLSearchParams({ date: expected.date, officeId: expected.officeId, limit: '10', cursor });
+          const response = await window.primetimeApiFetch('/primetime/api/views/visits?' + query, { signal: request.signal });
+          const payload = await response.json();
+          if (!active()) throw new Error('office_day_cancelled');
+          if (response.ok) return payload;
+          if ([429, 503].includes(response.status) && attempt < 3 && Number.isSafeInteger(payload.retryAfterSeconds)
+            && payload.retryAfterSeconds > 0 && payload.retryAfterSeconds <= 600) {
+            text('dashboardOverviewStatus', `Office-day read waiting ${payload.retryAfterSeconds}s for HHA. Collected charts remain partial.`);
+            await wait(payload.retryAfterSeconds); continue;
+          }
+          throw new Error('office_day_read_unavailable');
+        }
+      }, view => { if (active()) { officeView = view; renderLiveOverview(view, true); } }, active, wait);
+    } catch {
+      if (active()) {
+        officeView = null;
+        for (const id of ['dashboardOverviewMetrics', 'dashboardTimeline', 'dashboardEvidenceChart', 'dashboardOverviewExceptions', 'dashboardCoverage', 'dashboardAlerts']) unavailable(id, 'Office-day read incomplete', 'Read entire day to retry. No complete totals are available.');
+        text('dashboardOverviewStatus', 'Office-day source changed or a read could not finish. Read entire day to restart.');
+        text('dashboardOverviewMetadata', ''); text('dashboardOverviewCompleteness', '');
+        text('dashboardReadiness', 'Office-day totals are unavailable until the complete selected-day read succeeds.');
+      }
+    } finally {
+      if (officeAbort === request) { officeAbort = null; refreshDisabled(false); scheduleFeed(); }
+    }
+  }
+  function renderLiveOverview(view, office = false) {
     const evidence = sourceEvidence(view.items), denominator = `${evidence.readable} readable source details`;
     const sourceIds = view.discovery ? view.discovery.selectedCount : view.items.length;
-    evidenceMetrics('dashboardOverviewMetrics', [
-      [view.discovery ? 'Visit IDs returned by search' : 'Visits on this page', sourceIds, view.discovery?.truncated ? 'Search truncated · not an office total' : 'Source query only · not an operational total'],
-      ['Readable details on this page', `${evidence.readable} / ${evidence.records}`, 'Failed detail reads stay unavailable'],
+    if (office) evidenceMetrics('dashboardOverviewMetrics', [
+      ['Office-day visits returned by HHA', sourceIds, view.discovery?.truncated ? 'Search truncated · incomplete' : 'All returned IDs · selected office and day'],
+      ['Readable visit details', `${evidence.readable} / ${sourceIds}`, `${evidence.records} checked; failed reads stay unavailable`],
       ['Actual start / end fields supplied', `${evidence.actualPairs} / ${evidence.readable}`, 'Field presence · no completion decision'],
       ['EVV start / end fields supplied', `${evidence.evvPairs} / ${evidence.readable}`, 'Field presence · no EVV exception decision']
     ]);
-    evidenceMetrics('dashboardVisitMetrics', [
+    if (!office) evidenceMetrics('dashboardVisitMetrics', [
       ['Schedule pairs supplied', evidence.schedulePairs, denominator], ['Actual pairs supplied', evidence.actualPairs, denominator],
       ['Actual start without end', evidence.actualStartOnly, 'Source field presence · not current status'], ['Detail unavailable', evidence.unavailable, 'Excluded from field and assignment counts']
     ]);
+    if (office) {
     renderTimeline(view);
     const chart = node('div', null, 'source-evidence-chart');
     const labels = ['Scheduled start', 'Scheduled end', 'Actual start', 'Actual end', 'EVV start', 'EVV end'];
@@ -448,7 +545,9 @@
     replace('dashboardEvidenceChart', chart);
     replace('dashboardOverviewExceptions', table(['Visit', 'EVV start (source)', 'EVV end (source)', 'Source field evidence'], view.items.map(item => [item.id, item.evvStart, item.evvEnd,
       item.state === 'unavailable' ? 'Detail unavailable: ' + item.detailReason : item.evvStart && item.evvEnd ? 'Both fields supplied' : item.evvStart || item.evvEnd ? 'One field supplied' : 'Neither field supplied'])));
-    const sourceNote = () => node('p', `HHA API source page · ${view.scope.date} · search fetched ${view.fetchedAt || 'time not supplied'}. The selected page follows Overview / Visit Preview; it is not the full office.`, 'source-metadata');
+    }
+    if (!office) {
+    const sourceNote = () => node('p', `HHA API source page · ${view.scope.date} · search fetched ${view.fetchedAt || 'time not supplied'}. The selected page follows Visit Preview; it is not the full office.`, 'source-metadata');
     const sourceField = (item, key) => item.state === 'unavailable' ? 'Detail unavailable' : item[key] || 'Not supplied by HHA';
     const unavailableDetail = item => 'Detail unavailable: ' + item.detailReason;
     const callContext = context();
@@ -471,6 +570,8 @@
       node('p', 'Raw GetVisitInfoV3 BilledAmount; detail: GetVisitBillInfoV2, then owner-enabled GetVisitBillInfo if empty. Neither proves collections, approval or an AR ledger.', 'source-metadata'));
     replace('dashboardBillingFacts', node('p', metadata?.panels?.billingFacts?.available ? 'Choose Read billing facts for a current identity-checked source read.' : 'GetVisitBillInfoV2 is not enabled for this source context. Review read controls in Settings.'));
     renderSourcePatients(view, sourceNote());
+    }
+    if (office) {
     const coverage = node('div');
     const stat = node('div', null, 'coverage-stat'); stat.append(node('strong', `${evidence.assigned} / ${evidence.readable}`), node('span', 'caregiver IDs supplied')); coverage.append(stat);
     const bar = node('progress'); bar.max = evidence.readable || 1; bar.value = evidence.assigned; bar.setAttribute('aria-label', `${evidence.assigned} of ${evidence.readable} readable visits have a caregiver ID`);
@@ -484,7 +585,12 @@
     replace('dashboardAlerts', gaps);
     text('dataModeBadge', 'Live · HHA source');
     text(environmentDetailsId, 'Live HHA visit source returned');
-    text('dashboardReadiness', `Authenticated HHAeXchange visit search returned for office ${view.scope.officeId} on ${view.scope.date}. Fetched ${view.fetchedAt || 'time unavailable'}. ${evidence.readable} readable detail(s), ${evidence.unavailable} unavailable. Policy classifications, office-wide coverage, billing and message delivery are not established by this source page.`);
+    const scan = view.officeDay;
+    text('dashboardOverviewStatus', scan.done ? scan.complete ? 'Office-day read complete: all returned visits checked.' : 'Office-day read finished with unavailable details or truncated discovery.' : `Reading entire office day: ${evidence.records} of ${sourceIds} visits checked…`);
+    text('dashboardOverviewMetadata', `HHA API · office ${view.scope.officeId} · ${view.scope.date} · searches ${scan.startedAt} → ${scan.latestSearchAt}. Each visit retains its own detail/office-check receipts. Sequential reads are not an atomic snapshot.`);
+    text('dashboardOverviewCompleteness', `${evidence.records} / ${sourceIds} returned IDs checked; ${evidence.unavailable} unavailable details.${view.discovery?.truncated ? ' Search truncated; office coverage incomplete.' : ''}`);
+    text('dashboardReadiness', `${evidence.readable} readable visits; ${evidence.unavailable} unavailable. Charts cover the whole collected office-day result, with progress disclosed above. Field presence does not determine completion, EVV compliance, eligibility or billable hours.`);
+    }
   }
   function table(headers, rows, id) {
     const wrap = node('div', null, 'table-wrap');
@@ -521,6 +627,7 @@
       rows.map(item => [item.id, item.issue, item.scheduledStart, item.scheduledEnd, item.visibility, item.priority]), 'exceptionTable'));
   }
   function invalidateSourceContext(fromFeed = false) {
+    if (officeKey !== selectedOfficeKey()) clearOfficeDay();
     retryRead = null;
     if (!ready || !controller.isLive()) visitRetryAt = 0;
     syncVisitReads();
@@ -538,6 +645,7 @@
     document.dispatchEvent(new Event('primetime-source-context-cleared'));
   }
   function clearSource() {
+    clearOfficeDay();
     feedControls();
     sourceClearControls(false);
     invalidateSourceContext();
@@ -562,6 +670,7 @@
   }
   function clearLoadedPage() {
     if (!ready || !controller.isLive() || !sourceClearable) return false;
+    clearOfficeDay();
     pauseFeed('Live feed display paused because the source page was cleared. Resume live feed to reconnect.');
     invalidateSourceContext();
     abort?.abort(); abort = null; metadata = null;
@@ -591,6 +700,7 @@
     text('staffingEvidenceTitle', demo ? 'Example open shifts' : 'Visit assignment evidence');
     text('evvPanelTitle', demo ? 'Example EVV exceptions' : 'EVV source clock evidence');
     ['dashboardOverviewRefresh', 'dashboardVisitRefresh'].forEach(id => text(id, demo ? 'Refresh examples' : 'Read source now'));
+    text('dashboardOverviewRefresh', demo ? 'Refresh examples' : 'Read entire day');
     if (get('demoDataToggle')) get('demoDataToggle').checked = demo;
     text('demoToggleState', demo ? 'On' : 'Off');
     text('dataModeBadge', demo ? 'Demo · synthetic' : 'Live · validation pending');
@@ -599,7 +709,7 @@
     text(environmentDetailsId, demo ? 'Synthetic preview records' : 'Source validation pending');
     text('dashboardModeNotice', demo
       ? 'Demo data is on. All preview records are synthetic; messages and HHA changes are disabled.'
-      : feedInstalled ? 'Live HHA API: the current office day’s first page refreshes each minute. Charts cover only this page; saved captures are separate. Read source now and paging are available.'
+      : feedInstalled ? 'Live HHA API: Overview collects all returned office-day visits across detail batches. Progress and unavailable details are disclosed. Visit Preview remains paged; saved captures are separate.'
       : 'On-demand HHA API page; it does not save a visit import or start background synchronization. Charts cover this page and exclude unavailable evidence.');
     ['exceptionSearch', 'priorityFilter'].forEach(id => { if (get(id)) get(id).disabled = live; });
     text('dashboardReadiness', demo ? 'Synthetic records. Turn Demo data off to check live access.' : 'Source previews do not establish complete imports/counts, EVV exceptions, staff eligibility or billable hours.');
@@ -653,7 +763,10 @@
     retryRead = view.retry ? { ...view.retry, samePage: view.retry.offset === view.page.offset, captured: context() } : null;
     if (view.retry) delayVisitReads(view.retry.afterSeconds);
     nextCursor = view.nextCursor;
-    if (view.mode === 'live') renderLiveOverview(view);
+    if (view.mode === 'live') {
+      renderLiveOverview(view);
+      if (!officeView) renderLiveOverview({ ...view, officeDay: { done: false, complete: false, startedAt: view.fetchedAt, latestSearchAt: view.fetchedAt } }, true);
+    }
     else {
       renderTimeline(view);
       unavailable('dashboardEvidenceChart', 'Synthetic example mode', 'All records in this mode are generated examples. Switch Demo data off to load live HHA evidence.');
@@ -685,7 +798,7 @@
   function pageFetchAge(view, captured) {
     clearPageFetchAge();
     if (view.mode !== 'live') return;
-    const nodes = ['dashboardOverviewFetchAge', 'dashboardVisitFetchAge'].map(get).filter(Boolean);
+    const nodes = ['dashboardVisitFetchAge'].map(get).filter(Boolean);
     const { timestampInstant, watchFetchAge } = window.primetimeSourceTime;
     const fetched = timestampInstant(view.fetchedAt);
     if (!nodes.length) return;
@@ -973,6 +1086,8 @@
         throw new Error('visit_preview_unavailable');
       }
       showVisitPreview(payload, { mode: 'live', date, officeId: metadata.settings?.officeId });
+      if (!cursor) await loadOfficeDay(payload);
+      if (!current(captured)) return;
       pageTrail = trail;
       pagePosition = position;
       previousPageButton(pagePosition > 0);
@@ -1045,6 +1160,7 @@
   });
   get('apiFeedToday')?.addEventListener('click', () => {
     if (!canReturnToday()) { renderDateContext(); return; }
+    clearOfficeDay();
     const day = currentOfficeDay();
     invalidateSourceContext(); abort?.abort(); abort = null;
     resetPaging(); dateChosen = false;
@@ -1064,10 +1180,14 @@
   });
   document.addEventListener('visibilitychange', () => {
     stopFeedTimer();
-    if (document.visibilityState === 'hidden') { cancelFeedRead(); feedControls('Dashboard checks paused while hidden. The server API feed continues every minute.'); }
+    if (document.visibilityState === 'hidden') { if (officeAbort) feedReceipt = null; officeAbort?.abort(); cancelFeedRead(); feedControls('Dashboard checks paused while hidden. The server API feed continues every minute.'); }
     else if (feedEnabled && ready && controller.isLive()) void pollFeed();
   });
   document.addEventListener('primetime-data-mode-changed', () => { renderMode(); if (ready && controller.isLive()) void loadMetadata(); });
+  document.addEventListener('primetime-view-changed', event => {
+    if (event.detail?.view === 'overview' && ready && controller.isLive() && !officeAbort) void loadVisits();
+    else if (event.detail?.view !== 'overview') { officeAbort?.abort(); }
+  });
   document.addEventListener('primetime-ready', () => { ready = true; session += 1; renderMode(); if (controller.isLive()) void loadMetadata(); });
   document.addEventListener('primetime-signed-out', () => { ready = false; session += 1; clearSource(); if (!controller.isLive()) renderMode(); });
   renderMode();

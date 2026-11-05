@@ -776,7 +776,7 @@ test('automatic API feed reads the server cache, validates receipts and updates 
   await app.runFeed();
   assert.equal(app.calls.filter(call => call.path.includes('/views/feed?')).length, 1);
   assert.match(app.element('apiFeedStatus').textContent, /Connected to HHA API/);
-  assert.match(app.element('dashboardOverviewMetadata').textContent, /server updates every minute/);
+  assert.match(app.element('dashboardVisitMetadata').textContent, /server updates every minute/);
   assert.match(nodeText(app.element('dashboardVisitRows')), /900001/);
   assert.equal(app.element('dashboardOverviewNext').hidden, false);
   assert.equal([...app.timers.values()].filter(t => t.delay === 60000).length, 1);
@@ -1133,7 +1133,7 @@ test('live default renders source counts, timeline, EVV and assignment evidence 
   assert.equal(app.element('demoDataToggle').checked, false);
   for (const id of ['dashboardTimeline', 'dashboardOverviewExceptions']) assert.match(nodeText(app.element(id)), /900001/);
   assert.match(nodeText(app.element('dashboardOverviewMetrics')), /1601/);
-  assert.match(nodeText(app.element('dashboardOverviewMetrics')), /not an operational total/);
+  assert.match(nodeText(app.element('dashboardOverviewMetrics')), /All returned IDs.*selected office and day/);
   assert.match(nodeText(app.element('dashboardCoverage')), /1 \/ 1/);
   for (const id of ['dashboardExceptions', 'dashboardStaffing']) {
     assert.match(nodeText(app.element(id)), /900001/);
@@ -1146,7 +1146,7 @@ test('live default renders source counts, timeline, EVV and assignment evidence 
   assert.equal(app.element('exceptionSearch').disabled, false);
   assert.equal(app.element('priorityFilter').disabled, true);
   assert.match(nodeText(app.element('dashboardEvidenceChart')), /EVV start/);
-  assert.match(app.element('dashboardOverviewCompleteness').textContent, /1–1 of 1601/);
+  assert.match(app.element('dashboardOverviewCompleteness').textContent, /1 \/ 1601.*checked/);
   assert.match(app.element('dashboardOverviewScope').textContent, /Office: 123.*Date:.*America\/Chicago/);
   assert.equal(app.element('dashboardOverviewDate').value, app.element('dashboardVisitDate').value);
   assert.equal(app.element('dashboardOverviewNext').hidden, false);
@@ -1204,7 +1204,7 @@ test('source-page navigation clears old overview charts immediately and an empty
   pending.resolve(response(empty)); await tick(); await tick();
   assert.match(nodeText(app.element('dashboardOverviewMetrics')), /0 \/ 0/);
   assert.match(nodeText(app.element('dashboardTimeline')), /No source visits/);
-  assert.match(app.element('dashboardOverviewStatus').textContent, /No visit identifiers returned/);
+  assert.match(app.element('dashboardOverviewStatus').textContent, /0 of 0 visits checked/);
   assert.equal(app.element('dashboardOverviewNext').hidden, true);
 });
 
@@ -1227,8 +1227,9 @@ test('overview date change is shared with Visits and clears source records befor
 test('source read controls and persisted import history describe separate actions', () => {
   const html = asset('index.html');
   for (const id of ['dashboardOverviewRefresh', 'dashboardVisitRefresh']) {
-    assert.match(html, new RegExp(`id=(?:"${id}"|${id})[^>]*>Read source now</button>`));
+    assert.match(html, new RegExp(`id=(?:"${id}"|${id})[^>]*>${id === 'dashboardOverviewRefresh' ? 'Read entire day' : 'Read source now'}</button>`));
   }
+  assert.doesNotMatch(html, /id=(?:"dashboardOverviewNext"|dashboardOverviewNext)[\s>]/);
   assert.match(html, /Persisted import history/);
   assert.match(html, /Check connection and history/);
   assert.match(html, /CSV upload and starting (?:an import are not available|imports are unavailable)/);
@@ -1250,11 +1251,11 @@ for (const state of ['ready', 'partial', 'empty']) {
     assert.match(history, /No successful import recorded/);
     assert.match(history, /on-demand source pages do not import visits or advance this history/);
     for (const id of ['dashboardOverviewRefresh', 'dashboardVisitRefresh']) {
-      assert.equal(app.element(id).textContent, 'Read source now');
+      assert.equal(app.element(id).textContent, id === 'dashboardOverviewRefresh' ? 'Read entire day' : 'Read source now');
       await app.click(id); await tick(); await tick();
     }
     assert.equal(app.element('integrationSyncDetails').textContent, history);
-    for (const prefix of ['dashboardOverview', 'dashboardVisit']) {
+    for (const prefix of ['dashboardVisit']) {
       assert.match(app.element(prefix + 'Metadata').textContent, /on-demand read, not a persisted visit import/);
       assert.match(app.element(prefix + 'Metadata').textContent, /source unvalidated/);
       assert.match(app.element(prefix + 'Metadata').textContent, state === 'empty' ? /fetched: Unavailable/ : /fetched: 2026-10-10T08:00:00Z/);
@@ -1284,6 +1285,86 @@ function numberedSourcePage(path) {
   return payload;
 }
 
+async function officeDayFixture(read = path => response(numberedSourcePage(path))) {
+  const app = harness({ storedDataMode: null, metadata: liveMetadata, fetchSource: read });
+  app.element('officeDayOverview').classList.add('is-active');
+  installDashboard(app); await app.signIn(); await tick(); await tick(); await tick();
+  return app;
+}
+test('active Overview reads all office-day batches while Visit Preview stays paged', async () => {
+  const app = await officeDayFixture();
+  assert.equal(app.calls.filter(c => c.path.includes('/views/visits?')).length, 3);
+  assert.match(app.element('dashboardOverviewStatus').textContent, /read complete/);
+  assert.match(app.element('dashboardOverviewCompleteness').textContent, /3 \/ 3.*0 unavailable/);
+  for (const id of ['900001', '900002', '900003']) assert.match(nodeText(app.element('dashboardTimeline')), new RegExp(id));
+  assert.match(nodeText(app.element('dashboardCoverage')), /3 \/ 3/);
+  assert.match(nodeText(app.element('dashboardEvidenceChart')), /Scheduled start 3 \/ 3/);
+  assert.match(nodeText(app.element('dashboardVisitRows')), /900001/);
+  assert.doesNotMatch(nodeText(app.element('dashboardVisitRows')), /900002|900003/);
+  const totals = nodeText(app.element('dashboardOverviewMetrics'));
+  await app.click('dashboardVisitNext'); await tick(); await tick();
+  assert.equal(nodeText(app.element('dashboardOverviewMetrics')), totals);
+  assert.match(nodeText(app.element('dashboardVisitRows')), /900002/);
+});
+test('date change fences a pending office-day batch and clears prior totals immediately', async () => {
+  const late = deferred(); let hold = true;
+  const app = await officeDayFixture(path => new URL(path, 'https://fixture.test').searchParams.has('cursor') && hold ? late.promise : response(numberedSourcePage(path)));
+  const oldDate = app.element('dashboardVisitDate').value;
+  app.element('dashboardOverviewDate').value = '2026-10-24';
+  hold = false;
+  for (const fn of app.element('dashboardOverviewDate').handlers.get('change')) fn(new Event('change'));
+  assert.doesNotMatch(nodeText(app.element('dashboardOverviewMetrics')), /checked; failed reads/);
+  await tick(); await tick(); await tick();
+  const latest = app.element('dashboardOverviewMetadata').textContent;
+  late.resolve(response(numberedSourcePage('/primetime/api/views/visits?date=' + oldDate + '&cursor=page-two')));
+  await tick(); await tick();
+  assert.equal(app.element('dashboardOverviewMetadata').textContent, latest);
+  assert.match(latest, /2026-10-24/);
+  assert.match(app.element('dashboardOverviewCompleteness').textContent, /3 \/ 3/);
+});
+test('Demo, sign-out and clear cannot be repainted by a late office-day detail batch', async () => {
+  for (const action of ['demo', 'signout', 'clear']) {
+    const late = deferred();
+    const app = await officeDayFixture(path => new URL(path, 'https://fixture.test').searchParams.has('cursor') ? late.promise : response(numberedSourcePage(path)));
+    const date = app.element('dashboardVisitDate').value;
+    if (action === 'demo') await app.window.primetimeDataMode.setMode('demo');
+    if (action === 'signout') app.dispatch('primetime-signed-out');
+    if (action === 'clear') await app.click('dashboardOverviewClear');
+    const before = nodeText(app.element('dashboardOverviewMetrics'));
+    late.resolve(response(numberedSourcePage('/primetime/api/views/visits?date=' + date + '&cursor=page-two')));
+    await tick(); await tick();
+    assert.equal(nodeText(app.element('dashboardOverviewMetrics')), before, action);
+    assert.doesNotMatch(nodeText(app.element('dashboardTimeline')), /900002/, action);
+  }
+});
+test('failed office-day continuation cannot leave complete totals or a success receipt', async () => {
+  const app = await officeDayFixture(path => new URL(path, 'https://fixture.test').searchParams.has('cursor') ? { ...response({ ok: false }), ok: false, status: 409 } : response(numberedSourcePage(path)));
+  assert.match(app.element('dashboardOverviewStatus').textContent, /could not finish/);
+  assert.equal(app.element('dashboardOverviewMetadata').textContent, '');
+  assert.match(nodeText(app.element('dashboardOverviewMetrics')), /incomplete/);
+  assert.equal(app.element('dashboardOverviewRefresh').disabled, false);
+});
+test('office-day HTTP quota waits for the specified delay and resumes the same continuation', async () => {
+  let limited = true; const timers = new Map(), cursors = [];
+  const app = harness({ storedDataMode: null, metadata: liveMetadata, fetchSource: path => {
+    if (!path.includes('/views/visits?')) return response({ ok: true });
+    const cursor = new URL(path, 'https://fixture.test').searchParams.get('cursor'); cursors.push(cursor);
+    if (cursor && limited) { limited = false; return { ...response({ ok: false, retryAfterSeconds: 7 }), ok: false, status: 429 }; }
+    return response(numberedSourcePage(path));
+  } });
+  app.context.setTimeout = (fn, delay) => { const id = timers.size + 1; timers.set(id, { fn, delay }); return id; };
+  app.context.clearTimeout = id => timers.delete(id);
+  app.element('officeDayOverview').classList.add('is-active');
+  installDashboard(app); await app.signIn(); await tick(); await tick();
+  assert.match(app.element('dashboardOverviewStatus').textContent, /waiting 7s/);
+  assert.equal(app.element('dashboardOverviewRefresh').disabled, true);
+  const timer = [...timers.values()].find(v => v.delay === 7000); assert.ok(timer); timer.fn();
+  await tick(); await tick(); await tick();
+  assert.deepEqual(cursors, [null, 'page-two', 'page-two', 'page-three']);
+  assert.match(app.element('dashboardOverviewCompleteness').textContent, /3 \/ 3/);
+  assert.match(app.element('dashboardOverviewStatus').textContent, /read complete/);
+});
+
 test('Live previous-page navigation reuses scoped source cursors across both dashboard views', async () => {
   const seen = [];
   const app = harness({ metadata: liveMetadata, fetchSource: path => { seen.push(new URL(path, 'https://fixture.test').searchParams.get('cursor')); return response(numberedSourcePage(path)); } });
@@ -1295,7 +1376,7 @@ test('Live previous-page navigation reuses scoped source cursors across both das
   assert.equal(app.element('dashboardOverviewPrevious').hidden, false);
   await app.click('dashboardOverviewPrevious'); await tick(); await tick();
   assert.match(nodeText(app.element('dashboardVisitRows')), /900002/);
-  assert.match(app.element('dashboardOverviewCompleteness').textContent, /2–2 of 3/);
+  assert.match(app.element('dashboardVisitCompleteness').textContent, /2–2 of 3/);
   await app.click('dashboardVisitPrevious'); await tick(); await tick();
   assert.match(nodeText(app.element('dashboardTimeline')), /900001/);
   assert.equal(app.element('dashboardVisitPrevious').hidden, true);
@@ -2828,7 +2909,8 @@ test('late same-visit success or error cannot replace or cancel the latest fetch
   }
 });
 
-const pageAgeNodes = app => ['dashboardOverviewFetchAge', 'dashboardVisitFetchAge'].map(app.element);
+// Overview reports a whole-scan receipt range; this clock belongs to Visit Preview.
+const pageAgeNodes = app => ['dashboardVisitFetchAge'].map(app.element);
 function assertPageAgeCleared(app) {
   for (const node of pageAgeNodes(app)) { assert.equal(node.hidden, true); assert.equal(node.textContent, ''); }
 }
@@ -2863,7 +2945,7 @@ test('shared age control pauses both evidence clocks and resumes original receip
     assert.equal(app.intervals.size, 2);
     detached.forEach(fn => fn());
     assert.match(ages[0].textContent, /fetch age: 7 min/);
-    assert.match(ages[2].textContent, /fetch age: 6 min/);
+    assert.match(ages[1].textContent, /fetch age: 6 min/);
     automaticAges(app, false); automaticAges(app, false);
     assert.equal(app.intervals.size, 0);
   }
@@ -2974,14 +3056,14 @@ test('age control is session-only, hidden in Demo, and rejects signed-out or Dem
   assert.equal(harness({ storedDataMode:null }).element('automaticAgeUpdates').checked, true);
 });
 
-test('one live-page timer updates both views while raw receipts, page evidence and focus remain unchanged', async () => {
+test('Visit Preview age and Overview scan receipts remain separate without changing facts or focus', async () => {
   const app = harness({ storedDataMode: null, metadata: liveMetadata, fetchSource: path => response(agedPage(path)) });
   const clock = deviceClock(app, '2026-10-19T23:18:30Z');
   installDashboard(app); await app.signIn(); await tick(); await tick();
   const ages = pageAgeNodes(app), raw = app.element('dashboardVisitMetadata').textContent;
   for (const age of ages) { assert.equal(age.hidden, false); assert.match(age.textContent, /fetch age: less than 1 min/); }
   assert.match(raw, /fetched: 2026-10-19T18:18:00-05:00/);
-  assert.equal(app.element('dashboardOverviewMetadata').textContent, raw);
+  assert.match(app.element('dashboardOverviewMetadata').textContent, /searches 2026-10-19T18:18:00-05:00.*not an atomic snapshot/);
   assert.equal(app.intervals.size, 1); assert.equal([...app.intervals.values()][0].delay, 60_000);
   const evidenceIds = ['dashboardVisitRows','dashboardTimeline','dashboardEvidenceChart','dashboardCoverage','dashboardOverviewMetrics','dashboardVisitCompleteness','dashboardVisitScope'];
   const evidence = evidenceIds.map(id => nodeText(app.element(id)));
@@ -2990,7 +3072,7 @@ test('one live-page timer updates both views while raw receipts, page evidence a
   app.window.localStorage.setItem = app.window.sessionStorage.setItem = () => { writes++; };
   for (const [now, expected] of [['2026-10-19T23:19:00Z','1 min'],['2026-10-20T00:19:00Z','1 h 1 min'],['2026-10-21T01:20:00Z','1 d 2 h 2 min']]) {
     clock.set(now); clock.run();
-    assert.equal(ages[0].textContent, ages[1].textContent); assert.match(ages[0].textContent, new RegExp('fetch age: ' + expected + '\\.'));
+    assert.match(ages[0].textContent, new RegExp('fetch age: ' + expected + '\\.'));
   }
   assert.equal(app.calls.length,calls); assert.equal(app.events.length,events); assert.equal(writes,0);
   assert.equal(app.document.activeElement,app.element('dashboardVisitRefresh')); assert.equal(app.element('dashboardVisitStatus').textContent,status);
@@ -3104,7 +3186,7 @@ test('explicit clear removes both source views and timers without fetching, chan
     const events=app.events.length;clock.set('2026-10-19T23:22:00Z');lateTick();await app.click(prefix+'Clear');
     assert.equal(app.events.length,events);assert.equal(app.calls.length,calls);assertSourcePageCleared(app);
   }
-  const html=asset('index.html');for(const prefix of ['dashboardOverview','dashboardVisit'])assert.match(html,new RegExp(`id=(?:"${prefix}Clear"|${prefix}Clear)[^>]*type=(?:"button"|button)[^>]*disabled>Clear source page</button>`));
+  const html=asset('index.html');for(const prefix of ['dashboardOverview','dashboardVisit'])assert.match(html,new RegExp(`id=(?:"${prefix}Clear"|${prefix}Clear)[^>]*type=(?:"button"|button)[^>]*disabled>Clear source ${prefix === 'dashboardOverview' ? 'data' : 'page'}</button>`));
 });
 
 test('clearing a pending page fences its late success/error and leaves an explicit new read in charge', async () => {

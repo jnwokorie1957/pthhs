@@ -27,6 +27,7 @@ node --test scripts/verify_primetime_read_health.test.mjs
 node --test scripts/verify_primetime_investigations.test.mjs
 node --test scripts/verify_primetime_assets.test.mjs
 node --test scripts/verify_primetime_data_mode.test.mjs
+node --test scripts/verify_primetime_office_day.test.mjs
 for source_time_tz in UTC America/Chicago Pacific/Auckland; do
   TZ="$source_time_tz" node --test scripts/verify_primetime_fallback_source_time.test.mjs
 done
