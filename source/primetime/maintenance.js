@@ -7,6 +7,7 @@
     investigate: 'Investigate source evidence', review_existing_calls: 'Review selected actual call events', review_confirmation: 'Review confirmation in HHA' };
   let ready = window.primetimeDataMode?.isActive?.() === true, generation = 0, busy = false, abort = null;
   let day = null, cases = new Map(), cursor = null, selected = null, limit = 40, report = false, downloadUrl = null;
+  let sourceRetryAt = 0, cooldownTimer = null;
   const active = () => ready && window.primetimeDataMode?.isLive?.() === true && panel.classList.contains('is-active') && !document.hidden;
   const message = text => { $('maintenanceStatus').textContent = text; };
   const validId = value => typeof value === 'string' && /^[1-9]\d{0,9}$/.test(value) && Number(value) <= 2147483647;
@@ -15,11 +16,21 @@
   function time(value) { return value || 'Not supplied by HHA'; }
   function checked(ticket) { if (ticket !== generation || !active()) throw new Error('context_changed'); }
   function controls() {
-    for (const node of panel.querySelectorAll('button,input,select,textarea')) node.disabled = !active() || busy || node.dataset.locked === 'true';
+    const remaining = Math.max(0, sourceRetryAt - Date.now());
+    for (const node of panel.querySelectorAll('button,input,select,textarea')) {
+      const sourceRead = node.dataset.sourceRead === 'true';
+      node.disabled = !active() || busy || node.dataset.locked === 'true' || sourceRead && remaining > 0;
+      if (sourceRead) node.textContent = remaining ? `Read caregiver calls · wait ${Math.ceil(remaining / 1000)}s` : 'Read caregiver calls';
+    }
+    if (remaining && active() && cooldownTimer === null) {
+      const ticket = generation;
+      cooldownTimer = setTimeout(() => { cooldownTimer = null; if (ticket === generation) controls(); }, Math.min(remaining, 1000));
+    }
   }
   function revoke() { if (downloadUrl) URL.revokeObjectURL(downloadUrl); downloadUrl = null; }
   function clear(note = 'Open this workspace with live data enabled to review visits.') {
     generation++; abort?.abort(); abort = null; busy = false; revoke(); day = null; cases.clear(); cursor = null; selected = null; limit = 40;
+    if (cooldownTimer !== null) clearTimeout(cooldownTimer); cooldownTimer = null;
     for (const id of ['maintenanceList', 'maintenanceMetrics', 'maintenanceReportRows']) $(id).replaceChildren();
     $('maintenanceDetail').replaceChildren(el('h3', 'Choose a visit'), el('p', 'Open a source visit to inspect times and start an office case.'));
     $('maintenanceReceipt').textContent = ''; $('maintenanceSearch').value = '';
@@ -55,7 +66,10 @@
     if (!active() || busy) return;
     const ticket = generation; busy = true; abort = new AbortController(); controls();
     try { await task(ticket); }
-    catch (error) { if (ticket === generation) message(errors[error.message] || (error.retry ? `Source requests are paused. Retry after at least ${error.retry} seconds.` : 'The request was not confirmed. Refresh before retrying. No HHA change was submitted.')); }
+    catch (error) { if (ticket === generation) {
+      if (Number.isFinite(error.retry) && error.retry > 0) sourceRetryAt = Date.now() + Math.min(error.retry, 3600) * 1000;
+      message(errors[error.message] || (error.retry ? `Source requests are paused. Retry after at least ${error.retry} seconds. Office notes and reports remain available.` : 'The request was not confirmed. Refresh before retrying. No HHA change was submitted.'));
+    } }
     finally { if (ticket === generation) { busy = false; abort = null; controls(); } }
   }
   function verifyDay(value) {
@@ -151,7 +165,7 @@
       cases.set(row.id, verifyCase(value.item)); render(); detail();
       message(`Call evidence saved. ${value.item.calls.records.length} source events returned. Exact visit links and complete attempt history remain unproved.`);
     }));
-    callButton.dataset.locked = String(!item); callSection.append(callButton);
+    callButton.dataset.locked = String(!item); callButton.dataset.sourceRead = 'true'; callSection.append(callButton);
     if (!item) callSection.append(el('p', 'Save an office review below first to retain a private case and its call evidence.'));
     if (item?.calls) {
       callSection.append(el('p', `Call feed fetched ${item.calls.fetchedAt}. ${item.calls.truncated ? 'Partial response.' : 'Bounded response; not complete history.'}`));

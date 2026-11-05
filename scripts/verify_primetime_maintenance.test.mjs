@@ -42,7 +42,7 @@ function fixture({ active = false, live = true, rows = [row] } = {}) {
   vm.runInNewContext(source, { document, window: { primetimeDataMode: { isActive: () => active, isLive: () => live }, primetimeApiFetch: async (...args) => {
     calls.push(args); if (delayed) return delayed;
     const value = await handler(...args); return new Response(JSON.stringify(value), { status: value.status || 200 });
-  } }, AbortController, Date, Intl, Map, Set, URL: { createObjectURL(blob) { exported = blob; return 'blob:synthetic'; }, revokeObjectURL() {} }, Blob });
+  } }, AbortController, Date, Intl, Map, Set, setTimeout, clearTimeout, URL: { createObjectURL(blob) { exported = blob; return 'blob:synthetic'; }, revokeObjectURL() {} }, Blob });
   const event = (id, name = 'click') => ids.get(id).dispatchEvent(new Event(name, { cancelable: true }));
   return { ids, calls, document, event, text(node) { return node.textContent + node.children.map(child => this.text(child)).join(' '); }, saved: () => saved, exported: () => exported,
     handler(value) { handler = value; }, delay(value) { delayed = value; }, enter() { active = true; document.dispatchEvent(Object.assign(new Event('primetime-view-changed'), { detail: { view: 'maintenance' } })); },
@@ -84,4 +84,14 @@ test('source errors and stale source receipts are shown without pretending missi
   f.ready(); await tick(); f.ids.get('maintenanceList').querySelectorAll('button')[0].click();
   assert.match(f.ids.get('maintenanceReceipt').textContent, /Feed is stale/); assert.match(f.text(f.ids.get('maintenanceDetail')), /Not supplied by HHA/);
   const save = f.ids.get('maintenanceDetail').querySelectorAll('button').find(node => node.textContent === 'Save office review'); assert.equal(save.disabled, true);
+});
+test('source backoff disables call retries while local office work remains available', async () => {
+  const f = fixture(); f.ready(); await tick(); f.ids.get('maintenanceList').querySelectorAll('button')[0].click();
+  f.ids.get('maintenanceNote').value = 'Synthetic source review'; f.event('maintenanceCaseForm', 'submit'); await tick();
+  f.handler(async () => ({ status: 429, ok: false, error: 'read_budget_exhausted_retry_next_minute', retryAfterSeconds: 25 }));
+  f.ids.get('maintenanceDetail').querySelectorAll('button').find(node => node.textContent === 'Read caregiver calls').click(); await tick();
+  const read = f.ids.get('maintenanceDetail').querySelectorAll('button').find(node => node.dataset.sourceRead === 'true');
+  assert.equal(read.disabled, true); assert.match(read.textContent, /wait 25s/);
+  assert.equal(f.ids.get('maintenanceDetail').querySelectorAll('button').find(node => node.textContent === 'Save office review').disabled, false);
+  f.leave();
 });

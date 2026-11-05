@@ -59,11 +59,13 @@ user action and uses a temporary browser Blob revoked on context changes.
 
 ## Validation and release
 
-Eleven new backend tests exercise source/office/release/receipt checks, duplicate
+Twelve new backend tests exercise source/office/release/receipt checks, duplicate
 and concurrent saves, genuine-call selection, changed subjects, local completion,
-history bounds and unavailable execution routes. Five browser-contract tests cover
+history/response bounds and unavailable execution routes. Six browser-contract tests cover
 83-visit visual paging, save/call/proposal/report/reload, stale blocking, session
-clearing and late-response fencing. Full baseline suites are also required.
+clearing, late-response fencing and source backoff. Five read-budget tests cover
+background headroom, shared accounting, vendor backoff, rollover and corrupt state.
+Full baseline suites are also required.
 Production acceptance is recorded below only after the normal release succeeds.
 
 Measured protected assets before the final release are approximately 464 KB raw /
@@ -72,4 +74,23 @@ Measured protected assets before the final release are approximately 464 KB raw 
 The new standalone maintenance JS/CSS accounts for about 24.7 KB raw / 8.3 KB gzip;
 the rest is navigation/markup. No new runtime library or minifier setting changed.
 
-Production acceptance: pending release and signed-in save/read/reload verification.
+Initial production release `8a1d8667dd076dd5d4ca5da448587f50f94f00a9`, workflow
+42083043809: all four jobs passed. All 15 public files matched production exactly;
+750 backend and 542 frontend/tooling checks passed, including a concurrent upstream
+non-activated report projection. Three anonymous maintenance routes returned 401.
+The signed-in workspace loaded 638 source visits from the completed office-day
+generation, saved an administrative acceptance case, retained a successful source
+call receipt, displayed it in the report and downloaded a verified private text
+report. The scoped HHA call read returned zero events; no populated-call or exact
+visit-link production acceptance is claimed for that visit.
+
+Production showed collector contention against the existing shared 60-call/minute
+application guard. The follow-up preserves that total and vendor backoff, while
+background API feeds stop at a shared count of 50, leaving ten existing slots for
+operator reads. Writes and other interactive reads still share the same counter.
+Background collection may progress more slowly; existing cache receipts, partial
+coverage and staleness disclosures apply. The call button honors returned retry
+seconds with a disabled countdown; local notes and reports remain usable. No new
+HHA endpoint, grant or vendor quota increase is introduced.
+
+Follow-up release and final signed-in reload acceptance: pending.
