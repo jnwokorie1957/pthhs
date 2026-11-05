@@ -89,7 +89,7 @@ function validateSource(source: OperationalRead, operation: "SearchVisitsV2" | "
   if (source.operation !== operation || source.source !== "hhaexchange" || !Array.isArray(source.records)
     || typeof source.truncated !== "boolean" || (operation !== "SearchVisitsV2" && source.records.length > 200)) throw new WorkflowError("invalid_visit_source_response", 502);
 }
-function detailItem(id: string, date: string, source: OperationalRead): VisitPreviewItem {
+export function detailItem(id: string, date: string, source: OperationalRead): VisitPreviewItem {
   validateSource(source, "GetVisitInfoV3");
   const facts = source.records[0];
   if (source.truncated || source.records.length !== 1 || !facts || facts.ID !== id) throw new WorkflowError("visit_not_uniquely_returned", 502);

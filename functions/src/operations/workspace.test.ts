@@ -253,7 +253,23 @@ test("guide-absent methods cannot be enabled or executed through stale owner set
   const service = new OperationsWorkspace(repository, async input => { calls++; return result(input); }, true);
   await assert.rejects(service.saveSettings({ ...preferences, enabledReads: ["GetMissedVisitReasonsV2"] }, "owner"), /vendor_contract_clarification_required/);
   await assert.rejects(service.query({ operation: "GetVisitEditReasonActionTaken", id: "7" }, "owner"), /vendor_contract_clarification_required/);
-  assert.equal(calls, 0); assert.equal((await service.settings()).contractOnlyReads.length, 3);
+  assert.equal(calls, 0); assert.equal((await service.settings()).contractOnlyReads.length, 2);
+  assert.ok((await service.settings()).supportedReads.includes("GetVisitEditReasonActionTaken"));
+  assert.equal((await service.settings()).settings.enabledReads.includes("GetVisitEditReasonActionTaken"), false);
+});
+test("owner can select the scoped reason-read candidate without enabling generic calls or confirmation writes", async () => {
+  const repository=new MemoryRepository();let calls=0;const scopes:unknown[]=[];
+  const service=new OperationsWorkspace(repository,async(input,scope)=>{calls++;scopes.push(scope);return result(input);},true);
+  await service.saveSettings({...preferences,enabledReads:["GetVisitEditReasonActionTaken"]},"owner");
+  await assert.rejects(service.query({operation:"GetVisitEditReasonActionTaken",id:"7"},"owner"),/vendor_contract_clarification_required/);
+  assert.equal(calls,0);await service.query({operation:"GetVisitEditReasonActionTaken",id:"7"},"owner","visit_reason_review");assert.equal(calls,1);assert.equal(scopes[0],"visit_reason_review");
+  await assert.rejects(service.query({operation:"ConfirmVisits",id:"7"},"owner","visit_reason_review"),/unsupported_read/);
+});
+test("name discovery requires the internal office-checking workflow even after explicit owner enablement",async()=>{
+ const repository=new MemoryRepository();let calls=0;const service=new OperationsWorkspace(repository,async input=>{calls++;return result(input);},true);
+ await service.saveSettings({...preferences,enabledReads:["SearchPatients","SearchCaregivers"]},"owner");
+ for(const operation of ["SearchPatients","SearchCaregivers"]){await assert.rejects(service.query({operation,firstName:"Synthetic"},"owner"),/office_scoped_person_search_required/);}
+ assert.equal(calls,0);await service.query({operation:"SearchPatients",firstName:"Synthetic"},"owner","maintenance_people_search");assert.equal(calls,1);
 });
 
 test("documented payroll filters retain zero rows by default and collection lookups remain scoped", () => {

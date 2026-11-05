@@ -1,6 +1,6 @@
 # PTHHS caregiver workforce plan
 
-Authoritative architecture, implementation backlog and acceptance record. Version 4, November 5, 2026. Initial audit baseline: `93707e3` on `main`; current handoff integrates `main` through `ad1993c`, preserving concurrent visit-maintenance controls and production acceptance documentation. This file owns workforce delivery status; existing management and release documentation continues to own its established workflows.
+Authoritative architecture, implementation backlog and acceptance record. Version 4, November 5, 2026. Initial audit baseline: `93707e3` on `main`; current handoff integrates `main` through `1083e6f`, preserving concurrent visit-maintenance controls, range/search/reason-staging tools and production acceptance documentation. This file owns workforce delivery status; existing management and release documentation continues to own its established workflows.
 
 ## Scope and release state
 
@@ -162,7 +162,7 @@ Complete WF-005: validate the staff/owner identity bootstrap and office scopes i
 
 ### Final local results
 
-- Node 22.22.0: **813 backend tests passed**, including 58 workforce tests; **554 site/tooling/analytics tests passed**, including eight workforce/browser-contract tests. 1,367 Node tests total after the latest main integration; no failures or skipped tests. The updated branch also receives a new Linux Repository quality CI run.
+- Node 22.22.0: **829 backend tests passed**, including 58 workforce tests; **564 site/tooling/analytics tests passed**, including eight workforce/browser-contract tests. 1,393 Node tests total after the latest main integration; no failures or skipped tests. The updated branch also receives a new Linux Repository quality CI run.
 - TypeScript compilation passed. Generated Primetime assets and workforce asset hashes are current.
 - Individual release generation/verification commands passed: HHA preservation evidence, article generation/tests, SEO metadata, sitemap dates, site output, insurance-logo integrity, Batch A/B1–B4, structured navigation, accessibility, performance, frontend controls and repository integrity audit.
 - The Windows environment lacks Bash, so the Bash release wrapper itself and its shell-syntax sweep were not run. Its applicable generation/verification commands were executed individually with UTF-8 Python; generator stability was checked with `git diff --exit-code` for public/source/scripts/config. Existing CI retains the full Linux release wrapper.

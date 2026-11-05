@@ -7,7 +7,7 @@ import { extractElementBodies, extractElementBody, extractElementText } from "..
 
 export const READ_OPERATIONS = ["GetReferralProfile", "GetOfficesV2", "GetContracts", "GetMissedVisitReasonsV2", "GetMissedVisitActionTakenV2", "GetVisitEditReasonActionTaken", "GetBillingServiceCodes", "SearchVisitsV2", "SearchPatients", "SearchCaregivers", "SearchPatientAuthorizations", "SearchBilledVisits", "GetScheduleInfo", "GetVisitInfoV3", "GetPatientDemographics", "GetCaregiverDemographics", "GetPatientAuthorizationInfo", "GetVisitBillInfoV2", "GetCaregiverPermanentWeekAvailability", "GetCaregiverSpecialAvailability", "GetPatientContracts", "GetPatientDisciplines", "GetPatientReferralInfo", "GetPatientPreferences", "GetPatientDeclinedCaregivers", "GetCaregiverRates", "GetCaregiverPayCodes", "GetCaregiverInServices", "GetCaregiverRestriction", "GetCaregiverPreferences", "SearchPayrollBatches", "SearchPayrollBatchCaregivers", "GetVisitPayrollInfoV2", "SearchPatientPOC", "GetPatientPOCInfo", "GetPatientTeams", "GetCaregiverTeams", "GetBranches", "GetLocations", "GetPayRateCodes", "GetPayers", "GetLanguages", "GetSourceOfAdmissions", "GetPatientDischargeTo", "GetReferralStatus", "GetReferralSourceType", "GetReferralLostReason", "GetCollectionStatus", "GetCollectionARNoteReasons", "GetCollectionRepresentatives", "GetCollectionFollowUpRepresentatives", "GetCollectionClaimStatus", "GetCollectionReasonForNonPayment", "GetPayrollTaxTypes", "GetPayrollTaxLocations", "GetEthnicity", "GetGenders", "GetInServiceTopics", "GetInServiceInstructors", "GetInServiceNoShowReason", "GetContractDischargeReason", "GetRefusedDutyReason", "GetI9ColumnCDocument", "GetCaregiverPTOAccrualTypes", "GetCaregiverGender", "GetCaregiverGenderForPatientPreference", "GetScheduleBillInfoEditReasons", "GetFluSeasonYears", "GetI9Documents", "GetCaregiverReferralSources", "GetEmergencyContactRelationships", "GetCaregiverNotificationMethods", "GetPayrollStateFillingStatus", "GetPayrollFederalFillingStatus", "GetMobilityStatuses", "GetEvacuationZones", "GetNurses", "GetEvacuationLocations", "GetReferralSalesStaff", "GetElectricEquipments", "GetCollectionNotes", "GetPayrollBatchDetails", "GetMasterWeeks", "GetLinkedScheduleInfo", "GetComplianceTrainingSchools", "GetVisitDeleteReasons", "GetVisitChangesV4", "GetDeletedVisits", "GetDeletedPatientAuthorizations", "GetPatientChangesV2", "GetCaregiverChangesV2", "GetCaregiverAbsenceChangesV2", "GetPatientContractChangesV2", "GetPatientAuthorizationChanges", "GetCaregiverMedicalDetails", "GetCaregiverComplianceItemDue", "GetNumberOfComplianceItemDue", "GetPatientClinicalInfo", "GetCaregiversAccessPatientInfoToMobileApp", "SearchPatientDocument", "SearchCaregiverDocument", "GetPatientDocumentType", "GetCaregiverDocumentType", "GetCaregiverMedicals", "GetCaregiverOtherCompliance", "GetCaregiverMedicalResults", "GetCaregiverOtherComplianceResults", "GetCaregiverTrainingSchools", "GetContractServiceCode", "GetLinkedContractServiceCodes", "GetCoordinators", "GetEvaluationCodes", "GetMissedVisitActionTaken", "GetMissedVisitReasons", "GetOffices", "GetPOCTasks", "GetPatientCaregiverPreferences", "GetStatusReasonsForCaregiver", "GetCaregiverNoteSubjects", "GetPatientNoteReasons", "GetCaregiverMedicalDetailChanges", "GetCaregiverPayrollInfoChangesV2", "GetCaregiverPictureChanges", "GetVisitChangesV2", "GetVisitChangesV3", "GetCaregiverNoteChanges", "GetCaregiverPermanentWeekAvailabilityChanges", "GetCaregiverPreferenceChanges", "GetCaregiverSpecialAvailabilityChanges", "GetPatientNoteChanges", "GetPatientNotes", "GetCaregiverNotes", "GetCallDashBoardData", "GetReferralSource", "GetReferralSourceContact", "GetPatientAddress", "GetPOCDutyLists", "GetVisitBillInfo", "GetVisitInfoV2", "GetVisitPayrollInfo", "SearchPhoneNumber", "DownloadCaregiverDocument", "DownloadPatientDocument", "DownloadCaregiverPicture"] as const;
 export type ReadOperation = typeof READ_OPERATIONS[number];
-export type ReadInput = { operation: ReadOperation; id?: string; patientId?: string; officeId?: string; date?: string; term?: string; status?: string; contractId?: string; caregiverId?: string; excludeZeroAmount?: string; groupByVisit?: string; modifiedAfter?: string; page?: string; complianceType?: string; sequence?: string; documentTypeId?: string; scheduleType?: string; appliesTo?: string; caregiverStatus?: string; modifiedAfterUtc?: string; lastId?: string; phone?: string; noteId?: string; referralStatusId?: string; referralSourceId?: string; salesStaffId?: string };
+export type ReadInput = { operation: ReadOperation; id?: string; patientId?: string; officeId?: string; date?: string; fromDate?: string; toDate?: string; firstName?: string; lastName?: string; admissionId?: string; caregiverCode?: string; term?: string; status?: string; contractId?: string; caregiverId?: string; excludeZeroAmount?: string; groupByVisit?: string; modifiedAfter?: string; page?: string; complianceType?: string; sequence?: string; documentTypeId?: string; scheduleType?: string; appliesTo?: string; caregiverStatus?: string; modifiedAfterUtc?: string; lastId?: string; phone?: string; noteId?: string; referralStatusId?: string; referralSourceId?: string; salesStaffId?: string };
 export class WorkflowError extends Error { constructor(public code: string, public status = 400, public retryAfterSeconds?: number) { super(code); } }
 export function identifier(value: unknown): string {
   if (typeof value !== "string" || !/^[1-9]\d{0,9}$/.test(value) || Number(value) > 2147483647) throw new WorkflowError("invalid_identifier");
@@ -241,9 +241,13 @@ export function readRequest(input: ReadInput): string {
   if (input.operation === "GetOfficesV2") return "<OfficesV2RequestInfo/>";
   if (input.operation === "GetContracts") return `<OfficeID>${identifier(input.officeId)}</OfficeID><Status>Active</Status>`;
   if (input.operation === "SearchPatients" || input.operation === "SearchCaregivers") {
-    if (typeof input.term !== "string" || input.term.trim().length < 2 || input.term.length > 60) throw new WorkflowError("last_name_search_requires_2_to_60_characters");
-    const term = input.term.trim().replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;").replaceAll("'", "&apos;");
-    return `<SearchFilters><LastName>${term}</LastName></SearchFilters>`;
+    if (input.term !== undefined && [input.firstName, input.lastName, input.admissionId, input.caregiverCode].some(value => value !== undefined)) throw new WorkflowError("ambiguous_name_search");
+    const values = { FirstName: input.firstName, LastName: input.term ?? input.lastName,
+      ...(input.operation === "SearchPatients" ? { AdmissionID: input.admissionId } : { CaregiverCode: input.caregiverCode }) };
+    const pairs = Object.entries(values).filter(([, value]) => value !== undefined && value !== "");
+    if (!pairs.length || pairs.some(([, value]) => typeof value !== "string" || value.trim().length < 2 || value.length > 60 || /[\u0000-\u001f]/.test(value))) throw new WorkflowError("last_name_search_requires_2_to_60_characters");
+    const escape = (value: string) => value.trim().replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;").replaceAll("'", "&apos;");
+    return `<SearchFilters>${pairs.map(([key, value]) => `<${key}>${escape(value!)}</${key}>`).join("")}</SearchFilters>`;
   }
   if (input.operation === "SearchPatientAuthorizations") return `<SearchFilters><PatientID>${identifier(input.patientId)}</PatientID></SearchFilters>`;
   if (input.operation === "SearchBilledVisits") {
@@ -251,12 +255,14 @@ export function readRequest(input: ReadInput): string {
     return `<StartDate>${date}T00:00:00</StartDate><EndDate>${date}T23:59:59</EndDate><OfficeID>${identifier(input.officeId)}</OfficeID><PatientID>${identifier(input.patientId)}</PatientID>`;
   }
   if (input.operation === "SearchVisitsV2") {
-    const date = day(input.date), office = identifier(input.officeId);
+    if (input.date !== undefined && (input.fromDate !== undefined || input.toDate !== undefined)) throw new WorkflowError("ambiguous_visit_dates");
+    const from = day(input.fromDate ?? input.date), to = day(input.toDate ?? input.date), office = identifier(input.officeId);
+    if (to < from || Date.parse(to) - Date.parse(from) > 365 * 86400000) throw new WorkflowError("visit_range_requires_1_to_366_days");
     // One office-local calendar day, not a guessed UTC conversion. Null optional
     // filters use the nillable WSDL contract rather than invented zero IDs.
     const patient = input.patientId ? `<PatientID>${identifier(input.patientId)}</PatientID>` : '<PatientID xsi:nil="true"/>';
     const caregiver = input.caregiverId ? `<CaregiverID>${identifier(input.caregiverId)}</CaregiverID>` : '<CaregiverID xsi:nil="true"/>';
-    return `<SearchFilters><StartDate>${date}T00:00:00</StartDate><EndDate>${date}T23:59:59</EndDate>${patient}${caregiver}<OfficeID>${office}</OfficeID></SearchFilters>`;
+    return `<SearchFilters><StartDate>${from}T00:00:00</StartDate><EndDate>${to}T23:59:59</EndDate>${patient}${caregiver}<OfficeID>${office}</OfficeID></SearchFilters>`;
   }
   if (input.operation === "SearchPayrollBatches") {
     const date = day(input.date);
@@ -487,9 +493,10 @@ export function readInputFields(operation: ReadOperation): string[] {
   if (EST_CHANGE_READS.includes(operation)) return [...(OFFICE_SCOPED_READS.includes(operation) ? ["officeId"] : []), "modifiedAfter", ...(operation === "GetVisitChangesV4" ? ["page"] : [])];
   if (operation === "GetOfficesV2") return [];
   if (operation === "GetContracts") return ["officeId"];
-  if (["SearchPatients", "SearchCaregivers"].includes(operation)) return ["term"];
+  if (operation === "SearchPatients") return ["term", "firstName", "lastName", "admissionId"];
+  if (operation === "SearchCaregivers") return ["term", "firstName", "lastName", "caregiverCode"];
   if (["SearchPatientAuthorizations", "SearchPatientPOC", "GetPatientDisciplines", "GetPatientReferralInfo", "GetPatientPreferences", "GetPatientDeclinedCaregivers", "GetMasterWeeks"].includes(operation)) return ["patientId"];
-  if (operation === "SearchVisitsV2") return ["officeId", "date", "patientId", "caregiverId"];
+  if (operation === "SearchVisitsV2") return ["officeId", "date", "fromDate", "toDate", "patientId", "caregiverId"];
   if (operation === "SearchBilledVisits") return ["officeId", "date", "patientId"];
   if (operation === "SearchPayrollBatches") return ["date"];
   if (operation === "GetPatientContracts") return ["patientId", "date"];
@@ -996,11 +1003,11 @@ export function boundedAttachment(record: Record<string, string | null>, identit
   const filename = safeAttachmentFilename(record.FileName);
   return { filename, byteLength: bytes.length, base64: encoded, contentType: "application/octet-stream" as const };
 }
-export async function operationalRead(client: Pick<HhaSoapClient, "call">, input: ReadInput, projectionScope?: "document_metadata" | "clinical_review" | "medical_review" | "write_recovery" | "visit_discovery"): Promise<OperationalRead> {
+export async function operationalRead(client: Pick<HhaSoapClient, "call">, input: ReadInput, projectionScope?: "document_metadata" | "clinical_review" | "medical_review" | "write_recovery" | "visit_discovery" | "visit_reason_review" | "maintenance_people_search"): Promise<OperationalRead> {
   const body = readRequest(input);
   // One attempt per owner-requested read; shared server quota controls requests.
   let response: Awaited<ReturnType<HhaSoapClient["call"]>>;
-  try { response = await client.call(input.operation, body, 1); }
+  try { response = await client.call(input.operation, body, 1, projectionScope === "visit_reason_review" && input.operation === "GetVisitEditReasonActionTaken" ? "visit_reason_review" : undefined); }
   catch (error) {
     // Single-attempt reads still need the trusted admission cursor. Keep the
     // transport's not-submitted classification for writes and unknown causes.
@@ -1083,7 +1090,7 @@ export async function operationalRead(client: Pick<HhaSoapClient, "call">, input
     }
     records = bodies.map(xml => {
       const projected = Object.fromEntries(projection.fields.map(name => [name, field(xml, name)]));
-      if (["GetVisitInfoV2", "GetVisitInfoV3", "GetVisitBillInfoV2", "GetVisitBillInfo"].includes(input.operation)) {
+      if (["GetVisitInfoV2", "GetVisitInfoV3", "GetVisitBillInfoV2", "GetVisitBillInfo", "GetScheduleInfo"].includes(input.operation)) {
         for (const name of ["ID", "Patient/ID", "Caregiver/ID", "VisitDate"]) projected[name] = directPathScalar(xml, name);
       }
       if (input.operation === "SearchPatientAuthorizations") for (const name of ["ID", "ContractID"]) projected[name] = directScalar(xml, name);

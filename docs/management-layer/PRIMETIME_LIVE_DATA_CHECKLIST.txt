@@ -17,6 +17,10 @@ approved limited automation, then build the owned scheduling platform.
 [ ] M04 Protected assigned reports: action/evidence/rule and unresolved next step.
 [ ] M05 Owner-selected approximately 25-client shadow pilot and measured results.
 [ ] M06 Reviewed submissions, then approved-rule automation using actual calls.
+[ ] M01b/M02a Range/person/payer search, actionable rows and typed reason/action
+    staging implemented; normal release and production checks pending. Four new
+    scoped read grants need the owner decision. HHA write contracts remain open.
+    See MAINTENANCE_RANGE_SEARCH_2026-11-05.md. No confirmation is simulated.
 [x] M01a Administrator review workspace implemented: full office/day source queue,
     durable source-bound cases, genuine scoped call evidence and proposals.
 [x] M04a Local office reports implemented: queue/follow-up/explanation, selected
