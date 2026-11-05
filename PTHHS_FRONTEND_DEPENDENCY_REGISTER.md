@@ -1,5 +1,13 @@
 # PTHHS Frontend Dependency Register
 
+**November 5, 2026 application-packet update:** The private caregiver wizard
+adds `workforce-application.js`; scoped HR review adds `workforce-personnel.js`.
+Both use the existing browser platform and Firebase identity, with no new
+browser library, analytics, browser storage or third-party upload service.
+Server-side Sharp 0.35.5 decodes/re-encodes uploaded JPEG/PNG images and removes
+metadata. The workforce budget is now 75 KB raw / 22 KB gzip for the complete
+application and private folder, separate from the maintenance/operations app.
+
 **November 5, 2026 workforce foundation:** Careers adds deferred first-party
 `workforce.js`, `workforce-contract.js` and `workforce.css`. Its filter form
 performs browser filtering only, submits no application records and retains

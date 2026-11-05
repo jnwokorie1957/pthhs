@@ -21,13 +21,26 @@
     staff_identity_unverified: 'The staff account must be enabled with a verified email.',
     verified_identity_required: 'Sign in again using your verified email.',
     workforce_release_pending: 'This workforce service is awaiting release verification.'
+    ,application_collection_pending: 'Online applications are awaiting release verification.'
+    ,document_collection_pending: 'Private document uploads are awaiting security and retention verification.'
+    ,recent_sign_in_required: 'Please sign in again before accessing sensitive records. Saved progress is kept securely.'
+    ,employee_reactivation_review: 'You already have an employment account. Contact HR for file updates or reactivation; another full application is not required.'
+    ,application_incomplete: 'Complete the required application fields before submitting.'
+    ,invalid_answers: 'Check the dates, email, Social Security number format and field lengths.'
+    ,signature_required: 'Read the release, choose electronic signing and type your name as entered on the application.'
+    ,document_image_required: 'Choose a JPEG or PNG photograph.'
+    ,unreadable_document_image: 'This image could not be processed. Choose a clear JPEG or PNG photograph.'
+    ,invalid_document_size: 'Choose a JPEG or PNG no larger than 8 MB.'
+    ,document_upload_unconfirmed: 'The upload could not be confirmed. Check its status before trying again.'
+    ,upload_limit_reached: 'The upload attempt limit has been reached. Please try again later.'
+    ,save_application_first: 'Save your application before uploading documents.'
   };
   const message = s => { status.textContent = s; };
   const hide = () => {
     document.getElementById('staff-workspace')?.setAttribute('hidden', '');
     document.getElementById('caregiver-summary')?.setAttribute('hidden', '');
   };
-  async function api(path, body) {
+  async function api(path, body, download = false) {
     if (!auth?.currentUser) throw Error('Sign in required.');
     const token = await auth.currentUser.getIdToken();
     const r = await fetch(prefix + path, {
@@ -35,6 +48,7 @@
       headers: { Authorization: 'Bearer ' + token, ...(body ? { 'Content-Type': 'application/json' } : {}) },
       ...(body ? { body: JSON.stringify(body) } : {})
     });
+    if (r.ok && download) return r.blob();
     const result = await r.json();
     if (!r.ok) throw Error(errors[result.error] || 'The request could not be completed. Retry or contact the office.');
     return result;
@@ -47,10 +61,11 @@
     if (!user) { form.hidden = false; message('Enter your email to receive a secure sign-in link.'); return; }
     form.hidden = true; message('Verifying account access…');
     try {
-      const actor = await api('/session');
+      const actor = await api(staff ? '/session' : '/application/session');
       if (sequence !== generation) return;
       message('Signed in. Permissions are verified for this session.');
       if (staff) document.dispatchEvent(new CustomEvent('workforce-session', { detail: actor }));
+      else document.dispatchEvent(new CustomEvent('workforce-caregiver-session', { detail: actor }));
     } catch (error) {
       if (sequence === generation) { message('Access unavailable: ' + error.message + '. Contact the office or reload to retry.'); hide(); }
     }

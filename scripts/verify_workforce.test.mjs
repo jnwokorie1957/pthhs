@@ -23,15 +23,18 @@ test('existing Careers URL, homeowner sign-in entry and staff entry remain reach
   assert.match(read('source/primetime/index.html'),/href="\/primetime\/workforce"/);
   assert.match(read('public/primetime/workforce.html'),/id="staff-editor"/);
 });
-test('client database and document access stay denied; no banking fields or application collection route', () => {
+test('client database and document access stay denied; application/document collection has closed release gates', () => {
   for(const path of ['firestore.rules','storage.rules']) assert.match(read(path),/allow read, write: if false/);
   const backend = read('functions/src/workforce/http.ts');
-  assert.match(backend,/accountsEnabled: false, applicationsEnabled: false/);
-  assert.doesNotMatch(backend,/hhaexchange|adp|upload|submitApplication/);
+  for (const gate of ['WORKFORCE_APPLICANT_COLLECTION_APPROVED','WORKFORCE_PACKET_REVIEW_APPROVED','WORKFORCE_ID_DOCUMENTS_APPROVED','WORKFORCE_ID_RETENTION_APPROVED']) assert.ok(backend.includes(`defineString("${gate}", { default: "false" })`));
+  assert.doesNotMatch(backend,/hhaexchange|adp/);
   for(const path of ['public/caregiver.html','public/primetime/workforce.html']) {
-    assert.doesNotMatch(read(path),/assets\/analytics|type="file"|routing.number|bank.account|social.security/i);
+    assert.doesNotMatch(read(path),/assets\/analytics|routing.number|bank.account/i);
     assert.match(read(path),/noindex,nofollow,noarchive/);
   }
+  assert.match(read('public/caregiver.html'),/capture="environment"/);
+  assert.match(read('public/caregiver.html'),/id="document-file" type="file"/);
+  assert.match(read('public/caregiver.html'),/id="private-documents"/);
 });
 test('new API uses existing project and preserves legacy routing and security boundary', () => {
   const config = JSON.parse(read('firebase.json'));
@@ -40,10 +43,17 @@ test('new API uses existing project and preserves legacy routing and security bo
   assert.match(read('functions/src/index.ts'),/principal = await requirePrimetimeAdmin\(request\)/);
 });
 test('build pruning explicitly retains all workforce runtime assets', () => {
-  for (const asset of ['workforce.css','workforce.js','workforce-contract.js','workforce-session.js','workforce-staff.js']) {
+  for (const asset of ['workforce.css','workforce.js','workforce-contract.js','workforce-session.js','workforce-staff.js','workforce-application.js','workforce-personnel.js']) {
     assert.ok(read('scripts/accessibility_foundation.py').includes('assets/'+asset));
     assert.ok(read('scripts/verify_accessibility_foundation.py').includes('assets/'+asset));
   }
   assert.ok(read('scripts/site-scope.mjs').includes("relative === 'caregiver.html'"));
   assert.ok(read('scripts/site_scope.py').includes('relative == "caregiver.html"'));
+});
+test('sensitive application data has no browser persistence or analytics sink', () => {
+  for (const asset of ['workforce-application.js','workforce-personnel.js']) assert.doesNotMatch(read('public/assets/'+asset),/localStorage|sessionStorage|console\.|gtag|analytics|innerHTML/);
+  assert.match(read('public/assets/workforce-application.js'),/URL\.revokeObjectURL/);
+  const storage = read('functions/src/workforce/intakeStore.ts');
+  assert.doesNotMatch(storage,/makePublic|getSignedUrl|firebaseStorageDownloadTokens|originalFilename/);
+  assert.match(storage,/generation: record.generation/);
 });

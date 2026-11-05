@@ -26,6 +26,8 @@ RUNTIME_ASSETS = {
     "assets/workforce.js",
     "assets/workforce-session.js",
     "assets/workforce-staff.js",
+    "assets/workforce-application.js",
+    "assets/workforce-personnel.js",
 }
 
 

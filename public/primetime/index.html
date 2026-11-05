@@ -9,6 +9,7 @@
 <link rel="icon" href="/assets/meta/favicon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="/primetime/primetime.css?v=39e3b5418543">
 <link rel="stylesheet" href="/primetime/analytics.css?v=311b90e9f0ed">
+<link rel="stylesheet" href="/primetime/maintenance.css?v=646e73d4970e">
 </head>
 <body>
 <div class=auth-shell id=authShell>
@@ -51,6 +52,7 @@
 <a class=admin-brand href="/primetime" aria-label="Primetime Operations home"><img src="/wp-content/themes/primetimehomeie989/images/main-logo.png" alt="Primetime Home Health Services"><span>Operations</span></a>
 <nav class=admin-nav aria-label="Primetime administration">
 <button class="nav-item is-active" data-view="overview"><span class=nav-icon>⌂</span><span>Overview</span></button>
+<button class=nav-item data-view="maintenance"><span class=nav-icon>☑</span><span>Visit maintenance</span></button>
 <button class=nav-item data-view="analytics"><span class=nav-icon>▥</span><span>Website analytics</span></button>
 <button class=nav-item data-view="revisions"><span class=nav-icon>☑</span><span>Visit review</span></button>
 <button class=nav-item data-view="evv"><span class=nav-icon>✓</span><span>EVV Exceptions</span><span class=nav-badge data-demo-badge="exceptions" hidden></span></button>
@@ -93,6 +95,7 @@
 <main id=workspace class=workspace tabindex=-1>
 <div class=notice id=dashboardModeNotice role=note>Live HHA data requires an approved administrator session. Checking source access…</div>
 <section class="view is-active" id=officeDayOverview data-view-panel="overview">
+<button class="btn secondary" type=button data-view-jump="maintenance">Open visit maintenance →</button>
 <section class="panel connected-tools"><h3>Operational tools</h3><button type=button class="btn secondary" data-view-jump="workbench" data-workflow="SearchPatients">Find patient records</button><button type=button class="btn secondary" data-view-jump="workbench" data-workflow="SearchCaregivers">Find caregiver records</button><button type=button class="btn secondary" data-view-jump="workbench" data-workflow="SearchPayrollBatches">Review payroll batches</button></section>
 <div class=section-heading><div><p class=eyebrow>Selected office and day</p><h2>Live visit overview</h2><p>Totals and charts collect all visits returned for this office and day. Progress, incomplete reads and source fetch times are shown below.</p></div><div class=heading-actions><button id=dashboardOverviewRefresh type=button class="btn secondary">Read entire day</button><button id=dashboardOverviewClear type=button class="btn secondary" disabled>Clear source data</button><button class="btn secondary" data-view-jump="visits">Source records</button></div></div>
 <div class="filter-bar visit-controls"><label for=dashboardOverviewDate>Service date<input id=dashboardOverviewDate type=date required></label><p id=dashboardOverviewScope class=scope-copy>Office not configured</p></div>
@@ -102,6 +105,17 @@
 <div class=dashboard-grid><section class="panel span-2"><h3>Visit windows</h3><div id=dashboardTimeline></div></section><section class=panel><h3>Source field availability</h3><div id=dashboardEvidenceChart></div></section><section class="panel span-2"><div class=panel-head><h3 id=dashboardEvidenceTitle>EVV source evidence</h3><button class=text-button data-view-jump="visits">View records →</button></div><div id=dashboardOverviewExceptions></div></section><section class=panel><h3 id=dashboardCoverageTitle>Caregiver assignment evidence</h3><div id=dashboardCoverage></div></section><section class=panel><h3 id=dashboardAlertsTitle>Source evidence gaps</h3><div id=dashboardAlerts></div></section><section class="panel span-2"><h3>Source readiness</h3><p id=dashboardReadiness>Live source validation is pending.</p><button class="btn secondary" data-view-jump="hha">Integration details</button></section></div>
 </section>
 
+<section class="view maintenance" data-view-panel="maintenance" id=maintenanceWorkspace aria-label="Visit maintenance">
+<div class=section-heading><div><p class=eyebrow>Office operations</p><h2>Visit maintenance</h2><p>Review visits, inspect caregiver calls and keep follow-up in one place.</p></div><button class="btn secondary" id=maintenanceRefresh type=button>Refresh workspace</button></div>
+<div class=maintenance-boundary><strong>Office review workspace</strong><span>Reviews and proposals are saved privately in Primetime. HHA confirmation and clock changes are not enabled. Only actual source call events can be selected.</span></div>
+<div class=maintenance-controls><label>Service date<input type=date id=maintenanceDate required></label><label>Find visit, patient or caregiver<input type=search id=maintenanceSearch placeholder="Search source IDs"></label><label>Show<select id=maintenanceFilter><option value=all>All source visits</option><option value=gaps>Missing EVV fields</option><option value=cases>Saved office cases</option><option value=needs_attention>Needs attention</option><option value=awaiting_hha_action>Awaiting HHA action</option><option value=office_review_complete>Office reviews completed</option></select></label></div>
+<p id=maintenanceStatus role=status aria-live=polite>Sign in with live data enabled to open maintenance.</p><p id=maintenanceReceipt class=source-metadata></p>
+<div id=maintenanceMetrics class=maintenance-metrics></div>
+<div class=maintenance-tabs role=group aria-label="Maintenance workspace"><button class="btn secondary" id=maintenanceQueueTab type=button aria-pressed=true>Visit queue</button><button class="btn secondary" id=maintenanceReportTab type=button aria-pressed=false>Staff report</button></div>
+<div id=maintenanceQueue class=maintenance-layout><section class="panel maintenance-list-panel" aria-label="Visit queue"><div id=maintenanceList></div><button id=maintenanceMoreVisits type=button class="btn secondary" hidden>Show more visits</button></section><section class="panel maintenance-detail" id=maintenanceDetail aria-label="Selected visit"><h3>Choose a visit</h3><p>Open a source visit to inspect times and start an office case.</p></section></div>
+<section class="panel maintenance-report" id=maintenanceReport hidden><div class=panel-head><h3>Staff maintenance report</h3><button id=maintenanceExport class="btn secondary" type=button>Download text report</button></div><p>This report describes saved office work. No visits have been confirmed or changed in HHA by this workspace.</p><div id=maintenanceReportRows></div></section>
+<button id=maintenanceMoreCases type=button class="btn secondary" hidden>Load next 100 office cases</button>
+</section>
 <section class="view web-analytics" data-view-panel="analytics" id=websiteAnalytics aria-label="Website analytics">
 <div class=wa-heading><div><p class=eyebrow>YOUR WEBSITES, AT A GLANCE</p><h2>Website analytics</h2><p>See how people find and explore PTHHS and Ride Primetime.</p></div></div>
 <div class=wa-toolbar><label>Website<select id=waSite><option value=pthhs>PTHHS · pthhs.net</option><option value=rideprimetime>Ride Primetime · rideprimetime.net</option></select></label><label>Time period<select id=waDays><option value=7>Last 7 complete days</option><option value=28 selected>Last 28 complete days</option><option value=90>Last 90 complete days</option></select></label><button id=waRefresh class="btn secondary wa-refresh" type=button>↻ Refresh</button></div>
@@ -129,6 +143,7 @@
 <div id=manualSnapshotDetails></div>
 </section>
 <section class=view data-view-panel="evv">
+<button class="btn secondary" type=button data-view-jump="maintenance">Review visits in maintenance →</button>
 <section class="panel connected-tools"><h3>Operational tools</h3><button type=button class="btn secondary" data-view-jump="workbench" data-workflow="SearchVisitsV2">Inspect source EVV evidence</button><button type=button class="btn secondary" data-view-jump="workbench" data-workflow="investigations">Open investigation queue</button></section>
 <div class=section-heading><div><p class=eyebrow>Compliance workflow</p><h2 id=evvPanelTitle>EVV source clock evidence</h2><p>Source evidence must be validated before policy rules can classify an exception.</p></div></div>
 <div class=filter-bar><label for=exceptionSearch>Search preview<input id=exceptionSearch type=search placeholder="Visit or exception"></label><label for=priorityFilter>Priority<select id=priorityFilter><option value=all>All priorities</option><option value=high>High</option><option value=medium>Review</option><option value=low>Low</option></select></label></div>
@@ -206,10 +221,11 @@
 <script src="/primetime/demo-data.js?v=b25c5238018a" defer></script>
 <script src="/primetime/dashboard.js?v=ad4626cab7ac" defer></script>
 <script src="/primetime/revisions.js?v=dcba55667c8f" defer></script>
-<script src="/primetime/primetime.js?v=ddff8cafc9d0" defer></script>
+<script src="/primetime/primetime.js?v=fc3d828b7537" defer></script>
 <script src="/primetime/workspace.js?v=649547358c69" defer></script>
 <script src="/primetime/analytics.js?v=8e22c0c9574a" defer></script>
 <script src="/primetime/live-views.js?v=5fdc604cfc95" defer></script>
 <script src="/primetime/forms.js?v=cd406cb5f1f7" defer></script>
+<script src="/primetime/maintenance.js?v=a08e3a2ffc0f" defer></script>
 </body>
 </html>

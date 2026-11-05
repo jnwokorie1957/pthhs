@@ -194,7 +194,9 @@ const workforceFiles = publicFiles.filter(isWorkforceFile);
 const workforceBytes = (await Promise.all(workforceFiles.map(file => fs.stat(file)))).reduce((sum, stat) => sum + stat.size, 0);
 let workforceGzip = 0;
 for (const file of workforceFiles) workforceGzip += gzipSync(await fs.readFile(file)).length;
-if (workforceBytes > 40_000 || workforceGzip > 12_000) errors.push(`workforce output exceeds 40 KB raw / 12 KB gzip budget: ${workforceBytes}/${workforceGzip}`);
+// The actual packet wizard, private image capture and scoped HR review add no
+// browser library. Bound their added transfer separately from operations.
+if (workforceBytes > 75_000 || workforceGzip > 22_000) errors.push(`workforce output exceeds 75 KB raw / 22 KB gzip budget: ${workforceBytes}/${workforceGzip}`);
 const publicBytes = (await Promise.all(publicFiles.map((file) => fs.stat(file)))).reduce((sum, stat) => sum + stat.size, 0);
 const internalFiles = publicFiles.filter(file => isInternalAppFile(file, publicDir) && !isWorkforceFile(file));
 const internalBytes = (await Promise.all(internalFiles.map(file => fs.stat(file)))).reduce((sum, stat) => sum + stat.size, 0);
@@ -210,7 +212,8 @@ if (publicBytes - internalBytes - workforceBytes > 2_000_000) errors.push(`marke
 // This includes the concurrently released first-party live-view counter.
 // The protected persistent-day adapter adds 7.1 KB raw / 1.3 KB gzip, with no
 // new runtime library. Keep its receipt/coverage/access validation in the budget.
-if (internalBytes > 437_000) errors.push(`internal app output exceeds 437 KB budget: ${internalBytes}`);
+// Preserve the independently reviewed maintenance-workspace allowance.
+if (internalBytes > 470_000) errors.push(`internal app output exceeds 470 KB budget: ${internalBytes}`);
 let compressedInternalBytes = 0;
 for (const file of internalFiles) {
   const bytes = await fs.readFile(file);
@@ -218,7 +221,7 @@ for (const file of internalFiles) {
   if (bytes.length > 110_000) errors.push(`internal asset exceeds 110 KB budget: ${path.basename(file)}`);
 }
 // Includes complete-day collection, consistency fences and source retry handling.
-if (compressedInternalBytes > 109_000) errors.push(`internal app gzip estimate exceeds 109 KB budget: ${compressedInternalBytes}`);
+if (compressedInternalBytes > 118_000) errors.push(`internal app gzip estimate exceeds 118 KB budget: ${compressedInternalBytes}`);
 if (pictureCount !== 4 || preloadCount !== 3) errors.push(`expected 4 responsive pictures and 3 LCP preloads, found ${pictureCount}/${preloadCount}`);
 if (externalRuntimeCount !== 0) errors.push(`expected zero external runtime resources, found ${externalRuntimeCount}`);
 

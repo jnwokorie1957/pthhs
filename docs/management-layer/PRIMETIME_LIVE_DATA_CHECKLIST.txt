@@ -17,6 +17,13 @@ approved limited automation, then build the owned scheduling platform.
 [ ] M04 Protected assigned reports: action/evidence/rule and unresolved next step.
 [ ] M05 Owner-selected approximately 25-client shadow pilot and measured results.
 [ ] M06 Reviewed submissions, then approved-rule automation using actual calls.
+[x] M01a Administrator review workspace implemented: full office/day source queue,
+    durable source-bound cases, genuine scoped call evidence and proposals.
+[x] M04a Local office reports implemented: queue/follow-up/explanation, selected
+    actual calls, provenance and explicit loaded-page coverage; no HHA completion
+    claim. Production acceptance remains pending normal release verification.
+    See VISIT_MAINTENANCE_WORKSPACE_2026-11-05.md. M01/M04 are not fully closed:
+    authoritative links, supported source actions and individual role access remain.
 See EVV_MAINTENANCE_PRODUCT_DIRECTION.txt for requirements, order and dependencies.
 No HHA write, source access grant, staff account or pilot has been enabled here.
 

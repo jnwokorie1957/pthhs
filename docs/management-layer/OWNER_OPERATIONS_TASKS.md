@@ -14,6 +14,12 @@
 
 ## Start here
 
+- [x] Administrator maintenance review software implemented: office/day queue,
+  durable cases, actual scoped call events, proposals, staff follow-up queues and
+  private reports. [Release/production evidence](VISIT_MAINTENANCE_WORKSPACE_2026-11-05.md)
+  distinguishes office review from HHA confirmation. Staff queues do not activate
+  new accounts; submissions and a pilot still need the open source/policy decisions.
+
 - [x] November 5 available maintenance resources collected: checked HHA workflow,
   permission and testing references; current reason/maintenance/report resources;
   private API guide and current public schema; staff/pilot/report templates.

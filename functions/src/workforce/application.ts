@@ -1,6 +1,6 @@
 import { WorkforceError } from "./policy.js";
-// Framework only: no approved questions or legal documents have been supplied.
-// No production HTTP route collects answers, uploads or signatures yet.
+// Generic versioned draft framework. Packet-specific intake, private document
+// routes and release controls live in packet.ts, intake.ts and http.ts.
 export interface Packet {
   version: string; approved: boolean;
   fields: { id: string; label: string; required: boolean; maxLength: number }[];

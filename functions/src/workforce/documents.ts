@@ -1,0 +1,33 @@
+import sharp from "sharp";
+import { WorkforceError } from "./policy.js";
+export const DOCUMENT_KINDS = ["identity", "social_security", "employment_authorization"] as const;
+export type DocumentKind = typeof DOCUMENT_KINDS[number];
+export const MAX_DOCUMENT_BYTES = 8 * 1024 * 1024;
+export interface PrivateDocument {
+  id: string; uid: string; kind: DocumentKind; state: "upload_pending" | "pending_review" | "upload_failed";
+  createdAt: string; size: number; sha256: string | null; generation: string | null;
+}
+export function documentKind(value: unknown): DocumentKind {
+  if (!DOCUMENT_KINDS.includes(value as DocumentKind)) throw new WorkforceError(400, "invalid_document_kind");
+  return value as DocumentKind;
+}
+// Decode and re-encode raster images. Never store originals, embedded metadata,
+// active formats, filenames, arbitrary PDFs or client-provided MIME claims.
+export async function sanitizeDocument(encoded: unknown): Promise<Buffer> {
+  if (typeof encoded !== "string" || !encoded.length || encoded.length % 4 !== 0 || encoded.length > Math.ceil(MAX_DOCUMENT_BYTES / 3) * 4
+    || !/^[A-Za-z0-9+/]*={0,2}$/.test(encoded)) throw new WorkforceError(400, "invalid_document_size");
+  const bytes = Buffer.from(encoded, "base64");
+  if (!bytes.length || bytes.length > MAX_DOCUMENT_BYTES || bytes.toString("base64") !== encoded) throw new WorkforceError(400, "invalid_document_size");
+  const jpeg = bytes[0] === 255 && bytes[1] === 216 && bytes[2] === 255;
+  const png = bytes.subarray(0, 8).equals(Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]));
+  if (!jpeg && !png) throw new WorkforceError(400, "document_image_required");
+  try {
+    const image = sharp(bytes, { limitInputPixels: 24_000_000, failOn: "warning", animated: false });
+    const metadata = await image.metadata();
+    if (!metadata.width || !metadata.height || metadata.width < 100 || metadata.height < 100 || (metadata.pages ?? 1) !== 1) throw Error();
+    return await image.rotate().resize({ width: 2400, height: 2400, fit: "inside", withoutEnlargement: true }).jpeg({ quality: 90 }).toBuffer();
+  } catch { throw new WorkforceError(400, "unreadable_document_image"); }
+}
+export function documentSummary(document: PrivateDocument) {
+  return { id: document.id, kind: document.kind, state: document.state, createdAt: document.createdAt, size: document.size };
+}
