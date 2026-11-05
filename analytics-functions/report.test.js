@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {reportRequests,reportPeriods,shapeReports,shapeRealtime,reportTimezone} from './report.js';
+import {reportRequests,reportPeriods,shapeReports,shapeRealtime,shapeToday,reportTimezone} from './report.js';
 import {reports,report,context,periods} from './test-fixtures.js';
 
 test('bounded property allowlist and explicit source-calendar periods',()=>{
@@ -67,4 +67,11 @@ test('typed empty recognition cannot hide missing values, contradictory counts o
   const base={kind:'analyticsData#runRealtimeReport'};
   for(const value of [{},{kind:'analyticsData#runReport'},{...base,metricHeaders:null},{...base,rows:null},{...base,rowCount:1},{...base,error:{message:'PRIVATE'}},
     {...base,totals:[{}]},{...base,rows:[{metricValues:[{value:'3'}]}]},{...base,propertyQuota:null}])assert.throws(()=>shapeRealtime(value),/invalid_report/);
+});
+
+test('today verifies timezone, integer views and coverage; missing rows never become zero',()=>{
+  assert.equal(shapeToday(report([],['screenPageViews'],[[[],[0]]]),'America/Chicago').pageViews,0);
+  assert.equal(shapeToday(report([],['screenPageViews'],[]),'America/Chicago').pageViews,null);
+  assert.match(shapeToday(report([],['screenPageViews'],[[[],[5]]],{subjectToThresholding:true}),'America/Chicago').warning,/thresholded/);
+  for(const source of [{},report([],['screenPageViews'],[[[],['NaN']]]),report([],['screenPageViews'],[[[],[1.5]]]),report([],['screenPageViews'],[[[],[2]]],{timeZone:'Asia/Tokyo'})])assert.throws(()=>shapeToday(source,'America/Chicago'),/invalid_report/);
 });

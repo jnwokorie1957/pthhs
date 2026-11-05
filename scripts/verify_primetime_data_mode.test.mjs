@@ -565,7 +565,8 @@ function analyticsReport(site='pthhs',days=28){
     periods:{asOfDate:'2026-10-31',current:{startDate:shift(-days),endDate:shift(-1)},previous:{startDate:shift(-days*2),endDate:shift(-days-1)}},
     trend:[{date:'20261030',screenPageViews:9,sessions:3},{date:'20261028',screenPageViews:7,sessions:2}],
     pages:[{pagePath:'/synthetic-public-page',screenPageViews:11,activeUsers:8}],channels:[{sessionDefaultChannelGroup:'Direct',sessions:10,activeUsers:8}],
-    events:[{eventName:'phone_click',eventCount:2},{eventName:'email_click',eventCount:3}],realtime:4,realtimeError:null,dataQuality:null,timeZone:'America/Chicago',
+    events:[{eventName:'phone_click',eventCount:2},{eventName:'email_click',eventCount:3}],realtime:4,realtimePageViews:8,realtimeError:null,dataQuality:null,timeZone:'America/Chicago',
+    today:{date:'2026-10-31',pageViews:17,updatedAt:'2026-10-31T18:00:00.000Z',error:null,warning:null},
     realtimeStreamId:site==='pthhs'?'16244033088':'16244067646',realtimeUpdatedAt:'2026-10-31T18:00:00.000Z',updatedAt:'2026-10-31T18:00:00.000Z',periodNote:'Synthetic report period; source dates only.'};
 }
 async function analyticsApp(read=()=>response(analyticsReport())){
@@ -579,8 +580,10 @@ async function analyticsApp(read=()=>response(analyticsReport())){
 test('analytics clears prior facts at refresh start and keeps failures distinct from zero',async()=>{
   let next=null;const app=await analyticsApp(()=>next?next.promise:response(analyticsReport()));
   assert.match(nodeText(app.element('waMetrics')),/7,203/);assert.equal(app.element('waLive').textContent,'4');
+  assert.equal(app.element('waToday').textContent,'17');assert.equal(app.element('waRecentViews').textContent,'8');
   next=deferred();await app.click('waRefresh');
   assert.doesNotMatch(nodeText(app.element('waMetrics')),/7,203/);assert.equal(app.element('waLive').textContent,'—');assert.equal(app.element('waUpdated').textContent,'');
+  assert.equal(app.element('waToday').textContent,'—');assert.equal(app.element('waRecentViews').textContent,'—');
   next.resolve({...response({ok:false,error:'analytics_access_pending',message:'PRIVATE-UPSTREAM-ERROR'}),ok:false,status:503});await tick();await tick();
   assert.match(app.element('waStatus').textContent,/reporting access still needs/);assert.doesNotMatch(app.element('waStatus').textContent,/PRIVATE/);
   assert.equal(app.element('waStatus').classList.contains('wa-error'),true);assert.equal(app.element('waRefresh').disabled,false);
@@ -597,6 +600,25 @@ test('analytics validates whole numeric, identity, date and receipt shapes befor
     assert.equal(app.element('waStatus').classList.contains('wa-error'),true,String(change));
     assert.match(app.element('waStatus').textContent,/could not be verified/);assert.equal(app.element('waLive').textContent,'—');
     assert.doesNotMatch(nodeText(app.element('waMetrics')),/7,203|NaN|Infinity/);assert.equal(app.element('waUpdated').textContent,'');
+  }
+});
+
+test('current-day and rolling page views show their own date and receipt, preserve zero and reject crossed dates',async()=>{
+  for(const state of ['views','zero','pending','failed']){
+    const app=await analyticsApp(()=>{const d=analyticsReport();
+      if(state==='zero'){d.today.pageViews=0;d.realtimePageViews=0;}
+      if(state==='pending'||state==='failed'){d.today.pageViews=null;d.today.error='No current-day source rows yet.';if(state==='failed')d.today.updatedAt=null;}
+      return response(d);
+    });
+    assert.equal(app.element('waToday').textContent,state==='zero'?'0':state==='pending'?'Pending':state==='failed'?'Unavailable':'17');
+    assert.equal(app.element('waRecentViews').textContent,state==='zero'?'0':'8');
+    assert.match(app.element('waTodayNote').textContent,/2026-10-31.*America\/Chicago.*Preliminary/);
+    assert.match(app.element('waRecentNote').textContent,/last 30 minutes.*checked/);
+    assert.match(app.element('waNote').textContent,/do not add them together/);
+  }
+  for(const change of [d=>d.today.date='2026-10-30',d=>d.today.pageViews=-1,d=>d.today.pageViews='17',d=>d.today.updatedAt=null,d=>delete d.realtimePageViews,d=>d.realtimePageViews=1.5]){
+    const app=await analyticsApp(()=>{const d=analyticsReport();change(d);return response(d);});
+    assert.equal(app.element('waToday').textContent,'—');assert.equal(app.element('waRecentViews').textContent,'—');assert.match(app.element('waStatus').textContent,/could not be verified/);
   }
 });
 test('analytics plots source dates without invented zero days or lines across missing dates',async()=>{

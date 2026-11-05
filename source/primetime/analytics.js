@@ -30,6 +30,10 @@
       ||data.realtimeUpdatedAt!==null&&(!Number.isFinite(Date.parse(data.realtimeUpdatedAt))||new Date(data.realtimeUpdatedAt).toISOString()!==data.realtimeUpdatedAt||Date.parse(data.realtimeUpdatedAt)<Date.parse(data.updatedAt)||Date.parse(data.realtimeUpdatedAt)-Date.parse(data.updatedAt)>60000||Date.parse(data.realtimeUpdatedAt)-Date.now()>60000))throw new Error('invalid_report');
     const calendar=new Intl.DateTimeFormat('en-CA',{timeZone:data.timeZone,year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date(data.updatedAt));
     if(p.asOfDate!==calendar&&p.asOfDate!==shift(calendar,-1))throw new Error('invalid_report');
+    const today=data.today,stamp=value=>typeof value==='string'&&Number.isFinite(Date.parse(value))&&new Date(value).toISOString()===value&&Date.parse(value)>=Date.parse(data.updatedAt)&&Date.parse(value)-Date.parse(data.updatedAt)<=60000&&Date.parse(value)-Date.now()<=60000;
+    if(!today||today.date!==p.asOfDate||today.pageViews!==null&&!count(today.pageViews)||today.updatedAt!==null&&!stamp(today.updatedAt)
+      ||today.pageViews!==null&&today.updatedAt===null||today.pageViews===null&&!validText(today.error)||today.warning!==null&&!validText(today.warning)
+      ||data.realtimePageViews!==null&&!count(data.realtimePageViews))throw new Error('invalid_report');
     const rows=(items,max,dimension,metrics)=>{
       const seen=new Set();
       if(!Array.isArray(items)||items.length>max||items.some(row=>!row||!validText(row[dimension])||seen.has(row[dimension])||!seen.add(row[dimension])||metrics.some(key=>!count(row[key]))))throw new Error('invalid_report');
@@ -48,7 +52,7 @@
   const live=()=>window.primetimeDataMode?.isLive()===true;
   const visible=()=>panel.classList.contains('is-active')&&!$('appShell')?.hidden;
   function message(text,error=false){status.textContent=text;status.classList.toggle('wa-error',error);}
-  function facts(label='Awaiting report'){receipt=null;$('waMetrics').replaceChildren(...['Page views','Sessions','Active visitors','Engagement rate','Average session','Phone & email clicks'].map(name=>{const c=el('article',undefined,'wa-metric');c.append(el('p',name),el('strong','—'),el('small',label));return c;}));$('waChart').replaceChildren(el('p',label,'wa-empty'));for(const id of ['waPages','waChannels','waDaily'])$(id).replaceChildren();$('waLive').textContent='—';$('waUpdated').textContent='';$('waNote').textContent='';}
+  function facts(label='Awaiting report'){receipt=null;$('waMetrics').replaceChildren(...['Page views','Sessions','Active visitors','Engagement rate','Average session','Phone & email clicks'].map(name=>{const c=el('article',undefined,'wa-metric');c.append(el('p',name),el('strong','—'),el('small',label));return c;}));$('waChart').replaceChildren(el('p',label,'wa-empty'));for(const id of ['waPages','waChannels','waDaily'])$(id).replaceChildren();for(const id of ['waLive','waToday','waRecentViews'])$(id).textContent='—';for(const id of ['waTodayNote','waLiveNote','waRecentNote'])$(id).textContent=label;$('waUpdated').textContent='';$('waNote').textContent='';}
   function clear(){sequence++;controller?.abort();controller=null;busy=false;refresh.disabled=!ready||!live();facts();}
   function table(target,headings,data){const t=el('table');const h=el('thead'),hr=el('tr');for(const heading of headings){const c=el('th',heading);c.scope='col';hr.append(c);}h.append(hr);const b=el('tbody');for(const cells of data){const r=el('tr');for(const value of cells)r.append(el('td',value));b.append(r);}t.append(h,b);target.replaceChildren(data.length?t:el('p','No source rows returned.','wa-empty'));}
   function card(label,value,previous,format=num,empty='No summary row returned.'){const c=el('article',undefined,'wa-metric');c.append(el('p',label),el('strong',value===null?'—':format(value)));let note=value===null?empty:previous===null?'Comparison not returned.':'';if(value!==null&&previous!==null&&previous!==undefined){if(previous>0){const delta=(value-previous)/previous*100;note=(delta>0?'+':'')+delta.toFixed(1)+'% vs previous period';}else note=value>0?'Previous reported value: 0':'Reported value: 0 in both periods';}c.append(el('small',note,previous>0&&value>previous?'wa-up':''));return c;}
@@ -68,10 +72,15 @@
   function render(data,label){const c=data.current,p=data.previous;
     $('waMetrics').replaceChildren(card('Page views',c?.screenPageViews??null,p?.screenPageViews??null),card('Sessions',c?.sessions??null,p?.sessions??null),card('Active visitors',c?.activeUsers??null,p?.activeUsers??null),card('Engagement rate',c?.engagementRate??null,p?.engagementRate??null,pct),card('Average session',c?.averageSessionDuration??null,p?.averageSessionDuration??null,duration),card('Reported phone & email clicks',data.contacts,undefined,num,'No contact event rows returned.'));
     $('waLive').textContent=data.realtime===null?(data.realtimeDiagnostic?.category==='empty_result'?'No source rows':'Unavailable'):num(data.realtime);chart(data.trend);
+    const localTime=value=>new Date(value).toLocaleTimeString('en-US',{timeZone:'America/Chicago',hour:'numeric',minute:'2-digit',second:'2-digit'})+' Central';
+    $('waToday').textContent=data.today.pageViews===null?(data.today.updatedAt?'Pending':'Unavailable'):num(data.today.pageViews);
+    $('waTodayNote').textContent=[data.today.date+' · '+data.timeZone,'Preliminary; Google may still be processing visits.',data.today.updatedAt?'Checked '+localTime(data.today.updatedAt):data.today.error,data.today.warning].filter(Boolean).join(' ');
+    $('waRecentViews').textContent=data.realtimePageViews===null?(data.realtimeDiagnostic?.category==='empty_result'?'No source rows':'Unavailable'):num(data.realtimePageViews);
+    for(const id of ['waLiveNote','waRecentNote'])$(id).textContent='Selected web stream · last 30 minutes'+(data.realtimeUpdatedAt?' · checked '+localTime(data.realtimeUpdatedAt):' · '+data.realtimeError);
     table($('waPages'),['Page','Views','Visitors'],data.pages.map(r=>[r.pagePath==='/'?'Home /':r.pagePath,num(r.screenPageViews),num(r.activeUsers)]));
     table($('waChannels'),['Channel','Sessions','Visitors'],data.channels.map(r=>[r.sessionDefaultChannelGroup,num(r.sessions),num(r.activeUsers)]));
     $('waUpdated').textContent='Updated '+new Date(data.updatedAt).toLocaleString('en-US',{timeZone:'America/Chicago'})+' Central · '+data.timeZone+' reporting time zone';
-    $('waNote').textContent=data.periodNote+' Contact clicks show intent to call or email; they do not confirm a completed inquiry.';
+    $('waNote').textContent='Today’s total and the last 30 minutes overlap; do not add them together. Recent cards refresh every minute. '+data.periodNote+' Contact clicks show intent to call or email; they do not confirm a completed inquiry.';
     receipt=Date.parse(data.updatedAt);message([label+' · '+data.periods.current.startDate+' to '+data.periods.current.endDate+' · previous '+data.periods.previous.startDate+' to '+data.periods.previous.endDate,data.dataQuality,data.realtime===null?data.realtimeError:null].filter(Boolean).join(' · '));
   }
   async function load(){if(!ready||!visible()||busy||!live())return;const user=window.firebase?.auth().currentUser;if(!user){clear();message('Sign in to see your website analytics.');return;}
