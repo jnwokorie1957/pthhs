@@ -11,6 +11,7 @@ import { MAX_DOCUMENT_BYTES } from "./documents.js";
 import { GoogleAddressLookup } from "./addresses.js";
 import { readFile } from "node:fs/promises";
 import { readings, referencePages } from "./readings.js";
+import { policyDocument } from "./policyDocuments.js";
 import { renderOfficialForm, type FormKind } from "./eforms.js";
 // Default closed. These do not authorize applicant collection or vendor writes.
 const staffEnabled = defineString("WORKFORCE_STAFF_APPROVED", { default: "false" });
@@ -60,6 +61,12 @@ export const workforceApi = process.env.PRIMETIME_API_ONLY_DEPLOY === "true" ? u
         }
         if (req.method !== "POST" || officialForm[2] || !req.is("application/json") || req.rawBody.length > 64000) throw new WorkforceError(400,"invalid_request");
         res.json({ form: await store.saveForm(uid,kind,req.body) }); return;
+      }
+      const document = path.match(/^\/application\/reading-documents\/(\d{1,2})$/);
+      if (document && req.method === "GET") {
+        const content = policyDocument(Number(document[1]));
+        if (!content) throw new WorkforceError(404, "route_not_found");
+        res.json(content); return;
       }
       const reading = path.match(/^\/application\/reading-pages\/(\d{1,2})(\/2)?$/);
       if (reading && req.method === "GET") {

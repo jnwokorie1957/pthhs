@@ -1,4 +1,6 @@
 import { readings } from "./readings.js";
+import { policyDocument, POLICY_EDITION } from "./policyDocuments.js";
+import { createHash } from "node:crypto";
 import test from "node:test";
 import assert from "node:assert/strict";
 import sharp from "sharp";
@@ -33,8 +35,25 @@ test("updated duplex readings include all continuation pages and preserve a requ
  const draft=saveIntake("synthetic-a",null,0,answers(),"synthetic-office",false,now);
  const signed=submitIntake("synthetic-a",draft,1,{name:"Synthetic Applicant",electronicConsent:true,documentRead:true},now);
  assert.equal(signed.policyAcknowledgments?.length,readings.length);
+ for(const acknowledgment of signed.policyAcknowledgments!) {
+  const document=policyDocument(acknowledgment.page)!;
+  assert.equal(acknowledgment.edition,POLICY_EDITION);
+  assert.equal(acknowledgment.contentSha256,createHash("sha256").update(document.text).digest("hex"));
+ }
  assert.equal(signed.policyAcknowledgments?.find(r=>r.page===23)?.response,"I have questions for HR before agreeing");
  const input=answers();delete input.applicationDate;const dated=saveIntake("synthetic-a",null,0,input,"synthetic-office",false,"2026-11-06T02:00:00Z");assert.equal(dated.answers.applicationDate,"2026-11-05");
+});
+
+test("digital policies retain complete continuations and distinguish elections from reading",()=>{
+ assert.equal(readings.length,16);
+ for(const reading of readings)assert.ok(policyDocument(reading.page)?.text.length);
+ assert.equal(policyDocument(7),null);
+ assert.match(policyDocument(8)!.text,/within 72 hours/);
+ assert.match(policyDocument(14)!.text,/Maintain worker medical and training records/);
+ assert.match(policyDocument(21)!.text,/PFD-LTSS@hhs.texas.gov/);
+ assert.match(policyDocument(22)!.text,/one-year probation/);
+ assert.match(policyDocument(23)!.text,/does not require arbitration of claims/);
+ assert.match(readings.find(r=>r.page===15)!.note!,/does not elect or decline/);
 });
 test("complete role reading includes all qualifications, duties, essential functions and both source acknowledgments", () => {
   const role = intakePacket.jobDescription;

@@ -1,52 +1,73 @@
 (() => {
-  let urls = [], generation = 0;
-  const clear = () => { generation++; urls.forEach(URL.revokeObjectURL); urls = []; };
+  let generation = 0;
+  const clear = () => { generation++; };
+  const text = (tag, value) => { const node = document.createElement(tag); node.textContent = value; return node; };
+  // Text only: never interpret the supplied document as HTML.
+  function documentBody(target, content, name) {
+    let list = null;
+    for (const line of content.replaceAll('{{employee}}', name || 'the applicant').split('\n')) {
+      if (!line.trim()) { list = null; continue; }
+      const kind = line.startsWith('- ') ? 'ul' : line.startsWith('1. ') ? 'ol' : null;
+      if (kind) {
+        if (!list || list.tagName.toLowerCase() !== kind) { list = document.createElement(kind); target.append(list); }
+        list.append(text('li', line.slice(kind === 'ul' ? 2 : 3)));
+      } else { list = null; target.append(text(line.startsWith('## ') ? 'h4' : 'p', line.replace(/^## /, ''))); }
+    }
+  }
   window.WorkforceReadings = {
     clear,
     render(target, readings, answers, onChange, submitted) {
       clear(); const sequence = generation; target.replaceChildren();
-      const text = (tag, value) => { const node = document.createElement(tag); node.textContent = value; return node; };
-      target.append(text('h2', 'Policies & acknowledgments'), text('p', 'Read each original packet page, then acknowledge reading it. Where an agreement is requested, choose whether you agree or want to discuss it with HR first. Training, medical elections and employer signatures remain separate.'));
+      target.append(text('h2', 'Policies & acknowledgments'));
       for (const reading of readings) {
         const card = document.createElement('article'); card.className = 'packet-reading-card';
-        card.append(text('h3', reading.title),text('p','Updated scan: pages ' + reading.sourcePages.join(' and ')));
-        if (reading.note) card.append(text('p', reading.note));
-        const open = text('button', 'Read scan pages ' + reading.sourcePages.join(' and ')); open.type = 'button'; open.className = 'btn-secondary';
-        const image = document.createElement('img'); image.hidden = true; image.className = 'packet-reading-image'; image.alt = 'Original blank packet page ' + reading.page + ': ' + reading.title;
-        const zoom = text('a', 'Open full-size page for easier reading'); zoom.target = '_blank'; zoom.rel = 'noopener'; zoom.hidden = true;
-        const status = text('p', ''); status.setAttribute('role', 'status');
+        const heading = document.createElement('h3');
+        const open = text('button', reading.title); open.type = 'button'; open.className = 'policy-title-button';
+        open.setAttribute('aria-expanded', 'false'); open.setAttribute('aria-controls', 'policy-document-' + reading.page);
+        heading.append(open); card.append(heading);
+        const body = document.createElement('div'); body.id = 'policy-document-' + reading.page; body.hidden = true; body.className = 'policy-document';
+        const status = text('p', ''); status.setAttribute('role', 'status'); status.hidden = true;
         const label = document.createElement('label'); label.className = 'application-check';
         const checkbox = document.createElement('input'); checkbox.type = 'checkbox'; checkbox.id = 'application-read_page_' + reading.page;
-        checkbox.checked = answers['read_page_' + reading.page] === 'Read'; checkbox.disabled = submitted || !checkbox.checked; checkbox.setAttribute('aria-required', 'true');
-        checkbox.onchange = () => onChange('read_page_' + reading.page, checkbox.checked ? 'Read' : '');
-        label.append(checkbox, text('span', 'I have read this page. *'));
+        const readId = 'read_page_' + reading.page, termsId = 'terms_page_' + reading.page;
+        checkbox.checked = answers[readId] === 'Read' && (!reading.agreement || answers[termsId] === 'I agree');
+        checkbox.disabled = submitted || !checkbox.checked; checkbox.setAttribute('aria-required', 'true');
+        checkbox.onchange = () => {
+          onChange(readId, checkbox.checked ? 'Read' : '');
+          if (reading.agreement) onChange(termsId, checkbox.checked ? 'I agree' : '');
+          status.hidden = true;
+        };
+        label.append(checkbox, text('span', 'I read and I agree. *'));
+        let loaded = false;
+        const questions = reading.agreement ? text('button', 'Questions for HR') : null;
+        if (questions) {
+          questions.type = 'button'; questions.id = 'application-' + termsId; questions.className = 'policy-questions'; questions.disabled = submitted || !checkbox.checked;
+          questions.onclick = () => {
+            checkbox.checked = false; onChange(readId, 'Read'); onChange(termsId, 'I have questions for HR before agreeing');
+            status.textContent = 'Questions for HR before agreeing'; status.hidden = false;
+          };
+          if (answers[termsId] === 'I have questions for HR before agreeing') { status.textContent = 'Questions for HR before agreeing'; status.hidden = false; }
+        }
         open.onclick = async () => {
-          open.disabled = true; status.textContent = 'Loading original page…';
+          if (loaded) { body.hidden = !body.hidden; open.setAttribute('aria-expanded', String(!body.hidden)); return; }
+          open.disabled = true; status.textContent = 'Loading…'; status.hidden = false;
           try {
-            const blob = await workforceApi('/application/reading-pages/' + reading.page, undefined, true);
+            const doc = await workforceApi('/application/reading-documents/' + reading.page);
             if (sequence !== generation) return;
-            const url = URL.createObjectURL(blob); urls.push(url); image.src = url; image.hidden = false; zoom.href = url; zoom.hidden = false; checkbox.disabled = submitted;
-            if(reading.hasContinuation){
-              checkbox.disabled = true;
-              const second = await workforceApi('/application/reading-pages/' + reading.page + '/2',undefined,true);
-              if(sequence!==generation)return;
-              const secondUrl=URL.createObjectURL(second);urls.push(secondUrl);
-              const continuation=document.createElement('img');continuation.className='packet-reading-image';continuation.src=secondUrl;continuation.alt='Continuation: '+reading.title;
-              const full=text('a','Open continuation full size');full.href=secondUrl;full.target='_blank';full.rel='noopener';
-              image.after(full,continuation);checkbox.disabled=submitted;
-            }
-            status.textContent = 'Read the complete page below. You can open it full size to zoom.';
-          } catch { status.textContent = 'The page could not be loaded. Try again before acknowledging it.'; }
+            const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(doc.text));
+            const hash = Array.from(new Uint8Array(digest), byte => byte.toString(16).padStart(2, '0')).join('');
+            if (doc.edition !== reading.edition || hash !== reading.contentSha256 || doc.contentSha256 !== hash) throw Error('Document changed');
+            if (sequence !== generation) return;
+            const company = text('p', 'Primetime Home Health Services, Inc.'); company.className = 'policy-company'; body.append(company);
+            documentBody(body, doc.text, [answers.firstName, answers.lastName].filter(Boolean).join(' '));
+            if (reading.note) { const note = text('p', reading.note); note.className = 'policy-note'; body.append(note); }
+            body.hidden = false; loaded = true; open.setAttribute('aria-expanded', 'true'); checkbox.disabled = submitted;
+            if (questions) questions.disabled = submitted;
+            status.hidden = true;
+          } catch { status.textContent = 'Unable to load. Please try again.'; status.hidden = false; }
           finally { open.disabled = false; }
         };
-        card.append(open, status, zoom, image, label);
-        if (reading.agreement) {
-          const response = document.createElement('label'); response.className = 'application-label'; response.append(text('span', 'Your response *'));
-          const select = document.createElement('select'); select.id = 'application-terms_page_' + reading.page; select.disabled = submitted; select.setAttribute('aria-required', 'true');
-          for (const value of ['', 'I agree', 'I have questions for HR before agreeing']) { const option = text('option', value || 'Choose your response'); option.value = value; select.append(option); }
-          select.value = answers['terms_page_' + reading.page] || ''; select.onchange = () => onChange('terms_page_' + reading.page, select.value); response.append(select); card.append(response);
-        }
-        target.append(card);
+        card.append(body, label); if (questions) card.append(questions); card.append(status); target.append(card);
       }
     }
   };

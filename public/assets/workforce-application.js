@@ -37,7 +37,7 @@
   function focusMissing(id) { const control=document.getElementById(id); if(control?.disabled) control.closest('.packet-reading-card')?.querySelector('button')?.focus(); else control?.focus(); }
   function refreshCompleteness() {
     if (!packet || record?.state === 'submitted') { completionSummary.hidden = true; return; }
-    const missing = packet.fields.filter(f => f.required && !answers[f.id]?.trim()).map(field => ({
+    const missing = packet.fields.filter(f => f.required && !answers[f.id]?.trim() && (!f.id.startsWith('terms_page_') || answers[f.id.replace('terms_page_', 'read_page_')] === 'Read')).map(field => ({
       label: field.label, section: field.section, controlId: field.id === 'jobDescriptionRead' ? 'job-description-read' : 'application-' + field.id,
       activate: async () => { try { const next = sections.indexOf(field.section); if (next > step) validateStep(); await saveNavigation(); step = next; render(); focusMissing(field.id === 'jobDescriptionRead' ? 'job-description-read' : 'application-' + field.id); } catch(error) { showError(error); } }
     }));
@@ -175,7 +175,7 @@
     const documentsStep = sections[step] === 'Documents', formsStep = sections[step] === 'Tax & employment forms', roleStep = sections[step] === 'PAS attendant role', policyStep = sections[step] === 'Policies & acknowledgments';
     form.hidden = submitted || step === sections.length || documentsStep || formsStep || roleStep || policyStep;
     rolePanel.hidden = !roleStep; policyPanel.hidden = !policyStep;
-    if (policyStep) window.WorkforceReadings.render(policyPanel, packet.readings, answers, (id, value) => { answers[id] = value; version++; clearTimeout(timer); timer = setTimeout(() => save().catch(showError), 1500); }, submitted);
+    if (policyStep) window.WorkforceReadings.render(policyPanel, packet.readings, answers, (id, value) => { answers[id] = value; version++; queueMicrotask(refreshCompleteness); clearTimeout(timer); timer = setTimeout(() => save().catch(showError), 1500); }, submitted);
     documentsPanel.hidden = !documentsStep;
     officialForms.hidden = !formsStep;
     document.getElementById('application-navigation').hidden = submitted;
