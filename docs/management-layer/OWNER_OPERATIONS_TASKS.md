@@ -14,6 +14,12 @@
 
 ## Start here
 
+- [x] November 5: explicitly approved SearchPatients, SearchCaregivers, GetContracts,
+  GetScheduleInfo and visit-scoped GetVisitEditReasonActionTaken for existing
+  administrators. Normal owner-form save and reload confirmed eighteen selected
+  reads, preserving the previous thirteen; no HHA write workflow was enabled.
+  [Production acceptance and source limits](MAINTENANCE_RANGE_SEARCH_2026-11-05.md).
+
 - [x] Administrator maintenance review software implemented: office/day queue,
   durable cases, actual scoped call events, proposals, staff follow-up queues and
   private reports. [Release/production evidence](VISIT_MAINTENANCE_WORKSPACE_2026-11-05.md)

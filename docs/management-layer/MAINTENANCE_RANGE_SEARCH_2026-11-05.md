@@ -63,7 +63,7 @@ Native SearchPatients/SearchCaregivers are restricted to the internal
 to profiles and office-checked before returning a choice. Generic workbench calls
 cannot use the newly enabled method to expose unchecked cross-office results.
 
-Five read permissions need the owner's concrete action-time decision after
+Five read permissions received the owner's explicit decision after
 deployment: SearchPatients, SearchCaregivers, GetContracts, GetScheduleInfo and the scoped
 GetVisitEditReasonActionTaken staging read. Existing selected reads are preserved.
 No permission was enabled by the source changes. Activating reads changes settings
@@ -124,7 +124,7 @@ date and primary contract. Its unused secondary contract was literally zero.
 The initial payer filter rejected that non-reference. The follow-up ignores only
 zero/empty references, keeps positive primary/secondary IDs, discloses absent
 usable evidence and preserves all subject/office/date checks. Matching and
-zero-only fixtures cover this repair. Production payer retest is pending.
+zero-only fixtures cover this repair. Production payer retest passes below.
 
 The scoped reason read succeeded at 21:16:26.248Z with no typed reason/action
 choices. No choice or meaning was invented. Follow-up UI explicitly explains this
@@ -135,3 +135,18 @@ accepted. Source/vendor follow-up must establish the applicable reason/action
 catalog for the exact payer/visit and the supported confirmation/link/readback
 contract. Prepared vendor questions remain unsent. HHA source submission stays
 disabled; this delivery does not complete M02 or restricted staff-account access.
+
+Follow-up runtime [d2d4043](https://github.com/jnwokorie1957/pthhs/commit/d2d4043426d1fe907cb3cfa117b6652bfa1b7307)
+passed all four normal jobs in [42112469469](https://github.com/jnwokorie1957/pthhs/actions/runs/42112469469).
+Both changed assets match production exactly. The exact independently read source
+contract now yields one matching visit, with 1/1 IDs checked, complete/no unavailable
+details. A different catalog contract (ruled out by the independent primary/zero
+secondary record) yields zero matches, again complete 1/1/no unavailable details.
+The fresh guarded reason read at 21:29:49.890Z succeeds with zero choices and the
+explicit no-code-can-be-staged message. Actual HHA submission remains disabled.
+Final backend suite: 773 pass. Frontend regression, asset/budget and normal build
+checks pass; the preceding full frontend/tooling suite had 556 pass. Assets are
+488956 raw / 123752 gzip bytes across 16 files, within reviewed limits.
+The current-day office queue was restored with private filters cleared; its new
+settings-bound collection is still partial while the background collector rebuilds.
+No complete office-day census is claimed for that restored display.

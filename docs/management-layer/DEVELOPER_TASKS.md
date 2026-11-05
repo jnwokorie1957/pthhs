@@ -5,7 +5,8 @@
   rows/cards, deadline recovery and source-bound reason/action staging. Initial
   normal release passed; fourteen of fourteen source visits and both name lookups
   are accepted. Five reads were explicitly approved and saved. Payer zero-reference
-  repair and empty reason disclosure are in follow-up verification.
+  repair, exact matching/nonmatching source filters and the empty reason disclosure
+  are verified in production. Real nonempty reason staging remains unaccepted.
   [Implementation and controls](MAINTENANCE_RANGE_SEARCH_2026-11-05.md).
   HHA confirmation writes and authoritative event links remain open M02 work.
 
