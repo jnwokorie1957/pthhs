@@ -15,6 +15,11 @@
   try { page = new URL(canonical); } catch { return; }
   if (page.origin !== site[1] || page.search || page.hash) return;
   window.__publicAnalyticsLoaded = true;
+  // One anonymous aggregate increment per public document load. No URL or ID.
+  if(typeof fetch==='function')void fetch('https://pthhs.net/api/public-page-view',{
+    method:'POST',headers:{'Content-Type':'application/json'},body:'{"v":1}',
+    credentials:'omit',referrerPolicy:'no-referrer',keepalive:true
+  }).catch(()=>{});
   window.dataLayer = window.dataLayer || [];
   const gtag = function () { window.dataLayer.push(arguments); };
   window.gtag = gtag;

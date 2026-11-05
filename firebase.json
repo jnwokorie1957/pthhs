@@ -677,6 +677,20 @@
     ],
     "rewrites": [
       {
+        "source": "/primetime/api/website-live-views",
+        "function": {
+          "functionId": "websiteAnalytics",
+          "region": "us-central1"
+        }
+      },
+      {
+        "source": "/api/public-page-view",
+        "function": {
+          "functionId": "websitePageView",
+          "region": "us-central1"
+        }
+      },
+      {
         "source": "/primetime/api/website-analytics",
         "function": {
           "functionId": "websiteAnalytics",

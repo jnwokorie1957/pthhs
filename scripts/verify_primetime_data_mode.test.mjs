@@ -577,13 +577,48 @@ async function analyticsApp(read=()=>response(analyticsReport())){
   app.element('waSite').options=[{text:'PTHHS · pthhs.net'},{text:'Ride Primetime · rideprimetime.net'}];app.element('waDays').value='28';
   vm.runInContext(asset('analytics.js'),app.context);await tick();await tick();return {...app,clock};
 }
+
+function liveCounter(site='pthhs',count=3,updatedAt='2026-10-31T18:00:00.000Z'){
+  return {ok:true,site,count,timeZone:'America/Chicago',date:'2026-10-31',startedAt:'2026-10-31T17:00:00.000Z',updatedAt};
+}
+async function counterApp(read=()=>response(liveCounter())){
+  const app=await analyticsApp(path=>path.includes('/website-live-views?')?read(path):response(analyticsReport()));
+  vm.runInContext(asset('live-views.js'),app.context);await tick();await tick();
+  app.liveTick=()=>{for(const {callback,delay}of app.intervals.values())if(delay===5000)callback();};return app;
+}
+test('first-party day count refreshes independently every five seconds and keeps the GA4 processed total separate',async()=>{
+  let count=3;const app=await counterApp(()=>response(liveCounter('pthhs',count)));
+  assert.equal(app.element('waToday').textContent,'3');assert.match(app.element('waTodayNote').textContent,/first partial day.*every 5 seconds/);
+  assert.match(app.element('waGoogleToday').textContent,/17/);count=4;app.liveTick();await tick();await tick();
+  assert.equal(app.element('waToday').textContent,'4');assert.match(app.element('waGoogleToday').textContent,/17/);
+  await app.click('waRefresh');await tick();await tick();assert.equal(app.element('waToday').textContent,'4');
+});
+test('live counter preserves actual zero, distinguishes not started and clears malformed or failed facts',async()=>{
+  for(const state of ['zero','waiting','negative','wrongsite','wrongdate','stale','failure']){
+    const app=await counterApp(()=>{if(state==='failure')throw new Error('PRIVATE');const d=liveCounter('pthhs',0);
+      if(state==='waiting'){d.count=null;d.startedAt=null;}if(state==='negative')d.count=-1;if(state==='wrongsite')d.site='rideprimetime';
+      if(state==='wrongdate')d.date='2026-10-30';if(state==='stale')d.updatedAt='2026-10-31T17:59:00.000Z';return response(d);
+    });assert.equal(app.element('waToday').textContent,state==='zero'?'0':state==='waiting'?'Waiting':'Unavailable');
+    assert.doesNotMatch(app.element('waTodayNote').textContent,/PRIVATE/);
+  }
+});
+test('site change and sign-out fence late daily counts, with no hidden or Demo polling',async()=>{
+  let hold=false;const pending=deferred(),app=await counterApp(path=>hold?pending.promise:response(liveCounter(new URL(path,'https://fixture.test').searchParams.get('site'))));
+  hold=true;app.liveTick();await tick();app.element('waSite').value='rideprimetime';app.element('waSite').selectedIndex=1;
+  hold=false;for(const fn of app.element('waSite').handlers.get('change')||[])fn();await tick();await tick();
+  pending.resolve(response(liveCounter('pthhs',99)));await tick();await tick();assert.equal(app.element('waToday').textContent,'3');
+  app.document.hidden=true;app.dispatch('visibilitychange');const before=app.calls.length;app.liveTick();await tick();assert.equal(app.calls.length,before);assert.equal(app.element('waToday').textContent,'—');
+  app.document.hidden=false;app.dispatch('visibilitychange');await tick();await tick();
+  await app.window.primetimeDataMode.setMode('demo');const demo=app.calls.length;app.liveTick();await tick();assert.equal(app.calls.length,demo);
+  app.dispatch('primetime-signed-out');assert.equal(app.element('waToday').textContent,'—');
+});
 test('analytics clears prior facts at refresh start and keeps failures distinct from zero',async()=>{
   let next=null;const app=await analyticsApp(()=>next?next.promise:response(analyticsReport()));
   assert.match(nodeText(app.element('waMetrics')),/7,203/);assert.equal(app.element('waLive').textContent,'4');
-  assert.equal(app.element('waToday').textContent,'17');assert.equal(app.element('waRecentViews').textContent,'8');
+  assert.match(app.element('waGoogleToday').textContent,/processed today.*17/);assert.equal(app.element('waRecentViews').textContent,'8');
   next=deferred();await app.click('waRefresh');
   assert.doesNotMatch(nodeText(app.element('waMetrics')),/7,203/);assert.equal(app.element('waLive').textContent,'—');assert.equal(app.element('waUpdated').textContent,'');
-  assert.equal(app.element('waToday').textContent,'—');assert.equal(app.element('waRecentViews').textContent,'—');
+  assert.equal(app.element('waGoogleToday').textContent,'');assert.equal(app.element('waRecentViews').textContent,'—');
   next.resolve({...response({ok:false,error:'analytics_access_pending',message:'PRIVATE-UPSTREAM-ERROR'}),ok:false,status:503});await tick();await tick();
   assert.match(app.element('waStatus').textContent,/reporting access still needs/);assert.doesNotMatch(app.element('waStatus').textContent,/PRIVATE/);
   assert.equal(app.element('waStatus').classList.contains('wa-error'),true);assert.equal(app.element('waRefresh').disabled,false);
@@ -610,15 +645,15 @@ test('current-day and rolling page views show their own date and receipt, preser
       if(state==='pending'||state==='failed'){d.today.pageViews=null;d.today.error='No current-day source rows yet.';if(state==='failed')d.today.updatedAt=null;}
       return response(d);
     });
-    assert.equal(app.element('waToday').textContent,state==='zero'?'0':state==='pending'?'Pending':state==='failed'?'Unavailable':'17');
+    assert.match(app.element('waGoogleToday').textContent,new RegExp('processed today.*'+(state==='zero'?'0':state==='pending'||state==='failed'?'Pending':'17')));
     assert.equal(app.element('waRecentViews').textContent,state==='zero'?'0':'8');
-    assert.match(app.element('waTodayNote').textContent,/2026-10-31.*America\/Chicago.*Preliminary/);
+    assert.match(app.element('waGoogleToday').textContent,/America\/Chicago.*may lag/);
     assert.match(app.element('waRecentNote').textContent,/last 30 minutes.*checked/);
-    assert.match(app.element('waNote').textContent,/do not add them together/);
+    assert.match(app.element('waNote').textContent,/first-party live counter/);
   }
   for(const change of [d=>d.today.date='2026-10-30',d=>d.today.pageViews=-1,d=>d.today.pageViews='17',d=>d.today.updatedAt=null,d=>delete d.realtimePageViews,d=>d.realtimePageViews=1.5]){
     const app=await analyticsApp(()=>{const d=analyticsReport();change(d);return response(d);});
-    assert.equal(app.element('waToday').textContent,'—');assert.equal(app.element('waRecentViews').textContent,'—');assert.match(app.element('waStatus').textContent,/could not be verified/);
+    assert.equal(app.element('waGoogleToday').textContent,'');assert.equal(app.element('waRecentViews').textContent,'—');assert.match(app.element('waStatus').textContent,/could not be verified/);
   }
 });
 test('analytics plots source dates without invented zero days or lines across missing dates',async()=>{

@@ -33,7 +33,7 @@ done
 node --test scripts/verify_primetime_revisions.test.mjs
 node --test scripts/verify-hosting-only.test.mjs
 node --test scripts/release-scope.test.mjs
-node --test analytics-functions/report.test.js analytics-functions/query.test.js
+node --test analytics-functions/report.test.js analytics-functions/query.test.js analytics-functions/live-views.test.js
 python3 scripts/verify_hha_preservation_evidence.py
 
 # The internal operations app is deployed from public/ but owns a separate UI

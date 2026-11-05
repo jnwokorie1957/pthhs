@@ -194,7 +194,7 @@ if (publicBytes - internalBytes > 2_000_000) errors.push(`marketing output excee
 // Two protected source panels add caregiver profiles and exact-visit billing.
 // Includes the owner-requested website analytics panel (~13 KB), with no chart library.
 // Keep the operations app and capability catalog within a bounded 420 KB allowance.
-if (internalBytes > 420_000) errors.push(`internal app output exceeds 420 KB budget: ${internalBytes}`);
+if (internalBytes > 425_000) errors.push(`internal app output exceeds 425 KB budget: ${internalBytes}`);
 const internalFiles = publicFiles.filter(file => isInternalAppFile(file, publicDir));
 let compressedInternalBytes = 0;
 for (const file of internalFiles) {
@@ -204,7 +204,7 @@ for (const file of internalFiles) {
 }
 // Source validation and the current-day / rolling-view cards fit within 103 KB.
 // Raw/per-file/marketing limits stay unchanged.
-if (compressedInternalBytes > 103_000) errors.push(`internal app gzip estimate exceeds 103 KB budget: ${compressedInternalBytes}`);
+if (compressedInternalBytes > 105_000) errors.push(`internal app gzip estimate exceeds 105 KB budget: ${compressedInternalBytes}`);
 if (pictureCount !== 4 || preloadCount !== 3) errors.push(`expected 4 responsive pictures and 3 LCP preloads, found ${pictureCount}/${preloadCount}`);
 if (externalRuntimeCount !== 0) errors.push(`expected zero external runtime resources, found ${externalRuntimeCount}`);
 

@@ -1,10 +1,14 @@
 import {onRequest} from 'firebase-functions/v2/https';
 import {initializeApp} from 'firebase-admin/app';
 import {getAuth} from 'firebase-admin/auth';
+import {getFirestore,FieldValue} from 'firebase-admin/firestore';
 import {GoogleAuth} from 'google-auth-library';
 import {SITES} from './report.js';
 import {queryReports} from './query.js';
+import {createLiveViews,createCollector} from './live-views.js';
 initializeApp();
+const liveViews=createLiveViews({db:getFirestore(),increment:FieldValue.increment});
+export const websitePageView=onRequest({region:'us-central1',memory:'256MiB',timeoutSeconds:15,maxInstances:1,concurrency:20,invoker:'public'},createCollector(liveViews));
 const auth = new GoogleAuth({scopes:['https://www.googleapis.com/auth/analytics.readonly']});
 const cache = new Map();
 const pending = new Map();
@@ -35,6 +39,10 @@ export const websiteAnalytics=onRequest({region:'us-central1',memory:'256MiB',ti
   if (!await owner(request)) {response.status(401).json({ok:false,error:'sign_in_required'});return;}
   if(request.method!=='GET'){response.set('Allow','GET').status(405).json({ok:false,error:'method_not_allowed'});return;}
   const site=typeof request.query.site==='string'?request.query.site:'';
+  if(request.path==='/primetime/api/website-live-views'){
+    if(!Object.hasOwn(SITES,site)||Object.keys(request.query).some(key=>key!=='site')){response.status(400).json({ok:false,error:'invalid_query'});return;}
+    try{response.json(await liveViews.read(site));}catch{response.status(503).json({ok:false,error:'live_counter_unavailable'});}return;
+  }
   const days=typeof request.query.days==='string'?Number(request.query.days):28;
   if(!Object.hasOwn(SITES,site)||![7,28,90].includes(days)||Object.keys(request.query).some(k=>!['site','days'].includes(k))){response.status(400).json({ok:false,error:'invalid_query'});return;}
   const key=site+':'+days;
