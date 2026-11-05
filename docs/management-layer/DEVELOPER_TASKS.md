@@ -1,5 +1,11 @@
 # PTHHS Management Layer — Developer Checklist
 
+- [x] November 5 fall-back display preservation: eight synthetic checks run
+  against source/generated code in three time zones (24 passing executions).
+  Exact hours, zero/empty/unknown, repeated clocks and serialized replay retain
+  their distinct meanings. No runtime or source acceptance change. See
+  [test scope and remaining gates](FALLBACK_SOURCE_TIME_TESTS_2026-11-05.md).
+
 - [x] November 3 V2 time projection / November4 UTC release: 15ba09d adds the
   captured-contract ActualHoursRounded field and exact direct scalar parsing
   for V2 clocks/durations. Two regressions fail before/pass after; all 643 backend
