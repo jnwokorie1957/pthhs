@@ -43,7 +43,11 @@
     try {
       const response = await workforceApi('/staff/applications'); if (sequence !== generation) return;
       list.replaceChildren(); status.textContent = response.items.length + ' applications in your authorized offices (up to 50 per office).';
-      for (const item of response.items) { const button = node('button', item.uid + ' · ' + item.state); button.type = 'button'; button.onclick = () => open(item.uid); list.append(button); }
+      for (const item of response.items) {
+        const button = node('button', item.uid + ' · ' + item.state + (item.weeklyHours ? ' · ' + item.weeklyHours + ' hours requested' : '') + (item.hoursReviewRequired ? ' · 40 HOURS: OFFICE REVIEW REQUIRED' : ''));
+        if (item.hoursReviewRequired) button.className = 'hours-review-notice';
+        button.type = 'button'; button.onclick = () => open(item.uid); list.append(button);
+      }
     } catch (error) { if (sequence === generation) status.textContent = error.message; }
   };
 })();

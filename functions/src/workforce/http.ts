@@ -8,6 +8,7 @@ import type { Action } from "./opportunities.js";
 import { IntakeStore } from "./intakeStore.js";
 import { intakePacket, packetInventory } from "./packet.js";
 import { MAX_DOCUMENT_BYTES } from "./documents.js";
+import { GoogleAddressLookup } from "./addresses.js";
 // Default closed. These do not authorize applicant collection or vendor writes.
 const staffEnabled = defineString("WORKFORCE_STAFF_APPROVED", { default: "false" });
 const publicEnabled = defineString("WORKFORCE_PUBLIC_OPPORTUNITIES_APPROVED", { default: "false" });
@@ -16,6 +17,7 @@ const packetApproved = defineString("WORKFORCE_PACKET_REVIEW_APPROVED", { defaul
 const documentsApproved = defineString("WORKFORCE_ID_DOCUMENTS_APPROVED", { default: "false" });
 const retentionApproved = defineString("WORKFORCE_ID_RETENTION_APPROVED", { default: "false" });
 const intakeOffice = defineString("WORKFORCE_INTAKE_OFFICE", { default: "" });
+const placesApproved = defineString("WORKFORCE_GOOGLE_PLACES_APPROVED", { default: "false" });
 export const workforceApi = process.env.PRIMETIME_API_ONLY_DEPLOY === "true" ? undefined : onRequest({ region: "us-central1", maxInstances: 5, concurrency: 2, timeoutSeconds: 60, memory: "512MiB" }, async (req, res) => {
   res.set("Cache-Control", "no-store");
   res.set("X-Content-Type-Options", "nosniff");
@@ -25,7 +27,7 @@ export const workforceApi = process.env.PRIMETIME_API_ONLY_DEPLOY === "true" ? u
     const applicationsEnabled = staffEnabled.value() === "true" && collectionApproved.value() === "true" && packetApproved.value() === "true" && !!intakeOffice.value();
     const uploadsEnabled = applicationsEnabled && documentsApproved.value() === "true" && retentionApproved.value() === "true";
     if (path === "/configuration" && req.method === "GET") {
-      res.json({ staffEnabled: staffEnabled.value() === "true", accountsEnabled: applicationsEnabled, applicationsEnabled, documentsEnabled: uploadsEnabled }); return;
+      res.json({ staffEnabled: staffEnabled.value() === "true", accountsEnabled: applicationsEnabled, applicationsEnabled, documentsEnabled: uploadsEnabled, addressLookupEnabled: placesApproved.value() === "true" }); return;
     }
     if (path === "/opportunities" && req.method === "GET") {
       res.json(publicEnabled.value() === "true" && staffEnabled.value() === "true" ? await new WorkforceStore().publicList() : { items: [], release: "pending" }); return;
@@ -35,11 +37,17 @@ export const workforceApi = process.env.PRIMETIME_API_ONLY_DEPLOY === "true" ? u
     if (path === "/application/packet" && req.method === "GET") { res.json({ packet: intakePacket, inventory: packetInventory }); return; }
     if (path === "/application/session" && req.method === "GET") {
       if (!applicationsEnabled) throw new WorkforceError(503, "application_collection_pending");
-      res.json({ uid: await workforceIdentity(req), kind: "caregiver", applicationsEnabled, documentsEnabled: uploadsEnabled }); return;
+      res.json({ uid: await workforceIdentity(req), kind: "caregiver", applicationsEnabled, documentsEnabled: uploadsEnabled, addressLookupEnabled: placesApproved.value() === "true" }); return;
     }
     if (path === "/application" || path.startsWith("/application/")) {
       if (!applicationsEnabled) throw new WorkforceError(503, "application_collection_pending");
       const uid = await recentWorkforceIdentity(req), store = new IntakeStore();
+      if (["/application/address/suggest", "/application/address/details"].includes(path)) {
+        if (placesApproved.value() !== "true") throw new WorkforceError(503, "address_lookup_unavailable");
+        if (req.method !== "POST" || !req.is("application/json") || req.rawBody.length > 1500) throw new WorkforceError(400, "invalid_address_request");
+        await store.reserveAddressLookup(uid);
+        res.json(await new GoogleAddressLookup().lookup(req.body, path.endsWith("/details"))); return;
+      }
       if (path === "/application" && req.method === "GET") { res.json({ application: await store.load(uid) }); return; }
       if (path === "/application/documents" && req.method === "GET") {
         if (!uploadsEnabled) throw new WorkforceError(503, "document_collection_pending");
@@ -49,7 +57,8 @@ export const workforceApi = process.env.PRIMETIME_API_ONLY_DEPLOY === "true" ? u
       if (download && req.method === "GET") {
         if (!uploadsEnabled) throw new WorkforceError(503, "document_collection_pending");
         const bytes = await store.download(uid, download[1]!, uid);
-        res.set("Content-Type", "image/jpeg"); res.set("Content-Disposition", 'attachment; filename="private-document.jpg"'); res.set("Content-Security-Policy", "sandbox");
+        const pdf = bytes.subarray(0, 5).toString("ascii") === "%PDF-";
+        res.set("Content-Type", pdf ? "application/pdf" : "image/jpeg"); res.set("Content-Disposition", `attachment; filename="private-document.${pdf ? "pdf" : "jpg"}"`); res.set("Content-Security-Policy", "sandbox");
         res.send(bytes); return;
       }
       if (req.method !== "POST") throw new WorkforceError(405, "method_not_allowed");
@@ -82,7 +91,8 @@ export const workforceApi = process.env.PRIMETIME_API_ONLY_DEPLOY === "true" ? u
       if (!uploadsEnabled) throw new WorkforceError(503, "document_collection_pending");
       if (!detail[2]) { res.json(await personnel.listDocuments(target, uid)); return; }
       const bytes = await personnel.download(target, detail[2], uid);
-      res.set("Content-Type", "image/jpeg"); res.set("Content-Disposition", 'attachment; filename="private-document.jpg"'); res.set("Content-Security-Policy", "sandbox");
+      const pdf = bytes.subarray(0, 5).toString("ascii") === "%PDF-";
+      res.set("Content-Type", pdf ? "application/pdf" : "image/jpeg"); res.set("Content-Disposition", `attachment; filename="private-document.${pdf ? "pdf" : "jpg"}"`); res.set("Content-Security-Policy", "sandbox");
       res.send(bytes); return;
     }
     if (path === "/staff/opportunities" && req.method === "GET") { res.json(await store.list(uid)); return; }

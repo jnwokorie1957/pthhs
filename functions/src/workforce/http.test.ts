@@ -18,7 +18,7 @@ test("public release remains empty without querying storage or requiring authent
   assert.equal(result.headers["Cache-Control"], "no-store");
 });
 test("configuration cannot enable applicant collection and staff routes default closed", async () => {
-  assert.deepEqual((await request("/caregiver/workforce-api/configuration")).body, { staffEnabled: false, accountsEnabled: false, applicationsEnabled: false, documentsEnabled: false });
+  assert.deepEqual((await request("/caregiver/workforce-api/configuration")).body, { staffEnabled: false, accountsEnabled: false, applicationsEnabled: false, documentsEnabled: false, addressLookupEnabled: false });
   const result = await request("/primetime/workforce-api/staff/opportunities", "POST");
   assert.equal(result.status, 503); assert.deepEqual(result.body, { error: "workforce_release_pending" });
 });
@@ -34,6 +34,6 @@ test("packet schema exposes blank questions and provenance, never an original sc
   assert.equal(response.status, 200);
   const body = response.body as { packet: { sourcePages: number[]; fields: unknown[] }; inventory: unknown[] };
   assert.deepEqual(body.packet.sourcePages, [3, 4, 5]);
-  assert.ok(body.packet.fields.length > 50); assert.ok(body.inventory.length > 20);
+  assert.ok(body.packet.fields.length > 35); assert.ok(body.inventory.length > 20);
   assert.ok(!JSON.stringify(body).includes("base64"));
 });

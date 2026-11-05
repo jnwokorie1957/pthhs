@@ -262,6 +262,7 @@ expected_runtime_assets = {
     "assets/workforce-staff.js",
     "assets/workforce-application.js",
     "assets/workforce-personnel.js",
+    "assets/workforce-address.js",
 }
 if runtime_assets != expected_runtime_assets:
     errors.append(

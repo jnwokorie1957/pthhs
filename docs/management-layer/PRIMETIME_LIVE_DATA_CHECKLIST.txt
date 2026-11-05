@@ -21,7 +21,9 @@ approved limited automation, then build the owned scheduling platform.
     durable source-bound cases, genuine scoped call evidence and proposals.
 [x] M04a Local office reports implemented: queue/follow-up/explanation, selected
     actual calls, provenance and explicit loaded-page coverage; no HHA completion
-    claim. Production acceptance remains pending normal release verification.
+    claim. Production save, empty scoped call receipt, report download and reload
+    pass after normal all-four-job releases. 755 backend / 545 current frontend/tooling
+    checks pass; private data clears in Demo and layouts fit desktop/narrow panes.
     See VISIT_MAINTENANCE_WORKSPACE_2026-11-05.md. M01/M04 are not fully closed:
     authoritative links, supported source actions and individual role access remain.
 See EVV_MAINTENANCE_PRODUCT_DIRECTION.txt for requirements, order and dependencies.
@@ -124,6 +126,17 @@ TAB 01 - OVERVIEW
     call read repeated. Runtime/source grants unchanged; no new owner action.
 [ ] O02 Audit all page and source-failure messages and make retry guidance match
     the actual error, retry seconds and current selected date.
+    November5 18:22UTC trigger: 4f23d86 distinguishes trusted HTTP429 read limits
+    from HTTP503 temporary unavailability without attributing vendor cause.
+    Selected office/date/cursor and validated delay/duplicate-read guards remain.
+    Two fail-before regressions, normal42086614560 all4jobs,15exact private assets
+    and10anonymous401JSON/no-store/noindex boundaries pass. Signed-in historical
+    October24 read at18:46UTC returns10IDs:4readable/6unavailable, correctly partial
+    with retry delay. Of readable rows, clock-presence counts are4/4/4/4/4/3 and
+    actual-hour pairs3supplied/1explicit-empty. No exact-visit recovery or source
+    status/clinical/financial meaning inferred. No extra historical retry; live
+    top-level429/503 branches remain synthetic. O02/P03/E04 stay open; original
+    screenshot stays resolved. See VISIT_READ_DELAY_STATUS_2026-11-05.md.
     November3 Advanced tools context correction9fb89f1: nested SearchVisitsV2
     EVV review replies/errors and old draft controls respect the source-read
     sequence/access before requests, replies and selection. Three fail-before

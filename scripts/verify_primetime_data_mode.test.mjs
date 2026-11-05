@@ -1104,6 +1104,34 @@ test('changing date during a source delay clears old facts and retry scope witho
   assert.equal(app.element('dashboardEvvRetry').hidden,true);assert.equal(app.element('dashboardEvvRetryStatus').hidden,true);
 });
 
+for (const [status, title] of [[429, 'Read rate limited (HTTP 429)'], [503, 'Source temporarily unavailable (HTTP 503)']]) {
+  test(`source preview HTTP ${status} identifies the delay while retaining its guarded retry`, async () => {
+    let attempts = 0; const paths = [];
+    const app = harness({ storedDataMode: null, metadata: liveMetadata, fetchSource: path => {
+      if (!path.includes('/views/visits?')) return response({ ok: true });
+      paths.push(path);
+      if (++attempts === 1) return { ...response({ ok: false, retryAfterSeconds: 7, error: 'PRIVATE_SOURCE_REASON', message: 'PRIVATE_VENDOR_DETAIL' }), ok: false, status };
+      return response(livePreview(new URL(path, 'https://fixture.test').searchParams.get('date')));
+    } });
+    const clock = deviceClock(app, '2026-10-10T12:00:00Z');
+    installDashboard(app); await app.signIn(); await tick(); await tick();
+    assert.ok(nodeText(app.element('dashboardVisitRows')).includes(title));
+    assert.ok(app.element('dashboardVisitStatus').textContent.includes(title));
+    assert.match(app.element('dashboardVisitStatus').textContent, /selected page is retained for retry/);
+    assert.doesNotMatch(nodeText(app.element('dashboardVisitRows')), /PRIVATE_SOURCE_REASON|PRIVATE_VENDOR_DETAIL/);
+    assert.equal(app.element('dashboardVisitRetry').disabled, true);
+    assert.equal(app.element('dashboardVisitRefresh').disabled, true);
+    assert.match(app.element('dashboardVisitRetryStatus').textContent, /7 seconds/);
+    await app.click('dashboardVisitRetry');
+    assert.equal(attempts, 1, 'the label must not add a request or bypass the delay');
+    clock.set('2026-10-10T12:00:07Z'); clock.run();
+    await app.click('dashboardVisitRetry'); await tick(); await tick();
+    assert.equal(attempts, 2);
+    assert.equal(paths[1], paths[0], 'retry keeps the exact date, office and cursor');
+    assert.match(nodeText(app.element('dashboardVisitRows')), /Source unvalidated/);
+  });
+}
+
 test('returned missing clock fields alone never advertise a deferred-source retry', async () => {
   const app=harness({storedDataMode:null,metadata:liveMetadata,fetchSource:path=>response(livePreview(new URL(path,'https://fixture.test').searchParams.get('date')))});
   installDashboard(app);await app.signIn();await tick();await tick();

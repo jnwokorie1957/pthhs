@@ -6,6 +6,7 @@ import { WorkforceError } from "./policy.js";
 export interface Intake extends Application {
   office: string; sourceSha256: string; updatedAt: string;
   signature: { name: string; signedAt: string; uid: string; document: string; documentRevision: string; sourceSha256: string; answersSha256: string; electronicConsent: true } | null;
+  roleAcknowledgment?: { uid: string; name: string; readAt: string; revision: string; contentSha256: string; sourcePages: number[]; questionsForHR: boolean };
 }
 export function intakeAnswers(input: unknown): Record<string, string> {
   if (!input || typeof input !== "object" || Array.isArray(input)) throw new WorkforceError(400, "invalid_answers");
@@ -35,7 +36,10 @@ export function submitIntake(uid: string, previous: Intake, revision: number, si
   if (previous.answers.conviction === "Yes" && !previous.answers.convictionDetails?.trim()) throw new WorkforceError(400, "application_incomplete");
   const next = submitApplication(uid, previous, { ...intakePacket, approved: true }, now);
   const sorted = Object.fromEntries(Object.entries(next.answers).sort(([a], [b]) => a.localeCompare(b)));
-  return { ...previous, ...next, updatedAt: now, signature: {
+  return { ...previous, ...next, updatedAt: now, roleAcknowledgment: {
+    uid, name: input.name.trim(), readAt: now, revision: intakePacket.jobDescription.revision,
+    contentSha256: intakePacket.jobDescriptionSha256, sourcePages: [1, 2], questionsForHR: !!previous.answers.jobDescriptionQuestions?.trim()
+  }, signature: {
     name: input.name.trim(), signedAt: now, uid, document: intakePacket.referenceRelease.id,
     documentRevision: intakePacket.referenceRelease.revision, sourceSha256: PACKET_SHA256,
     answersSha256: createHash("sha256").update(JSON.stringify(sorted)).digest("hex"), electronicConsent: true

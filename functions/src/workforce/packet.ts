@@ -1,7 +1,8 @@
 // Transcribed from the owner's blank 27-page scan; never put the scan, completed
 // forms, ID images, SSNs or applicant records in Hosting or the public repository.
+import { jobDescription, jobDescriptionSha256 } from "./jobDescription.js";
 export const PACKET_SHA256 = "f002450817bd2816b3a239794ac49b3c79354a4fde5f51855cc0e3d2487e139d";
-export const PACKET_VERSION = "pthhs-intake-2026-11-05-v1";
+export const PACKET_VERSION = "pthhs-intake-2026-11-05-v2";
 export interface IntakeField {
   id: string; label: string; section: string; sourcePage: number;
   type: "text" | "date" | "email" | "tel" | "textarea" | "ssn" | "choice";
@@ -11,32 +12,40 @@ const fields: IntakeField[] = [];
 function field(id: string, label: string, section: string, sourcePage: number, type: IntakeField["type"] = "text", required = false, options: string[] = []) {
   fields.push({ id, label, section, sourcePage, type, required, maxLength: type === "textarea" ? 2000 : 250, options });
 }
-field("name", "Name", "About you", 3, "text", true);
-field("applicationDate", "Date", "About you", 3, "date", true);
-field("ssn", "Social Security number", "About you", 3, "ssn");
-field("birthDate", "Date of birth", "About you", 3, "date");
-for (const [id, label] of [["street", "Street address"], ["city", "City"], ["state", "State"], ["zip", "ZIP code"]]) field(id!, label!, "Contact information", 3);
+field("jobDescriptionRead", "I have read the complete PAS attendant job description", "PAS attendant role", 1, "choice", true, ["Yes"]);
+field("jobDescriptionQuestions", "Questions for HR (optional)", "PAS attendant role", 2, "textarea");
+field("name", "Name", "Contact information", 3, "text", true);
+field("applicationDate", "Date", "Contact information", 3, "date", true);
+field("ssn", "Social Security number", "Contact information", 3, "ssn", true);
+field("birthDate", "Date of birth", "Contact information", 3, "date", true);
+for (const [id, label] of [["street", "Street address"], ["unit", "Apartment, unit or suite (optional)"], ["city", "City"], ["state", "State"], ["zip", "ZIP code"]]) field(id!, label!, "Contact information", 3, "text", id !== "unit");
 field("phone", "Phone number", "Contact information", 3, "tel", true);
 field("alternatePhone", "Alternate phone number", "Contact information", 3, "tel");
 field("email", "Email address", "Contact information", 3, "email", true);
 for (const [id, label] of [["emergencyName", "In case of emergency, notify: name"], ["emergencyRelationship", "Relationship"], ["emergencyAddress", "Emergency contact address"]]) field(id!, label!, "Emergency contact", 3);
 field("emergencyPhone", "Emergency contact phone number", "Emergency contact", 3, "tel");
-field("availableDate", "Available date", "Availability & eligibility", 3, "date");
-field("workTime", "Full time / part time", "Availability & eligibility", 3, "choice", false, ["Full time", "Part time", "Full time or part time"]);
+field("availableDate", "Preferred start date", "Availability & eligibility", 3, "date");
+field("workTime", "Full time / part time", "Availability & eligibility", 3, "choice", false, ["Full time", "Part time"]);
+field("weeklyHours", "Preferred weekly hours", "Availability & eligibility", 3, "choice", false, ["10", "20", "30", "40"]);
 field("eligibleToWork", "Are you eligible to work in the U.S.?", "Availability & eligibility", 3, "choice", true, ["Yes", "No"]);
 field("visaType", "If on visa, what type?", "Availability & eligibility", 3);
 field("conviction", "Have you ever been convicted of a crime?", "Availability & eligibility", 3, "choice", true, ["Yes", "No"]);
 field("convictionDetails", "If yes, give date and details", "Availability & eligibility", 3, "textarea");
-for (const [key, label] of [["highSchool", "High school"], ["college", "College"], ["technical", "Technical training"]]) {
-  for (const [part, title] of [["school", "Name & location"], ["major", "Major"], ["degree", "Degrees obtained & date"]]) field(`${key}_${part}`, `${label}: ${title}`, "Education", 4);
-}
-for (let i = 1; i <= 2; i++) {
-  const section = `Work experience ${i}`;
+field("highSchool_school", "High school: name & location", "Education", 4, "text", true);
+field("highSchool_completed", "High school: date of completion", "Education", 4, "text", true);
+field("college_school", "College: name & location (optional)", "Education", 4);
+field("college_major", "College: major (optional)", "Education", 4);
+field("college_degree", "College: degree obtained (optional)", "Education", 4);
+field("college_completed", "College: date of completion (optional)", "Education", 4);
+field("technical_school", "Technical training: name & location (optional)", "Education", 4);
+field("technical_completed", "Technical training: date of completion (optional)", "Education", 4);
+for (let i = 1; i <= 1; i++) {
+  const section = "Work experience";
   for (const [key, label] of [["from", "Employment from"], ["to", "Employment to"], ["employer", "Employer name & address"], ["position", "Position"], ["department", "Department"], ["supervisor", "Supervisor name"], ["supervisorPhone", "Supervisor phone number"], ["startingPay", "Starting pay"], ["endingPay", "Ending pay"], ["reason", "Reason for leaving"], ["duties", "Describe duties / responsibilities"]]) {
     field(`job${i}_${key}`, label!, section, 4, key === "duties" ? "textarea" : "text");
   }
 }
-for (const [key, label] of [["referenceCompany", "Company name"], ["referenceAddress", "Company address"], ["referenceCityStateZip", "Company city, state, ZIP code"], ["referencePhone", "Company telephone number"], ["referenceSupervisor", "Supervisor"], ["referenceDates", "Date employed"]]) field(key!, label!, "Past employment reference", 5);
+for (const [key, label] of [["referenceCompany", "Company name"], ["referenceAddress", "Company address"], ["referenceCityStateZip", "Company city, state, ZIP code"], ["referencePhone", "Company telephone number"], ["referenceSupervisor", "Supervisor"], ["referenceDates", "Date employed"]]) field(key!, label!, "References", 5);
 
 // Preserve the supplied release wording. Electronic signing is separately gated
 // for HR/legal review; this is not a new screening authorization or hiring rule.
@@ -46,13 +55,14 @@ export const referenceRelease = {
 };
 export const intakePacket = {
   version: PACKET_VERSION, sourceSha256: PACKET_SHA256, sourcePages: [3, 4, 5], fields,
+  requiredDocuments: ["identity", "social_security"],
   title: "Employment application", revision: "REV 04/25",
   notice: "Please complete the entire application. An incomplete application will not be considered. All information submitted is subjected to verification. Any false or misleading statements may result in disqualification or termination.",
   convictionNotice: "Conviction of a crime is not an automatic bar for employment. Other factors will be taken into consideration (i.e. the nature and date of the crime).",
-  referenceRelease
+  referenceRelease, jobDescription, jobDescriptionSha256
 };
 export const packetInventory = [
-  { pages: [1, 2], title: "PAS attendant job description and acknowledgments", stage: "onboarding", state: "source_review_required" },
+  { pages: [1, 2], title: "PAS attendant job description and acknowledgments", stage: "application", state: "full_reading_digitized_hr_discussion_separate" },
   { pages: [3, 4], title: "Employment application, education and work experience", stage: "application", state: "digitized" },
   { pages: [5], title: "Past employment reference and release", stage: "application", state: "digitized_applicant_fields" },
   { pages: [6], title: "Criminal check addendum", stage: "hr", state: "legal_review_required" },

@@ -17,7 +17,7 @@ function fixture() {
   }
   const db = { collection, runTransaction: async (fn: (transaction: unknown) => Promise<unknown>) => {
     const writes: [string, Record<string, unknown>][] = [];
-    const result = await fn({ get: async (ref: Ref) => ({ exists: records.has(ref.path), ref, data: () => structuredClone(records.get(ref.path)) }),
+    const result = await fn({ get: async (ref: Ref & { get?: () => Promise<unknown> }) => ref.get ? ref.get() : ({ exists: records.has(ref.path), ref, data: () => structuredClone(records.get(ref.path)) }),
       set: (ref: Ref, data: Record<string, unknown>) => writes.push([ref.path, structuredClone(data)]),
       create: (ref: Ref, data: Record<string, unknown>) => { assert.ok(!records.has(ref.path)); writes.push([ref.path, structuredClone(data)]); },
       update: (ref: Ref, data: Record<string, unknown>) => { if (failFinalize && data.state === "pending_review") throw Error("metadata failure"); writes.push([ref.path, { ...records.get(ref.path), ...data }]); } });
@@ -34,7 +34,7 @@ function fixture() {
     records, files, storageOptions, failStorage: () => { failStorage = true; }, failFinalize: () => { failFinalize = true; }
   };
 }
-const answers = { name: "Synthetic Applicant", applicationDate: "2026-11-05", email: "synthetic@example.invalid", phone: "555-0100", eligibleToWork: "Yes", conviction: "No" };
+const answers = { name: "Synthetic Applicant", applicationDate: "2026-11-05", email: "synthetic@example.invalid", phone: "555-0100", eligibleToWork: "Yes", conviction: "No", jobDescriptionRead: "Yes", ssn: "000-00-0000", birthDate: "2000-01-01", street: "100 Synthetic Street", city: "Synthetic City", state: "TX", zip: "77000", highSchool_school: "Synthetic High School", highSchool_completed: "2018" };
 const image = sharp({ create: { width: 200, height: 140, channels: 3, background: "#789abc" } }).png().toBuffer().then(b => b.toString("base64"));
 test("application drafts persist by UID with immutable history and content-free audit metadata", async () => {
   const f = fixture();
@@ -111,9 +111,31 @@ test("missing application, attempt quotas, total folder cap and integrity failur
 });
 test("submitted intake and its signature have immutable version history", async () => {
   const f = fixture(); const first = await f.store.save("synthetic-a", 0, answers, "synthetic-office");
+  await f.store.upload("synthetic-a", "identity", await image); await f.store.upload("synthetic-a", "social_security", await image);
   const submitted = await f.store.submit("synthetic-a", first.revision, { name: answers.name, documentRead: true, electronicConsent: true });
   assert.equal(submitted.state, "submitted");
   const original = f.records.get("workforceApplications/synthetic-a/versions/1") as unknown as Intake;
   assert.equal(original.state, "draft"); assert.equal(original.signature, null);
   await assert.rejects(f.store.submit("synthetic-a", submitted.revision, { name: answers.name, documentRead: true, electronicConsent: true }), /application_already_submitted/);
+});
+test("required personnel documents are enforced by the server and PDF quarantine cannot be downloaded", async () => {
+  const f = fixture(); const draft = await f.store.save("synthetic-a", 0, answers, "synthetic-office");
+  const signature = { name: answers.name, documentRead: true, electronicConsent: true };
+  await assert.rejects(f.store.submit("synthetic-a", draft.revision, signature), /required_documents_missing/);
+  await f.store.upload("synthetic-a", "identity", await image);
+  const pdf = Buffer.from("%PDF-1.7\nSynthetic untrusted PDF\n%%EOF\n");
+  const doc = await f.store.upload("synthetic-a", "social_security", pdf.toString("base64"));
+  assert.equal(doc.state, "pending_security_review");
+  await assert.rejects(f.store.download("synthetic-a", doc.id, "synthetic-a"), /document_not_ready/);
+  const submitted = await f.store.submit("synthetic-a", draft.revision, signature);
+  assert.equal(submitted.state, "submitted"); // HR/security eligibility is still pending.
+  assert.ok(f.files.has(`workforce-private/synthetic-a/${doc.id}.pdf`));
+});
+test("address request quotas bound both individual and project-wide requests", async () => {
+  const f = fixture(); await f.store.reserveAddressLookup("synthetic-a");
+  assert.equal(f.records.get("workforceAddressLimits/synthetic-a")?.attempts, 1);
+  f.records.set("workforceAddressLimits/synthetic-a", { startedAt: Date.now(), attempts: 60 });
+  await assert.rejects(f.store.reserveAddressLookup("synthetic-a"), /address_lookup_limit/);
+  f.records.set("workforceAddressLimits/_project_daily", { day: new Date().toISOString().slice(0, 10), attempts: 1000 });
+  await assert.rejects(f.store.reserveAddressLookup("synthetic-b"), /address_lookup_limit/);
 });

@@ -68,8 +68,8 @@ background headroom, shared accounting, vendor backoff, rollover and corrupt sta
 Full baseline suites are also required.
 Production acceptance is recorded below only after the normal release succeeds.
 
-Measured protected assets before the final release are approximately 464 KB raw /
-117 KB default Node gzip across 15 files. The reviewed bounded allowance is now
+Measured current protected assets are 464775 bytes raw / 116907 default Node gzip
+across 15 files. The reviewed bounded allowance is now
 470000 / 118000 bytes. Separate 110000 per-file and 2 MB marketing limits remain.
 The new standalone maintenance JS/CSS accounts for about 24.7 KB raw / 8.3 KB gzip;
 the rest is navigation/markup. No new runtime library or minifier setting changed.
@@ -93,4 +93,31 @@ coverage and staleness disclosures apply. The call button honors returned retry
 seconds with a disabled countdown; local notes and reports remain usable. No new
 HHA endpoint, grant or vendor quota increase is introduced.
 
-Follow-up release and final signed-in reload acceptance: pending.
+Follow-up release `f66950b0182691d5fa8edb73b2ecc9cf4f8a0861`, workflow
+42085067528: all four normal jobs passed. Current upstream plus this change passes
+755 backend and 543 frontend/tooling tests; all site checks, source-time tests in
+three timezones, asset regeneration and repository audit passed.
+
+Signed-in production acceptance also verifies the saved case and its third
+revision after full reload, local office-review completion, persisted call receipt,
+report card and downloaded text content. Demo mode removes all source rows,
+private case detail and report cards; Live restores source access. Wide (1425 CSS
+pixels) and narrow (465 CSS pixels) layouts have no page overflow, using two queue
+columns and one respectively. This is administrator/local-review acceptance.
+Populated-call selection remains covered by synthetic contract tests; the checked
+production visit returned no raw events. Authoritative links, HHA actions, named
+staff access, complete retained attempt history and AI execution remain open.
+
+Focused-layout release `27d1092f95b1a754e8f96d3c6f6f32335e63f0ac`, workflow
+42086109652: all four jobs passed and all 15 production assets match exactly.
+Preview's unrelated first-page controls and badge are hidden only while this
+independent workspace is active; maintenance retains its own source receipts and
+status. Production confirms these controls are hidden and there is no overflow.
+A fresh call read after the headroom release succeeds and persists revision 4,
+again with zero source events. No HHA change or staff access grant occurred.
+
+Concurrent Preview explanation fix `4f23d864e4f80ec32d55dc94991aa6fcf4018aeb`
+was preserved. It distinguishes deferred source-read rate limits from temporary
+unavailability and adds two browser tests. Current frontend/tooling acceptance
+passes 545 tests; the backend is unchanged at 755 passing checks. The measured
+asset totals above include this concurrent change.

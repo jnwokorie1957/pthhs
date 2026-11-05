@@ -4,11 +4,11 @@ import { getStorage } from "firebase-admin/storage";
 import { FORM_BUCKET } from "../forms/library.js";
 import { parseGrant, requirePermission, validId, WorkforceError, type Actor } from "./policy.js";
 import { saveIntake, submitIntake, type Intake } from "./intake.js";
-import { sanitizeDocument, documentKind, documentSummary, type PrivateDocument } from "./documents.js";
+import { prepareDocument, documentKind, documentSummary, missingRequiredDocuments, type DocumentKind, type PrivateDocument } from "./documents.js";
 
-export function privateDocumentPath(uid: string, id: string): string {
-  if (!validId(uid) || !validId(id)) throw new WorkforceError(400, "invalid_document_id");
-  return `workforce-private/${uid}/${id}.jpg`;
+export function privateDocumentPath(uid: string, id: string, extension: "jpg" | "pdf" = "jpg"): string {
+  if (!validId(uid) || !validId(id) || !["jpg", "pdf"].includes(extension)) throw new WorkforceError(400, "invalid_document_id");
+  return `workforce-private/${uid}/${id}.${extension}`;
 }
 export function requireDocumentOwner(doc: PrivateDocument, uid: string): void {
   if (doc.uid !== uid) throw new WorkforceError(404, "document_not_found");
@@ -16,6 +16,19 @@ export function requireDocumentOwner(doc: PrivateDocument, uid: string): void {
 }
 export class IntakeStore {
   constructor(private db = getFirestore(), private bucket = getStorage().bucket(FORM_BUCKET)) {}
+  async reserveAddressLookup(uid: string) {
+    await this.db.runTransaction(async tx => {
+      const ref = this.db.collection("workforceAddressLimits").doc(uid), doc = await tx.get(ref), now = Date.now();
+      const globalRef = this.db.collection("workforceAddressLimits").doc("_project_daily"), global = await tx.get(globalRef);
+      const day = new Date(now).toISOString().slice(0, 10), daily = global.data()?.day === day ? Number(global.data()?.attempts ?? 0) : 0;
+      if (daily >= 1000) throw new WorkforceError(429, "address_lookup_limit");
+      const old = doc.data(), sameWindow = typeof old?.startedAt === "number" && now - old.startedAt < 600000;
+      const attempts = sameWindow ? Number(old?.attempts ?? 0) : 0;
+      if (attempts >= 60) throw new WorkforceError(429, "address_lookup_limit");
+      tx.set(ref, { startedAt: sameWindow ? old!.startedAt : now, attempts: attempts + 1 });
+      tx.set(globalRef, { day, attempts: daily + 1 });
+    });
+  }
   private app(uid: string) {
     if (!validId(uid)) throw new WorkforceError(400, "invalid_account_id");
     return this.db.collection("workforceApplications").doc(uid);
@@ -53,6 +66,13 @@ export class IntakeStore {
       await this.employeeGuard(tx, uid);
       const ref = this.app(uid), doc = await tx.get(ref);
       if (!doc.exists) throw new WorkforceError(404, "application_not_found");
+      const application = doc.data() as Intake;
+      const documents = await tx.get(this.db.collection("workforcePrivateDocuments").where("uid", "==", uid).limit(100));
+      const exception = await tx.get(this.db.collection("workforceDocumentExceptions").doc(uid));
+      const review = exception.data();
+      const approvedException = review?.approved === true && review.office === application.office && typeof review.approvedBy === "string"
+        && typeof review.approvedAt === "string" && Array.isArray(review.kinds) ? { approved: true, kinds: review.kinds as DocumentKind[] } : undefined;
+      if (missingRequiredDocuments(documents.docs.map(d => d.data() as PrivateDocument), approvedException).length) throw new WorkforceError(409, "required_documents_missing");
       const next = submitIntake(uid, doc.data() as Intake, revision, signature, new Date().toISOString());
       tx.set(ref, next); tx.create(ref.collection("versions").doc(String(next.revision)), next);
       this.audit(tx, uid, "application_submitted", uid, { revision: next.revision });
@@ -81,7 +101,8 @@ export class IntakeStore {
       const result = await this.db.collection("workforceApplications").where("office", "==", office).limit(50).get();
       for (const d of result.docs) {
         const app = d.data() as Intake;
-        items.push({ uid: app.uid, office: app.office, state: app.state, updatedAt: app.updatedAt, revision: app.revision });
+        items.push({ uid: app.uid, office: app.office, state: app.state, updatedAt: app.updatedAt, revision: app.revision,
+          weeklyHours: app.answers.weeklyHours ?? null, hoursReviewRequired: app.answers.weeklyHours === "40" });
       }
     }
     return { items, limitPerOffice: 50 };
@@ -94,7 +115,7 @@ export class IntakeStore {
     return { items: docs.docs.map(d => documentSummary(d.data() as PrivateDocument)), limit: 100 };
   }
   async upload(uid: string, kindInput: unknown, encoded: unknown) {
-    const kind = documentKind(kindInput), id = randomUUID(), path = privateDocumentPath(uid, id);
+    const kind = documentKind(kindInput), id = randomUUID();
     // Limit attempts before image decoding, including malformed attempts.
     await this.db.runTransaction(async tx => {
       const ref = this.db.collection("workforceUploadLimits").doc(uid), doc = await tx.get(ref);
@@ -103,9 +124,10 @@ export class IntakeStore {
       if (attempts >= 20) throw new WorkforceError(429, "upload_limit_reached");
       tx.set(ref, { startedAt: sameHour ? old!.startedAt : now, attempts: attempts + 1 });
     });
-    const bytes = await sanitizeDocument(encoded), sha256 = createHash("sha256").update(bytes).digest("hex");
+    const prepared = await prepareDocument(encoded), bytes = prepared.bytes, path = privateDocumentPath(uid, id, prepared.extension);
+    const sha256 = createHash("sha256").update(bytes).digest("hex");
     const ref = this.db.collection("workforcePrivateDocuments").doc(id);
-    const record: PrivateDocument = { id, uid, kind, state: "upload_pending", createdAt: new Date().toISOString(), size: bytes.length, sha256, generation: null };
+    const record: PrivateDocument = { id, uid, kind, state: "upload_pending", createdAt: new Date().toISOString(), size: bytes.length, sha256, generation: null, extension: prepared.extension, contentType: prepared.contentType };
     await this.db.runTransaction(async tx => {
       // A folder belongs to an existing application, never an arbitrary target UID.
       const application = await tx.get(this.app(uid));
@@ -119,15 +141,15 @@ export class IntakeStore {
     try {
       const file = this.bucket.file(path);
       await file.save(bytes, { resumable: false, validation: "crc32c", preconditionOpts: { ifGenerationMatch: 0 },
-        metadata: { contentType: "image/jpeg", cacheControl: "private, no-store", contentDisposition: "attachment", metadata: { sha256 } } });
+        metadata: { contentType: prepared.contentType, cacheControl: "private, no-store", contentDisposition: "attachment", metadata: { sha256 } } });
       const [metadata] = await file.getMetadata();
       const generation = String(metadata.generation ?? "");
       if (!/^\d+$/.test(generation)) throw Error();
-      const completed: PrivateDocument = { ...record, generation, state: "pending_review" };
+      const completed: PrivateDocument = { ...record, generation, state: prepared.state };
       await this.db.runTransaction(async tx => {
         const pending = await tx.get(ref);
         if (pending.data()?.state !== "upload_pending") throw new WorkforceError(409, "document_not_ready");
-        tx.update(ref, { generation, state: "pending_review" });
+        tx.update(ref, { generation, state: prepared.state });
         this.audit(tx, uid, "document_uploaded", id, { kind, size: bytes.length });
       });
       return documentSummary(completed);
@@ -156,7 +178,7 @@ export class IntakeStore {
       this.audit(tx, actorId, "document_download", id);
       return record;
     });
-    const [bytes] = await this.bucket.file(privateDocumentPath(uid, id), { generation: record.generation! }).download({ validation: "crc32c" });
+    const [bytes] = await this.bucket.file(privateDocumentPath(uid, id, record.extension ?? "jpg"), { generation: record.generation! }).download({ validation: "crc32c" });
     if (bytes.length !== record.size || createHash("sha256").update(bytes).digest("hex") !== record.sha256) throw new WorkforceError(503, "document_integrity_error");
     return bytes;
   }

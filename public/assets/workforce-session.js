@@ -34,6 +34,10 @@
     ,document_upload_unconfirmed: 'The upload could not be confirmed. Check its status before trying again.'
     ,upload_limit_reached: 'The upload attempt limit has been reached. Please try again later.'
     ,save_application_first: 'Save your application before uploading documents.'
+    ,required_documents_missing: 'Upload the required ID and Social Security card, or contact HR about an approved alternative arrangement.'
+    ,invalid_pdf: 'Choose a complete PDF file, or upload a clear JPEG or PNG.'
+    ,address_lookup_unavailable: 'Address suggestions are unavailable. You can still type your complete address.'
+    ,address_lookup_limit: 'Please type your address manually or try suggestions again later.'
   };
   const message = s => { status.textContent = s; };
   const hide = () => {

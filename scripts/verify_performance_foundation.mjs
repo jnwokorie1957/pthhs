@@ -191,16 +191,19 @@ const isWorkforceFile = file => {
   return relative === 'caregiver.html' || relative === 'primetime/workforce.html' || relative.startsWith('assets/workforce');
 };
 const workforceFiles = publicFiles.filter(isWorkforceFile);
+const officialFormFiles = publicFiles.filter(file => path.relative(publicDir, file).replaceAll(path.sep, '/').startsWith('assets/forms/'));
+const officialFormBytes = (await Promise.all(officialFormFiles.map(file => fs.stat(file)))).reduce((sum, stat) => sum + stat.size, 0);
+if (officialFormBytes > 750_000) errors.push(`official blank-form assets exceed 750 KB budget: ${officialFormBytes}`);
 const workforceBytes = (await Promise.all(workforceFiles.map(file => fs.stat(file)))).reduce((sum, stat) => sum + stat.size, 0);
 let workforceGzip = 0;
 for (const file of workforceFiles) workforceGzip += gzipSync(await fs.readFile(file)).length;
 // The actual packet wizard, private image capture and scoped HR review add no
 // browser library. Bound their added transfer separately from operations.
-if (workforceBytes > 75_000 || workforceGzip > 22_000) errors.push(`workforce output exceeds 75 KB raw / 22 KB gzip budget: ${workforceBytes}/${workforceGzip}`);
+if (workforceBytes > 90_000 || workforceGzip > 27_000) errors.push(`workforce output exceeds 90 KB raw / 27 KB gzip budget: ${workforceBytes}/${workforceGzip}`);
 const publicBytes = (await Promise.all(publicFiles.map((file) => fs.stat(file)))).reduce((sum, stat) => sum + stat.size, 0);
 const internalFiles = publicFiles.filter(file => isInternalAppFile(file, publicDir) && !isWorkforceFile(file));
 const internalBytes = (await Promise.all(internalFiles.map(file => fs.stat(file)))).reduce((sum, stat) => sum + stat.size, 0);
-if (publicBytes - internalBytes - workforceBytes > 2_000_000) errors.push(`marketing output exceeds 2 MB foundation budget: ${publicBytes - internalBytes - workforceBytes}`);
+if (publicBytes - internalBytes - workforceBytes - officialFormBytes > 2_000_000) errors.push(`marketing output exceeds 2 MB foundation budget: ${publicBytes - internalBytes - workforceBytes - officialFormBytes}`);
 // The authenticated app now includes source review, Demo/Live and durable
 // follow-up UI, private forms and connected settings/audit views.
 // Keep a bounded raw budget plus compressed-transfer and per-file

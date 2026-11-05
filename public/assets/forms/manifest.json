@@ -1,0 +1,22 @@
+{
+  "reviewedOn": "2026-11-05",
+  "forms": [
+    {
+      "id": "w4-2026",
+      "label": "2026 Form W-4",
+      "file": "/assets/forms/w4-2026.pdf",
+      "source": "https://www.irs.gov/pub/irs-pdf/fw4.pdf",
+      "pages": 5,
+      "fillableFields": 54,
+      "sha256": "92444d8856ce55d9e25dca8b6d1420634fc68b11e1ab1f760916ea29ddd312b2"
+    },
+    {
+      "id": "i9-current",
+      "label": "Form I-9",
+      "source": "https://www.uscis.gov/sites/default/files/document/forms/i-9.pdf",
+      "instructions": "https://www.uscis.gov/i-9",
+      "edition": "01/20/25",
+      "delivery": "official USCIS link; automated download was denied, so no unofficial copy was substituted"
+    }
+  ]
+}

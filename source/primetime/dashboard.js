@@ -1154,11 +1154,12 @@
         if ([429, 503].includes(response.status) && Number.isSafeInteger(payload.retryAfterSeconds) && payload.retryAfterSeconds > 0 && payload.retryAfterSeconds <= 600) {
           pageTrail = trail; pagePosition = position;
           retryRead = { cursor, samePage: true, captured: context() };
+          const title = response.status === 429 ? 'Read rate limited (HTTP 429)' : 'Source temporarily unavailable (HTTP 503)';
           const detail = 'Prior facts cleared. Retry this page after the delay.';
-          unavailable(visitRowsId, 'Source read delayed', detail);
-          liveOverviewState('Source read delayed', detail);
+          unavailable(visitRowsId, title, detail);
+          liveOverviewState(title, detail);
           text('dataModeBadge', 'Live · read delayed'); text(environmentDetailsId, 'HHA read delayed');
-          text(visitStatusId, 'Source read delayed. The selected page is retained for retry.');
+          text(visitStatusId, `${title}. The selected page is retained for retry.`);
           previousPageButton(position > 0);
           delayVisitReads(payload.retryAfterSeconds); return;
         }
