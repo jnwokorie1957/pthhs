@@ -2202,3 +2202,60 @@ https://knowledge.hhaexchange.com/caregiver/Content/Documentation/Mobile/Mobi-CG
 [R87] NIST, Daylight Saving Time Rules.2026 local transition date; jurisdiction
 and individual source timestamp interpretation remain separate.
 https://www.nist.gov/pml/time-and-frequency-division/popular-links/daylight-saving-time-dst
+
+NOVEMBER 5, 2026, 09:01 UTC — CURRENT IMPLEMENTATION / ROLE EVIDENCE RECONCILIATION
+
+Refreshed274d6fb preserves concurrent office-day, attachment and website-counter
+work. The new Overview collector supersedes earlier first-page-only descriptions
+for that administrator panel; Visit Preview still pages independently. Current
+code collects existing guarded detail batches, checks stable discovery/scope/
+positions, replaces retried positions and preserves incomplete/unread states.
+Its counts describe returned visit IDs and collected source details, not a
+patient census, staff roster, clinical caseload or atomic source snapshot.
+
+OFFICE WORKFLOW — RELEASED IMPLEMENTATION, NATIVE COMPLETENESS STILL OPEN
+OFFICE_DAY_OVERVIEW_2026-11-04.md records normal release evidence for859402f0
+and quota-label correction041e1935. Same-scope refresh retains a prior complete
+scan with its own receipt range and explicit refresh/quota-wait status. The new
+scan must replace that set together; different scope/failed continuation cannot
+retain a success claim. A finished collection with unread details or truncation
+remains incomplete. O03 and full native, keyboard and AT acceptance remain open.
+This research inspected code and dated release records; it did not independently
+rerun release tests, verify served bytes or accept the ongoing source scan.
+
+The existing root goal owns an active authenticated collection and reconciliation.
+Do not reload, navigate, reset or add HHA reads on that session. Its required
+next evidence is all returned distinct IDs/positions, readable versus unavailable
+details, first/middle/last receipts, six chart numerators/denominators, Preview
+independence and subsequent refresh retention. Partial progress is not completion.
+Current reviewed app limits are431000raw/107000gzip; marketing is restored to
+2000000. These supersede earlier dated budgets; no new budget change is made here.
+
+DOCUMENT WORKFLOW — CONTEXT GUARD IS NOT RETRIEVAL OR SHARING ACCEPTANCE
+PATIENT_DOCUMENT_READINESS_2026-11-02.md records released384c2a72 Save-context
+checks before and after confirmation, plus temporary URL invalidation. Synthetic
+callback/release evidence does not establish source bytes, actual device saving,
+native keyboard/AT behavior or family/PT sharing. Keep the earlier bounded
+metadata acceptance and upstream file refusals distinct. F03/T04, clinical form/
+version/reviewer/signature/action and explicit document-sharing contracts remain.
+
+PRIMARY GUIDANCE RECHECK / PROPOSED ROLE ACCEPTANCE
+R48 still distinguishes patient/caregiver appointment filters and optional rows
+without scheduled visits. Inference: even complete returned visit collection
+cannot establish an all-patient or all-staff directory, availability, or an
+assigned therapist caseload. R9 still distinguishes user-specific, effective
+clinical patient assignments from role-level nonclinical access and editing
+another author's documents. No tenant setting or local role grant is established.
+
+Patient/family schedule/document views remain subject to exact membership and
+shared-instance checks. Staff/PT schedules, caseload and documentation retain
+effective assignment/discipline and encounter/form-version/reviewer/action scope.
+Office scheduling, authorization, EVV and billing follow-up retain independent
+source identities, receipts and validation states. Reuse the collector only after
+those destination contracts are proved; an administrator scan grants no new role.
+Existing owner/source decisions remain pending; no duplicate permission question,
+new urgent action, source import/write, clinical/financial decision or communication.
+
+Primary sources retrieved November5,2026; existing references, no new capability:
+[R48] https://knowledge.hhaexchange.com/texas/Content/Documentation/Visit/Visit-N-Appointments-Function-P.htm
+[R9] https://knowledge.hhaexchange.com/texas/Content/Documentation/Patient/Pat-N-Control-Access-Patient-P.htm
