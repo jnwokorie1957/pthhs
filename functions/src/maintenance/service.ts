@@ -6,6 +6,7 @@ import type { readOfficeDay } from "../views/officeDay.js";
 import type { visitCallRead } from "../operations/visitCalls.js";
 import { checkedVisitPatient } from "../operations/patientVisit.js";
 import type { MaintenanceSearch } from "./search.js";
+import { maintenanceReferenceCodes } from "./references.js";
 
 type Workspace = Pick<OperationsWorkspace, "settings" | "query">;
 type Day = Awaited<ReturnType<typeof readOfficeDay>>;
@@ -67,6 +68,7 @@ export class MaintenanceService {
     };
     return { officeId, date: date as string, collection: `maintenanceCases_${officeId}_${date}`, check };
   }
+  async referenceCodes(value: unknown, actor: string) { return maintenanceReferenceCodes(this.workspace, value, actor); }
   async cases(value: unknown) {
     const input = object(value, ["date", "cursor"]), ctx = await this.context(input.date);
     workspaceCursor(input.cursor);
@@ -178,6 +180,7 @@ export class MaintenanceService {
 export async function maintenanceRoute(service: MaintenanceService, actor: { uid: string; roles: string[] }, method: string, path: string, value: unknown, search?: MaintenanceSearch) {
   try {
     if (!actor.roles.includes("admin")) throw new WorkflowError("admin_required", 403);
+    if (method === "GET" && path === "/maintenance/reference-codes") return { status: 200, body: await service.referenceCodes(value, actor.uid) };
     if (method === "GET" && path === "/maintenance/cases") return { status: 200, body: await service.cases(value) };
     if (method === "POST" && path === "/maintenance/case") return { status: 200, body: await service.getCase(value) };
     if (method === "POST" && path === "/maintenance/save") return { status: 200, body: await service.save(value, actor.uid) };
