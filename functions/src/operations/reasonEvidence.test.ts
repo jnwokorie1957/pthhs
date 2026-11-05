@@ -50,6 +50,9 @@ test("empty responses stay unvalidated, failed responses reject and unrelated re
   const other = await operationalRead(client("<VisitInfo><ID>77</ID></VisitInfo>"), {operation: "GetVisitInfoV3", id: "77"});
   assert.equal(other.visitEditReasons, undefined);
 });
+test("an unrecognized reason wrapper cannot silently become an empty typed catalog",async()=>{
+ await assert.rejects(read('<UnexpectedWrapper>'+reason('1',action('9','Synthetic','Description','Unknown'))+'</UnexpectedWrapper>'),/invalid_reason_evidence_xml/);
+});
 
 
 test("review fixtures ignore commented reasons and join CDATA while preserving literal closing tags", async () => {

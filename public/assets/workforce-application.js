@@ -13,10 +13,57 @@
   let documentItems = [], addressEnabled = false, detachAddress = () => {};
   let version = 0, savedVersion = -1, saveQueue = Promise.resolve(), timer, documentsEnabled = false;
   let selectedFile = null, previewUrl = null, uploading = false;
+  let reviewNavigation = false;
+  const completionSummary = document.createElement('section'), reviewNote = document.createElement('p'), marked = new WeakMap();
+  completionSummary.id = 'application-completion-summary'; completionSummary.className = 'completion-summary';
+  completionSummary.setAttribute('aria-label', 'Missing required application fields');
+  reviewNote.className = 'review-navigation-note'; reviewNote.hidden = true;
+  document.getElementById('application-steps').before(reviewNote, completionSummary);
+  function paintMissing(target, issues, heading = 'Required fields still needed') {
+    for (const control of marked.get(target) || []) { control.classList.remove('required-missing'); control.removeAttribute('aria-invalid'); }
+    const controls = new Set();
+    for (const issue of issues) { const control = document.getElementById(issue.controlId); if (control) { control.classList.add('required-missing'); control.setAttribute('aria-invalid','true'); controls.add(control); } }
+    marked.set(target,controls); target.replaceChildren(); target.hidden = !issues.length;
+    if (!issues.length) return;
+    target.classList.add('completion-summary'); target.append(text('h3', heading + ' (' + issues.length + ')'));
+    const list = document.createElement('ul');
+    for (const issue of issues) {
+      const item = document.createElement('li'), link = text('button',issue.label); link.type = 'button'; link.className = 'missing-field-link';
+      link.onclick = issue.activate || (() => document.getElementById(issue.controlId)?.focus()); item.append(link); list.append(item);
+    }
+    target.append(list);
+  }
+  window.WorkforceReview = { freeNavigation: () => reviewNavigation, paintMissing };
+  function focusMissing(id) { const control=document.getElementById(id); if(control?.disabled) control.closest('.packet-reading-card')?.querySelector('button')?.focus(); else control?.focus(); }
+  function refreshCompleteness() {
+    if (!packet || record?.state === 'submitted') { completionSummary.hidden = true; return; }
+    const missing = packet.fields.filter(f => f.required && !answers[f.id]?.trim()).map(field => ({
+      label: field.label, section: field.section, controlId: field.id === 'jobDescriptionRead' ? 'job-description-read' : 'application-' + field.id,
+      activate: async () => { try { const next = sections.indexOf(field.section); if (next > step) validateStep(); await saveNavigation(); step = next; render(); focusMissing(field.id === 'jobDescriptionRead' ? 'job-description-read' : 'application-' + field.id); } catch(error) { showError(error); } }
+    }));
+    for (const kind of requiredDocuments()) missing.push({ label: kind === 'identity' ? 'Photo ID upload' : 'Social Security card upload', section: 'Documents', controlId: 'document-file', activate: async () => { try { const next = sections.indexOf('Documents'); if (next > step) validateStep(); await saveNavigation(); step = next; render(); document.getElementById('private-document-kind').value = kind; document.getElementById('document-file').focus(); } catch(error) { showError(error); } } });
+    if (step === sections.length) for (const [id,label] of [['release-read','Read the past-employment release'],['electronic-consent','Choose electronic signing'],['application-signature-name','Your electronic signature']]) {
+      const control = document.getElementById(id); if (control.type === 'checkbox' ? !control.checked : !control.value.trim()) missing.push({label,section:'Review & submit',controlId:id});
+    }
+    const current = missing.filter(f => f.section === sections[step] || step === sections.length);
+    paintMissing(completionSummary,current,'Missing required fields in this section');
+    completionSummary.hidden = !missing.length;
+    if (missing.length && !current.length) completionSummary.append(text('p','This section is ready. Required information is still missing elsewhere in your application.'));
+    if (missing.length && current.length !== missing.length) {
+      const details = document.createElement('details'); details.append(text('summary','Show all missing required application fields (' + missing.length + ')'));
+      const list = document.createElement('ul'); for (const issue of missing) { const li = document.createElement('li'), button = text('button',issue.section + ': ' + issue.label); button.type = 'button'; button.className = 'missing-field-link'; button.onclick = issue.activate; li.append(button); list.append(li); } details.append(list); completionSummary.append(details);
+    }
+  }
+  async function saveNavigation() {
+    try { if (sections[step] === 'Tax & employment forms') await window.WorkforceForms.flush(); await save(); }
+    catch (error) { if (!reviewNavigation) throw error; message.textContent = 'Review preview: continuing without saving invalid entries. ' + error.message; }
+  }
+  for (const event of ['input','change']) panel.addEventListener(event, () => queueMicrotask(refreshCompleteness));
   function requiredDocuments() {
     return ['identity', 'social_security'].filter(kind => !documentItems.some(d => d.kind === kind && ['pending_review', 'pending_security_review'].includes(d.state)));
   }
   function renderDocumentChecklist() {
+    queueMicrotask(refreshCompleteness);
     const list = document.getElementById('required-document-checklist'); list.replaceChildren();
     for (const [kind, label] of [['identity', 'Photo ID *'], ['social_security', 'Social Security card *']]) {
       const received = !requiredDocuments().includes(kind);
@@ -76,6 +123,7 @@
   }
   function showError(error) { message.textContent = error.message; }
   function validateStep() {
+    if (reviewNavigation) return;
     const missing = packet.fields.find(f => f.section === sections[step] && f.required && !answers[f.id]?.trim());
     if (!missing) return;
     const control = document.getElementById(missing.id === 'jobDescriptionRead' ? 'job-description-read' : 'application-' + missing.id);
@@ -112,6 +160,7 @@
     }
   }
   function render() {
+    queueMicrotask(refreshCompleteness);
     detachAddress(); window.WorkforceReadings.clear();
     const submitted = record?.state === 'submitted';
     document.getElementById('application-status-badge').textContent = submitted ? 'Submitted for HR review' : 'Draft';
@@ -119,7 +168,7 @@
     [...sections, 'Review & submit'].forEach((label, i) => {
       const button = text('button', (i + 1) + '. ' + label); button.type = 'button';
       if (step === i) button.setAttribute('aria-current', 'step');
-      button.onclick = async () => { try { if (i > step) validateStep(); if (sections[step] === 'Tax & employment forms') await window.WorkforceForms.flush(); await save(); step = i; render(); } catch (error) { showError(error); } };
+      button.onclick = async () => { try { if (i > step) validateStep(); await saveNavigation(); step = i; render(); } catch (error) { showError(error); } };
       nav.append(button);
     });
     fields.replaceChildren();
@@ -192,6 +241,7 @@
     if (notice) { notice.hidden = answers.weeklyHours !== '40'; notice.textContent = '40 hours selected — office review required. Primetime schedules up to 40 hours per week and does not schedule overtime. Record all hours worked and contact the office if your hours may exceed 40.'; }
   }
   document.addEventListener('workforce-session-cleared', () => {
+    reviewNavigation = false; reviewNote.hidden = true; completionSummary.hidden = true;
     generation++; clearTimeout(timer); detachAddress(); window.WorkforceReadings.clear(); window.WorkforceForms.clear(); policyPanel.hidden = true; clearImage(); packet = null; record = null; answers = {}; documentItems = [];
     fields.replaceChildren(); document.getElementById('application-review').replaceChildren();
     document.getElementById('private-document-list').replaceChildren();
@@ -200,6 +250,8 @@
     panel.hidden = true; document.getElementById('portal-release-notice').hidden = false; documentsEnabled = false; saveQueue = Promise.resolve(); documentsPanel.hidden = true; officialForms.hidden = true; rolePanel.hidden = true;
   });
   document.addEventListener('workforce-caregiver-session', async event => {
+    reviewNavigation = WorkforceContract.reviewNavigationAllowed(location.hostname,event.detail.previewNavigation);
+    reviewNote.hidden = !reviewNavigation; reviewNote.textContent = 'Review preview: browse every section freely. Missing fields are highlighted; live applicants must complete required information.';
     const sequence = ++generation; panel.hidden = false; document.getElementById('portal-release-notice').hidden = true; message.textContent = 'Loading your application…';
     documentsEnabled = event.detail.documentsEnabled === true; documentForm.hidden = !documentsEnabled;
     addressEnabled = event.detail.addressLookupEnabled === true;
@@ -226,7 +278,7 @@
   });
   document.getElementById('application-save').onclick = () => save().catch(showError);
   for (const [id, direction] of [['application-back', -1], ['application-next', 1]]) document.getElementById(id).onclick = async () => {
-    try { if (direction > 0) validateStep(); if (sections[step] === 'Tax & employment forms') await window.WorkforceForms.flush(); await save(); step = Math.max(0, Math.min(sections.length, step + direction)); render(); } catch (error) { showError(error); }
+    try { if (direction > 0) validateStep(); await saveNavigation(); step = Math.max(0, Math.min(sections.length, step + direction)); render(); } catch (error) { showError(error); }
   };
   form.addEventListener('submit', e => { e.preventDefault(); save().catch(showError); });
   document.getElementById('application-submit').onclick = async () => {
@@ -271,9 +323,9 @@
     } catch (error) { if (sequence === generation) documentMessage.textContent = error.message; }
     finally { uploading = false; document.getElementById('document-upload').disabled = false; }
   });
-  for (const kind of ['i9', 'w4', 'new_hire']) document.getElementById('complete-' + kind).onclick = async () => { try { await save(); await window.WorkforceForms.open(kind, {...answers}); } catch (error) { showError(error); } };
+  for (const kind of ['i9', 'w4', 'new_hire']) document.getElementById('complete-' + kind).onclick = async () => { try { await saveNavigation(); await window.WorkforceForms.open(kind, {...answers}); } catch (error) { showError(error); } };
   for (const kind of ['i9', 'w4']) document.getElementById('return-' + kind).onclick = async () => {
-    try { await save(); step = sections.indexOf('Documents'); render(); document.getElementById('private-document-kind').value = kind; } catch (error) { showError(error); }
+    try { await saveNavigation(); step = sections.indexOf('Documents'); render(); document.getElementById('private-document-kind').value = kind; } catch (error) { showError(error); }
   };
   document.getElementById('job-description-read').addEventListener('change', event => {
     answers.jobDescriptionRead = event.target.checked ? 'Yes' : ''; version++; clearTimeout(timer); timer = setTimeout(() => save().catch(showError), 1500);

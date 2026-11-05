@@ -2,7 +2,15 @@
 
 ## Week of November 2, 2026
 
-November5: five exact public pages verify both newly published family guides,
+November5 21:09UTC: all139public routes and18exact artifacts pass technical
+delivery checks. The canonical Google sitemap row is Success/readNovember5/
+34discovered URLs, not an indexed count. Custom October26–November1 versus
+October19–25 dates match all four aggregate cards and applied URL parameters;
+daily chart labels remain invalid. Six-article planning inventory corrected.
+Owner location/claim and outcome limits remain; no runtime change or repeat
+release. See [follow-up evidence](2026-11-05-seo-review.md).
+
+November5 15:13UTC: five exact public pages verify both newly published family guides,
 listing links and HTML/WebPage/Article metadata. The34-URL sitemap includes both;
 private noindex/authentication boundaries pass. A native relative Web comparison
 does not establish exact absolute dates, so no fresh trend/outcome is claimed.

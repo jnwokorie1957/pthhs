@@ -4,6 +4,24 @@
   const panel = document.getElementById('portal-form-editor');
   const text = (tag, value) => { const node = document.createElement(tag); node.textContent = value; if(tag==='button')node.className='btn-secondary'; return node; };
   const status = value => { document.getElementById('portal-form-status').textContent = value; };
+  async function saveNavigation() { try { await save(); } catch(error) { if (!window.WorkforceReview?.freeNavigation()) throw error; status('Review preview: continuing without saving invalid entries. ' + error.message); } }
+  function refreshCompleteness() {
+    const target=document.getElementById('official-form-completion');if(!target||!schema||!window.WorkforceReview)return;
+    const issues=[],exempt=kind==='w4'&&fields[schema.fields[15].id]===true;
+    const add=(label,controlId,page=1)=>issues.push({label,controlId,activate:async()=>{try{if(page!==pageNumber){await saveNavigation();pageNumber=page;await renderPage();}document.getElementById(controlId)?.focus();}catch(e){status(e.message);}}});
+    if(record?.state!=='submitted'){
+      for(const [i,field]of schema.fields.entries()){
+        if(!field.required||field.type==='checkbox'||(exempt&&kind==='w4'&&i>=5&&i<=14))continue;
+        if(kind==='w4'&&i===3){const match=String(fields[field.id]||'').match(/^(.*),\s*([A-Z]{2})\s*,?\s*(\d{5}(?:-\d{4})?)$/);for(const [j,label]of ['City or town','State','ZIP code'].entries())if(!match?.[j+1]?.trim())add(label,'official-city-'+j);}
+        else if(!String(fields[field.id]??'').trim())add(field.label,'official-'+i,field.page);
+      }
+      const group=kind==='i9'?schema.fields.filter(f=>/^CB_[1-4]$/.test(f.id)):kind==='w4'&&!exempt?schema.fields.slice(5,8):[];
+      if(group.length&&!group.some(f=>fields[f.id]===true))add(kind==='i9'?'Citizenship or immigration status — choose one':'Filing status — choose one','official-'+schema.fields.indexOf(group[0]));
+      for(const [id,label]of [['official-signature-name',kind==='new_hire'?'Your confirmation name':'Employee signature'],['official-form-read','Review the complete form before submitting'],['official-electronic-consent','Confirm electronic signing before submitting']]){const control=document.getElementById(id);if(control&&(control.type==='checkbox'?!control.checked:!control.value.trim()))add(label,id,pageNumber);}
+    }
+    window.WorkforceReview.paintMissing(target,issues,'Missing required form fields / confirmations');
+  }
+  for(const event of ['input','change'])panel.addEventListener(event,refreshCompleteness);
   function clear() { generation++; loadingTask?.destroy().catch(()=>{}); loadingTask = null; pdf = null; schema = null; employer = {}; applicationData = {}; fields = {}; record = null; dirty = false; panel.replaceChildren(); }
   async function save(submit = false) {
     if (!schema || !pdf || (!dirty && !submit)) return;
@@ -16,11 +34,12 @@
   }
   async function renderPage() {
     const sequence = generation; panel.replaceChildren();
+    const completion=document.createElement('section');completion.id='official-form-completion';completion.hidden=true;completion.setAttribute('aria-label','Missing required form fields');panel.append(completion);
     const page = await pdf.getPage(pageNumber); if (sequence !== generation) return;
     const nav = document.createElement('div'); nav.className = 'workforce-actions';
     for (const [label, direction] of [['Previous form page', -1], ['Next form page', 1]]) {
       const button = text('button', label); button.type = 'button'; button.disabled = pageNumber + direction < 1 || pageNumber + direction > pdf.numPages;
-      button.onclick = async () => { try { await save(); pageNumber += direction; await renderPage(); } catch (e) { status(e.message); } }; nav.append(button);
+      button.onclick = async () => { try { await saveNavigation(); pageNumber += direction; await renderPage(); } catch (e) { status(e.message); } }; nav.append(button);
     }
     nav.append(text('span', 'Page ' + pageNumber + ' of ' + pdf.numPages)); panel.append(nav);
     const viewport = page.getViewport({scale: 1.5}), canvas = document.createElement('canvas'); canvas.width = viewport.width; canvas.height = viewport.height; canvas.className = 'official-form-canvas';
@@ -46,9 +65,10 @@
       if(!document.getElementById('official-signature-name')){const signature=document.createElement('label');signature.className='application-label';signature.append(text('span','Type your first and last name *'));const name=document.createElement('input');name.id='official-signature-name';name.maxLength=250;name.value=[applicationData.firstName,applicationData.lastName].filter(Boolean).join(' ');signature.append(name);panel.append(signature);}
       const submit=text('button',(kind==='new_hire'?'Confirm & send employee information':('Sign & submit '+(kind==='i9'?'I-9 employee section':'W-4')))+' to HR');submit.type='button';submit.className='btn-primary';submit.onclick=async()=>{submit.disabled=true;try{await save(true);}catch(e){status(e.message);}finally{submit.disabled=false;}};panel.append(submit);
     }
+    refreshCompleteness();
   }
   window.WorkforceForms={clear,flush:async()=>{await ready;await save();},open:async (selected,application={})=>{
-    await save(); clear(); const sequence=generation; kind=selected;applicationData={...application};pageNumber=1;status('Loading the official form…');
+    await saveNavigation(); clear(); const sequence=generation; kind=selected;applicationData={...application};pageNumber=1;status('Loading the official form…');
     ready=(async()=>{try {
       const [library,response,saved]=await Promise.all([import('/assets/form-viewer/pdf.mjs'),fetch('/assets/forms/schema.json',{cache:'no-store'}),workforceApi('/application/forms/'+kind)]);
       if(sequence!==generation)return;const schemas=await response.json();schema=schemas[kind];record=saved.form;employer={...(saved.employer||{})};fields={...(record?.fields||{})};

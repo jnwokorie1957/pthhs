@@ -117,3 +117,8 @@ test('source reason/action choices are selectable, staged with the note, and nev
  const request=f.calls.filter(([path])=>path.endsWith('/maintenance/save')).at(-1);const body=JSON.parse(request[1].body);assert.equal(body.reasonId,'55');assert.equal(body.actionId,'65');
  const submit=f.ids.get('maintenanceDetail').querySelectorAll('button').find(n=>n.textContent.startsWith('Submit to HHA'));assert.equal(submit.disabled,true);assert.equal(f.saved().hhaSubmission,'not_submitted');
 });
+test('a successful empty reason catalog explicitly states that no source code can be staged',async()=>{
+ const f=fixture();f.ready();await tick();f.ids.get('maintenanceList').querySelectorAll('button')[0].click();await tick();f.ids.get('maintenanceNote').value='Synthetic connectivity review';f.event('maintenanceCaseForm','submit');await tick();
+ f.handler(async path=>{assert.ok(path.endsWith('/maintenance/reasons'));return{ok:true,item:{...f.saved(),revision:f.saved().revision+1,reasonCatalog:{fetchedAt:date+'T16:00:00Z',truncated:false,reasons:[]}},hhaWritesEnabled:false};});
+ f.ids.get('maintenanceDetail').querySelectorAll('button').find(n=>n.textContent==='Load HHA reason / action codes').click();await tick();assert.match(f.ids.get('maintenanceStatus').textContent,/no reason\/action choices/);assert.match(f.text(f.ids.get('maintenanceDetail')),/applicable catalog and confirmation contract/);assert.equal(f.ids.get('maintenanceReason').children.length,1);
+});

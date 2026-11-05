@@ -14,5 +14,6 @@
     && (!f.schedule || o.schedule === f.schedule)
     && (!f.hours || o.weeklyHours >= Number(f.hours))
     && (!f.type || o.type === f.type);
-  root.WorkforceContract = Object.freeze({ validId, selectedId, returnPath, matches });
+  const reviewNavigationAllowed = (hostname, serverFlag) => serverFlag === true && ['localhost', '127.0.0.1', '[::1]'].includes(hostname);
+  root.WorkforceContract = Object.freeze({ validId, selectedId, returnPath, matches, reviewNavigationAllowed });
 })(globalThis);

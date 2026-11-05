@@ -17,9 +17,17 @@ approved limited automation, then build the owned scheduling platform.
 [ ] M04 Protected assigned reports: action/evidence/rule and unresolved next step.
 [ ] M05 Owner-selected approximately 25-client shadow pilot and measured results.
 [ ] M06 Reviewed submissions, then approved-rule automation using actual calls.
-[ ] M01b/M02a Range/person/payer search, actionable rows and typed reason/action
-    staging implemented; normal release and production checks pending. Four new
-    scoped read grants need the owner decision. HHA write contracts remain open.
+[x] M01b Range/person/payer search and actionable rows deployed and verified.
+    Fourteen of fourteen matching
+    returned IDs checked for October23-November5; zero unavailable. Both profile
+    lookups and48office contracts accepted. Five scoped read grants approved/saved.
+    Follow-up verifies the unused zero secondary-payer repair: one exact known
+    contract matches; an independently ruled-out contract returns zero, with
+    complete1-of1checked/no unavailable details in both cases.
+[ ] M02a Typed reason/action staging is implemented. Fresh guarded source read
+    21:29:49.890Z returns no choices; explicit empty disclosure is live. A real
+    nonempty catalog/code staging and HHA confirmation/link/readback contract
+    remain open. No source submission was made.
     See MAINTENANCE_RANGE_SEARCH_2026-11-05.md. No confirmation is simulated.
 [x] M01a Administrator review workspace implemented: full office/day source queue,
     durable source-bound cases, genuine scoped call evidence and proposals.

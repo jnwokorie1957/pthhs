@@ -2,9 +2,12 @@
 
 - [x] Implemented the requested maintenance From/To range, separate patient/member
   and caregiver name/code lookups, bill-to payer/contract filtering, actionable
-  rows/cards, deadline recovery and source-bound reason/action staging. Normal
-  release, the five new scoped read decisions and signed-in production acceptance
-  are pending. [Implementation and controls](MAINTENANCE_RANGE_SEARCH_2026-11-05.md).
+  rows/cards, deadline recovery and source-bound reason/action staging. Initial
+  normal release passed; fourteen of fourteen source visits and both name lookups
+  are accepted. Five reads were explicitly approved and saved. Payer zero-reference
+  repair, exact matching/nonmatching source filters and the empty reason disclosure
+  are verified in production. Real nonempty reason staging remains unaccepted.
+  [Implementation and controls](MAINTENANCE_RANGE_SEARCH_2026-11-05.md).
   HHA confirmation writes and authoritative event links remain open M02 work.
 
 - [ ] November 5 restricted-role design (19:43UTC): current maintenance queues
@@ -74,6 +77,11 @@
   the34-URL sitemap expose both. Private noindex/anonymous401/no-store pass.
   No exact-period search outcome, runtime change or repeat deployment accepted.
   See [bounded verification](../seo/2026-11-05-seo-review.md).
+  21:09UTC follow-up:139public routes/18exact artifacts pass; six-article plan
+  aligned. Google canonical sitemap is Success/readNovember5/34discovered URLs,
+  not indexing acceptance. Explicit October26–November1 versus October19–25
+  periods match all four cards/URL; invalid daily chart remains uninterpreted.
+  Existing owner claim/location and search-outcome limits remain open.
 
 - [x] November4 requested full office-day Overview: all returned detail batches
   now feed one consistent totals/chart set, independently of Preview paging.

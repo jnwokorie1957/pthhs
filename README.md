@@ -2,6 +2,14 @@
 
 ## Administrator visit-maintenance workspace
 
+November 5 range-search update: inclusive From/To dates (up to 366 days), separate
+patient/member and caregiver names/codes, live office contracts, bill-to payer
+filtering and actionable visit rows are deployed. The owner approved and saved
+five scoped read methods, preserving the previous thirteen. Production checked
+14/14 visits for one fourteen-day patient query and independently verified matching
+and nonmatching payer filters. The tested reason read returns no choices; real-code
+staging and HHA confirmation remain open. See [current acceptance](docs/management-layer/MAINTENANCE_RANGE_SEARCH_2026-11-05.md).
+
 The working `/primetime#maintenance` implementation brings the office/day visit
 queue, original times, saved office cases, genuine scoped caregiver call events,
 proposals, follow-up queues and private text reports together. Production save,

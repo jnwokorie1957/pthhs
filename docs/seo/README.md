@@ -4,9 +4,11 @@ These files remain useful for planning, but they do not override current public
 facts, payer evidence, or claim-release controls.
 
 - [November 5 article delivery and SEO review](2026-11-05-seo-review.md) — both
-  new guides and their listing links match served Git bytes; the delivered sitemap
-  has 34 URLs and private protections pass. Search-period/outcome limits remain
-  explicit; this verification adds no runtime change or new business claim.
+  new guides and their listing links match served Git bytes. The 21:09 follow-up
+  verifies 139 public routes/18 exact artifacts and an explicit October26–November1
+  versus October19–25 Web comparison. Google reports the canonical sitemap read
+  November5 with 34 discovered URLs; this is not indexing or outcome acceptance.
+  Chart, field-data and owner-claim limits remain; no runtime change.
 
 - [November 3 metadata delivery review](2026-11-03-seo-review.md) — ten exact
   public pages confirm complete HTML/WebPage metadata, including the previously

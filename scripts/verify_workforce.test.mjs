@@ -7,6 +7,11 @@ const read = p => fs.readFileSync(new URL('../'+p, import.meta.url),'utf8');
 const context = vm.createContext({ URLSearchParams });
 vm.runInContext(read('public/assets/workforce-contract.js'), context);
 const contract = context.WorkforceContract;
+test('free review navigation requires the local preview session and cannot be enabled for live applicants', () => {
+  for(const host of ['localhost','127.0.0.1','[::1]']) { assert.equal(contract.reviewNavigationAllowed(host,true),true); assert.equal(contract.reviewNavigationAllowed(host,false),false); }
+  for(const host of ['pthhs.net','www.pthhs.net','localhost.example.com','']) assert.equal(contract.reviewNavigationAllowed(host,true),false);
+  assert.equal(contract.reviewNavigationAllowed('localhost','true'),false);
+});
 test('opportunity selection survives sign-in without accepting external redirect destinations', () => {
   assert.equal(contract.returnPath('?opportunity=synthetic-123&returnTo=https://example.invalid'), '/caregiver?opportunity=synthetic-123');
   for (const id of ['https://example.invalid','//example.invalid','../primetime','<script>', 'a/b','']) assert.equal(contract.returnPath('?opportunity='+encodeURIComponent(id)), '/caregiver');
