@@ -23,6 +23,19 @@
   let investigationSequence = 0, investigationCursor = null, investigationsLoaded = false, investigationsLoading = false, investigationReadAt = null;
   const $ = id => document.getElementById(id);
   const canRead = () => dataApproved && window.primetimeDataMode?.isLive() === true;
+  const attachmentUrls = new Set();
+  function releaseAttachmentUrl(url) {
+    if (attachmentUrls.delete(url)) URL.revokeObjectURL(url);
+  }
+  function clearRead() {
+    readSequence++;
+    for (const url of attachmentUrls) releaseAttachmentUrl(url);
+    $('readResults').replaceChildren();
+  }
+  function applyReadSettings(next) {
+    if (settings?.officeId !== next?.officeId || JSON.stringify(settings?.enabledReads) !== JSON.stringify(next?.enabledReads)) clearRead();
+    settings = next;
+  }
   const readHome = $('readForm').parentElement;
   const inlineRead = () => readHome && $('readForm').parentElement === $('patientAuthorizationHost');
   function dockRead(inline) {
@@ -88,7 +101,7 @@
   function selectRead(operation, retained = false) {
     if (!retained) clearAuthorizationList();
     authorizationBack.hidden = operation !== 'GetPatientAuthorizationInfo' || !authorizationListCurrent();
-    authorizationSelection = null; $('readOperation').value = operation; readSequence++; $('readResults').replaceChildren(); showReadInputs(); }
+    authorizationSelection = null; $('readOperation').value = operation; clearRead(); showReadInputs(); }
   document.addEventListener('primetime-source-record-selected', event => {
     const { kind, id, officeId } = event.detail || {};
     const patientDiscovery = kind === 'patient-care-plans' || kind === 'patient-documents';
@@ -118,7 +131,7 @@
     }
   });
   $('readOperation').addEventListener('change', () => selectRead($('readOperation').value));
-  for (const id of Object.values(inputIds)) $(id).addEventListener('input', () => { readSequence++; authorizationSelection = null; clearAuthorizationList(); $('readResults').replaceChildren(); });
+  for (const id of Object.values(inputIds)) $(id).addEventListener('input', () => { clearRead(); authorizationSelection = null; clearAuthorizationList(); });
   async function request(path, body, expectedGeneration = generation) {
     if (expectedGeneration !== generation) throw new Error('Session changed. Start this action again.');
     if (window.primetimeDataMode?.isLive() !== true) throw new Error('Demo mode uses sample data. Switch Demo data off to load operational controls.');
@@ -144,7 +157,7 @@
   function paragraph(text, tag = 'p') { const p = document.createElement(tag); p.textContent = text; return p; }
   function setDataAccess(enabled) {
     dataApproved = enabled;
-    if (!enabled) dockRead(false);
+    if (!enabled) { clearRead(); dockRead(false); }
     if ($('investigationFilters')) $('investigationFilters').inert = !enabled || window.primetimeDataMode?.isLive() !== true;
     if (!enabled) { authorizationSelection = null; clearAuthorizationList(); clearInvestigations(); }
     if ($('manualSnapshotPanel')) $('manualSnapshotPanel').inert = !enabled || window.primetimeDataMode?.isLive() !== true;
@@ -154,10 +167,10 @@
       if (!enabled) form.reset();
       for (const input of form.querySelectorAll('input, select, textarea, button')) input.disabled = !enabled;
     }
-    if (!enabled) for (const id of ['linkedScheduleCreations','collectionNoteChanges','referralCreations','contractCreations','caregiverPictureChanges','documentCreationChanges','documentReplacementChanges','medicalCreations','patientClinicalChanges','documentMetadataChanges','patientNoteChanges','availabilityCreations','patientContractChanges','rateCreations','topicChanges','documentTypeChanges','availabilityChanges','staffingEvidence','readResults','investigationList','intentList','workspaceAudit']) $(id)?.replaceChildren();
+    if (!enabled) for (const id of ['linkedScheduleCreations','collectionNoteChanges','referralCreations','contractCreations','caregiverPictureChanges','documentCreationChanges','documentReplacementChanges','medicalCreations','patientClinicalChanges','documentMetadataChanges','patientNoteChanges','availabilityCreations','patientContractChanges','rateCreations','topicChanges','documentTypeChanges','availabilityChanges','staffingEvidence','investigationList','intentList','workspaceAudit']) $(id)?.replaceChildren();
   }
   setDataAccess(false);
-  function reset() { linkedScheduleCreationWritesEnabled = false; pendingLinkedScheduleCreationId = null; setDataAccess(false); collectionNoteWritesEnabled = false; pendingCollectionNoteId = null; referralCreationWritesEnabled = false; pendingReferralCreationId = null; contractCreationWritesEnabled = false; pendingContractCreationId = null; caregiverPictureWritesEnabled = false; pendingCaregiverPictureId = null; documentCreationWrites = []; pendingDocumentCreationId = null; documentReplacementWrites = []; pendingDocumentReplacementId = null; medicalCreationWritesEnabled = false; pendingMedicalCreationId = null; patientClinicalWritesEnabled = false; pendingPatientClinicalId = null; documentMetadataWrites = []; pendingDocumentMetadataId = null; patientNoteWritesEnabled = false; pendingPatientNoteId = null; $("patientNoteForm").reset(); $("patientNoteChanges").replaceChildren(); availabilityCreationWrites = []; pendingAvailabilityCreationId = null; $("availabilityCreationForm").reset(); $("availabilityCreations").replaceChildren(); patientContractWritesEnabled = false; pendingPatientContractId = null; $("patientContractForm").reset(); $("patientContractChanges").replaceChildren(); rateCreationWritesEnabled = false; pendingRateCreationId = null; $("rateCreationForm").reset(); $("rateCreations").replaceChildren(); topicWritesEnabled = false; pendingTopicId = null; $("topicForm").reset(); $("topicChanges").replaceChildren(); documentTypeWritesEnabled = false; pendingDocumentTypeId = null; $("documentTypeForm").reset(); $("documentTypeChanges").replaceChildren(); generation++; readSequence++; readInputs = {}; writesEnabled = false; settings = null; investigations = []; intents = []; pendingIntentId = null; pendingRateId = null; $('rateProposalForm').reset(); $('staffingReviewForm').reset(); $('availabilityForm').reset(); availabilityWrites = []; pendingAvailabilityId = null; for (const id of ['availabilityChanges', 'staffingEvidence', 'readResults', 'investigationList', 'intentList', 'workspaceAudit']) $(id)?.replaceChildren(); $('investigationForm').reset(); $('intentForm').reset(); $('readForm').reset(); $('ownerForm').reset(); $('readPermissions').replaceChildren(); $('readPermissionSearch').value = ''; $('readPermissionSelectedOnly').checked = false; $('readPermissionCount').textContent = 'Sign in to load available reads.'; message('Sign in to load operational controls.'); }
+  function reset() { linkedScheduleCreationWritesEnabled = false; pendingLinkedScheduleCreationId = null; setDataAccess(false); collectionNoteWritesEnabled = false; pendingCollectionNoteId = null; referralCreationWritesEnabled = false; pendingReferralCreationId = null; contractCreationWritesEnabled = false; pendingContractCreationId = null; caregiverPictureWritesEnabled = false; pendingCaregiverPictureId = null; documentCreationWrites = []; pendingDocumentCreationId = null; documentReplacementWrites = []; pendingDocumentReplacementId = null; medicalCreationWritesEnabled = false; pendingMedicalCreationId = null; patientClinicalWritesEnabled = false; pendingPatientClinicalId = null; documentMetadataWrites = []; pendingDocumentMetadataId = null; patientNoteWritesEnabled = false; pendingPatientNoteId = null; $("patientNoteForm").reset(); $("patientNoteChanges").replaceChildren(); availabilityCreationWrites = []; pendingAvailabilityCreationId = null; $("availabilityCreationForm").reset(); $("availabilityCreations").replaceChildren(); patientContractWritesEnabled = false; pendingPatientContractId = null; $("patientContractForm").reset(); $("patientContractChanges").replaceChildren(); rateCreationWritesEnabled = false; pendingRateCreationId = null; $("rateCreationForm").reset(); $("rateCreations").replaceChildren(); topicWritesEnabled = false; pendingTopicId = null; $("topicForm").reset(); $("topicChanges").replaceChildren(); documentTypeWritesEnabled = false; pendingDocumentTypeId = null; $("documentTypeForm").reset(); $("documentTypeChanges").replaceChildren(); generation++; readInputs = {}; writesEnabled = false; settings = null; investigations = []; intents = []; pendingIntentId = null; pendingRateId = null; $('rateProposalForm').reset(); $('staffingReviewForm').reset(); $('availabilityForm').reset(); availabilityWrites = []; pendingAvailabilityId = null; for (const id of ['availabilityChanges', 'staffingEvidence', 'investigationList', 'intentList', 'workspaceAudit']) $(id)?.replaceChildren(); $('investigationForm').reset(); $('intentForm').reset(); $('readForm').reset(); $('ownerForm').reset(); $('readPermissions').replaceChildren(); $('readPermissionSearch').value = ''; $('readPermissionSelectedOnly').checked = false; $('readPermissionCount').textContent = 'Sign in to load available reads.'; message('Sign in to load operational controls.'); }
   document.addEventListener('primetime-signed-out', () => { reset(); clearConnectedPanels(); clearManualSnapshots(); if ($('manualPatientId')) $('manualPatientId').value = ''; });
   document.addEventListener('primetime-view-changed', event => {
     if (event.detail?.view === 'workbench') dockRead(false);
@@ -205,7 +218,7 @@
     catch (error) { if (current === generation) $('dashboardSettings')?.replaceChildren(paragraph('Settings read unavailable: ' + error.message)); throw error; }
   }
   async function loadSettingsData() {
-    const data = await request('settings'); linkedScheduleCreationWritesEnabled = data.linkedScheduleCreationWritesEnabled === true; collectionNoteWritesEnabled = data.collectionNoteWritesEnabled === true; referralCreationWritesEnabled = data.referralCreationWritesEnabled === true; contractCreationWritesEnabled = data.contractCreationWritesEnabled === true; caregiverPictureWritesEnabled = data.caregiverPictureWritesEnabled === true; documentCreationWrites = data.documentCreationWrites || []; documentReplacementWrites = data.documentReplacementWrites || []; medicalCreationWritesEnabled = data.medicalCreationWritesEnabled === true; patientClinicalWritesEnabled = data.patientClinicalWritesEnabled === true; documentMetadataWrites = data.documentMetadataWrites || []; patientNoteWritesEnabled = data.patientNoteWritesEnabled === true; availabilityCreationWrites = data.availabilityCreationWrites || []; patientContractWritesEnabled = data.patientContractWritesEnabled === true; settings = data.settings; writesEnabled = data.writesEnabled === true; documentTypeWritesEnabled = data.documentTypeWritesEnabled === true; topicWritesEnabled = data.topicWritesEnabled === true; rateCreationWritesEnabled = data.rateCreationWritesEnabled === true; readInputs = data.readInputs || {}; availabilityWrites = data.availabilityWrites || []; showReadInputs();
+    const data = await request('settings'); linkedScheduleCreationWritesEnabled = data.linkedScheduleCreationWritesEnabled === true; collectionNoteWritesEnabled = data.collectionNoteWritesEnabled === true; referralCreationWritesEnabled = data.referralCreationWritesEnabled === true; contractCreationWritesEnabled = data.contractCreationWritesEnabled === true; caregiverPictureWritesEnabled = data.caregiverPictureWritesEnabled === true; documentCreationWrites = data.documentCreationWrites || []; documentReplacementWrites = data.documentReplacementWrites || []; medicalCreationWritesEnabled = data.medicalCreationWritesEnabled === true; patientClinicalWritesEnabled = data.patientClinicalWritesEnabled === true; documentMetadataWrites = data.documentMetadataWrites || []; patientNoteWritesEnabled = data.patientNoteWritesEnabled === true; availabilityCreationWrites = data.availabilityCreationWrites || []; patientContractWritesEnabled = data.patientContractWritesEnabled === true; applyReadSettings(data.settings); writesEnabled = data.writesEnabled === true; documentTypeWritesEnabled = data.documentTypeWritesEnabled === true; topicWritesEnabled = data.topicWritesEnabled === true; rateCreationWritesEnabled = data.rateCreationWritesEnabled === true; readInputs = data.readInputs || {}; availabilityWrites = data.availabilityWrites || []; showReadInputs();
     if (window.primetimeDataMode?.observeScope?.(settings)) return;
     $('ownerOffice').value = settings.officeId || ''; $('ownerTimezone').value = settings.officeTimezone || ''; $('ownerReference').value = settings.policyReference;
     $('ownerInMinutes').value = settings.missingClockInMinutes ?? ''; $('ownerOutMinutes').value = settings.missingClockOutMinutes ?? '';
@@ -229,12 +242,12 @@
     if (!settings) throw new Error('Load owner controls first.');
     const threshold = id => $(id).value === '' ? null : Number($(id).value);
     const result = await request('settings', { revision: settings.revision, officeId: $('ownerOffice').value || null, officeTimezone: $('ownerTimezone').value || null, policyReference: $('ownerReference').value, enabledReads: [...$('readPermissions').querySelectorAll('input:checked')].map(input => input.value), missingClockInMinutes: threshold('ownerInMinutes'), missingClockOutMinutes: threshold('ownerOutMinutes') });
-    settings = result.settings;
+    applyReadSettings(result.settings);
     if (window.primetimeDataMode?.observeScope?.(settings)) return;
     $('readOffice').value = settings.officeId || ''; $('staffingOffice').value = settings.officeId || ''; message('Preferences saved and audited. Thresholds configure review; automated decisions stay disabled.');
   }); });
   $('readForm').addEventListener('submit', event => { event.preventDefault(); action(async () => {
-    const sequence = ++readSequence; $('readResults').replaceChildren();
+    clearRead(); const sequence = readSequence;
     const operation = $('readOperation').value, fields = readInputs[operation];
     if (operation !== 'GetPatientAuthorizationInfo' || !authorizationSelection || !authorizationListCurrent()) clearAuthorizationList();
     if (!fields) throw new Error('Load owner controls before requesting source data.');
@@ -259,12 +272,18 @@
     if (authorizationRead) target.append(paragraph(`Patient ${input.patientId} · office ${officeId} · fetched ${data.fetchedAt}. ${data.operation === 'SearchPatientAuthorizations' ? `${data.records.length} authorization discovery row(s) returned${data.truncated ? ' · truncated; not a complete list' : ' for this request'}.` : 'Raw authorization detail fields.'} Independent of the visit date filter. Unit conversion, balance period, usage basis and limits remain unvalidated. This evidence does not establish scheduling eligibility, billable services or remaining hours.`));
     if (data.attachment) {
       const file = data.attachment;
+      const context = JSON.stringify([readGeneration, sequence, officeId, operation, ...fields.map(field => input[field])]);
+      // This is a local lifetime guard, not a substitute for server authorization.
+      const current = () => canRead() && typeof officeId === 'string' && officeId !== ''
+        && Array.isArray(settings?.enabledReads) && settings.enabledReads.includes(operation)
+        && JSON.stringify([generation, readSequence, settings.officeId, $('readOperation').value, ...fields.map(field => $(inputIds[field])?.value)]) === context;
       target.append(paragraph(`Attachment ready: ${file.filename}, ${file.byteLength} bytes. The file is not rendered in this page.`));
       target.append(button('Save attachment to this device', async () => {
-        if (!window.confirm('Save this source attachment to this device? Follow your organization’s handling policy for downloaded records.')) return;
+        if (!current() || !window.confirm("Save this source attachment to this device? Follow your organization's handling policy for downloaded records.") || !current()) return;
         const bytes = Uint8Array.from(atob(file.base64), character => character.charCodeAt(0));
         const url = URL.createObjectURL(new Blob([bytes], { type: 'application/octet-stream' }));
-        const link = document.createElement('a'); link.href = url; link.download = file.filename; link.click(); setTimeout(() => URL.revokeObjectURL(url), 1000);
+        attachmentUrls.add(url); setTimeout(() => releaseAttachmentUrl(url), 1000);
+        const link = document.createElement('a'); link.href = url; link.download = file.filename; link.click();
       }));
     }
     if (data.changePreview) target.append(paragraph(`Change preview only. Request boundary ${data.changePreview.modifiedAfter} uses ${data.changePreview.timeBasis === "UTC" ? "explicit UTC" : "vendor EST wall time without conversion"}. Completeness is not inferred; no durable sync checkpoint was advanced. ${data.changePreview.page ? 'Requested page ' + data.changePreview.page + '. Confirm vendor paging termination before import.' : ''}`));

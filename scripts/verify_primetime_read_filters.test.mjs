@@ -36,9 +36,9 @@ function carePlanFixture(documents = false, visits = false) {
     get textContent(){return this.text??this.children.map(x=>x.textContent||'').join(' ')},set textContent(value){this.text=value} }; }
   const el=id=>{if(!elements.has(id))elements.set(id,node(id));return elements.get(id)};
   const settings={revision:1,officeId:'9',enabledReads:visits?['SearchVisitsV2','GetVisitInfoV3']:documents?['SearchPatientDocument','DownloadPatientDocument']:['SearchPatientPOC','GetPatientPOCInfo']};
-  const state={live:true,deferred:null,truncated:false,dialogs:0,fetchedAt:'2026-11-02T20:00:00.000Z'};
-  const document={getElementById:el,querySelectorAll:()=>[],createElement:()=>node(),createTextNode:text=>({textContent:text}),addEventListener:(e,f)=>events.set(e,f)};
-  const window={primetimeDataMode:{isLive:()=>state.live},confirm(){state.dialogs++;return false},async primetimeApiFetch(path,options){
+  const state={live:true,deferred:null,truncated:false,dialogs:0,confirmed:false,approved:true,attachment:true,failure:false,decoded:0,blobs:[],urls:[],revoked:[],clicks:[],timers:[],fetchedAt:'2026-11-02T20:00:00.000Z'};
+  const document={getElementById:el,querySelectorAll:()=>[],createElement:tag=>{const element=node();element.click=()=>state.clicks.push({tag,href:element.href,download:element.download});return element},createTextNode:text=>({textContent:text}),addEventListener:(e,f)=>events.set(e,f)};
+  const window={primetimeDataMode:{isLive:()=>state.live},confirm(){state.dialogs++;state.onConfirm?.();return state.confirmed},async primetimeApiFetch(path,options){
     sent.push({path,body:options?.body});
     if(path.endsWith('/visit-review')){
       if(state.reviewDeferred)await state.reviewDeferred;
@@ -46,18 +46,114 @@ function carePlanFixture(documents = false, visits = false) {
       return {ok:true,json:async()=>({ok:true,state:'source_unvalidated',visits:JSON.parse(options.body).visitIds.map(visitId=>({visitId,state:'source_unvalidated',fetchedAt:state.fetchedAt,flags:[],facts:{VisitStartTime:'synthetic start'}}))})};
     }
     if(path.endsWith('/read')){
-      if(state.deferred)await state.deferred;const input=JSON.parse(options.body);
+      if(state.deferred)await state.deferred;if(state.failure)throw new Error('Synthetic read failure');const input=JSON.parse(options.body);
       const records=input.operation==='SearchVisitsV2'?Array.from({length:12},(_,i)=>({VisitID:String(101+i)})):input.operation==='SearchPatientPOC'?[{ID:'7'}]:input.operation==='SearchPatientDocument'?[{PatientDocID:'7',PatientID:'8',FileName:'synthetic.pdf'}]:input.operation==='DownloadPatientDocument'?[{PatientDocID:'7',FileName:'synthetic.pdf',FileSize:null}]:[{ID:'7',SourceElement:'POCInfo (plan header)',TaskListState:'Not supplied / unknown',Interpretation:'Plan/task definitions only.'}];
-      return {ok:true,json:async()=>({ok:true,operation:input.operation,source:'hhaexchange',fetchedAt:state.fetchedAt,truncated:state.truncated,records,...(input.operation==='DownloadPatientDocument'?{attachment:{filename:'synthetic.pdf',byteLength:4,base64:'dGVzdA==',contentType:'application/octet-stream'}}:{})})};
+      return {ok:true,json:async()=>({ok:true,operation:input.operation,source:'hhaexchange',fetchedAt:state.fetchedAt,truncated:state.truncated,records:state.empty?[]:records,...(input.operation==='DownloadPatientDocument'&&state.attachment&&!state.empty?{attachment:{filename:'synthetic.pdf',byteLength:4,base64:'dGVzdA==',contentType:'application/octet-stream'}}:{})})};
     }
-    return {ok:true,json:async()=>({ok:true,settings,dataApproved:true,supportedReads:settings.enabledReads,readInputs:{SearchVisitsV2:['officeId','date'],SearchPatientPOC:['patientId','officeId'],GetPatientPOCInfo:['patientId','officeId','id'],SearchPatientDocument:['patientId','officeId','documentTypeId','id','date'],DownloadPatientDocument:['patientId','officeId','id']}})};
+    return {ok:true,json:async()=>({ok:true,settings:structuredClone(settings),dataApproved:state.approved,supportedReads:settings.enabledReads||[],readInputs:{SearchVisitsV2:['officeId','date'],SearchPatientPOC:['patientId','officeId'],GetPatientPOCInfo:['patientId','officeId','id'],SearchPatientDocument:['patientId','officeId','documentTypeId','id','date'],DownloadPatientDocument:['patientId','officeId','id']}})};
   }};
   const mode=window.primetimeDataMode;
   vm.runInNewContext(readFileSync(new URL('../public/primetime/data-source.js',import.meta.url),'utf8'),{document,window,Event});window.primetimeDataMode=mode;
-  vm.runInNewContext(readFileSync(new URL('../public/primetime/workspace.js',import.meta.url),'utf8'),{document,window,console});events.get('primetime-ready')();
-  return {el,events,sent,state,submit(){el('readForm').handlers.get('submit')({preventDefault(){}})}};
+  const downloads={atob(value){state.decoded++;return Buffer.from(value,'base64').toString('binary')},Blob:class {constructor(parts,options){state.blobs.push({bytes:[...parts[0]],type:options.type})}},URL:{createObjectURL(){const url=`blob:synthetic-${state.urls.length}`;state.urls.push(url);return url},revokeObjectURL(url){state.revoked.push(url)}},setTimeout(callback,delay){state.timers.push({callback,delay})}};
+  vm.runInNewContext(readFileSync(new URL('../public/primetime/workspace.js',import.meta.url),'utf8'),{document,window,console,...downloads});events.get('primetime-ready')();
+  return {el,events,sent,state,settings,reload(){el('reloadWorkspace').handlers.get('click')()},submit(){el('readForm').handlers.get('submit')({preventDefault(){}})}};
 }
 const settleCarePlan=()=>new Promise(resolve=>setImmediate(resolve));
+
+async function attachmentFixture() {
+  const f=carePlanFixture(true);await settleCarePlan();
+  f.el('readOperation').value='DownloadPatientDocument';f.el('readPatient').value='8';f.el('readOffice').value='9';f.el('readId').value='7';
+  f.submit();await settleCarePlan();f.state.confirmed=true;
+  f.save=()=>f.el('readResults').children.find(x=>x.textContent==='Save attachment to this device')?.handlers.get('click');
+  assert.ok(f.save());return f;
+}
+function noDownload(f) {
+  assert.equal(f.state.decoded,0);assert.equal(f.state.blobs.length,0);assert.equal(f.state.urls.length,0);assert.equal(f.state.clicks.length,0);assert.equal(f.state.timers.length,0);
+}
+
+test('confirmed current attachment requests one browser save without another source read or completed-save claim',async()=>{
+  const f=await attachmentFixture(),requests=f.sent.length;
+  f.save()();await settleCarePlan();assert.equal(f.state.dialogs,1);assert.equal(f.state.decoded,1);
+  assert.deepEqual(f.state.blobs,[{bytes:[116,101,115,116],type:'application/octet-stream'}]);
+  assert.deepEqual(f.state.clicks,[{tag:'a',href:'blob:synthetic-0',download:'synthetic.pdf'}]);assert.equal(f.sent.length,requests);
+  assert.equal(f.state.timers[0].delay,1000);assert.equal(f.state.revoked.length,0);
+  f.state.timers[0].callback();assert.deepEqual(f.state.revoked,['blob:synthetic-0']);
+  assert.doesNotMatch(f.el('workspaceMessage').textContent,/saved|download complete/i);
+});
+
+test('cancellation and metadata-only replies cannot decode or create a device-save action',async()=>{
+  const f=await attachmentFixture();f.state.confirmed=false;const requests=f.sent.length;
+  f.save()();await settleCarePlan();assert.equal(f.state.dialogs,1);noDownload(f);assert.equal(f.sent.length,requests);
+  f.state.attachment=false;f.submit();await settleCarePlan();assert.equal(f.save(),undefined);noDownload(f);
+});
+
+// Retaining removed callbacks is deliberately synthetic defense-in-depth coverage,
+// not evidence that ordinary native UI transitions leave a reachable Save control.
+for(const change of ['readPatient','readId','readOffice','readOperation','input-event','demo','sign-out','configured-office','enabled-read','missing-office','missing-reads','release']) {
+  test(`retained attachment callback fails closed after ${change}`,async()=>{
+    const f=await attachmentFixture(),save=f.save();
+    if(['readPatient','readId','readOffice','readOperation'].includes(change))f.el(change).value='changed'; // guard also handles value changes without a DOM event
+    else if(change==='input-event')f.el('readId').handlers.get('input')();
+    else if(change==='demo')f.state.live=false;
+    else if(change==='sign-out')f.events.get('primetime-signed-out')();
+    else {if(change==='configured-office')f.settings.officeId='99';if(change==='missing-office')f.settings.officeId=null;
+      if(change==='enabled-read')f.settings.enabledReads=[];if(change==='missing-reads')delete f.settings.enabledReads;
+      if(change==='release')f.state.approved=false;f.reload();await settleCarePlan();}
+    const requests=f.sent.length;save();await settleCarePlan();assert.equal(f.state.dialogs,0);noDownload(f);assert.equal(f.sent.length,requests);
+  });
+}
+
+test('accepted confirmation rechecks context before any decoding or browser side effect',async()=>{
+  for(const change of ['input','operation','demo','session','replacement']) {
+    const f=await attachmentFixture(),save=f.save();
+    f.state.onConfirm=()=>{if(change==='input')f.el('readId').value='99';if(change==='operation')f.el('readOperation').value='SearchPatientDocument';
+      if(change==='demo')f.state.live=false;if(change==='session')f.events.get('primetime-signed-out')();if(change==='replacement')f.submit();};
+    const requests=f.sent.length;save();await settleCarePlan();assert.equal(f.state.dialogs,1);noDownload(f);
+    assert.equal(f.sent.length,requests+(change==='replacement'?1:0),'Save itself issues no source read');
+  }
+});
+
+for(const outcome of ['success','empty','failure']) {
+  test(`replacement pending and ${outcome} invalidate old Save even with identical inputs`,async()=>{
+    const f=await attachmentFixture(),oldSave=f.save();let release;f.state.deferred=new Promise(resolve=>release=resolve);
+    f.submit();const requests=f.sent.length;assert.equal(f.save(),undefined);oldSave();await settleCarePlan();assert.equal(f.state.dialogs,0);noDownload(f);
+    f.state.empty=outcome==='empty';f.state.failure=outcome==='failure';release();await settleCarePlan();oldSave();await settleCarePlan();
+    assert.equal(f.state.dialogs,0);noDownload(f);assert.equal(f.sent.length,requests);
+    if(outcome==='success'){assert.ok(f.save());f.save()();await settleCarePlan();assert.equal(f.state.decoded,1);}
+    else assert.equal(f.save(),undefined);
+  });
+}
+
+test('returning to the same inputs, Live mode, session or release cannot revive old Save',async()=>{
+  for(const change of ['inputs','operation','demo-return','sign-in','release-return','permission-return']) {
+    const f=await attachmentFixture(),oldSave=f.save();
+    if(change==='inputs'){f.el('readId').value='99';f.el('readId').handlers.get('input')();f.el('readId').value='7';}
+    if(change==='operation'){f.el('readOperation').value='SearchPatientDocument';f.el('readOperation').handlers.get('change')();f.el('readOperation').value='DownloadPatientDocument';}
+    if(change==='demo-return'){f.state.live=false;f.events.get('primetime-data-mode-changed')();f.state.live=true;f.events.get('primetime-data-mode-changed')();f.events.get('primetime-ready')();}
+    if(change==='sign-in'){f.events.get('primetime-signed-out')();f.events.get('primetime-ready')();}
+    if(change==='release-return'){f.state.approved=false;f.reload();await settleCarePlan();f.state.approved=true;f.reload();}
+    if(change==='permission-return'){f.settings.enabledReads=[];f.reload();await settleCarePlan();f.settings.enabledReads=['DownloadPatientDocument'];f.reload();}
+    await settleCarePlan();f.el('readOperation').value='DownloadPatientDocument';f.el('readPatient').value='8';f.el('readOffice').value='9';f.el('readId').value='7';
+    const requests=f.sent.length;oldSave();await settleCarePlan();noDownload(f);assert.equal(f.state.dialogs,0);assert.equal(f.sent.length,requests);
+  }
+});
+
+test('context clear revokes URLs and old timers cannot remove newer URL tracking',async()=>{
+  const f=await attachmentFixture();f.save()();await settleCarePlan();const oldTimer=f.state.timers[0];
+  f.submit();assert.deepEqual(f.state.revoked,['blob:synthetic-0']);await settleCarePlan();f.save()();await settleCarePlan();
+  oldTimer.callback();assert.deepEqual(f.state.revoked,['blob:synthetic-0']);
+  f.el('readId').handlers.get('input')();assert.deepEqual(f.state.revoked,['blob:synthetic-0','blob:synthetic-1']);
+  f.state.timers[1].callback();assert.equal(f.state.revoked.length,2);
+});
+
+test('multiple URLs expire independently and each context-clear path revokes active URLs',async()=>{
+  const f=await attachmentFixture();f.save()();await settleCarePlan();f.save()();await settleCarePlan();
+  f.state.timers[0].callback();assert.deepEqual(f.state.revoked,['blob:synthetic-0']);f.events.get('primetime-signed-out')();assert.deepEqual(f.state.revoked,['blob:synthetic-0','blob:synthetic-1']);
+  for(const change of ['operation','demo','release','settings']){const f=await attachmentFixture();f.save()();await settleCarePlan();
+    if(change==='operation')f.el('readOperation').handlers.get('change')();if(change==='demo'){f.state.live=false;f.events.get('primetime-data-mode-changed')();}
+    if(change==='release'){f.state.approved=false;f.reload();}if(change==='settings'){f.settings.enabledReads=[];f.reload();}await settleCarePlan();
+    assert.deepEqual(f.state.revoked,['blob:synthetic-0']);}
+});
 
 async function visitReviewFixture(){
   const f=carePlanFixture(false,true);await settleCarePlan();
