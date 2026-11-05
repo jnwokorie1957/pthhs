@@ -1,5 +1,11 @@
 # PTHHS Management Layer — Developer Checklist
 
+- [x] November5 SEO delivery: five public pages, including both new family
+  guides, match Git and pass canonical/HTML/WebPage/Article checks; listings and
+  the34-URL sitemap expose both. Private noindex/anonymous401/no-store pass.
+  No exact-period search outcome, runtime change or repeat deployment accepted.
+  See [bounded verification](../seo/2026-11-05-seo-review.md).
+
 - [ ] November4 requested full office-day Overview: all returned detail batches
   now feed one consistent totals/chart set, independently of Preview paging.
   Seven collection and six browser integration checks; all500 current checks

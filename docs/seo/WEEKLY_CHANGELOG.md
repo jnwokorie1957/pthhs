@@ -2,6 +2,12 @@
 
 ## Week of November 2, 2026
 
+November5: five exact public pages verify both newly published family guides,
+listing links and HTML/WebPage/Article metadata. The34-URL sitemap includes both;
+private noindex/authentication boundaries pass. A native relative Web comparison
+does not establish exact absolute dates, so no fresh trend/outcome is claimed.
+No runtime change or repeat release. See [review](2026-11-05-seo-review.md).
+
 November3 03:45UTC: ten exact public artifacts confirm parsed HTML/WebPage
 description/title agreement, including the prior quoted-description repair.
 The delivered32-URL sitemap, robots and private noindex/authentication boundaries
