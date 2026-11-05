@@ -1,3 +1,4 @@
+export { workforceApi } from "./workforce/http.js";
 import { submitLinkedScheduleCreation, LINKED_SCHEDULE_EVIDENCE_VERIFIER_AVAILABLE } from "./operations/linkedScheduleCreations.js";
 import { collectionActionAllowed } from "./auth/workflowPermissions.js";
 import { submitCollectionNote } from "./operations/collectionNotes.js";

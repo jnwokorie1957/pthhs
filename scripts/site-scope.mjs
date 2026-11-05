@@ -11,7 +11,7 @@ export function relativePublicPath(file, publicDir) {
 
 export function isInternalAppFile(file, publicDir) {
   const relative = relativePublicPath(file, publicDir);
-  return internalAppPrefixes.some((prefix) => relative.startsWith(prefix));
+  return relative === 'caregiver.html' || internalAppPrefixes.some((prefix) => relative.startsWith(prefix));
 }
 
 export function isMarketingHtml(file, publicDir) {

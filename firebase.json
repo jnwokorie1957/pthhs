@@ -673,9 +673,40 @@
             "value": "public,max-age=0,must-revalidate"
           }
         ]
+      },
+      {
+        "source": "/caregiver",
+        "headers": [
+          {
+            "key": "X-Robots-Tag",
+            "value": "noindex, nofollow, noarchive"
+          },
+          {
+            "key": "Referrer-Policy",
+            "value": "no-referrer"
+          },
+          {
+            "key": "Cache-Control",
+            "value": "no-store"
+          }
+        ]
       }
     ],
     "rewrites": [
+      {
+        "source": "/primetime/workforce-api/**",
+        "function": {
+          "functionId": "workforceApi",
+          "region": "us-central1"
+        }
+      },
+      {
+        "source": "/caregiver/workforce-api/**",
+        "function": {
+          "functionId": "workforceApi",
+          "region": "us-central1"
+        }
+      },
       {
         "source": "/primetime/api/website-live-views",
         "function": {

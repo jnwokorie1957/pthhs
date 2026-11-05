@@ -79,7 +79,10 @@ for path in marketing_pages:
         errors.append(f"shared mobile bar or skip link missing: {relative}")
     if '<main id="main-content" tabindex="-1">' not in text:
         errors.append(f"canonical main target missing: {relative}")
-    if parser.nav_hrefs != NAV_HREFS:
+    expected_nav = NAV_HREFS.copy()
+    if relative == "index.html":
+        expected_nav.insert(expected_nav.index("/home-care-contact-us"), "/caregiver")
+    if parser.nav_hrefs != expected_nav:
         errors.append(f"information architecture differs: {relative}")
     if "/assets/components.css" not in text:
         errors.append(f"shared component layer missing: {relative}")
@@ -89,6 +92,8 @@ for path in marketing_pages:
     if re.search(r"<!--\[if\s+(?:lt|gt|IE)", text, re.I):
         errors.append(f"obsolete IE conditional remains: {relative}")
     for href, label in parser.primary_actions:
+        if relative == "home-care-careers.html" and href == "/caregiver" and " ".join(label.split()) == "Sign In":
+            continue
         if href != "/home-care-contact-us" or " ".join(label.split()) != "Get Started":
             errors.append(f"nonstandard primary action in {relative}: {href} / {label!r}")
     if "https://www.pthhs.net" in text or "http://pthhs.net" in text:

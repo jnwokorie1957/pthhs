@@ -21,6 +21,11 @@ RUNTIME_ASSETS = {
     "assets/section-pages.css",
     "assets/site-enhancements.js",
     "assets/analytics.js",
+    "assets/workforce.css",
+    "assets/workforce-contract.js",
+    "assets/workforce.js",
+    "assets/workforce-session.js",
+    "assets/workforce-staff.js",
 }
 
 

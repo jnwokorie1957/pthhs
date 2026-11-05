@@ -1,5 +1,14 @@
 # PTHHS Frontend Dependency Register
 
+**November 5, 2026 workforce foundation:** Careers adds deferred first-party
+`workforce.js`, `workforce-contract.js` and `workforce.css`. Its filter form
+performs browser filtering only, submits no application records and retains
+the existing self-only form CSP. Private `/caregiver` and `/primetime/workforce`
+reuse the existing same-origin Firebase SDK, with separate first-party session
+and staff scripts and no marketing analytics. New raw/gzip budgets are bounded
+separately from the unchanged operations-app budget. See the authoritative
+[workforce plan](docs/workforce/PLAN.md) for release gates and verification.
+
 **Reviewed:** September 11, 2026  
 **Scope:** Public static output and plan items 87–91 and 95
 

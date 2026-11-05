@@ -255,6 +255,11 @@ expected_runtime_assets = {
     "assets/section-pages.css",
     "assets/site-enhancements.js",
     "assets/analytics.js",
+    "assets/workforce.css",
+    "assets/workforce-contract.js",
+    "assets/workforce.js",
+    "assets/workforce-session.js",
+    "assets/workforce-staff.js",
 }
 if runtime_assets != expected_runtime_assets:
     errors.append(

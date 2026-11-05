@@ -97,7 +97,9 @@ for (const file of htmlFiles) {
       errors.push(`external linked resource: ${relative} -> ${href}`);
     }
   }
-  if (/<(?:iframe|embed|form)\b/i.test(html)) errors.push(`embedded runtime or form remains: ${relative}`);
+  const nonFilterHtml = relative === 'home-care-careers.html'
+    ? html.replace(/<form\b[^>]*id=["']opportunity-filters["'][^>]*>[\s\S]*?<\/form>/i, '') : html;
+  if (/<(?:iframe|embed|form)\b/i.test(nonFilterHtml)) errors.push(`embedded runtime or form remains: ${relative}`);
 
   const pictures = [...html.matchAll(/<picture\s+data-responsive-image=["'](side-img[12])["'][^>]*>([\s\S]*?)<\/picture>/gi)];
   pictureCount += pictures.length;
@@ -184,9 +186,19 @@ const phpFiles = await walk(publicDir, (file) => file.endsWith('.php'));
 if (phpFiles.length) errors.push(`public PHP endpoints remain: ${phpFiles.join(', ')}`);
 
 const publicFiles = await walk(publicDir);
+const isWorkforceFile = file => {
+  const relative = path.relative(publicDir, file).replaceAll(path.sep, '/');
+  return relative === 'caregiver.html' || relative === 'primetime/workforce.html' || relative.startsWith('assets/workforce');
+};
+const workforceFiles = publicFiles.filter(isWorkforceFile);
+const workforceBytes = (await Promise.all(workforceFiles.map(file => fs.stat(file)))).reduce((sum, stat) => sum + stat.size, 0);
+let workforceGzip = 0;
+for (const file of workforceFiles) workforceGzip += gzipSync(await fs.readFile(file)).length;
+if (workforceBytes > 40_000 || workforceGzip > 12_000) errors.push(`workforce output exceeds 40 KB raw / 12 KB gzip budget: ${workforceBytes}/${workforceGzip}`);
 const publicBytes = (await Promise.all(publicFiles.map((file) => fs.stat(file)))).reduce((sum, stat) => sum + stat.size, 0);
-const internalBytes = (await Promise.all(publicFiles.filter(file => isInternalAppFile(file, publicDir)).map(file => fs.stat(file)))).reduce((sum, stat) => sum + stat.size, 0);
-if (publicBytes - internalBytes > 2_000_000) errors.push(`marketing output exceeds 2 MB foundation budget: ${publicBytes - internalBytes}`);
+const internalFiles = publicFiles.filter(file => isInternalAppFile(file, publicDir) && !isWorkforceFile(file));
+const internalBytes = (await Promise.all(internalFiles.map(file => fs.stat(file)))).reduce((sum, stat) => sum + stat.size, 0);
+if (publicBytes - internalBytes - workforceBytes > 2_000_000) errors.push(`marketing output exceeds 2 MB foundation budget: ${publicBytes - internalBytes - workforceBytes}`);
 // The authenticated app now includes source review, Demo/Live and durable
 // follow-up UI, private forms and connected settings/audit views.
 // Keep a bounded raw budget plus compressed-transfer and per-file
@@ -199,7 +211,6 @@ if (publicBytes - internalBytes > 2_000_000) errors.push(`marketing output excee
 // The protected persistent-day adapter adds 7.1 KB raw / 1.3 KB gzip, with no
 // new runtime library. Keep its receipt/coverage/access validation in the budget.
 if (internalBytes > 437_000) errors.push(`internal app output exceeds 437 KB budget: ${internalBytes}`);
-const internalFiles = publicFiles.filter(file => isInternalAppFile(file, publicDir));
 let compressedInternalBytes = 0;
 for (const file of internalFiles) {
   const bytes = await fs.readFile(file);

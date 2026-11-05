@@ -21,7 +21,7 @@ def is_internal_app_path(path: Path, public_dir: Path) -> bool:
     """Return True when a deployed path belongs to an internal application."""
 
     relative = relative_public_path(path, public_dir)
-    return any(relative.startswith(prefix) for prefix in INTERNAL_APP_PREFIXES)
+    return relative == "caregiver.html" or any(relative.startswith(prefix) for prefix in INTERNAL_APP_PREFIXES)
 
 
 def is_marketing_html(path: Path, public_dir: Path) -> bool:
