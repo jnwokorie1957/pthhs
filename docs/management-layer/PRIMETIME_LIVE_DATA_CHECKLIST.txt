@@ -191,14 +191,22 @@ TAB 01 - OVERVIEW
     Current-day field/chart counts10/10/7/2/7/2 match; automatic search receipts
     advanced21:35:03.377Z to21:36:03.275Z. No new original punch was recovered;
     P01/P02/P06 contracts/units, E04 source evidence and full H03 remain open.
-[ ] O03 Complete-office coverage is not established. Determine a supported bounded
-    scan/refresh design before promising full-office totals or all-record search.
-    November4 owner request: Overview now collects every returned office/day
-    detail batch with stable search identity, deduplication, retries, progress and
-    independent Preview paging. All500 checks/26site gates pass. Explicit bounded
-    asset allowance reviewed. Normal release and actual whole-day production
-    count/field/chart reconciliation remain pending; do not accept from fixtures.
-    See OFFICE_DAY_OVERVIEW_2026-11-04.md. No new source method/grant/write/import.
+[x] O03 All returned office/day IDs now feed Overview through the persistent HHA
+    API worker/cache, independently of Preview paging and browser availability.
+    November5 authenticated production:639/639unique source visits,639readable
+    details/receipt pairs,0unavailable; all six field charts, pair/assignment/gap
+    counts, EVV rows and592SVG bars reconcile, with0geometry/table mismatches.
+    Pause/resume progresses on the server. Clean reload returns all639; selecting
+    another date clears prior evidence, returning restores the completed result.
+    Preview next page returns10readable nonoverlapping visits after the actual
+    source retry delay while Overview stays639. Next-generation progress retains
+    complete charts and their fetch range. All657backend/537frontend-contract
+    tests,13exact files,9anonymous boundaries and4normal release jobs pass.
+    See OFFICE_DAY_SERVER_CACHE_2026-11-05.md; runtime099117ea. Collection took
+    about36minutes under unchanged source limits. This accepts processing all
+    returned IDs, not an unsupported vendor census, atomic snapshot, inferred
+    clock/compliance/billing decisions or all clinical/native/AT variants.
+    No new source method/grant/write/manual import. Broader source tasks stay open.
 [x] O04 Compact Open records disclosure plus responsive cards is deployed.
     Production at390/1280/1920px: all7actions fit, identifier cells fit and the
     page has no horizontal overflow. Native source actions remain reachable.

@@ -1,15 +1,18 @@
 # PTHHS
 
-## November 4 office-day Overview implementation
+## November 5 live office-day Overview acceptance
 
-Overview now collects all returned visit-detail batches for the selected office
-and day, with progress, consistent source counts/charts and quota-aware recovery.
-Visit Preview retains independent paging. The initial implementation passed 500
-checks and 26 ordered site gates. Same-scope refresh retention released as
-859402f0; quota-wait labeling released as 041e1935 on November 5. Their exact
-release workflows passed. Actual complete authenticated office-day reconciliation
-and native/keyboard/assistive-technology acceptance remain open; O03 is not complete.
-See [scope and acceptance](docs/management-layer/OFFICE_DAY_OVERVIEW_2026-11-04.md).
+Overview uses a protected, persistent HHA API collector for every returned visit
+in the selected office and day. Production November 5 returned639 unique visits:
+all 639 details and receipts were readable, with zero unavailable details. All six
+field charts, pair/assignment/gap totals, EVV rows and time-bar geometry reconcile.
+Completed results survive reload, date changes and independent Preview paging;
+the next background scan retains the complete result and its source fetch range.
+All 657 backend / 537 frontend-contract checks and all four normal release jobs pass.
+O03's returned-ID coverage is accepted. Source-limited full scans take batches
+(about 36 minutes in this observation), not one minute for every visit. Broader
+vendor census, clinical/EVV interpretation and keyboard/assistive-technology
+acceptance remain separate. See [production evidence and limits](docs/management-layer/OFFICE_DAY_SERVER_CACHE_2026-11-05.md).
 
 ## November 5 attachment Save-context guard release
 
@@ -385,7 +388,7 @@ details deferred by source/time limits without skipping them via Next page.
 Source delays are honored, including a second quota response on the retry.
 Missing returned clock fields remain separate. 533 backend/332 frontend-tooling
 tests, Windows checks and both normal release jobs passed. Native October24
-returned two disjoint10-detail pages; October23 returned10readable details after
+returned two disjoint10-detail pages; October23 returned 10readable details after
 clearing prior-day rows. Exact delay recovery remains regression-tested rather
 than induced in production. See O02 and the new analytics-source audit in the
 [live-data checklist](docs/management-layer/PRIMETIME_LIVE_DATA_CHECKLIST.txt).

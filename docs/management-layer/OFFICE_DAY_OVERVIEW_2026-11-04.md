@@ -1,10 +1,20 @@
 # Office-day Overview
 
+## November 5 current acceptance
+
+The browser-only scan below was interrupted by computer suspension. Its production
+path is superseded by the persistent server collector in
+[OFFICE_DAY_SERVER_CACHE_2026-11-05.md](OFFICE_DAY_SERVER_CACHE_2026-11-05.md).
+That release completed the actual639-ID November 5 office/day and passed native
+count/chart/receipt, date, paging, refresh-retention and reload checks. O03 returned-
+ID coverage is accepted; broader clinical/census and keyboard/AT gates remain.
+The dated implementation and pending statements below describe earlier checkpoints.
+
 The owner requested totals and charts for every visit in the selected office and
 day. Overview now collects every detail batch returned by the existing guarded
 visit endpoint, independently of the page displayed in Visit Preview. Normal
-release has passed; complete authenticated production acceptance remains open
-(see the November 5 reconciliation below).
+release passed at that checkpoint. The November 5 current acceptance above
+supersedes the earlier pending production statements below.
 
 ## Source and counting
 
@@ -84,7 +94,7 @@ No checks, authentication, source budgets, clinical gates or release jobs are
 removed. Other concurrent counter/article changes are preserved.
 
 Initial72a7b8b release41960974920 passes scope, Hosting, backend and analytics
-jobs, with13exact production assets and8anonymous protected boundaries. A signed-
+jobs, with 13 exact production assets and8anonymous protected boundaries. A signed-
 in day scan has progressed beyond the first page and its six chart attributes,
 pair counts and assignment counts reconcile with collected rows. Quota deferrals
 remain explicit and retry the same positions. The subsequent same-scope refresh

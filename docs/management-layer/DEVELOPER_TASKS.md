@@ -1,11 +1,14 @@
 # PTHHS Management Layer — Developer Checklist
 
-- [ ] November5 persistent office-day collection: browser suspension interrupted
-  the large actual scan. The existing minute worker now persists working and
-  published generations through a protected cache, with unchanged HHA reads,
-  source quotas and office/policy checks. Fourteen new checks/all657 backend pass.
-  Normal release, cache UI and complete production/reload acceptance remain
-  pending. See [server-cache scope](OFFICE_DAY_SERVER_CACHE_2026-11-05.md). O03 open.
+- [x] November5 persistent office-day collection: normal releases pass and the
+  signed-in November5 office/day returns639/639unique readable visits with zero
+  unavailable details. All six field charts, pair/assignment/gap counts, EVV rows,
+  receipts and SVG geometry reconcile. Pause/resume, clean reload, date clearing,
+  Preview paging and completed-result retention during the next scan pass.
+  All657backend/537frontend-contract tests,13exact public files and9anonymous
+  protected boundaries pass. Existing HHA grants/quotas and guards are preserved.
+  See [production evidence and limits](OFFICE_DAY_SERVER_CACHE_2026-11-05.md).
+  O03 returned-ID coverage is accepted; broader census/clinical and AT gates remain.
 
 - [x] November5 SEO delivery: five public pages, including both new family
   guides, match Git and pass canonical/HTML/WebPage/Article checks; listings and
@@ -13,16 +16,17 @@
   No exact-period search outcome, runtime change or repeat deployment accepted.
   See [bounded verification](../seo/2026-11-05-seo-review.md).
 
-- [ ] November4 requested full office-day Overview: all returned detail batches
+- [x] November4 requested full office-day Overview: all returned detail batches
   now feed one consistent totals/chart set, independently of Preview paging.
   Seven collection and six browser integration checks; all500 current checks
   and26 ordered site/source gates pass. Existing HHA grants/guards/quota retained.
   Explicit asset deltas/allowances reviewed; initial normal release passes.
   Same-scope refresh retains last complete charts with explicit provenance;
   released as 859402f0; quota-wait labels released as 041e1935 on November 5.
-  Both exact release workflows passed. Actual complete authenticated office-day
-  reconciliation and native/keyboard/assistive-technology acceptance remain open. See
-  [scope and acceptance](OFFICE_DAY_OVERVIEW_2026-11-04.md). O03 stays open.
+  Both exact release workflows passed. The subsequent persistent worker and
+  November5 production acceptance above supersede browser-only collection.
+  Keyboard/assistive-technology and broader source interpretations remain open.
+  See [scope and acceptance](OFFICE_DAY_OVERVIEW_2026-11-04.md).
 
 - [x] November 5 attachment Save-context guard 384c2a72 released: stale
   patient/office/session/read contexts refuse Save before and after confirmation;
