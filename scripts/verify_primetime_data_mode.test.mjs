@@ -1294,6 +1294,99 @@ function numberedSourcePage(path) {
   return payload;
 }
 
+function cachedOfficeDay(path, count = 23) {
+  const date = new URL(path, 'https://fixture.test').searchParams.get('date'), base = livePreview(date), receipt = base.fetchedAt;
+  return { ...base, discovery: { selectedCount: count, truncated: false },
+    items: Array.from({ length: count }, (_, i) => ({ ...base.items[0], id: String(900001 + i), detailFetchedAt: receipt, officeCheckedAt: receipt })),
+    officeDayCache: { kind: 'scheduled_office_day_api', persistedImport: false, background: true, known: true, done: true, complete: true,
+      startedAt: receipt, latestSearchAt: receipt, completedAt: receipt, checkedAt: receipt, updatedAt: receipt, stale: false, error: null,
+      progress: { checked: count, total: count, retryAt: null, refreshing: false } } };
+}
+async function cachedOfficeFixture(read = path => response(cachedOfficeDay(path)), preview) {
+  const app = harness({ storedDataMode: null, metadata: { ...liveMetadata, panels: { ...liveMetadata.panels, officeDay: { available: true } } },
+    fetchSource: path => path.includes('/views/office-day?') ? read(path) : preview ? preview(path) : response(numberedSourcePage(path)) });
+  const timers = new Map(); let sequence = 0;
+  app.context.setTimeout = (fn, delay) => { const id = ++sequence; timers.set(id, { fn, delay }); return id; };
+  app.context.clearTimeout = id => timers.delete(id);
+  app.element('officeDayOverview').classList.add('is-active'); app.element('apiFeedControl').dataset.enabled = 'true';
+  installDashboard(app); await app.signIn(); await tick(); await tick(); await tick();
+  return { ...app, timers };
+}
+test('server office-day view displays all 642 rows and charts from one protected cache read, independently of preview paging', async () => {
+  const app = await cachedOfficeFixture(path => response(cachedOfficeDay(path, 642)));
+  assert.equal(app.calls.filter(c => c.path.includes('/views/office-day?')).length, 1);
+  assert.equal(app.calls.filter(c => c.path.includes('/views/visits?')).length, 1, 'no browser source continuation');
+  assert.match(app.element('dashboardOverviewCompleteness').textContent, /642 \/ 642.*0 unavailable/);
+  assert.match(nodeText(app.element('dashboardEvidenceChart')), /Scheduled start 642 \/ 642/);
+  assert.match(nodeText(app.element('dashboardCoverage')), /642 \/ 642/);
+  assert.match(nodeText(app.element('dashboardTimeline')), /900642/);
+  const totals = nodeText(app.element('dashboardOverviewMetrics'));
+  await app.click('dashboardVisitNext'); await tick(); await tick();
+  assert.equal(nodeText(app.element('dashboardOverviewMetrics')), totals);
+  assert.equal(app.calls.filter(c => c.path.includes('/views/office-day?')).length, 1);
+});
+test('server collection is queued truthfully and is readable during the preview quota delay', async () => {
+  let queued = true;
+  const app = await cachedOfficeFixture(path => {
+    const p = cachedOfficeDay(path, queued ? 0 : 23);
+    if (queued) { p.state = 'partial'; p.fetchedAt = null; p.discovery.selectedCount = null;
+      Object.assign(p.officeDayCache, { known: false, done: false, complete: false, startedAt: null, latestSearchAt: null, completedAt: null });
+      p.officeDayCache.progress.total = null; }
+    return response(p);
+  }, () => ({ ...response({ ok: false, retryAfterSeconds: 60 }), ok: false, status: 429 }));
+  assert.match(app.element('dashboardOverviewStatus').textContent, /collection queued/);
+  assert.doesNotMatch(nodeText(app.element('dashboardOverviewMetrics')), /0 \/ 0/);
+  assert.equal(app.element('dashboardOverviewRefresh').disabled, false);
+  queued = false; await app.click('dashboardOverviewRefresh'); await tick(); await tick();
+  assert.match(app.element('dashboardOverviewCompleteness').textContent, /23 \/ 23/);
+  assert.equal(app.calls.filter(c => c.path.includes('/views/visits?')).length, 1);
+});
+test('completed server result stays whole during background refresh and is labelled cached on delay', async () => {
+  let fail = false;
+  const app = await cachedOfficeFixture(path => {
+    if (fail) return { ...response({ ok: false }), ok: false, status: 503 };
+    const p = cachedOfficeDay(path); p.officeDayCache.stale = true;
+    p.officeDayCache.progress = { checked: 10, total: 23, retryAt: null, refreshing: true }; return response(p);
+  });
+  assert.match(app.element('dashboardOverviewStatus').textContent, /Cached result.*Next refresh: 10 of 23/);
+  assert.match(app.element('dashboardOverviewCompleteness').textContent, /23 \/ 23/);
+  fail = true; await app.click('dashboardOverviewRefresh'); await tick();
+  assert.match(app.element('dashboardOverviewStatus').textContent, /update unavailable.*cached/);
+  assert.match(app.element('dashboardOverviewCompleteness').textContent, /23 \/ 23/);
+});
+test('late cached day cannot repaint a changed date, Demo, hidden view or signed-out session', async () => {
+  for (const action of ['date', 'demo', 'signout', 'hidden', 'leave']) {
+    const late = deferred(); let held = true;
+    const app = await cachedOfficeFixture(path => held ? late.promise : response(cachedOfficeDay(path)));
+    const path = app.calls.find(c => c.path.includes('/views/office-day?')).path;
+    if (action === 'date') { app.element('dashboardVisitDate').value = '2026-10-11'; for (const fn of app.element('dashboardVisitDate').handlers.get('change')) fn(); }
+    if (action === 'demo') app.window.primetimeDataMode.setMode('demo');
+    if (action === 'signout') await app.auth.signOut();
+    if (action === 'hidden') { app.document.visibilityState = 'hidden'; app.dispatch('visibilitychange'); }
+    if (action === 'leave') { app.element('officeDayOverview').classList.remove('is-active'); app.document.dispatchEvent(new DetailEvent('primetime-view-changed', { detail: { view: 'visits' } })); }
+    held = false; late.resolve(response(cachedOfficeDay(path, 642))); await tick(); await tick();
+    assert.doesNotMatch(app.element('dashboardOverviewCompleteness').textContent, /642 \/ 642/, action);
+  }
+});
+test('a corrupt or access-revoked cache clears prior office evidence', async () => {
+  for (const code of ['duplicate', 'scope', 'receipt', 'approval']) {
+    let corrupt = false;
+    const app = await cachedOfficeFixture(path => {
+      const p = cachedOfficeDay(path);
+      if (corrupt) {
+        if (code === 'approval') return { ...response({ ok: false }), ok: false, status: 423 };
+        if (code === 'duplicate') p.items[1].id = p.items[0].id;
+        if (code === 'scope') p.scope.officeId = '999';
+        if (code === 'receipt') p.items[0].detailFetchedAt = null;
+      }
+      return response(p);
+    });
+    assert.match(app.element('dashboardOverviewCompleteness').textContent, /23 \/ 23/);
+    corrupt = true; await app.click('dashboardOverviewRefresh'); await tick(); await tick();
+    assert.doesNotMatch(nodeText(app.element('dashboardTimeline')), /900023/);
+    assert.equal(app.element('dashboardOverviewCompleteness').textContent, '');
+  }
+});
 async function officeDayFixture(read = path => response(numberedSourcePage(path))) {
   const app = harness({ storedDataMode: null, metadata: liveMetadata, fetchSource: read });
   app.element('officeDayOverview').classList.add('is-active');

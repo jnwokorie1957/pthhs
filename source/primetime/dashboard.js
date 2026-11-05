@@ -195,7 +195,34 @@
       payload = await read(cursor);
     }
   }
-  window.primetimeDashboardModel = Object.freeze({ filterExceptions, normalizeVisitPreview, sourceEvidence, sourceInterval, normalizePatientProfile, normalizeVisitContext, normalizeCallEvents, collectOfficeDay });
+  function normalizeOfficeDay(payload, expected) {
+    const cache = payload?.officeDayCache, total = payload?.discovery?.selectedCount;
+    const instant = value => window.primetimeSourceTime.timestampInstant(value);
+    if (!cache || cache.kind !== 'scheduled_office_day_api' || cache.persistedImport !== false || cache.background !== true
+      || !['known', 'done', 'complete', 'stale'].every(key => typeof cache[key] === 'boolean')
+      || instant(cache.checkedAt) === null || !Array.isArray(payload.items) || payload.items.length > 10000
+      || (cache.known ? !Number.isSafeInteger(total) || total < payload.items.length || total > 10000 : total !== null || payload.items.length || cache.done || cache.complete)
+      || typeof payload.discovery?.truncated !== 'boolean' || payload.scope?.timezone !== expected.timezone
+      || !cache.progress || !Number.isSafeInteger(cache.progress.checked) || cache.progress.checked < 0
+      || (cache.progress.total !== null && (!Number.isSafeInteger(cache.progress.total) || cache.progress.total < cache.progress.checked || cache.progress.total > 10000))
+      || typeof cache.progress.refreshing !== 'boolean' || (cache.progress.retryAt !== null && instant(cache.progress.retryAt) === null)
+      || (cache.known && (!['startedAt', 'latestSearchAt'].every(key => instant(cache[key]) !== null)
+        || instant(cache.startedAt) > instant(cache.latestSearchAt) || instant(cache.latestSearchAt) > instant(cache.checkedAt) || payload.fetchedAt !== cache.latestSearchAt))
+      || (cache.done && (payload.items.length !== total || instant(cache.completedAt) === null || instant(cache.completedAt) < instant(cache.latestSearchAt)))
+      || (!cache.done && cache.completedAt !== null)) throw new Error('invalid_office_day_cache');
+    const items = [], ids = new Set();
+    // Reuse the preview boundary without treating its ten-item UI limit as office coverage.
+    for (let offset = 0; offset < Math.max(1, payload.items.length); offset += 10) {
+      const page = normalizeVisitPreview({ ...payload, items: payload.items.slice(offset, offset + 10), discovery: undefined, page: undefined, retry: undefined, nextCursor: null }, expected);
+      for (const row of page.items) {
+        if (ids.has(row.id) || (row.state !== 'unavailable' && (!row.detailFetchedAt || !row.officeCheckedAt))) throw new Error('invalid_office_day_cache');
+        ids.add(row.id); items.push(row);
+      }
+    }
+    if (cache.complete !== (cache.done && !payload.discovery.truncated && items.every(row => row.state !== 'unavailable'))) throw new Error('invalid_office_day_cache');
+    return { ...payload, items, officeDay: { ...cache }, officeDayCache: cache };
+  }
+  window.primetimeDashboardModel = Object.freeze({ filterExceptions, normalizeVisitPreview, sourceEvidence, sourceInterval, normalizePatientProfile, normalizeVisitContext, normalizeCallEvents, collectOfficeDay, normalizeOfficeDay });
   if (typeof document === 'undefined') return;
   const controller = window.primetimeDataMode;
   const fixtures = window.primetimeDemoData;
@@ -214,7 +241,7 @@
   let pageTrail = [null];
   let pagePosition = 0;
   let retryRead = null, visitRetryAt = 0, visitRetryTimer = null, visitBusy = false;
-  let officeAbort = null, officeView = null, officeKey = null;
+  let officeAbort = null, officeView = null, officeKey = null, officeTimer = null;
   let demoOffset = 0;
   let dateChosen = false;
   let clearPageFetchAge = () => {};
@@ -282,7 +309,9 @@
     if (officeAbort) feedReceipt = null;
     if (officeAbort && officeView?.officeDay.complete) text('dashboardOverviewStatus', 'Refresh paused. Charts retain the last completed office-day read and its fetch range.');
     officeAbort?.abort();
-    if (officeView && !officeView.officeDay.done) text('dashboardOverviewStatus', 'Office-day read paused. Read entire day to restart.');
+    if (officeTimer !== null) clearTimeout(officeTimer); officeTimer = null;
+    if (officeView?.officeDayCache) text('dashboardOverviewStatus', 'Display paused. The server continues collecting this office day; Resume reads its latest result.');
+    else if (officeView && !officeView.officeDay.done) text('dashboardOverviewStatus', 'Office-day read paused. Read entire day to restart.');
     feedControls(message);
   }
   async function pollFeed() {
@@ -309,6 +338,7 @@
       dateInput.value = officeDay;
       if (get('dashboardOverviewDate')) get('dashboardOverviewDate').value = officeDay;
     }
+    if (metadata?.panels?.officeDay?.available) void loadOfficeCache();
     if (!feedDay()) { scheduleFeed(); return; }
     stopFeedTimer(); feedPolling = true;
     const captured = context(), request = new AbortController(); feedAbort = request;
@@ -333,7 +363,7 @@
         showVisitPreview(payload, { mode: 'live', date: dateInput.value, officeId: metadata.settings.officeId });
         nextPageButton(Boolean(nextCursor));
         feedReceipt = payload.fetchedAt;
-        await loadOfficeDay(payload);
+        if (!metadata.panels?.officeDay?.available) await loadOfficeDay(payload);
         if (!ready || !controller.isLive() || request.signal.aborted || dateInput.value !== payload.scope.date || metadata?.settings.officeId !== payload.scope.officeId) return;
       }
       text('dashboardVisitMetadata', `Source: HHAeXchange API · search fetched: ${payload.fetchedAt} · server updates every minute · first source page only · source unvalidated · not a manual capture or persisted visit import.`);
@@ -375,6 +405,7 @@
   function syncVisitReads() {
     const seconds = Math.max(0, Math.ceil((visitRetryAt - Date.now()) / 1000)), live = ready && controller.isLive();
     for (const id of ['dashboardVisitRefresh', 'dashboardOverviewRefresh', 'dashboardVisitNext', 'dashboardOverviewNext', 'dashboardVisitPrevious', 'dashboardOverviewPrevious']) if (get(id)) get(id).disabled = visitBusy || (live && seconds > 0);
+    if (live && metadata?.panels?.officeDay?.available && get('dashboardOverviewRefresh')) get('dashboardOverviewRefresh').disabled = false;
     for (const id of ['dashboardVisitRetry', 'dashboardOverviewRetry', 'dashboardEvvRetry']) if (get(id)) {
       get(id).hidden = !live || !retryRead;
       get(id).disabled = visitBusy || seconds > 0;
@@ -473,10 +504,12 @@
     return JSON.stringify([session, controller.getGeneration(), controller.getMode(), metadata?.settings, dateInput?.value]);
   }
   function clearOfficeDay() {
+    if (officeTimer !== null) clearTimeout(officeTimer); officeTimer = null;
     officeAbort?.abort(); officeAbort = null; officeView = null; officeKey = null;
     const age = get('dashboardOverviewFetchAge'); if (age) { age.hidden = true; age.textContent = ''; }
   }
   async function loadOfficeDay(first) {
+    if (metadata?.panels?.officeDay?.available) return loadOfficeCache();
     if (first.page?.offset !== 0 || !ready || !controller.isLive() || !get('officeDayOverview')?.classList.contains('is-active')) return;
     const previous = officeKey === selectedOfficeKey() && officeView?.officeDay.complete ? officeView : null;
     clearOfficeDay(); officeView = previous; officeKey = selectedOfficeKey();
@@ -523,7 +556,49 @@
       if (officeAbort === request) { officeAbort = null; refreshDisabled(false); scheduleFeed(); }
     }
   }
+  async function loadOfficeCache() {
+    if (!ready || !controller.isLive() || metadata?.panels?.officeDay?.available !== true
+      || !get('officeDayOverview')?.classList.contains('is-active') || document.visibilityState === 'hidden') return;
+    const key = selectedOfficeKey();
+    if (officeAbort && !officeAbort.signal.aborted && officeKey === key) return;
+    if (officeKey !== key) clearOfficeDay();
+    if (officeTimer !== null) clearTimeout(officeTimer); officeTimer = null;
+    officeAbort?.abort();
+    const request = new AbortController(); officeAbort = request; officeKey = key;
+    const expected = { mode: 'live', date: dateInput.value, officeId: metadata.settings.officeId, timezone: metadata.settings.officeTimezone };
+    const active = () => ready && controller.isLive() && key === selectedOfficeKey() && !request.signal.aborted;
+    try {
+      const query = new URLSearchParams({ officeId: expected.officeId, date: expected.date });
+      const response = await window.primetimeApiFetch('/primetime/api/views/office-day?' + query, { signal: request.signal });
+      const payload = await response.json();
+      if (!active()) return;
+      if ([401, 403, 409, 423].includes(response.status)) {
+        clearOfficeDay(); liveOverviewState('Office-day access changed', 'Refresh source access before reading this office day.'); return;
+      }
+      if (!response.ok) throw new Error('office_day_cache_unavailable');
+      const view = normalizeOfficeDay(payload, expected);
+      officeView = view; renderLiveOverview(view, true);
+    } catch (error) {
+      if (!active()) return;
+      if (/^invalid_/.test(error.message)) { clearOfficeDay(); liveOverviewState('Office-day response could not be verified', 'Refresh source access to retry.'); return; }
+      if (officeView) { officeView.officeDayCache = { ...officeView.officeDayCache, stale: true }; renderLiveOverview(officeView, true); }
+      text('dashboardOverviewStatus', 'Office-day update unavailable. Retained values, if any, are cached; automatic retry in one minute.');
+    } finally {
+      if (officeAbort === request) {
+        officeAbort = null;
+        if (ready && controller.isLive() && feedEnabled && key === selectedOfficeKey() && document.visibilityState !== 'hidden'
+          && get('officeDayOverview')?.classList.contains('is-active')) officeTimer = setTimeout(() => { officeTimer = null; void loadOfficeCache(); }, 60000);
+      }
+    }
+  }
   function renderLiveOverview(view, office = false) {
+    if (office && view.officeDayCache?.known === false) {
+      for (const id of ['dashboardOverviewMetrics', 'dashboardOverviewExceptions', 'dashboardCoverage', 'dashboardAlerts', 'dashboardTimeline', 'dashboardEvidenceChart']) unavailable(id, 'Office-day collection queued', 'The server is collecting this office day in background batches. No complete totals are available yet.');
+      text('dashboardOverviewStatus', 'Office-day collection queued. Background progress continues with the browser closed.');
+      text('dashboardOverviewMetadata', `HHA API · office ${view.scope.officeId} · ${view.scope.date} · waiting for the first source batch.`);
+      text('dashboardOverviewCompleteness', 'Returned visit count is not known yet.');
+      text('dashboardReadiness', 'Waiting for source records; no example or zero totals are substituted.'); return;
+    }
     const evidence = sourceEvidence(view.items), denominator = `${evidence.readable} readable source details`;
     const sourceIds = view.discovery ? view.discovery.selectedCount : view.items.length;
     if (office) evidenceMetrics('dashboardOverviewMetrics', [
@@ -595,6 +670,11 @@
     text('dashboardOverviewStatus', scan.done ? scan.complete ? 'Office-day read complete: all returned visits checked.' : 'Office-day read finished with unavailable details or truncated discovery.' : `Reading entire office day: ${evidence.records} of ${sourceIds} visits checked…`);
     text('dashboardOverviewMetadata', `HHA API · office ${view.scope.officeId} · ${view.scope.date} · searches ${scan.startedAt} → ${scan.latestSearchAt}. Each visit retains its own detail/office-check receipts. Sequential reads are not an atomic snapshot.`);
     text('dashboardOverviewCompleteness', `${evidence.records} / ${sourceIds} returned IDs checked; ${evidence.unavailable} unavailable details.${view.discovery?.truncated ? ' Search truncated; office coverage incomplete.' : ''}`);
+    if (view.officeDayCache) {
+      const cache = view.officeDayCache, progress = cache.progress;
+      text('dashboardOverviewStatus', `${cache.stale ? 'Cached result · source update delayed. ' : ''}${cache.done ? cache.complete ? 'Office-day read complete: all returned visits checked.' : 'Office-day read finished with unavailable details or truncated discovery.' : `Background collection: ${evidence.records} of ${sourceIds} visits checked.`}${progress.refreshing ? ` Next refresh: ${progress.checked} of ${progress.total} checked; charts retain the completed result.` : ''}${progress.retryAt ? ` HHA retry after ${progress.retryAt}.` : ''}`);
+      text('dashboardOverviewMetadata', `HHA API · office ${view.scope.officeId} · ${view.scope.date} · searches ${cache.startedAt} → ${cache.latestSearchAt} · server collection continues with the browser closed. ${cache.stale ? 'Cached result; update delayed.' : 'Protected API cache; checked ' + cache.checkedAt + '.'} Each visit retains detail/office-check receipts; sequential reads are not an atomic snapshot.`);
+    }
     text('dashboardReadiness', `${evidence.readable} readable visits; ${evidence.unavailable} unavailable. Charts cover the whole collected office-day result, with progress disclosed above. Field presence does not determine completion, EVV compliance, eligibility or billable hours.`);
     }
   }
@@ -771,7 +851,7 @@
     nextCursor = view.nextCursor;
     if (view.mode === 'live') {
       renderLiveOverview(view);
-      if (!officeView) renderLiveOverview({ ...view, officeDay: { done: false, complete: false, startedAt: view.fetchedAt, latestSearchAt: view.fetchedAt } }, true);
+      if (!officeView && !metadata?.panels?.officeDay?.available) renderLiveOverview({ ...view, officeDay: { done: false, complete: false, startedAt: view.fetchedAt, latestSearchAt: view.fetchedAt } }, true);
     }
     else {
       renderTimeline(view);
@@ -1055,6 +1135,7 @@
       refreshDisabled(false);
       return;
     }
+    if (!cursor && metadata?.panels?.officeDay?.available) void loadOfficeCache();
     if (Date.now() < visitRetryAt) {
       text(visitStatusId, 'Read delayed. After the delay, read the selected date.');
       refreshDisabled(false); scheduleFeed(); return;
@@ -1092,7 +1173,7 @@
         throw new Error('visit_preview_unavailable');
       }
       showVisitPreview(payload, { mode: 'live', date, officeId: metadata.settings?.officeId });
-      if (!cursor) await loadOfficeDay(payload);
+      if (!cursor && !metadata.panels?.officeDay?.available) await loadOfficeDay(payload);
       if (!current(captured)) return;
       pageTrail = trail;
       pagePosition = position;
@@ -1129,7 +1210,7 @@
     if (controller.isLive()) { clearSource(); void loadMetadata(); } else { demoOffset = 0; showVisitPreview(fixtures.visitPage(dateInput.value), { mode: 'demo', date: dateInput.value }); }
   };
   get('dashboardVisitRefresh')?.addEventListener('click', refresh);
-  get('dashboardOverviewRefresh')?.addEventListener('click', refresh);
+  get('dashboardOverviewRefresh')?.addEventListener('click', () => metadata?.panels?.officeDay?.available && ready && controller.isLive() ? void loadOfficeCache() : refresh());
   const retryDeferred = () => {
     const retry = retryRead;
     if (!retry || !current(retry.captured) || !ready || !controller.isLive() || Date.now() < visitRetryAt) return;
@@ -1192,7 +1273,7 @@
   document.addEventListener('primetime-data-mode-changed', () => { renderMode(); if (ready && controller.isLive()) void loadMetadata(); });
   document.addEventListener('primetime-view-changed', event => {
     if (event.detail?.view === 'overview' && ready && controller.isLive() && !officeAbort) void loadVisits();
-    else if (event.detail?.view !== 'overview') { officeAbort?.abort(); }
+    else if (event.detail?.view !== 'overview') { officeAbort?.abort(); if (officeTimer !== null) clearTimeout(officeTimer); officeTimer = null; }
   });
   document.addEventListener('primetime-ready', () => { ready = true; session += 1; renderMode(); if (controller.isLive()) void loadMetadata(); });
   document.addEventListener('primetime-signed-out', () => { ready = false; session += 1; clearSource(); if (!controller.isLive()) renderMode(); });

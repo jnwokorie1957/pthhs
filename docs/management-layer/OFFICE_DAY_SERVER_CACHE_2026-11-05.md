@@ -67,7 +67,25 @@ staleness, corrupt bytes, superseded writers, interrupted-scan reset and post-re
 revocation. All657 backend checks pass. These are synthetic/source-boundary
 results, not complete authenticated production acceptance.
 
-Next: deploy normally; wire the supported cache panel into Overview; verify real
+Backend release853572e0e0bddc7b0995a719b3d498e35419a115 completed all four normal
+workflow jobs in42056329529. Frontend now consumes the protected office-day cache
+when advertised by server metadata; the older collector remains only for rolling
+compatibility with servers lacking that capability. Cache reads do not spend HHA
+quota or follow detail cursors in the browser. Preview paging stays independent.
+Cache polls pause while hidden, signed out, in Demo or away from Overview; source
+work continues on the server. Delayed cached results and a queued unknown count
+are explicit. Revoked access, corrupt receipts and foreign/duplicate rows clear
+office evidence. A preview quota delay does not disable cache refresh.
+
+All536 current frontend/contract/release/analytics tests pass, including the
+642-row server-cache view, paged-preview independence, queued/unknown states,
+quota independence, prior-result retention and late date/mode/session fencing.
+The performance check passes at435755internal raw bytes and107476gzip bytes. The
+adapter adds approximately7.1KBraw/1.3KBgzip with no runtime library; bounded caps
+are437000raw/109000gzip, preserving the110000per-file and2MBmarketing limits.
+Production UI acceptance remains pending and must not be inferred from tests.
+
+Next: deploy the frontend normally; verify real
 background progress while the browser is paused, complete one actual selected
 office/day, reconcile every source row/chart/receipt and confirm reload returns
 the completed dataset without starting a browser-only full scan. Keep O03 open
