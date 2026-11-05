@@ -16,7 +16,7 @@
         else if(!String(fields[field.id]??'').trim())add(field.label,'official-'+i,field.page);
       }
       const group=kind==='i9'?schema.fields.filter(f=>/^CB_[1-4]$/.test(f.id)):kind==='w4'&&!exempt?schema.fields.slice(5,8):[];
-      if(group.length&&!group.some(f=>fields[f.id]===true))add(kind==='i9'?'Citizenship or immigration status — choose one':'Filing status — choose one','official-'+schema.fields.indexOf(group[0]));
+      if(group.length&&!group.some(f=>fields[f.id]===true)){add(kind==='i9'?'Citizenship or immigration status — choose one':'Filing status — choose one','official-'+schema.fields.indexOf(group[0]));issues[issues.length-1].controlIds=group.map(f=>'official-'+schema.fields.indexOf(f));}
       for(const [id,label]of [['official-signature-name',kind==='new_hire'?'Your confirmation name':'Employee signature'],['official-form-read','Review the complete form before submitting'],['official-electronic-consent','Confirm electronic signing before submitting']]){const control=document.getElementById(id);if(control&&(control.type==='checkbox'?!control.checked:!control.value.trim()))add(label,id,pageNumber);}
     }
     window.WorkforceReview.paintMissing(target,issues,'Missing required form fields / confirmations');

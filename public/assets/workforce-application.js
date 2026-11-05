@@ -22,7 +22,7 @@
   function paintMissing(target, issues, heading = 'Required fields still needed') {
     for (const control of marked.get(target) || []) { control.classList.remove('required-missing'); control.removeAttribute('aria-invalid'); }
     const controls = new Set();
-    for (const issue of issues) { const control = document.getElementById(issue.controlId); if (control) { control.classList.add('required-missing'); control.setAttribute('aria-invalid','true'); controls.add(control); } }
+    for (const issue of issues) for (const id of issue.controlIds || [issue.controlId]) { const control = document.getElementById(id); if (control) { control.classList.add('required-missing'); control.setAttribute('aria-invalid','true'); controls.add(control); } }
     marked.set(target,controls); target.replaceChildren(); target.hidden = !issues.length;
     if (!issues.length) return;
     target.classList.add('completion-summary'); target.append(text('h3', heading + ' (' + issues.length + ')'));
