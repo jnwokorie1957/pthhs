@@ -1387,6 +1387,23 @@ test('a corrupt or access-revoked cache clears prior office evidence', async () 
     assert.equal(app.element('dashboardOverviewCompleteness').textContent, '');
   }
 });
+test('Overview automatic checks use only the office-day cache and disclose full-day batch coverage', async () => {
+  let reads = 0;
+  const app = await cachedOfficeFixture(path => { reads++; return response(cachedOfficeDay(path, reads === 1 ? 23 : 24)); },
+    path => path.includes('/views/feed?') ? assert.fail('Overview must not depend on the first-page feed') : response(numberedSourcePage(path)));
+  assert.match(app.element('apiFeedStatus').textContent, /all returned visits.*quota-limited batches/);
+  const timer = [...app.timers].find(([, t]) => t.delay === 60000);
+  assert.ok(timer); assert.equal(app.timers.size, 1, 'one non-overlapping minute check');
+  app.timers.delete(timer[0]); timer[1].fn(); await tick(); await tick(); await tick();
+  assert.equal(reads, 2);
+  assert.match(app.element('dashboardOverviewCompleteness').textContent, /24 \/ 24/);
+  assert.equal(app.calls.filter(c => c.path.includes('/views/visits?')).length, 1);
+  assert.match(app.element('apiFeedStatus').textContent, /all returned visits/);
+  await app.click('apiFeedToggle');
+  assert.equal(app.timers.size, 0);
+  await app.click('apiFeedToggle'); await tick(); await tick();
+  assert.equal(reads, 3); assert.equal(app.timers.size, 1);
+});
 async function officeDayFixture(read = path => response(numberedSourcePage(path))) {
   const app = harness({ storedDataMode: null, metadata: liveMetadata, fetchSource: read });
   app.element('officeDayOverview').classList.add('is-active');

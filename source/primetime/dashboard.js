@@ -258,13 +258,14 @@
   const relatedHosts = { caregiver: 'dashboardCaregiverProfile', billing: 'dashboardBillingFacts', calls: 'dashboardCallEvents' };
   function stopFeedTimer() { if (feedTimer !== null) clearTimeout(feedTimer); feedTimer = null; }
   function cancelFeedRead() { feedAbort?.abort(); feedAbort = null; feedPolling = false; }
+  const usesOfficeFeed = () => metadata?.panels?.officeDay?.available === true && get('officeDayOverview')?.classList.contains('is-active');
   function feedControls(message) {
     if (!feedInstalled) return;
     get('apiFeedControl').hidden = !ready || !controller.isLive();
     get('apiFeedToggle').disabled = !ready || !controller.isLive();
     text('apiFeedToggle', feedEnabled ? 'Pause live feed' : 'Resume live feed');
     text('apiFeedStatus', message || (feedEnabled
-      ? 'Automatic HHA API feed enabled. The server updates the first source page every minute; this page checks every minute.'
+      ? usesOfficeFeed() ? 'Office-day HHA API feed enabled. The server collects all returned visits in quota-limited batches. This view checks every minute; the source fetch range is shown below.' : 'Automatic HHA API feed enabled. The server updates the first source page every minute; this page checks every minute.'
       : 'Live feed display paused. The server continues updating. Resume to read its latest page.'));
     renderDateContext();
   }
@@ -301,6 +302,7 @@
     stopFeedTimer();
     if (!feedInstalled || !ready || !controller.isLive() || !feedEnabled) { feedControls(); return; }
     if (document.visibilityState === 'hidden') { feedControls('Dashboard checks paused while hidden. The server API feed continues every minute.'); return; }
+    if (usesOfficeFeed()) { feedControls(); return; }
     if (metadata && !feedDay() && (dateChosen || !currentOfficeDay())) { feedControls('The automatic API feed covers the current office day. Historical dates use Read source now.'); return; }
     feedTimer = setTimeout(() => { feedTimer = null; void pollFeed(); }, 60_000);
   }
@@ -338,7 +340,7 @@
       dateInput.value = officeDay;
       if (get('dashboardOverviewDate')) get('dashboardOverviewDate').value = officeDay;
     }
-    if (metadata?.panels?.officeDay?.available) void loadOfficeCache();
+    if (usesOfficeFeed()) { stopFeedTimer(); await loadOfficeCache(); feedControls(); return; }
     if (!feedDay()) { scheduleFeed(); return; }
     stopFeedTimer(); feedPolling = true;
     const captured = context(), request = new AbortController(); feedAbort = request;
@@ -587,7 +589,7 @@
       if (officeAbort === request) {
         officeAbort = null;
         if (ready && controller.isLive() && feedEnabled && key === selectedOfficeKey() && document.visibilityState !== 'hidden'
-          && get('officeDayOverview')?.classList.contains('is-active')) officeTimer = setTimeout(() => { officeTimer = null; void loadOfficeCache(); }, 60000);
+          && get('officeDayOverview')?.classList.contains('is-active')) officeTimer = setTimeout(() => { officeTimer = null; void pollFeed(); }, 60000);
       }
     }
   }
