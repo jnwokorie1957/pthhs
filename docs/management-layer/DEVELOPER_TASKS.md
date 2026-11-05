@@ -2,8 +2,10 @@
 
 - [x] Implemented administrator Visit Maintenance: full returned-ID source queue,
   saved source-bound office cases, real scoped call evidence, proposed next steps,
-  follow-up queues, audit history and private text reports. Production acceptance
-  is pending the normal release. See [implementation and acceptance](VISIT_MAINTENANCE_WORKSPACE_2026-11-05.md).
+  follow-up queues, audit history and private text reports. Production save,
+  source-call receipt (empty source response), report download and reload pass.
+  755 backend / 545 current frontend/tooling checks and the normal releases pass. See
+  [implementation and acceptance](VISIT_MAINTENANCE_WORKSPACE_2026-11-05.md).
   Actual HHA submissions, authoritative links/reason catalogs, individual staff
   access and pilot/automation remain open; local completion is never HHA confirmation.
 
@@ -14,8 +16,8 @@
   Repository implementation map, prepared unsent vendor questions, sixteen pilot
   cases and resolved/unresolved report templates are ready. See
   [resource index and task map](evv-maintenance-resources/README.md).
-- [ ] Next maintenance work: build the shared source workbench/report proposal
-  flow and restricted-role authorization; validate the documented paged change
+- [ ] Next maintenance work: extend the administrator review workbench/report
+  flow to restricted-role authorization; validate the documented paged change
   and office-call feeds before activation. Review the local 60-read/minute budget
   against documented tenant limits, without treating it as HHA's maximum. Obtain
   the supported existing-event confirmation/reason/readback contract described

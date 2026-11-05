@@ -4,8 +4,9 @@
 
 The working `/primetime#maintenance` implementation brings the office/day visit
 queue, original times, saved office cases, genuine scoped caregiver call events,
-proposals, follow-up queues and private text reports together. Production
-acceptance is pending release verification. Office reviews are local; HHA
+proposals, follow-up queues and private text reports together. Production save,
+call receipt, report download and full-reload checks pass; 755 backend / 545
+frontend/tooling tests and all four release jobs pass. Office reviews are local; HHA
 confirmation/clock writes and individual staff accounts remain gated. See
 [implementation, limits and acceptance](docs/management-layer/VISIT_MAINTENANCE_WORKSPACE_2026-11-05.md).
 

@@ -21,7 +21,9 @@ approved limited automation, then build the owned scheduling platform.
     durable source-bound cases, genuine scoped call evidence and proposals.
 [x] M04a Local office reports implemented: queue/follow-up/explanation, selected
     actual calls, provenance and explicit loaded-page coverage; no HHA completion
-    claim. Production acceptance remains pending normal release verification.
+    claim. Production save, empty scoped call receipt, report download and reload
+    pass after normal all-four-job releases. 755 backend / 545 current frontend/tooling
+    checks pass; private data clears in Demo and layouts fit desktop/narrow panes.
     See VISIT_MAINTENANCE_WORKSPACE_2026-11-05.md. M01/M04 are not fully closed:
     authoritative links, supported source actions and individual role access remain.
 See EVV_MAINTENANCE_PRODUCT_DIRECTION.txt for requirements, order and dependencies.
