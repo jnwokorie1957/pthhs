@@ -6,8 +6,18 @@
   and26 ordered site/source gates pass. Existing HHA grants/guards/quota retained.
   Explicit asset deltas/allowances reviewed; initial normal release passes.
   Same-scope refresh retains last complete charts with explicit provenance;
-  its release and actual complete production reconciliation remain pending. See
+  released as 859402f0; quota-wait labels released as 041e1935 on November 5.
+  Both exact release workflows passed. Actual complete authenticated office-day
+  reconciliation and native/keyboard/assistive-technology acceptance remain open. See
   [scope and acceptance](OFFICE_DAY_OVERVIEW_2026-11-04.md). O03 stays open.
+
+- [x] November 5 attachment Save-context guard 384c2a72 released: stale
+  patient/office/session/read contexts refuse Save before and after confirmation;
+  temporary URLs are revoked on invalidation. Dated release evidence reports
+  536 aggregate tests and 13 exact served files; all four release jobs passed.
+  This closes implementation/release only, not upstream retrieval, device saving
+  or native/keyboard/assistive-technology acceptance. See
+  [evidence and limits](PATIENT_DOCUMENT_READINESS_2026-11-02.md).
 
 - [ ] November 5 role research: distinguish the vendor's optional office DST
   billing adjustment from raw ActualHours/rounded hours, EVV punches and device

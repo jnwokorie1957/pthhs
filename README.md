@@ -4,9 +4,20 @@
 
 Overview now collects all returned visit-detail batches for the selected office
 and day, with progress, consistent source counts/charts and quota-aware recovery.
-Visit Preview retains independent paging. All500 checks and26 ordered site gates
-pass; normal release and actual full-day production reconciliation remain open.
+Visit Preview retains independent paging. The initial implementation passed 500
+checks and 26 ordered site gates. Same-scope refresh retention released as
+859402f0; quota-wait labeling released as 041e1935 on November 5. Their exact
+release workflows passed. Actual complete authenticated office-day reconciliation
+and native/keyboard/assistive-technology acceptance remain open; O03 is not complete.
 See [scope and acceptance](docs/management-layer/OFFICE_DAY_OVERVIEW_2026-11-04.md).
+
+## November 5 attachment Save-context guard release
+
+Guard 384c2a72 refuses stale read contexts before and after Save confirmation and
+cleans up temporary object URLs. Its release passed; the dated release record
+reports 536 aggregate tests and 13 exact served files. Upstream attachment
+retrieval, actual device saving and native/keyboard/assistive-technology acceptance
+remain open. See [evidence and limits](docs/management-layer/PATIENT_DOCUMENT_READINESS_2026-11-02.md).
 
 ## November 3 caregiver availability readiness
 

@@ -3,7 +3,8 @@
 The owner requested totals and charts for every visit in the selected office and
 day. Overview now collects every detail batch returned by the existing guarded
 visit endpoint, independently of the page displayed in Visit Preview. Normal
-release and authenticated production acceptance are pending.
+release has passed; complete authenticated production acceptance remains open
+(see the November 5 reconciliation below).
 
 ## Source and counting
 
@@ -87,7 +88,24 @@ jobs, with13exact production assets and8anonymous protected boundaries. A signed
 in day scan has progressed beyond the first page and its six chart attributes,
 pair counts and assignment counts reconcile with collected rows. Quota deferrals
 remain explicit and retry the same positions. The subsequent same-scope refresh
-refinement passes500checks; its normal release and full native scan are pending.
+refinement passed 500 checks. Its release was pending at that checkpoint;
+November 5 release reconciliation follows. The full native scan remains open.
+
+## November 5 release reconciliation
+
+Same-scope refresh retention [859402f0](https://github.com/jnwokorie1957/pthhs/commit/859402f0c84ec09de4bcb24df5fa197a7e2072fe)
+passed [workflow 41962310228](https://github.com/jnwokorie1957/pthhs/actions/runs/41962310228).
+Quota-wait labeling [041e1935](https://github.com/jnwokorie1957/pthhs/commit/041e1935a93b42b818630205251a1e107e1083de)
+passed [workflow 41988610071](https://github.com/jnwokorie1957/pthhs/actions/runs/41988610071).
+All four jobs succeeded in each exact-SHA workflow, independently rechecked on
+November 5. The retry-copy release record reports 293 focused and 542 aggregate
+tests, 13 exact served files and 106182/107000 gzip bytes. These are dated release
+results, not new test runs or a fresh public-byte comparison in this docs pass.
+
+This correction labels retained same-scope evidence during quota waits; it does
+not establish complete authenticated office-day reconciliation or V2 live
+acceptance. Native, keyboard and assistive-technology gates remain OPEN. O03 stays
+open. Source permissions and owner decisions are unchanged.
 
 ## Production acceptance still required
 

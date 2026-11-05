@@ -197,3 +197,23 @@ authorized integration support workflow; no support communication is sent here.
    source-empty response is not a failed connection or proof of zero documents.
    Record access, shape, size-format or coverage blockers precisely. T04/F03
    clinical-role, form/version/signature/sharing and full-coverage work stay open.
+
+
+## November 5 Save-context guard release reconciliation
+
+[384c2a72](https://github.com/jnwokorie1957/pthhs/commit/384c2a72e0c4a4067d239bfae88db86597f7d170)
+passed [workflow 41975602344](https://github.com/jnwokorie1957/pthhs/actions/runs/41975602344).
+All four jobs succeeded, independently rechecked November 5. The release record
+reports 536 aggregate tests and 13 exact served files. These are dated results,
+not newly rerun tests or fresh public-byte checks in this documentation pass.
+
+The guard rejects stale patient, office, session, operation and read-input or
+permission contexts before and after Save confirmation. Read invalidation revokes
+tracked temporary object URLs. Synthetic retained-callback checks cover context
+changes and replacement requests; they are not native or authenticated acceptance.
+Source retrieval, permissions and explicit device-save confirmation are unchanged.
+
+Upstream attachment retrieval and actual device saving remain OPEN. Native,
+keyboard and assistive-technology acceptance remain OPEN. The earlier metadata
+sample and upstream refusal evidence above are preserved; this client guard does
+not resolve those source failures, accept V2 live behavior or complete O03.
