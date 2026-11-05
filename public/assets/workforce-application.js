@@ -8,7 +8,7 @@
   const documentMessage = document.getElementById('document-message');
   const documentForm = document.getElementById('private-document-form');
   const documentsPanel = document.getElementById('private-documents'), officialForms = document.getElementById('official-forms');
-  const rolePanel = document.getElementById('job-description-step');
+  const rolePanel = document.getElementById('job-description-step'), policyPanel = document.getElementById('policy-reading-step');
   let packet, record = null, answers = {}, sections = [], step = 0, generation = 0;
   let documentItems = [], addressEnabled = false, detachAddress = () => {};
   let version = 0, savedVersion = -1, saveQueue = Promise.resolve(), timer, documentsEnabled = false;
@@ -75,6 +75,13 @@
     return saveQueue;
   }
   function showError(error) { message.textContent = error.message; }
+  function validateStep() {
+    const missing = packet.fields.find(f => f.section === sections[step] && f.required && !answers[f.id]?.trim());
+    if (!missing) return;
+    const control = document.getElementById(missing.id === 'jobDescriptionRead' ? 'job-description-read' : 'application-' + missing.id);
+    control?.focus(); control?.setAttribute('aria-invalid', 'true');
+    throw Error('Complete ' + missing.label + ' before continuing. You can still save this draft.');
+  }
   function renderRoleDescription() {
     const target = document.getElementById('job-description-text'), source = packet.jobDescription; target.replaceChildren();
     target.append(text('h3', source.title), text('p', source.introduction));
@@ -105,20 +112,21 @@
     }
   }
   function render() {
-    detachAddress();
+    detachAddress(); window.WorkforceReadings.clear();
     const submitted = record?.state === 'submitted';
     document.getElementById('application-status-badge').textContent = submitted ? 'Submitted for HR review' : 'Draft';
     const nav = document.getElementById('application-steps'); nav.replaceChildren();
     [...sections, 'Review & submit'].forEach((label, i) => {
       const button = text('button', (i + 1) + '. ' + label); button.type = 'button';
       if (step === i) button.setAttribute('aria-current', 'step');
-      button.onclick = async () => { try { await save(); step = i; render(); } catch (error) { showError(error); } };
+      button.onclick = async () => { try { if (i > step) validateStep(); if (sections[step] === 'Tax & employment forms') await window.WorkforceForms.flush(); await save(); step = i; render(); } catch (error) { showError(error); } };
       nav.append(button);
     });
     fields.replaceChildren();
-    const documentsStep = sections[step] === 'Documents', formsStep = sections[step] === 'Tax & employment forms', roleStep = sections[step] === 'PAS attendant role';
-    form.hidden = submitted || step === sections.length || documentsStep || formsStep || roleStep;
-    rolePanel.hidden = !roleStep;
+    const documentsStep = sections[step] === 'Documents', formsStep = sections[step] === 'Tax & employment forms', roleStep = sections[step] === 'PAS attendant role', policyStep = sections[step] === 'Policies & acknowledgments';
+    form.hidden = submitted || step === sections.length || documentsStep || formsStep || roleStep || policyStep;
+    rolePanel.hidden = !roleStep; policyPanel.hidden = !policyStep;
+    if (policyStep) window.WorkforceReadings.render(policyPanel, packet.readings, answers, (id, value) => { answers[id] = value; version++; clearTimeout(timer); timer = setTimeout(() => save().catch(showError), 1500); }, submitted);
     documentsPanel.hidden = !documentsStep;
     officialForms.hidden = !formsStep;
     document.getElementById('application-navigation').hidden = submitted;
@@ -134,7 +142,7 @@
     if (step === sections.length) { renderReview(); return; }
     if (roleStep) { renderRoleDescription(); return; }
     if (documentsStep) { renderDocumentChecklist(); return; }
-    if (formsStep) return;
+    if (formsStep || policyStep) return;
     fields.append(text('h3', sections[step]));
     if (sections[step] === 'Availability & eligibility') fields.append(text('p', packet.convictionNotice));
     const grid = document.createElement('div'); grid.className = 'application-grid';
@@ -146,17 +154,23 @@
       input.setAttribute('aria-required', String(field.required));
       if (field.type === 'choice') {
         const placeholder = text('option', 'Select an answer'); placeholder.value = ''; input.append(placeholder);
-        for (const option of field.options) { const node = text('option', field.id === 'weeklyHours' ? option + ' hours' + (option === '40' ? ' — office review required' : '') : option); node.value = option; input.append(node); }
+        for (const option of field.options) { const node = text('option', field.id === 'weeklyHours' ? option + ' hours' : option); node.value = option; input.append(node); }
       } else {
         if (field.type !== 'textarea') input.type = field.type === 'ssn' ? 'password' : field.type;
         input.maxLength = field.maxLength;
-        input.autocomplete = ['ssn', 'birthDate'].includes(field.id) ? 'off' : field.id === 'name' ? 'name' : field.id === 'email' ? 'email' : 'off';
+        input.autocomplete = ['ssn', 'birthDate'].includes(field.id) ? 'off' : field.id === 'firstName' ? 'given-name' : field.id === 'lastName' ? 'family-name' : field.id === 'email' ? 'email' : 'off';
         if (field.type === 'ssn') { input.inputMode = 'numeric'; input.placeholder = '123-45-6789'; }
         if (field.id.endsWith('_completed')) input.placeholder = 'MM/YYYY or YYYY';
         const addressAutocomplete = { street: 'address-line1', unit: 'address-line2', city: 'address-level2', state: 'address-level1', zip: 'postal-code' };
         if (addressAutocomplete[field.id]) input.autocomplete = addressAutocomplete[field.id];
       }
       input.value = answers[field.id] || '';
+      if (field.type === 'ssn') {
+        const mask = () => { const digits = (answers[field.id] || '').replace(/\D/g, ''); input.type = digits.length === 9 ? 'text' : 'password'; input.value = digits.length === 9 ? '***-**-' + digits.slice(-4) : answers[field.id] || ''; };
+        input.addEventListener('focus', () => { input.type = 'password'; input.value = answers[field.id] || ''; input.select(); });
+        input.addEventListener('blur', mask); mask();
+        label.append(text('small', 'Only the last four digits remain visible after you leave this field.'));
+      }
       input.addEventListener('input', () => {
         answers[field.id] = input.value; version++; message.textContent = 'Unsaved changes…';
         if (field.id === 'weeklyHours') updateHoursNotice();
@@ -175,10 +189,10 @@
   }
   function updateHoursNotice() {
     const notice = document.getElementById('hours-office-notice');
-    if (notice) { notice.hidden = answers.weeklyHours !== '40'; notice.textContent = '40 hours selected — office review required. Primetime does not ordinarily schedule 40-hour weeks. This preference does not approve a schedule or overtime.'; }
+    if (notice) { notice.hidden = answers.weeklyHours !== '40'; notice.textContent = '40 hours selected — office review required. Primetime schedules up to 40 hours per week and does not schedule overtime. Record all hours worked and contact the office if your hours may exceed 40.'; }
   }
   document.addEventListener('workforce-session-cleared', () => {
-    generation++; clearTimeout(timer); detachAddress(); clearImage(); packet = null; record = null; answers = {}; documentItems = [];
+    generation++; clearTimeout(timer); detachAddress(); window.WorkforceReadings.clear(); window.WorkforceForms.clear(); policyPanel.hidden = true; clearImage(); packet = null; record = null; answers = {}; documentItems = [];
     fields.replaceChildren(); document.getElementById('application-review').replaceChildren();
     document.getElementById('private-document-list').replaceChildren();
     document.getElementById('application-signature-name').value = '';
@@ -195,6 +209,10 @@
       if (!schemaResponse.ok) throw Error('The application packet is unavailable.');
       const schema = await schemaResponse.json(); if (sequence !== generation) return;
       packet = schema.packet; record = saved.application; answers = { ...(record?.answers || {}) };
+      if (!record && !answers.applicationDate) {
+        const parts = new Intl.DateTimeFormat('en-US',{timeZone:'America/Chicago',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date());
+        const value = type => parts.find(p=>p.type===type).value; answers.applicationDate = value('year') + '-' + value('month') + '-' + value('day');
+      }
       if (record && record.packetVersion !== packet.version) throw Error('HR must review the application version before you continue.');
       version = 0; savedVersion = record ? 0 : -1; step = 0; sections = [...new Set(packet.fields.map(f => f.section)), 'Documents', 'Tax & employment forms'];
       const inventory = document.getElementById('packet-inventory'); inventory.replaceChildren();
@@ -208,7 +226,7 @@
   });
   document.getElementById('application-save').onclick = () => save().catch(showError);
   for (const [id, direction] of [['application-back', -1], ['application-next', 1]]) document.getElementById(id).onclick = async () => {
-    try { await save(); step = Math.max(0, Math.min(sections.length, step + direction)); render(); } catch (error) { showError(error); }
+    try { if (direction > 0) validateStep(); if (sections[step] === 'Tax & employment forms') await window.WorkforceForms.flush(); await save(); step = Math.max(0, Math.min(sections.length, step + direction)); render(); } catch (error) { showError(error); }
   };
   form.addEventListener('submit', e => { e.preventDefault(); save().catch(showError); });
   document.getElementById('application-submit').onclick = async () => {
@@ -253,6 +271,7 @@
     } catch (error) { if (sequence === generation) documentMessage.textContent = error.message; }
     finally { uploading = false; document.getElementById('document-upload').disabled = false; }
   });
+  for (const kind of ['i9', 'w4', 'new_hire']) document.getElementById('complete-' + kind).onclick = async () => { try { await save(); await window.WorkforceForms.open(kind, {...answers}); } catch (error) { showError(error); } };
   for (const kind of ['i9', 'w4']) document.getElementById('return-' + kind).onclick = async () => {
     try { await save(); step = sections.indexOf('Documents'); render(); document.getElementById('private-document-kind').value = kind; } catch (error) { showError(error); }
   };

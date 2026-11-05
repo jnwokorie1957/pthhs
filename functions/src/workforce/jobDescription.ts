@@ -2,7 +2,7 @@ import { createHash } from "node:crypto";
 // Full reading text transcribed from the owner's packet, pages 1–2, REV 04/25.
 // Source wording is retained; display is not a new legal/eligibility determination.
 export const jobDescription = {
-  id: "pas-attendant-job-description", revision: "REV 04/25", sourcePages: [1, 2],
+  id: "pas-attendant-job-description", revision: "REV 04/25", sourcePages: [1, 3],
   title: "PAS ATTENDANT EMPLOYMENT APPLICATION",
   introduction: "The PAS attendant is responsible for providing personal assistance to the client in accordance with the established service plan to enable the client to function in the home and community.",
   qualifications: [

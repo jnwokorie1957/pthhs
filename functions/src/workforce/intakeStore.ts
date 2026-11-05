@@ -5,6 +5,8 @@ import { FORM_BUCKET } from "../forms/library.js";
 import { parseGrant, requirePermission, validId, WorkforceError, type Actor } from "./policy.js";
 import { saveIntake, submitIntake, type Intake } from "./intake.js";
 import { prepareDocument, documentKind, documentSummary, missingRequiredDocuments, type DocumentKind, type PrivateDocument } from "./documents.js";
+import { formSchema, formRecord, type FormKind, type FormRecord } from "./eforms.js";
+import { EMPLOYER_NAME, EMPLOYER_ADDRESS, chicagoDate } from "./dates.js";
 
 export function privateDocumentPath(uid: string, id: string, extension: "jpg" | "pdf" = "jpg"): string {
   if (!validId(uid) || !validId(id) || !["jpg", "pdf"].includes(extension)) throw new WorkforceError(400, "invalid_document_id");
@@ -16,6 +18,43 @@ export function requireDocumentOwner(doc: PrivateDocument, uid: string): void {
 }
 export class IntakeStore {
   constructor(private db = getFirestore(), private bucket = getStorage().bucket(FORM_BUCKET)) {}
+  async formContext(uid:string,ein:string) {
+    const account=await this.db.collection("workforceAccounts").doc(uid).get();
+    const start=account.data()?.firstDayOfEmployment;
+    const date=typeof start==="string"&&/^\d{4}-\d{2}-\d{2}$/.test(start)?start.split("-"):null;
+    const [year,month,day]=chicagoDate(new Date()).split("-");
+    return {name:EMPLOYER_NAME,address:EMPLOYER_ADDRESS,companyAddress:EMPLOYER_NAME+"\n"+EMPLOYER_ADDRESS,
+      ein:/^\d{2}-?\d{7}$/.test(ein)?ein:"",firstDay:date?`${date[1]}/${date[2]}/${date[0]}`:"",street:"11602 Burdine St # A",city:"Houston",state:"TX",zip:"77035",phone:"7139777721",fax:"7139777728",signingDate:`${month}/${day}/${year}`};
+  }
+  async loadForm(uid: string, kind: FormKind, actorId = uid) {
+    if (!validId(uid)) throw new WorkforceError(400, "invalid_account_id");
+    return this.db.runTransaction(async tx => {
+      if (actorId !== uid) {
+        const grant = await tx.get(this.db.collection("workforceStaff").doc(actorId)), app = await tx.get(this.app(uid));
+        if (!grant.exists || !app.exists) throw new WorkforceError(403,"workforce_forbidden");
+        const actor: Actor = {uid:actorId,grant:parseGrant(grant.data())};
+        requirePermission(actor,"applications.review",app.data()!.office);requirePermission(actor,"documents.review",app.data()!.office);
+      }
+      const ref = this.db.collection("workforceFormDrafts").doc(`${uid}_${kind}`), doc = await tx.get(ref);
+      this.audit(tx, actorId, "official_form_read", uid, {kind});
+      return doc.exists ? doc.data() as FormRecord : null;
+    });
+  }
+  async saveForm(uid: string, kind: FormKind, input: unknown) {
+    const schema = await formSchema(kind);
+    return this.db.runTransaction(async tx => {
+      const application = await tx.get(this.app(uid)), account = await tx.get(this.db.collection("workforceAccounts").doc(uid));
+      const ref = this.db.collection("workforceFormDrafts").doc(`${uid}_${kind}`), old = await tx.get(ref);
+      if (!application.exists) throw new WorkforceError(409, "application_not_found");
+      const app = application.data() as Intake;
+      const name = [app.answers.firstName, app.answers.lastName].filter(Boolean).join(" ");
+      const next = formRecord(uid, app.office, schema, old.exists ? old.data() as FormRecord : null, input, name,
+        typeof account.data()?.jobOfferAcceptedAt === "string" && Number.isFinite(Date.parse(account.data()!.jobOfferAcceptedAt)), new Date().toISOString());
+      tx.set(ref, next); tx.create(ref.collection("versions").doc(String(next.revision)), next);
+      this.audit(tx, uid, next.state === "submitted" ? "official_form_submitted" : "official_form_saved", uid, {kind,revision:next.revision});
+      return next;
+    });
+  }
   async reserveAddressLookup(uid: string) {
     await this.db.runTransaction(async tx => {
       const ref = this.db.collection("workforceAddressLimits").doc(uid), doc = await tx.get(ref), now = Date.now();

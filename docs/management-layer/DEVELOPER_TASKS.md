@@ -1,5 +1,14 @@
 # PTHHS Management Layer — Developer Checklist
 
+- [ ] November 5 restricted-role design (19:43UTC): current maintenance queues
+  are routing metadata; the live shell/routes still require admin. Before M03,
+  define effective office/client membership, assigned-account identity and separate
+  view/note/propose/reassign/review/export capabilities. Authorize before case,
+  visit, count/cursor and report projection; hidden rows or an old role token
+  cannot supply membership. Eight proposed cross-account/revocation/CAS/document
+  acceptance cases and R88-R91 are in [role research](ROLE_WORKFLOW_RESEARCH.txt).
+  Accepted administrator work stays intact; no new role/account or HHA action.
+
 - [x] November 5 Visit Preview delay explanation: distinguish HTTP 429 read
   limiting from HTTP 503 temporary unavailability while retaining office/date/
   page and the guarded retry. Two fail-before regressions, normal four-job release,

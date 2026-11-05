@@ -1,8 +1,8 @@
 PRIMETIME ROLE AND WORKFLOW RESEARCH
-Updated: November 3, 2026, America/Chicago
+Updated: November 5, 2026, America/Chicago
 Scope: PTHHS /primetime, repository jnwokorie1957/pthhs.
-Latest engineering evidence: November4, 01:24UTC local-helper diagnosis narrows the focus candidate without a runtime change; whole-widget/source/AT acceptance remains open. V2 projection15ba09d was released01:16UTC with actual-source acceptance still pending.
-Latest focused research: November 3, 2026, 22:24 UTC. R83/R84 ground a proposed keyboard-focus review of the dated Advanced EVV observation. This is a diagnostic candidate, with no new HHA UI, external-role or WCAG acceptance.
+Latest engineering evidence: November5 administrator office-day collection and Visit Maintenance are accepted within their dated source, save/reload and report limits. O03 all-returned-ID acceptance is closed; M01a/M04a local office review is implemented. Named staff access, authoritative event links, HHA submissions, clinical roles and pilot/automation remain open. See the November5 19:43UTC reconciliation below.
+Latest focused research: November5,2026,19:43UTC trigger. R88-R91 and rechecked R9/R60/R63 support a proposed restricted-role/action and report-access contract. Queue labels are not account grants. Current priority is maintenance-first; earlier manual-snapshot priorities below are historical and do not authorize new scraped imports.
 Broad role review: November 3, 2026, 09:42 UTC heartbeat. Rechecked the official Family Dashboard [R63] and Forms [R60] guidance against repository 9821769 and the cumulative role proposals below. Requests, source holds, encounter documentation and review remain distinct; no new tenant UI or source-read acceptance is claimed by that research pass. Latest bounded implementation: 9fb89f1 Advanced EVV source-context fences, accepted 19:55-19:57 UTC; acf7e6d exact read receipts accepted 19:15 UTC. Patient/PT role, document/action, source-time/E04, usable billing/B02 and availability dependencies remain open. Dated primary links and acceptance evidence follow; earlier next-task statements are historical checkpoints.
 
 EVIDENCE BASELINE — DATED OBSERVATIONS; LATER UPDATES BELOW
@@ -2301,3 +2301,190 @@ correction rules were adopted. Shared workbench, scoped access and reports can
 continue independently of the unsupported source action. No patient/staff record
 query, grant, source write, account/pilot activation, vendor message or automation
 change.
+
+NOVEMBER 5, 2026, 19:43 UTC - MAINTENANCE ACCEPTANCE AND RESTRICTED ROLE DESIGN
+
+Baseline:4b3bacb75a1966399a80dba5bd8aee6b8608ad40. Read current handoff,
+developer and owner records first. This is research/source reconciliation, not
+a new deployment, account grant, source call or independent repeat acceptance.
+Fresh connected Chrome inventory exposes Primetime tabs but no HHA application
+tab. Existing user work was not claimed, navigated or reloaded. Earlier authorized
+HHA calendar/authorization/EVV observations remain dated; public product guidance
+does not establish a new tenant setting. Existing normal sign-in/connector handoff
+remains the next step for direct HHA UI comparison, without sending a login link.
+
+OBSERVED IMPLEMENTATION - SUPERSEDES OLDER NEXT-BUILD STATEMENTS
+O03 is accepted for the November5 all-returned-ID collection, persistence,
+chart/Preview reconciliation and refresh retention described in
+OFFICE_DAY_OVERVIEW_2026-11-04.md. Its reported639/639 readable generation and
+later638-visit maintenance generation are separate dated source sets, not a
+fixed census or a patient/staff directory. Minute worker checks do not make each
+record minute-fresh; collection receipts and partial/stale limits remain visible.
+
+VISIT_MAINTENANCE_WORKSPACE_2026-11-05.md records runtime8a1d866/f66950b/27d1092
+and administrator production save/reload, local completion, report download,
+source-call receipt and layout acceptance. The checked call reads returned zero
+events; populated-call selection remains synthetic. Same patient/caregiver/day
+is not an authoritative visit link or complete retained attempt history.
+VISIT_READ_DELAY_STATUS_2026-11-05.md separately records4f23d86 and the partial
+historical response; it does not close missing-time or original-event gaps.
+Read these as the owning workstreams' dated evidence, not fresh source trials.
+
+functions/src/maintenance/service.ts stores deterministic office/date/visit
+cases, source receipts, revisions, notes, status, queue and event history. Current
+queues are administrator, office_staff, supervisor and office_manager. There is
+no assigned-account UID or individual membership in this case model. Queue choice
+is local routing metadata. maintenanceRoute requires admin; functions/src/index.ts
+first applies requirePrimetimeAdmin. The separate revisions office_supervisor
+role is not automatically equivalent to the supervisor queue label.
+
+source/primetime/maintenance.js renders reports/exports from all loaded cases,
+with page coverage disclosed. This is appropriate to its accepted administrator
+boundary; hiding queue rows would not create restricted staff access. The new
+office-partitioned cases do not retroactively make the older free-text
+investigation collection an office-isolated staff API. Reuse their revision/audit
+patterns only with an explicit scoped model and reviewed legacy-record handling.
+
+functions/src/revisions/maintenanceReport.ts remains a separate pure future
+projection. It is not the live local-report exporter, an execution route or an
+installed HHA action contract. Local office_review_complete stays not_submitted.
+No current report can claim that a proposed correction was confirmed in HHA.
+
+CURRENT PRIMARY GUIDANCE - DOCUMENTED, NOT TENANT ACCEPTANCE
+[R88] HHA maintenance access is configured through user-management role
+permissions. It does not establish a mapping from Primetime's queue names to
+HHA privileges. R9 separately describes user-specific, effective clinical patient
+assignments and authority to edit another author's documents. R60 distinguishes
+published/office-assigned forms from encounter configuration and documentation.
+R63 retains separate family requests, office decisions and vendor hold effects.
+
+[R89] Firebase role claims are server-managed and validated in signed ID tokens;
+updates reach existing clients when a new token is issued. Claims are bounded
+access assertions, not a place for patient lists, case notes or staff profiles.
+[R90] Token revocation checking is a separate verified-token option. Current
+requirePrimetimeAdmin already calls verifyIdToken with that option enabled.
+Inference: a future membership change must not rely only on refreshing a menu or
+waiting for a client's old role claim to expire; test current server membership
+and any explicit revocation policy at each protected boundary.
+[R91] Firestore server libraries bypass client Security Rules and use server
+credentials/IAM. Inference: restricted maintenance routes must enforce their own
+principal, office/client and action checks before reading, saving or disclosing
+records. No client-rule or IAM change is proposed as a substitute for those checks.
+
+PROPOSED EXPERIENCES - DESIGN INFERENCE, NO ROLE ACTIVATION
+Patient/family: retain selected permitted patient, next visit/calendar and
+explicitly shared document instances. A request should carry its own identity,
+requested schedule and source receipt into office review. A maintenance case may
+link internally to that request; internal call rows, staff notes and investigations
+are not automatically family-visible. Do not implement a local concern by invoking
+the vendor's hold/timesheet behavior without its separate accepted action contract.
+
+Field staff/PT: retain My day plus an independently authorized caseload, not the
+administrator office-day dataset. Follow the exact patient/encounter link into
+the permitted form instance/version and author/reviewer workflow. A caregiver
+identity, a source PCA discipline or an office_staff queue does not establish PT
+qualification, clinical assignment, signature authority or a therapy service.
+Patient schedules/documents and clinician documentation remain separate grants.
+
+Office staff: propose a source-bound My cases queue with current assignment,
+follow-up and obstacles. Allow case notes/proposals and explicit source reads only
+under separately approved capabilities. A source failure must leave local notes
+usable without making up missing time, an EVV reason or a completion state.
+Supervisor: propose review/reassignment across an approved team/client scope,
+with review history and conflicts visible. Office manager: propose authorized
+cross-team workload and unresolved follow-up reports, plus scheduling,
+authorization and billing evidence links under their own read contracts.
+Neither proposed title grants HHA execution, financial decisions or settings.
+
+Public/admin connection: public navigation may expose the generic protected
+sign-in entry only. After authentication, select the allowed experience from
+server capabilities. Current /primetime#maintenance is an administrator entry,
+not an implemented staff portal. Internal shared links must resolve a stable
+case plus exact office/service-day/visit/patient/source-receipt context through
+fresh authorization. Matching labels, query parameters or cached browser state
+cannot grant access. Keep private record links out of public pages and assets.
+
+NEXT BOUNDED IMPLEMENTATION - M03, THEN RESTRICTED M04
+P0: keep the accepted administrator workspace and source controls intact. Define
+a server principal distinct from admin, effective office/client membership and
+explicit action capabilities. Add assigned-account identity separately from the
+existing queue. Preserve reassignment and actor history; assigning work sends no
+message and grants no source access by itself. Do not turn a named staff member
+into an administrator merely to make the existing top-level guard accept them.
+
+P1: implement a restricted entry and server-filtered case/visit projection after
+that contract is reviewed. Authorize before paging/counts/cursors, and again
+before responses and mutations after asynchronous work. Bind continuation to the
+principal's current scope/version. Existing office-wide cached rows and loaded
+case exports must not be delivered to an account and merely hidden in its UI.
+Separate view, note/propose, reassignment/review and export capabilities; proposed
+capability names are design concepts, not newly installed permission strings.
+
+P1: derive reports from the same authorized set as case reads. Show office/service
+day, membership scope, loaded versus remaining coverage, generation time, source
+receipt range, local actor/revision and exact unresolved next step. Clearly
+separate local review, draft proposal, submission pending/unknown and independently
+verified HHA outcome. Future action verification requires the accepted original
+event, before/proposed fields, rule/catalog, attempt and independent readback
+contract; the present status label or a transport success cannot supply it.
+Export requires its own reviewed access/destination/retention decision. No report
+is sent merely because a queue or assignee was selected.
+
+P2: activate named accounts and the approximately25-client shadow pilot only
+after approved identities, effective membership, role/action differences and
+measurement denominators are chosen. Patient/family and PT/clinical access remain
+separate later contracts. Continue the supported existing-event/reason/readback
+vendor work in parallel; source-action gaps need not block scoped local design.
+
+PROPOSED ACCEPTANCE - NOT NEW TEST OR PRODUCTION CLAIMS
+1. Two valid staff accounts share a queue label but have different permitted
+   clients. Lists, search counts, paging, case detail, history, report and bytes
+   reveal only the current account's allowed set; crafted IDs/cursors fail.
+2. Queue/status edits cannot grant a role or reviewer capability. Unknown role
+   labels deny access; office_supervisor and supervisor are not auto-aliased.
+   Restricted sessions cannot open settings, release/owner controls or HHA writes.
+3. Revoke/expire membership while a valid older token, source read, save, report
+   download or detached link is pending. No newly unauthorized response or save
+   succeeds; clear private UI/draft/export state as appropriate. Preserve allowed
+   unrelated memberships and do not mistake a successful token refresh for scope.
+4. Two authorized reviewers save the same revision: retain CAS conflict handling,
+   original source receipts and actor history. Reassignment cannot overwrite a
+   concurrent decision or bypass current patient/office/source checks.
+5. Complete returned-ID collection remains a visit dataset, not all patients,
+   staff or a clinical caseload. A refreshed membership must reduce both visible
+   records and report/count/cursor coverage without borrowing the prior dataset.
+6. A family membership with no shared document, a PT encounter without the right
+   form/version, or a clinician denied another author's edit stays restricted.
+   Office case notes never become clinical documentation or family-visible text.
+7. Source-empty calls, truncated calls, failed details and genuine empty duration
+   fields remain distinct. Local completion, selected call IDs and a read receipt
+   never become authoritative HHA confirmation, payable time or billing readiness.
+8. Normal source navigation, keyboard/AT, report download and revocation checks
+   need bounded acceptance under the approved role contract; synthetic cases alone
+   cannot establish a real staff account's clinical/source permissions.
+
+PRECISE DEPENDENCIES / OWNER ACTION AT THE EXISTING ACTIVATION REVIEW
+Keep M03/M05 open. The owner must choose verified staff identities, effective
+office/client/team membership, which roles may note/propose/reassign/review/export,
+and the pilot group/dates/measurement criteria in protected storage before actual
+activation. Patient/family sharing and clinician form/version/reviewer/signature
+inputs remain independently pending. Developer can build/test the scoped contract
+with synthetic principals meanwhile. No duplicate permission question is needed
+for today's research. Existing HHA support questions remain prepared and unsent;
+no vendor request, new grant, patient import, HHA write, communication or clinical/
+financial decision was made. O02/P03/E04/B02 and broader keyboard/AT limits remain.
+
+PRIMARY SOURCES - RETRIEVED NOVEMBER 5, 2026
+[R88] HHAeXchange, Enable Visit Maintenance Permissions; also resource-pack R02.
+https://knowledge.hhaexchange.com/enterprise/Content/Documentation/Admin/Admin-N-Visit-Maintenance-P.htm
+[R89] Firebase, Control Access with Custom Claims and Security Rules; also pack R14.
+https://firebase.google.com/docs/auth/admin/custom-claims
+[R90] Firebase, Manage User Sessions; token lifecycle and revoked-token checks.
+https://firebase.google.com/docs/auth/admin/manage-sessions
+[R91] Firebase, Writing conditions for Cloud Firestore Security Rules; server/IAM
+boundary, also resource-pack R15.
+https://firebase.google.com/docs/firestore/security/rules-conditions
+Rechecked R9/R60/R63 for separate clinical, form and family-action boundaries:
+https://knowledge.hhaexchange.com/texas/Content/Documentation/Patient/Pat-N-Control-Access-Patient-P.htm
+https://knowledge.hhaexchange.com/enterprise/Content/Documentation/Clinical/Clinical-N-HHAX-Forms-Basic.htm
+https://knowledge.hhaexchange.com/enterprise/Content/Documentation/Admin/Admin-N-Patient-Visit-Family-Dashboard-P.htm

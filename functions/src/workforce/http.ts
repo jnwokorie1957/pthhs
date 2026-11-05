@@ -9,6 +9,9 @@ import { IntakeStore } from "./intakeStore.js";
 import { intakePacket, packetInventory } from "./packet.js";
 import { MAX_DOCUMENT_BYTES } from "./documents.js";
 import { GoogleAddressLookup } from "./addresses.js";
+import { readFile } from "node:fs/promises";
+import { readings, referencePages } from "./readings.js";
+import { renderOfficialForm, type FormKind } from "./eforms.js";
 // Default closed. These do not authorize applicant collection or vendor writes.
 const staffEnabled = defineString("WORKFORCE_STAFF_APPROVED", { default: "false" });
 const publicEnabled = defineString("WORKFORCE_PUBLIC_OPPORTUNITIES_APPROVED", { default: "false" });
@@ -18,6 +21,7 @@ const documentsApproved = defineString("WORKFORCE_ID_DOCUMENTS_APPROVED", { defa
 const retentionApproved = defineString("WORKFORCE_ID_RETENTION_APPROVED", { default: "false" });
 const intakeOffice = defineString("WORKFORCE_INTAKE_OFFICE", { default: "" });
 const placesApproved = defineString("WORKFORCE_GOOGLE_PLACES_APPROVED", { default: "false" });
+const employerEin = defineString("WORKFORCE_EMPLOYER_EIN", { default: "" });
 export const workforceApi = process.env.PRIMETIME_API_ONLY_DEPLOY === "true" ? undefined : onRequest({ region: "us-central1", maxInstances: 5, concurrency: 2, timeoutSeconds: 60, memory: "512MiB" }, async (req, res) => {
   res.set("Cache-Control", "no-store");
   res.set("X-Content-Type-Options", "nosniff");
@@ -42,6 +46,29 @@ export const workforceApi = process.env.PRIMETIME_API_ONLY_DEPLOY === "true" ? u
     if (path === "/application" || path.startsWith("/application/")) {
       if (!applicationsEnabled) throw new WorkforceError(503, "application_collection_pending");
       const uid = await recentWorkforceIdentity(req), store = new IntakeStore();
+      const officialForm = path.match(/^\/application\/forms\/(i9|w4|new_hire)(\/pdf)?$/);
+      if (officialForm) {
+        if (!uploadsEnabled) throw new WorkforceError(503, "document_collection_pending");
+        const kind = officialForm[1] as FormKind;
+        if (req.method === "GET") {
+          const record = await store.loadForm(uid, kind);
+          const employer=await store.formContext(uid,employerEin.value());
+          if (!officialForm[2]) { res.json({ form: record, employer }); return; }
+          if (!record) throw new WorkforceError(404, "form_not_found");
+          res.set("Content-Type", "application/pdf"); res.set("Content-Disposition", `attachment; filename="private-${kind}.pdf"`);
+          res.send(await renderOfficialForm(record,employer)); return;
+        }
+        if (req.method !== "POST" || officialForm[2] || !req.is("application/json") || req.rawBody.length > 64000) throw new WorkforceError(400,"invalid_request");
+        res.json({ form: await store.saveForm(uid,kind,req.body) }); return;
+      }
+      const reading = path.match(/^\/application\/reading-pages\/(\d{1,2})(\/2)?$/);
+      if (reading && req.method === "GET") {
+        const page = Number(reading[1]);
+        if (![...readings.map(r => r.page), ...referencePages].includes(page)) throw new WorkforceError(404, "route_not_found");
+        if (reading[2] && !readings.find(r=>r.page===page)?.hasContinuation) throw new WorkforceError(404,"route_not_found");
+        const bytes = await readFile(new URL(`../../assets/workforce-packet/page-${String(page).padStart(2, "0")}${reading[2]?"-cont":""}.webp`, import.meta.url));
+        res.set("Content-Type", "image/webp"); res.send(bytes); return;
+      }
       if (["/application/address/suggest", "/application/address/details"].includes(path)) {
         if (placesApproved.value() !== "true") throw new WorkforceError(503, "address_lookup_unavailable");
         if (req.method !== "POST" || !req.is("application/json") || req.rawBody.length > 1500) throw new WorkforceError(400, "invalid_address_request");
@@ -83,6 +110,14 @@ export const workforceApi = process.env.PRIMETIME_API_ONLY_DEPLOY === "true" ? u
       await recentWorkforceIdentity(req);
       const personnel = new IntakeStore();
       if (path === "/staff/applications") { res.json(await personnel.queue(await store.actor(uid))); return; }
+      const staffForm = path.match(/^\/staff\/applications\/([a-zA-Z0-9_-]{1,128})\/forms\/(i9|w4|new_hire)(\/pdf)?$/);
+      if (staffForm) {
+        if (!uploadsEnabled) throw new WorkforceError(503, "document_collection_pending");
+        const record = await personnel.loadForm(staffForm[1]!, staffForm[2] as FormKind, uid);
+        if (!staffForm[3]) { res.json({form:record}); return; }
+        if (!record) throw new WorkforceError(404,"form_not_found");
+        res.set("Content-Type","application/pdf");res.set("Content-Disposition",`attachment; filename="private-${staffForm[2]}.pdf"`);res.send(await renderOfficialForm(record,await personnel.formContext(staffForm[1]!,employerEin.value())));return;
+      }
       const detail = path.match(/^\/staff\/applications\/([a-zA-Z0-9_-]{1,128})(?:\/documents(?:\/([a-zA-Z0-9_-]{1,128}))?)?$/);
       if (!detail) throw new WorkforceError(404, "route_not_found");
       const target = detail[1]!, docs = path.includes("/documents");

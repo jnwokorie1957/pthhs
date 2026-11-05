@@ -1,3 +1,4 @@
+import { readings } from "./readings.js";
 import test from "node:test";
 import assert from "node:assert/strict";
 import sharp from "sharp";
@@ -9,30 +10,40 @@ import { privateDocumentPath, requireDocumentOwner } from "./intakeStore.js";
 import { parseGrant, requirePermission, type Actor } from "./policy.js";
 import { recentWorkforceIdentity } from "./auth.js";
 const now = "2026-11-05T18:00:00.000Z";
-const answers = () => ({ name: "Synthetic Applicant", applicationDate: "2026-11-05", email: "synthetic@example.invalid", phone: "555-0100", eligibleToWork: "Yes", conviction: "No", jobDescriptionRead: "Yes", ssn: "000-00-0000", birthDate: "2000-01-01", street: "100 Synthetic Street", city: "Synthetic City", state: "TX", zip: "77000", highSchool_school: "Synthetic High School", highSchool_completed: "2018" });
+const answers = () => ({ firstName: "Synthetic", lastName: "Applicant", applicationDate: "2026-11-05", email: "synthetic@example.invalid", phone: "555-0100", eligibleToWork: "Yes", conviction: "No", jobDescriptionRead: "Yes", ssn: "000-00-0000", birthDate: "2000-01-01", street: "100 Synthetic Street", city: "Synthetic City", state: "TX", zip: "77000", highSchool_school: "Synthetic High School", ...Object.fromEntries(readings.flatMap(r => [[`read_page_${r.page}`, "Read"], ...(r.agreement ? [[`terms_page_${r.page}`, "I have questions for HR before agreeing"]] : [])])), highSchool_completed: "2018", emergencyName: "Synthetic Contact", emergencyRelationship: "Friend", emergencyAddress: "1 Test Road", emergencyPhone: "555-0101" });
 test("packet maps all 27 pages and only digitizes applicant-owned questions", () => {
   assert.deepEqual(packetInventory.flatMap(item => item.pages), Array.from({ length: 27 }, (_, i) => i + 1));
   assert.equal(new Set(intakePacket.fields.map(f => f.id)).size, intakePacket.fields.length);
-  for (const id of ["name", "ssn", "birthDate", "emergencyName", "visaType", "convictionDetails", "highSchool_completed", "job1_from", "job1_duties", "referenceCompany"]) assert.ok(intakePacket.fields.some(f => f.id === id));
+  for (const id of ["firstName", "lastName", "ssn", "birthDate", "emergencyName", "visaType", "convictionDetails", "highSchool_completed", "job1_from", "job1_duties", "referenceCompany"]) assert.ok(intakePacket.fields.some(f => f.id === id));
   assert.ok(!intakePacket.fields.some(f => /rating|screeningResult|supervisorSignature|bank/i.test(f.id)));
   assert.ok(packetInventory.find(i => i.pages.includes(25))?.state.includes("current_official_form"));
 });
 test("owner-requested v2 groups, required fields, education and single work record are explicit", () => {
+  for(const id of ["firstName","lastName","emergencyName","emergencyRelationship","emergencyAddress","emergencyPhone"])assert.equal(intakePacket.fields.find(f=>f.id===id)?.required,true);
   for (const id of ["street", "birthDate", "ssn", "highSchool_school", "highSchool_completed", "jobDescriptionRead"]) assert.equal(intakePacket.fields.find(f => f.id === id)?.required, true);
   for (const field of intakePacket.fields.filter(f => f.id.startsWith("college_"))) assert.equal(field.required, false);
-  assert.equal(intakePacket.fields.find(f => f.id === "name")?.section, "Contact information");
+  assert.equal(intakePacket.fields.find(f => f.id === "firstName")?.section, "Contact information");
   assert.ok(!intakePacket.fields.some(f => f.section === "About you" || f.id.startsWith("job2_") || ["highSchool_major", "highSchool_degree"].includes(f.id)));
   assert.deepEqual(intakePacket.fields.find(f => f.id === "weeklyHours")?.options, ["10", "20", "30", "40"]);
   assert.ok(intakePacket.fields.some(f => f.id === "unit" && !f.required));
 });
+
+test("updated duplex readings include all continuation pages and preserve a request to discuss terms without forcing agreement",()=>{
+ assert.deepEqual(readings.find(r=>r.page===22)?.sourcePages,[43,44]);assert.deepEqual(readings.find(r=>r.page===14)?.sourcePages,[27,28]);
+ const draft=saveIntake("synthetic-a",null,0,answers(),"synthetic-office",false,now);
+ const signed=submitIntake("synthetic-a",draft,1,{name:"Synthetic Applicant",electronicConsent:true,documentRead:true},now);
+ assert.equal(signed.policyAcknowledgments?.length,readings.length);
+ assert.equal(signed.policyAcknowledgments?.find(r=>r.page===23)?.response,"I have questions for HR before agreeing");
+ const input=answers();delete input.applicationDate;const dated=saveIntake("synthetic-a",null,0,input,"synthetic-office",false,"2026-11-06T02:00:00Z");assert.equal(dated.answers.applicationDate,"2026-11-05");
+});
 test("complete role reading includes all qualifications, duties, essential functions and both source acknowledgments", () => {
   const role = intakePacket.jobDescription;
   assert.equal(role.qualifications.length, 7); assert.equal(role.duties.length, 3); assert.equal(role.essentialFunctions.length, 11);
-  assert.deepEqual(role.sourcePages, [1, 2]);
+  assert.deepEqual(role.sourcePages, [1, 3]);
   assert.ok(role.essentialFunctions[10]?.includes("corrective actions"));
   assert.ok(role.initialAcknowledgment.includes("all questions")); assert.ok(role.discussionAcknowledgment.includes("revised and discussed"));
   const draft = saveIntake("synthetic-applicant", null, 0, { ...answers(), jobDescriptionRead: "" }, "synthetic-office", false, now);
-  assert.throws(() => submitIntake("synthetic-applicant", draft, 1, { name: answers().name, electronicConsent: true, documentRead: true }, now), /application_incomplete/);
+  assert.throws(() => submitIntake("synthetic-applicant", draft, 1, { name: [answers().firstName, answers().lastName].join(" "), electronicConsent: true, documentRead: true }, now), /application_incomplete/);
 });
 test("PDF uploads remain byte-for-byte intact in private security quarantine; identity requirements are separate", async () => {
   const pdf = Buffer.from("%PDF-1.7\n1 0 obj << /JS (untrusted) >> endobj\n%%EOF\n");

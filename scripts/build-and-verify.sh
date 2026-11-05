@@ -10,6 +10,8 @@ cleanup() {
 trap cleanup EXIT
 
 cd "$ROOT"
+node scripts/build-workforce-forms.mjs
+node scripts/build-workforce-form-layout.mjs --check
 
 # Syntax-check every executable source family before running generators.
 python3 -m py_compile scripts/*.py

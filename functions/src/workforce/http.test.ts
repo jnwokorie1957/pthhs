@@ -33,7 +33,7 @@ test("packet schema exposes blank questions and provenance, never an original sc
   const response = await request("/caregiver/workforce-api/application/packet");
   assert.equal(response.status, 200);
   const body = response.body as { packet: { sourcePages: number[]; fields: unknown[] }; inventory: unknown[] };
-  assert.deepEqual(body.packet.sourcePages, [3, 4, 5]);
+  assert.deepEqual(body.packet.sourcePages, [5, 7, 9]);
   assert.ok(body.packet.fields.length > 35); assert.ok(body.inventory.length > 20);
   assert.ok(!JSON.stringify(body).includes("base64"));
 });

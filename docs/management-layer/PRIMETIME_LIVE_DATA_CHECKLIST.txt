@@ -476,6 +476,57 @@ TAB 04 - VISIT PREVIEW
 [ ] P03 Verify additional affected examples, including a completed historical
     visit, and cross-check any documented alternate endpoint only after its
     identity/office boundary and entitlement are established.
+    November5 19:56UTC trigger - approved three-day comparison now succeeds.
+    October23/October24/November5 first pages each return10readable/0unavailable
+    details; all remain partial source pages, not complete history/census.
+    Six field-presence counts, in schedule/recorded/EVV start-end order:
+      October23:10/10/10/10/10/8; actual-hour pairs8supplied/2explicit-empty.
+      October24:10/10/10/10/10/7; actual-hour pairs7supplied/3explicit-empty.
+      November5:10/10/4/2/4/2; actual-hour pairs2supplied/8explicit-empty.
+    Zero unknown-hour pairs on these readable pages. No retrospective same-ID
+    recovery is claimed for earlier unavailable cohorts. Current-day subject/order
+    and every clock/hour cell match again after returning from historical review.
+
+    Three exact affected visits were independently read through approved V3.
+    Visit/patient/caregiver/date and all6Preview clock fields match each29-field
+    result. October23 receipt20:00:49.482Z and October24 receipt20:04:40.223Z:
+    recorded start/end and EVV start supplied, EVVEndTime explicitly empty;
+    ActualHours and ActualHoursRounded explicitly empty. Current-day receipt
+    20:08:52.672Z: recorded start/EVV start supplied; VisitEndTime/EVVEndTime and
+    both actual-hour fields explicitly empty. These examples establish SOURCE
+    EMPTY, not a projection failure, a pending/completed status or payable time.
+
+    Exact contract/projection remains GetVisitInfoV3Result/VisitInfo, typed
+    GetVisitInfoDetailsV3: VisitStartTime->actualStart, VisitEndTime->actualEnd,
+    EVVStartTime->evvStart, EVVEndTime->evvEnd; direct ActualHours/ActualHoursRounded
+    remain independent raw strings. Captured WSDL declares these and both schedule
+    clocks optional s:string(0..1), not typed dateTime. ScheduleDuration's Hours/
+    Minutes components are the separate s:int ScheduleDurationHours/Minutes fields;
+    they do not fill actual hours or missing punches. Exact direct-scalar parsing
+    in operations/reads.ts and detailItem in views/visits.ts agree with these reads.
+    No timestamp conversion, duration calculation or rounding rule was adopted.
+
+    Both historical records' OriginalVisitID equals their own source visit ID;
+    neither supplies a positive SplitVisitID. No supported alternate visit target
+    was established or queried. One October24 affected visit's guarded raw-call
+    read succeeds: office proof20:06:06.976Z/call receipt20:06:07.572Z,0events.
+    This is a successful empty bounded GetCallDashBoardData result, not failed
+    authentication, proof of no original punch, complete retained history or an
+    authoritative call-to-visit link. No refused read or historical page was retried.
+
+    Read-only saved controls still show13reads: V3/raw-callON and V2OFF. No setting
+    saved or gate broadened. Original October24 screenshot remains resolved.
+    Further source action: in the existing protected HHA/vendor review, select a
+    historical affected record with supplied recorded end but empty EVV end/hours;
+    preserve exact visit/patient/caregiver/office/date and independent receipts,
+    and request the supported retained original-event/visit linkage and applicable
+    endpoint/filter/retention semantics. Determine completion only from supported
+    source status, never clock presence. Existing same-profile HHA UI handoff and
+    prepared unsent vendor questions remain; no duplicate permission request.
+    Office-today/Overview/Live/feed display restored; isolated tab closed and
+    private buffers cleared. No IDs/values/raw responses saved, source write,
+    manual import, clinical/financial decision or communication. No verified code
+    defect found, so no unchanged suite/deploy repeated. P03/E04 remain open.
     November5 17:22UTC source-access follow-up: the current Chrome connector
     exposes a working signed-in Primetime tab. No login link or new permission
     was needed. Current-day first10details are readable, zero unavailable;

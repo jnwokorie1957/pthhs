@@ -38,6 +38,12 @@
     ,invalid_pdf: 'Choose a complete PDF file, or upload a clear JPEG or PNG.'
     ,address_lookup_unavailable: 'Address suggestions are unavailable. You can still type your complete address.'
     ,address_lookup_limit: 'Please type your address manually or try suggestions again later.'
+    ,form_revision_conflict: 'This form changed. Reopen the latest saved form before continuing.'
+    ,form_already_submitted: 'This signed form is already submitted. Contact HR to request a correction.'
+    ,invalid_form_fields: 'Check the form fields and allowed choices. Use standard letters and numbers.'
+    ,form_incomplete: 'Complete the required personal information and select exactly one filing or citizenship status. Check any conditional fields in the official instructions.'
+    ,i9_offer_required: 'Your I-9 draft can be saved here. Signing opens after HR records your accepted job offer.'
+    ,form_not_found: 'Save a form draft before downloading it.'
   };
   const message = s => { status.textContent = s; };
   const hide = () => {

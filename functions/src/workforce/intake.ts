@@ -2,11 +2,14 @@ import { createHash } from "node:crypto";
 import { saveApplication, submitApplication, type Application } from "./application.js";
 import { intakePacket, PACKET_SHA256, PACKET_VERSION } from "./packet.js";
 import { WorkforceError } from "./policy.js";
+import { readings } from "./readings.js";
+import { chicagoDate } from "./dates.js";
 
 export interface Intake extends Application {
   office: string; sourceSha256: string; updatedAt: string;
   signature: { name: string; signedAt: string; uid: string; document: string; documentRevision: string; sourceSha256: string; answersSha256: string; electronicConsent: true } | null;
   roleAcknowledgment?: { uid: string; name: string; readAt: string; revision: string; contentSha256: string; sourcePages: number[]; questionsForHR: boolean };
+  policyAcknowledgments?: { page: number; sourcePages: number[]; read: true; response: string|null; sourceSha256: string; uid: string; signedAt: string }[];
 }
 export function intakeAnswers(input: unknown): Record<string, string> {
   if (!input || typeof input !== "object" || Array.isArray(input)) throw new WorkforceError(400, "invalid_answers");
@@ -24,7 +27,9 @@ export function intakeAnswers(input: unknown): Record<string, string> {
   return result;
 }
 export function saveIntake(uid: string, previous: Intake | null, revision: number, answers: unknown, office: string, activeEmployee: boolean, now: string): Intake {
-  const next = saveApplication(uid, previous, revision, { ...intakePacket, approved: true }, intakeAnswers(answers), activeEmployee ? "active" : "applicant");
+  const clean = intakeAnswers(answers);
+  if (!previous && !clean.applicationDate) clean.applicationDate = chicagoDate(now);
+  const next = saveApplication(uid, previous, revision, { ...intakePacket, approved: true }, clean, activeEmployee ? "active" : "applicant");
   return { ...next, office: previous?.office ?? office, sourceSha256: PACKET_SHA256, updatedAt: now, signature: null };
 }
 export function submitIntake(uid: string, previous: Intake, revision: number, signature: unknown, now: string): Intake {
@@ -32,13 +37,15 @@ export function submitIntake(uid: string, previous: Intake, revision: number, si
   if (previous.packetVersion !== PACKET_VERSION || previous.sourceSha256 !== PACKET_SHA256) throw new WorkforceError(409, "packet_migration_review_required");
   const input = signature as { name?: unknown; electronicConsent?: unknown; documentRead?: unknown };
   if (!input || typeof input.name !== "string" || input.name.length > 250 || input.electronicConsent !== true || input.documentRead !== true
-    || input.name.trim().replace(/\s+/g, " ").toLowerCase() !== previous.answers.name?.trim().replace(/\s+/g, " ").toLowerCase()) throw new WorkforceError(400, "signature_required");
+    || input.name.trim().replace(/\s+/g, " ").toLowerCase() !== [previous.answers.firstName, previous.answers.lastName].filter(Boolean).join(" ").trim().replace(/\s+/g, " ").toLowerCase()) throw new WorkforceError(400, "signature_required");
   if (previous.answers.conviction === "Yes" && !previous.answers.convictionDetails?.trim()) throw new WorkforceError(400, "application_incomplete");
   const next = submitApplication(uid, previous, { ...intakePacket, approved: true }, now);
   const sorted = Object.fromEntries(Object.entries(next.answers).sort(([a], [b]) => a.localeCompare(b)));
-  return { ...previous, ...next, updatedAt: now, roleAcknowledgment: {
+  return { ...previous, ...next, updatedAt: now, policyAcknowledgments: readings.map(reading => ({
+    page: reading.page, sourcePages: reading.sourcePages, read: true, response: previous.answers[`terms_page_${reading.page}`] || null, sourceSha256: PACKET_SHA256, uid, signedAt: now
+  })), roleAcknowledgment: {
     uid, name: input.name.trim(), readAt: now, revision: intakePacket.jobDescription.revision,
-    contentSha256: intakePacket.jobDescriptionSha256, sourcePages: [1, 2], questionsForHR: !!previous.answers.jobDescriptionQuestions?.trim()
+    contentSha256: intakePacket.jobDescriptionSha256, sourcePages: intakePacket.jobDescription.sourcePages, questionsForHR: !!previous.answers.jobDescriptionQuestions?.trim()
   }, signature: {
     name: input.name.trim(), signedAt: now, uid, document: intakePacket.referenceRelease.id,
     documentRevision: intakePacket.referenceRelease.revision, sourceSha256: PACKET_SHA256,

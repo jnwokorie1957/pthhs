@@ -21,6 +21,15 @@
       detail.append(dl);
       if (application.signature) detail.append(node('p', 'Reference release signed by ' + application.signature.name + ' at ' + application.signature.signedAt + '. Source hash and answer-version evidence are retained.'));
       if (!actor.grant.permissions.includes('documents.review')) return;
+      detail.append(node('h3','Official forms completed in the portal'));
+      for (const kind of ['i9','w4','new_hire']) {
+        const result = await workforceApi('/staff/applications/' + encodeURIComponent(uid) + '/forms/' + kind);
+        if (sequence !== generation) return;
+        const form = result.form; detail.append(node('p',kind.toUpperCase() + ': ' + (form ? form.state + ' · revision ' + form.revision : 'Not started')));
+        if (!form) continue;
+        const download = node('button','Download private ' + kind.toUpperCase()); download.type = 'button';
+        download.onclick = async () => { try { const blob=await workforceApi('/staff/applications/'+encodeURIComponent(uid)+'/forms/'+kind+'/pdf',undefined,true);if(sequence!==generation)return;const url=URL.createObjectURL(blob),link=document.createElement('a');link.href=url;link.download='private-'+kind+'.pdf';link.click();setTimeout(()=>URL.revokeObjectURL(url),1000); } catch(error){if(sequence===generation)status.textContent=error.message;} };detail.append(download);
+      }
       const docs = await workforceApi('/staff/applications/' + encodeURIComponent(uid) + '/documents');
       if (sequence !== generation) return;
       detail.append(node('h3', 'Private document folder'));

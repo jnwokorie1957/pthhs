@@ -44,7 +44,7 @@ test('new API uses existing project and preserves legacy routing and security bo
   assert.match(read('functions/src/index.ts'),/principal = await requirePrimetimeAdmin\(request\)/);
 });
 test('build pruning explicitly retains all workforce runtime assets', () => {
-  for (const asset of ['workforce.css','workforce.js','workforce-contract.js','workforce-session.js','workforce-staff.js','workforce-application.js','workforce-personnel.js','workforce-address.js']) {
+  for (const asset of ['workforce.css','workforce.js','workforce-contract.js','workforce-session.js','workforce-staff.js','workforce-application.js','workforce-personnel.js','workforce-address.js','workforce-readings.js','workforce-forms.js','workforce-form-fields.js','workforce-form-layout.css']) {
     assert.ok(read('scripts/accessibility_foundation.py').includes('assets/'+asset));
     assert.ok(read('scripts/verify_accessibility_foundation.py').includes('assets/'+asset));
   }
@@ -63,7 +63,7 @@ test('complete role reading and dedicated document/form steps remain available',
   const html = read('public/caregiver.html');
   for (const id of ['job-description-step','job-description-text','job-description-read','job-description-questions','official-forms']) assert.ok(html.includes(`id="${id}"`));
   assert.match(html,/accept="image\/jpeg,image\/png,application\/pdf"/);
-  assert.match(html,/https:\/\/www\.uscis\.gov\/sites\/default\/files\/document\/forms\/i-9\.pdf/);
+  assert.match(html,/href="\/assets\/forms\/i9-2025\.pdf"/);
   assert.match(html,/href="\/assets\/forms\/w4-2026\.pdf"/);
   const manifest = JSON.parse(read('public/assets/forms/manifest.json'));
   const w4 = manifest.forms.find(f => f.id === 'w4-2026');

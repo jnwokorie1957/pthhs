@@ -263,6 +263,10 @@ expected_runtime_assets = {
     "assets/workforce-application.js",
     "assets/workforce-personnel.js",
     "assets/workforce-address.js",
+    "assets/workforce-readings.js",
+    "assets/workforce-forms.js",
+    "assets/workforce-form-fields.js",
+    "assets/workforce-form-layout.css",
 }
 if runtime_assets != expected_runtime_assets:
     errors.append(
