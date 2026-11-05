@@ -422,5 +422,33 @@ class DifferentCaregiverTests(unittest.TestCase):
         self.assertEqual(sitemap.count('<loc>https://pthhs.net' + article.path + '</loc>'), 1)
 
 
+
+
+class HolidayArticleTests(unittest.TestCase):
+    def test_holiday_planning_preserves_request_privacy_and_temporary_scope(self):
+        article = next(a for a in approved_articles() if a.slug == 'planning-holiday-week-home-care-schedule')
+        page = (ROOT / 'public/articles' / (article.slug + '.html')).read_text(encoding='utf-8')
+        text = plaintext(page)
+        for expected in (
+            'Keep the existing confirmed arrangement visible.',
+            'Do not put medical details, account information, or home-access codes in a broadly shared calendar.',
+            'The last date the temporary arrangement applies and what is expected afterward.',
+            "the cousin's travel is delayed",
+            'not PTHHS policy or holiday availability',
+            'Prepared with AI assistance and reviewed for source accuracy and company scope.',
+        ):
+            self.assertIn(expected, text)
+        self.assertEqual(page.count('Published by Robert, CTO of Primetime Home Health Services'), 1)
+        self.assertNotIn('By Robert', article.body)
+        self.assertNotIn('href="https://pthhs.net/contact"', page)
+        self.assertIn('href="https://pthhs.net/home-care-contact-us"', page)
+        self.assertEqual(article.published, '2026-11-05')
+        self.assertEqual(article.research_checked, '2026-11-05')
+        self.assertIsNone(article.modified)
+        for name in ('articles.html', 'home-care-blog.html'):
+            self.assertEqual((ROOT / 'public' / name).read_text(encoding='utf-8').count('href="' + article.path + '"'), 1)
+        self.assertEqual((ROOT / 'public/sitemap.xml').read_text(encoding='utf-8').count('<loc>https://pthhs.net' + article.path + '</loc>'), 1)
+
+
 if __name__ == '__main__':
     unittest.main()
