@@ -2129,3 +2129,76 @@ decision or communication. Local server/tab closed; a long-delay text-locator
 timeout was resolved by fresh AX/DOM observation, not called a product failure.
 See KEYBOARD_HELPER_DIAGNOSIS_2026-11-04.md. Current backend15ba09d has only V2 code
 projection acceptance; no actual V2 time recovery or external-role grant is added.
+
+NOVEMBER 5, 2026, 01:36 UTC TRIGGER — DST WORKFLOW AND SOURCE-DURATION BOUNDARIES
+
+OBSERVED IMPLEMENTATION / ACCESS LIMITS
+Refreshed upstream39823d6 preserves supplied raw actual/rounded durations, zero,
+empty/unknown distinctions and written-clock labels in eight synthetic tests
+against source/generated code under three process timezones. The dated receipt
+reports24 executions and the local release gate; this research inspected the code
+and receipt, without rerunning them or claiming publication/CI/native acceptance.
+No runtime/assets changed in that commit. JSON replay is synthetic serialization,
+not authenticated persistence. Current sourceActualHours keeps its supplied value;
+sourceRecordedClockSpan is separately labelled written times. No elapsed-clock
+or DST increment fills ActualHours or ActualHoursRounded.
+
+Connected Chrome inventory remains the same two Primetime tabs, including the
+other goal's tab, and no HHA application tab. No attachment retry or new source UI/
+API/configuration read occurred. Tenant DST configuration and a representative
+affected visit are unverified. The original October24 screenshot remains resolved;
+the historical P03/E04 gaps are not attributed to DST by this research.
+
+PRIMARY GUIDANCE — PRODUCT CAPABILITY, NOT TENANT ACCEPTANCE
+[R85] describes an optional office DST adjustment and locates adjusted/billable
+hours in Visit Billing Info. Its automatic setting and manual correction examples
+do not establish this office's configuration, any SOAP field equivalence, payable
+time, or permission to edit. [R86] describes a mobile clock-setting warning; the
+user controls that setting, and manual time does not itself block app use. Neither
+warning presence nor absence proves a missing-punch cause or device-event truth.
+[R87] dates the2026 US transition to November1 at2am local, where observed; the
+date alone cannot supply an offset or settle an ambiguous visit timestamp.
+
+PROPOSED ROLE CONNECTIONS / PRIORITY
+P0 preserve source hours and the existing no-substitution/no-write controls.
+P1 office manager: extend the existing protected source case, when access returns,
+with the exact office DST option, effective configuration evidence, exact visit
+and separate Billing Info field origins. Reconcile source adjustments separately
+from recorded/EVV clocks and raw actual/rounded fields. Unknown configuration
+stays unknown; a difference is not an instruction to add/subtract an hour.
+Patient/family: permitted schedule/document views retain office date context and
+original source text. A repeated clock label must not merge encounters or imply
+a confirmed schedule change, completed document or resolved concern.
+Staff/PT: retain the exact assigned encounter/form version and independent event,
+source-read and document timestamps. Device clock guidance cannot confer clinical
+signing authority, verify an EVV event or fill missing documentation/time fields.
+These remain P2 experiences pending membership/assignment/discipline, reviewer,
+form-version/action and sharing evidence; no new role or marketed service.
+
+ACCEPTANCE / PRECISE EXISTING DEPENDENCIES
+- Preserve a supplied duration even when it disagrees with clock arithmetic;
+  keep explicit zero, empty, absent, adjusted and rounded fields distinct.
+- Synthetic cases should include both office-setting states and unknown state,
+  repeated offset-free clocks, unequal explicit offsets, overnight/split visits,
+  daily/visit versus hourly service context and a differing device timezone.
+  Fixtures must not claim to simulate actual vendor billing behavior or units.
+- Refresh/paging/JSON replay and changed office/date/subject/session must retain
+  exact identity, field origin and separate receipts without a second adjustment.
+  Native persistence, source/configuration and clinician/office acceptance remain
+  separate from39823d6's three-timezone display checks.
+- Existing owner/vendor handoff: once the signed-in connector is available,
+  establish office configuration and documented field/unit provenance for one
+  authorized exact affected visit before any interpretation proposal. Do not
+  toggle settings, edit times, broaden reads, send a case or reopen unchanged
+  permission questions. No new urgent action or recovered-time claim this pass.
+
+PRIMARY SOURCES — RETRIEVED NOVEMBER 5, 2026
+[R85] HHAeXchange, Daylight Savings Time. Optional office adjustment and separate
+Billing Info fields; vendor workflow only, not source mapping or local approval.
+https://knowledge.hhaexchange.com/enterprise/Content/Documentation/Admin/Admin-B-Daylight-Savings-Time-P.htm
+[R86] HHAeXchange, Automatic Time Setting Option. Mobile warning and user-owned
+device setting; not a clock-integrity, missing-punch or tenant-state verdict.
+https://knowledge.hhaexchange.com/caregiver/Content/Documentation/Mobile/Mobi-CG-Automatic-Time-Setting-Option-P.htm
+[R87] NIST, Daylight Saving Time Rules.2026 local transition date; jurisdiction
+and individual source timestamp interpretation remain separate.
+https://www.nist.gov/pml/time-and-frequency-division/popular-links/daylight-saving-time-dst

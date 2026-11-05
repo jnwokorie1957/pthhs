@@ -1,5 +1,13 @@
 # PTHHS Management Layer — Developer Checklist
 
+- [ ] November 5 role research: distinguish the vendor's optional office DST
+  billing adjustment from raw ActualHours/rounded hours, EVV punches and device
+  time settings. R85-R87 add exact-visit/configuration/field-provenance acceptance
+  cases to [role research](ROLE_WORKFLOW_RESEARCH.txt). Preserve 39823d6's synthetic
+  fall-back checks; they do not accept tenant settings, source mapping, persisted
+  history or paid/billable time. Existing protected source handoff remains the
+  dependency; no new read grant, configuration change or urgent owner question.
+
 - [x] November 5 fall-back display preservation: eight synthetic checks run
   against source/generated code in three time zones (24 passing executions).
   Exact hours, zero/empty/unknown, repeated clocks and serialized replay retain
