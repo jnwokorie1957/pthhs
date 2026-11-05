@@ -2,10 +2,11 @@
 
 - [ ] November4 requested full office-day Overview: all returned detail batches
   now feed one consistent totals/chart set, independently of Preview paging.
-  Seven collection and five browser integration checks; all499 current checks
+  Seven collection and six browser integration checks; all500 current checks
   and26 ordered site/source gates pass. Existing HHA grants/guards/quota retained.
-  Explicit asset deltas/allowances reviewed; normal release and actual complete
-  production scan/reconciliation remain pending. See
+  Explicit asset deltas/allowances reviewed; initial normal release passes.
+  Same-scope refresh retains last complete charts with explicit provenance;
+  its release and actual complete production reconciliation remain pending. See
   [scope and acceptance](OFFICE_DAY_OVERVIEW_2026-11-04.md). O03 stays open.
 
 - [ ] November 5 role research: distinguish the vendor's optional office DST

@@ -195,7 +195,7 @@ TAB 01 - OVERVIEW
     scan/refresh design before promising full-office totals or all-record search.
     November4 owner request: Overview now collects every returned office/day
     detail batch with stable search identity, deduplication, retries, progress and
-    independent Preview paging. All499 checks/26site gates pass. Explicit bounded
+    independent Preview paging. All500 checks/26site gates pass. Explicit bounded
     asset allowance reviewed. Normal release and actual whole-day production
     count/field/chart reconciliation remain pending; do not accept from fixtures.
     See OFFICE_DAY_OVERVIEW_2026-11-04.md. No new source method/grant/write/import.

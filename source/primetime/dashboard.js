@@ -280,6 +280,7 @@
   function pauseFeed(message) {
     feedEnabled = false; stopFeedTimer(); cancelFeedRead();
     if (officeAbort) feedReceipt = null;
+    if (officeAbort && officeView?.officeDay.complete) text('dashboardOverviewStatus', 'Refresh paused. Charts retain the last completed office-day read and its fetch range.');
     officeAbort?.abort();
     if (officeView && !officeView.officeDay.done) text('dashboardOverviewStatus', 'Office-day read paused. Read entire day to restart.');
     feedControls(message);
@@ -477,7 +478,8 @@
   }
   async function loadOfficeDay(first) {
     if (first.page?.offset !== 0 || !ready || !controller.isLive() || !get('officeDayOverview')?.classList.contains('is-active')) return;
-    clearOfficeDay(); officeKey = selectedOfficeKey();
+    const previous = officeKey === selectedOfficeKey() && officeView?.officeDay.complete ? officeView : null;
+    clearOfficeDay(); officeView = previous; officeKey = selectedOfficeKey();
     const key = officeKey, request = new AbortController(); officeAbort = request;
     const expected = { mode: 'live', date: dateInput.value, officeId: metadata.settings.officeId };
     const active = () => ready && controller.isLive() && key === selectedOfficeKey() && !request.signal.aborted;
@@ -504,7 +506,11 @@
           }
           throw new Error('office_day_read_unavailable');
         }
-      }, view => { if (active()) { officeView = view; renderLiveOverview(view, true); } }, active, wait);
+      }, view => {
+        if (!active()) return;
+        if (previous && !view.officeDay.done) text('dashboardOverviewStatus', `Refreshing office day: ${view.items.length} of ${view.discovery.selectedCount} checked. Charts retain the last completed read and its fetch range.`);
+        else { officeView = view; renderLiveOverview(view, true); }
+      }, active, wait);
     } catch {
       if (active()) {
         officeView = null;

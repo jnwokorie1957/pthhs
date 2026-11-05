@@ -186,9 +186,7 @@ if (phpFiles.length) errors.push(`public PHP endpoints remain: ${phpFiles.join('
 const publicFiles = await walk(publicDir);
 const publicBytes = (await Promise.all(publicFiles.map((file) => fs.stat(file)))).reduce((sum, stat) => sum + stat.size, 0);
 const internalBytes = (await Promise.all(publicFiles.filter(file => isInternalAppFile(file, publicDir)).map(file => fs.stat(file)))).reduce((sum, stat) => sum + stat.size, 0);
-// The already released first-party daily counter and its privacy disclosure add
-// 14,828 raw bytes across the marketing site; retain a measured bounded allowance.
-if (publicBytes - internalBytes > 2_030_000) errors.push(`marketing output exceeds 2.03 MB foundation budget: ${publicBytes - internalBytes}`);
+if (publicBytes - internalBytes > 2_000_000) errors.push(`marketing output exceeds 2 MB foundation budget: ${publicBytes - internalBytes}`);
 // The authenticated app now includes source review, Demo/Live and durable
 // follow-up UI, private forms and connected settings/audit views.
 // Keep a bounded raw budget plus compressed-transfer and per-file
@@ -196,7 +194,7 @@ if (publicBytes - internalBytes > 2_030_000) errors.push(`marketing output excee
 // Two protected source panels add caregiver profiles and exact-visit billing.
 // Includes the owner-requested website analytics panel (~13 KB), with no chart library.
 // The requested complete office-day collector adds about 5 KB of raw code and
-// about 1.5 KB transferred. It reuses the existing API/charts with no library.
+// about 1.6 KB transferred. It reuses the existing API/charts with no library.
 // This includes the concurrently released first-party live-view counter.
 if (internalBytes > 431_000) errors.push(`internal app output exceeds 431 KB budget: ${internalBytes}`);
 const internalFiles = publicFiles.filter(file => isInternalAppFile(file, publicDir));

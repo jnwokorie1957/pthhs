@@ -1322,6 +1322,23 @@ test('date change fences a pending office-day batch and clears prior totals imme
   assert.match(latest, /2026-10-24/);
   assert.match(app.element('dashboardOverviewCompleteness').textContent, /3 \/ 3/);
 });
+test('same-scope refresh retains the last complete day with an explicit refresh label until new collection finishes', async () => {
+  const pending = deferred(); let hold = false;
+  const app = await officeDayFixture(path => hold && new URL(path, 'https://fixture.test').searchParams.has('cursor') ? pending.promise : response(numberedSourcePage(path)));
+  const totals = nodeText(app.element('dashboardOverviewMetrics')), receipt = app.element('dashboardOverviewMetadata').textContent;
+  hold = true;
+  app.document.dispatchEvent(new DetailEvent('primetime-view-changed', { detail: { view: 'overview' } }));
+  await tick(); await tick();
+  assert.equal(nodeText(app.element('dashboardOverviewMetrics')), totals);
+  assert.equal(app.element('dashboardOverviewMetadata').textContent, receipt);
+  assert.match(app.element('dashboardOverviewStatus').textContent, /Refreshing office day.*last completed read/);
+  for (const id of ['900001', '900002', '900003']) assert.match(nodeText(app.element('dashboardTimeline')), new RegExp(id));
+  hold = false;
+  pending.resolve(response(numberedSourcePage('/primetime/api/views/visits?date=' + app.element('dashboardVisitDate').value + '&cursor=page-two')));
+  await tick(); await tick(); await tick();
+  assert.match(app.element('dashboardOverviewStatus').textContent, /read complete/);
+  assert.match(app.element('dashboardOverviewCompleteness').textContent, /3 \/ 3/);
+});
 test('Demo, sign-out and clear cannot be repainted by a late office-day detail batch', async () => {
   for (const action of ['demo', 'signout', 'clear']) {
     const late = deferred();
