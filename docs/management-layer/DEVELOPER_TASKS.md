@@ -1,5 +1,13 @@
 # PTHHS Management Layer — Developer Checklist
 
+- [x] November 5 Visit Preview delay explanation: distinguish HTTP 429 read
+  limiting from HTTP 503 temporary unavailability while retaining office/date/
+  page and the guarded retry. Two fail-before regressions, normal four-job release,
+  15 exact private assets and ten anonymous boundaries pass. One signed-in
+  historical read remains correctly partial (four readable/six unavailable);
+  live top-level error branches remain synthetic acceptance. Broader O02 and
+  P03/E04 stay open. See [dated evidence](VISIT_READ_DELAY_STATUS_2026-11-05.md).
+
 - [x] Implemented administrator Visit Maintenance: full returned-ID source queue,
   saved source-bound office cases, real scoped call evidence, proposed next steps,
   follow-up queues, audit history and private text reports. Production save,
