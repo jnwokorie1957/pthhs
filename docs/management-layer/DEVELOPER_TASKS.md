@@ -74,6 +74,11 @@
   the34-URL sitemap expose both. Private noindex/anonymous401/no-store pass.
   No exact-period search outcome, runtime change or repeat deployment accepted.
   See [bounded verification](../seo/2026-11-05-seo-review.md).
+  21:09UTC follow-up:139public routes/18exact artifacts pass; six-article plan
+  aligned. Google canonical sitemap is Success/readNovember5/34discovered URLs,
+  not indexing acceptance. Explicit October26–November1 versus October19–25
+  periods match all four cards/URL; invalid daily chart remains uninterpreted.
+  Existing owner claim/location and search-outcome limits remain open.
 
 - [x] November4 requested full office-day Overview: all returned detail batches
   now feed one consistent totals/chart set, independently of Preview paging.

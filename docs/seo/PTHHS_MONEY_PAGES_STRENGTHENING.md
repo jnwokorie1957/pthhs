@@ -1,5 +1,5 @@
 # PTHHS priority public-page review
-**Reviewed:** November 2, 2026 America/Chicago
+**Reviewed:** November 5, 2026 America/Chicago
 **Status:** Supersedes the August 19 assumed ranks, unverified network/county copy,
 FAQ rich-result tactics and page-creation instructions.
 
@@ -13,7 +13,17 @@ FAQ rich-result tactics and page-creation instructions.
 | Eight promoted locations and areas hub | Reviewed service/eligibility links exist | Retain them; verify another community before further promotion |
 | Privacy Policy and Terms of Use | Published canonical pages in sitemap | Shared footer links added October 16; policy content unchanged |
 | Home-care guide and care explainer | Resources -> guide -> explainer verified October 18 | Preserve useful question-led navigation and current approved scope |
-| Articles index and four published articles | October27 company perspective, October28 first-call checklist, November1 household preferences and November2 distant-family coordination; all four delivered Git blobs verified | Preserve approved attribution, prose, citations and actual content dates; keep earlier bounded browser evidence dated and measure later comparable periods |
+| Articles index and six published articles | Four earlier articles plus different-caregiver preparation and holiday-week planning; all six delivered Git blobs verified November5 | Preserve approved attribution, prose, citations and actual content dates; keep earlier bounded browser evidence dated and measure later comparable periods |
+
+November5 21:09UTC review: 139 source routes, 93 distinct final HTML pages and
+91 indexable pages pass technical delivery checks. Eighteen sampled artifacts
+match Git. The delivered sitemap has34URLs; Google reports canonical sitemap
+Success/last readNovember5/34discovered pages, separate from indexing. Explicit
+Web comparison October26–November1 versus October19–25 is confirmed by the URL
+and all four aggregate cards; invalid daily chart labels remain uninterpreted.
+Query-to-page intent, qualified leads, article attribution and field-performance
+outcomes remain unestablished. Existing37unpromoted location graph findings need
+owner evidence before promotion. See [current review](2026-11-05-seo-review.md).
 
 November 2 review: 137 source routes, 91 distinct final HTML pages, 89 indexable
 pages and 32 delivered sitemap URLs pass bounded technical checks. Fourteen public

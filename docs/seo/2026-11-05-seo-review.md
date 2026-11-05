@@ -62,3 +62,67 @@ owners; no duplicate question or source request was sent.
 Evidence: private `outputs/primetime-seo-check-2026-11-05-1513.json`. The targeted
 HTTP/metadata/schema checks pass. No runtime suite or deployment is repeated;
 documentation/link audit and diff checks cover this documentation-only change.
+
+## 21:09 UTC follow-up: full delivery and explicit Google periods
+
+Refreshed and preserved concurrent maintenance-range/search release `1083e6f`.
+Its source/UI work and permission/native acceptance remain with that workstream.
+This pass read public pages and an isolated normal Search Console tab only.
+
+All 139 marketing source routes end at HTTP200 without multi-hop redirects,
+yielding 93 distinct HTML pages and 91 indexable pages. The indexable pages have
+present, unique titles/descriptions, expected canonicals, one H1 and matching
+HTML/WebPage metadata. Parsed JSON-LD, viewport and image-alt presence checks
+pass. These checks do not establish full accessibility or field performance.
+All 18 sampled public artifacts match current Git blobs, including all six
+articles, both listings, core business pages, robots and both sitemap files.
+The delivered sitemap has 34 canonical-host URLs and excludes `/primetime`.
+Private meta/header noindex and anonymous session HTTP401/no-store remain intact.
+
+The initial-HTML homepage graph still leaves 37 indexable location pages outside
+the reachable set. This is the existing owner-reviewed promotion backlog, not a
+new delivery regression or an indexing verdict. Availability and useful verified
+local information remain required before promoting another community. Approved
+PAS scope, six payer displays and individual eligibility qualifiers are preserved.
+
+The normal Web report now has an explicit custom comparison: October26–November1
+versus October19–25,2026. All four aggregate cards show those same periods, and
+the applied URL parameters independently agree. This supersedes the earlier
+absolute-period uncertainty for this new comparison. The chart still exposes
+invalid date labels, so its daily series is not interpreted. Rounded aggregate
+cards do not establish causality, qualified leads or query-to-page intent. No
+query-level evidence or metric values are retained in this public record, and
+the two latest family guides cannot be attributed to this earlier window.
+
+The submitted-sitemap report currently shows:
+
+| Submitted URL | Last read | Status | Discovered pages |
+|---|---|---|---:|
+| `https://pthhs.net/sitemap.xml` | November 5, 2026 | Success | 34 |
+| `https://www.pthhs.net/sitemap_index.xml` | October 29, 2026 | Success | 34 |
+| `https://www.pthhs.net/sitemap.xml` | November 5, 2026 | Success | 33 |
+
+These are dated report rows; do not sum overlapping inventories or treat them as
+indexed-page counts. Google's [Sitemaps report guidance](https://support.google.com/webmasters/answer/7451001?hl=en)
+distinguishes successful parsing/discovered URLs from crawling and indexing.
+No new submission or reprocessing request was needed or made.
+
+Current primary guidance also supports the existing readable HTML links,
+content-matching structured data and private noindex boundary:
+[crawlable links](https://developers.google.com/search/docs/crawling-indexing/links-crawlable),
+[structured-data policies](https://developers.google.com/search/docs/appearance/structured-data/sd-policies)
+and [noindex](https://developers.google.com/search/docs/crawling-indexing/block-indexing),
+retrieved November5. These do not authorize new service/credential/location facts
+or guarantee search appearance. No owner business decision was marked complete.
+
+The known optional GSC Wizard plan refusal was not retried; the existing native
+report was sufficient for the bounded date/processing review. Temporary Google
+tab and report buffers were cleared. No authenticated HHA record, source write,
+account/grant change, report export or communication occurred. O03 and bounded
+administrator maintenance acceptance are now recorded in management evidence;
+the earlier pending-office-day statement above is a dated 15:13 checkpoint.
+
+Evidence: `outputs/primetime-public-seo-crawl-2026-11-05-2109.json` and
+`outputs/primetime-seo-native-review-2026-11-05-2109.json`. No demonstrated public
+runtime defect justified a code change, repeated runtime suite or deployment.
+Documentation/link audit and diff checks cover the updated planning evidence.
