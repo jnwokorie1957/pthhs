@@ -35,7 +35,7 @@ function statusFromSettings(current: WorkspaceSettings) {
     return { available: reason === null, blockedReason: reason, operation };
   };
   return { ok: true, mode: "live" as const, dataApproved: current.dataApproved, settings: { ...settings, revision: current.settings.revision },
-    panels: { visits: { available: blockedReason === null, blockedReason }, caregiverProfile: related("GetCaregiverDemographics"), billingFacts: related("GetVisitBillInfoV2"), callEvents: related("GetCallDashBoardData") }, sourceValidation: "pending" as const };
+    panels: { visits: { available: blockedReason === null, blockedReason }, officeDay: { available: blockedReason === null, blockedReason, kind: "scheduled_office_day_api" }, caregiverProfile: related("GetCaregiverDemographics"), billingFacts: related("GetVisitBillInfoV2"), callEvents: related("GetCallDashBoardData") }, sourceValidation: "pending" as const };
 }
 export async function dataStatus(workspace: Workspace) { return statusFromSettings(await workspace.settings()); }
 

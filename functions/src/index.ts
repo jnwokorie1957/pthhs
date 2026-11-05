@@ -41,6 +41,7 @@ import { workspaceRoute } from "./operations/routes.js";
 import { manualSnapshotRoute } from "./operations/manualSnapshots.js";
 import { assertLiveDataMode, viewRoute } from "./views/visits.js";
 import { FirestoreFeedStore, refreshLiveFeed, readLiveFeed } from "./views/liveFeed.js";
+import { FirestoreOfficeDayStore, refreshOfficeDay, readOfficeDay } from "./views/officeDay.js";
 import { WorkflowError } from "./operations/reads.js";
 import { RevisionBackend, type RevisionActor, type RevisionApprovals } from "./revisions/service.js";
 import { revisionRoute } from "./revisions/routes.js";
@@ -129,6 +130,11 @@ export const primetimeRevisionMonitor = process.env.PRIMETIME_API_ONLY_DEPLOY ==
     logger.info("Primetime live API feed", await refreshLiveFeed(liveReadWorkspace(), new FirestoreFeedStore()));
   } catch {
     logger.warn("Primetime live API feed deferred", { code: "feed_storage_unavailable" });
+  }
+  try {
+    logger.info("Primetime office-day API cache", await refreshOfficeDay(liveReadWorkspace(), new FirestoreOfficeDayStore()));
+  } catch {
+    logger.warn("Primetime office-day API cache deferred", { code: "office_day_cache_unavailable" });
   }
   try {
     const result = await revisionBackend({ actorId: "revision_monitor", roles: ["admin"], mode: "live" }).monitor();
@@ -225,6 +231,16 @@ export const primetimeApi = onRequest(
       response.status(result?.status ?? 404).json(result?.body ?? { ok: false, error: "not_found" }); return;
     }
 
+    if (path === "/views/office-day") {
+      try {
+        if (request.method !== "GET") throw new WorkflowError("method_not_allowed", 405);
+        response.status(200).json(await readOfficeDay(liveReadWorkspace(), new FirestoreOfficeDayStore(), request.query));
+      } catch (error) {
+        response.status(error instanceof WorkflowError ? error.status : 503).json({ ok: false,
+          error: error instanceof WorkflowError ? error.code : "office_day_cache_unavailable", retryAfterSeconds: 60 });
+      }
+      return;
+    }
     if (path === "/views/feed") {
       try {
         if (request.method !== "GET") throw new WorkflowError("method_not_allowed", 405);

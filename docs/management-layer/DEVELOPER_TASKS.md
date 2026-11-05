@@ -1,5 +1,12 @@
 # PTHHS Management Layer — Developer Checklist
 
+- [ ] November5 persistent office-day collection: browser suspension interrupted
+  the large actual scan. The existing minute worker now persists working and
+  published generations through a protected cache, with unchanged HHA reads,
+  source quotas and office/policy checks. Fourteen new checks/all657 backend pass.
+  Normal release, cache UI and complete production/reload acceptance remain
+  pending. See [server-cache scope](OFFICE_DAY_SERVER_CACHE_2026-11-05.md). O03 open.
+
 - [x] November5 SEO delivery: five public pages, including both new family
   guides, match Git and pass canonical/HTML/WebPage/Article checks; listings and
   the34-URL sitemap expose both. Private noindex/anonymous401/no-store pass.
