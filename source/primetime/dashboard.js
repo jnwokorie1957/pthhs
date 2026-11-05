@@ -501,7 +501,7 @@
           if (response.ok) return payload;
           if ([429, 503].includes(response.status) && attempt < 3 && Number.isSafeInteger(payload.retryAfterSeconds)
             && payload.retryAfterSeconds > 0 && payload.retryAfterSeconds <= 600) {
-            text('dashboardOverviewStatus', `Office-day read waiting ${payload.retryAfterSeconds}s for HHA. Collected charts remain partial.`);
+            text('dashboardOverviewStatus', `Office-day read waiting ${payload.retryAfterSeconds}s for HHA. ${previous ? 'Charts retain the last completed read and its fetch range.' : 'Collected charts remain partial.'}`);
             await wait(payload.retryAfterSeconds); continue;
           }
           throw new Error('office_day_read_unavailable');

@@ -1391,6 +1391,52 @@ test('office-day HTTP quota waits for the specified delay and resumes the same c
   assert.match(app.element('dashboardOverviewStatus').textContent, /read complete/);
 });
 
+for (const status of [429, 503]) for (const retained of [false, true]) {
+  test(`office-day ${status} quota labels ${retained ? 'retained complete' : 'first partial'} charts without changing evidence`, async () => {
+    const timers = new Map(), quota = deferred(); let limit = !retained;
+    const app = harness({ storedDataMode: null, metadata: liveMetadata, fetchSource: path => {
+      if (!path.includes('/views/visits?')) return response({ ok: true });
+      if (limit && new URL(path, 'https://fixture.test').searchParams.has('cursor')) return quota.promise;
+      return response(numberedSourcePage(path));
+    } });
+    app.context.setTimeout = (fn, delay) => { const id = timers.size + 1; timers.set(id, { fn, delay }); return id; };
+    app.context.clearTimeout = id => timers.delete(id);
+    app.element('officeDayOverview').classList.add('is-active');
+    installDashboard(app); await app.signIn(); await tick(); await tick(); await tick();
+    if (retained) {
+      assert.match(app.element('dashboardOverviewStatus').textContent, /read complete/);
+      limit = true;
+      app.document.dispatchEvent(new DetailEvent('primetime-view-changed', { detail: { view: 'overview' } }));
+      await tick(); await tick();
+    }
+    const ids = ['dashboardOverviewMetrics','dashboardTimeline','dashboardEvidenceChart','dashboardCoverage','dashboardOverviewMetadata','dashboardOverviewCompleteness'];
+    const evidence = () => ids.map(id => nodeText(app.element(id)));
+    const before = evidence();
+    quota.resolve({ ...response({ ok: false, retryAfterSeconds: 7 }), ok: false, status });
+    await tick(); await tick();
+    const label = app.element('dashboardOverviewStatus').textContent;
+    assert.match(label, /waiting 7s/);
+    assert.match(label, retained ? /Charts retain the last completed read and its fetch range/ : /Collected charts remain partial/);
+    if (retained) assert.doesNotMatch(label, /remain partial/);
+    assert.deepEqual(evidence(), before);
+    assert.equal(app.element('dashboardOverviewRefresh').disabled, true);
+    const timer = [...timers.values()].find(v => v.delay === 7000); assert.ok(timer);
+    limit = false; timer.fn(); await tick(); await tick(); await tick();
+    assert.match(app.element('dashboardOverviewStatus').textContent, /read complete/);
+    assert.match(app.element('dashboardOverviewCompleteness').textContent, /3 \/ 3/);
+  });
+}
+for (const status of [429, 503]) test(`stale office-day ${status} quota response cannot repaint after sign-out`, async () => {
+  const quota = deferred();
+  const app = await officeDayFixture(path => new URL(path, 'https://fixture.test').searchParams.has('cursor') ? quota.promise : response(numberedSourcePage(path)));
+  app.dispatch('primetime-signed-out');
+  const before = nodeText(app.element('dashboardOverviewStatus')), calls = app.calls.length;
+  quota.resolve({ ...response({ ok: false, retryAfterSeconds: 7 }), ok: false, status });
+  await tick(); await tick();
+  assert.equal(nodeText(app.element('dashboardOverviewStatus')), before);
+  assert.equal(app.calls.length, calls);
+});
+
 test('Live previous-page navigation reuses scoped source cursors across both dashboard views', async () => {
   const seen = [];
   const app = harness({ metadata: liveMetadata, fetchSource: path => { seen.push(new URL(path, 'https://fixture.test').searchParams.get('cursor')); return response(numberedSourcePage(path)); } });
