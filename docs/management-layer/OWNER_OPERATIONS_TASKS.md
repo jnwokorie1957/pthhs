@@ -14,6 +14,17 @@
 
 ## Start here
 
+- [x] November 5 available maintenance resources collected: checked HHA workflow,
+  permission and testing references; current reason/maintenance/report resources;
+  private API guide and current public schema; staff/pilot/report templates.
+  See [resource pack](evv-maintenance-resources/README.md). This is resource
+  readiness, not an approved action policy, new role grant or started pilot.
+- [ ] Before enabling HHA maintenance submissions: obtain the current supported
+  existing-call linking/confirmation, reason/action and source-readback contract
+  for the agency. A concrete [technical question packet](evv-maintenance-resources/HHA_SUPPORT_QUESTIONS.txt)
+  is prepared but unsent. No vendor enrollment, conversion or attestation was
+  initiated. Other workbench/access/report implementation can proceed meanwhile.
+
 - [x] November 5 product direction accepted: reduce visit-maintenance time first;
   office staff, supervisors and managers should work inside Primetime with real
   caregiver events, reason codes and supported confirmation/correction actions.

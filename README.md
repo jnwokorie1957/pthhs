@@ -12,6 +12,13 @@ actual caregiver events. The owned scheduling platform follows reliable daily
 maintenance. These are requirements, not enabled write access or a started pilot.
 See the [accepted direction, delivery order and source dependencies](docs/management-layer/EVV_MAINTENANCE_PRODUCT_DIRECTION.txt).
 
+The [maintenance resource pack](docs/management-layer/evv-maintenance-resources/README.md)
+now maps all six implementation tasks to checked vendor/state/Firebase references,
+existing source modules, a twelve-operation SOAP comparison, prepared vendor
+questions and a pilot/report kit. Seven reference PDFs and the live public WSDL
+were retrieved privately. Resource collection does not enable confirmation,
+staff accounts or a pilot; those implementation and source acceptance tasks remain.
+
 ## November 5 live office-day Overview acceptance
 
 Overview uses a protected, persistent HHA API collector for every returned visit

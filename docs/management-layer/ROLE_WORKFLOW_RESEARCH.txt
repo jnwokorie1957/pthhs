@@ -2280,3 +2280,24 @@ R57-R59 product guides rechecked November 5; their UI actions do not prove this
 tenant's API action entitlement, complete event history or agency policy. Existing
 read grants and source write blocks remain unchanged. This entry records owner
 requirements; no staff account, pilot, HHA action or recurring task was enabled.
+
+
+MAINTENANCE RESOURCE ACQUISITION - NOVEMBER 5, 2026
+M01-M06 now have a dated resource index, source-module implementation map, twelve
+SOAP operation expansions/live comparison, prepared unsent vendor questions and
+sixteen pilot cases with resolved/unresolved report templates. See the sibling
+evv-maintenance-resources directory. Seven public PDFs and the live anonymous
+WSDL were downloaded and validated outside Git. Existing private Enterprise
+guide was read through Drive; its locator stays private. The current selected
+request/response shapes match the captured snapshot through depth four despite
+raw-file differences. This does not prove tenant entitlement/action semantics.
+Documented GetVisitChangesV4 pagination and office-filtered GetCallDashBoardData
+are concrete next feed-design resources, not newly enabled production feeds.
+Current60read/minute budget is an app guard; published vendor ceilings are a
+different limit requiring tenant validation before tuning. Confirmation variants
+and event/reason mapping remain vendor questions. Current Texas references and
+future April2027 PSO rules are distinguished. No future criteria or agency
+correction rules were adopted. Shared workbench, scoped access and reports can
+continue independently of the unsupported source action. No patient/staff record
+query, grant, source write, account/pilot activation, vendor message or automation
+change.

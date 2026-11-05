@@ -135,3 +135,10 @@ snapshot, unsupported vendor census, normalized import, inferred clock, clinical
 EVV-compliance, payroll or billing decision is established. Source fields absent
 in HHA remain absent. Broader checklist items and native keyboard/assistive-
 technology matrices remain open; the older browser fallback is compatibility only.
+
+Resource review clarification: the shared 60-read/minute guard is enforced by
+Primetime's FirestoreWorkspaceRepository.reserveRead, with separate vendor
+backoff. The observed scan timing does not establish HHA's maximum throughput.
+The new [maintenance resource pack](evv-maintenance-resources/README.md) records
+published provider-limit and incremental-feed references for a future capacity
+review. No limit, source grant, worker or production behavior changed in that pass.

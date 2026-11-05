@@ -1,0 +1,116 @@
+PILOT AND STAFF REPORT WORKING KIT
+Proposed templates, November 5, 2026. Approximately 25 clients is a candidate
+pilot size, not a selected or active production department. No real identities,
+timestamps, example patient records or policy thresholds are stored here.
+
+PILOT SETUP RECORD - PROTECTED RUNTIME STORAGE
+Owner to select when execution is ready:
+- Department/office and explicit client membership, with effective start/end.
+- Named staff, supervisor and manager identities and per-action permissions.
+- Caregiver/service/contract scope and authoritative event sources.
+- Pilot dates, source freshness expectations and complete baseline coverage.
+- Approved repetitive correction examples, rule IDs/versions and exclusions.
+- Applicable reason/action mapping and supporting program configuration.
+- Human review stages, escalation owner and immediate pause/disable authority.
+- Owner-agreed acceptance targets and expansion decision criteria.
+Do not invent a success percentage, time-saving target, tolerance or rule.
+
+STAGES AND EVIDENCE
+Shadow: proposals only, compared with staff's actual maintenance; no HHA action.
+Reviewed execution: authorized staff inspect before/proposed values and approve
+supported actions; each submit is reconciled to actual HHA state.
+Limited automation: only explicitly enabled rules inside the effective pilot
+scope, after agreed evaluation. Model confidence never substitutes for authority.
+Escalation: ambiguous/unsupported/conflicting/missing evidence and unknown source
+results become assigned staff cases. Future scheduling is outside this pilot.
+
+ACCEPTANCE CASES - SYNTHETIC FIRST, THEN APPROVED GENUINE-SOURCE CASES
+P01 Genuine call-in/out, one exact source-linked visit, approved action:
+    preserve originals; proposal/action/readback identify the same visit/events.
+P02 Two visits for the same patient/caregiver/day:
+    no automatic match from subjects/day alone; require authoritative linkage.
+P03 Repeated call-in or call-out attempt:
+    keep individual event identities; do not submit twice or silently reject.
+P04 Missing genuine call-out:
+    do not manufacture an end time from schedule; staff handoff with exact gap.
+P05 Conflicting/rejected/nonmatching event:
+    retain source status and reason; no forced happy-path confirmation.
+P06 Changed assignment, office/client membership or disabled staff account:
+    refuse stale access/action and clear prior client evidence.
+P07 Source visit changed after proposal:
+    block stale submission; re-read and show the difference for review.
+P08 Wrong program/effective-date reason or missing required note:
+    block application; report the specific missing or invalid mapping.
+P09 Submit times out after possible source receipt:
+    mark source outcome unknown; reconcile before any repeated request.
+P10 Vendor response says received/queued but source state is unconfirmed:
+    retain pending state; do not report resolved or count it as success.
+P11 Local follow-up saved or resolved without HHA action:
+    record local progress; HHA confirmation remains separately unestablished.
+P12 Source read failure/quota wait, partial page or watermark tie:
+    disclose incomplete coverage; resume safely; do not infer absent calls.
+P13 Midnight, overnight or DST cases:
+    preserve original timestamps/zones; require accepted source semantics.
+P14 Pause/disable during an in-flight proposal or action:
+    no new execution after revocation; reconcile any already-unknown outcome.
+P15 A successful supported source action:
+    report exact changed fields, reason/rule, actor and independent HHA receipt.
+P16 A larger issue outside approved rules:
+    report why unresolved, evidence needed, responsible staff and next action.
+
+MEASUREMENT DEFINITIONS - NO TARGETS ASSUMED
+Population: explicitly scoped pilot visits/events and their observed coverage.
+Staff time: measured time per comparable maintenance case, before and during
+pilot, with staff review and rework included. Do not claim saved time from model
+runtime alone or a changed case mix.
+Proposal accuracy: adjudicated correct proposals / adjudicated proposals; retain
+unreviewed cases separately and record disagreement categories.
+Source-verified resolution: cases with independent HHA readback / cases actually
+attempted; drafts, local notes and transport acknowledgements are not resolutions.
+Escalation burden: unresolved assigned cases and staff review time, with reasons.
+Rework/conflicts: corrected or reversed actions and stale/conflicting proposals.
+Coverage/freshness: known versus unobserved/partial data and source receipt ages.
+Duplicate/unknown outcomes: separate counts; an unknown result is not a success.
+
+REPORT A - SOURCE-VERIFIED MAINTENANCE COMPLETED
+Protected fields:
+  Case/action ID; office/client/visit/event references; service date/timezone.
+  Source issue/status and original evidence receipts.
+  Applicable policy/rule ID and version; reason/action catalog version.
+  Before, proposed and actual persisted values; original event values preserved.
+  Required reason, action and note; explanation grounded in the evidence.
+  Staff or agent identity/version; reviewer and approval where applicable.
+  Submission attempt/transaction IDs, source response and independent readback.
+  Known limitations, local review state and actual source confirmation state.
+Suggested wording:
+  Resolved [maintenance issue] because [verified evidence + approved rule].
+  Applied [specific supported action]. HHA readback confirmed [specific result].
+No success wording until that source result is established.
+
+REPORT B - STAFF ACTION REQUIRED
+Protected fields:
+  Same scoped case/visit/event references and source freshness/coverage.
+  Exact obstacle: ambiguous link, absent event, changed record, unsupported action,
+  access refusal, missing policy/reason, vendor failure or unknown outcome.
+  What was attempted, what is known and what has not been established.
+  Assigned staff/role, next necessary action and supporting evidence needed.
+  Follow-up timing only when an applicable rule supplies it.
+Suggested wording:
+  Could not resolve [issue] because [specific evidence or contract gap].
+  [Responsible staff] must [concrete next action]. Current HHA state: [observed
+  state or unknown]. No automatic source change was confirmed.
+
+REPORT ACCESS AND DELIVERY
+Start with protected in-app reports, scoped case ownership and pagination.
+Use source timestamps, separate local/source states and immutable audit history.
+Existing local investigation/follow-up code is reusable but is not an HHA write
+receipt. Minimize displayed identifiers and expose private detail only to the
+assigned/effective office roles. Exports and external delivery require the same
+scope; a report file is not automatically emailed or sent to anyone.
+
+REFERENCE USE
+R01/R03 inform human workflow cases. R08/R11 distinguish original evidence and
+maintained fields. R12 supplies configuration-dependent verification examples;
+its tolerances are not adopted here. R13 informs report field review, while the
+owner's resolved/unresolved reports above are proposed additional product work.
+HHA_SUPPORT_QUESTIONS.txt supplies the source dependencies for execution.

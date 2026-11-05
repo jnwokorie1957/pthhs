@@ -1,0 +1,1059 @@
+{
+  "source": "hharefs/hha-wdsl.xml",
+  "sourceSha256": "b57c250a0741f9f965311cc241f5035fb7f91cb7a6bd6dd17b3982836b44f9bd",
+  "capturedSchemaOnly": true,
+  "currentTenantEntitlementVerified": false,
+  "authenticationFieldsExcluded": true,
+  "notExecutionAuthorization": true,
+  "operations": [
+    {
+      "name": "SearchVisitsV2",
+      "soapAction": "https://www.hhaexchange.com/apis/hhaws.integration/SearchVisitsV2",
+      "blockedByCurrentGuideGate": false,
+      "request": {
+        "name": "SearchVisitsV2",
+        "fields": [
+          {
+            "name": "SearchFilters",
+            "type": "tns:SearchVisitV2",
+            "minOccurs": "1",
+            "maxOccurs": "1",
+            "nillable": "true",
+            "fields": [
+              {
+                "name": "StartDate",
+                "type": "s:dateTime",
+                "minOccurs": "1",
+                "maxOccurs": "1",
+                "nillable": "true"
+              },
+              {
+                "name": "EndDate",
+                "type": "s:dateTime",
+                "minOccurs": "1",
+                "maxOccurs": "1",
+                "nillable": "true"
+              },
+              {
+                "name": "PatientID",
+                "type": "s:int",
+                "minOccurs": "1",
+                "maxOccurs": "1",
+                "nillable": "true"
+              },
+              {
+                "name": "CaregiverID",
+                "type": "s:int",
+                "minOccurs": "1",
+                "maxOccurs": "1",
+                "nillable": "true"
+              },
+              {
+                "name": "OfficeID",
+                "type": "s:int",
+                "minOccurs": "1",
+                "maxOccurs": "1",
+                "nillable": "true"
+              },
+              {
+                "name": "CaregiverDisciplineType",
+                "type": "s:string",
+                "minOccurs": "0",
+                "maxOccurs": "1"
+              }
+            ]
+          }
+        ]
+      },
+      "response": {
+        "name": "SearchVisitsV2Response",
+        "fields": [
+          {
+            "name": "SearchVisitsV2Result",
+            "type": "tns:SearchVisitsV2Response",
+            "minOccurs": "0",
+            "maxOccurs": "1",
+            "fields": []
+          }
+        ]
+      }
+    },
+    {
+      "name": "GetVisitInfoV3",
+      "soapAction": "https://www.hhaexchange.com/apis/hhaws.integration/GetVisitInfoV3",
+      "blockedByCurrentGuideGate": false,
+      "request": {
+        "name": "GetVisitInfoV3",
+        "fields": [
+          {
+            "name": "VisitInfo",
+            "type": "tns:GetVisitInfo",
+            "minOccurs": "1",
+            "maxOccurs": "1",
+            "nillable": "true",
+            "fields": [
+              {
+                "name": "ID",
+                "type": "s:int",
+                "minOccurs": "1",
+                "maxOccurs": "1"
+              }
+            ]
+          }
+        ]
+      },
+      "response": {
+        "name": "GetVisitInfoV3Response",
+        "fields": [
+          {
+            "name": "GetVisitInfoV3Result",
+            "type": "tns:GetVisitInfoResponseV3",
+            "minOccurs": "0",
+            "maxOccurs": "1",
+            "fields": []
+          }
+        ]
+      }
+    },
+    {
+      "name": "GetCallDashBoardData",
+      "soapAction": "https://www.hhaexchange.com/apis/hhaws.integration/GetCallDashBoardData",
+      "blockedByCurrentGuideGate": false,
+      "request": {
+        "name": "GetCallDashBoardData",
+        "fields": [
+          {
+            "name": "SearchFilters",
+            "type": "tns:GetCallDashBoardData",
+            "minOccurs": "1",
+            "maxOccurs": "1",
+            "nillable": "true",
+            "fields": [
+              {
+                "name": "OfficeID",
+                "type": "s:int",
+                "minOccurs": "1",
+                "maxOccurs": "1",
+                "nillable": "true"
+              },
+              {
+                "name": "StartDate",
+                "type": "s:dateTime",
+                "minOccurs": "1",
+                "maxOccurs": "1"
+              },
+              {
+                "name": "EndDate",
+                "type": "s:dateTime",
+                "minOccurs": "1",
+                "maxOccurs": "1"
+              },
+              {
+                "name": "PatientID",
+                "type": "s:int",
+                "minOccurs": "1",
+                "maxOccurs": "1",
+                "nillable": "true"
+              },
+              {
+                "name": "AdmissionID",
+                "type": "s:string",
+                "minOccurs": "0",
+                "maxOccurs": "1"
+              },
+              {
+                "name": "CaregiverID",
+                "type": "s:int",
+                "minOccurs": "1",
+                "maxOccurs": "1",
+                "nillable": "true"
+              },
+              {
+                "name": "CaregiverCode",
+                "type": "s:string",
+                "minOccurs": "0",
+                "maxOccurs": "1"
+              },
+              {
+                "name": "TimeAndAttendancePIN",
+                "type": "s:int",
+                "minOccurs": "1",
+                "maxOccurs": "1",
+                "nillable": "true"
+              },
+              {
+                "name": "LastCallDashboardID",
+                "type": "s:int",
+                "minOccurs": "1",
+                "maxOccurs": "1"
+              }
+            ]
+          }
+        ]
+      },
+      "response": {
+        "name": "GetCallDashBoardDataResponse",
+        "fields": [
+          {
+            "name": "GetCallDashBoardDataResult",
+            "type": "tns:GetCallDashBoardDataResponse",
+            "minOccurs": "0",
+            "maxOccurs": "1",
+            "fields": []
+          }
+        ]
+      }
+    },
+    {
+      "name": "GetVisitChangesV4",
+      "soapAction": "https://www.hhaexchange.com/apis/hhaws.integration/GetVisitChangesV4",
+      "blockedByCurrentGuideGate": false,
+      "request": {
+        "name": "GetVisitChangesV4",
+        "fields": [
+          {
+            "name": "GetVisitChanges",
+            "type": "tns:GetVisitChanges",
+            "minOccurs": "0",
+            "maxOccurs": "1",
+            "fields": [
+              {
+                "name": "ModifiedAfter",
+                "type": "s:dateTime",
+                "minOccurs": "1",
+                "maxOccurs": "1"
+              },
+              {
+                "name": "PageNumber",
+                "type": "s:string",
+                "minOccurs": "0",
+                "maxOccurs": "1"
+              }
+            ]
+          }
+        ]
+      },
+      "response": {
+        "name": "GetVisitChangesV4Response",
+        "fields": [
+          {
+            "name": "GetVisitChangesV4Result",
+            "type": "tns:GetVisitChangesV4Response",
+            "minOccurs": "0",
+            "maxOccurs": "1",
+            "fields": []
+          }
+        ]
+      }
+    },
+    {
+      "name": "GetScheduleInfo",
+      "soapAction": "https://www.hhaexchange.com/apis/hhaws.integration/GetScheduleInfo",
+      "blockedByCurrentGuideGate": false,
+      "request": {
+        "name": "GetScheduleInfo",
+        "fields": [
+          {
+            "name": "ScheduleInfo",
+            "type": "tns:ScheduleInfo",
+            "minOccurs": "1",
+            "maxOccurs": "1",
+            "nillable": "true",
+            "fields": [
+              {
+                "name": "ID",
+                "type": "s:int",
+                "minOccurs": "1",
+                "maxOccurs": "1"
+              }
+            ]
+          }
+        ]
+      },
+      "response": {
+        "name": "GetScheduleInfoResponse",
+        "fields": [
+          {
+            "name": "GetScheduleInfoResult",
+            "type": "tns:GetScheduleInfoResponse",
+            "minOccurs": "0",
+            "maxOccurs": "1",
+            "fields": []
+          }
+        ]
+      }
+    },
+    {
+      "name": "GetDeletedVisits",
+      "soapAction": "https://www.hhaexchange.com/apis/hhaws.integration/GetDeletedVisits",
+      "blockedByCurrentGuideGate": false,
+      "request": {
+        "name": "GetDeletedVisits",
+        "fields": [
+          {
+            "name": "ModifiedAfter",
+            "type": "s:dateTime",
+            "minOccurs": "1",
+            "maxOccurs": "1"
+          }
+        ]
+      },
+      "response": {
+        "name": "GetDeletedVisitsResponse",
+        "fields": [
+          {
+            "name": "GetDeletedVisitsResult",
+            "type": "tns:GetDeletedVisitsResponse",
+            "minOccurs": "0",
+            "maxOccurs": "1",
+            "fields": []
+          }
+        ]
+      }
+    },
+    {
+      "name": "GetScheduleBillInfoEditReasons",
+      "soapAction": "https://www.hhaexchange.com/apis/hhaws.integration/GetScheduleBillInfoEditReasons",
+      "blockedByCurrentGuideGate": false,
+      "request": {
+        "name": "GetScheduleBillInfoEditReasons",
+        "fields": []
+      },
+      "response": {
+        "name": "GetScheduleBillInfoEditReasonsResponse",
+        "fields": [
+          {
+            "name": "GetScheduleBillInfoEditReasonsResult",
+            "type": "tns:GetScheduleBillInfoEditReasonsResponse",
+            "minOccurs": "0",
+            "maxOccurs": "1",
+            "fields": []
+          }
+        ]
+      }
+    },
+    {
+      "name": "GetVisitEditReasonActionTaken",
+      "soapAction": "https://www.hhaexchange.com/apis/hhaws.integration/GetVisitEditReasonActionTaken",
+      "blockedByCurrentGuideGate": true,
+      "request": {
+        "name": "GetVisitEditReasonActionTaken",
+        "fields": [
+          {
+            "name": "VisitInfo",
+            "type": "tns:EditVisitInfo",
+            "minOccurs": "1",
+            "maxOccurs": "1",
+            "nillable": "true",
+            "fields": [
+              {
+                "name": "VisitId",
+                "type": "s:long",
+                "minOccurs": "1",
+                "maxOccurs": "1"
+              }
+            ]
+          }
+        ]
+      },
+      "response": {
+        "name": "GetVisitEditReasonActionTakenResponse",
+        "fields": [
+          {
+            "name": "GetVisitEditReasonActionTakenResult",
+            "type": "tns:GetVisitEditReasonResponse",
+            "minOccurs": "0",
+            "maxOccurs": "1",
+            "fields": []
+          }
+        ]
+      }
+    },
+    {
+      "name": "ConfirmVisits",
+      "soapAction": "https://www.hhaexchange.com/apis/hhaws.integration/ConfirmVisits",
+      "blockedByCurrentGuideGate": true,
+      "request": {
+        "name": "ConfirmVisits",
+        "fields": [
+          {
+            "name": "VisitInfo",
+            "type": "tns:VisitInfoManual",
+            "minOccurs": "1",
+            "maxOccurs": "1",
+            "nillable": "true",
+            "fields": [
+              {
+                "name": "VisitID",
+                "type": "s:int",
+                "minOccurs": "1",
+                "maxOccurs": "1"
+              },
+              {
+                "name": "VisitStartTime",
+                "type": "s:dateTime",
+                "minOccurs": "1",
+                "maxOccurs": "1",
+                "nillable": "true"
+              },
+              {
+                "name": "VisitEndTime",
+                "type": "s:dateTime",
+                "minOccurs": "1",
+                "maxOccurs": "1",
+                "nillable": "true"
+              },
+              {
+                "name": "ReasonCode",
+                "type": "s:int",
+                "minOccurs": "1",
+                "maxOccurs": "1",
+                "nillable": "true"
+              },
+              {
+                "name": "ActionCode",
+                "type": "s:int",
+                "minOccurs": "1",
+                "maxOccurs": "1",
+                "nillable": "true"
+              },
+              {
+                "name": "Duties",
+                "type": "tns:DutyManualList",
+                "minOccurs": "0",
+                "maxOccurs": "1",
+                "fields": [
+                  {
+                    "name": "Duty",
+                    "type": "tns:DutyManual",
+                    "minOccurs": "0",
+                    "maxOccurs": "unbounded",
+                    "fields": [
+                      {
+                        "name": "DutyCode",
+                        "type": "s:int",
+                        "minOccurs": "1",
+                        "maxOccurs": "1",
+                        "nillable": "true",
+                        "expansionStopped": true
+                      },
+                      {
+                        "name": "AdditionalData",
+                        "type": "s:decimal",
+                        "minOccurs": "1",
+                        "maxOccurs": "1",
+                        "nillable": "true",
+                        "expansionStopped": true
+                      },
+                      {
+                        "name": "Status",
+                        "type": "s:string",
+                        "minOccurs": "0",
+                        "maxOccurs": "1",
+                        "expansionStopped": true
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "name": "TimesheetRequired",
+                "type": "s:string",
+                "minOccurs": "0",
+                "maxOccurs": "1"
+              },
+              {
+                "name": "TimesheetApproved",
+                "type": "s:string",
+                "minOccurs": "0",
+                "maxOccurs": "1"
+              },
+              {
+                "name": "Notes",
+                "type": "s:string",
+                "minOccurs": "0",
+                "maxOccurs": "1"
+              },
+              {
+                "name": "IsMissedVisit",
+                "type": "s:string",
+                "minOccurs": "0",
+                "maxOccurs": "1"
+              },
+              {
+                "name": "MissedVisitReason",
+                "type": "s:string",
+                "minOccurs": "0",
+                "maxOccurs": "1"
+              },
+              {
+                "name": "MissedVisitAction",
+                "type": "s:string",
+                "minOccurs": "0",
+                "maxOccurs": "1"
+              }
+            ]
+          }
+        ]
+      },
+      "response": {
+        "name": "ConfirmVisitsResponse",
+        "fields": [
+          {
+            "name": "ConfirmVisitsResult",
+            "type": "tns:ConfirmVisitsManualResponse",
+            "minOccurs": "0",
+            "maxOccurs": "1",
+            "fields": []
+          }
+        ]
+      }
+    },
+    {
+      "name": "ConfirmVisitsV2",
+      "soapAction": "https://www.hhaexchange.com/apis/hhaws.integration/ConfirmVisitsV2",
+      "blockedByCurrentGuideGate": true,
+      "request": {
+        "name": "ConfirmVisitsV2",
+        "fields": [
+          {
+            "name": "VisitV2Info",
+            "type": "tns:VisitV2Info",
+            "minOccurs": "1",
+            "maxOccurs": "1",
+            "nillable": "true",
+            "fields": [
+              {
+                "name": "CaregiverID",
+                "type": "s:int",
+                "minOccurs": "1",
+                "maxOccurs": "1",
+                "nillable": "true"
+              },
+              {
+                "name": "VisitID",
+                "type": "s:long",
+                "minOccurs": "1",
+                "maxOccurs": "1",
+                "nillable": "true"
+              },
+              {
+                "name": "TimeAndAttPIN",
+                "type": "s:int",
+                "minOccurs": "1",
+                "maxOccurs": "1",
+                "nillable": "true"
+              },
+              {
+                "name": "CaregiverCode",
+                "type": "s:string",
+                "minOccurs": "0",
+                "maxOccurs": "1"
+              },
+              {
+                "name": "PatientID",
+                "type": "s:int",
+                "minOccurs": "1",
+                "maxOccurs": "1",
+                "nillable": "true"
+              },
+              {
+                "name": "CallerID",
+                "type": "s:long",
+                "minOccurs": "1",
+                "maxOccurs": "1",
+                "nillable": "true"
+              },
+              {
+                "name": "AdmissionID",
+                "type": "s:string",
+                "minOccurs": "0",
+                "maxOccurs": "1"
+              },
+              {
+                "name": "VisitStartTime",
+                "type": "s:dateTime",
+                "minOccurs": "1",
+                "maxOccurs": "1",
+                "nillable": "true"
+              },
+              {
+                "name": "StartLatitude",
+                "type": "s:decimal",
+                "minOccurs": "1",
+                "maxOccurs": "1",
+                "nillable": "true"
+              },
+              {
+                "name": "StartLongitude",
+                "type": "s:decimal",
+                "minOccurs": "1",
+                "maxOccurs": "1",
+                "nillable": "true"
+              },
+              {
+                "name": "VisitEndTime",
+                "type": "s:dateTime",
+                "minOccurs": "1",
+                "maxOccurs": "1",
+                "nillable": "true"
+              },
+              {
+                "name": "EndLatitude",
+                "type": "s:decimal",
+                "minOccurs": "1",
+                "maxOccurs": "1",
+                "nillable": "true"
+              },
+              {
+                "name": "EndLongitude",
+                "type": "s:decimal",
+                "minOccurs": "1",
+                "maxOccurs": "1",
+                "nillable": "true"
+              },
+              {
+                "name": "ReasonCode",
+                "type": "s:int",
+                "minOccurs": "1",
+                "maxOccurs": "1",
+                "nillable": "true"
+              },
+              {
+                "name": "ActionCode",
+                "type": "s:int",
+                "minOccurs": "1",
+                "maxOccurs": "1",
+                "nillable": "true"
+              },
+              {
+                "name": "Duties",
+                "type": "tns:ArrayOfDuty",
+                "minOccurs": "0",
+                "maxOccurs": "1",
+                "fields": [
+                  {
+                    "name": "Duty",
+                    "type": "tns:Duty",
+                    "minOccurs": "0",
+                    "maxOccurs": "unbounded",
+                    "nillable": "true",
+                    "fields": [
+                      {
+                        "name": "DutyCode",
+                        "type": "s:int",
+                        "minOccurs": "1",
+                        "maxOccurs": "1",
+                        "nillable": "true",
+                        "expansionStopped": true
+                      },
+                      {
+                        "name": "AdditionalData",
+                        "type": "s:decimal",
+                        "minOccurs": "1",
+                        "maxOccurs": "1",
+                        "nillable": "true",
+                        "expansionStopped": true
+                      },
+                      {
+                        "name": "Status",
+                        "type": "s:string",
+                        "minOccurs": "0",
+                        "maxOccurs": "1",
+                        "expansionStopped": true
+                      },
+                      {
+                        "name": "RefusedReasonCode",
+                        "type": "s:int",
+                        "minOccurs": "1",
+                        "maxOccurs": "1",
+                        "nillable": "true",
+                        "expansionStopped": true
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "name": "TimesheetRequired",
+                "type": "s:string",
+                "minOccurs": "0",
+                "maxOccurs": "1"
+              },
+              {
+                "name": "TimesheetApproved",
+                "type": "s:string",
+                "minOccurs": "0",
+                "maxOccurs": "1"
+              },
+              {
+                "name": "Notes",
+                "type": "s:string",
+                "minOccurs": "0",
+                "maxOccurs": "1"
+              },
+              {
+                "name": "MealInterruptMinutes",
+                "type": "s:int",
+                "minOccurs": "1",
+                "maxOccurs": "1",
+                "nillable": "true"
+              },
+              {
+                "name": "SleepInterruptMinutes",
+                "type": "s:int",
+                "minOccurs": "1",
+                "maxOccurs": "1",
+                "nillable": "true"
+              },
+              {
+                "name": "CallDuration",
+                "type": "s:int",
+                "minOccurs": "1",
+                "maxOccurs": "1",
+                "nillable": "true"
+              }
+            ]
+          }
+        ]
+      },
+      "response": {
+        "name": "ConfirmVisitsV2Response",
+        "fields": [
+          {
+            "name": "ConfirmVisitsV2Result",
+            "type": "tns:ConfirmVisitsV2Response",
+            "minOccurs": "0",
+            "maxOccurs": "1",
+            "fields": []
+          }
+        ]
+      }
+    },
+    {
+      "name": "ConfirmVisitsEVV",
+      "soapAction": "https://www.hhaexchange.com/apis/hhaws.integration/ConfirmVisitsEVV",
+      "blockedByCurrentGuideGate": true,
+      "request": {
+        "name": "ConfirmVisitsEVV",
+        "fields": [
+          {
+            "name": "VisitEVVInfo",
+            "type": "tns:VisitEvvInfo",
+            "minOccurs": "1",
+            "maxOccurs": "1",
+            "nillable": "true",
+            "fields": [
+              {
+                "name": "CaregiverID",
+                "type": "s:int",
+                "minOccurs": "1",
+                "maxOccurs": "1",
+                "nillable": "true"
+              },
+              {
+                "name": "VisitID",
+                "type": "s:long",
+                "minOccurs": "1",
+                "maxOccurs": "1",
+                "nillable": "true"
+              },
+              {
+                "name": "TimeAndAttPIN",
+                "type": "s:int",
+                "minOccurs": "1",
+                "maxOccurs": "1",
+                "nillable": "true"
+              },
+              {
+                "name": "CaregiverCode",
+                "type": "s:string",
+                "minOccurs": "0",
+                "maxOccurs": "1"
+              },
+              {
+                "name": "PatientID",
+                "type": "s:int",
+                "minOccurs": "1",
+                "maxOccurs": "1",
+                "nillable": "true"
+              },
+              {
+                "name": "CallerID",
+                "type": "s:long",
+                "minOccurs": "1",
+                "maxOccurs": "1",
+                "nillable": "true"
+              },
+              {
+                "name": "AdmissionID",
+                "type": "s:string",
+                "minOccurs": "0",
+                "maxOccurs": "1"
+              },
+              {
+                "name": "CallType",
+                "type": "s:string",
+                "minOccurs": "0",
+                "maxOccurs": "1"
+              },
+              {
+                "name": "CallTime",
+                "type": "s:dateTime",
+                "minOccurs": "1",
+                "maxOccurs": "1",
+                "nillable": "true"
+              },
+              {
+                "name": "CallDuration",
+                "type": "s:int",
+                "minOccurs": "1",
+                "maxOccurs": "1",
+                "nillable": "true"
+              },
+              {
+                "name": "Duties",
+                "type": "tns:ArrayOfDuty",
+                "minOccurs": "0",
+                "maxOccurs": "1",
+                "fields": [
+                  {
+                    "name": "Duty",
+                    "type": "tns:Duty",
+                    "minOccurs": "0",
+                    "maxOccurs": "unbounded",
+                    "nillable": "true",
+                    "fields": [
+                      {
+                        "name": "DutyCode",
+                        "type": "s:int",
+                        "minOccurs": "1",
+                        "maxOccurs": "1",
+                        "nillable": "true",
+                        "expansionStopped": true
+                      },
+                      {
+                        "name": "AdditionalData",
+                        "type": "s:decimal",
+                        "minOccurs": "1",
+                        "maxOccurs": "1",
+                        "nillable": "true",
+                        "expansionStopped": true
+                      },
+                      {
+                        "name": "Status",
+                        "type": "s:string",
+                        "minOccurs": "0",
+                        "maxOccurs": "1",
+                        "expansionStopped": true
+                      },
+                      {
+                        "name": "RefusedReasonCode",
+                        "type": "s:int",
+                        "minOccurs": "1",
+                        "maxOccurs": "1",
+                        "nillable": "true",
+                        "expansionStopped": true
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "name": "MealInterruptMinutes",
+                "type": "s:int",
+                "minOccurs": "1",
+                "maxOccurs": "1",
+                "nillable": "true"
+              },
+              {
+                "name": "SleepInterruptMinutes",
+                "type": "s:int",
+                "minOccurs": "1",
+                "maxOccurs": "1",
+                "nillable": "true"
+              },
+              {
+                "name": "Notes",
+                "type": "s:string",
+                "minOccurs": "0",
+                "maxOccurs": "1"
+              },
+              {
+                "name": "ReasonCode",
+                "type": "s:int",
+                "minOccurs": "1",
+                "maxOccurs": "1",
+                "nillable": "true"
+              },
+              {
+                "name": "ActionCode",
+                "type": "s:int",
+                "minOccurs": "1",
+                "maxOccurs": "1",
+                "nillable": "true"
+              },
+              {
+                "name": "TimesheetRequired",
+                "type": "s:string",
+                "minOccurs": "0",
+                "maxOccurs": "1"
+              },
+              {
+                "name": "TimesheetApproved",
+                "type": "s:string",
+                "minOccurs": "0",
+                "maxOccurs": "1"
+              }
+            ]
+          }
+        ]
+      },
+      "response": {
+        "name": "ConfirmVisitsEVVResponse",
+        "fields": [
+          {
+            "name": "ConfirmVisitsEVVResult",
+            "type": "tns:ConfirmVisitsEvvResponse",
+            "minOccurs": "0",
+            "maxOccurs": "1",
+            "fields": []
+          }
+        ]
+      }
+    },
+    {
+      "name": "VisitCallInOut",
+      "soapAction": "https://www.hhaexchange.com/apis/hhaws.integration/VisitCallInOut",
+      "blockedByCurrentGuideGate": true,
+      "request": {
+        "name": "VisitCallInOut",
+        "fields": [
+          {
+            "name": "VisitInfo",
+            "type": "tns:CreateVisitInfo",
+            "minOccurs": "0",
+            "maxOccurs": "1",
+            "fields": [
+              {
+                "name": "CallUniqueID",
+                "type": "s:int",
+                "minOccurs": "1",
+                "maxOccurs": "1"
+              },
+              {
+                "name": "CaregiverFirstName",
+                "type": "s:string",
+                "minOccurs": "0",
+                "maxOccurs": "1"
+              },
+              {
+                "name": "CaregiverLastName",
+                "type": "s:string",
+                "minOccurs": "0",
+                "maxOccurs": "1"
+              },
+              {
+                "name": "CaregiverDateOfBirth",
+                "type": "s:dateTime",
+                "minOccurs": "1",
+                "maxOccurs": "1"
+              },
+              {
+                "name": "PatientFirstName",
+                "type": "s:string",
+                "minOccurs": "0",
+                "maxOccurs": "1"
+              },
+              {
+                "name": "PatientLastName",
+                "type": "s:string",
+                "minOccurs": "0",
+                "maxOccurs": "1"
+              },
+              {
+                "name": "PatientDateOfBirth",
+                "type": "s:dateTime",
+                "minOccurs": "1",
+                "maxOccurs": "1"
+              },
+              {
+                "name": "CallType",
+                "type": "s:string",
+                "minOccurs": "0",
+                "maxOccurs": "1"
+              },
+              {
+                "name": "CallTime",
+                "type": "s:dateTime",
+                "minOccurs": "1",
+                "maxOccurs": "1",
+                "nillable": "true"
+              },
+              {
+                "name": "Duties",
+                "type": "tns:ArrayOfDuty",
+                "minOccurs": "0",
+                "maxOccurs": "1",
+                "fields": [
+                  {
+                    "name": "Duty",
+                    "type": "tns:Duty",
+                    "minOccurs": "0",
+                    "maxOccurs": "unbounded",
+                    "nillable": "true",
+                    "fields": [
+                      {
+                        "name": "DutyCode",
+                        "type": "s:int",
+                        "minOccurs": "1",
+                        "maxOccurs": "1",
+                        "nillable": "true",
+                        "expansionStopped": true
+                      },
+                      {
+                        "name": "AdditionalData",
+                        "type": "s:decimal",
+                        "minOccurs": "1",
+                        "maxOccurs": "1",
+                        "nillable": "true",
+                        "expansionStopped": true
+                      },
+                      {
+                        "name": "Status",
+                        "type": "s:string",
+                        "minOccurs": "0",
+                        "maxOccurs": "1",
+                        "expansionStopped": true
+                      },
+                      {
+                        "name": "RefusedReasonCode",
+                        "type": "s:int",
+                        "minOccurs": "1",
+                        "maxOccurs": "1",
+                        "nillable": "true",
+                        "expansionStopped": true
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "response": {
+        "name": "VisitCallInOutResponse",
+        "fields": [
+          {
+            "name": "VisitCallInOutResult",
+            "type": "tns:VisitCallInOutResponse",
+            "minOccurs": "0",
+            "maxOccurs": "1",
+            "fields": []
+          }
+        ]
+      }
+    }
+  ]
+}

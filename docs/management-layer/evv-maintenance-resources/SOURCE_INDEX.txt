@@ -1,0 +1,138 @@
+MAINTENANCE RESOURCE REGISTER
+Checked November 5, 2026. Resource collection is complete for this pass;
+implementation and tenant acceptance remain separate. Public URLs contain no
+tenant IDs or credentials. Private files and full vendor documents stay out of Git.
+
+R01 - HHA Visit Maintenance workflow [M01, M02, M04]
+https://knowledge.hhaexchange.com/enterprise/Content/Documentation/Visit/Visit-N-Visit-Maintenance-S.htm
+Retrieved. Defines the intended visit review, EVV linking/editing and documented
+maintenance flow. Useful for screen/action design; the embedded training links
+are available through the page. UI capability does not prove API entitlement.
+
+R02 - HHA Visit Maintenance permissions [M03]
+https://knowledge.hhaexchange.com/enterprise/Content/Documentation/Admin/Admin-N-Visit-Maintenance-P.htm
+Retrieved. Role/module permission reference. Primetime requires its own server
+authorization implementation; this does not grant an HHA or Primetime account.
+
+R03 - HHA Call Dashboard troubleshooting [M01, M02, M06]
+https://knowledge.hhaexchange.com/enterprise/Content/Troubleshooting/TR-Call-Dashboard.htm
+Retrieved. Resource for distinguishing genuine call failures and maintenance
+actions. It does not establish complete retained API history or approve a local
+correction rule. Do not automate the article's individual remedies by default.
+
+R04 - Public ENT v1.8 WSDL and captured operation contract [M01, M02]
+https://cloud.hhaexchange.com/Integration/ENT/V1.8/ws.asmx?WSDL
+Anonymous public metadata downloaded successfully. The live file differs in raw
+bytes from hharefs/hha-wdsl.xml; all twelve selected request/response expansions
+match through depth four. See LIVE_WSDL_COMPARISON.json. SOAP_CONTRACT_MAP.json
+contains their field types/occurrences, SOAP actions and current guide-gate status.
+No authentication values are included. No HHA operation was executed.
+
+E01 - Existing Enterprise provider API guide [M01, M02, M06]
+Private connected Drive resource, identified as hha api.pdf; readable text fetched
+successfully, 520605 characters, with v3.30 / 244-page guide indicators. Its private
+Drive locator and exact provenance are retained only in local outputs.
+GetCallDashBoardData documentation: section around printed page 225; supports office/date
+filters and a LastCallDashboardID boundary. This is a candidate for an office
+attempt reader; complete linked-history semantics are not established.
+GetVisitChangesV4 documentation: section starting at printed page 153; provides ModifiedAfter
+and positive PageNumber input. This enables a scoped incremental-feed design
+review; EST/DST, ties, page completion and source deletion handling need validation.
+No exact-name mentions were found for ConfirmVisits, ConfirmVisitsV2,
+ConfirmVisitsEVV, VisitCallInOut or GetVisitEditReasonActionTaken. Existing blocks
+remain. Method presence is not tenant permission or production acceptance.
+
+R05 - Public Texas provider Web Service API guide [M01, M02, M06]
+https://hhaxsupport.s3.amazonaws.com/SupportDocs/EDI%20Guides/ProviderIntegration/HHAeXchange%20Web%20Service%20API%20-%20TX.pdf
+Downloaded and parsed: 113 pages. Page 7 documents a ceiling of 500 calls per
+method/provider/minute; page 112 describes a paged visit-change method, and page
+113 lists reference catalogs. Primetime currently has a separate conservative
+shared 60-read/minute guard. Confirm applicable tenant limits before changing it.
+GetScheduleBillInfoEditReasons is a documented catalog candidate, not proof of
+equivalence to EVV visit-edit reason/action codes. This guide supplements E01.
+
+R06 - HHA third-party integration onboarding [M02, later scheduling]
+https://knowledge.hhaexchange.com/edi/Content/Documentation/EDI/API-Onboarding-Integration-P.htm
+Retrieved. Documents a separately configured integration/testing route. No
+onboarding, attestation or conversion was initiated. Existing HHA EVV conversion
+instructions can affect schedules/billing and are not an instruction to migrate.
+
+R07 - Third-party EVV API interface testing process [M02, M05, M06]
+https://hhaxsupport.s3.amazonaws.com/SupportDocs/EDI%20Guides/EVV%20Aggregation/HHAX%20EVV%20API%20Interface%20Testing_TAPI.pdf
+Downloaded and parsed: 7 pages, revision 1.4 dated April 3, 2024. Pages 5-7 identify
+an implementation environment, assigned test data, transaction-status checks
+and a confirmed-visit edit test using an EVVMSID. Determine whether this applies
+to existing HHA-origin calls before adopting it. It is a separate aggregation
+interface, not an established replacement for the current SOAP workflow.
+Linked Swagger URL returned HTTP403 to the anonymous research tool:
+https://implementation.hhaexchange.com/api/index.html
+No credentials were used or copied; test access remains a vendor dependency.
+
+R08 - HHSC current EVV policy / maintenance [M02, M05, M06]
+https://fhb.hhs.texas.gov/handbooks/electronic-visit-verification-policy-handbook/9000-visit-maintenance
+Retrieved. Section 9010 distinguishes immutable actual service date, electronic
+clock times, actual hours and GPS from maintainable fields. Use this to preserve
+genuine source events and define action exclusions; no agency-specific legal or
+financial determination is made. Confirm relevant program/contract applicability.
+
+R09 - HHSC reason-code entry point [M02, M04]
+https://www.hhs.texas.gov/providers/long-term-care-providers/long-term-care-provider-resources/electronic-visit-verification-evv
+Retrieved. Links current reason-code and required free-text material. The older
+handbook Appendix I redirects readers here, so its 2021 date is not a current
+catalog. The research browser initially returned HTTP403 for these exact links:
+https://www.hhs.texas.gov/sites/default/files/documents/evv-reason-codes-oct-01-2023.pdf
+https://www.hhs.texas.gov/sites/default/files/documents/evv-reason-codes-guide.pdf
+An ordinary anonymous download of both exact linked PDFs subsequently succeeded
+with HTTP200. Both are now saved locally and parsed: current table 3 pages and
+quick reference 7 pages, effective October 1, 2023; quick-reference footer 9/2024.
+The research-tool403 is superseded by this verified retrieval. The older TMHP
+Appendix A is not substituted.
+Obtain the applicable current source catalog and map it to HHA's actual fields.
+
+R10 - TMHP proprietary-system version index [M02, M05, later scheduling]
+https://www.tmhp.com/topics/evv/evv-proprietary-systems/rules
+Retrieved. Lists PSO v3.1 effective March 12, 2025 and future v4.0 effective
+April 1, 2027. The resources below are the currently effective linked versions
+checked on November 5. This does not establish that Primetime is an approved PSO.
+
+R11 - Appendix O, maintainable-field reference [M02, M06]
+https://www.tmhp.com/sites/default/files/file-library/evv/evv-proprietary-systems/hhsc-evv-business-rules-proprietary-systems-2/Appendix_O_Visit_Maintenance_V4.0.pdf
+Downloaded and parsed: 9 pages, effective March 12, 2025. Field-level reference
+for distinguishing original evidence, maintained data and role-specific rights.
+Use the complete tables when implementing; a document permission is not an API
+grant, HHA field mapping or an approved agency correction rule.
+
+R12 - Appendix P, auto-verification reference [M05, M06]
+https://www.tmhp.com/sites/default/files/file-library/evv/evv-proprietary-systems/hhsc-evv-business-rules-proprietary-systems-2/Appendix_P_Auto_Verification_V4.0.pdf
+Downloaded and parsed: 11 pages, effective March 12, 2025. Criteria depend on
+schedule type and options. Use as a source for acceptance cases and configuration
+questions, not as defaults or permission to adjust clocks/hours automatically.
+No tolerance, adjustment setting or threshold has been activated.
+
+R13 - Appendix G, standard reports [M04, M05]
+https://www.tmhp.com/sites/default/files/file-library/evv/evv-proprietary-systems/hhsc-evv-business-rules-proprietary-systems-2/Appendix_G_EVV_Standard_System_Reports_V4.1.pdf
+Downloaded and parsed: 38 pages, effective February 1, 2026. Source for clock-method
+and reason/free-text reporting fields. Its required standard reports and data
+sources do not prove a report API is available to this tenant. The owner's
+resolved/unresolved action report is an additional proposed operational report.
+
+R14 - Firebase server-managed roles [M03]
+https://firebase.google.com/docs/auth/admin/custom-claims
+Retrieved. Custom claims are set by a privileged server and checked using verified
+tokens. Keep detailed/effective office/client membership in protected storage;
+role labels alone are insufficient for the required access boundaries.
+
+R15 - Firebase server access and IAM [M03, M04]
+https://firebase.google.com/docs/firestore/security/rules-conditions
+Retrieved. Admin/server clients bypass Firestore client rules. New staff/report
+routes need server authorization and IAM controls; changing browser menus alone
+does not create restricted access. No claims, IAM or rules were changed.
+
+INTERNAL REUSABLE RESOURCES
+See IMPLEMENTATION_MAP.txt for exact source modules, existing review/audit and
+recovery machinery, current limitations and the next concrete implementation.
+See PILOT_AND_REPORT_KIT.txt for report templates, synthetic acceptance cases,
+measurement denominators and owner inputs. HHA_SUPPORT_QUESTIONS.txt is ready for
+review but has not been transmitted. Full PDF files are retained privately in
+outputs/evv-maintenance-resources-2026-11-05 and indexed by hashes/page counts in
+PUBLIC_DOWNLOAD_MANIFEST.json. No patient record or credential is in this pack.

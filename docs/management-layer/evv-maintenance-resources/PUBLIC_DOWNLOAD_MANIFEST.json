@@ -1,0 +1,97 @@
+{
+  "checkedAt": "2026-11-05T17:04:31.768728+00:00",
+  "sources": [
+    {
+      "name": "hha-tx-web-service-api.pdf",
+      "url": "https://hhaxsupport.s3.amazonaws.com/SupportDocs/EDI%20Guides/ProviderIntegration/HHAeXchange%20Web%20Service%20API%20-%20TX.pdf",
+      "status": 200,
+      "bytes": 1376270,
+      "sha256": "04dd4224e2bc4471bd745ac6c380e2da8fda7245f0d2fe7e939269245ca98cd4",
+      "contentType": "application/pdf",
+      "downloaded": true,
+      "pages": 113,
+      "effectiveDates": []
+    },
+    {
+      "name": "hha-aggregation-api-test-process.pdf",
+      "url": "https://hhaxsupport.s3.amazonaws.com/SupportDocs/EDI%20Guides/EVV%20Aggregation/HHAX%20EVV%20API%20Interface%20Testing_TAPI.pdf",
+      "status": 200,
+      "bytes": 286008,
+      "sha256": "8c06f1d7250680c9b2c3ef70bfafeb0125d385b89d01a41c6be0c83cc96972e9",
+      "contentType": "application/pdf",
+      "downloaded": true,
+      "pages": 7,
+      "effectiveDates": []
+    },
+    {
+      "name": "tx-maintenance-appendix-o-effective-2025-03-12.pdf",
+      "url": "https://www.tmhp.com/sites/default/files/file-library/evv/evv-proprietary-systems/hhsc-evv-business-rules-proprietary-systems-2/Appendix_O_Visit_Maintenance_V4.0.pdf",
+      "status": 200,
+      "bytes": 253058,
+      "sha256": "68e232fddff0817f13966d6d7a50c5579dbdb202b1fe0eeb92360a8e900a9cb4",
+      "contentType": "application/pdf",
+      "downloaded": true,
+      "pages": 9,
+      "effectiveDates": [
+        "03/12/2025"
+      ]
+    },
+    {
+      "name": "tx-auto-verification-appendix-p-effective-2025-03-12.pdf",
+      "url": "https://www.tmhp.com/sites/default/files/file-library/evv/evv-proprietary-systems/hhsc-evv-business-rules-proprietary-systems-2/Appendix_P_Auto_Verification_V4.0.pdf",
+      "status": 200,
+      "bytes": 278390,
+      "sha256": "7d3acd8bcb51402ca4d0b3fc2db9891bd43232e16c4154a4f7522f59b2ec3de5",
+      "contentType": "application/pdf",
+      "downloaded": true,
+      "pages": 11,
+      "effectiveDates": [
+        "03/12/2025"
+      ]
+    },
+    {
+      "name": "tx-standard-reports-appendix-g-effective-2026-02-01.pdf",
+      "url": "https://www.tmhp.com/sites/default/files/file-library/evv/evv-proprietary-systems/hhsc-evv-business-rules-proprietary-systems-2/Appendix_G_EVV_Standard_System_Reports_V4.1.pdf",
+      "status": 200,
+      "bytes": 519007,
+      "sha256": "ea8fab73b7a3b12e748df4ac1146ba1194aae1bc733897bc885afd2f84976029",
+      "contentType": "application/pdf",
+      "downloaded": true,
+      "pages": 38,
+      "effectiveDates": [
+        "02/01/2026"
+      ]
+    },
+    {
+      "name": "live-public-ent-v1.8.wsdl.xml",
+      "url": "https://cloud.hhaexchange.com/Integration/ENT/V1.8/ws.asmx?WSDL",
+      "status": 200,
+      "bytes": 936767,
+      "sha256": "81b582f8819e7b3289cdf8ed6d0462b6b0aa2439ded3087181e8c702e705a204",
+      "contentType": "text/xml; charset=utf-8",
+      "downloaded": true
+    },
+    {
+      "name": "hhsc-reason-codes-effective-2023-10-01.pdf",
+      "url": "https://www.hhs.texas.gov/sites/default/files/documents/evv-reason-codes-oct-01-2023.pdf",
+      "status": 200,
+      "bytes": 168494,
+      "sha256": "9df389e952b010b336b3ebf8a007af256ed6392b200acfd62f0f3f78bba91717",
+      "downloaded": true,
+      "pages": 3
+    },
+    {
+      "name": "hhsc-reason-code-quick-reference.pdf",
+      "url": "https://www.hhs.texas.gov/sites/default/files/documents/evv-reason-codes-guide.pdf",
+      "status": 200,
+      "bytes": 241652,
+      "sha256": "a8b9724cfef5b0515f4445dba0e235cd4f2e97da8de1f181cd2fa0f3f0f82d2d",
+      "downloaded": true,
+      "pages": 7
+    }
+  ],
+  "containsPatientData": false,
+  "credentialsUsed": false,
+  "redistributeFullVendorDocuments": false,
+  "storage": "Full public documents retained in local outputs, not committed to Git."
+}

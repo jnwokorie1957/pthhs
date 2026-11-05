@@ -1,0 +1,74 @@
+{
+  "checkedAt": "2026-11-05",
+  "sourceUrl": "https://cloud.hhaexchange.com/Integration/ENT/V1.8/ws.asmx?WSDL",
+  "anonymousPublicMetadataOnly": true,
+  "liveSha256": "81b582f8819e7b3289cdf8ed6d0462b6b0aa2439ded3087181e8c702e705a204",
+  "capturedSha256": "b57c250a0741f9f965311cc241f5035fb7f91cb7a6bd6dd17b3982836b44f9bd",
+  "byteIdentical": false,
+  "authenticationFieldsExcluded": true,
+  "expansionDepthLimit": 4,
+  "allSelectedShapesEquivalent": true,
+  "operations": [
+    {
+      "name": "SearchVisitsV2",
+      "selectedRequestEquivalent": true,
+      "selectedResponseEquivalent": true
+    },
+    {
+      "name": "GetVisitInfoV3",
+      "selectedRequestEquivalent": true,
+      "selectedResponseEquivalent": true
+    },
+    {
+      "name": "GetCallDashBoardData",
+      "selectedRequestEquivalent": true,
+      "selectedResponseEquivalent": true
+    },
+    {
+      "name": "GetVisitChangesV4",
+      "selectedRequestEquivalent": true,
+      "selectedResponseEquivalent": true
+    },
+    {
+      "name": "GetScheduleInfo",
+      "selectedRequestEquivalent": true,
+      "selectedResponseEquivalent": true
+    },
+    {
+      "name": "GetDeletedVisits",
+      "selectedRequestEquivalent": true,
+      "selectedResponseEquivalent": true
+    },
+    {
+      "name": "GetScheduleBillInfoEditReasons",
+      "selectedRequestEquivalent": true,
+      "selectedResponseEquivalent": true
+    },
+    {
+      "name": "GetVisitEditReasonActionTaken",
+      "selectedRequestEquivalent": true,
+      "selectedResponseEquivalent": true
+    },
+    {
+      "name": "ConfirmVisits",
+      "selectedRequestEquivalent": true,
+      "selectedResponseEquivalent": true
+    },
+    {
+      "name": "ConfirmVisitsV2",
+      "selectedRequestEquivalent": true,
+      "selectedResponseEquivalent": true
+    },
+    {
+      "name": "ConfirmVisitsEVV",
+      "selectedRequestEquivalent": true,
+      "selectedResponseEquivalent": true
+    },
+    {
+      "name": "VisitCallInOut",
+      "selectedRequestEquivalent": true,
+      "selectedResponseEquivalent": true
+    }
+  ],
+  "notTenantEntitlementOrSemanticApproval": true
+}

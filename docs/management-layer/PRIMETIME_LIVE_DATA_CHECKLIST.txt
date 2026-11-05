@@ -20,6 +20,16 @@ approved limited automation, then build the owned scheduling platform.
 See EVV_MAINTENANCE_PRODUCT_DIRECTION.txt for requirements, order and dependencies.
 No HHA write, source access grant, staff account or pilot has been enabled here.
 
+[x] MR01 Resources for M01-M06 collected November5. Seven linked public PDFs and
+    current public WSDL retrieved; private Enterprise guide read through Drive.
+    SOURCE_INDEX maps current/future-effective references and documented limits.
+    IMPLEMENTATION_MAP identifies reusable modules and the concrete remaining
+    build for each task. SOAP map/comparison checks12operation shapes at depth4.
+    Unsent HHA question packet and16pilot cases/report templates are available.
+    See evv-maintenance-resources/README.md. Source action semantics, complete
+    attempt linkage, role activation and pilot decisions remain open. Current
+    60read/minute cap is a Primetime application guard, not a proved vendor max.
+
 STATUS KEY
 [x] Verified completed connection or correction, with its limits stated.
 [ ] Open implementation or verification work.

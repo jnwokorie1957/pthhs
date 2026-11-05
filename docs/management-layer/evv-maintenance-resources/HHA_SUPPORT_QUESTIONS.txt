@@ -1,0 +1,88 @@
+PREPARED HHA TECHNICAL QUESTIONS - NOT SENT
+Purpose: supported visit maintenance inside Primetime using the agency's actual
+HHA-recorded caregiver calls. Original event times remain unchanged.
+The owner/operator should supply account/customer/office identifiers through an
+approved private support channel, never this repository or a public attachment.
+
+EXISTING ENTERPRISE SOAP INTERFACE - PRIMARY ROUTE
+Public provider guide R05 lists Enterprise Integration support. Request the
+current supported method specifications for this tenant and intended workflow.
+Do not send an application secret/key or patient evidence in an ordinary email.
+
+1. Existing HHA-origin call maintenance
+Which supported interface can read and maintain caregiver IVR/mobile/alternative
+device events already captured by this agency's HHA application? Can the current
+ENT v1.8 application/agency credentials link those events and confirm visits,
+or is an additional explicitly provisioned interface required?
+
+2. Event discovery, identifiers and relationships
+How can an authorized office retrieve all relevant linked, unlinked, rejected,
+suggested and nonmatching attempts, including status/reason history? Document
+retention, filters, pagination, removals, update boundaries and timestamp zones.
+For GetCallDashBoardData, define LastCallDashboardID behavior for newly created
+and subsequently changed records; does linking remove a record from that feed?
+Which authoritative field/operation proves the exact call-to-visit association?
+Do not assume a CallDashboardID equals a VisitID or matching subjects prove a join.
+
+3. ConfirmVisits / ConfirmVisitsV2 / ConfirmVisitsEVV / VisitCallInOut
+The public WSDL exposes these methods, but the reviewed guide omits their action
+semantics. Supply current supported documentation and sanitized test examples.
+Which method links existing event IDs? Which confirms maintained visit times?
+Does any method create a new clock event? The intended workflow must use the
+caregiver's genuine calls, preserve their originals and avoid duplicate events.
+Include mandatory fields, omission/clearing behavior and source result identity.
+
+4. Reason/action catalog
+Provide the applicable visit-edit reason codes, action-taken values, required
+notes and effective office/program/contract scope. Clarify the supported request
+for GetVisitEditReasonActionTaken and whether GetScheduleBillInfoEditReasons is
+ever appropriate for the intended EVV action. Explain authoritative distinction
+between reason category, description, action, free text and API error codes.
+How are previously applied reasons/notes read back and preserved?
+
+5. Link/unlink/reject and preserved fields
+Document each supported existing-event link/unlink/reject action, required source
+state and permitted roles. Explain preservation of existing duties, timesheet
+state, service/location data, source methods, reasons and verification history.
+Do not send a generic schedule-edit example as an event-link contract.
+
+6. Confirmation and independent readback
+What distinguishes received, queued, accepted, applied and confirmed? Which
+operation returns the authoritative result and linked event IDs? Which source
+verification fields identify the actual confirming actor/time and their meaning?
+Specify application-versus-staff attribution and supported audit references.
+
+7. Conflicts, duplicate submits and unknown results
+Provide version/conflict or precondition support, idempotency keys if supported,
+transaction lookup, duplicate detection and safe timeout recovery. How can a
+client establish whether a request changed the source without blindly repeating
+it? What is the supported correction/reversal process after a wrong association?
+
+8. Incremental visits and operating limits
+For GetVisitChangesV4, define fixed EST versus DST-aware Eastern interpretation,
+exclusive/inclusive watermark behavior, equal timestamps, page sizes/end markers,
+page stability while data changes, bootstrap bounds and deletion reconciliation.
+Confirm office filtering and the exact per-method, provider and application rate
+limits for this tenant. The published R05 ceiling and Primetime's conservative
+application budget are different; no increase has been made.
+
+9. Implementation testing
+Can you provide an approved test environment and synthetic cases covering two
+visits for the same subjects/day, duplicate/out-of-window calls, missing punches,
+changed assignments, reason applicability, concurrent edits and unknown results?
+Identify the technical acceptance evidence required before production actions.
+
+SEPARATE AGGREGATION INTERFACE - CLARIFY BEFORE CONSIDERING
+R06/R07 describe a separate third-party API testing route and a confirmed-visit
+edit scenario. Does that route support maintenance of current HHA-origin calls,
+or only visits transmitted by the third-party system? Is a change of EVV system,
+onboarding or additional agreement required? Obtain an explicit answer before
+treating it as an alternative; no conversion, attestation or test credential
+request has been submitted by this resource-gathering pass.
+
+REQUESTED DELIVERABLE
+A current interface/version reference, tenant entitlement statement, exact
+operation/request/result mapping, reason catalog, safe test records and a
+worked source re-read proving the existing genuine-event link/confirmation.
+Private test evidence must stay outside Git and public research. Staff-view,
+proposal/report and permission implementation can continue while awaiting this.

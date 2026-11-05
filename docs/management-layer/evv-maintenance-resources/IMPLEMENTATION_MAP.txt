@@ -1,0 +1,146 @@
+RESOURCE-TO-IMPLEMENTATION MAP
+Baseline: 7afe49f8c1967a82529404db2964493761ebae5d, checked November 5, 2026.
+Paths are relative to the repository. These are reusable components and next
+steps, not claims that the requested maintenance workflow is already complete.
+
+M01 - SHARED VISIT MAINTENANCE WORKSPACE
+Available code:
+  source/primetime/dashboard.js
+  functions/src/views/officeDay.ts
+  functions/src/views/visits.ts
+  functions/src/operations/visitCalls.ts
+  source/primetime/revisions.js
+  functions/src/revisions/service.ts
+  functions/src/revisions/evidence.ts
+  functions/src/revisions/verification.ts
+Available references: R01, R03, R04, E01, R05; SOAP_CONTRACT_MAP.json.
+The accepted office/day cache already covers all returned visit IDs. The current
+visit-call reader checks patient/caregiver/office/date and explicitly reports
+same-subject/day-only evidence. It does not supply authoritative visit linkage
+or complete event history. Reuse these boundaries, not a blind cross-record join.
+
+Next bounded build:
+- A shared visit details/call-attempt panel, consistent IDs/receipts and a useful
+  case queue. Display the current call reader's real scope and limits.
+- A separately authorized office-level attempt reader using documented filters
+  and cursor fields, with fresh membership proof for returned subjects. Current
+  patient-scoped read approval is not silently broadened by this resource pack.
+- A scoped GetVisitChangesV4 design and bootstrap/reconciliation strategy so
+  changed visits can refresh without repeatedly rescanning every detail.
+- Validate source timezone, watermark ties, page completion, deletes, restart and
+  cross-office filtering before activating a new feed. No new method is enabled.
+
+Freshness/resource finding:
+  functions/src/operations/workspace.ts -> FirestoreWorkspaceRepository.reserveRead
+sets a shared 60-read/minute application budget with vendor backoff handling.
+The published provider guide has a higher per-method/provider ceiling. These
+are different limits. Existing ~36-minute full-scan timing is not proof that HHA
+itself permits only 60 reads/minute. Confirm tenant limits and review capacity,
+backoff and interactive headroom before any tuning. Existing O03 acceptance stays.
+
+M02 - REASON/ACTION CATALOGS AND CONFIRMATION
+Available code:
+  hharefs/hha-wdsl.xml
+  functions/src/integrations/hhaexchange/contractGates.ts
+  functions/src/operations/reads.ts
+  functions/src/operations/workspace.ts
+  functions/src/operations/recovery.ts
+  functions/src/auth/workflowPermissions.ts
+Available references: R04-R12, E01, HHA_SUPPORT_QUESTIONS.txt.
+Schema includes the three ConfirmVisits variants and VisitCallInOut. Their
+supported action semantics are absent from the reviewed guide, so current blocks
+remain. GetVisitEditReasonActionTaken has the same missing-guide issue.
+GetScheduleBillInfoEditReasons is a documented, implemented reference-read
+candidate; its namespace and meaning must be checked against the intended EVV
+action. Do not substitute it for an unproved reason/action catalog.
+
+Reusable execution pattern:
+Existing workspace proposals, expected revisions, source hashes, target locks,
+audit entries and write-recovery records provide an implementation pattern.
+Existing rate/other write families are not EVV permission or a confirmation
+adapter. Implement a new typed action only after obtaining its exact source
+contract, preservation rules and independent authoritative readback.
+
+Important current behavior:
+  functions/src/revisions/service.ts -> callCandidates / decideCallMatch
+  functions/src/revisions/records.ts -> CallMatchRecord / ExceptionReviewRecord
+store LOCAL review decisions. Their hhaVerification is not_established. A local
+matched or resolved record must not become a confirmed HHA event or visit.
+
+Next bounded build:
+- Draft maintenance proposal with immutable source-event references, typed
+  intended action, before/proposed values, applicable rule and reviewer evidence.
+- Document and validate the actual reason/action catalog and its effective scope.
+- Add submit-once, fresh preflight, independent readback and unknown-outcome
+  recovery to the vendor-approved action path; keep unsupported execution closed.
+- Distinguish EVV reason codes from raw call-status strings and API/HTTP errors.
+  A vendor error number is not an EVV correction reason.
+
+M03 - INDIVIDUAL STAFF/SUPERVISOR/MANAGER ACCESS
+Available code:
+  functions/src/auth/admin.ts -> requirePrimetimeAdmin
+  source/primetime/primetime.js -> verifyAdminSession / auth state handling
+  functions/src/auth/workflowPermissions.ts
+  functions/src/revisions/service.ts -> role / scope / fence
+  functions/src/revisions/records.ts -> RevisionContext / scoped records
+  functions/src/index.ts -> shared route authentication boundary
+Available references: R02, R14, R15; proposed roles in the product direction.
+Current top-level API and app shell require administrator access. Backend
+office_supervisor checks alone do not make a restricted staff login usable.
+
+Next bounded build:
+- A reviewed role/action matrix, effective office/client membership and a
+  server-side principal distinct from the owner administration principal.
+- Route-level authorization for overview, events, proposals, approval, reports
+  and HHA execution; never expose integration settings or credentials by default.
+- Recheck membership on reads and actions, including after delayed callbacks.
+- Test cross-office/client refusals, expired/revoked membership, changed roles,
+  report/file access and denied owner endpoints. Named real users remain an
+  activation input, not fabricated fixture accounts in production.
+
+M04 - RESOLVED/UNRESOLVED STAFF REPORTS
+Available code:
+  functions/src/operations/workspace.ts -> Investigation / repository.change
+  functions/src/revisions/records.ts -> records and per-record events
+  functions/src/revisions/routes.ts -> local follow-up review routes
+  source/primetime/revisions.js -> local note/review forms
+  functions/src/operations/recovery.ts -> unknown-outcome reconciliation
+Available resources: R08, R13; PILOT_AND_REPORT_KIT.txt.
+
+Next bounded build:
+- A protected, paged report and assigned queue showing actual completed actions,
+  unresolved obstacles and the next responsible action.
+- Keep local review, draft proposal, submission and source-verified outcomes
+  separate. Link each completed HHA action to original source evidence and a
+  readback receipt, with actor, policy version and explanation.
+- Add explicit in-app filters/counts, case ownership and read freshness. External
+  report delivery needs named recipients and channel configuration; no message
+  is sent merely because a report was assembled.
+
+M05 - APPROXIMATELY 25-CLIENT PILOT
+Available resources: PILOT_AND_REPORT_KIT.txt, R01, R03, R07-R13.
+Existing tests supply synthetic patterns; actual pilot identities stay in
+protected runtime storage. The tests are not a substitute for source acceptance.
+Select the private pilot, staff roles, service scope, dates, rule versions and
+owner-agreed targets before execution. Start with measured recommendations,
+then reviewed submissions. No pilot membership or start date is assumed here.
+
+M06 - LIMITED APPROVED AUTOMATION
+Available code:
+  functions/src/revisions/diagnosis.ts -> evidence-based suggestions
+  functions/src/revisions/policy.ts -> source/rule acceptance boundaries
+  functions/src/revisions/monitorPlan.ts -> bounded background progression
+  functions/src/operations/recovery.ts -> ambiguous write recovery
+Available resources: R08, R11, R12 and the pilot kit.
+
+Next bounded build:
+- An explicit policy evaluator deciding which actions are permitted; a model can
+  propose/explain but cannot create authority from confidence alone.
+- A source action runner with scoped identity, preserved original events,
+  typed proposal, deduplication, readback and an immediate pause control.
+- Route unresolved evidence, conflicts, missing genuine events and unknown
+  outcomes to staff. Do not infer punches, alter original source clocks or
+  silently approve billing, payroll, eligibility or clinical decisions.
+- Choose a model/runtime only after the required action tools and evaluation
+  corpus exist. No new provider subscription or model vendor is required by this
+  resource pack. Scheduling remains the later product stage.
