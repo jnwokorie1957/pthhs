@@ -1,0 +1,150 @@
+PRIMETIME PRODUCT DIRECTION: VISIT MAINTENANCE FIRST
+Owner direction recorded November 5, 2026, America/Chicago.
+Status: accepted product requirements and implementation order; not a release,
+staff-account grant, source-write activation or started pilot.
+
+PRIMARY OUTCOME
+Reduce the office time spent maintaining visits. Primetime should become the
+daily operating screen for the owner, office staff, supervisors and office
+manager. They should review the office overview, real caregiver call-ins and
+call-outs, attempts, source exceptions, applicable reason codes and confirmation
+results, and perform supported maintenance without leaving Primetime.
+HHA remains the current underlying record system during this phase.
+
+The owner explicitly confirmed: use ACTUAL CAREGIVER CALLS ONLY. The agent should
+process and, when eventually authorized, confirm genuine events supplied by
+caregivers. Keep original event timestamps and provenance intact. A missing call
+must not be manufactured from the schedule. A recorded visit time, raw call
+attempt, accepted call-to-visit link and confirmed visit are separate evidence.
+
+Maintenance should become assisted and then selectively automated. Repetitive
+cases with an approved deterministic correction rule are candidates. Larger,
+ambiguous, unsupported or failed cases go to staff with a useful explanation.
+The owner also wants reports explaining which maintenance was completed and why.
+The longer-term objective is an owned scheduling platform after the management
+dashboard and maintenance workflow have proved reliable in daily operation.
+
+WORKSPACE AND ROLE DESIGN (PROPOSED; ACCESS NOT ACTIVATED)
+One shared Visit Maintenance workspace should connect Overview, source visits,
+EVV attempts, review actions, confirmations and the office follow-up report.
+Role-specific views use the same scoped records, not disconnected dashboards.
+
+Administrator: full authorized office overview; configure team access, permitted
+actions, correction policies, pilot membership and automation rollout controls.
+Office staff: assigned office/client work queue, source events, proposed changes,
+approved maintenance actions and a clear handoff for unresolved cases.
+Supervisor: source evidence and escalated cases, review decisions and supported
+approvals within explicitly assigned authority.
+Office manager: office/team overview, assignments, workload, completed-action and
+unresolved-case reports, escalation ownership and permitted review actions.
+
+Every account needs its own identity, office/client scope, effective membership
+and action permissions. An office role must not inherit administrator access to
+HHA credentials, owner settings or integration grants. The current deployed app
+still admits administrators; existing backend role names do not prove restricted
+staff login, assignments or permissions are finished.
+
+VISIT MAINTENANCE SCREEN
+1. Office/day and assigned-client filters, truthful source freshness and coverage.
+2. Schedule, assigned caregiver and supplied recorded/EVV start and end values.
+3. Actual call attempts with source IDs, timestamps, types, statuses and available
+   failure reasons; linked, suggested, rejected and nonmatching states stay
+   distinct where the source provides a verified mapping.
+4. Exact visit/event relationship evidence; same patient/caregiver/day alone is
+   insufficient to silently link an event to one of several visits.
+5. Applicable source reason/action catalog and agency-approved policy. Display
+   raw codes and meanings; suggestions are not an applied reason or confirmation.
+6. Before/proposed values, original call evidence, explanation and required note.
+7. Submit through a supported HHA action interface, then independently re-read
+   and show the actual HHA result. Local follow-up resolution is a separate action.
+8. Assigned next step or verified action receipt; no successful banner on a draft,
+   HTTP transport success alone, unresolved write result or local note save.
+
+SOURCE IMPLEMENTATION STATUS / PRECISE DEPENDENCIES
+Office/day overview is accepted for all returned IDs (O03). Current visit and
+selected-subject call reads are deployed. Call-history completeness, reliable
+attempt-to-visit joins and applicable reason/action mappings remain open.
+Current GetCallDashBoardData reads are bounded subject/day reads; do not present
+them as a complete office attempt feed or assume an empty result proves no call.
+
+Captured hharefs/hha-wdsl.xml includes ConfirmVisits, ConfirmVisitsV2,
+ConfirmVisitsEVV and VisitCallInOut, but the captured v3.30 guide does not establish
+their supported semantics. Existing server blocks remain. A WSDL operation name
+does not prove support for linking existing events or manual correction. The
+current reason/action read also needs its documented request and field meanings.
+See HHA_REMAINING_CATEGORIES.md, HHA_REMAINING_IMPLEMENTATION.md and E04/P03.
+
+Obtain current vendor documentation for THIS tenant's supported interface:
+- Read all relevant linked/unlinked/rejected attempts, pagination, retention,
+  source timestamps/timezones, IDs and authoritative event-to-visit relationships.
+- Read applicable reason/action catalogs and their office, program and effective
+  date constraints; establish supported history and confirmation readback.
+- Link/unlink an existing genuine call, confirm a visit, and make each intended
+  adjustment: exact fields, preservation/omission rules and required reason/note.
+- Supported result IDs, conflict/version controls, idempotency, retry behavior and
+  reconciliation after a timeout or unknown outcome.
+No vendor message has been sent. Do not bypass these source contracts with a
+scraped import, guessed payload or fake success. Independent staff-view, scoped
+review, policy-draft and report implementation can continue while they are open.
+
+DELIVERY ORDER AND PILOT
+A. Consolidate the human Visit Maintenance workbench and office reports; connect
+   the missing authoritative source data and supported action paths.
+B. Add individual scoped staff/supervisor/manager access and server-side action
+   permissions. Test denied cross-office/client access and revoked membership.
+C. Run a shadow pilot for a small selected department, approximately 25 clients.
+   The actual department, private client list, dates and staff accounts have not
+   been selected. Keep membership in protected runtime storage, never Git.
+   Agent proposes case classifications/actions; staff compare them with actual
+   maintenance. Measure time saved, proposal accuracy, rework and escalation load.
+D. Introduce staff-approved submissions with source readback and immutable audit.
+   This is an implementation stage, not a new owner decision that every future
+   automated action must permanently require approval.
+E. Allow limited automatic processing only for explicitly approved, tested rules
+   within the pilot scope. Original caregiver events, exact identities, authority,
+   current evidence and required reason/action mappings must all be established.
+   Model confidence alone does not authorize a correction. No guessed time,
+   invented call, unsupported round-off or clinical/payroll/billing decision.
+   Conflicts, multiple matches, missing evidence, unknown results and unsupported
+   adjustments stop automatic execution and become assigned staff cases.
+F. Expand only against owner-agreed pilot results; provide immediate pause and
+   rule disablement. Missing acceptance thresholds must not be invented.
+G. Develop the owned scheduling platform after maintenance is reliable. Preserve
+   visit/event identities and history for that later transition. Do not silently
+   introduce a second authoritative scheduler or duplicate live schedules now.
+
+STAFF REPORTS / ACTION HISTORY
+Initially use protected in-app reports and assigned work queues. Delivery to a
+separate channel needs named recipients/channel configuration; no communication
+has been sent by recording this direction.
+
+Resolved: visit and original event references, issue, approved rule/version,
+before/proposed/actual changes, reason/action/note, actor or agent version, human
+approver where applicable, HHA response and independently verified readback.
+Explain: "Resolved this maintenance because [evidence and approved rule]."
+Unresolved: exact obstacle, missing/conflicting evidence, attempted actions and
+their known outcomes, assigned staff member/role and the next necessary action.
+Explain: "Could not resolve because [specific reason]; staff must [next step]."
+Retain pending/unknown outcomes separately from confirmed success or failure.
+Reports contain private operational evidence and require the same scoped access.
+
+ACCEPTANCE / CURRENT LIMITS
+Require genuine-source test cases for linked and unlinked attempts, duplicate
+calls, multiple same-day visits, absent punches, source conflicts, changed staff
+scope, revoked access, reason applicability, submit-once behavior and unknown
+outcome reconciliation. Verify real HHA persistence before calling any case
+confirmed. A local review, draft, suggestion or report cannot be counted as an
+HHA correction. No new write, read grant, staff account, pilot or automation was
+enabled by this requirements update. Existing source/clinical decisions remain
+open unless independently accepted. This direction does not create or restart a
+Codex goal or change recurring tasks.
+
+PRIMARY PRODUCT REFERENCES CHECKED NOVEMBER 5, 2026
+HHA's UI documents call linking, visit-time edits and required maintenance
+documentation; that demonstrates the target workflow, not SOAP/API entitlement.
+https://knowledge.hhaexchange.com/enterprise/Content/Documentation/Visit/Visit-N-Visit-Maintenance-S.htm
+HHA Visit Maintenance access depends on role/module permissions.
+https://knowledge.hhaexchange.com/enterprise/Content/Documentation/Admin/Admin-N-Visit-Maintenance-P.htm
+Call Dashboard troubleshooting distinguishes case causes and possible actions;
+these are not automatically applicable agency policy or complete API history.
+https://knowledge.hhaexchange.com/enterprise/Content/Troubleshooting/TR-Call-Dashboard.htm

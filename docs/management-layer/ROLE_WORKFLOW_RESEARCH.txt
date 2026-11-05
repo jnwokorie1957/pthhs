@@ -2259,3 +2259,24 @@ new urgent action, source import/write, clinical/financial decision or communica
 Primary sources retrieved November5,2026; existing references, no new capability:
 [R48] https://knowledge.hhaexchange.com/texas/Content/Documentation/Visit/Visit-N-Appointments-Function-P.htm
 [R9] https://knowledge.hhaexchange.com/texas/Content/Documentation/Patient/Pat-N-Control-Access-Patient-P.htm
+
+
+OWNER PRODUCT DIRECTION - NOVEMBER 5, 2026
+Accepted owner direction now prioritizes reducing daily visit-maintenance time.
+Administrator, office staff, supervisor and office manager should share a scoped
+Primetime workbench with overview, genuine caregiver calls/attempts, applicable
+reason/action evidence and supported HHA confirmation/correction submissions.
+The owner explicitly confirmed ACTUAL CAREGIVER CALLS ONLY. Repetitive cases
+need approved correction rules; larger or unresolved cases need assigned staff
+reports explaining the obstacle and next step. Completed-action reports explain
+what was resolved, why, by whom/which rule and the verified HHA result.
+A later department pilot may contain approximately 25 clients; actual membership,
+accounts, policy examples and acceptance measures remain unselected. Progress
+from shadow proposals to reviewed submissions and then limited approved-rule
+automation. The owned scheduling platform follows reliable maintenance.
+See EVV_MAINTENANCE_PRODUCT_DIRECTION.txt for the standing requirements, role
+separation, delivery order, source-contract questions and acceptance boundaries.
+R57-R59 product guides rechecked November 5; their UI actions do not prove this
+tenant's API action entitlement, complete event history or agency policy. Existing
+read grants and source write blocks remain unchanged. This entry records owner
+requirements; no staff account, pilot, HHA action or recurring task was enabled.

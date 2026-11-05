@@ -14,6 +14,20 @@
 
 ## Start here
 
+- [x] November 5 product direction accepted: reduce visit-maintenance time first;
+  office staff, supervisors and managers should work inside Primetime with real
+  caregiver events, reason codes and supported confirmation/correction actions.
+  Repetitive approved cases are future automation candidates; larger issues go
+  to staff with specific unresolved-case and completed-action explanations.
+  Owner explicitly confirmed actual caregiver calls only. A later small pilot
+  may cover approximately 25 clients. An owned scheduling platform follows
+  reliable maintenance. See [standing direction](EVV_MAINTENANCE_PRODUCT_DIRECTION.txt).
+- [ ] Before pilot execution: select the private department/client membership,
+  staff identities and effective role/action scopes; define approved repetitive
+  adjustment examples, rule exclusions and pilot acceptance measures. These are
+  future execution inputs; no pilot, write permission or staff account is enabled
+  by the direction above. Current source-action documentation is also required.
+
 - [ ] Prepared November 3: additional read decision for only
   GetCaregiverPermanentWeekAvailability and GetCaregiverSpecialAvailability,
   existing administrators only. These expose private staff availability strings

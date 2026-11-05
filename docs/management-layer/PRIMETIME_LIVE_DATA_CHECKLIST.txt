@@ -2,7 +2,23 @@ PRIMETIME LIVE-DATA AUDIT AND CONNECTION CHECKLIST
 Started: October 24, 2026, America/Chicago
 Requested outcome: inspect every tab, find every error/unavailable/disconnected
 area, map the actual source, connect available authorized data and verify it.
-Goal remains ACTIVE. This document does not claim every tab is connected.
+This is the connection backlog, not a declaration of an active Codex goal.
+This document does not claim every tab is connected.
+
+OWNER PRODUCT PRIORITY - NOVEMBER 5
+Visit maintenance first: one operational workspace for the administrator,
+office staff, supervisors and manager; actual caregiver events, attempts,
+reason/actions and supported HHA confirmations/corrections; useful resolved and
+unresolved staff reports. Later, test approximately 25 clients and introduce
+approved limited automation, then build the owned scheduling platform.
+[ ] M01 Shared maintenance workbench and authoritative source event/visit links.
+[ ] M02 Applicable reason/action catalogs and supported HHA submit/readback path.
+[ ] M03 Individual scoped staff/supervisor/manager accounts and action permissions.
+[ ] M04 Protected assigned reports: action/evidence/rule and unresolved next step.
+[ ] M05 Owner-selected approximately 25-client shadow pilot and measured results.
+[ ] M06 Reviewed submissions, then approved-rule automation using actual calls.
+See EVV_MAINTENANCE_PRODUCT_DIRECTION.txt for requirements, order and dependencies.
+No HHA write, source access grant, staff account or pilot has been enabled here.
 
 STATUS KEY
 [x] Verified completed connection or correction, with its limits stated.

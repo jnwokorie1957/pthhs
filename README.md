@@ -1,5 +1,17 @@
 # PTHHS
 
+## Standing product priority: visit maintenance first
+
+The owner wants Primetime to reduce daily visit-maintenance work: shared office
+overview, actual caregiver calls/attempts, reason codes, supported confirmation
+and correction actions, and clear staff reports explaining resolved and
+unresolved cases. Individual staff, supervisor and office-manager views should
+share these records with scoped permissions. A later pilot of approximately 25
+clients should lead from recommendations to approved, limited automation using
+actual caregiver events. The owned scheduling platform follows reliable daily
+maintenance. These are requirements, not enabled write access or a started pilot.
+See the [accepted direction, delivery order and source dependencies](docs/management-layer/EVV_MAINTENANCE_PRODUCT_DIRECTION.txt).
+
 ## November 5 live office-day Overview acceptance
 
 Overview uses a protected, persistent HHA API collector for every returned visit

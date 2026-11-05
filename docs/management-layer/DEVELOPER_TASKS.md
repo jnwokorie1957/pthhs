@@ -1,5 +1,17 @@
 # PTHHS Management Layer — Developer Checklist
 
+- [ ] P0 owner product priority, November 5: deliver the shared Visit Maintenance
+  workspace and protected resolved/unresolved staff reports before expanding the
+  scheduling product. Connect actual call attempts, authoritative visit links,
+  applicable reason/actions and supported HHA confirmation/readback. Add scoped
+  staff/supervisor/manager access; existing administrator access is not that role
+  implementation. Prepare a later approximately 25-client shadow pilot, then
+  reviewed submissions and approved limited automation using genuine calls only.
+  Vendor-supported action contracts and owner correction rules remain required;
+  do not turn local follow-up into HHA confirmation. Continue independent review,
+  access and report work while source questions are open. See
+  [accepted product direction](EVV_MAINTENANCE_PRODUCT_DIRECTION.txt).
+
 - [x] November5 persistent office-day collection: normal releases pass and the
   signed-in November5 office/day returns639/639unique readable visits with zero
   unavailable details. All six field charts, pair/assignment/gap counts, EVV rows,
