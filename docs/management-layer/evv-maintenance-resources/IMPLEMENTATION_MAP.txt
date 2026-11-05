@@ -3,6 +3,47 @@ Baseline: 7afe49f8c1967a82529404db2964493761ebae5d, checked November 5, 2026.
 Paths are relative to the repository. These are reusable components and next
 steps, not claims that the requested maintenance workflow is already complete.
 
+M02/M04 CANDIDATE FOUNDATION - REVIEW HOLD, NOVEMBER 5
+Candidate base: 93707e31d5473ef2f41304199110a70fdd5a566f.
+  functions/src/revisions/maintenanceReport.ts
+  functions/src/revisions/maintenanceReport.test.ts
+Pure typed projection only: no routes, persistence, exports, source adapter,
+principal/access policy, UI or activation. It reuses EvidenceScope, timestamp
+and freshness helpers and the existing CallMatchRecord/ExceptionReviewRecord
+local-state types. It is not a second workflow engine or a submission runner.
+
+The input contract is for future protected records/adapters, NOT HTTP/browser
+assertions. MaintenanceAcceptance must come from independently reviewed vendor
+semantics and applicable office/program/effective-date policy/catalog evidence.
+No such HHA action acceptance is installed by this candidate. Opaque action and
+field keys in tests are synthetic; they do not define a ConfirmVisits payload,
+event linkage, reason-code mapping or supported action.
+
+Report states: local_review, draft_proposal, unsupported, unresolved,
+submission_pending, outcome_unknown and source_verified. Missing evidence after
+a possible write keeps pending/unknown status, plus specific obstacles/next steps.
+Transport success and local matched/resolved records cannot establish HHA success.
+Only exact bound proposal/before/attempt/readback evidence under the supplied
+accepted contract can establish the projected source outcome. Raw original event
+references/times remain unchanged; duplicate/conflicting or absent event evidence
+blocks verification. Readback must independently link the exact events, visit and
+action/attempt, match proposed fields/rule/catalog/reason, and be fresh. Scope
+mismatch throws before private report contents are returned. Existing local
+hhaVerification remains not_established even when separate source proof exists.
+
+Freshness is explicit, using the existing bounded source policy helper. Before
+evidence is checked at submission time; readback is checked at report time. This
+is a current evidence projection, not an immutable historical success ledger.
+A receipt reference/hash is not cryptographic proof of its origin: the future
+adapter and protected storage must establish authenticity, independent retrieval,
+contract applicability, exact action correlation and effective access. The module
+does not parse untrusted input, authorize users or decide whether to submit/retry.
+
+Remaining gates: independent code review; accepted tenant action/link/catalog/
+readback semantics; strict protected adapters; current role/client membership;
+paged report endpoint/privacy/counts; source acceptance; approved pilot scope.
+No commit/push/deploy or pilot is included in this review-held candidate.
+
 M01 - SHARED VISIT MAINTENANCE WORKSPACE
 Available code:
   source/primetime/dashboard.js
