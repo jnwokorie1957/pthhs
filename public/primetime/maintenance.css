@@ -1,4 +1,6 @@
 .maintenance {--mt-border:#dbe5ee;--mt-muted:#5b7084;--mt-ink:#15334d}
+/* Preview's first-page feed controls do not control this independently scoped workspace. */
+#appShell:has(#maintenanceWorkspace.is-active) :is(#fetchAgeControl,#apiFeedControl,#dashboardModeNotice,#dataModeBadge){display:none}
 .maintenance [hidden]{display:none!important}
 .maintenance-boundary{display:flex;gap:14px;padding:16px 20px;border:1px solid #b8d4e6;border-radius:14px;background:#edf6fb;color:#224963;margin-bottom:20px;font-size:14px;line-height:1.6}
 .maintenance-boundary strong{flex:0 0 170px}
