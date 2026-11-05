@@ -456,6 +456,24 @@ TAB 04 - VISIT PREVIEW
 [ ] P03 Verify additional affected examples, including a completed historical
     visit, and cross-check any documented alternate endpoint only after its
     identity/office boundary and entitlement are established.
+    November5 17:22UTC source-access follow-up: the current Chrome connector
+    exposes a working signed-in Primetime tab. No login link or new permission
+    was needed. Current-day first10details are readable, zero unavailable;
+    six field-presence counts10/10/4/0/4/0 and ten explicit-empty actual/rounded
+    hour pairs remain unchanged across same-subject/order receipts17:28:10.337
+    to17:35:12.144UTC. This is page-only source availability, not pending/completed
+    visit classification, actual-call history or recovered end/hour evidence.
+    October24 first read and one enabled retained-page retry both ended in the
+    displayed deferred-read state; exact HTTP/quota/source cause was not observed.
+    October23, raw-call and V2 reads were not attempted. Saved owner controls
+    confirm13selected reads: V3/raw-call enabled, V2 disabled. Settings were only
+    read, never saved; no new grant. V2 live acceptance remains gated.
+    Returned to the original Analytics view, following office today/Live/feed
+    display enabled; comparison buffers cleared and no source values/IDs saved.
+    Existing vendor subject/filter/retention/event-link evidence remains needed.
+    Original October24 screenshot stays resolved; P03/E04 remain open. This
+    supersedes the older unavailable-Primetime-tab observation below for the
+    newly connected context, without claiming an authenticated original HHA UI.
     November3 22:52UTC trigger / November4 UTC release:15ba09d corrects the
     existing V2 reader against captured GetVisitInfoDetailsV2. VisitInfo/
     ActualHoursRounded was omitted; V2 clock parsing could borrow nested text.
