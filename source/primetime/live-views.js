@@ -6,13 +6,13 @@
   const active=()=>ready&&!document.hidden&&panel.classList.contains('is-active')&&!$('appShell')?.hidden&&window.primetimeDataMode?.isLive()===true;
   const time=value=>new Date(value).toLocaleTimeString('en-US',{timeZone:'America/Chicago',hour:'numeric',minute:'2-digit',second:'2-digit'})+' Central';
   const day=value=>new Intl.DateTimeFormat('en-CA',{timeZone:'America/Chicago',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date(value));
-  function clear(note='Waiting for live counter'){sequence++;controller?.abort();controller=null;busy=false;receipt=null;$('waToday').textContent='—';$('waTodayNote').textContent=note;}
+  function clear(note='Waiting for live counter'){sequence++;controller?.abort();controller=null;busy=false;receipt=null;for(const id of ['waToday','waLive'])$(id).textContent='—';for(const id of ['waTodayNote','waLiveNote'])$(id).textContent=note;}
   function verified(data,key){
     const stamp=value=>typeof value==='string'&&Number.isFinite(Date.parse(value))&&new Date(value).toISOString()===value;
     if(data?.ok!==true||!['pthhs','rideprimetime'].includes(key)||data.site!==key||data.timeZone!=='America/Chicago'||!stamp(data.updatedAt)
       ||Date.now()-Date.parse(data.updatedAt)>20000||Date.parse(data.updatedAt)-Date.now()>60000||data.date!==day(data.updatedAt)
       ||data.count!==null&&(!Number.isSafeInteger(data.count)||data.count<0)||data.startedAt!==null&&(!stamp(data.startedAt)||data.startedAt>data.updatedAt)
-      ||(data.count===null)!==(data.startedAt===null))throw new Error('invalid_counter');return data;
+      ||(data.count===null)!==(data.startedAt===null)||!Number.isSafeInteger(data.visitors)||data.visitors<0||data.presenceWindowSeconds!==60)throw new Error('invalid_counter');return data;
   }
   async function load(){
     if(!active()||busy)return;const user=window.firebase?.auth().currentUser;if(!user){clear('Sign in to see live page views.');return;}
@@ -24,9 +24,11 @@
       const data=await response.json();if(ticket!==sequence||user!==window.firebase.auth().currentUser||!active()||site.value!==key)return;
       if(!response.ok)throw new Error('unavailable');verified(data,key);receipt=Date.parse(data.updatedAt);
       $('waToday').textContent=data.count===null?'Waiting':new Intl.NumberFormat('en-US').format(data.count);
+      $('waLive').textContent=new Intl.NumberFormat('en-US').format(data.visitors);
+      $('waLiveNote').textContent='Active browser sessions · seen in the last 60 seconds. Updates every 5 seconds. Checked '+time(data.updatedAt)+'.';
       $('waTodayNote').textContent=data.count===null?'Live counting starts with the next public page visit.':
         data.date+' · '+(day(data.startedAt)===data.date?'Counting since '+time(data.startedAt)+'; first partial day.':'Midnight–now · America/Chicago.')+' Updates every 5 seconds. Checked '+time(data.updatedAt)+'.';
-    }catch(error){if(ticket===sequence){receipt=null;$('waToday').textContent='Unavailable';$('waTodayNote').textContent='Live counter could not be reached. Retrying in 5 seconds.';}}
+    }catch(error){if(ticket===sequence){receipt=null;for(const id of ['waToday','waLive'])$(id).textContent='Unavailable';for(const id of ['waTodayNote','waLiveNote'])$(id).textContent='Live counter could not be reached. Retrying in 5 seconds.';}}
     finally{clearTimeout(timeout);if(ticket===sequence){busy=false;controller=null;}}
   }
   const selection=()=>{clear();void load();};

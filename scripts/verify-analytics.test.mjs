@@ -28,3 +28,17 @@ test('contact tracking sends intent without destination or link text',()=>{
  const c=run();const target=new c.Element();target.closest=()=>({getAttribute:()=> 'mailto:private@example.test?body=private-health-details'});
  c.listeners.click({target});const last=c.window.dataLayer.at(-1);assert.equal(last[1],'email_click');assert.equal(JSON.stringify(Array.from(last)).includes('private'),false);
 });
+
+test('presence shares a temporary browser token across tabs, stops hidden heartbeats and never inflates page views',()=>{
+  const storage=new Map(),intervals=[],handlers={};let id=0;
+  const overrides=()=>({crypto:{randomUUID:()=>String(++id).padStart(8,'0')+'-1111-4111-8111-111111111111'},setInterval:(fn,ms)=>intervals.push({fn,ms}),
+    window:{localStorage:{getItem:key=>storage.get(key)||null,setItem:(key,value)=>storage.set(key,value)},addEventListener:(name,fn)=>handlers[name]=fn}});
+  const first=run(overrides()),second=run(overrides());
+  const payloads=c=>c.requests.map(([,options])=>JSON.parse(options.body));
+  assert.equal(payloads(first)[1].session,payloads(second)[1].session);assert.notEqual(payloads(first)[1].tab,payloads(second)[1].tab);
+  assert.equal(intervals[0].ms,15000);intervals[0].fn();assert.equal(payloads(first).filter(p=>p.v===1).length,1);
+  first.document.visibilityState='hidden';first.listeners.visibilitychange();assert.equal(payloads(first).at(-1).active,false);
+  const before=first.requests.length;intervals[0].fn();assert.equal(first.requests.length,before);
+  assert.doesNotMatch(JSON.stringify(first.requests),/private@example|private-health|page_location|page_title/);
+  assert.ok(JSON.parse([...storage.values()][0]).expiresAt>Date.now());
+});

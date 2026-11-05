@@ -15,11 +15,32 @@
   try { page = new URL(canonical); } catch { return; }
   if (page.origin !== site[1] || page.search || page.hash) return;
   window.__publicAnalyticsLoaded = true;
-  // One anonymous aggregate increment per public document load. No URL or ID.
-  if(typeof fetch==='function')void fetch('https://pthhs.net/api/public-page-view',{
-    method:'POST',headers:{'Content-Type':'application/json'},body:'{"v":1}',
-    credentials:'omit',referrerPolicy:'no-referrer',keepalive:true
-  }).catch(()=>{});
+  // Aggregate views and short-lived presence never include page addresses.
+  function send(data) {
+    if(typeof fetch!=='function')return;
+    void fetch('https://pthhs.net/api/public-page-view',{
+      method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data),
+      credentials:'omit',referrerPolicy:'no-referrer',keepalive:true
+    }).catch(()=>{});
+  }
+  send({v:1});
+  if(typeof crypto!=='undefined'&&typeof crypto.randomUUID==='function'){
+    const tab=crypto.randomUUID(),storageKey='primetime.publicPresence';let session=crypto.randomUUID();
+    function pulse(active){
+      try{
+        const stored=JSON.parse(window.localStorage.getItem(storageKey)||'null');
+        if(stored&&/^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/.test(stored.id)&&stored.expiresAt>Date.now())session=stored.id;
+        if(active)window.localStorage.setItem(storageKey,JSON.stringify({id:session,expiresAt:Date.now()+1800000}));
+      }catch{/* Storage-disabled browsers keep a document-scoped anonymous token. */}
+      send({v:2,kind:'presence',session,tab,active});
+    }
+    let visible=document.visibilityState!=='hidden';
+    pulse(visible);
+    setInterval(()=>{if(visible)pulse(true);},15000);
+    document.addEventListener('visibilitychange',()=>{visible=document.visibilityState!=='hidden';pulse(visible);});
+    window.addEventListener('pagehide',()=>{visible=false;pulse(false);});
+    window.addEventListener('pageshow',event=>{if(event.persisted){visible=document.visibilityState!=='hidden';pulse(visible);}});
+  }
   window.dataLayer = window.dataLayer || [];
   const gtag = function () { window.dataLayer.push(arguments); };
   window.gtag = gtag;
