@@ -127,7 +127,18 @@ export function shapeReports(reports, {days,timeZone,periods}) {
   return {current,previous,...Object.fromEntries(['trend','pages','channels','events'].map(name=>[name,parsed[name]])),coverage:evidence,
     timeZone,periods,dataQuality:warnings.length ? warnings.join(' ') : null};
 }
-export function shapeRealtime(report) {
+export function shapeToday(report, timeZone) {
+  const result=rows(report,[],['screenPageViews'],1);
+  const evidence=coverage(report,result.length,timeZone,['screenPageViews']);
+  if(evidence.totalRows>1)fail('row_count');
+  const warnings=[];
+  if(evidence.thresholded)warnings.push('May be privacy-thresholded.');
+  if(evidence.sampling.length)warnings.push('Uses sampled source data.');
+  if(evidence.truncated)warnings.push('Source data is truncated.');
+  if(evidence.emptyReason)warnings.push(evidence.emptyReason);
+  return {pageViews:result[0]?.screenPageViews??null,coverage:evidence,warning:warnings.join(' ')||null};
+}
+export function shapeRealtime(report, includeViews=false) {
   const kind='analyticsData#runRealtimeReport';
   if (report?.kind!==undefined && report.kind!==kind) fail('report_kind');
   // ProtoJSON can omit empty repeated fields and the default zero row count.
@@ -138,7 +149,7 @@ export function shapeRealtime(report) {
     && emptyFields.every(key=>report[key]===undefined || Array.isArray(report[key])&&report[key].length===0)
     && (report.rowCount===undefined || report.rowCount===0)
     && (report.propertyQuota===undefined || object(report.propertyQuota))) return null;
-  const result=rows(report,[],['activeUsers'],1);
+  const result=rows(report,[],includeViews?['activeUsers','screenPageViews']:['activeUsers'],1);
   if (report.rowCount !== undefined && report.rowCount>1) fail('row_count');
-  return result.length ? result[0].activeUsers : null;
+  return result.length ? (includeViews?result[0]:result[0].activeUsers) : null;
 }

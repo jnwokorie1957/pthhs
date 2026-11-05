@@ -1,4 +1,4 @@
-import {SITES, reportPeriods, reportRequests, reportTimezone, shapeReports, shapeRealtime} from './report.js';
+import {SITES, reportPeriods, reportRequests, reportTimezone, shapeReports, shapeRealtime, shapeToday} from './report.js';
 
 export function realtimeFailure(error) {
   const rawStatus=error?.response?.status;
@@ -29,15 +29,24 @@ export async function queryReports(client, siteKey, days, clock=()=>new Date()) 
   const batch=await read('batchRunReports',{requests},20000);
   const shaped=shapeReports(batch.data?.reports,{days,timeZone,periods});
   const updatedAt=clock().toISOString();
-  let realtime=null,realtimeError=null,realtimeUpdatedAt=null,realtimeDiagnostic=null;
+  let realtime=null,realtimePageViews=null,realtimeError=null,realtimeUpdatedAt=null,realtimeDiagnostic=null;
   try {
-    const live=await read('runRealtimeReport',{metrics:[{name:'activeUsers'}],minuteRanges:[{startMinutesAgo:29,endMinutesAgo:0}],
+    const live=await read('runRealtimeReport',{metrics:[{name:'activeUsers'},{name:'screenPageViews'}],minuteRanges:[{startMinutesAgo:29,endMinutesAgo:0}],
       dimensionFilter:{filter:{fieldName:'streamId',stringFilter:{matchType:'EXACT',value:site.stream}}}},15000);
-    realtime=shapeRealtime(live.data);
+    const counts=shapeRealtime(live.data,true);
+    realtime=counts?.activeUsers??null;
+    realtimePageViews=counts?.screenPageViews??null;
     realtimeUpdatedAt=clock().toISOString();
     if (realtime===null) {realtimeError='No realtime source rows returned.';realtimeDiagnostic={category:'empty_result',httpStatus:null,shape:live.data.metricHeaders?.length?null:'typed_empty_report'};}
   } catch(error) {const failure=realtimeFailure(error);realtimeError=failure.message;realtimeDiagnostic=failure.diagnostic;}
-  return {ok:true,contractVersion:2,site:siteKey,name:site.name,days,propertyId:site.property,...shaped,realtime,realtimeError,realtimeUpdatedAt,realtimeDiagnostic,
+  let today={date:periods.asOfDate,pageViews:null,updatedAt:null,error:null,warning:null};
+  try {
+    const response=await read('runReport',{dateRanges:[{startDate:periods.asOfDate,endDate:periods.asOfDate}],metrics:[{name:'screenPageViews'}],
+      dimensionFilter:{filter:{fieldName:'hostName',inListFilter:{values:site.hosts}}},limit:'1'},10000);
+    today={...today,...shapeToday(response.data,timeZone),updatedAt:clock().toISOString()};
+    if(today.pageViews===null)today.error='No current-day source rows yet.';
+  } catch {today.error='Today’s report is temporarily unavailable.';}
+  return {ok:true,contractVersion:2,site:siteKey,name:site.name,days,propertyId:site.property,...shaped,realtime,realtimePageViews,realtimeError,realtimeUpdatedAt,realtimeDiagnostic,today,
     realtimeStreamId:site.stream,updatedAt,
     periodNote:'Historical reports match website hostnames. Realtime covers the selected GA4 web stream, last 30 minutes. Recent historical data may still be processing.'};
 }

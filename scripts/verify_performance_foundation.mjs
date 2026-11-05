@@ -202,9 +202,9 @@ for (const file of internalFiles) {
   compressedInternalBytes += gzipSync(bytes).length;
   if (bytes.length > 110_000) errors.push(`internal asset exceeds 110 KB budget: ${path.basename(file)}`);
 }
-// Explicit periods, source-empty summaries and stream/coverage validation add
-// about 500 compressed bytes. Raw/per-file/marketing limits stay unchanged.
-if (compressedInternalBytes > 102_000) errors.push(`internal app gzip estimate exceeds 102 KB budget: ${compressedInternalBytes}`);
+// Source validation and the current-day / rolling-view cards fit within 103 KB.
+// Raw/per-file/marketing limits stay unchanged.
+if (compressedInternalBytes > 103_000) errors.push(`internal app gzip estimate exceeds 103 KB budget: ${compressedInternalBytes}`);
 if (pictureCount !== 4 || preloadCount !== 3) errors.push(`expected 4 responsive pictures and 3 LCP preloads, found ${pictureCount}/${preloadCount}`);
 if (externalRuntimeCount !== 0) errors.push(`expected zero external runtime resources, found ${externalRuntimeCount}`);
 

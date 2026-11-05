@@ -6,16 +6,19 @@ const clock=()=>new Date('2026-10-31T18:00:00.000Z');
 function source(override=()=>null) {
   const calls=[];
   return {calls,async request(options){calls.push(options);const special=override(options,calls.length);if(special)return special;
-    if(options.url.endsWith(':runReport'))return {data:{metadata:{timeZone:'America/Chicago'}}};
+    if(options.url.endsWith(':runReport'))return {data:options.data.metrics[0].name==='screenPageViews'?report([],['screenPageViews'],[[[],[17]]]):{metadata:{timeZone:'America/Chicago'}}};
     if(options.url.endsWith(':batchRunReports'))return {data:{reports:reports()}};
-    return {data:report([],['activeUsers'],[[[],[0]]])};}};
+    return {data:report([],['activeUsers','screenPageViews'],[[[],[0,0]]])};}};
 }
 test('source timezone precedes explicit-date batch; realtime is bounded to selected web stream',async()=>{
   for(const [site,property,stream] of [['pthhs','546711548','16244033088'],['rideprimetime','561765914','16244067646']]){
     const client=source(),result=await queryReports(client,site,28,clock);
     assert.equal(result.contractVersion,2);assert.deepEqual(result.periods,periods);assert.equal(result.current.sessions,20);assert.equal(result.realtime,0);
     assert.equal(result.realtimeStreamId,stream);assert.equal(result.realtimeUpdatedAt,'2026-10-31T18:00:00.000Z');
-    assert.equal(client.calls.length,3);assert.ok(client.calls.every(c=>c.url.includes('/properties/'+property+':')&&c.method==='POST'&&c.retry===false));
+    assert.equal(client.calls.length,4);assert.ok(client.calls.every(c=>c.url.includes('/properties/'+property+':')&&c.method==='POST'&&c.retry===false));
+    assert.equal(result.today.pageViews,17);assert.equal(result.today.date,'2026-10-31');assert.equal(result.realtimePageViews,0);
+    assert.deepEqual(client.calls[3].data.dateRanges,[{startDate:'2026-10-31',endDate:'2026-10-31'}]);
+    assert.deepEqual(client.calls[3].data.dimensionFilter.filter.inListFilter.values,site==='pthhs'?['pthhs.net','www.pthhs.net']:['rideprimetime.net','www.rideprimetime.net']);
     assert.deepEqual(client.calls[1].data.requests[0].dateRanges,[{...periods.current,name:'current'},{...periods.previous,name:'previous'}]);
     assert.deepEqual(client.calls[2].data.dimensionFilter,{filter:{fieldName:'streamId',stringFilter:{matchType:'EXACT',value:stream}}});
     assert.deepEqual(client.calls[2].data.minuteRanges,[{startMinutesAgo:29,endMinutesAgo:0}]);
@@ -34,7 +37,7 @@ test('missing source timezone and malformed historical response fail before real
 });
 test('empty, invalid and failed realtime never replace valid historical facts or become zero',async()=>{
   for(const mode of ['empty','invalid','failure']){
-    const client=source(o=>{if(!o.url.endsWith(':runRealtimeReport'))return null;if(mode==='failure')throw new Error('private upstream detail');return {data:mode==='empty'?report([],['activeUsers'],[]):{}};});
+    const client=source(o=>{if(!o.url.endsWith(':runRealtimeReport'))return null;if(mode==='failure')throw new Error('private upstream detail');return {data:mode==='empty'?report([],['activeUsers','screenPageViews'],[]):{}};});
     const result=await queryReports(client,'pthhs',28,clock);assert.equal(result.current.sessions,20);assert.equal(result.realtime,null);
     assert.match(result.realtimeError,mode==='empty'?/No realtime source row/:mode==='invalid'?/response could not be verified/:/request failed/);assert.doesNotMatch(result.realtimeError,/private/);
   }
@@ -60,7 +63,7 @@ test('realtime failure categories expose only bounded status/shape, never upstre
   }
 });
 test('real response-shape rejection is identified separately while historical facts survive',async()=>{
-  const client=source(o=>{if(!o.url.endsWith(':runRealtimeReport'))return null;const data=report([],['activeUsers'],[[[],[2]]]);delete data.rows[0].metricValues[0].value;return {data};});
+  const client=source(o=>{if(!o.url.endsWith(':runRealtimeReport'))return null;const data=report([],['activeUsers','screenPageViews'],[[[],[2,3]]]);delete data.rows[0].metricValues[0].value;return {data};});
   const result=await queryReports(client,'pthhs',28,clock);assert.equal(result.current.sessions,20);assert.equal(result.realtime,null);
   assert.deepEqual(result.realtimeDiagnostic,{category:'invalid_response',httpStatus:null,shape:'metric_value'});assert.equal(result.realtimeUpdatedAt,null);
   assert.match(result.realtimeError,/could not be verified/);
@@ -68,14 +71,40 @@ test('real response-shape rejection is identified separately while historical fa
 test('provider errors and timeouts retain historical results without retry or invented realtime zero',async()=>{
   for(const fields of [{response:{status:403}},{response:{status:429}},{code:'ETIMEDOUT'}]){
     const client=source(o=>{if(o.url.endsWith(':runRealtimeReport'))throw Object.assign(new Error('PRIVATE'),fields);return null;});
-    const result=await queryReports(client,'pthhs',28,clock);assert.equal(client.calls.length,3);assert.equal(result.current.sessions,20);assert.equal(result.realtime,null);
+    const result=await queryReports(client,'pthhs',28,clock);assert.equal(client.calls.length,4);assert.equal(result.current.sessions,20);assert.equal(result.realtime,null);
     assert.equal(result.realtimeUpdatedAt,null);assert.notEqual(result.realtimeDiagnostic,null);assert.doesNotMatch(JSON.stringify(result),/PRIVATE/);
   }
 });
 test('typed source-empty realtime keeps receipt and historical facts without a failure or zero count',async()=>{
   const client=source(o=>o.url.endsWith(':runRealtimeReport')?{data:{kind:'analyticsData#runRealtimeReport'}}:null);
   const result=await queryReports(client,'rideprimetime',28,clock);
-  assert.equal(result.current.sessions,20);assert.equal(result.realtime,null);assert.equal(client.calls.length,3);
+  assert.equal(result.current.sessions,20);assert.equal(result.realtime,null);assert.equal(client.calls.length,4);
   assert.equal(result.realtimeUpdatedAt,'2026-10-31T18:00:00.000Z');
   assert.deepEqual(result.realtimeDiagnostic,{category:'empty_result',httpStatus:null,shape:'typed_empty_report'});assert.match(result.realtimeError,/No realtime source rows/);
+});
+
+test('today stays independent of realtime and the completed-day window; failed or empty is not zero',async()=>{
+  for(const state of ['zero','empty','malformed','denied']){
+    const client=source(o=>{
+      if(!o.url.endsWith(':runReport')||o.data.metrics[0].name!=='screenPageViews')return null;
+      if(state==='denied')throw Object.assign(new Error('PRIVATE'),{response:{status:403}});
+      return {data:state==='malformed'?{}:report([],['screenPageViews'],state==='empty'?[]:[[[],[0]]])};
+    });
+    const result=await queryReports(client,'rideprimetime',28,clock);
+    assert.equal(result.current.sessions,20);assert.equal(result.realtime,0);assert.equal(result.realtimePageViews,0);
+    assert.equal(result.today.pageViews,state==='zero'?0:null);assert.equal(result.today.date,'2026-10-31');
+    assert.equal(Boolean(result.today.error),state!=='zero');assert.doesNotMatch(JSON.stringify(result),/PRIVATE/);
+    assert.equal(result.today.updatedAt,state==='denied'||state==='malformed'?null:'2026-10-31T18:00:00.000Z');
+  }
+});
+
+test('today uses the property calendar across UTC midnight and does not sum rolling views into the day',async()=>{
+  const client=source(o=>{
+    if(o.url.endsWith(':runRealtimeReport'))return {data:report([],['screenPageViews','activeUsers'],[[[],[5,2]]])};
+    return null;
+  });
+  const result=await queryReports(client,'pthhs',28,()=>new Date('2026-11-01T00:30:00.000Z'));
+  assert.equal(result.today.date,'2026-10-31');assert.equal(result.today.pageViews,17);
+  assert.equal(result.realtime,2);assert.equal(result.realtimePageViews,5);
+  assert.deepEqual(client.calls[3].data.dateRanges,[{startDate:'2026-10-31',endDate:'2026-10-31'}]);
 });
