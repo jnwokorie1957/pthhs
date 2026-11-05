@@ -198,7 +198,10 @@ if (publicBytes - internalBytes > 2_000_000) errors.push(`marketing output excee
 // This includes the concurrently released first-party live-view counter.
 // The protected persistent-day adapter adds 7.1 KB raw / 1.3 KB gzip, with no
 // new runtime library. Keep its receipt/coverage/access validation in the budget.
-if (internalBytes > 437_000) errors.push(`internal app output exceeds 437 KB budget: ${internalBytes}`);
+// Maintenance adds a separate 24.7 KB JS/CSS workspace plus navigation/markup:
+// durable office cases, real call evidence, source receipts and private reports.
+// Reviewed output is 463.9 KB raw / 116.6 KB gzip; no new runtime library.
+if (internalBytes > 470_000) errors.push(`internal app output exceeds 470 KB budget: ${internalBytes}`);
 const internalFiles = publicFiles.filter(file => isInternalAppFile(file, publicDir));
 let compressedInternalBytes = 0;
 for (const file of internalFiles) {
@@ -207,7 +210,7 @@ for (const file of internalFiles) {
   if (bytes.length > 110_000) errors.push(`internal asset exceeds 110 KB budget: ${path.basename(file)}`);
 }
 // Includes complete-day collection, consistency fences and source retry handling.
-if (compressedInternalBytes > 109_000) errors.push(`internal app gzip estimate exceeds 109 KB budget: ${compressedInternalBytes}`);
+if (compressedInternalBytes > 118_000) errors.push(`internal app gzip estimate exceeds 118 KB budget: ${compressedInternalBytes}`);
 if (pictureCount !== 4 || preloadCount !== 3) errors.push(`expected 4 responsive pictures and 3 LCP preloads, found ${pictureCount}/${preloadCount}`);
 if (externalRuntimeCount !== 0) errors.push(`expected zero external runtime resources, found ${externalRuntimeCount}`);
 

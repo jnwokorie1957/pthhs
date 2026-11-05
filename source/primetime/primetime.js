@@ -2,7 +2,7 @@
   // Keep the one-time action link in memory before navigation can replace it.
   const initialSignInHref = location.href || '';
   const titles = {
-    workbench: 'Advanced tools', revisions: 'Visit review', patients: 'Patient workbench',
+    workbench: 'Advanced tools', maintenance: 'Visit maintenance', revisions: 'Visit review', patients: 'Patient workbench',
     analytics: 'Website analytics', overview: 'Operations overview', evv: 'EVV exceptions', visits: 'Visits',
     messages: 'Messages & alerts', staffing: 'Staffing', billing: 'Billing & AR',
     hha: 'HHA integration', audit: 'Audit log', settings: 'Settings', forms: 'Forms'

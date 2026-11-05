@@ -1,5 +1,12 @@
 # PTHHS Management Layer — Developer Checklist
 
+- [x] Implemented administrator Visit Maintenance: full returned-ID source queue,
+  saved source-bound office cases, real scoped call evidence, proposed next steps,
+  follow-up queues, audit history and private text reports. Production acceptance
+  is pending the normal release. See [implementation and acceptance](VISIT_MAINTENANCE_WORKSPACE_2026-11-05.md).
+  Actual HHA submissions, authoritative links/reason catalogs, individual staff
+  access and pilot/automation remain open; local completion is never HHA confirmation.
+
 - [x] November 5 maintenance resources acquired for M01-M06: seven public PDFs,
   live anonymous WSDL, existing private Enterprise guide, primary workflow/role
   and Firebase references. Twelve selected request/response expansions match the

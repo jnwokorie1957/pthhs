@@ -42,6 +42,8 @@ import { manualSnapshotRoute } from "./operations/manualSnapshots.js";
 import { assertLiveDataMode, viewRoute } from "./views/visits.js";
 import { FirestoreFeedStore, refreshLiveFeed, readLiveFeed } from "./views/liveFeed.js";
 import { FirestoreOfficeDayStore, refreshOfficeDay, readOfficeDay } from "./views/officeDay.js";
+import { MaintenanceService, maintenanceRoute } from "./maintenance/service.js";
+import { visitCallRead } from "./operations/visitCalls.js";
 import { WorkflowError } from "./operations/reads.js";
 import { RevisionBackend, type RevisionActor, type RevisionApprovals } from "./revisions/service.js";
 import { revisionRoute } from "./revisions/routes.js";
@@ -231,6 +233,16 @@ export const primetimeApi = onRequest(
       response.status(result?.status ?? 404).json(result?.body ?? { ok: false, error: "not_found" }); return;
     }
 
+    if (path.startsWith("/maintenance/")) {
+      if (request.method === "POST" && (!request.is("application/json") || request.rawBody.length > 16384)) {
+        response.status(400).json({ ok: false, error: "invalid_maintenance_request" }); return;
+      }
+      const workspace = liveReadWorkspace();
+      const service = new MaintenanceService(new FirestoreWorkspaceRepository(), workspace,
+        value => readOfficeDay(workspace, new FirestoreOfficeDayStore(), value), (value, actor) => visitCallRead(workspace, value, actor));
+      const result = await maintenanceRoute(service, principal, request.method, path, request.method === "GET" ? request.query : request.body);
+      response.status(result.status).json(result.body); return;
+    }
     if (path === "/views/office-day") {
       try {
         if (request.method !== "GET") throw new WorkflowError("method_not_allowed", 405);
