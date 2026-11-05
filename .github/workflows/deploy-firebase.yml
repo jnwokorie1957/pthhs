@@ -14,12 +14,35 @@ on:
           - hosting
 
 jobs:
+  release_scope:
+    runs-on: ubuntu-latest
+    outputs:
+      mode: ${{ steps.scope.outputs.mode }}
+      release_sha: ${{ steps.scope.outputs.release_sha }}
+    steps:
+      - name: Checkout exact release history
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Setup scope verifier
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Verify release scope
+        id: scope
+        run: |
+          node --test scripts/release-scope.test.mjs scripts/verify-hosting-only.test.mjs
+          node scripts/release-scope.mjs
+
   build_and_deploy:
-    if: github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' && inputs.deployment_target == 'hosting')
+    if: needs.release_scope.outputs.mode == 'hosting' || needs.release_scope.outputs.mode == 'full'
+    needs: release_scope
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.release_scope.outputs.release_sha }}
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
@@ -30,7 +53,7 @@ jobs:
       - name: Build and verify site
         run: npm run check
       - name: Verify Hosting-only deployment boundary
-        if: github.event_name == 'workflow_dispatch'
+        if: needs.release_scope.outputs.mode == 'hosting'
         run: |
           node --test scripts/verify-hosting-only.test.mjs
           node scripts/verify-hosting-only.mjs
@@ -55,7 +78,8 @@ jobs:
   # website restoration from reaching Firebase Hosting.
   deploy_backend:
     # Manual releases are always website-only, regardless of supplied inputs.
-    if: github.event_name == 'push'
+    if: github.event_name == 'push' && needs.release_scope.outputs.mode == 'full'
+    needs: release_scope
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repo
@@ -110,8 +134,8 @@ jobs:
   # The website report source is an existing independent Functions codebase.
   # Keep Hosting-only manual releases and the HHA backend deployment separate.
   deploy_website_analytics:
-    if: github.event_name == 'push'
-    needs: build_and_deploy
+    if: github.event_name == 'push' && needs.release_scope.outputs.mode == 'full'
+    needs: [release_scope, build_and_deploy]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repo

@@ -39,8 +39,8 @@ test('workflow retains push behavior and excludes backend on every manual releas
     assert(match, `Missing job condition: ${job}`);
     return match[1];
   };
-  const evaluate = (job, event, ref, target) => vm.runInNewContext(condition(job), {
-    github: {event_name: event, ref}, inputs: {deployment_target: target},
+  const evaluate = (job, event, ref, target, mode = event === 'push' ? 'full' : (ref === 'refs/heads/main' && target === 'hosting' ? 'hosting' : '')) => vm.runInNewContext(condition(job), {
+    github: {event_name: event, ref}, inputs: {deployment_target: target}, needs: {release_scope: {outputs: {mode}}},
   });
   assert.equal(evaluate('build_and_deploy', 'push', 'refs/heads/main'), true);
   assert.equal(evaluate('deploy_backend', 'push', 'refs/heads/main'), true);
@@ -52,8 +52,10 @@ test('workflow retains push behavior and excludes backend on every manual releas
       assert.equal(evaluate('build_and_deploy', 'workflow_dispatch', ref, target), ref === 'refs/heads/main' && target === 'hosting');
     }
   }
+  for (const job of ['deploy_backend','deploy_website_analytics']) assert.equal(evaluate(job,'push','refs/heads/main',undefined,'hosting'),false);
   assert.match(workflow, /options:\s*\n\s*- hosting\s*\n/);
   const siteJob = workflow.split('  build_and_deploy:')[1].split('  deploy_backend:')[0];
+  assert.match(siteJob, /ref: \$\{\{ needs\.release_scope\.outputs\.release_sha \}\}/);
   assert.match(siteJob, /node scripts\/verify-hosting-only\.mjs/);
   assert.match(siteJob, /FirebaseExtended\/action-hosting-deploy@v0/);
   assert.doesNotMatch(siteJob, /firebase deploy|functions:|--prefix functions/);
@@ -61,7 +63,7 @@ test('workflow retains push behavior and excludes backend on every manual releas
 
 test('website analytics deploy stays behind site checks and within its existing codebase',()=>{
   const job=workflow.split('  deploy_website_analytics:')[1];
-  assert.match(job,/needs: build_and_deploy/);assert.match(job,/--frozen-lockfile --ignore-scripts/);
+  assert.match(job,/needs: \[release_scope, build_and_deploy\]/);assert.match(job,/--frozen-lockfile --ignore-scripts/);
   assert.match(job,/pnpm --dir analytics-functions test/);
   assert.match(job,/firebase deploy --config firebase.analytics.json --only functions:website-analytics --project primetimehomehealthservices --non-interactive/);
   assert.doesNotMatch(job,/--force|--only functions\s|--only firestore|--only storage|--config firebase\.json/);
