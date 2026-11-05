@@ -1,5 +1,12 @@
 # PTHHS Management Layer — Developer Checklist
 
+- [x] Implemented the requested maintenance From/To range, separate patient/member
+  and caregiver name/code lookups, bill-to payer/contract filtering, actionable
+  rows/cards, deadline recovery and source-bound reason/action staging. Normal
+  release, the five new scoped read decisions and signed-in production acceptance
+  are pending. [Implementation and controls](MAINTENANCE_RANGE_SEARCH_2026-11-05.md).
+  HHA confirmation writes and authoritative event links remain open M02 work.
+
 - [ ] November 5 restricted-role design (19:43UTC): current maintenance queues
   are routing metadata; the live shell/routes still require admin. Before M03,
   define effective office/client membership, assigned-account identity and separate

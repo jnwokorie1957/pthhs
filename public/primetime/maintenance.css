@@ -37,5 +37,10 @@
 .maintenance-history{padding-left:20px;font-size:13px;line-height:1.7;color:var(--mt-muted)}.maintenance-history li{margin:12px 0;overflow-wrap:anywhere}
 .maintenance-report-card{padding:16px 0;border-top:1px solid var(--mt-border);overflow-wrap:anywhere}.maintenance-report-card p{margin:7px 0;line-height:1.6;font-size:14px}.maintenance-report .panel-head{gap:12px;flex-wrap:wrap}
 .maintenance-empty{padding:24px 14px;line-height:1.7;color:var(--mt-muted)}
+.maintenance-metric{text-align:left;font:inherit;cursor:pointer}.maintenance-metric:hover{border-color:#6395b8;background:#f3f8fc}
+.maintenance-search-fields{margin:16px 0}.maintenance-person-filters{display:grid;grid-template-columns:1fr 1fr;gap:20px}.maintenance-search-fields fieldset{min-width:0;border:1px solid var(--mt-border);border-radius:12px;padding:16px}.maintenance-search-fields legend{font-weight:700;color:var(--mt-ink);padding:0 6px}
+.maintenance-controls{grid-template-columns:repeat(2,minmax(0,1fr))}.maintenance-controls label:last-child{grid-column:auto}.maintenance-actions label{min-width:220px;flex:1}
+.maintenance-detail>h3{margin-top:18px}.maintenance-row:disabled{opacity:1}
 @media(max-width:1100px){.maintenance-layout{grid-template-columns:1fr}.maintenance-times{grid-template-columns:repeat(3,minmax(0,1fr))}.maintenance-list-panel{max-height:440px;overflow:auto}.maintenance-controls{grid-template-columns:1fr 1fr}.maintenance-controls label:last-child{grid-column:1/-1}}
 @media(max-width:600px){.maintenance-boundary{flex-direction:column;gap:6px;padding:14px}.maintenance-boundary strong{flex-basis:auto}.maintenance-controls,.maintenance-form-grid{grid-template-columns:1fr}.maintenance-metrics{grid-template-columns:1fr 1fr}.maintenance-times{grid-template-columns:1fr}.maintenance-time p{display:inline-block;vertical-align:top;width:48%}.maintenance .panel{padding:16px}.maintenance .maintenance-list-panel{padding:5px}.maintenance-tabs .btn{padding:10px 14px}}
+@media(max-width:1100px){.maintenance-layout.has-selection .maintenance-list-panel{display:none}.maintenance-person-filters{grid-template-columns:1fr}}

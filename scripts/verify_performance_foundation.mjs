@@ -201,7 +201,9 @@ if (publicBytes - internalBytes > 2_000_000) errors.push(`marketing output excee
 // Maintenance adds a separate 24.7 KB JS/CSS workspace plus navigation/markup:
 // durable office cases, real call evidence, source receipts and private reports.
 // Reviewed output is 463.9 KB raw / 116.6 KB gzip; no new runtime library.
-if (internalBytes > 470_000) errors.push(`internal app output exceeds 470 KB budget: ${internalBytes}`);
+// Native range/person/payer search, actionable queue and source reason staging
+// add about 23 KB raw / 7 KB gzip. No new runtime library or external resource.
+if (internalBytes > 490_000) errors.push(`internal app output exceeds 490 KB budget: ${internalBytes}`);
 const internalFiles = publicFiles.filter(file => isInternalAppFile(file, publicDir));
 let compressedInternalBytes = 0;
 for (const file of internalFiles) {
@@ -210,7 +212,7 @@ for (const file of internalFiles) {
   if (bytes.length > 110_000) errors.push(`internal asset exceeds 110 KB budget: ${path.basename(file)}`);
 }
 // Includes complete-day collection, consistency fences and source retry handling.
-if (compressedInternalBytes > 118_000) errors.push(`internal app gzip estimate exceeds 118 KB budget: ${compressedInternalBytes}`);
+if (compressedInternalBytes > 125_000) errors.push(`internal app gzip estimate exceeds 125 KB budget: ${compressedInternalBytes}`);
 if (pictureCount !== 4 || preloadCount !== 3) errors.push(`expected 4 responsive pictures and 3 LCP preloads, found ${pictureCount}/${preloadCount}`);
 if (externalRuntimeCount !== 0) errors.push(`expected zero external runtime resources, found ${externalRuntimeCount}`);
 

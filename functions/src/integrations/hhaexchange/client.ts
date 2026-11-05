@@ -1,6 +1,6 @@
 import { HhaNotSubmittedError } from "./dispatch.js";
 import { randomUUID } from "node:crypto";
-import { vendorContractBlocked } from "./contractGates.js";
+import { vendorContractBlocked, scopedReasonReview } from "./contractGates.js";
 import { logger } from "firebase-functions";
 import type { HhaCredentials } from "./config.js";
 import {
@@ -261,8 +261,9 @@ export class HhaSoapClient {
     operation: string,
     operationBodyXml = "",
     maxAttempts = DEFAULT_MAX_ATTEMPTS,
+    reviewedReadContext?: "visit_reason_review",
   ): Promise<HhaCallResponse> {
-    if (vendorContractBlocked(operation)) throw new Error("vendor_contract_clarification_required");
+    if (vendorContractBlocked(operation) && !scopedReasonReview(operation, reviewedReadContext)) throw new Error("vendor_contract_clarification_required");
     if (!Number.isInteger(maxAttempts) || maxAttempts < 1 || maxAttempts > DEFAULT_MAX_ATTEMPTS) {
       throw new Error("invalid_hha_attempt_limit");
     }

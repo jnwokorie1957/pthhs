@@ -26,10 +26,17 @@ function fixture() {
       const value = update(structuredClone(prior)); records.set(key, structuredClone(value)); writes++; return structuredClone(value);
     }
   };
-  const service = new MaintenanceService(repository, { settings: async () => structuredClone(current) } as never,
+  const sourceQueries: {operation:string;scope?:string}[]=[];
+  const reasonSource={operation:'GetVisitEditReasonActionTaken',source:'hhaexchange',records:[],truncated:false,fetchedAt:date+'T16:00:00.000Z',visitEditReasons:[{id:'55',label:'Source | reason; label',description:'Synthetic source reason',status:'Unmapped',actions:[{id:'65',label:'Source | action; label',description:'Synthetic source action',status:'Unknown'}]}]};
+  const service = new MaintenanceService(repository, { settings: async () => structuredClone(current), query:async (query:{operation:string},_actor:string,scope?:string)=>{
+    sourceQueries.push({operation:query.operation,...(scope?{scope}:{})});
+    if(query.operation==='GetVisitInfoV3')return{operation:query.operation,source:'hhaexchange',truncated:false,fetchedAt:date+'T16:00:00.000Z',records:[{ID:'15','Patient/ID':'25','Caregiver/ID':'35',VisitDate:date}]};
+    if(query.operation==='GetPatientDemographics')return{operation:query.operation,source:'hhaexchange',truncated:false,fetchedAt:date+'T16:00:00.000Z',records:[{PatientID:'25',OfficeID:'123'}]};
+    return structuredClone(reasonSource);
+  } } as never,
     (async () => { afterDay?.(); return structuredClone(day); }) as never,
     (async () => { callReads++; return structuredClone(calls); }) as never, () => new Date(date + "T16:00:00.000Z"));
-  return { service, current, day, calls, records, counts: () => ({ writes, callReads }), afterDay(value: () => void) { afterDay = value; } };
+  return { service, current, day, calls, records, sourceQueries,reasonSource, counts: () => ({ writes, callReads }), afterDay(value: () => void) { afterDay = value; } };
 }
 test("maintenance saves one durable local case per office/day/visit, with immutable first receipt and revision conflicts", async () => {
   const f = fixture(), first = await f.service.save(input, actor.uid);
@@ -119,4 +126,28 @@ test("large call evidence cannot exceed record and paged-response capacity or da
   f.calls.records = Array.from({ length: 200 }, (_, i) => ({ CallDashboardID: String(i + 100), CallTime: date + " 09:00", CallType: "x".repeat(1000), CallStatus: "y".repeat(1000) }));
   await assert.rejects(f.service.calls({ date, visitId: "15", revision: 1 }, actor.uid), /maintenance_history_limit/);
   const saved = (await f.service.cases({ date })).items[0]!; assert.equal(saved.revision, 1); assert.equal(saved.calls, null);
+});
+test('case details can be opened without creating a case or changing a visit',async()=>{
+ const f=fixture();assert.equal((await f.service.getCase({date,visitId:'15'})).item,null);await f.service.save(input,actor.uid);
+ assert.equal((await f.service.getCase({date,visitId:'15'})).item?.revision,1);assert.equal(f.counts().writes,1);
+});
+test('reason reads require the explicit owner grant, fresh visit/office proof and the internal read-only context',async()=>{
+ const f=fixture();await f.service.save(input,actor.uid);await assert.rejects(f.service.reasons({date,visitId:'15',revision:1},actor.uid),/read_not_owner_enabled/);assert.equal(f.sourceQueries.length,0);
+ f.current.settings.enabledReads.push('GetVisitEditReasonActionTaken');const result=await f.service.reasons({date,visitId:'15',revision:1},actor.uid);
+ assert.equal(result.item.reasonCatalog?.reasons[0]?.actions[0]?.name,'Source | action; label');assert.deepEqual(f.sourceQueries.map(q=>q.operation),['GetVisitInfoV3','GetPatientDemographics','GetVisitEditReasonActionTaken']);
+ assert.equal(f.sourceQueries[2]?.scope,'visit_reason_review');assert.equal(result.item.hhaSubmission,'not_submitted');
+});
+test('staged reason/action pairs must belong to the retained fresh visit catalog; no arbitrary codes or source writes',async()=>{
+ const f=fixture();await f.service.save(input,actor.uid);f.current.settings.enabledReads.push('GetVisitEditReasonActionTaken');await f.service.reasons({date,visitId:'15',revision:1},actor.uid);
+ await assert.rejects(f.service.save({...input,revision:2,reasonId:'55',actionId:'66'},actor.uid),/reason_selection_not_in_fresh_source/);
+ await assert.rejects(f.service.save({...input,revision:2,reasonId:'55'},actor.uid),/select_reason_and_action/);
+ const saved=await f.service.save({...input,revision:2,proposalKind:'review_confirmation',reasonId:'55',actionId:'65'},actor.uid);
+ assert.equal(saved.item.proposal?.reasonId,'55');assert.equal(saved.item.proposal?.actionId,'65');assert.equal(saved.item.hhaSubmission,'not_submitted');
+ assert.ok(f.sourceQueries.every(q=>q.operation.startsWith('Get')));
+});
+test('duplicate catalog IDs and stale source choices cannot be staged',async()=>{
+ const f=fixture();await f.service.save(input,actor.uid);f.current.settings.enabledReads.push('GetVisitEditReasonActionTaken');f.reasonSource.visitEditReasons.push(f.reasonSource.visitEditReasons[0]!);
+ await assert.rejects(f.service.reasons({date,visitId:'15',revision:1},actor.uid),/reason_source_unverified/);
+ f.reasonSource.visitEditReasons.pop();f.reasonSource.fetchedAt=date+'T14:00:00.000Z';await f.service.reasons({date,visitId:'15',revision:1},actor.uid);
+ await assert.rejects(f.service.save({...input,revision:2,reasonId:'55',actionId:'65'},actor.uid),/reason_selection_not_in_fresh_source/);
 });

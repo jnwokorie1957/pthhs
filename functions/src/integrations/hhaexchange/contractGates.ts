@@ -5,3 +5,13 @@ export const GUIDE_REMOVED = ["GetPatientChanges","GetCaregiverChanges","GetCare
 export function vendorContractBlocked(operation: string): boolean {
   return [...GUIDE_ABSENT, ...GUIDE_REMOVED].some(name => name === operation);
 }
+// Narrow read-only staging review of the published ENT request shape. The
+// dedicated caller proves visit/patient/office membership first and still needs
+// the owner's enabled-read grant. Generic reads and all confirmation writes stay
+// behind their original gate; this is not a reviewed confirmation contract.
+export function scopedReasonReview(operation: string, context?: string): boolean {
+  return operation === "GetVisitEditReasonActionTaken" && context === "visit_reason_review";
+}
+export function ownerReadable(operation: string): boolean {
+  return !vendorContractBlocked(operation) || scopedReasonReview(operation, "visit_reason_review");
+}

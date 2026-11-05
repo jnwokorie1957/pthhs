@@ -43,6 +43,7 @@ import { assertLiveDataMode, viewRoute } from "./views/visits.js";
 import { FirestoreFeedStore, refreshLiveFeed, readLiveFeed } from "./views/liveFeed.js";
 import { FirestoreOfficeDayStore, refreshOfficeDay, readOfficeDay } from "./views/officeDay.js";
 import { MaintenanceService, maintenanceRoute } from "./maintenance/service.js";
+import { MaintenanceSearch } from "./maintenance/search.js";
 import { visitCallRead } from "./operations/visitCalls.js";
 import { WorkflowError } from "./operations/reads.js";
 import { RevisionBackend, type RevisionActor, type RevisionApprovals } from "./revisions/service.js";
@@ -238,9 +239,11 @@ export const primetimeApi = onRequest(
         response.status(400).json({ ok: false, error: "invalid_maintenance_request" }); return;
       }
       const workspace = liveReadWorkspace();
+      const search = new MaintenanceSearch(workspace, new FirestoreWorkspaceRepository());
       const service = new MaintenanceService(new FirestoreWorkspaceRepository(), workspace,
-        value => readOfficeDay(workspace, new FirestoreOfficeDayStore(), value), (value, actor) => visitCallRead(workspace, value, actor));
-      const result = await maintenanceRoute(service, principal, request.method, path, request.method === "GET" ? request.query : request.body);
+        value => readOfficeDay(workspace, new FirestoreOfficeDayStore(), value), (value, actor) => visitCallRead(workspace, value, actor), undefined,
+        async (date, id, receipt) => { const row = await search.evidence(date, id, receipt); return row ? { ...row, error: row.error ?? null } : null; });
+      const result = await maintenanceRoute(service, principal, request.method, path, request.method === "GET" ? request.query : request.body, search);
       response.status(result.status).json(result.body); return;
     }
     if (path === "/views/office-day") {
