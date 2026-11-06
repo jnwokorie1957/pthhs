@@ -27,6 +27,7 @@ node --test scripts/verify_workforce.test.mjs
 node --test scripts/workforce-readings.test.mjs
 node --test scripts/workforce-account.test.mjs
 node --test scripts/workforce-support.test.mjs
+node --test scripts/workforce-auth-preview.test.mjs
 node --test scripts/workforce-camera.test.mjs scripts/workforce-form-fields.test.mjs
 node --test scripts/verify_primetime_file_session.test.mjs
 node --test scripts/verify_primetime_forms.test.mjs

@@ -1,12 +1,18 @@
 # PTHHS caregiver workforce plan
 
-Authoritative architecture, implementation backlog and acceptance record. Version 10, November 6, 2026. Initial audit baseline: `93707e3` on `main`; current handoff integrates `main` through `2c02bf5`, preserving concurrent visit-maintenance controls, range/search/reason-staging tools, SEO records and production acceptance documentation. This file owns workforce delivery status; existing management and release documentation continues to own its established workflows.
+Authoritative architecture, implementation backlog and acceptance record. Version 11, November 6, 2026. Initial audit baseline: `93707e3` on `main`; current handoff integrates `main` through `2c02bf5`, preserving concurrent visit-maintenance controls, range/search/reason-staging tools, SEO records and production acceptance documentation. This file owns workforce delivery status; existing management and release documentation continues to own its established workflows.
 
 ## Scope and release state
 
 This change begins Phases 1–2 in the existing PTHHS repository. It is a review branch, not a production launch. No real staff accounts, role grants, patient openings, applicant records, SMS messages, employment decisions or vendor writes were created. Synthetic records exist only in tests. No production patient data was queried.
 
 **Implemented** means code exists. **Tested** identifies synthetic automated verification. **Pending** identifies work still to implement. **Blocked** identifies a specific external input or acceptance requirement. Neither a passing test nor a deployment establishes regulatory compliance.
+
+## Real Google sign-in test
+
+Google is now enabled in the existing Firebase project, and its real account chooser was reached in Chrome. The owner completes Google account selection and consent. The separate loopback auth-test server on 4176 uses the current Firebase compat SDK and real server-side identity verification, offers synthetic openings, and rejects application/document writes. The 4175 walkthrough remains synthetic. Apple, Microsoft and Yahoo await owner developer enrollment; detailed provider requirements and return URLs are in PROVIDER_SETUP.md. Production collection gates and staff grants are unchanged.
+
+Validation: 608 site/tooling/analytics tests pass, including auth-test isolation, invalid-token rejection, closed writes and provider-only navigation. Backend code is unchanged from the 849 passing checks. Browser testing reached Google's actual chooser; completed user return/session acceptance remains pending handoff.
 
 ## Dedicated portal and account support
 

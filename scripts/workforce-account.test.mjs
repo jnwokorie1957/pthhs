@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import vm from 'node:vm';
 const source=fs.readFileSync(new URL('../public/assets/workforce-account.js',import.meta.url),'utf8');
-function setup({enabled=true,search='',invalidCode=false,providers=[],api=async()=>({kind:'caregiver'})}={}) {
+function setup({enabled=true,search='',invalidCode=false,providers=[],providerOnly=false,api=async()=>({kind:'caregiver'})}={}) {
  const nodes=new Map(),events=[],calls=[];
  const node=id=>{if(!nodes.has(id))nodes.set(id,{value:'',hidden:true,children:[],append(child){this.children.push(child);},listeners:{},attrs:{},setAttribute(key,value){this.attrs[key]=value;},focus(){},scrollIntoView(){},reportValidity:()=>true,addEventListener(type,fn){this.listeners[type]=fn;}});return nodes.get(id);};
  let onAuth;
@@ -11,7 +11,7 @@ function setup({enabled=true,search='',invalidCode=false,providers=[],api=async(
  auth.verifyPasswordResetCode=async()=>{if(invalidCode)throw Error();calls.push('verify-code');return 'test@example.invalid';};auth.confirmPasswordReset=async(code,password)=>calls.push(['confirm-reset',code,password]);
  const board={clear:()=>calls.push('clear'),open:async()=>calls.push('board')};
  auth.signInWithPopup=async provider=>calls.push(['provider',provider.providerId]);let nextNode=0;
- const context=vm.createContext({window:{WorkforceBoard:board,WorkforceReview:{flush:async()=>{}}},document:{createElement:()=>node('created-'+nextNode++),getElementById:node,dispatchEvent:e=>events.push(e.type)},CustomEvent:class{constructor(type,options){this.type=type;this.detail=options?.detail;}},location:{search,pathname:'/caregiver',href:'http://localhost/caregiver'+search,origin:'http://localhost'},history:{replaceState:()=>calls.push('history')},URL,URLSearchParams,firebase:{auth:{Auth:{Persistence:{SESSION:'session'}},GoogleAuthProvider:class{constructor(){this.providerId='google.com';}setCustomParameters(params){calls.push(['google-parameters',params.prompt]);}},OAuthProvider:class{constructor(id){this.providerId=id;}}}},fetch:async()=>({ok:true,json:async()=>({accountsEnabled:enabled,enabledSignInProviders:providers})}),setTimeout:()=>{}});
+ const context=vm.createContext({window:{WorkforceBoard:board,WorkforceReview:{flush:async()=>{}}},document:{createElement:()=>node('created-'+nextNode++),getElementById:node,dispatchEvent:e=>events.push(e.type)},CustomEvent:class{constructor(type,options){this.type=type;this.detail=options?.detail;}},location:{search,pathname:'/caregiver',href:'http://localhost/caregiver'+search,origin:'http://localhost'},history:{replaceState:()=>calls.push('history')},URL,URLSearchParams,firebase:{auth:{Auth:{Persistence:{SESSION:'session'}},GoogleAuthProvider:class{constructor(){this.providerId='google.com';}setCustomParameters(params){calls.push(['google-parameters',params.prompt]);}},OAuthProvider:class{constructor(id){this.providerId=id;}}}},fetch:async()=>({ok:true,json:async()=>({accountsEnabled:enabled,enabledSignInProviders:providers,providerOnly})}),setTimeout:()=>{}});
  vm.runInContext(source,context);
  return {node,auth,calls,events,start:()=>context.window.WorkforceAccount.start({createAuth:()=>auth,api}),session:user=>{auth.currentUser=user;return onAuth(user);},submit:()=>node('workforce-login').listeners.submit({preventDefault(){}})};
 }
@@ -58,4 +58,8 @@ test('configured providers use Firebase OAuth and stay hidden on reset screens',
 });
 test('provider-managed accounts receive sign-in help instead of a local password reset',async()=>{
  const s=setup();await s.start();await s.session({...verified,providerData:[{providerId:'google.com'}]});await s.node('dashboard-password').onclick();assert.equal(s.node('workforce-login').hidden,true);assert.match(s.node('account-description').textContent,/managed by Google/);assert.ok(!s.calls.includes('reset'));
+});
+
+test('real sign-in test keeps password forms and applications closed',async()=>{
+ const s=setup({providerOnly:true,providers:['google.com'],api:async()=>({applicationsEnabled:false})});await s.start();assert.equal(s.node('workforce-login').hidden,true);await s.session(verified);assert.equal(s.node('dashboard-application').hidden,true);await s.node('dashboard-application').onclick();assert.equal(s.node('caregiver-summary').hidden,true);
 });
