@@ -3,6 +3,7 @@ Updated: November 6, 2026, America/Chicago
 Scope: PTHHS /primetime, repository jnwokorie1957/pthhs.
 Latest engineering evidence: November6 UTC administrator card/filter correction is deployed and accepted over a dated stale source cache; see MAINTENANCE_CARD_FILTERS_2026-11-06.md and the 05:14UTC implementation below. Concurrent compact/reference and fresh patient/day acceptance in a7f8421 supersedes older pending desktop-control statements, within its dated limits. Billing-clock acceptance and O03/local office review remain intact. Agency lists are not visit-specific actions. Scoped staff, clinical/family authority, original-event links, HHA submissions and pilot gates remain open.
 Latest focused research: November6,2026,14:28UTC. Draft workforce PR11 advanced to2179a31: caregiver password accounts, verified private openings and account/position interest now replace its earlier caregiver email-link/public-opening proposal. Staff email-link and the separate HR/maintenance/clinical boundaries remain. R94 revision evidence and new R95/R96 inform proposed recovery, entry-flow and accessibility acceptance below. No draft merge, account, email or launch is accepted here. The earlier8ad80ef signed-in HHA comparison and617bc32 assigned-care integration research remain dated evidence. Maintenance-first remains the priority; earlier manual-snapshot priorities below are historical and do not authorize new scraped imports.
+Latest bounded draft implementation: November6 14:34UTC entry-copy/backlog correction e770d79, then3b2490c integrates current main2c02bf5 and removes draft merge conflicts. All595local frontend/tooling checks and both normal42237075110 quality jobs pass. PR11 remains draft/unmerged; this is not production or live multi-user acceptance. Dated implementation evidence follows.
 Broad role review: November 3, 2026, 09:42 UTC heartbeat. Rechecked the official Family Dashboard [R63] and Forms [R60] guidance against repository 9821769 and the cumulative role proposals below. Requests, source holds, encounter documentation and review remain distinct; no new tenant UI or source-read acceptance is claimed by that research pass. Latest bounded implementation: 9fb89f1 Advanced EVV source-context fences, accepted 19:55-19:57 UTC; acf7e6d exact read receipts accepted 19:15 UTC. Patient/PT role, document/action, source-time/E04, usable billing/B02 and availability dependencies remain open. Dated primary links and acceptance evidence follow; earlier next-task statements are historical checkpoints.
 
 EVIDENCE BASELINE — DATED OBSERVATIONS; LATER UPDATES BELOW
@@ -2898,3 +2899,47 @@ https://firebase.google.com/docs/auth/web/password-auth
 [R96] W3C WAI, Understanding SC3.3.8 Accessible Authentication (Minimum),
 retrieved November6,2026. Design/acceptance guidance, not a compliance finding.
 https://www.w3.org/WAI/WCAG22/Understanding/accessible-authentication-minimum.html
+
+NOVEMBER 6, 2026, 14:34 UTC - BOUNDED DRAFT ENTRY FIX AND INTEGRATION
+Implemented the verified closed-state copy/backlog portion of the14:28UTC
+research. Commit e770d791be36aeb32a4c29e3654565292480fe7d changes only the
+caregiver preparation notice and the owning workforce plan. The notice now
+directs applicants to the office without promising private-board access while
+accounts are closed. WF-007 names password/verification/recovery and the selected
+position return; staff email-link remains unchanged. HTML element/attribute
+structure, outside-notice text, phone link and noindex protections are identical.
+Page size decreases127raw/51gzip bytes; no asset allowance was increased.
+
+PR11 had merge conflicts that prevented automatic quality execution. The
+two-parent merge3b2490caedacc33d219b135d8ccc0676633fdb5e preserves the entry fix
+and incoming main2c02bf523d6d115a95f5d3356fbbcc98e5afc6b0, including current
+maintenance acceptance, research, article and marketing-capacity work. Regenerated
+the combined public sensitive-term register:868occurrences,0requiring review.
+Performance accounting retains the upstream marketing warning/limit after
+subtracting separately bounded operations/workforce/blank-form/viewer assets.
+Their independent limits remain enforced. No release gate or allowlist changed.
+
+Seventeen focused checks pass before integration; all595merged frontend/tooling/
+analytics checks pass afterward. Both generated asset checks, performance QA
+(141marketing pages,306image-dimension checks,0external runtimes) and repository
+audit pass. Normal PR quality42237075110 passes both Static site and repository
+and Primetime backend types jobs, including dependency install/audits, full site
+build, backend type-check and backend tests. Exact staged/published trees and
+expected-head nonforce updates preserve concurrent changes; the draft checkout
+is clean and PR merge conflicts are resolved. No main merge/deployment occurred.
+
+This closes only the draft copy/backlog correction and integration blockage.
+The five launch-acceptance groups remain proposed where actual device/provider,
+hosted email, current memberships and deployed multi-user behavior are unproved.
+Keep patient/family sharing, PT assignment/form/reviewer authority and office
+maintenance/report capabilities separate from applicant accounts and interest.
+No account, email, interest, private personnel record, source API, HHA write,
+new grant, clinical/financial decision or communication was used in this fix.
+No current-time recovery or production caregiver availability is claimed.
+Existing protected owner/vendor and launch decisions remain their next actions;
+no duplicate permission question or new activation is implied.
+
+Implementation and normal PR verification:
+https://github.com/jnwokorie1957/pthhs/commit/e770d791be36aeb32a4c29e3654565292480fe7d
+https://github.com/jnwokorie1957/pthhs/commit/3b2490caedacc33d219b135d8ccc0676633fdb5e
+https://github.com/jnwokorie1957/pthhs/actions/runs/42237075110
