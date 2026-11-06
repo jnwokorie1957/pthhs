@@ -86,8 +86,14 @@ date to November 5 and taught SEARCH-001: select All coordinators instead of
 DEFAULT for standard office searches. Explicit All selected and 1-20 of 637 UI
 results were checked. The permanent HHA saved default is not established.
 EVV_OWNER_TAUGHT_PROCEDURES.txt records the accepted instruction and limits.
+The owner next directed Member Search and clarified the current payer to
+Wellpoint - STAR Kids (RCG). Coordinator All and status Active return 25 matches;
+MEMBER-SEARCH-001 records that example scope, without making STAR Kids or Active
+a universal payer/status policy. The owner allowed any member for this example,
+and the first active STAR Kids profile is open with Calendar Details available.
 The first visit selection and first confirmation-review check remain pending;
-no confirmation or source change has been submitted.
+no confirmation or source change has been submitted. The visit example's
+requested date remains November 5.
 
 PRIMARY SOURCES CHECKED NOVEMBER 6, 2026
 HHA UI workflow includes linking EVV, editing visit times and reason/action/note:
