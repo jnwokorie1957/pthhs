@@ -1,5 +1,11 @@
 # PTHHS Management Layer — Developer Checklist
 
+- [x] Signed-in HHA catalog comparison: selected visit has 28 reasons and five
+  actions; generic schedule/billing IDs and agency visit-edit reference IDs differ
+  from the visit form despite matching labels. Exact UI visit/patient/office/date
+  proof succeeds, but its approved visit-reason API returns zero. No safe ID
+  mapping or confirmation rollout is accepted. [Evidence and source dependency](HHA_VISIT_REASON_CATALOG_COMPARISON_2026-11-05.md).
+
 - [x] November6 maintenance card/filter correction: Open office reviews excludes
   completed reviews; both case cards count only reviews with loaded source visits.
   Card shortcuts clear text and reset visual paging. Two fail-before regressions,

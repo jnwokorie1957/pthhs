@@ -2,8 +2,14 @@
 
 ## Administrator visit-maintenance workspace
 
+Signed-in HHA comparison now identifies the source gap: the selected visit has
+28 reasons and five actions, but their IDs differ from the generic reference
+lists. Its exact UI visit passes API identity checks and still returns zero
+visit-specific reasons. [Evidence and narrowed HHA questions](docs/management-layer/HHA_VISIT_REASON_CATALOG_COMPARISON_2026-11-05.md)
+keep source confirmation open; the previous login dependency is resolved.
+
 The compact November 5 update shows one selected person-search form and folds
-34 optional workflow sections. Three live HHA reference catalogs return 28 edit
+34 optional workflow sections. Three live HHA reference catalogs return 28 schedule/billing edit
 reasons, 22 missed reasons and 17 missed actions. They remain separate from the
 empty tested visit-specific catalog and cannot authorize confirmation. Existing
 administrator read preferences now total 21; source writes remain gated.

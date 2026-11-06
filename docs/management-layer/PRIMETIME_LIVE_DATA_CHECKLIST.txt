@@ -43,9 +43,19 @@ approved limited automation, then build the owned scheduling platform.
     no patient-record or source-write permission added in this activation.
     Three further office-checked current-day visit-specific reads also return 0.
     Reference IDs are not established as eligible visit confirmation codes.
-    M02a/HHA submission stay open. Source contract and original HHA UI comparison
-    are still needed; retained HHA tab is at Log In. See
-    COMPACT_WORKSPACE_AND_REASON_CATALOGS_2026-11-05.md.
+    M02a/HHA submission stay open. The source contract remains required. The
+    November 5 signed-in comparison below supersedes the earlier login blocker.
+    See COMPACT_WORKSPACE_AND_REASON_CATALOGS_2026-11-05.md for the earlier pass.
+[x] M02c Signed-in HHA source comparison: exact October 24 visit shows 28 reasons
+    and five actions; the generic schedule/bill API IDs match its separate agency
+    table, not the visit form. Agency visit-edit reason/action IDs also differ
+    from the visit's IDs. Matching labels are insufficient for source submission.
+    GetVisitEditReasonActionTaken still returns zero for the exact UI visit after
+    patient/office/date identity proof. HHA_VISIT_REASON_CATALOG_COMPARISON_2026-11-05.md.
+[ ] M02d Supported exact-visit reason/action lookup and submit/readback contract.
+    Ask HHA to explain the successful-empty API response and supply the correct
+    applicable IDs/note rules and supported action interface. Technical packet
+    prepared but unsent. Do not hardcode UI IDs or substitute other catalogs.
 [x] M01a Administrator review workspace implemented: full office/day source queue,
     durable source-bound cases, genuine scoped call evidence and proposals.
 [x] M01c November6 card/filter correction accepted: Open office reviews excludes

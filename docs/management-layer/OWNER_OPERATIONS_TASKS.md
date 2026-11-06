@@ -14,6 +14,15 @@
 
 ## Start here
 
+- [x] Original HHA visit form and agency reference tables inspected after owner
+  sign-in. The selected visit exposes 28 reasons/five actions, using different
+  IDs from the similarly named generic API references. [Comparison evidence](HHA_VISIT_REASON_CATALOG_COMPARISON_2026-11-05.md).
+- [ ] Obtain HHA's supported visit-specific reason/action lookup and confirmation
+  contract. The exact same UI visit passes API identity checks but returns no
+  eligible choices. The [prepared technical questions](evv-maintenance-resources/HHA_SUPPORT_QUESTIONS.txt)
+  include the receipt/correlation and remain unsent. Sign-in is resolved for the
+  current session; no source confirmation has been enabled.
+
 - [x] An older cached visit can open a fresh HHA patient/day queue for office review.
   Production source reading and a neutral local-note save are verified, retaining
   existing case status/queue and audit history. Source confirmation is still gated.
