@@ -3,6 +3,7 @@ import path from 'node:path';
 import sharp from 'sharp';
 import { gzipSync } from 'node:zlib';
 import { isInternalAppFile, marketingHtmlFiles } from './site-scope.mjs';
+import { assessMarketingBudget } from './marketing-budget.mjs';
 
 const root = process.cwd();
 const publicDir = path.join(root, 'public');
@@ -208,7 +209,9 @@ if (workforceBytes > 148_000 || workforceGzip > 46_000) errors.push(`workforce o
 const publicBytes = (await Promise.all(publicFiles.map((file) => fs.stat(file)))).reduce((sum, stat) => sum + stat.size, 0);
 const internalFiles = publicFiles.filter(file => isInternalAppFile(file, publicDir) && !isWorkforceFile(file));
 const internalBytes = (await Promise.all(internalFiles.map(file => fs.stat(file)))).reduce((sum, stat) => sum + stat.size, 0);
-if (publicBytes - internalBytes - workforceBytes - officialFormBytes - viewerBytes > 2_000_000) errors.push(`marketing output exceeds 2 MB foundation budget: ${publicBytes - internalBytes - workforceBytes - officialFormBytes - viewerBytes}`);
+const marketingBudget = assessMarketingBudget(publicBytes - internalBytes - workforceBytes - officialFormBytes - viewerBytes);
+if (marketingBudget.error) errors.push(marketingBudget.error);
+if (marketingBudget.warning) console.warn('PERFORMANCE_FOUNDATION_QA: WARNING -', marketingBudget.warning);
 // The authenticated app now includes source review, Demo/Live and durable
 // follow-up UI, private forms and connected settings/audit views.
 // Keep a bounded raw budget plus compressed-transfer and per-file

@@ -120,24 +120,24 @@
     message(`${day.items.length.toLocaleString()} source visits loaded. ${cases.size} saved office cases loaded${cursor ? '; more cases are available' : ''}. Select a visit to review.`);
   }
   const gaps = row => row.state !== 'unavailable' && (!row.evvStart || !row.evvEnd);
+  const openCase = item => !!item && item.status !== 'office_review_complete';
   function render() {
     if (!day) return;
     const cache = searchMode ? { known: true, complete: searchMode.complete, stale: false, checkedAt: searchMode.checkedAt, startedAt: searchMode.fetchedAt, completedAt: searchMode.complete ? searchMode.checkedAt : null } : day.officeDayCache;
     $('maintenanceReceipt').textContent = searchMode ? `Office ${day.scope.officeId} · ${searchMode.from} through ${searchMode.to} · Direct HHA API search. ${searchMode.checkedThrough} of ${searchMode.totalIds} returned IDs checked; ${day.items.length} matching readable visits loaded. ${searchMode.complete ? 'Source pages checked.' : 'More source reads remain.'} ${searchMode.truncated ? 'HHA discovery was truncated; narrow the search.' : ''} ${searchMode.unknownPayers ? `${searchMode.unknownPayers} visits had no bill-to contract evidence.` : ''} Source fetched ${searchMode.fetchedAt}.` : `Office ${day.scope.officeId} · ${day.scope.date} · Background HHA API feed, checked ${new Date(cache.checkedAt).toLocaleString()}. `
       + `${cache.complete ? 'All returned visit IDs collected.' : 'Collection is partial; counts reflect loaded records.'} ${cache.stale ? 'Feed is stale; saves are blocked.' : ''} `
       + `Source generation started ${cache.startedAt || 'not yet'}; completed ${cache.completedAt || 'pending'}. Times retain source values. Saved office cases are separate from HHA.`;
-    const saved = [...cases.values()];
     $('maintenanceMetrics').replaceChildren(...[
       [day.items.length, 'Source visits loaded'], [day.items.filter(gaps).length, 'Missing EVV fields · not a diagnosis'],
-      [saved.filter(row => row.status !== 'office_review_complete').length, 'Open office cases loaded'],
-      [saved.filter(row => row.status === 'awaiting_hha_action').length, 'Awaiting HHA action · loaded cases']
-    ].map(([number, label], index) => { const box = el('button', '', 'maintenance-metric'); box.type = 'button';box.setAttribute('aria-pressed',String($('maintenanceFilter').value===['all','gaps','cases','awaiting_hha_action'][index])); box.append(el('strong', Number(number).toLocaleString()), el('span', label)); box.addEventListener('click', () => { $('maintenanceFilter').value = ['all','gaps','cases','awaiting_hha_action'][index]; report = false; showTab(); render(); $('maintenanceList').scrollIntoView?.({block:'start'}); }); return box; }));
+      [day.items.filter(row => openCase(cases.get(row.id))).length, 'Open office reviews · loaded visits'],
+      [day.items.filter(row => cases.get(row.id)?.status === 'awaiting_hha_action').length, 'Awaiting HHA action · loaded visits']
+    ].map(([number, label], index) => { const box = el('button', '', 'maintenance-metric'); box.type = 'button';box.setAttribute('aria-pressed',String($('maintenanceFilter').value===['all','gaps','open_cases','awaiting_hha_action'][index])); box.append(el('strong', Number(number).toLocaleString()), el('span', label)); box.addEventListener('click', () => { $('maintenanceFilter').value = ['all','gaps','open_cases','awaiting_hha_action'][index]; $('maintenanceSearch').value = ''; limit = 40; report = false; showTab(); render(); $('maintenanceList').scrollIntoView?.({block:'start'}); }); return box; }));
     const search = $('maintenanceSearch').value.trim().toLowerCase(), filter = $('maintenanceFilter').value;
     const filterSummary=$('maintenanceLoadedFilters')?.querySelector?.('summary');if(filterSummary)filterSummary.textContent='Filter loaded visits'+(filter==='all'&&!search?'':' · active');
     const rows = day.items.filter(row => {
       const item = cases.get(row.id);
       return (!search || [row.id, row.patientId, row.caregiverId].some(value => value?.toLowerCase().includes(search)))
-        && (filter === 'all' || filter === 'gaps' && gaps(row) || filter === 'cases' && item || item?.status === filter);
+        && (filter === 'all' || filter === 'gaps' && gaps(row) || filter === 'cases' && item || filter === 'open_cases' && openCase(item) || item?.status === filter);
     });
     $('maintenanceList').replaceChildren(el('p', `${rows.length.toLocaleString()} matching visits · showing ${Math.min(limit, rows.length)}`, 'maintenance-help'));
     for (const row of rows.slice(0, limit)) {

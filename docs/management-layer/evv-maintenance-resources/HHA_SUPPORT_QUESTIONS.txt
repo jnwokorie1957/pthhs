@@ -33,6 +33,33 @@ caregiver's genuine calls, preserve their originals and avoid duplicate events.
 Include mandatory fields, omission/clearing behavior and source result identity.
 
 4. Reason/action catalog
+Signed-in follow-up, November 5 local / November 6 UTC: the exact October 24
+visit shows 28 Visit Edit Reason options and five Action Taken choices. All 28
+labels match GetScheduleBillInfoEditReasons, but zero IDs match. That generic
+API matches the separate Schedule/Bill Info Edit Reason reference table (31 total,
+28 active). The agency Visit Edit Reason table has 79 records; all 28 labels are
+on its first 50-record page, also using different IDs from the selected visit.
+The agency Visit Edit Action Taken table has seven active entries; five labels
+match the visit's choices but their IDs differ. No UI selection was saved.
+
+For that exact UI visit, GetVisitInfoV3 and GetPatientDemographics verify visit,
+patient, office and service date; GetVisitEditReasonActionTaken returns HTTP200 /
+Success with zero reasons and no truncation at 2026-11-06T05:36:07.058Z.
+Correlation: ff6771bd-87db-4f8b-8905-6a02f37e7c3e. Supply affected record IDs privately.
+Which supported tenant endpoint returns the active choices and correct ID
+namespace for this visit? Is payer/program scoping or API entitlement involved?
+Explain the empty result and whether this method returns eligible or applied
+evidence. Provide note requirements/minimum length and exact confirmation field
+semantics. Matching descriptions across reference tables cannot establish IDs.
+
+November 5 investigation: a raw successful historical response contains an empty
+VisitEditReasonActionTaken container; three further office-checked current-day
+visits also return zero typed reasons. Agency reference reads succeed with 28
+schedule/bill edit reasons, 22 missed reasons and 17 missed actions. The exact private
+office/visit/program identifiers should be supplied through an approved channel.
+Does the visit-specific interface return eligible choices or previously applied
+evidence? Which of these catalog IDs, if any, maps to confirmation ReasonCode and
+ActionCode? Explain this tenant/program's empty result and the required setup.
 Provide the applicable visit-edit reason codes, action-taken values, required
 notes and effective office/program/contract scope. Clarify the supported request
 for GetVisitEditReasonActionTaken and whether GetScheduleBillInfoEditReasons is

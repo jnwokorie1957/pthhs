@@ -17,6 +17,11 @@ approved limited automation, then build the owned scheduling platform.
 [ ] M04 Protected assigned reports: action/evidence/rule and unresolved next step.
 [ ] M05 Owner-selected approximately 25-client shadow pilot and measured results.
 [ ] M06 Reviewed submissions, then approved-rule automation using actual calls.
+[x] M01d Cached-visit shortcut reads fresh protected patient/day evidence; production
+    returned 1/1 source IDs, opened the row and saved a neutral private review note
+    with audit history, preserving existing case status/queue. Source writes remain
+    disabled. An active loaded-case filter hiding fresh results was found and fixed.
+    See COMPACT_WORKSPACE_AND_REASON_CATALOGS_2026-11-05.md for release evidence.
 [x] M01b Range/person/payer search and actionable rows deployed and verified.
     Fourteen of fourteen matching
     returned IDs checked for October23-November5; zero unavailable. Both profile
@@ -29,8 +34,41 @@ approved limited automation, then build the owned scheduling platform.
     nonempty catalog/code staging and HHA confirmation/link/readback contract
     remain open. No source submission was made.
     See MAINTENANCE_RANGE_SEARCH_2026-11-05.md. No confirmation is simulated.
+[x] M01c Compact search and dashboard: one all/patient/caregiver search choice,
+    optional payer/loaded-filter/reference controls, selected-visit call/review
+    sections and 34 folded optional tools. Desktop/narrow/no-overflow and correct
+    shared-reader redocking accepted in production.
+[x] M02b Agency reference catalogs: live 28 schedule/bill edit reasons,
+    22 missed reasons and 17 missed actions. Existing admin read settings: 21;
+    no patient-record or source-write permission added in this activation.
+    Three further office-checked current-day visit-specific reads also return 0.
+    Reference IDs are not established as eligible visit confirmation codes.
+    M02a/HHA submission stay open. The source contract remains required. The
+    November 5 signed-in comparison below supersedes the earlier login blocker.
+    See COMPACT_WORKSPACE_AND_REASON_CATALOGS_2026-11-05.md for the earlier pass.
+[x] M02c Signed-in HHA source comparison: exact October 24 visit shows 28 reasons
+    and five actions; the generic schedule/bill API IDs match its separate agency
+    table, not the visit form. Agency visit-edit reason/action IDs also differ
+    from the visit's IDs. Matching labels are insufficient for source submission.
+    GetVisitEditReasonActionTaken still returns zero for the exact UI visit after
+    patient/office/date identity proof. HHA_VISIT_REASON_CATALOG_COMPARISON_2026-11-05.md.
+[ ] M02d Supported exact-visit reason/action lookup and submit/readback contract.
+    Ask HHA to explain the successful-empty API response and supply the correct
+    applicable IDs/note rules and supported action interface. Technical packet
+    prepared but unsent. Do not hardcode UI IDs or substitute other catalogs.
 [x] M01a Administrator review workspace implemented: full office/day source queue,
     durable source-bound cases, genuine scoped call evidence and proposals.
+[x] M01c November6 card/filter correction accepted: Open office reviews excludes
+    completed reviews; case-card counts join to loaded source visits. Shortcuts
+    clear text/reset paging. Runtime7b04ff0,normal42167961782 all4jobs pass;
+    2fail-before regressions/563frontend-tooling/25site checks,17exact private
+    assets and11anonymous401JSON/no-store/noindex boundaries pass. Production
+    service-dayNovember5:639loaded/407EVV-gap matches,1completed saved review,
+    0open/awaiting subsets; default40rows/next80/reset40 verified. Cache remains
+    explicitly stale with03:12:13.393Z-04:48:19.682Z November6 generation receipts;
+    no new scan, recovered clock/hour, save or HHA confirmation claimed. Positive
+    open/awaiting and off-list cases remain synthetic; M03/M02 stay open. See
+    MAINTENANCE_CARD_FILTERS_2026-11-06.md for bounded acceptance and cleanup.
 [x] M04a Local office reports implemented: queue/follow-up/explanation, selected
     actual calls, provenance and explicit loaded-page coverage; no HHA completion
     claim. Production save, empty scoped call receipt, report download and reload

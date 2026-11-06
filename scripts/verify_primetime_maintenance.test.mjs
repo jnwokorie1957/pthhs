@@ -126,3 +126,30 @@ test('selected visit details stay compact and preserve the opened review after a
  const f=fixture();const host=f.ids.get('maintenanceDetail'),query=host.querySelectorAll.bind(host);host.querySelectorAll=selector=>{const nodes=query(selector);return selector==='details'?{[Symbol.iterator]:()=>nodes.values()}:nodes;};f.ready();await tick();f.ids.get('maintenanceList').querySelectorAll('button')[0].click();await tick();
  let sections=[...host.querySelectorAll('details')];assert.equal(sections.filter(n=>n.open).length,0);sections.find(n=>n.dataset.section==='review').open=true;host.querySelectorAll('button').find(n=>n.textContent==='Load HHA reason / action codes').click();await tick();sections=[...host.querySelectorAll('details')];assert.equal(sections.find(n=>n.dataset.section==='review').open,true);assert.equal(sections.find(n=>n.dataset.section==='calls').open,false);
 });
+
+test('open-review metric counts only unresolved cases with loaded visits and opens that exact subset',async()=>{
+ const rows=['15','16','17','18','19'].map(id=>({...row,id}));
+ const review=(visitId,status)=>({visitId,officeId:'123',date,revision:1,status,queue:'administrator',hhaSubmission:'not_submitted',events:[],source:{...row,id:visitId}});
+ const cases=[review('15','in_review'),review('16','needs_attention'),review('17','awaiting_hha_action'),review('18','office_review_complete'),review('99','needs_attention'),review('98','awaiting_hha_action')];
+ const f=fixture({rows});f.handler(async path=>path.includes('/views/office-day')?{...day,items:rows}:{ok:true,scope:day.scope,items:cases,nextCursor:null,hhaWritesEnabled:false});
+ f.ready();await tick();const requests=f.calls.length,metric=f.ids.get('maintenanceMetrics').children[2];
+ assert.equal(metric.children[0].textContent,'3');metric.click();
+ assert.equal(f.ids.get('maintenanceFilter').value,'open_cases');
+ assert.equal(f.ids.get('maintenanceList').querySelectorAll('button').length,3);
+ assert.doesNotMatch(f.text(f.ids.get('maintenanceList')),/Office review complete|Visit 18|Visit 99/);
+ assert.equal(f.ids.get('maintenanceMetrics').children[2].attributes['aria-pressed'],'true');
+ f.ids.get('maintenanceFilter').value='cases';f.event('maintenanceFilter','change');
+ assert.equal(f.ids.get('maintenanceList').querySelectorAll('button').length,4);
+ assert.match(f.text(f.ids.get('maintenanceList')),/Office review complete/);
+ const awaiting=f.ids.get('maintenanceMetrics').children[3];assert.equal(awaiting.children[0].textContent,'1');awaiting.click();
+ assert.equal(f.ids.get('maintenanceList').querySelectorAll('button').length,1);assert.match(f.text(f.ids.get('maintenanceList')),/Visit 17/);assert.equal(f.calls.length,requests);
+});
+
+test('metric shortcuts clear unrelated text filters and an empty open-review queue stays empty without reads',async()=>{
+ const f=fixture({rows:Array.from({length:45},(_,i)=>({...row,id:String(i+1)}))});f.ready();await tick();const requests=f.calls.length;
+ f.event('maintenanceMoreVisits');f.ids.get('maintenanceSearch').value='45';f.event('maintenanceSearch','input');
+ f.ids.get('maintenanceMetrics').children[0].click();
+ assert.equal(f.ids.get('maintenanceSearch').value,'');assert.match(f.text(f.ids.get('maintenanceList')),/45 matching visits.*showing 40/);
+ f.ids.get('maintenanceMetrics').children[2].click();assert.equal(f.ids.get('maintenanceList').querySelectorAll('button').length,0);
+ assert.equal(f.ids.get('maintenanceMetrics').children[2].children[0].textContent,'0');assert.equal(f.calls.length,requests);
+});

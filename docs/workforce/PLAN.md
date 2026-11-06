@@ -1,6 +1,6 @@
 # PTHHS caregiver workforce plan
 
-Authoritative architecture, implementation backlog and acceptance record. Version 9, November 6, 2026. Initial audit baseline: `93707e3` on `main`; current handoff integrates `main` through `86b6902`, preserving concurrent visit-maintenance controls, range/search/reason-staging tools, SEO records and production acceptance documentation. This file owns workforce delivery status; existing management and release documentation continues to own its established workflows.
+Authoritative architecture, implementation backlog and acceptance record. Version 9, November 6, 2026. Initial audit baseline: `93707e3` on `main`; current handoff integrates `main` through `2c02bf5`, preserving concurrent visit-maintenance controls, range/search/reason-staging tools, SEO records and production acceptance documentation. This file owns workforce delivery status; existing management and release documentation continues to own its established workflows.
 
 ## Scope and release state
 
@@ -15,6 +15,8 @@ Account creation, email verification, password sign-in and email recovery now us
 Validation: 843 backend and 588 site/tooling/analytics tests pass (1,431 total). Synthetic browser checks covered creation, verification, recovery and the board/application path. No real emails or accounts were created. The bounded workforce asset allowance is now 148 KB raw / 46 KB gzip; marketing and operations budgets are unchanged. Existing production release gates remain closed.
 
 Closed-entry copy follow-up, November 6: the preparation notice directs applicants to the office without promising access to private openings while accounts are closed. WF-007 now describes the caregiver password/verification/recovery flow; the staff email-link flow is unchanged. Seventeen focused account, route/security and asset-hash checks pass for this bounded follow-up; asset references are current. No provider, release gate, account, email, interest or production acceptance changed.
+
+Upstream integration follow-up: the existing draft had merge conflicts in its generated sensitive-term register and performance accounting. Regenerating the register preserves the combined public content. Marketing uses the upstream 5 MB allowance/warning function after subtracting the separately bounded operations, workforce, blank-form and viewer assets; their own limits remain intact. All 595 merged frontend/tooling/analytics checks, current generated assets, performance QA and the repository audit pass locally. These checks do not establish production launch or live multi-user acceptance.
 
 ## Identity capture, form controls and application details (owner revision)
 

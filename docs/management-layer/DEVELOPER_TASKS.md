@@ -1,5 +1,49 @@
 # PTHHS Management Layer — Developer Checklist
 
+- [ ] November6 14:28UTC caregiver entry follow-up: draft PR11 at2179a31 adds
+  password/verification/recovery and verified private openings; staff email-link
+  remains separate. Reconcile older caregiver email-link backlog and closed-state
+  browse copy with plan version9. Proposed launch checks cover direct API scope,
+  stale/closed position return, duplicate interest, hosted email paths and actual
+  accessible authentication. See [R94-R96 research](ROLE_WORKFLOW_RESEARCH.txt).
+  No provider configuration, account/message, draft merge or launch was performed.
+
+- [ ] November6 workforce/M03 integration: account for draft PR11 at6c5d12b
+  before creating another staff identity shell. Reuse reviewed identity patterns;
+  preserve independent current HR, maintenance and clinical memberships/actions.
+  The workforce supervisor role, case queue and revisions role cannot alias
+  access. Six proposed cross-domain/revocation/record-link acceptance cases,
+  patient/PT/office connections and pinned evidence are in
+  [cumulative role research](ROLE_WORKFLOW_RESEARCH.txt). PR11 remains draft;
+  no merge, role activation, clinical/source grant or production acceptance here.
+
+- [x] Signed-in HHA catalog comparison: selected visit has 28 reasons and five
+  actions; generic schedule/billing IDs and agency visit-edit reference IDs differ
+  from the visit form despite matching labels. Exact UI visit/patient/office/date
+  proof succeeds, but its approved visit-reason API returns zero. No safe ID
+  mapping or confirmation rollout is accepted. [Evidence and source dependency](HHA_VISIT_REASON_CATALOG_COMPARISON_2026-11-05.md).
+
+- [x] November6 maintenance card/filter correction: Open office reviews excludes
+  completed reviews; both case cards count only reviews with loaded source visits.
+  Card shortcuts clear text and reset visual paging. Two fail-before regressions,
+  all563frontend/tooling checks,25site checks and all4normal release jobs pass.
+  Production verifies one completed saved review excluded from the zero-open
+  subset, all639/407card matches, text clearing and paging reset over an explicitly
+  stale dated cache. No source read/save or role activation was introduced. See
+  [scope, acceptance and limits](MAINTENANCE_CARD_FILTERS_2026-11-06.md).
+
+- [x] Cached maintenance visits have a fresh patient/day source-read action using
+  protected search receipts. Production reads 1/1 returned IDs and saves a neutral
+  local-review note with audit history; stale cache guards and HHA write gates stay
+  enforced. Hidden loaded filters are cleared by the bounded follow-up. See
+  [fresh-review and layout acceptance](COMPACT_WORKSPACE_AND_REASON_CATALOGS_2026-11-05.md).
+
+- [x] Compact Maintenance search (all/patient/caregiver), folded secondary controls,
+  selected-visit sections and 34 dashboard/tool sections are deployed and tested.
+  Shared-reader redocking preserves the folded body. Live agency reason catalogs
+  return 28/22/17 records. [Production evidence and remaining confirmation gaps](COMPACT_WORKSPACE_AND_REASON_CATALOGS_2026-11-05.md).
+  Four tested visit-specific reads remain empty; source confirmation is not accepted.
+
 - [ ] November6 00:31UTC role/source acceptance: prove applicable visit/payer
   reason and note rules before HHA action rollout. Retain the implemented
   separation of agency references and visit-specific choices. Proposed cases cover ID
