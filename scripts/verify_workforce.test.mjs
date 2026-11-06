@@ -39,6 +39,12 @@ test('existing Careers URL, homeowner sign-in entry and staff entry remain reach
   assert.match(read('source/primetime/index.html'),/href="\/primetime\/workforce"/);
   assert.match(read('public/primetime/workforce.html'),/id="staff-editor"/);
 });
+
+test('caregiver account screens use a dedicated portal without marketing navigation',()=>{
+ const page=read('public/caregiver.html');assert.match(page,/class="portal-header"/);assert.match(page,/Caregiver portal/);
+ assert.doesNotMatch(page,/class="site-nav"|class="site-header"|class="account-story"|assets\/site-enhancements|href="\/home-care-services"/);
+ assert.match(page,/id="account-back"/);assert.match(page,/id="account-tabs"/);
+});
 test('client database and document access stay denied; application/document collection has closed release gates', () => {
   for(const path of ['firestore.rules','storage.rules']) assert.match(read(path),/allow read, write: if false/);
   const backend = read('functions/src/workforce/http.ts');

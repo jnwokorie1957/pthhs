@@ -1,12 +1,20 @@
 # PTHHS caregiver workforce plan
 
-Authoritative architecture, implementation backlog and acceptance record. Version 9, November 6, 2026. Initial audit baseline: `93707e3` on `main`; current handoff integrates `main` through `86b6902`, preserving concurrent visit-maintenance controls, range/search/reason-staging tools, SEO records and production acceptance documentation. This file owns workforce delivery status; existing management and release documentation continues to own its established workflows.
+Authoritative architecture, implementation backlog and acceptance record. Version 10, November 6, 2026. Initial audit baseline: `93707e3` on `main`; current handoff integrates `main` through `86b6902`, preserving concurrent visit-maintenance controls, range/search/reason-staging tools, SEO records and production acceptance documentation. This file owns workforce delivery status; existing management and release documentation continues to own its established workflows.
 
 ## Scope and release state
 
 This change begins Phases 1–2 in the existing PTHHS repository. It is a review branch, not a production launch. No real staff accounts, role grants, patient openings, applicant records, SMS messages, employment decisions or vendor writes were created. Synthetic records exist only in tests. No production patient data was queried.
 
 **Implemented** means code exists. **Tested** identifies synthetic automated verification. **Pending** identifies work still to implement. **Blocked** identifies a specific external input or acceptance requirement. Neither a passing test nor a deployment establishes regulatory compliance.
+
+## Dedicated portal and account support
+
+The caregiver portal now has its own header without marketing navigation and focused account creation, sign-in, verification, reset and new-password views. Reset screens hide openings, the application, provider buttons and the office-help line. Provider sign-in code supports Google, Apple, Microsoft and Yahoo, with live buttons hidden until explicitly configured. Existing providers are not configured yet; local preview buttons remain synthetic.
+
+Operations links to Caregiver portal management. Its account-support area finds a caregiver, shows account and application status, and requests a Firebase reset email. An explicit accounts.support permission, HR/owner role and assigned office are rechecked server-side. Staff/non-portal accounts are excluded. Reset requests are audited and rate-limited, without exposing passwords, reset links or tokens. Email sending uses Firebase's browser SDK after the server authorizes the request. No live email, provider configuration, account grant or production collection gate changed. Configure the custom Firebase email action URL only after deploying the portal page; see ACCOUNT_ACCESS.md.
+
+Validation: 849 backend and 597 site/tooling/analytics tests pass (1,446 total). TypeScript, release checks and synthetic browser checks passed. The workforce asset allowance is now 156 KB raw / 48 KB gzip for isolated auth actions and account support; marketing and operations budgets remain unchanged.
 
 ## Caregiver accounts and private opportunities
 

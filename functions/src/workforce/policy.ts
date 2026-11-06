@@ -1,7 +1,7 @@
 // Workforce roles never imply access to the legacy clinical/admin API.
 export const roles = ["owner", "hr", "office", "supervisor"] as const;
 export type Role = typeof roles[number];
-export const permissions = ["opportunities.read", "opportunities.edit", "opportunities.review", "opportunities.publish", "staff.manage", "applications.review", "documents.review"] as const;
+export const permissions = ["opportunities.read", "opportunities.edit", "opportunities.review", "opportunities.publish", "staff.manage", "applications.review", "documents.review", "accounts.support"] as const;
 export type Permission = typeof permissions[number];
 export interface Grant { active: boolean; role: Role; offices: string[]; permissions: Permission[] }
 export interface Actor { uid: string; grant: Grant }
@@ -12,7 +12,7 @@ export function requirePermission(actor: Actor, permission: Permission, office?:
   const g = actor.grant;
   // Role labels are descriptive. Every authority, even for owners, is explicit.
   if (!g.active || !g.permissions.includes(permission) || (permission === "staff.manage" && g.role !== "owner")
-    || (["applications.review", "documents.review"].includes(permission) && !["owner", "hr"].includes(g.role))
+    || (["applications.review", "documents.review", "accounts.support"].includes(permission) && !["owner", "hr"].includes(g.role))
     || (office !== undefined && !g.offices.includes(office))) throw new WorkforceError(403, "workforce_forbidden");
 }
 export function validId(value: unknown): value is string {
@@ -24,6 +24,6 @@ export function parseGrant(input: unknown): Grant {
     || typeof g.active !== "boolean" || !roles.includes(g.role) || !Array.isArray(g.offices) || !g.offices.length || g.offices.length > 50
     || !g.offices.every(validId) || !Array.isArray(g.permissions) || !g.permissions.every(p => permissions.includes(p))
     || (g.role !== "owner" && g.permissions.includes("staff.manage"))
-    || (!["owner", "hr"].includes(g.role) && g.permissions.some(p => ["applications.review", "documents.review"].includes(p)))) throw new WorkforceError(400, "invalid_staff_grant");
+    || (!["owner", "hr"].includes(g.role) && g.permissions.some(p => ["applications.review", "documents.review", "accounts.support"].includes(p)))) throw new WorkforceError(400, "invalid_staff_grant");
   return { active: g.active, role: g.role, offices: [...new Set(g.offices)], permissions: [...new Set(g.permissions)] };
 }
