@@ -1,5 +1,14 @@
 # PTHHS Management Layer — Developer Checklist
 
+- [x] November6 18:54UTC bounded live-source comparison: protected attachment
+  restored; October23/24 first10details readable; November6 first page4readable/
+  6read-limit-deferred. An independent exact October24 V3 read matches identity,
+  office, six clocks and source-empty EVV end/both actual-hour fields. Completed
+  dated cache641records: all six chart labels/progress values agree with timeline
+  field counts; EVV table independently agrees. No missing time recovered, status
+  accepted or runtime change. [Freshness, scope and next source action](PRIMETIME_LIVE_DATA_CHECKLIST.txt).
+  P03/E04/original-event/units/readback remain open; original screenshot resolved.
+
 - [x] Owner-authorized HHA support email sent November 6 from the verified
   jnwokorie@pthhs.net Outlook account to EINTSupport@hhaexchange.com; exact
   subject/sender/recipient verified in Sent Items. No private records or

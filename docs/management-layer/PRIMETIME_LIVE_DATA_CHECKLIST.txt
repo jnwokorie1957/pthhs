@@ -5,6 +5,60 @@ area, map the actual source, connect available authorized data and verify it.
 This is the connection backlog, not a declaration of an active Codex goal.
 This document does not claim every tab is connected.
 
+NOVEMBER6 18:54UTC - SOURCE ACCESS RESTORED; CURRENT/HISTORICAL COMPARISON
+Protected Chrome Primetime attachment now succeeds without another sign-in,
+reload, permission/settings change or HHA teaching-session interaction. Live mode
+and the approved existing source controls were observed; feed display was held
+for bounded comparisons and restored to officeToday/Overview/Live/running.
+
+Fresh first-page receipts, not complete historical lists or completed-status
+acceptance. Counts below are schedule/recorded/EVV start-end presence, respectively:
+  November6 18:57:32.603Z:10IDs,4readable/6read-limit-deferred;
+    clocks4/4/3/0/3/0;0supplied/4explicit-empty/0unknown actual-hour pairs
+    among the readable rows. The six deferred details are unavailable, not empty.
+  October23 18:58:33.842Z:10readable/0unavailable;
+    clocks10/10/10/10/10/8;8supplied/2explicit-empty/0unknown actual-hour pairs.
+  October24 18:59:04.325Z:10readable/0unavailable;
+    clocks10/10/10/10/10/7;7supplied/3explicit-empty/0unknown actual-hour pairs.
+All receipt times above are November6,2026 UTC; service dates are the listed days.
+No deferred-detail retry or exhaustive historical pagination was performed.
+
+One October24 affected row with recorded end but empty EVV end/hours was then
+independently re-read through approved GetVisitInfoV3 at19:00:41.709Z. The29-field
+result is readable; ID,Patient/ID,Caregiver/ID,VisitDate and configured office
+link agree with the selected source preview. All six displayed clock values
+match; EVVEndTime,ActualHours,ActualHoursRounded are explicitly empty. This is
+source-empty evidence, not a projection failure or recovered original punch.
+OriginalVisitID equals the same visit; no positive SplitVisitID alternate target.
+Existing GetVisitInfoV3Result/VisitInfo direct scalar paths remain authoritative:
+ScheduleStartTime,ScheduleEndTime,VisitStartTime,VisitEndTime,EVVStartTime,
+EVVEndTime,ActualHours,ActualHoursRounded. No unit, rounding, status or replacement
+rule was adopted.
+
+The November6 completed protected cache separately contains641/641returned IDs,
+0unavailable; source-search range17:14:14.798Z-18:52:13.148Z, cache checked
+19:03:57.814Z. A new62-of641refresh is still in progress with a displayed retry
+receipt; the charts retain the preceding completed result. This is a dated,
+sequential API cache, not an atomic live snapshot or proven office census.
+Independently counted displayed timeline fields641/641/265/39/265/39 agree with
+all six chart labels AND numeric progress value/max attributes (denominator641).
+The641EVV table rows independently agree at265starts/39ends. This cached coverage
+does not turn the separate on-demand page's six deferred reads into empty fields.
+
+Exact read selection/results and transient private buffers were cleared; original
+user tab is left open. No subject IDs/clock/hour values/raw responses saved to
+Git, assets, logs or research. No HHA UI/write/import/new grant, operational
+decision, communication or missing-time recovery. OriginalOctober24screenshot
+remains resolved; P03/E04 remainOPEN. No verified runtime defect, so no repeated
+suite or deployment. Concurrent owner-taught SEARCH-001/MEMBER-SEARCH-001 and
+the draft caregiver coverage work are preserved.
+
+Next existing vendor action: reply to the already-sent technical request with
+supported retained original-event/visit linkage, endpoint/filter/history coverage,
+actual-hour units and exact-visit reason/action/preservation/readback contracts.
+Do not resend. Continue the owning first-example teaching handoff separately;
+no new owner question or source action was introduced by this comparison.
+
 OWNER PRODUCT PRIORITY - NOVEMBER 5
 Visit maintenance first: one operational workspace for the administrator,
 office staff, supervisors and manager; actual caregiver events, attempts,
