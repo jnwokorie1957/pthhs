@@ -58,8 +58,16 @@ source refreshes without relying on Array methods on browser NodeLists.
 
 The reviewed private-asset allowance is 500000 raw / 128000 gzip bytes for the new
 disclosure module and reference reader. Per-file 110000-byte and separate marketing
-limits are unchanged. No runtime dependency was added. Normal release and signed-in
-production acceptance remain pending.
+limits are unchanged. No runtime dependency was added.
+
+November 6 00:31 UTC research reconciliation: runtime
+`386708a9081b08c340d415bb38af97c94699103e` completed
+[normal release 42119344430](https://github.com/jnwokorie1957/pthhs/actions/runs/42119344430)
+with all four jobs successful. This supersedes the earlier pending-release
+checkpoint. Signed-in compact-control/reference and keyboard/assistive-technology
+acceptance remain open; later independent billing-source acceptance does not
+close those UI checks. No repeated deployment or source trial was performed by
+this reconciliation.
 
 ## Primary references
 

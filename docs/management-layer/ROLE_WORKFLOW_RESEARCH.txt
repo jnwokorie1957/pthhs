@@ -1,8 +1,8 @@
 PRIMETIME ROLE AND WORKFLOW RESEARCH
 Updated: November 5, 2026, America/Chicago
 Scope: PTHHS /primetime, repository jnwokorie1957/pthhs.
-Latest engineering evidence: November5 administrator office-day collection and Visit Maintenance are accepted within their dated source, save/reload and report limits. O03 all-returned-ID acceptance is closed; M01a/M04a local office review is implemented. Named staff access, authoritative event links, HHA submissions, clinical roles and pilot/automation remain open. See the November5 19:43UTC reconciliation below.
-Latest focused research: November5,2026,19:43UTC trigger. R88-R91 and rechecked R9/R60/R63 support a proposed restricted-role/action and report-access contract. Queue labels are not account grants. Current priority is maintenance-first; earlier manual-snapshot priorities below are historical and do not authorize new scraped imports.
+Latest engineering evidence: November6 UTC reconciliation preserves the accepted November5 administrator office-day and local maintenance work, adds the successful compact-workspace release and independently verified billing-clock projection, and retains their native/source limits. Agency reference lists do not establish visit-specific actions. Named staff access, authoritative event links, HHA submissions, clinical roles and pilot/automation remain open. See the November6 00:31UTC section below.
+Latest focused research: November6,2026,00:31UTC trigger (November5 office-local day). New R92 linked-payer note/reason guidance and R93 disclosure guidance inform proposed source applicability and compact role navigation. R88-R91 restricted-role requirements remain. Current priority is maintenance-first; earlier manual-snapshot priorities below are historical and do not authorize new scraped imports.
 Broad role review: November 3, 2026, 09:42 UTC heartbeat. Rechecked the official Family Dashboard [R63] and Forms [R60] guidance against repository 9821769 and the cumulative role proposals below. Requests, source holds, encounter documentation and review remain distinct; no new tenant UI or source-read acceptance is claimed by that research pass. Latest bounded implementation: 9fb89f1 Advanced EVV source-context fences, accepted 19:55-19:57 UTC; acf7e6d exact read receipts accepted 19:15 UTC. Patient/PT role, document/action, source-time/E04, usable billing/B02 and availability dependencies remain open. Dated primary links and acceptance evidence follow; earlier next-task statements are historical checkpoints.
 
 EVIDENCE BASELINE — DATED OBSERVATIONS; LATER UPDATES BELOW
@@ -2488,3 +2488,146 @@ Rechecked R9/R60/R63 for separate clinical, form and family-action boundaries:
 https://knowledge.hhaexchange.com/texas/Content/Documentation/Patient/Pat-N-Control-Access-Patient-P.htm
 https://knowledge.hhaexchange.com/enterprise/Content/Documentation/Clinical/Clinical-N-HHAX-Forms-Basic.htm
 https://knowledge.hhaexchange.com/enterprise/Content/Documentation/Admin/Admin-N-Patient-Visit-Family-Dashboard-P.htm
+
+NOVEMBER 6, 2026, 00:31 UTC - REFERENCE APPLICABILITY AND COMPACT ROLE NAVIGATION
+
+Baseline8325c7500e7f62016371b5e875963e97639bab71, refreshed upstream unchanged.
+Office-local day remains November5. Required handoff/developer/owner evidence was
+read first. This is research and evidence reconciliation, not a new source trial
+or a repeat of the owning workstreams' production acceptance. Fresh connected
+inventory exposes Primetime and an HHA sign-in tab, but no signed-in HHA
+maintenance page. No user tab was claimed, navigated or reloaded; no HHA record
+request, login link, new grant, import, source write or communication was made.
+Earlier HHA calendar/authorization/EVV observations remain dated.
+
+IMPLEMENTED AND VERIFIED - DISTINCT FROM PROPOSED ROLE FEATURES
+MAINTENANCE_RANGE_SEARCH_2026-11-05.md establishes the approved administrator
+range/person/payer workflow and14-of14 source visit check, exact matching and
+nonmatching billing-contract filters, and an empty visit-specific reason result.
+This supersedes older research statements that these administrator connections
+still need their initial build. It does not establish staff membership, therapy
+discipline, applicable EVV actions or a payer's clinical/document permissions.
+
+COMPACT_WORKSPACE_AND_REASON_CATALOGS_2026-11-05.md reports a fresh explicit-empty
+GetVisitEditReasonActionTaken response and three nonempty agency reference lists:
+28schedule/billing reasons,22missed reasons and17missed actions. These are owning
+source observations, not fresh reads in this pass. Normal386708a release
+42119344430 is now independently confirmed all4jobs successful. Native compact
+search/disclosure/reference-control and keyboard/AT acceptance remain open.
+41706cb preserves shared forms inside folded tools after programmatic navigation;
+source implementation is observed, not newly accepted with a staff session.
+
+functions/src/maintenance/references.ts labels each list agency_reference,
+applicability=not_verified_for_selected_visit and supportsConfirmation=false.
+It retains raw status/note/minimum-character metadata, source operation/fetch
+receipt and bounded/truncated coverage under current settings/read guards.
+functions/src/maintenance/service.ts still requires admin; index.ts applies the
+administrator guard first. Queue names and the21selected-read observation do
+not grant an office_staff, supervisor, manager, patient or therapist account.
+
+BILLING_RECORDED_CLOCK_FIELDS_2026-11-05.md records runtimebaa3bc3, all4normal
+release jobs and one exact October24 V2 billing record with both newly exposed
+clock fields matching V3. The selected current-day V2 billing read returns zero
+records. These are independent billing-operation facts with their own receipts,
+not original EVV events, recovered actual hours or confirmed work. P03/E04 stay
+open; original October24 screenshot stays resolved. The billing projection fix
+was already reported; it is not a second product change by this research pass.
+
+CURRENT PRIMARY GUIDANCE AND DESIGN INFERENCE
+[R92] HHA's UI distinguishes confirmation-note origins from schedule/billing
+note origins. Linked-payer configuration can require notes/minimum length for
+edit reasons. For missed visits it describes payer-provided reason/action values
+and a provider-table fallback when payer values are absent. This is vendor UI
+guidance, not proof of this tenant's configuration or SOAP fallback semantics.
+Inference: a successful contract match or a nonempty agency list alone cannot
+establish the applicable reason/action pair for an intended visit change.
+
+[R93] The W3C disclosure pattern defines an expandable content control, Enter/
+Space toggling and an accurate expanded state. Use it as a design/acceptance
+reference for custom disclosure controls; native details/summary semantics have
+their own browser behavior. Do not add duplicate ARIA or claim full WCAG/AT
+acceptance from this article or source inspection alone.
+
+Rechecked R60 Forms, the Family Portal Schedule functions and Visit Maintenance:
+configured encounter forms, patient requests and office source maintenance are
+distinct workflows. These public pages establish no new tenant feature, action
+entitlement or account permission. No state-specific external EDI code table is
+adopted as this agency's reason catalog.
+
+PROPOSED EXPERIENCES AND SHARED LINKS - NO ROLE ACTIVATION
+Patient/family: retain the permitted patient's next visit/calendar and explicitly
+shared document instances. Open request history separately from the confirmed
+schedule; do not expose agency code lists, internal office notes or billing raw
+fields as the family explanation. A concern routes to review under its own
+request identity and receipt, not a local HHA hold or automatic schedule change.
+Public pages link only to generic secure entry; record links stay protected.
+
+PT/staff: My day/caseload links to the exact permitted patient/visit and clinical
+form instance/version. Keep authorship/reviewer states and shared documents
+separate from source clocks, office case notes and maintenance reasons. A visit
+appearing in an office range does not assign that patient to a therapist; a
+published form is not an encounter record. Clinical and family capabilities
+remain independent of proposed office note/proposal/review capabilities.
+
+Office staff/manager: keep the selected case, service day and source receipts
+while progressively opening time evidence, genuine call history and local review.
+Place reference exploration in its own closed section with its source/coverage
+label. A returned default/status/note string is raw configuration evidence, not
+an execution decision. An unresolved case report should identify the precise
+missing source contract, role or record evidence rather than invent a code.
+Authorization and billing follow-up retain their separate subject/contract/unit
+proof. Charts must count permitted cases or supplied fields with declared
+denominators; codes loaded must never count as visits resolved or HHA confirmed.
+
+NEXT BOUNDED DEVELOPMENT AND PROPOSED ACCEPTANCE
+P0 remains M03: implement/test the scoped principal/membership/action contract
+from the November5 19:43UTC section before restricted staff exposure. Preserve
+accepted administrator workflows; do not alias a queue name to an account role.
+P1 adds a typed evidence envelope to future case/report proposals: source kind,
+operation, private exact record/context identity, fetch time, coverage and
+applicability state. A reference catalog and visit-specific action result remain
+different types. A positive agency list cannot fill an empty visit-specific list.
+P1 source action work still needs the supported original-event/link/confirmation
+and readback contract, applicable reason pair and owner correction rules. Local
+review/proposal can proceed; an HHA submit or clinical form write cannot.
+
+Acceptance cases are proposed, not tests or native acceptance completed here:
+1. Same lexical ReasonID in two catalog families stays distinct; visit-specific
+   empty plus agency-list nonempty cannot stage a replacement pair.
+2. Change the selected contract/source context after a note rule was read:
+   invalidate that proposal until current applicability is proved. Unknown note
+   requirements stay unknown; no universal default or fallback is inferred.
+3. Populated billing clocks plus empty original EVV/hours preserve independent
+   fields/receipts and cannot mark the case confirmed, worked or billable.
+4. Switch patient/caregiver search mode or office/day/account: clear hidden
+   identity constraints and unauthorized case, reference, document and report
+   state. A collapsed section cannot hide stale request constraints.
+5. Follow a shared source shortcut while tools are folded: reveal only its
+   authorized section, move focus visibly, preserve context and return path.
+   Test keyboard and assistive technology under actual permitted roles.
+6. A source delay or empty applicable list leaves allowed local notes usable;
+   reports retain the unresolved next step and do not claim an HHA action.
+
+DEPENDENCIES / PRECISE EXISTING OWNER AND VENDOR ACTION
+The existing protected review needs the exact affected visit's linked/internal
+contract classification, applicable reason/action/note configuration and supported
+API mapping; do not infer them from names or billing-contract identity. Question4
+of the prepared unsent HHA packet already owns this clarification. Bring the
+signed-in maintenance page into the connected authorized profile for a same-row
+UI comparison, without publishing identifiers or duplicating the login question.
+M03/M05 still require owner-selected account identities, effective memberships,
+role capabilities and pilot criteria before activation. Family sharing and PT
+discipline/assignment/form/reviewer/signature decisions remain separately pending.
+No owner item, HHA action, role rollout or clinical workflow is completed here.
+
+PRIMARY SOURCES - RETRIEVED NOVEMBER 6, 2026 UTC
+[R92] HHAeXchange, Enter Schedule/Billing Visit Notes. Separate note origins and
+linked-payer versus provider configuration; product guidance, not tenant proof.
+https://knowledge.hhaexchange.com/enterprise/Content/Documentation/Patient/Pat-N-Enter-Schedule-Billing-P.htm
+[R93] W3C WAI ARIA APG, Disclosure (Show/Hide) Pattern. Custom-control semantics
+and keyboard behavior; native/AT verification remains separate.
+https://www.w3.org/WAI/ARIA/apg/patterns/disclosure/
+Rechecked existing HHA workflow sources, with no new tenant acceptance:
+https://knowledge.hhaexchange.com/enterprise/Content/Documentation/Visit/Visit-N-Visit-Maintenance-S.htm
+https://knowledge.hhaexchange.com/enterprise/Content/Documentation/Clinical/Clinical-N-HHAX-Forms-Basic.htm
+https://knowledge.hhaexchange.com/enterprise/Content/Documentation/Patient/Pat-N-Family-Portal-Schedule-Function-P.htm
