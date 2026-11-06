@@ -20,6 +20,7 @@ extracted/
 firebase-debug.log*
 functions/lib/
 functions/node_modules/
+public/assets/form-viewer/
 
 # Never commit downloaded service-account credentials
 *service-account*.json

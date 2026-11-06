@@ -1,0 +1,1469 @@
+{
+  "i9": {
+    "kind": "i9",
+    "file": "i9-2025.pdf",
+    "edition": "01/20/25",
+    "sourceSha256": "780f348c34df694bb0b4dbbfaf9f22b99b9757b80d16a37ba89aadf069597281",
+    "pages": [
+      {
+        "width": 612,
+        "height": 792
+      },
+      {
+        "width": 612,
+        "height": 792
+      },
+      {
+        "width": 612,
+        "height": 792
+      },
+      {
+        "width": 612,
+        "height": 792
+      }
+    ],
+    "fields": [
+      {
+        "id": "3 A lawful permanent resident Enter USCIS or ANumber",
+        "page": 1,
+        "rect": {
+          "x": 390.6,
+          "y": 498.24,
+          "width": 184.91999999999996,
+          "height": 11.159999999999968
+        },
+        "type": "text",
+        "label": "Section 1., If selected Item Number 3. enter Alien Registration Number or USCIS Number ",
+        "maxLength": 250,
+        "sensitive": false,
+        "required": false
+      },
+      {
+        "id": "First Name Given Name",
+        "page": 1,
+        "rect": {
+          "x": 204.164,
+          "y": 604.764,
+          "width": 137.676,
+          "height": 15.235000000000014
+        },
+        "type": "text",
+        "label": "Section 1., Enter First Name (Given Name).",
+        "maxLength": 250,
+        "sensitive": false,
+        "required": true
+      },
+      {
+        "id": "Employee Middle Initial (if any)",
+        "page": 1,
+        "rect": {
+          "x": 348.444,
+          "y": 604.764,
+          "width": 65.39599999999996,
+          "height": 15.235000000000014
+        },
+        "type": "text",
+        "label": "Section 1., Enter Middle Initial, if any",
+        "maxLength": 1,
+        "sensitive": false,
+        "required": false
+      },
+      {
+        "id": "Employee Other Last Names Used (if any)",
+        "page": 1,
+        "rect": {
+          "x": 420.444,
+          "y": 604.764,
+          "width": 155.67699999999996,
+          "height": 15.232999999999947
+        },
+        "type": "text",
+        "label": "Section 1., Enter Other Last Names Used (if any)",
+        "maxLength": 250,
+        "sensitive": false,
+        "required": false
+      },
+      {
+        "id": "CB_1",
+        "page": 1,
+        "rect": {
+          "x": 181.68,
+          "y": 523.32,
+          "width": 9.47999999999999,
+          "height": 9.479999999999905
+        },
+        "type": "checkbox",
+        "label": "Section 1.  Employee Information and Attestation.   I am aware that federal law provides for imprisonment and/or fines for false statements, or the use of false documents, in connection with the completion of this form.  I attest, under penalty of perjury, that this information, including my selection of the box attesting to my citizenship or immigration status, is true and correct. Check one of the following boxes to attest to your citizenship or immigration status (See page 2 and 3 of the instructions.):  1.  A citizen of the United States.",
+        "maxLength": 250,
+        "sensitive": false,
+        "required": false
+      },
+      {
+        "id": "CB_2",
+        "page": 1,
+        "rect": {
+          "x": 181.68,
+          "y": 511.32,
+          "width": 9.47999999999999,
+          "height": 9.479999999999961
+        },
+        "type": "checkbox",
+        "label": "Section 1.  Employee Information and Attestation.    2.  A noncitizen of the United States. (See Instructions)",
+        "maxLength": 250,
+        "sensitive": false,
+        "required": false
+      },
+      {
+        "id": "CB_3",
+        "page": 1,
+        "rect": {
+          "x": 181.68,
+          "y": 499.32,
+          "width": 9.47999999999999,
+          "height": 9.480000000000018
+        },
+        "type": "checkbox",
+        "label": "Section 1.  Employee Information and Attestation. 3. A lawful permanent resident. ",
+        "maxLength": 250,
+        "sensitive": false,
+        "required": false
+      },
+      {
+        "id": "CB_4",
+        "page": 1,
+        "rect": {
+          "x": 181.96,
+          "y": 487.32,
+          "width": 9.199999999999989,
+          "height": 9.043999999999983
+        },
+        "type": "checkbox",
+        "label": "Section 1.  Employee Information and Attestation.  4.  An alien authorized to work until (exp. date, if any)",
+        "maxLength": 250,
+        "sensitive": false,
+        "required": false
+      },
+      {
+        "id": "State",
+        "page": 1,
+        "rect": {
+          "x": 461.245,
+          "y": 579.924,
+          "width": 41.17500000000001,
+          "height": 13.550000000000068
+        },
+        "type": "select",
+        "label": "Section 1., Select State from the drop down list.",
+        "maxLength": 250,
+        "options": [
+          " ",
+          "AK",
+          "AL",
+          "AR",
+          "AS",
+          "AZ",
+          "CA",
+          "CO",
+          "CT",
+          "DC",
+          "DE",
+          "FL",
+          "GA",
+          "GU",
+          "HI",
+          "IA",
+          "ID",
+          "IL",
+          "IN",
+          "KS",
+          "KY",
+          "LA",
+          "MA",
+          "MD",
+          "ME",
+          "MI",
+          "MN",
+          "MO",
+          "MP",
+          "MS",
+          "MT",
+          "NC",
+          "ND",
+          "NE",
+          "NH",
+          "NJ",
+          "NM",
+          "NV",
+          "NY",
+          "OH",
+          "OK",
+          "OR",
+          "PA",
+          "PR",
+          "RI",
+          "SC",
+          "SD",
+          "TN",
+          "TX",
+          "UT",
+          "VA",
+          "VI",
+          "VT",
+          "WA",
+          "WI",
+          "WV",
+          "WY",
+          "CAN",
+          "MEX"
+        ],
+        "sensitive": false,
+        "required": true
+      },
+      {
+        "id": "ZIP Code",
+        "page": 1,
+        "rect": {
+          "x": 509.884,
+          "y": 579.924,
+          "width": 65.39599999999996,
+          "height": 13.550000000000068
+        },
+        "type": "text",
+        "label": "Section 1., Enter ZIP Code.",
+        "maxLength": 6,
+        "sensitive": false,
+        "required": true
+      },
+      {
+        "id": "Date of Birth mmddyyyy",
+        "page": 1,
+        "rect": {
+          "x": 41.7803,
+          "y": 553.644,
+          "width": 99.09170000000002,
+          "height": 13.837999999999965
+        },
+        "type": "text",
+        "label": "Section 1., Enter Date of Birth as 2-digit Month, 2-digit Day, and 4-digit Year.",
+        "maxLength": 250,
+        "sensitive": false,
+        "required": true
+      },
+      {
+        "id": "US Social Security Number",
+        "page": 1,
+        "rect": {
+          "x": 150,
+          "y": 553.439,
+          "width": 105,
+          "height": 13.762000000000057
+        },
+        "type": "text",
+        "label": "Section 1: Enter U.S. Social Security Number.",
+        "maxLength": 9,
+        "sensitive": true,
+        "required": false
+      },
+      {
+        "id": "Telephone Number",
+        "page": 1,
+        "rect": {
+          "x": 456.149,
+          "y": 553.482,
+          "width": 119.19799999999998,
+          "height": 14.110000000000014
+        },
+        "type": "text",
+        "label": "Section 1., Enter Employee's Telephone Number.",
+        "maxLength": 250,
+        "sensitive": false,
+        "required": false
+      },
+      {
+        "id": "Last Name (Family Name)",
+        "page": 1,
+        "rect": {
+          "x": 42.7246,
+          "y": 604.76,
+          "width": 155.6764,
+          "height": 15.238000000000056
+        },
+        "type": "text",
+        "label": "Employee Last Name (Family Name)",
+        "maxLength": 250,
+        "sensitive": false,
+        "required": true
+      },
+      {
+        "id": "Address Street Number and Name",
+        "page": 1,
+        "rect": {
+          "x": 41.884,
+          "y": 579.921,
+          "width": 186.23700000000002,
+          "height": 13.553999999999974
+        },
+        "type": "text",
+        "label": "Section 1., Enter Address (Street Number and Name). ",
+        "maxLength": 250,
+        "sensitive": false,
+        "required": true
+      },
+      {
+        "id": "Apt Number (if any)",
+        "page": 1,
+        "rect": {
+          "x": 233.604,
+          "y": 579.924,
+          "width": 65.67599999999996,
+          "height": 13.550000000000068
+        },
+        "type": "text",
+        "label": "Section 1., Enter Apartment Number, if any",
+        "maxLength": 250,
+        "sensitive": false,
+        "required": false
+      },
+      {
+        "id": "City or Town",
+        "page": 1,
+        "rect": {
+          "x": 305.884,
+          "y": 579.924,
+          "width": 149.39599999999996,
+          "height": 13.550000000000068
+        },
+        "type": "text",
+        "label": "Section 1., Enter City or Town.",
+        "maxLength": 250,
+        "sensitive": false,
+        "required": true
+      },
+      {
+        "id": "Employees E-mail Address",
+        "page": 1,
+        "rect": {
+          "x": 264.164,
+          "y": 553.641,
+          "width": 185.957,
+          "height": 13.836999999999989
+        },
+        "type": "text",
+        "label": "Section 1., Enter Employee's E-mail Address.",
+        "maxLength": 250,
+        "sensitive": false,
+        "required": false
+      },
+      {
+        "id": "Exp Date mmddyyyy",
+        "page": 1,
+        "rect": {
+          "x": 390.193,
+          "y": 484.114,
+          "width": 59.327,
+          "height": 12.915999999999997
+        },
+        "type": "text",
+        "label": "Exp. Date mmddyyyy",
+        "maxLength": 250,
+        "sensitive": false,
+        "required": false
+      },
+      {
+        "id": "USCIS ANumber",
+        "page": 1,
+        "rect": {
+          "x": 180.6,
+          "y": 444.24,
+          "width": 82.79999999999998,
+          "height": 11.159999999999968
+        },
+        "type": "text",
+        "label": "Section 1., Employee Information and Attestation.  If you checked Item Number 4., enter one of these.  USCIS/A-Number or Form I-94 Admission Number or Foreign Passport Number and Country of Issuance.  Enter USCIS Alien Registration Number.",
+        "maxLength": 10,
+        "sensitive": false,
+        "required": false
+      },
+      {
+        "id": "Form I94 Admission Number",
+        "page": 1,
+        "rect": {
+          "x": 276.6,
+          "y": 444.24,
+          "width": 106.79999999999995,
+          "height": 11.159999999999968
+        },
+        "type": "text",
+        "label": "Section 1., Employee Information and Attestation.  Enter Form I-94 Admission Number.",
+        "maxLength": 11,
+        "sensitive": false,
+        "required": false
+      },
+      {
+        "id": "Foreign Passport Number and Country of IssuanceRow1",
+        "page": 1,
+        "rect": {
+          "x": 396.6,
+          "y": 444.24,
+          "width": 178.79999999999995,
+          "height": 11.159999999999968
+        },
+        "type": "text",
+        "label": "Section 1., Employee Information and Attestation.  Enter Foreign Passport Number and Country of Issuance.",
+        "maxLength": 250,
+        "sensitive": false,
+        "required": false
+      }
+    ],
+    "employerFields": [
+      {
+        "key": "name",
+        "label": "Employer company name — automatically entered",
+        "rect": {
+          "x": 36.69,
+          "y": 53.04,
+          "width": 202.18,
+          "height": 13.7
+        }
+      },
+      {
+        "key": "address",
+        "label": "Employer address — automatically entered",
+        "rect": {
+          "x": 245.82,
+          "y": 53.04,
+          "width": 329.16,
+          "height": 13.7
+        }
+      }
+    ]
+  },
+  "w4": {
+    "kind": "w4",
+    "file": "w4-2026.pdf",
+    "edition": "2026",
+    "sourceSha256": "92444d8856ce55d9e25dca8b6d1420634fc68b11e1ab1f760916ea29ddd312b2",
+    "pages": [
+      {
+        "width": 611.976,
+        "height": 791.968
+      },
+      {
+        "width": 611.976,
+        "height": 791.968
+      },
+      {
+        "width": 611.976,
+        "height": 791.968
+      },
+      {
+        "width": 611.976,
+        "height": 791.968
+      },
+      {
+        "width": 611.976,
+        "height": 791.968
+      }
+    ],
+    "fields": [
+      {
+        "id": "topmostSubform[0].Page1[0].Step1a[0].f1_01[0]",
+        "page": 1,
+        "rect": {
+          "x": 94.6,
+          "y": 683.968,
+          "width": 178.25000000000003,
+          "height": 14.00100000000009
+        },
+        "type": "text",
+        "label": "First name and middle initial",
+        "maxLength": 250,
+        "sensitive": false,
+        "required": true
+      },
+      {
+        "id": "topmostSubform[0].Page1[0].Step1a[0].f1_02[0]",
+        "page": 1,
+        "rect": {
+          "x": 274.6,
+          "y": 683.968,
+          "width": 199.84999999999997,
+          "height": 14.00100000000009
+        },
+        "type": "text",
+        "label": "Last name",
+        "maxLength": 250,
+        "sensitive": false,
+        "required": true
+      },
+      {
+        "id": "topmostSubform[0].Page1[0].Step1a[0].f1_03[0]",
+        "page": 1,
+        "rect": {
+          "x": 94.6,
+          "y": 659.967,
+          "width": 379.85,
+          "height": 14.000999999999976
+        },
+        "type": "text",
+        "label": "Address",
+        "maxLength": 250,
+        "sensitive": false,
+        "required": true
+      },
+      {
+        "id": "topmostSubform[0].Page1[0].Step1a[0].f1_04[0]",
+        "page": 1,
+        "rect": {
+          "x": 94.6,
+          "y": 635.966,
+          "width": 379.85,
+          "height": 14.000999999999976
+        },
+        "type": "text",
+        "label": "City or town, state, and ZIP code",
+        "maxLength": 250,
+        "sensitive": false,
+        "required": true
+      },
+      {
+        "id": "topmostSubform[0].Page1[0].f1_05[0]",
+        "page": 1,
+        "rect": {
+          "x": 476.2,
+          "y": 683.968,
+          "width": 99.80000000000001,
+          "height": 14.00100000000009
+        },
+        "type": "text",
+        "label": "Social security number",
+        "maxLength": 11,
+        "sensitive": true,
+        "required": true
+      },
+      {
+        "id": "topmostSubform[0].Page1[0].c1_1[0]",
+        "page": 1,
+        "rect": {
+          "x": 115.2,
+          "y": 625.97,
+          "width": 8,
+          "height": 8
+        },
+        "type": "checkbox",
+        "label": "Single or Married filing separately",
+        "maxLength": 250,
+        "sensitive": false,
+        "required": true
+      },
+      {
+        "id": "topmostSubform[0].Page1[0].c1_1[1]",
+        "page": 1,
+        "rect": {
+          "x": 115.2,
+          "y": 613.968,
+          "width": 8,
+          "height": 8
+        },
+        "type": "checkbox",
+        "label": "Married filing jointly or Qualifying surviving spouse",
+        "maxLength": 250,
+        "sensitive": false,
+        "required": true
+      },
+      {
+        "id": "topmostSubform[0].Page1[0].c1_1[2]",
+        "page": 1,
+        "rect": {
+          "x": 115.2,
+          "y": 602.219,
+          "width": 8,
+          "height": 8
+        },
+        "type": "checkbox",
+        "label": "Head of household",
+        "maxLength": 250,
+        "sensitive": false,
+        "required": true
+      },
+      {
+        "id": "topmostSubform[0].Page1[0].c1_2[0]",
+        "page": 1,
+        "rect": {
+          "x": 564,
+          "y": 379.968,
+          "width": 8,
+          "height": 8
+        },
+        "type": "checkbox",
+        "label": "Step 2(c): Only two jobs total",
+        "maxLength": 250,
+        "sensitive": false,
+        "required": false
+      },
+      {
+        "id": "topmostSubform[0].Page1[0].Step3_ReadOrder[0].f1_06[0]",
+        "page": 1,
+        "rect": {
+          "x": 417.6,
+          "y": 299.97,
+          "width": 64.04999999999995,
+          "height": 11.998999999999967
+        },
+        "type": "text",
+        "label": "Step 3(a): Qualifying children amount",
+        "maxLength": 250,
+        "sensitive": false,
+        "required": true
+      },
+      {
+        "id": "topmostSubform[0].Page1[0].Step3_ReadOrder[0].f1_07[0]",
+        "page": 1,
+        "rect": {
+          "x": 417.6,
+          "y": 287.968,
+          "width": 64.04999999999995,
+          "height": 11.998999999999967
+        },
+        "type": "text",
+        "label": "Step 3(b): Other dependents amount",
+        "maxLength": 250,
+        "sensitive": false,
+        "required": true
+      },
+      {
+        "id": "topmostSubform[0].Page1[0].f1_08[0]",
+        "page": 1,
+        "rect": {
+          "x": 511.2,
+          "y": 263.97,
+          "width": 64.80000000000001,
+          "height": 11.998999999999967
+        },
+        "type": "text",
+        "label": "Step 3: Total credits",
+        "maxLength": 250,
+        "sensitive": false,
+        "required": true
+      },
+      {
+        "id": "topmostSubform[0].Page1[0].f1_09[0]",
+        "page": 1,
+        "rect": {
+          "x": 511.2,
+          "y": 227.97,
+          "width": 64.80000000000001,
+          "height": 11.998999999999995
+        },
+        "type": "text",
+        "label": "Step 4(a): Other income",
+        "maxLength": 250,
+        "sensitive": false,
+        "required": false
+      },
+      {
+        "id": "topmostSubform[0].Page1[0].f1_10[0]",
+        "page": 1,
+        "rect": {
+          "x": 511.2,
+          "y": 191.97,
+          "width": 64.80000000000001,
+          "height": 11.998999999999995
+        },
+        "type": "text",
+        "label": "Step 4(b): Deductions",
+        "maxLength": 250,
+        "sensitive": false,
+        "required": false
+      },
+      {
+        "id": "topmostSubform[0].Page1[0].f1_11[0]",
+        "page": 1,
+        "rect": {
+          "x": 511.2,
+          "y": 173.97,
+          "width": 64.80000000000001,
+          "height": 11.998999999999995
+        },
+        "type": "text",
+        "label": "Step 4(c): Extra withholding",
+        "maxLength": 250,
+        "sensitive": false,
+        "required": false
+      },
+      {
+        "id": "topmostSubform[0].Page1[0].c1_3[0]",
+        "page": 1,
+        "rect": {
+          "x": 564,
+          "y": 129.468,
+          "width": 8,
+          "height": 8
+        },
+        "type": "checkbox",
+        "label": "Exempt from withholding for 2026",
+        "maxLength": 250,
+        "sensitive": false,
+        "required": false
+      },
+      {
+        "id": "topmostSubform[0].Page3[0].f3_01[0]",
+        "page": 3,
+        "rect": {
+          "x": 511.2,
+          "y": 587.97,
+          "width": 64.80000000000001,
+          "height": 11.999000000000024
+        },
+        "type": "text",
+        "label": "topmostSubform[0].Page3[0].f3_01[0]",
+        "maxLength": 250,
+        "sensitive": false,
+        "required": false
+      },
+      {
+        "id": "topmostSubform[0].Page3[0].f3_02[0]",
+        "page": 3,
+        "rect": {
+          "x": 511.2,
+          "y": 497.97,
+          "width": 64.80000000000001,
+          "height": 11.998999999999967
+        },
+        "type": "text",
+        "label": "topmostSubform[0].Page3[0].f3_02[0]",
+        "maxLength": 250,
+        "sensitive": false,
+        "required": false
+      },
+      {
+        "id": "topmostSubform[0].Page3[0].f3_03[0]",
+        "page": 3,
+        "rect": {
+          "x": 511.2,
+          "y": 437.969,
+          "width": 64.80000000000001,
+          "height": 11.999000000000024
+        },
+        "type": "text",
+        "label": "topmostSubform[0].Page3[0].f3_03[0]",
+        "maxLength": 250,
+        "sensitive": false,
+        "required": false
+      },
+      {
+        "id": "topmostSubform[0].Page3[0].f3_04[0]",
+        "page": 3,
+        "rect": {
+          "x": 511.2,
+          "y": 413.968,
+          "width": 64.80000000000001,
+          "height": 11.998999999999967
+        },
+        "type": "text",
+        "label": "topmostSubform[0].Page3[0].f3_04[0]",
+        "maxLength": 250,
+        "sensitive": false,
+        "required": false
+      },
+      {
+        "id": "topmostSubform[0].Page3[0].f3_05[0]",
+        "page": 3,
+        "rect": {
+          "x": 504,
+          "y": 377.968,
+          "width": 72,
+          "height": 11.998999999999967
+        },
+        "type": "text",
+        "label": "topmostSubform[0].Page3[0].f3_05[0]",
+        "maxLength": 250,
+        "sensitive": false,
+        "required": false
+      },
+      {
+        "id": "topmostSubform[0].Page3[0].f3_06[0]",
+        "page": 3,
+        "rect": {
+          "x": 511.2,
+          "y": 329.969,
+          "width": 64.80000000000001,
+          "height": 11.999000000000024
+        },
+        "type": "text",
+        "label": "topmostSubform[0].Page3[0].f3_06[0]",
+        "maxLength": 250,
+        "sensitive": false,
+        "required": false
+      },
+      {
+        "id": "topmostSubform[0].Page4[0].f4_01[0]",
+        "page": 4,
+        "rect": {
+          "x": 511.2,
+          "y": 659.97,
+          "width": 64.80000000000001,
+          "height": 11.999000000000024
+        },
+        "type": "text",
+        "label": "topmostSubform[0].Page4[0].f4_01[0]",
+        "maxLength": 250,
+        "sensitive": false,
+        "required": false
+      },
+      {
+        "id": "topmostSubform[0].Page4[0].f4_02[0]",
+        "page": 4,
+        "rect": {
+          "x": 511.2,
+          "y": 623.97,
+          "width": 64.80000000000001,
+          "height": 11.999000000000024
+        },
+        "type": "text",
+        "label": "topmostSubform[0].Page4[0].f4_02[0]",
+        "maxLength": 250,
+        "sensitive": false,
+        "required": false
+      },
+      {
+        "id": "topmostSubform[0].Page4[0].f4_03[0]",
+        "page": 4,
+        "rect": {
+          "x": 511.2,
+          "y": 599.969,
+          "width": 64.80000000000001,
+          "height": 11.99899999999991
+        },
+        "type": "text",
+        "label": "topmostSubform[0].Page4[0].f4_03[0]",
+        "maxLength": 250,
+        "sensitive": false,
+        "required": false
+      },
+      {
+        "id": "topmostSubform[0].Page4[0].f4_04[0]",
+        "page": 4,
+        "rect": {
+          "x": 511.2,
+          "y": 587.97,
+          "width": 64.80000000000001,
+          "height": 11.999000000000024
+        },
+        "type": "text",
+        "label": "topmostSubform[0].Page4[0].f4_04[0]",
+        "maxLength": 250,
+        "sensitive": false,
+        "required": false
+      },
+      {
+        "id": "topmostSubform[0].Page4[0].f4_05[0]",
+        "page": 4,
+        "rect": {
+          "x": 511.2,
+          "y": 563.969,
+          "width": 64.80000000000001,
+          "height": 11.99899999999991
+        },
+        "type": "text",
+        "label": "topmostSubform[0].Page4[0].f4_05[0]",
+        "maxLength": 250,
+        "sensitive": false,
+        "required": false
+      },
+      {
+        "id": "topmostSubform[0].Page4[0].f4_06[0]",
+        "page": 4,
+        "rect": {
+          "x": 511.2,
+          "y": 539.968,
+          "width": 64.80000000000001,
+          "height": 11.999000000000024
+        },
+        "type": "text",
+        "label": "topmostSubform[0].Page4[0].f4_06[0]",
+        "maxLength": 250,
+        "sensitive": false,
+        "required": false
+      },
+      {
+        "id": "topmostSubform[0].Page4[0].f4_07[0]",
+        "page": 4,
+        "rect": {
+          "x": 511.2,
+          "y": 527.969,
+          "width": 64.80000000000001,
+          "height": 11.99899999999991
+        },
+        "type": "text",
+        "label": "topmostSubform[0].Page4[0].f4_07[0]",
+        "maxLength": 250,
+        "sensitive": false,
+        "required": false
+      },
+      {
+        "id": "topmostSubform[0].Page4[0].f4_08[0]",
+        "page": 4,
+        "rect": {
+          "x": 511.2,
+          "y": 491.969,
+          "width": 64.80000000000001,
+          "height": 11.999000000000024
+        },
+        "type": "text",
+        "label": "topmostSubform[0].Page4[0].f4_08[0]",
+        "maxLength": 250,
+        "sensitive": false,
+        "required": false
+      },
+      {
+        "id": "topmostSubform[0].Page4[0].f4_09[0]",
+        "page": 4,
+        "rect": {
+          "x": 511.2,
+          "y": 455.969,
+          "width": 64.80000000000001,
+          "height": 11.999000000000024
+        },
+        "type": "text",
+        "label": "topmostSubform[0].Page4[0].f4_09[0]",
+        "maxLength": 250,
+        "sensitive": false,
+        "required": false
+      },
+      {
+        "id": "topmostSubform[0].Page4[0].f4_10[0]",
+        "page": 4,
+        "rect": {
+          "x": 511.2,
+          "y": 431.968,
+          "width": 64.80000000000001,
+          "height": 11.998999999999967
+        },
+        "type": "text",
+        "label": "topmostSubform[0].Page4[0].f4_10[0]",
+        "maxLength": 250,
+        "sensitive": false,
+        "required": false
+      },
+      {
+        "id": "topmostSubform[0].Page4[0].f4_11[0]",
+        "page": 4,
+        "rect": {
+          "x": 511.2,
+          "y": 395.968,
+          "width": 64.80000000000001,
+          "height": 11.998999999999967
+        },
+        "type": "text",
+        "label": "topmostSubform[0].Page4[0].f4_11[0]",
+        "maxLength": 250,
+        "sensitive": false,
+        "required": false
+      },
+      {
+        "id": "topmostSubform[0].Page4[0].f4_12[0]",
+        "page": 4,
+        "rect": {
+          "x": 511.2,
+          "y": 383.969,
+          "width": 64.80000000000001,
+          "height": 11.999000000000024
+        },
+        "type": "text",
+        "label": "topmostSubform[0].Page4[0].f4_12[0]",
+        "maxLength": 250,
+        "sensitive": false,
+        "required": false
+      },
+      {
+        "id": "topmostSubform[0].Page4[0].f4_13[0]",
+        "page": 4,
+        "rect": {
+          "x": 511.2,
+          "y": 371.97,
+          "width": 64.80000000000001,
+          "height": 11.998999999999967
+        },
+        "type": "text",
+        "label": "topmostSubform[0].Page4[0].f4_13[0]",
+        "maxLength": 250,
+        "sensitive": false,
+        "required": false
+      },
+      {
+        "id": "topmostSubform[0].Page4[0].f4_14[0]",
+        "page": 4,
+        "rect": {
+          "x": 511.2,
+          "y": 359.968,
+          "width": 64.80000000000001,
+          "height": 11.998999999999967
+        },
+        "type": "text",
+        "label": "topmostSubform[0].Page4[0].f4_14[0]",
+        "maxLength": 250,
+        "sensitive": false,
+        "required": false
+      },
+      {
+        "id": "topmostSubform[0].Page4[0].f4_15[0]",
+        "page": 4,
+        "rect": {
+          "x": 511.2,
+          "y": 335.97,
+          "width": 64.80000000000001,
+          "height": 11.998999999999967
+        },
+        "type": "text",
+        "label": "topmostSubform[0].Page4[0].f4_15[0]",
+        "maxLength": 250,
+        "sensitive": false,
+        "required": false
+      },
+      {
+        "id": "topmostSubform[0].Page4[0].f4_16[0]",
+        "page": 4,
+        "rect": {
+          "x": 511.2,
+          "y": 323.968,
+          "width": 64.80000000000001,
+          "height": 11.998999999999967
+        },
+        "type": "text",
+        "label": "topmostSubform[0].Page4[0].f4_16[0]",
+        "maxLength": 250,
+        "sensitive": false,
+        "required": false
+      },
+      {
+        "id": "topmostSubform[0].Page4[0].f4_17[0]",
+        "page": 4,
+        "rect": {
+          "x": 511.2,
+          "y": 299.97,
+          "width": 64.80000000000001,
+          "height": 11.998999999999967
+        },
+        "type": "text",
+        "label": "topmostSubform[0].Page4[0].f4_17[0]",
+        "maxLength": 250,
+        "sensitive": false,
+        "required": false
+      },
+      {
+        "id": "topmostSubform[0].Page4[0].f4_18[0]",
+        "page": 4,
+        "rect": {
+          "x": 511.2,
+          "y": 263.97,
+          "width": 64.80000000000001,
+          "height": 11.998999999999967
+        },
+        "type": "text",
+        "label": "topmostSubform[0].Page4[0].f4_18[0]",
+        "maxLength": 250,
+        "sensitive": false,
+        "required": false
+      },
+      {
+        "id": "topmostSubform[0].Page4[0].f4_19[0]",
+        "page": 4,
+        "rect": {
+          "x": 511.2,
+          "y": 227.97,
+          "width": 64.80000000000001,
+          "height": 11.998999999999995
+        },
+        "type": "text",
+        "label": "topmostSubform[0].Page4[0].f4_19[0]",
+        "maxLength": 250,
+        "sensitive": false,
+        "required": false
+      },
+      {
+        "id": "topmostSubform[0].Page4[0].f4_20[0]",
+        "page": 4,
+        "rect": {
+          "x": 511.2,
+          "y": 191.97,
+          "width": 64.80000000000001,
+          "height": 11.998999999999995
+        },
+        "type": "text",
+        "label": "topmostSubform[0].Page4[0].f4_20[0]",
+        "maxLength": 250,
+        "sensitive": false,
+        "required": false
+      },
+      {
+        "id": "topmostSubform[0].Page4[0].f4_21[0]",
+        "page": 4,
+        "rect": {
+          "x": 511.2,
+          "y": 179.968,
+          "width": 64.80000000000001,
+          "height": 11.999000000000024
+        },
+        "type": "text",
+        "label": "topmostSubform[0].Page4[0].f4_21[0]",
+        "maxLength": 250,
+        "sensitive": false,
+        "required": false
+      },
+      {
+        "id": "topmostSubform[0].Page4[0].f4_22[0]",
+        "page": 4,
+        "rect": {
+          "x": 511.2,
+          "y": 155.97,
+          "width": 64.80000000000001,
+          "height": 11.998999999999995
+        },
+        "type": "text",
+        "label": "topmostSubform[0].Page4[0].f4_22[0]",
+        "maxLength": 250,
+        "sensitive": false,
+        "required": false
+      },
+      {
+        "id": "topmostSubform[0].Page4[0].f4_23[0]",
+        "page": 4,
+        "rect": {
+          "x": 511.2,
+          "y": 143.968,
+          "width": 64.80000000000001,
+          "height": 11.999000000000024
+        },
+        "type": "text",
+        "label": "topmostSubform[0].Page4[0].f4_23[0]",
+        "maxLength": 250,
+        "sensitive": false,
+        "required": false
+      }
+    ],
+    "employerFields": [
+      {
+        "key": "companyAddress",
+        "label": "Employer name and address — automatically entered",
+        "rect": {
+          "x": 94.6,
+          "y": 35.968,
+          "width": 293.45,
+          "height": 30
+        },
+        "multiline": true
+      },
+      {
+        "key": "firstDay",
+        "label": "First date of employment — office confirms",
+        "rect": {
+          "x": 389.8,
+          "y": 35.968,
+          "width": 77.45,
+          "height": 12
+        }
+      },
+      {
+        "key": "ein",
+        "label": "Employer EIN — automatically entered",
+        "rect": {
+          "x": 469,
+          "y": 35.968,
+          "width": 107,
+          "height": 12
+        }
+      }
+    ]
+  },
+  "new_hire": {
+    "kind": "new_hire",
+    "file": "new-hire-texas.pdf",
+    "edition": "REV 05/23",
+    "sourceSha256": "246775a4914810a0cd709d33a22002276dfcde8f70cc5c994f3e6ea8f758139a",
+    "pages": [
+      {
+        "width": 612,
+        "height": 792
+      },
+      {
+        "width": 612,
+        "height": 792
+      }
+    ],
+    "fields": [
+      {
+        "id": "employeeSSN",
+        "label": "Employee Social Security number",
+        "page": 1,
+        "type": "text",
+        "rect": {
+          "x": 45,
+          "y": 364.5,
+          "width": 194,
+          "height": 13.3
+        },
+        "required": true,
+        "sensitive": true,
+        "maxLength": 100
+      },
+      {
+        "id": "firstName",
+        "label": "Employee first name",
+        "page": 1,
+        "type": "text",
+        "rect": {
+          "x": 45,
+          "y": 332.5,
+          "width": 526,
+          "height": 13.3
+        },
+        "required": true,
+        "sensitive": false,
+        "maxLength": 100
+      },
+      {
+        "id": "middleName",
+        "label": "Employee middle name — enter N/A if none",
+        "page": 1,
+        "type": "text",
+        "rect": {
+          "x": 45,
+          "y": 300.5,
+          "width": 526,
+          "height": 13.3
+        },
+        "required": true,
+        "sensitive": false,
+        "maxLength": 100
+      },
+      {
+        "id": "lastName",
+        "label": "Employee last name",
+        "page": 1,
+        "type": "text",
+        "rect": {
+          "x": 45,
+          "y": 268.5,
+          "width": 526,
+          "height": 13.3
+        },
+        "required": true,
+        "sensitive": false,
+        "maxLength": 100
+      },
+      {
+        "id": "address",
+        "label": "Employee home address",
+        "page": 1,
+        "type": "text",
+        "rect": {
+          "x": 45,
+          "y": 237,
+          "width": 526,
+          "height": 13.3
+        },
+        "required": true,
+        "sensitive": false,
+        "maxLength": 100
+      },
+      {
+        "id": "city",
+        "label": "Employee city",
+        "page": 1,
+        "type": "text",
+        "rect": {
+          "x": 45,
+          "y": 187,
+          "width": 231,
+          "height": 13.3
+        },
+        "required": true,
+        "sensitive": false,
+        "maxLength": 100
+      },
+      {
+        "id": "state",
+        "label": "Employee state",
+        "page": 1,
+        "type": "text",
+        "rect": {
+          "x": 296.5,
+          "y": 187,
+          "width": 43,
+          "height": 13.3
+        },
+        "required": true,
+        "sensitive": false,
+        "maxLength": 100
+      },
+      {
+        "id": "zip",
+        "label": "Employee ZIP code",
+        "page": 1,
+        "type": "text",
+        "rect": {
+          "x": 360,
+          "y": 187,
+          "width": 106,
+          "height": 13.3
+        },
+        "required": true,
+        "sensitive": false,
+        "maxLength": 100
+      },
+      {
+        "id": "province",
+        "label": "Employee province/region (foreign)",
+        "page": 1,
+        "type": "text",
+        "rect": {
+          "x": 45,
+          "y": 156,
+          "width": 195,
+          "height": 13.3
+        },
+        "required": false,
+        "sensitive": false,
+        "maxLength": 100
+      },
+      {
+        "id": "country",
+        "label": "Employee country (foreign)",
+        "page": 1,
+        "type": "text",
+        "rect": {
+          "x": 254,
+          "y": 156,
+          "width": 106,
+          "height": 13.3
+        },
+        "required": false,
+        "sensitive": false,
+        "maxLength": 100
+      },
+      {
+        "id": "postalCode",
+        "label": "Employee postal code (foreign)",
+        "page": 1,
+        "type": "text",
+        "rect": {
+          "x": 371,
+          "y": 156,
+          "width": 200,
+          "height": 13.3
+        },
+        "required": false,
+        "sensitive": false,
+        "maxLength": 100
+      },
+      {
+        "id": "birthDate",
+        "label": "Employee date of birth MM/DD/YYYY (optional)",
+        "page": 1,
+        "type": "text",
+        "rect": {
+          "x": 320,
+          "y": 121,
+          "width": 217,
+          "height": 13.3
+        },
+        "required": false,
+        "sensitive": false,
+        "maxLength": 100
+      }
+    ],
+    "employerFields": [
+      {
+        "key": "ein",
+        "label": "Employer EIN — automatically entered",
+        "rect": {
+          "x": 47,
+          "y": 630,
+          "width": 194,
+          "height": 13.3
+        }
+      },
+      {
+        "key": "name",
+        "label": "Employer name — automatically entered",
+        "rect": {
+          "x": 45,
+          "y": 598,
+          "width": 526,
+          "height": 13.3
+        }
+      },
+      {
+        "key": "street",
+        "label": "Employer street address",
+        "rect": {
+          "x": 45,
+          "y": 567,
+          "width": 526,
+          "height": 13.3
+        }
+      },
+      {
+        "key": "city",
+        "label": "Employer city",
+        "rect": {
+          "x": 45,
+          "y": 516.5,
+          "width": 231,
+          "height": 13.3
+        }
+      },
+      {
+        "key": "state",
+        "label": "Employer state",
+        "rect": {
+          "x": 296.5,
+          "y": 516.5,
+          "width": 43,
+          "height": 13.3
+        }
+      },
+      {
+        "key": "zip",
+        "label": "Employer ZIP code",
+        "rect": {
+          "x": 360,
+          "y": 516.5,
+          "width": 106,
+          "height": 13.3
+        }
+      },
+      {
+        "key": "phone",
+        "label": "Employer phone",
+        "rect": {
+          "x": 45,
+          "y": 453,
+          "width": 216,
+          "height": 13.3
+        }
+      },
+      {
+        "key": "fax",
+        "label": "Employer fax",
+        "rect": {
+          "x": 320,
+          "y": 453,
+          "width": 217,
+          "height": 13.3
+        }
+      },
+      {
+        "key": "firstDay",
+        "label": "Actual date of hire — office confirms",
+        "rect": {
+          "x": 320,
+          "y": 364.5,
+          "width": 217,
+          "height": 13.3
+        }
+      }
+    ]
+  }
+}

@@ -61,17 +61,35 @@ export function deploymentEnvironment(index, config, wsdl, release = CLOSED_RELE
   return [`HHAEXCHANGE_BASE_URL=${endpoint}`, ...names.map(name => `${name}=${approvals[name] === true}`)].join('\n') + '\n';
 }
 
+const workforceFlags = ['WORKFORCE_STAFF_APPROVED','WORKFORCE_HHA_PORTAL_APPROVED','WORKFORCE_PUBLIC_OPPORTUNITIES_APPROVED','WORKFORCE_APPLICANT_COLLECTION_APPROVED','WORKFORCE_PACKET_REVIEW_APPROVED','WORKFORCE_ID_DOCUMENTS_APPROVED','WORKFORCE_ID_RETENTION_APPROVED','WORKFORCE_GOOGLE_PLACES_APPROVED'];
+export function workforceDeploymentEnvironment(release, source, operationalDataApproved) {
+  const keys=[...workforceFlags,'WORKFORCE_SIGN_IN_PROVIDERS','WORKFORCE_INTAKE_OFFICE','WORKFORCE_EMPLOYER_EIN','WORKFORCE_PORTAL_ORIGIN'];
+  if(!exactKeys(release,['version','reviewReference','environment'])||release.version!==1||!exactKeys(release.environment,keys)||typeof release.reviewReference!=='string'||!release.reviewReference.trim()||release.reviewReference.length>500||/[\x00-\x1f\x7f]/u.test(release.reviewReference))throw Error('Invalid workforce release review');
+  const env=release.environment,declared=[...source.matchAll(/defineString\("(WORKFORCE_[A-Z_]+)"/g)].map(match=>match[1]);
+  if(declared.length!==keys.length||keys.some(key=>!declared.includes(key))||Object.values(env).some(value=>typeof value!=='string'||/[\r\n]/u.test(value)))throw Error('Workforce parameter inventory changed');
+  for(const flag of workforceFlags){if(!['true','false'].includes(env[flag])||!new RegExp(`defineString\\("${flag}",\\s*\\{\\s*default:\\s*"false"\\s*\\}\\)`).test(source))throw Error('Workforce approval must retain a closed default');}
+  const enabled=key=>env[key]==='true';
+  if(env.WORKFORCE_PORTAL_ORIGIN!=='https://pthhs.net'||env.WORKFORCE_INTAKE_OFFICE&&!/^[1-9]\d{0,9}$/.test(env.WORKFORCE_INTAKE_OFFICE)||env.WORKFORCE_EMPLOYER_EIN&&!/^\d{2}-\d{7}$/.test(env.WORKFORCE_EMPLOYER_EIN))throw Error('Invalid workforce public origin or office configuration');
+  const providers=env.WORKFORCE_SIGN_IN_PROVIDERS?env.WORKFORCE_SIGN_IN_PROVIDERS.split(','):[];
+  if(new Set(providers).size!==providers.length||providers.some(id=>!['google.com','apple.com','microsoft.com','yahoo.com'].includes(id)))throw Error('Invalid workforce sign-in providers');
+  if(enabled('WORKFORCE_HHA_PORTAL_APPROVED')&&(!enabled('WORKFORCE_STAFF_APPROVED')||!operationalDataApproved||!env.WORKFORCE_INTAKE_OFFICE))throw Error('HHA portal release requires approved source and office');
+  if(enabled('WORKFORCE_ID_DOCUMENTS_APPROVED')&&(!enabled('WORKFORCE_STAFF_APPROVED')||!enabled('WORKFORCE_APPLICANT_COLLECTION_APPROVED')||!enabled('WORKFORCE_PACKET_REVIEW_APPROVED')||!enabled('WORKFORCE_ID_RETENTION_APPROVED')||!env.WORKFORCE_INTAKE_OFFICE))throw Error('Identity collection prerequisites are not approved');
+  return keys.map(key=>key+'='+env[key]).join('\n')+'\n';
+}
+
 const root = fileURLToPath(new URL('../..', import.meta.url));
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
   let release;
   try { release = JSON.parse(readFileSync(path.join(root, 'functions/deployment-approvals.json'), 'utf8')); }
   catch { throw new Error('Cannot read the checked-in deployment approval configuration'); }
-  const content = deploymentEnvironment(
+  const legacyContent = deploymentEnvironment(
     readFileSync(path.join(root, 'functions/src/index.ts'), 'utf8'),
     readFileSync(path.join(root, 'functions/src/integrations/hhaexchange/config.ts'), 'utf8'),
     readFileSync(path.join(root, 'hharefs/hha-wdsl.xml'), 'utf8'),
     release,
   );
+  const portalRelease=JSON.parse(readFileSync(path.join(root,'functions/workforce-deployment.json'),'utf8'));
+  const content=legacyContent+workforceDeploymentEnvironment(portalRelease,readFileSync(path.join(root,'functions/src/workforce/http.ts'),'utf8'),reviewedApprovals(release).PRIMETIME_OPERATIONAL_DATA_APPROVED===true);
   // Fresh CI checkout only: never overwrite an operator's existing configuration.
   writeFileSync(path.join(root, 'functions/.env.primetimehomehealthservices'), content, { flag: 'wx', mode: 0o600 });
   const enabled = content.split('\n').filter(line => /^PRIMETIME_[A-Z_]+_APPROVED=true$/u.test(line)).length;

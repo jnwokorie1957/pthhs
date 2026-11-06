@@ -10,6 +10,8 @@ cleanup() {
 trap cleanup EXIT
 
 cd "$ROOT"
+node scripts/build-workforce-forms.mjs
+node scripts/build-workforce-form-layout.mjs --check
 
 # Syntax-check every executable source family before running generators.
 python3 -m py_compile scripts/*.py
@@ -17,8 +19,22 @@ find scripts -type f -name '*.sh' -print0 | xargs -0 -n1 bash -n
 find scripts public source/primetime -type f \( -name '*.js' -o -name '*.mjs' \) -print0 \
   | xargs -0 -n1 node --check
 node scripts/build-primetime-assets.mjs --check
+node scripts/build-workforce-assets.mjs --check
 node --test scripts/build-primetime-assets.test.mjs
+node --test scripts/build-workforce-assets.test.mjs
 node --test scripts/verify_primetime_auth.test.mjs
+node --test scripts/verify_workforce.test.mjs
+node --test scripts/workforce-readings.test.mjs
+node --test scripts/workforce-account.test.mjs
+node --test scripts/workforce-support.test.mjs
+node --test scripts/workforce-management.test.mjs
+node --test scripts/workforce-management-auth.test.mjs
+node --test scripts/workforce-careers-release.test.mjs
+node --test scripts/workforce-hha.test.mjs
+node --test scripts/workforce-coverage.test.mjs
+
+node --test scripts/workforce-auth-preview.test.mjs
+node --test scripts/workforce-camera.test.mjs scripts/workforce-form-fields.test.mjs
 node --test scripts/verify_primetime_file_session.test.mjs
 node --test scripts/verify_primetime_forms.test.mjs
 node --test scripts/verify_primetime_maintenance.test.mjs

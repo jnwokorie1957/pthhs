@@ -1,5 +1,13 @@
 # PTHHS Site Shell Register
 
+**November 5, 2026 workforce update:** The homepage adds Caregiver Sign In to
+primary navigation; Careers adds its specific Sign In, Create an Account and
+Apply to Join Primetime actions. The existing Careers canonical and public
+shell remain intact. Private caregiver/workforce entry pages use the shared
+branding and mobile navigation, with no public contact bar or analytics.
+Regression checks permit only these specific action/navigation additions.
+See the [workforce plan](docs/workforce/PLAN.md) for the current release status.
+
 **Updated:** September 10, 2026  
 **Canonical host in code:** `https://pthhs.net`
 

@@ -149,7 +149,7 @@ function vendorEstTimestamp(value: unknown): string {
   day(value.slice(0, 10));
   return value; // Calendar validation only. Never convert this source wall time to UTC.
 }
-export function readRequest(input: ReadInput): string {
+export function readRequest(input: ReadInput, scope?: "workforce_caregiver_search" | "workforce_roster_import"): string {
   if (UTC_CHANGE_READS.includes(input.operation)) {
     const modified = `<ModifiedAfter>${utcTimestamp(input.modifiedAfterUtc)}</ModifiedAfter>`;
     if (["GetCaregiverPermanentWeekAvailabilityChanges", "GetCaregiverPreferenceChanges", "GetCaregiverSpecialAvailabilityChanges"].includes(input.operation)) return `<OfficeID>${identifier(input.officeId)}</OfficeID>${input.caregiverId ? `<CaregiverID>${identifier(input.caregiverId)}</CaregiverID>` : '<CaregiverID xsi:nil="true"/>'}${modified}<LastChangeSeq>${sourceCursor(input.lastId, 2147483647n)}</LastChangeSeq>`;
@@ -245,7 +245,8 @@ export function readRequest(input: ReadInput): string {
     const values = { FirstName: input.firstName, LastName: input.term ?? input.lastName,
       ...(input.operation === "SearchPatients" ? { AdmissionID: input.admissionId } : { CaregiverCode: input.caregiverCode }) };
     const pairs = Object.entries(values).filter(([, value]) => value !== undefined && value !== "");
-    if (!pairs.length || pairs.some(([, value]) => typeof value !== "string" || value.trim().length < 2 || value.length > 60 || /[\u0000-\u001f]/.test(value))) throw new WorkflowError("last_name_search_requires_2_to_60_characters");
+    if (!pairs.length && input.operation === "SearchCaregivers" && scope === "workforce_roster_import") return "<SearchFilters/>";
+    if (!pairs.length || pairs.some(([, value]) => typeof value !== "string" || value.trim().length < (input.operation === "SearchCaregivers" && scope === "workforce_caregiver_search" ? 1 : 2) || value.length > 60 || /[\u0000-\u001f]/.test(value))) throw new WorkflowError("last_name_search_requires_2_to_60_characters");
     const escape = (value: string) => value.trim().replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;").replaceAll("'", "&apos;");
     return `<SearchFilters>${pairs.map(([key, value]) => `<${key}>${escape(value!)}</${key}>`).join("")}</SearchFilters>`;
   }
@@ -1003,8 +1004,8 @@ export function boundedAttachment(record: Record<string, string | null>, identit
   const filename = safeAttachmentFilename(record.FileName);
   return { filename, byteLength: bytes.length, base64: encoded, contentType: "application/octet-stream" as const };
 }
-export async function operationalRead(client: Pick<HhaSoapClient, "call">, input: ReadInput, projectionScope?: "document_metadata" | "clinical_review" | "medical_review" | "write_recovery" | "visit_discovery" | "visit_reason_review" | "maintenance_people_search"): Promise<OperationalRead> {
-  const body = readRequest(input);
+export async function operationalRead(client: Pick<HhaSoapClient, "call">, input: ReadInput, projectionScope?: "document_metadata" | "clinical_review" | "medical_review" | "write_recovery" | "visit_discovery" | "visit_reason_review" | "maintenance_people_search" | "workforce_caregiver_search" | "workforce_caregiver_profile" | "workforce_roster_import"): Promise<OperationalRead> {
+  const body = readRequest(input, projectionScope === "workforce_caregiver_search" || projectionScope === "workforce_roster_import" ? projectionScope : undefined);
   // One attempt per owner-requested read; shared server quota controls requests.
   let response: Awaited<ReturnType<HhaSoapClient["call"]>>;
   try { response = await client.call(input.operation, body, 1, projectionScope === "visit_reason_review" && input.operation === "GetVisitEditReasonActionTaken" ? "visit_reason_review" : undefined); }
@@ -1031,7 +1032,7 @@ export async function operationalRead(client: Pick<HhaSoapClient, "call">, input
     const transient = response.error?.kind === "transport" && response.error.code === "network_unavailable" && response.httpStatus === 0
       || response.error?.kind === "protocol" && [408, 500, 502, 503, 504].includes(response.httpStatus);
     if (previewRead && transient) throw new WorkflowError("hha_source_temporarily_unavailable", 503);
-    if (input.operation === "DownloadPatientDocument") {
+    if (["DownloadPatientDocument","DownloadCaregiverDocument"].includes(input.operation)) {
       // Expose only protocol diagnostics, never vendor messages, XML, filenames,
       // subject identifiers, credentials or opaque error/detail strings.
       const kind = ["application", "soap_fault", "protocol", "transport"].includes(response.error?.kind ?? "") ? response.error!.kind : "unclassified";
@@ -1040,9 +1041,9 @@ export async function operationalRead(client: Pick<HhaSoapClient, "call">, input
       const message = response.error?.message ?? "";
       const reason = /(?:not\s+authori[sz]ed|access\s+denied|permission|authentication|invalid\s+credentials)/i.test(message) ? "access_refused"
         : /(?:SOAPAction|method.{0,60}(?:not\s+supported|not\s+available|disabled)|operation.{0,60}not\s+supported)/i.test(message) ? "method_refused"
-        : /(?:(?:file|document).{0,100}(?:not\s+found|does\s+not\s+exist|not\s+available)|could\s+not\s+find.{0,60}file)/i.test(message) ? "file_unavailable"
+        : /(?:(?:file|document).{0,100}(?:not\s+found|does\s+not\s+exist|not\s+available|is\s+attached)|could\s+not\s+find.{0,60}file)/i.test(message) ? "file_unavailable"
         : /(?:nullreferenceexception|object\s+reference\s+not\s+set)/i.test(message) ? "source_null_reference" : "unclassified";
-      throw new WorkflowError(`patient_document_download_failed_${kind}_http_${http}_vendor_${vendor}_reason_${reason}`, 502);
+      throw new WorkflowError(`${input.operation==="DownloadCaregiverDocument"?"caregiver":"patient"}_document_download_failed_${kind}_http_${http}_vendor_${vendor}_reason_${reason}`, 502);
     }
     throw new WorkflowError("hha_read_failed", 502);
   }
@@ -1123,6 +1124,9 @@ export async function operationalRead(client: Pick<HhaSoapClient, "call">, input
         projected.ID = directScalar(xml, "ID");
         projected.OfficeIDs = caregiverOfficeIds(xml);
         projected.EmploymentDisciplines = caregiverEmploymentDisciplines(xml);
+        if(projectionScope === "workforce_caregiver_profile"){
+          for(const path of ["MiddleName","BirthDate","EmployeeType","HireDate","FirstWorkDate","LastWorkDate","Team/Name","Branch/Name","Location/Name","Address/Street1","Address/Street2","Address/City","Address/State","Address/Zip5","Address/Zip4","Address/HomePhone","Address/Phone2","Address/Phone3","NotificationPreferences/Email","NotificationPreferences/MobileOrSMS","Language1","Language2","Language3","Language4","ProfessionalLicensenumber","NPINumber"]){projected[path]=directPathScalar(xml,path);}
+        }
       }
       if (input.operation === "GetPatientPreferences" || input.operation === "GetCaregiverPreferences") projected.Preferences = JSON.stringify(extractElementBodies(xml, input.operation === "GetPatientPreferences" ? "PreferenceInfo" : "Preference").map(pref => Object.fromEntries(["PreferenceID", "PreferenceName", "PreferenceValue", "PreferenceType"].map(name => [name, field(pref, name)]))));
       if (input.operation === "GetCollectionNotes" && (projected.Notes?.length ?? 0) > 4000) { projected.Notes = projected.Notes!.slice(0, 4000); projected.NotesTruncated = "true"; }
@@ -1131,6 +1135,14 @@ export async function operationalRead(client: Pick<HhaSoapClient, "call">, input
       if ((projected.Note?.length ?? 0) > 4000) { projected.Note = projected.Note!.slice(0, 4000); projected.NoteTruncated = "true"; }
       return projected;
     });
+  }
+  if(projectionScope === "workforce_caregiver_profile" && ["SearchCaregiverDocument","DownloadCaregiverDocument"].includes(input.operation)){
+    const download=input.operation === "DownloadCaregiverDocument",root=download?"CaregiverDocument":"CaregiverDocuments",roots=directChildElements(response.resultXml,root);
+    if(roots.length!==1)throw new WorkflowError("caregiver_document_shape_unverified",502);
+    const body=extractElementBody(roots[0]!,root)||"",rows=download?roots:directChildElements(body,"CaregiverDocument");
+    if(!download&&extractElementBodies(body,"CaregiverDocument").length!==rows.length)throw new WorkflowError("caregiver_document_shape_unverified",502);
+    const keys=download?["CaregiverDocID","FileName","FileSize","ContentType","StreamData"]:["CaregiverDocID","CaregiverID","CaregiverDocumentTypeID","CaregiverDocumentType","FileName","CreatedOn","FileSize"];
+    const seen=new Set<string>();records=rows.map(element=>{const xml=extractElementBody(element,"CaregiverDocument")||"",row=Object.fromEntries(keys.map(key=>[key,directScalar(xml,key)])),id=identifier(row.CaregiverDocID);if(seen.has(id)||!download&&row.CaregiverID!==input.caregiverId)throw new WorkflowError("caregiver_document_owner_unverified",403);seen.add(id);return row;});
   }
   if (input.operation === "SearchPhoneNumber") records = ["Patient", "Caregiver"].flatMap(subject => extractElementBodies(extractElementBody(response.resultXml!, subject === "Patient" ? "Patients" : "Caregivers") || "", subject).map(xml => ({ Subject: subject, ID: field(xml, subject + "ID"), FirstName: field(xml, "FirstName"), LastName: field(xml, "LastName") })));
   if (input.operation === "GetReferralProfile" && (records.length > 1 || records.some(row => row.ReferralID !== input.id))) throw new WorkflowError("referral_exact_filter_not_honored", 502);
@@ -1144,6 +1156,6 @@ export async function operationalRead(client: Pick<HhaSoapClient, "call">, input
   }
   // Only the bounded dashboard ID discovery retains every received identifier.
   // Other operational previews preserve their existing projection limit.
-  const retainVisitIds = input.operation === "SearchVisitsV2" && projectionScope === "visit_discovery";
+  const retainVisitIds = input.operation === "SearchVisitsV2" && projectionScope === "visit_discovery" || input.operation === "SearchCaregivers" && projectionScope === "workforce_roster_import" && records.length <= 5000 || input.operation === "SearchCaregiverDocument" && projectionScope === "workforce_caregiver_profile" && records.length <= 1000;
   return { operation: input.operation, fetchedAt: new Date().toISOString(), source: "hhaexchange", validation: "source_unvalidated", timezone: "source_values_unconverted", records: retainVisitIds ? records : records.slice(0, 200), ...(attachment ? { attachment } : {}), ...(input.operation === "GetVisitBillInfoV2" && records.length === 0 ? { billingShape: billingResponseShape(response.resultXml, response.status) } : {}), ...(visitEditReasons ? { visitEditReasons } : {}), truncated: typedReasonsTruncated || (!retainVisitIds && records.length > 200), ...([...EST_CHANGE_READS, ...UTC_CHANGE_READS].includes(input.operation) ? { changePreview: { timeBasis: UTC_CHANGE_READS.includes(input.operation) ? "UTC" as const : "vendor_EST_wall_time_unconverted" as const, modifiedAfter: UTC_CHANGE_READS.includes(input.operation) ? input.modifiedAfterUtc! : input.modifiedAfter!, page: input.operation === "GetVisitChangesV4" ? input.page || "1" : null, completeness: "not_inferred" as const, checkpointAdvanced: false as const } } : {}) };
 }

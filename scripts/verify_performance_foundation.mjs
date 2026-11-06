@@ -98,7 +98,9 @@ for (const file of htmlFiles) {
       errors.push(`external linked resource: ${relative} -> ${href}`);
     }
   }
-  if (/<(?:iframe|embed|form)\b/i.test(html)) errors.push(`embedded runtime or form remains: ${relative}`);
+  const nonFilterHtml = relative === 'home-care-careers.html'
+    ? html.replace(/<form\b[^>]*id=["']opportunity-filters["'][^>]*>[\s\S]*?<\/form>/i, '') : html;
+  if (/<(?:iframe|embed|form)\b/i.test(nonFilterHtml)) errors.push(`embedded runtime or form remains: ${relative}`);
 
   const pictures = [...html.matchAll(/<picture\s+data-responsive-image=["'](side-img[12])["'][^>]*>([\s\S]*?)<\/picture>/gi)];
   pictureCount += pictures.length;
@@ -185,9 +187,35 @@ const phpFiles = await walk(publicDir, (file) => file.endsWith('.php'));
 if (phpFiles.length) errors.push(`public PHP endpoints remain: ${phpFiles.join(', ')}`);
 
 const publicFiles = await walk(publicDir);
+const isManagementFile=file=>['primetime/workforce.html','assets/workforce-management.css','assets/workforce-management.js','assets/workforce-management-auth.js'].includes(path.relative(publicDir,file).replaceAll(path.sep,'/'));
+const managementFiles=publicFiles.filter(isManagementFile);
+const managementBytes=(await Promise.all(managementFiles.map(file=>fs.stat(file)))).reduce((sum,stat)=>sum+stat.size,0);
+let managementGzip=0;for(const file of managementFiles)managementGzip+=gzipSync(await fs.readFile(file)).length;
+// Dedicated staff dashboard: navigation, live summaries and task-specific panes, without a UI library.
+if(managementBytes>50_000||managementGzip>13_000)errors.push(`workforce management exceeds 50 KB raw / 13 KB gzip budget: ${managementBytes}/${managementGzip}`);
+const isWorkforceFile = file => {
+  const relative = path.relative(publicDir, file).replaceAll(path.sep, '/');
+  return !isManagementFile(file)&&(relative === 'caregiver.html' || relative.startsWith('assets/workforce'));
+};
+const viewerFiles = publicFiles.filter(file => path.relative(publicDir,file).replaceAll(path.sep,'/').startsWith('assets/form-viewer/'));
+const viewerBytes = (await Promise.all(viewerFiles.map(file=>fs.stat(file)))).reduce((sum,stat)=>sum+stat.size,0);
+if(viewerBytes > 3_500_000) errors.push('PDF viewer exceeds 3.5 MB budget');
+const workforceFiles = publicFiles.filter(isWorkforceFile);
+const officialFormFiles = publicFiles.filter(file => path.relative(publicDir, file).replaceAll(path.sep, '/').startsWith('assets/forms/'));
+const officialFormBytes = (await Promise.all(officialFormFiles.map(file => fs.stat(file)))).reduce((sum, stat) => sum + stat.size, 0);
+if (officialFormBytes > 1_500_000) errors.push(`official blank-form assets exceed 1.5 MB budget: ${officialFormBytes}`);
+const workforceBytes = (await Promise.all(workforceFiles.map(file => fs.stat(file)))).reduce((sum, stat) => sum + stat.size, 0);
+let workforceGzip = 0;
+for (const file of workforceFiles) workforceGzip += gzipSync(await fs.readFile(file)).length;
+// The actual packet wizard, private image capture and scoped HR review add no
+// browser library. Bound their added transfer separately from operations.
+// Complete account creation/recovery and the private job board add about 22 KB
+// raw / 7 KB gzip without a new runtime library. Keep separate from operations.
+if (workforceBytes > 168_000 || workforceGzip > 53_000) errors.push(`workforce output exceeds 168 KB raw / 53 KB gzip budget: ${workforceBytes}/${workforceGzip}`);
 const publicBytes = (await Promise.all(publicFiles.map((file) => fs.stat(file)))).reduce((sum, stat) => sum + stat.size, 0);
-const internalBytes = (await Promise.all(publicFiles.filter(file => isInternalAppFile(file, publicDir)).map(file => fs.stat(file)))).reduce((sum, stat) => sum + stat.size, 0);
-const marketingBudget = assessMarketingBudget(publicBytes - internalBytes);
+const internalFiles = publicFiles.filter(file => isInternalAppFile(file, publicDir) && !isWorkforceFile(file)&&!isManagementFile(file));
+const internalBytes = (await Promise.all(internalFiles.map(file => fs.stat(file)))).reduce((sum, stat) => sum + stat.size, 0);
+const marketingBudget = assessMarketingBudget(publicBytes - internalBytes - workforceBytes - managementBytes - officialFormBytes - viewerBytes);
 if (marketingBudget.error) errors.push(marketingBudget.error);
 if (marketingBudget.warning) console.warn('PERFORMANCE_FOUNDATION_QA: WARNING -', marketingBudget.warning);
 // The authenticated app now includes source review, Demo/Live and durable
@@ -207,7 +235,6 @@ if (marketingBudget.warning) console.warn('PERFORMANCE_FOUNDATION_QA: WARNING -'
 // Native range/person/payer search, actionable queue and source reason staging
 // add about 23 KB raw / 7 KB gzip. No new runtime library or external resource.
 if (internalBytes > 500_000) errors.push(`internal app output exceeds 500 KB budget: ${internalBytes}`);
-const internalFiles = publicFiles.filter(file => isInternalAppFile(file, publicDir));
 let compressedInternalBytes = 0;
 for (const file of internalFiles) {
   const bytes = await fs.readFile(file);

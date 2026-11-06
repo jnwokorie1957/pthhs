@@ -1,0 +1,42 @@
+{
+  "reviewedOn": "2026-11-05",
+  "forms": [
+    {
+      "id": "w4-2026",
+      "label": "2026 Form W-4",
+      "file": "/assets/forms/w4-2026.pdf",
+      "source": "https://www.irs.gov/pub/irs-pdf/fw4.pdf",
+      "pages": 5,
+      "fillableFields": 54,
+      "sha256": "92444d8856ce55d9e25dca8b6d1420634fc68b11e1ab1f760916ea29ddd312b2"
+    },
+    {
+      "id": "i9-current",
+      "label": "Form I-9",
+      "source": "https://www.uscis.gov/sites/default/files/document/forms/i-9-paper-version.pdf",
+      "instructions": "https://www.uscis.gov/i-9",
+      "edition": "01/20/25",
+      "delivery": "complete official blank form; portal employee fields, with separate employer/translator sections",
+      "file": "/assets/forms/i9-2025.pdf",
+      "sha256": "780f348c34df694bb0b4dbbfaf9f22b99b9757b80d16a37ba89aadf069597281",
+      "pages": 4,
+      "fillableFields": 133
+    },
+    {
+      "id": "i9-instructions",
+      "file": "/assets/forms/i9-instructions-2025.pdf",
+      "source": "https://www.uscis.gov/sites/default/files/document/forms/i-9instr.pdf",
+      "pages": 8,
+      "edition": "01/20/25",
+      "sha256": "c66c3818fbecbfb87b5f0560f4dfd4086905daf72ca29dba15ce4c8d49dc4ca3"
+    },
+    {
+      "id": "new-hire-texas",
+      "file": "/assets/forms/new-hire-texas.pdf",
+      "source": "https://www.texasattorneygeneral.gov/sites/default/files/files/child-support/forms/tac55.303-c-1856e-accessible.pdf",
+      "pages": 2,
+      "edition": "REV 05/23",
+      "sha256": "246775a4914810a0cd709d33a22002276dfcde8f70cc5c994f3e6ea8f758139a"
+    }
+  ]
+}

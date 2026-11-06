@@ -1,0 +1,18 @@
+{
+  "version": 1,
+  "reviewReference": "Owner authorization 2026-11-06: publish Careers and authenticated portal access on PTHHS.net. Read-only HHA preparation approved; application, upload and public-opening collection remain closed.",
+  "environment": {
+    "WORKFORCE_STAFF_APPROVED": "true",
+    "WORKFORCE_HHA_PORTAL_APPROVED": "true",
+    "WORKFORCE_PUBLIC_OPPORTUNITIES_APPROVED": "false",
+    "WORKFORCE_APPLICANT_COLLECTION_APPROVED": "false",
+    "WORKFORCE_PACKET_REVIEW_APPROVED": "false",
+    "WORKFORCE_ID_DOCUMENTS_APPROVED": "false",
+    "WORKFORCE_ID_RETENTION_APPROVED": "false",
+    "WORKFORCE_GOOGLE_PLACES_APPROVED": "false",
+    "WORKFORCE_SIGN_IN_PROVIDERS": "google.com",
+    "WORKFORCE_INTAKE_OFFICE": "503324",
+    "WORKFORCE_EMPLOYER_EIN": "30-0076568",
+    "WORKFORCE_PORTAL_ORIGIN": "https://pthhs.net"
+  }
+}

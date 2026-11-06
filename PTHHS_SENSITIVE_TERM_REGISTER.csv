@@ -148,9 +148,9 @@ home-care-blog.html,43,medical,ALLOWED,The only medical substring is inside the 
 home-care-blog.html,45,medical,ALLOWED,Explicit scope limitation or non-medical context.,"Prepare for a conversation about non-medical home care in Houston with questions about daily routines, preferences, availability and next steps."
 home-care-blog.html,48,medical,ALLOWED,Explicit scope limitation or non-medical context.,"Non-medical personal assistance services for eligible children, adults, and seniors throughout Greater Houston."
 home-care-blog.html,61,home health,ALLOWED,Legal business name.,"© 2026 Primetime Home Health Services, Inc. All rights reserved."
-home-care-careers.html,28,home health,ALLOWED,Legal business name.,"Primetime Home Health Services, Inc. is an equal opportunity employer. Employment is contingent on the requirements applicable to the position."
-home-care-careers.html,29,medical,ALLOWED,Explicit scope limitation or non-medical context.,"Non-medical personal assistance services for eligible children, adults, and seniors throughout Greater Houston."
-home-care-careers.html,42,home health,ALLOWED,Legal business name.,"© 2026 Primetime Home Health Services, Inc. All rights reserved."
+home-care-careers.html,39,home health,ALLOWED,Legal business name.,"Primetime Home Health Services, Inc. is an equal opportunity employer. Employment is contingent on the requirements applicable to the position."
+home-care-careers.html,40,medical,ALLOWED,Explicit scope limitation or non-medical context.,"Non-medical personal assistance services for eligible children, adults, and seniors throughout Greater Houston."
+home-care-careers.html,53,home health,ALLOWED,Legal business name.,"© 2026 Primetime Home Health Services, Inc. All rights reserved."
 home-care-client-reviews.html,1,home health,ALLOWED,Legal-name or explicit service-distinction context.,Client Feedback | Primetime Home Health Houston
 home-care-client-reviews.html,23,medical,ALLOWED,Explicit scope limitation or non-medical context.,Contact the Houston team to ask about authorized non-medical personal assistance and the applicable agency onboarding process.
 home-care-client-reviews.html,25,medical,ALLOWED,Explicit scope limitation or non-medical context.,"Non-medical personal assistance services for eligible children, adults, and seniors throughout Greater Houston."
@@ -338,18 +338,18 @@ how-geriatric-care-improves-life-quality.html,1,home health,QUARANTINED,Article 
 how-geriatric-care-improves-life-quality.html,20,medical,QUARANTINED,Article is noindex and permanently redirected pending editorial review.,"Non-medical personal assistance services for eligible children, adults, and seniors throughout Greater Houston."
 how-geriatric-care-improves-life-quality.html,33,home health,QUARANTINED,Article is noindex and permanently redirected pending editorial review.,"© 2026 Primetime Home Health Services, Inc. All rights reserved."
 index.html,1,medical,ALLOWED,Explicit scope limitation or non-medical context.,Non-Medical Home Care Houston | Primetime
-index.html,12,medical,ALLOWED,Explicit scope limitation or non-medical context.,Non-Medical Home Care Services in Houston
-index.html,13,home health,ALLOWED,Legal business name.,"Primetime Home Health Services provides non-medical personal assistance for eligible seniors, adults and children throughout Greater Houston. Explore"
-index.html,13,medical,ALLOWED,Explicit scope limitation or non-medical context.,"Primetime Home Health Services provides non-medical personal assistance for eligible seniors, adults and children throughout Greater Houston. Explore"
-index.html,23,medical,ALLOWED,Explicit scope limitation or non-medical context.,Non-Medical PAS Support
-index.html,43,medical,ALLOWED,Explicit scope limitation or non-medical context.,Non-medical prompts that help eligible clients follow the medication schedule established by their healthcare provider.
-index.html,99,home health,ALLOWED,Legal business name.,"Primetime Home Health Services is a Houston-based agency serving local families. Our focus is straightforward: dependable personal assistance, respectful caregivers and a local team families can reach when they need help navigating care."
-index.html,110,home health,ALLOWED,Legal-name or explicit service-distinction context.,What is the difference between home care and home health care?
-index.html,111,home health,ALLOWED,Explicit scope limitation or non-medical context.,"Home care generally refers to non-medical support with everyday routines, while skilled home health services involve clinical care provided by licensed healthcare professionals. Primetime focuses on non-medical personal assistance services."
-index.html,111,medical,ALLOWED,Explicit scope limitation or non-medical context.,"Home care generally refers to non-medical support with everyday routines, while skilled home health services involve clinical care provided by licensed healthcare professionals. Primetime focuses on non-medical personal assistance services."
-index.html,126,home health,ALLOWED,Legal business name.,Primetime Home Health Services
-index.html,132,medical,ALLOWED,Explicit scope limitation or non-medical context.,"Non-medical personal assistance services for eligible children, adults, and seniors throughout Greater Houston."
-index.html,145,home health,ALLOWED,Legal business name.,"© 2026 Primetime Home Health Services, Inc. All rights reserved."
+index.html,13,medical,ALLOWED,Explicit scope limitation or non-medical context.,Non-Medical Home Care Services in Houston
+index.html,14,home health,ALLOWED,Legal business name.,"Primetime Home Health Services provides non-medical personal assistance for eligible seniors, adults and children throughout Greater Houston. Explore"
+index.html,14,medical,ALLOWED,Explicit scope limitation or non-medical context.,"Primetime Home Health Services provides non-medical personal assistance for eligible seniors, adults and children throughout Greater Houston. Explore"
+index.html,24,medical,ALLOWED,Explicit scope limitation or non-medical context.,Non-Medical PAS Support
+index.html,44,medical,ALLOWED,Explicit scope limitation or non-medical context.,Non-medical prompts that help eligible clients follow the medication schedule established by their healthcare provider.
+index.html,100,home health,ALLOWED,Legal business name.,"Primetime Home Health Services is a Houston-based agency serving local families. Our focus is straightforward: dependable personal assistance, respectful caregivers and a local team families can reach when they need help navigating care."
+index.html,111,home health,ALLOWED,Legal-name or explicit service-distinction context.,What is the difference between home care and home health care?
+index.html,112,home health,ALLOWED,Explicit scope limitation or non-medical context.,"Home care generally refers to non-medical support with everyday routines, while skilled home health services involve clinical care provided by licensed healthcare professionals. Primetime focuses on non-medical personal assistance services."
+index.html,112,medical,ALLOWED,Explicit scope limitation or non-medical context.,"Home care generally refers to non-medical support with everyday routines, while skilled home health services involve clinical care provided by licensed healthcare professionals. Primetime focuses on non-medical personal assistance services."
+index.html,127,home health,ALLOWED,Legal business name.,Primetime Home Health Services
+index.html,133,medical,ALLOWED,Explicit scope limitation or non-medical context.,"Non-medical personal assistance services for eligible children, adults, and seniors throughout Greater Houston."
+index.html,146,home health,ALLOWED,Legal business name.,"© 2026 Primetime Home Health Services, Inc. All rights reserved."
 locations/alief.html,1,home health,ALLOWED,Legal-name or explicit service-distinction context.,"Home Care in Alief, TX | Primetime Home Health"
 locations/alief.html,16,medical,ALLOWED,Explicit scope limitation or non-medical context.,"Dependable non-medical support for eligible Alief families who need help with daily routines, personal care, attendant services or caregiver relief at home."
 locations/alief.html,20,medical,ALLOWED,Explicit scope limitation or non-medical context.,"Alief is one of Houston’s most diverse communities, with multigenerational households and families balancing work, school, medical appointments and caregiving responsibilities. Primetime provides authorized, non-medical personal assistance that can make day-to-day care more manageable while helping clients remain at home."
