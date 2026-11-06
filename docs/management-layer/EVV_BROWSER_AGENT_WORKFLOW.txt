@@ -132,10 +132,25 @@ and two matching current-day saved reason/action rows (call link plus visit
 submission). CALL-REASON-001 and VISIT-SUBMIT-001 record this one explicitly
 approved example. No time fields, reprocess, payer submission, invented punch,
 clinical decision, free-text note or communication were made by the agent.
-The original source example remains open for owner teaching.
+The original member profile was retained for owner teaching.
 
-Dates November 2,4,5 still need call-detail review for this member, and November
-3 Call Out is not independently checked. The full interval is not complete.
+The owner then requested the remaining November 2-5 review, excluding today,
+and explicitly taught SCHEDULE-GATE-001: compare actual EVV with scheduled
+hours; stop on any overage and wait for the owner before further changes.
+Adjusted bill time does not satisfy that EVV comparison. This later instruction
+overrides any inference that the earlier one-hour example is an automatic
+overage-handling rule. Missing endpoints or unclear comparison remain unknown.
+
+All four requested past-day visits were subsequently inspected in order. Both
+Call In and Call Out pickers were opened for each: eight source No Records
+results, with no linked EVV clocks displayed. No call link, reason/action save
+or visit submission was performed in this follow-up. The selected-query review
+is complete; those visits remain unresolved. The result does not establish
+exhaustive retained-history absence or confirmed visits. Per-day private source
+details remain in protected evidence. November 5 Visit Info is retained with
+Find Calls closed, and November 6 was not opened. No positive overage case was
+encountered or resolved; the new stop rule remains for the next genuine case.
+
 This bounded browser example does not enable Primetime API writes or establish
 an autonomous routine/blanket110A policy, every source/payer acceptance, staff
 account authority or a supported vendor action contract. Those remain open.

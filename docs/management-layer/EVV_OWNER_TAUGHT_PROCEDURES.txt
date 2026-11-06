@@ -107,7 +107,7 @@ At that read-only stage no call was linked and no source Save was submitted.
 The later specifically authorized example below supersedes that action status.
 
 REVIEW-DATES-001 - REVIEW THROUGH YESTERDAY
-Version: 1. Owner-taught November 6, America/Chicago.
+Version: 2. Owner-taught and follow-up checked November 6, America/Chicago.
 For the current review inspect November 1 through November 5, inclusive. Always
 stop at the previous service day; do not work today's incomplete calls while
 caregivers still have time to submit them. This is a calendar-day cutoff, not a
@@ -123,12 +123,19 @@ clock-in and its Link Call menu offered Link Call Out. That call-out picker
 returned a real candidate with the displayed source reason No Schedule Opening.
 Keep that private call's actual times/names/identifiers out of this register.
 The owner subsequently approved this exact call-out link and visit submission;
-source readback is recorded below. November 2, 4 and 5 call details for this
-second member remain unreviewed; November 3 Call Out is not independently
-checked. Do not report the entire interval complete.
+source readback is recorded below. The subsequent requested four-day follow-up
+was then reviewed in date order. Both selected-visit call directions were
+opened separately for each day: eight genuine Find Calls views showed No
+Records. No linked EVV clocks were displayed on those visits. Their source
+schedule scopes were checked, but an EVV duration could not be established.
+No call was linked, code/action selected or source Save submitted during that
+follow-up. The review is complete for those inspected UI queries; the visits
+remain unresolved. This is not exhaustive retained-call-history absence or a
+completed confirmation claim. Private per-day details stay in protected evidence.
 
 CALL-REASON-001 - OWNER-TAUGHT SCHEDULE-DIFFERENCE EXAMPLE
 Version: 2. One owner-directed call-out link and readback accepted November 6.
+Apply the later SCHEDULE-GATE-001 before any new call link or visit submission.
 The owner instructed choosing the new reason for working at a different time,
 then the member-confirmation action, linking the call and closing, with the
 other direction handled separately when applicable. The owner described 110A
@@ -175,6 +182,7 @@ Action Taken, and submitting at the bottom. This is separate from the candidate
 call's New Reason and Action Taken selections.
 
 1. Recheck the exact visit/day, member attestation and conditional reason scope.
+   Apply SCHEDULE-GATE-001 to actual EVV evidence before continuing.
 2. Select the applicable visit reason, then its dependent action. For this
    approved example the exact labels were the same 110A and member-confirmation
    labels recorded above. Do not substitute IDs from unrelated reason catalogs.
@@ -197,3 +205,34 @@ The existing Call History verification entry was not newly created by this
 step. Saved maintenance does not establish every payer acceptance or a supported
 Primetime confirmation API. Additional examples and automation policy remain
 subject to their own evidence, owner direction and supported source contract.
+
+SCHEDULE-GATE-001 - STOP WHEN EVV EXCEEDS SCHEDULED HOURS
+Version: 1. Explicit owner instruction November 6; applies to subsequent work.
+
+The owner directed paying attention to scheduled hours and stopping to work
+together whenever EVV is greater than the scheduled hours.
+
+1. Inspect the selected visit's scheduled hours and actual EVV evidence before
+   linking a call, changing a field or submitting. Keep scheduled, original
+   EVV and adjusted Bill Time values separate.
+2. If EVV exceeds the schedule, stop on that visit and wait for the owner. Do
+   not continue other dates, apply a reason/action, link or save that case while
+   waiting. Preserve the precise issue in protected evidence and explain it
+   without publishing identities or raw timestamps.
+3. An adjusted bill-clock span that fits the schedule does not remove an EVV
+   overage. Do not round, cap, shift or invent punches to make the comparison
+   fit. The earlier approved one-hour example preceded this stop instruction
+   and is not permission to handle a new overage automatically.
+4. Inspect genuine candidate calls before pairing them. If the available pair
+   would exceed the schedule, stop before linking it. Missing endpoints or
+   unclear units/date coverage make the comparison unknown, not zero; obtain
+   clarification before a source write when the gate cannot be assessed.
+5. If the inspected call searches return No Records, leave the visit unchanged
+   and unresolved, then continue only within the requested past-day review.
+   Do not mark a missing-call visit confirmed merely to clear its queue.
+
+Follow-up evidence: eight selected-visit call pickers were empty, so no new
+source writes or overage handling occurred. The stop rule is recorded; a new
+positive overage case has not yet been worked through with the owner. Today's
+visits were excluded, and the final past-day Visit Info was left open with
+Find Calls closed. Scope limits remain explicit in REVIEW-DATES-001.
