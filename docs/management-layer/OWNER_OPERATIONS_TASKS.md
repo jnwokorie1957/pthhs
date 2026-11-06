@@ -14,10 +14,11 @@
 
 ## Start here
 
-- [ ] Authorize the [prepared support email](evv-maintenance-resources/HHA_INTEGRATION_SUPPORT_REQUEST_2026-11-06.txt)
+- [x] Authorized and sent the [support email](evv-maintenance-resources/HHA_INTEGRATION_SUPPORT_REQUEST_2026-11-06.txt)
   to EINTSupport@hhaexchange.com. It contains technical diagnostics and asks for
   the applicable API contract and permitted supervised AI browser operation;
-  patient records and credentials are excluded. No message has been sent.
+  patient records and credentials are excluded. Sent November 6 from the owner's
+  specified jnwokorie@pthhs.net account and verified in Outlook Sent Items.
 - [ ] Teach the first straightforward actual-call maintenance procedure using
   the [browser/API execution template](EVV_BROWSER_AGENT_WORKFLOW.txt): evidence,
   permitted adjustment, reason/action/note, staff approval, HHA readback and
@@ -29,7 +30,8 @@
 - [ ] Obtain HHA's supported visit-specific reason/action lookup and confirmation
   contract. The exact same UI visit passes API identity checks but returns no
   eligible choices. The [prepared technical questions](evv-maintenance-resources/HHA_SUPPORT_QUESTIONS.txt)
-  include the receipt/correlation and remain unsent. Sign-in is resolved for the
+  include the receipt/correlation. The concise email is sent; the full reference
+  packet was not attached and HHA's reply is pending. Sign-in is resolved for the
   current session; no source confirmation has been enabled.
 
 - [x] An older cached visit can open a fresh HHA patient/day queue for office review.

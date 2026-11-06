@@ -17,10 +17,11 @@ approved limited automation, then build the owned scheduling platform.
 [ ] M04 Protected assigned reports: action/evidence/rule and unresolved next step.
 [ ] M05 Owner-selected approximately 25-client shadow pilot and measured results.
 [ ] M06 Reviewed submissions, then approved-rule automation using actual calls.
-[x] M02e Prepared concise vendor email to the published Enterprise Integration
+[x] M02e Sent concise vendor email to the published Enterprise Integration
     address, covering exact-visit lookup/action/readback and permitted assisted
-    browser operation. HHA_INTEGRATION_SUPPORT_REQUEST_2026-11-06.txt is unsent;
-    outgoing-message authorization and source response remain pending.
+    browser operation. HHA_INTEGRATION_SUPPORT_REQUEST_2026-11-06.txt records
+    the owner-authorized November 6 send from jnwokorie@pthhs.net, verified in
+    Outlook Sent Items. The vendor response/source contract remain pending.
 [x] M05a API/browser teaching template recorded in EVV_BROWSER_AGENT_WORKFLOW.txt.
     Primetime confirmation remains the goal; neither execution route has passed
     source-write acceptance. Owner example/rule/pilot selection remains open.
@@ -61,8 +62,9 @@ approved limited automation, then build the owned scheduling platform.
     patient/office/date identity proof. HHA_VISIT_REASON_CATALOG_COMPARISON_2026-11-05.md.
 [ ] M02d Supported exact-visit reason/action lookup and submit/readback contract.
     Ask HHA to explain the successful-empty API response and supply the correct
-    applicable IDs/note rules and supported action interface. Technical packet
-    prepared but unsent. Do not hardcode UI IDs or substitute other catalogs.
+    applicable IDs/note rules and supported action interface. Concise technical
+    email sent; full packet remains reference material. Do not hardcode UI IDs
+    or substitute other catalogs.
 [x] M01a Administrator review workspace implemented: full office/day source queue,
     durable source-bound cases, genuine scoped call evidence and proposals.
 [x] M01c November6 card/filter correction accepted: Open office reviews excludes

@@ -1,4 +1,7 @@
-PREPARED HHA TECHNICAL QUESTIONS - NOT SENT
+HHA TECHNICAL QUESTIONS - REFERENCE PACKET
+The concise support email was sent November 6 from jnwokorie@pthhs.net to
+EINTSupport@hhaexchange.com and verified in Outlook Sent Items. This longer
+reference packet was not attached. Vendor reply/case number remain pending.
 Purpose: supported visit maintenance inside Primetime using the agency's actual
 HHA-recorded caregiver calls. Original event times remain unchanged.
 The owner/operator should supply account/customer/office identifiers through an
@@ -119,7 +122,8 @@ The concise external message is prepared in
 HHA_INTEGRATION_SUPPORT_REQUEST_2026-11-06.txt. Official Texas API documentation
 publishes EINTSupport@hhaexchange.com and routing to EISD Production Support;
 ask that team to identify the applicable existing-HHA-origin interface.
-No message is sent until the owner authorizes the specific outgoing email.
+The owner authorized the specific concise email and specified the business
+sender; that message has been sent once from the verified Outlook account.
 
 Also establish whether the agency's agreement supports a supervised AI browser
 operator assisting authorized staff through existing HHA Visit Maintenance,

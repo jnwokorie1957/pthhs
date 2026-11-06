@@ -1,5 +1,8 @@
-PREPARED SUPPORT EMAIL - NOT SENT
+SUPPORT EMAIL - SENT
 Prepared November 6, 2026, America/Chicago.
+Sent November 6, 2026 from jnwokorie@pthhs.net through the connected Outlook
+account. Sender, exact subject and recipient were verified in Sent Items.
+This confirms submission; a vendor reply or support-case number is not yet known.
 To: EINTSupport@hhaexchange.com
 Subject: PTHHS - existing HHA EVV maintenance: visit reason lookup, confirmation API and assisted UI support
 
@@ -53,4 +56,6 @@ integration cases to EISD Production Support:
 https://knowledge.hhaexchange.com/edi/Content/Documentation/EDI/API-Texas-EVV-Data-Aggregator-Specs-P.htm
 The existing Enterprise/HHA-origin workflow is deliberately distinguished from
 that page's separate aggregation interface. Routing does not prove entitlement.
-User authorization to send this exact outgoing message is still pending.
+The owner explicitly authorized this outgoing message and specified
+jnwokorie@pthhs.net as the sender. The verified Outlook account was used;
+the separately connected personal Gmail account was not used.

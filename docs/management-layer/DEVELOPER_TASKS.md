@@ -1,8 +1,14 @@
 # PTHHS Management Layer — Developer Checklist
 
+- [x] Owner-authorized HHA support email sent November 6 from the verified
+  jnwokorie@pthhs.net Outlook account to EINTSupport@hhaexchange.com; exact
+  subject/sender/recipient verified in Sent Items. No private records or
+  credentials attached. Vendor response/source-action acceptance remain pending.
+  HHA walkthrough is open and awaits the owner's first date/example/instruction.
+
 - [x] Prepared the exact technical support email to HHA's published Enterprise
   Integration address and separated API-backed Primetime confirmation from a
-  permitted assisted HHA browser operator. [Request, not yet sent](evv-maintenance-resources/HHA_INTEGRATION_SUPPORT_REQUEST_2026-11-06.txt)
+  permitted assisted HHA browser operator. [Sent request](evv-maintenance-resources/HHA_INTEGRATION_SUPPORT_REQUEST_2026-11-06.txt)
   and [teaching/verification template](EVV_BROWSER_AGENT_WORKFLOW.txt) preserve
   real-call evidence, supervised pilot, later approved-rule processing and staff
   escalations. Source writes and browser automation are not accepted by this plan.

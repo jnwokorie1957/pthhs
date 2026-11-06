@@ -70,7 +70,9 @@ does not replace the live API feed with scraping or bypass the source contract.
 See EVV_BROWSER_AGENT_WORKFLOW.txt for the teaching template and staged rollout.
 The prepared external request now explicitly asks HHA about both paths:
 evv-maintenance-resources/HHA_INTEGRATION_SUPPORT_REQUEST_2026-11-06.txt
-It is unsent pending authorization for that outgoing message. Actual caregiver
+The owner-authorized email was sent November 6 from jnwokorie@pthhs.net to
+EINTSupport@hhaexchange.com, verified in Sent Items; the vendor answer is pending.
+Actual caregiver
 events only, staff handling of consequential judgment, escalation/reporting and
 the later scheduling objective remain the accepted product direction.
 
@@ -96,7 +98,8 @@ Obtain current vendor documentation for THIS tenant's supported interface:
   adjustment: exact fields, preservation/omission rules and required reason/note.
 - Supported result IDs, conflict/version controls, idempotency, retry behavior and
   reconciliation after a timeout or unknown outcome.
-No vendor message has been sent. Do not bypass these source contracts with a
+The November 6 support email is sent; no vendor action contract is accepted yet.
+Do not bypass these source contracts with a
 scraped import, guessed payload or fake success. Independent staff-view, scoped
 review, policy-draft and report implementation can continue while they are open.
 
