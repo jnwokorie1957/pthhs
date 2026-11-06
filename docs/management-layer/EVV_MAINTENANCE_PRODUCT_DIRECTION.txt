@@ -61,6 +61,19 @@ VISIT MAINTENANCE SCREEN
    HTTP transport success alone, unresolved write result or local note save.
 
 SOURCE IMPLEMENTATION STATUS / PRECISE DEPENDENCIES
+November 6 clarification: confirmation from Primetime remains the intended
+outcome. The current API gap does not establish permanent impossibility. There
+are two separate execution candidates: an HHA-supported API adapter behind the
+Primetime workbench, and a permitted assisted browser operator using HHA's own
+screens. Neither has completed source-write/readback acceptance. Browser use
+does not replace the live API feed with scraping or bypass the source contract.
+See EVV_BROWSER_AGENT_WORKFLOW.txt for the teaching template and staged rollout.
+The prepared external request now explicitly asks HHA about both paths:
+evv-maintenance-resources/HHA_INTEGRATION_SUPPORT_REQUEST_2026-11-06.txt
+It is unsent pending authorization for that outgoing message. Actual caregiver
+events only, staff handling of consequential judgment, escalation/reporting and
+the later scheduling objective remain the accepted product direction.
+
 Office/day overview is accepted for all returned IDs (O03). Current visit and
 selected-subject call reads are deployed. Call-history completeness, reliable
 attempt-to-visit joins and applicable reason/action mappings remain open.

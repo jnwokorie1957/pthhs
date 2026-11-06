@@ -1,80 +1,122 @@
 (() => {
-  const panel = document.getElementById('personnel-workspace');
+  const el = id => document.getElementById(id), panel = el('personnel-workspace');
   if (!panel) return;
-  let generation = 0, actor;
-  const status = document.getElementById('personnel-message'), list = document.getElementById('personnel-list'), detail = document.getElementById('personnel-detail');
-  const node = (tag, text) => { const element = document.createElement(tag); element.textContent = text; return element; };
-  document.addEventListener('workforce-session-cleared', () => { generation++; actor = null; panel.hidden = true; list.replaceChildren(); detail.replaceChildren(); });
-  document.addEventListener('workforce-session', event => {
-    generation++; actor = event.detail;
-    panel.hidden = !(['hr', 'owner'].includes(actor.grant.role) && actor.grant.permissions.includes('applications.review'));
-  });
-  async function open(uid) {
-    const sequence = generation; detail.replaceChildren();
-    try {
-      const response = await workforceApi('/staff/applications/' + encodeURIComponent(uid));
-      if (sequence !== generation) return;
-      const application = response.application;
-      detail.append(node('h3', 'Application · ' + application.state), node('p', 'Office: ' + application.office + ' · Packet: ' + application.packetVersion));
-      const dl = document.createElement('dl');
-      for (const [key, value] of Object.entries(application.answers)) dl.append(node('dt', ({ssn:'Social Security number',birthDate:'Date of birth'}[key]||key.replace(/([a-z])([A-Z])/g,'$1 $2').replaceAll('_',' ').replace(/^./,letter=>letter.toUpperCase()))), node('dd', key === 'ssn' ? '•••-••-' + String(value).replace(/\D/g, '').slice(-4) : key === 'birthDate' ? 'Restricted identity information supplied' : value || 'Not entered'));
-      detail.append(dl);
-      if (application.signature) detail.append(node('p', 'Reference release signed by ' + application.signature.name + ' at ' + application.signature.signedAt + '. Source hash and answer-version evidence are retained.'));
-      if (!actor.grant.permissions.includes('documents.review')) return;
-      detail.append(node('h3','Official forms completed in the portal'));
-      for (const kind of ['i9','w4','new_hire']) {
-        const result = await workforceApi('/staff/applications/' + encodeURIComponent(uid) + '/forms/' + kind);
-        if (sequence !== generation) return;
-        const form = result.form; detail.append(node('p',kind.toUpperCase() + ': ' + (form ? form.state + ' · revision ' + form.revision : 'Not started')));
-        if (!form) continue;
-        const download = node('button','Download private ' + kind.toUpperCase()); download.type = 'button';
-        download.onclick = async () => { try { const blob=await workforceApi('/staff/applications/'+encodeURIComponent(uid)+'/forms/'+kind+'/pdf',undefined,true);if(sequence!==generation)return;const url=URL.createObjectURL(blob),link=document.createElement('a');link.href=url;link.download='private-'+kind+'.pdf';link.click();setTimeout(()=>URL.revokeObjectURL(url),1000); } catch(error){if(sequence===generation)status.textContent=error.message;} };detail.append(download);
-      }
-      const docs = await workforceApi('/staff/applications/' + encodeURIComponent(uid) + '/documents');
-      if (sequence !== generation) return;
-      detail.append(node('h3', 'Private document folder'));
-      for (const doc of docs.items) {
-        const button = node('button', doc.kind.replaceAll('_', ' ') + ' · ' + doc.state.replaceAll('_', ' ')); button.type = 'button';
-        button.disabled = doc.state !== 'pending_review';
-        button.onclick = async () => {
-          try {
-            const blob = await workforceApi('/staff/applications/' + encodeURIComponent(uid) + '/documents/' + encodeURIComponent(doc.id), undefined, true);
-            if (sequence !== generation) return;
-            const url = URL.createObjectURL(blob), link = document.createElement('a'); link.href = url; link.download = 'private-personnel-document.jpg'; link.click(); setTimeout(() => URL.revokeObjectURL(url), 1000);
-          } catch (error) { if (sequence === generation) status.textContent = error.message; }
-        };
-        detail.append(button);
-      }
-    } catch (error) { if (sequence === generation) status.textContent = error.message; }
+  const status = el('personnel-message'), list = el('personnel-list'), detail = el('personnel-detail');
+  const support = el('caregiver-account-support'), accountDetail = el('caregiver-account-detail'), results = el('caregiver-account-results'), accountMessage = el('caregiver-account-message');
+  let generation = 0, applicationSelection = 0, accountSelection = 0, actor, packetPromise;
+  const urls = new Set(), previews = new Set();
+  const node = (tag, text, className) => { const element = document.createElement(tag); if (text !== undefined) element.textContent = text; if (className) element.className = className; return element; };
+  const can = permission => actor?.grant.permissions.includes(permission);
+  const date = value => { if (!value) return ''; if (/^\d{4}-\d{2}-\d{2}$/.test(value)) { const [year,month,day] = value.split('-'); return month + '/' + day + '/' + year; } const parsed = new Date(value); return Number.isNaN(parsed.getTime()) ? value : parsed.toLocaleString('en-US', {timeZone:'America/Chicago', dateStyle:'medium', timeStyle:'short'}); };
+  const human = value => String(value || '').replaceAll('_', ' ').replace(/^./, letter => letter.toUpperCase());
+  const name = answers => [answers.firstName, answers.lastName].filter(Boolean).join(' ') || 'Caregiver profile';
+  function release() { for (const url of urls) URL.revokeObjectURL(url); urls.clear(); for (const preview of previews) { try { preview.close(); } catch {} } previews.clear(); }
+  function section(target, title) { const block = node('section', undefined, 'caregiver-profile-section'); block.append(node('h3', title)); target.append(block); return block; }
+  function fields(target, values) { const dl = node('dl', undefined, 'caregiver-profile-fields'); for (const [label, value] of values) { const group = node('div'); group.append(node('dt', label), node('dd', value || 'Not entered')); dl.append(group); } target.append(dl); }
+  function pdfButton(target, title, path, current, message) {
+    const button = node('button', title, 'btn-secondary'); button.type = 'button';
+    button.onclick = async () => {
+      const preview = window.open('about:blank', '_blank'); if (preview) { preview.opener = null; previews.add(preview); }
+      button.disabled = true;
+      try {
+        const blob = await workforceApi(path, undefined, true);
+        if (!current()) { preview?.close(); return; }
+        const url = URL.createObjectURL(blob); urls.add(url);
+        if (preview && !preview.closed) preview.location.replace(url);
+        else { const link = node('a', 'Open PDF to view or print', 'caregiver-print-link'); link.href = url; link.target = '_blank'; link.rel = 'noopener'; target.append(link); }
+        message.textContent = '';
+      } catch (error) { preview?.close(); if (current()) message.textContent = error.message; }
+      finally { if (current()) button.disabled = false; }
+    }; target.append(button);
   }
-  document.getElementById('personnel-refresh').onclick = async () => {
-    const sequence = generation;
+  async function applicationProfile(uid, target, current, message, showName = true) {
+    const response = await workforceApi('/staff/applications/' + encodeURIComponent(uid));
+    if (!current()) return;
+    const application = response.application, a = application.answers;
+    if (showName) { const head = node('div', undefined, 'caregiver-profile-heading'); head.append(node('h2', name(a)), node('span', human(application.state), 'manager-status manager-status-' + application.state)); target.append(head); }
+    const contact = section(target, 'Contact information');
+    fields(contact, [['Email', a.email], ['Phone number', a.phone], ['Alternate phone', a.alternatePhone], ['Street address', [a.street, a.unit].filter(Boolean).join(', ')], ['City / state / ZIP', [a.city, a.state, a.zip].filter(Boolean).join(', ')]]);
+    fields(section(target, 'Emergency contact'), [['Name', a.emergencyName], ['Relationship', a.emergencyRelationship], ['Phone number', a.emergencyPhone]]);
+    fields(section(target, 'Availability'), [['Preferred start date', date(a.availableDate)], ['Full time / part time', a.workTime], ['Preferred weekly hours', a.weeklyHours]]);
+    const applicationArea = section(target, 'Employment application');
+    fields(applicationArea, [['Status', human(application.state)], ['Last updated', date(application.updatedAt)], ['Signed by', application.signature?.name || 'Not signed']]);
+    if (can('documents.review')) {
+      const actions=node('div',undefined,'caregiver-print-actions');applicationArea.append(actions);
+      pdfButton(actions, 'Print complete packet', '/staff/applications/' + encodeURIComponent(uid) + '/packet/pdf', current, message);
+      pdfButton(actions, 'View / print application', '/staff/applications/' + encodeURIComponent(uid) + '/pdf', current, message);
+    }
+    const disclosure = node('details', undefined, 'caregiver-application-details'); disclosure.append(node('summary', 'Read application responses')); applicationArea.append(disclosure);
     try {
-      const response = await workforceApi('/staff/applications'); if (sequence !== generation) return;
-      list.replaceChildren();document.dispatchEvent(new CustomEvent('workforce-applications-updated',{detail:response.items}));status.textContent = response.items.length + (response.items.length===1?' application':' applications')+' in your assigned offices (up to 50 per office).';
-      if(!response.items.length){const empty=node('div','No applications to review yet. New applications will appear here.');empty.className='manager-empty';list.append(empty);}
-      for (const item of response.items) {
-        const button = node('button', (item.displayName||'Application #'+item.uid.slice(-6).toUpperCase())+' · '+({draft:'Draft',submitted:'Submitted'}[item.state]||item.state) + (item.weeklyHours ? ' · ' + item.weeklyHours + ' hours requested' : '') + (item.hoursReviewRequired ? ' · 40 HOURS: OFFICE REVIEW REQUIRED' : ''));
-        if (item.hoursReviewRequired) button.className = 'hours-review-notice';
-        button.type = 'button'; button.onclick = () => open(item.uid); list.append(button);
-      }
-    } catch (error) { if (sequence === generation) status.textContent = error.message; }
+      packetPromise ||= workforceApi('/application/packet'); const metadata = await packetPromise;
+      if (!current()) return;
+      const grouped = new Map();
+      for (const field of metadata.packet.fields) { if (!grouped.has(field.section)) grouped.set(field.section, []); const value = a[field.id]; grouped.get(field.section).push([field.label, field.id === 'ssn' ? (value ? '***-**-' + value.replace(/\D/g, '').slice(-4) : '') : field.id === 'birthDate' ? (value ? 'Supplied in private application' : '') : value]); }
+      for (const [title, values] of grouped) fields(section(disclosure, title), values);
+    } catch (error) { packetPromise = null; if (current()) disclosure.append(node('p', 'Could not load responses. Reopen the profile.')); }
+    if (!current()) return;
+    if (!can('documents.review')) { target.append(node('p', 'Private document access required.')); return; }
+    const formsArea = section(target, 'Employment forms'), documentsArea = section(target, 'Identification documents');
+    const base = '/staff/applications/' + encodeURIComponent(uid);
+    await Promise.allSettled([...(Object.entries({i9:'Form I-9',w4:'Form W-4',new_hire:'Texas New Hire Report'}).map(async ([kind, title]) => {
+      const row = node('div', undefined, 'caregiver-file-row'); row.append(node('h4', title)); formsArea.append(row);
+      try { const result = await workforceApi(base + '/forms/' + kind); if (!current()) return; const form = result.form; row.append(node('p', form ? human(form.state) + ' · Updated ' + date(form.updatedAt) : 'Not started'));
+        if (form) pdfButton(row, 'View / print ' + title, base + '/forms/' + kind + '/pdf', current, message);
+      } catch { if (current()) row.append(node('p', 'Unavailable. Reopen the profile.')); }
+    })), (async () => {
+      try { const docs = await workforceApi(base + '/documents'); if (!current()) return;
+        for (const [kind, title] of Object.entries({identity:'Photo ID',social_security:'Social Security card',employment_authorization:'Employment authorization document',i9:'Uploaded I-9',w4:'Uploaded W-4'})) {
+          if (!['identity','social_security'].includes(kind) && !docs.items.some(doc => doc.kind === kind)) continue;
+          const row = node('div', undefined, 'caregiver-file-row'); row.append(node('h4', title)); documentsArea.append(row); const matches = docs.items.filter(doc => doc.kind === kind);
+          if (!matches.length) row.append(node('p', 'Not submitted'));
+          for (const doc of matches) { row.append(node('p', human(doc.state) + ' · Uploaded ' + date(doc.createdAt)));
+            if (doc.state === 'pending_review') pdfButton(row, 'View / print ' + title, base + '/documents/' + encodeURIComponent(doc.id) + '/print', current, message);
+            else row.append(node('p', 'Security check pending.'));
+          }
+        }
+      } catch { if (current()) documentsArea.append(node('p', 'Could not load documents. Reopen the profile.')); }
+    })()]);
+  }
+  async function openApplication(uid) {
+    const sequence = ++applicationSelection, session = generation, current = () => sequence === applicationSelection && session === generation;
+    detail.replaceChildren(); status.textContent = 'Opening application…';
+    try { await applicationProfile(uid, detail, current, status); if (current()) status.textContent = ''; }
+    catch (error) { if (current()) status.textContent = error.message; }
+  }
+  async function openAccount(match) {
+    const sequence = ++accountSelection, session = generation, current = () => sequence === accountSelection && session === generation;
+    accountDetail.replaceChildren(); accountMessage.textContent = 'Opening profile…';
+    try {
+      const account = await workforceApi('/staff/accounts/' + encodeURIComponent(match.uid) + '/profile'); if (!current()) return;
+      const heading = node('div', undefined, 'caregiver-profile-heading'); heading.append(node('h2', [match.firstName, match.lastName].filter(Boolean).join(' ')), node('span', human(account.state), 'manager-status manager-status-' + account.state)); accountDetail.append(heading);
+      const accountArea = section(accountDetail, 'Account access');
+      fields(accountArea, [['Account email', account.email], ['Account status', account.disabled ? 'Disabled' : 'Active'], ['Email verification', account.emailVerified ? 'Verified' : 'Not yet verified']]);
+      if (!account.disabled && account.providers.includes('password')) {
+        const send = node('button', 'Send password reset email', 'btn-secondary'); send.type = 'button';
+        send.onclick = async () => { send.disabled = true; try { const result = await workforceApi('/staff/accounts/' + encodeURIComponent(account.uid) + '/reset', {}); if (!current()) return; await window.WorkforceSendPasswordReset(result.email); if (current()) accountMessage.textContent = 'Reset email requested for ' + account.email + '.'; } catch (error) { if (current()) { accountMessage.textContent = error.message; send.disabled = false; } } }; accountArea.append(send);
+      } else if (!account.disabled) accountArea.append(node('p', 'Password recovery is managed by the sign-in provider.'));
+      if (can('applications.review')) await applicationProfile(match.uid, accountDetail, current, accountMessage, false);
+      else accountDetail.append(node('p', 'Application review access required.'));
+      if (current()) accountMessage.textContent = '';
+    } catch (error) { if (current()) accountMessage.textContent = error.message; }
+  }
+  el('personnel-refresh').onclick = async () => {
+    const session = generation;
+    try {
+      const response = await workforceApi('/staff/applications'); if (session !== generation) return;
+      list.replaceChildren(); document.dispatchEvent(new CustomEvent('workforce-applications-updated', {detail:response.items})); status.textContent = response.items.length + (response.items.length === 1 ? ' application' : ' applications') + ' in your assigned offices (up to 50 per office).';
+      if (!response.items.length) list.append(node('div', 'No applications to review yet.', 'manager-empty'));
+      for (const item of response.items) { const button = node('button', (item.displayName || 'Application #' + item.uid.slice(-6).toUpperCase()) + ' · ' + human(item.state)); button.type = 'button'; button.onclick = () => openApplication(item.uid); list.append(button); }
+    } catch (error) { if (session === generation) status.textContent = error.message; }
   };
-  const support=document.getElementById('caregiver-account-support'),accountDetail=document.getElementById('caregiver-account-detail'),accountMessage=document.getElementById('caregiver-account-message');
-  let accountGeneration=0;
-  document.addEventListener('workforce-session-cleared',()=>{accountGeneration++;support.hidden=true;accountDetail.replaceChildren();accountMessage.textContent='';document.getElementById('caregiver-account-email').value='';});
-  document.addEventListener('workforce-session',event=>{support.hidden=!(['owner','hr'].includes(event.detail.grant.role)&&event.detail.grant.permissions.includes('accounts.support'));});
-  document.getElementById('caregiver-account-search').onsubmit=async event=>{
-    event.preventDefault();if(!event.currentTarget.reportValidity())return;const sequence=++accountGeneration;accountDetail.replaceChildren();accountMessage.textContent='Finding caregiver account…';
-    try{
-      const account=await workforceApi('/staff/accounts/lookup',{email:document.getElementById('caregiver-account-email').value.trim()});if(sequence!==accountGeneration)return;
-      accountMessage.textContent='';const labels={'password':'Email and password','google.com':'Google','apple.com':'Apple','microsoft.com':'Microsoft','yahoo.com':'Yahoo'};
-      accountDetail.append(node('h3',account.email),node('p','Sign-in: '+account.providers.map(p=>labels[p]||p).join(', ')),node('p','Email: '+(account.emailVerified?'Verified':'Not yet verified')+' · Account: '+(account.disabled?'Disabled':'Active')),node('p','Application: '+account.state.replaceAll('_',' ')+' · Office: '+account.office));
-      if(account.disabled){accountDetail.append(node('p','This account is disabled.'));return;}
-      if(!account.providers.includes('password')){accountDetail.append(node('p','Password recovery is managed by the sign-in provider. Ask the caregiver to use that provider’s account recovery.'));return;}
-      const send=node('button','Send password reset email');send.type='button';send.className='btn-secondary';send.onclick=async()=>{
-        send.disabled=true;try{const result=await workforceApi('/staff/accounts/'+encodeURIComponent(account.uid)+'/reset',{});if(sequence!==accountGeneration)return;await window.WorkforceSendPasswordReset(result.email);if(sequence===accountGeneration)accountMessage.textContent='Password reset email requested for '+account.email+'. Ask the caregiver to check their inbox and spam folder.';}catch(error){if(sequence===accountGeneration){accountMessage.textContent=error.message;send.disabled=false;}}
-      };accountDetail.append(send,node('p','The caregiver chooses their own new password. Staff cannot view passwords or reset links.'));
-    }catch(error){if(sequence===accountGeneration)accountMessage.textContent=error.message;}
+  el('caregiver-account-search').onsubmit = async event => {
+    event.preventDefault(); if (!event.currentTarget.reportValidity()) return;
+    const sequence = ++accountSelection, session = generation; results.replaceChildren(); accountDetail.replaceChildren(); accountMessage.textContent = 'Finding caregivers…';
+    try {
+      const response = await workforceApi('/staff/accounts/lookup', {name:el('caregiver-account-name').value.trim()}); if (session !== generation || sequence !== accountSelection) return;
+      accountMessage.textContent = response.items.length ? (response.hasMore ? 'More matches found. Enter more letters to narrow your search.' : 'Select a caregiver to open their profile.') : 'No matching caregivers found.';
+      for (const match of response.items) { const button = node('button', [match.firstName, match.lastName].filter(Boolean).join(' ') + ' · ' + human(match.state), 'caregiver-search-result'); button.type = 'button'; button.onclick = () => openAccount(match); results.append(button); }
+    } catch (error) { if (session === generation && sequence === accountSelection) accountMessage.textContent = error.message; }
   };
+  document.addEventListener('workforce-session-cleared', () => { generation++; applicationSelection++; accountSelection++; actor = null; release(); panel.hidden = true; support.hidden = true; list.replaceChildren(); detail.replaceChildren(); accountDetail.replaceChildren(); results.replaceChildren(); status.textContent = ''; accountMessage.textContent = ''; el('caregiver-account-name').value = ''; });
+  document.addEventListener('workforce-session', event => { generation++; actor = event.detail; panel.hidden = !can('applications.review'); support.hidden = !can('accounts.support'); });
 })();

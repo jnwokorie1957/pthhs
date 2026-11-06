@@ -2,7 +2,7 @@ PRIMETIME ROLE AND WORKFLOW RESEARCH
 Updated: November 6, 2026, America/Chicago
 Scope: PTHHS /primetime, repository jnwokorie1957/pthhs.
 Latest engineering evidence: November6 UTC administrator card/filter correction is deployed and accepted over a dated stale source cache; see MAINTENANCE_CARD_FILTERS_2026-11-06.md and the 05:14UTC implementation below. Concurrent compact/reference and fresh patient/day acceptance in a7f8421 supersedes older pending desktop-control statements, within its dated limits. Billing-clock acceptance and O03/local office review remain intact. Agency lists are not visit-specific actions. Scoped staff, clinical/family authority, original-event links, HHA submissions and pilot gates remain open.
-Latest focused research: November6,2026,14:28UTC. Draft workforce PR11 advanced to2179a31: caregiver password accounts, verified private openings and account/position interest now replace its earlier caregiver email-link/public-opening proposal. Staff email-link and the separate HR/maintenance/clinical boundaries remain. R94 revision evidence and new R95/R96 inform proposed recovery, entry-flow and accessibility acceptance below. No draft merge, account, email or launch is accepted here. The earlier8ad80ef signed-in HHA comparison and617bc32 assigned-care integration research remain dated evidence. Maintenance-first remains the priority; earlier manual-snapshot priorities below are historical and do not authorize new scraped imports.
+Latest focused research: November6,2026,17:27UTC. Pinned open draft PR11 at aebde94, plan version12: office-scoped accounts.support, focused management screens and separate synthetic/real-auth evidence are now mapped. Returned-list counts have explicit API caps but no visible overview coverage; this is the next bounded display/acceptance task. R97-R100 add current email-action, identity-linking, manager-dashboard and draft-source evidence. Google-enabled/chooser progress is reported by its owning plan, not completed login or production-role acceptance here. M03, patient/PT/family authority and HHA source-action contracts remain separate and open. Earlier manual-snapshot priorities below are historical and do not authorize new scraped imports.
 Latest bounded draft implementation: November6 14:34UTC entry-copy/backlog correction e770d79, then3b2490c integrates current main2c02bf5 and removes draft merge conflicts. All595local frontend/tooling checks and both normal42237075110 quality jobs pass. PR11 remains draft/unmerged; this is not production or live multi-user acceptance. Dated implementation evidence follows.
 Broad role review: November 3, 2026, 09:42 UTC heartbeat. Rechecked the official Family Dashboard [R63] and Forms [R60] guidance against repository 9821769 and the cumulative role proposals below. Requests, source holds, encounter documentation and review remain distinct; no new tenant UI or source-read acceptance is claimed by that research pass. Latest bounded implementation: 9fb89f1 Advanced EVV source-context fences, accepted 19:55-19:57 UTC; acf7e6d exact read receipts accepted 19:15 UTC. Patient/PT role, document/action, source-time/E04, usable billing/B02 and availability dependencies remain open. Dated primary links and acceptance evidence follow; earlier next-task statements are historical checkpoints.
 
@@ -2943,3 +2943,156 @@ Implementation and normal PR verification:
 https://github.com/jnwokorie1957/pthhs/commit/e770d791be36aeb32a4c29e3654565292480fe7d
 https://github.com/jnwokorie1957/pthhs/commit/3b2490caedacc33d219b135d8ccc0676633fdb5e
 https://github.com/jnwokorie1957/pthhs/actions/runs/42237075110
+
+NOVEMBER 6, 2026, 17:27 UTC - ACCOUNT SUPPORT AND MANAGEMENT WORKSPACE
+Main d169a97 is clean/current. Reviewed open, draft, unmerged PR11 at immutable
+aebde94ae88dff6263b238f4c2857d6db532af0c, plan version12. This section supersedes
+older draft account/provider/workspace assumptions only. It does not extend the
+earlier3b2490c or e3e6b7 test evidence to later source without a new check.
+
+OBSERVED CODE AND OWNING-WORKSTREAM EVIDENCE
+The draft adds accounts.support to its explicit workforce permissions. Policy
+permits it only for active HR/owner grants; accountSupport.ts rechecks the current
+grant, exact portal-account office and staff-account exclusion on the server.
+Lookup returns account/application status and provider metadata, not a password,
+action link or identity document. Reset requests require recent authentication
+and current collection release controls, then recheck scope and reserve a bounded
+request: three per hour per caregiver, with a one-minute cooldown. The browser
+SDK subsequently requests the email. A reservation/audit is not evidence of SDK
+success, inbox delivery or a completed password change. This research invoked
+none of these lookup, registration, reset or mail operations.
+
+The minimal workforcePortalAccounts index associates an authenticated UID with
+an existing workforce account's office, or the configured intake office if no
+such record exists. That is an HR-support context, not an HHA caregiver/office
+crosswalk, effective clinical assignment or family relationship. Separate
+applications.review, documents.review, staff.manage and operational capabilities
+remain necessary; an office/supervisor role or local case queue grants no support.
+
+The management controller has overview, account, application, opportunity and
+team-access screens. It filters navigation by explicit capabilities, identifies
+assigned workforce offices, resets private state after sign-out and shows unknown
+application counts when a read fails. The inbox projects applicant display names
+only for its authorized reviewers. DESIGN_REFERENCES.md owns the draft's design
+sources and synthetic desktop/mobile observations. This pass read code/documents,
+not real applicants or native management screens.
+
+CONCRETE SOURCE-COVERAGE GAP - PROPOSED DEVELOPMENT, NOT A LIVE INCIDENT
+IntakeStore.queue returns at most50applications per permitted office plus
+limitPerOffice:50. WorkforceStore.list returns at most100opportunities per office
+plus limitPerOffice:100; caregiver-visible publicList is capped at100 overall.
+The overview derives state counts from returned items. Its application counter
+filters only submitted items, while the inbox may include other states. Neither
+the overview markup nor its count controller visibly explains these API caps.
+No total, cursor or completeness proof is supplied by these methods. A returned
+limit is not proof of truncation either: exactly50/100 may still be the full set.
+
+P1: expose these counts as loaded-list counts with the permitted office scope,
+state/filter and cap, or implement an independently authorized total/paging
+contract before presenting them as office-wide totals. Keep unknown/failed reads
+distinct from a successful zero. Count-card navigation should land on the same
+state-filtered list with the same coverage; do not infer hiring demand, staffing
+coverage, caseload size or completed EVV work from recruiting counts. This is a
+bounded metadata/display improvement requiring no new private-data grant.
+
+PRIMARY RESEARCH AND ITS LIMITS
+R97 describes email-action modes and one-time-code validation before completing
+the requested account action. The draft handles resetPassword and verifyEmail,
+removes action parameters from the visible URL and isolates action views from
+the private board/application. Unsupported modes remain unavailable. Before
+changing a shared-project template, inventory which modes and existing admin/
+staff flows it serves; preserve a working recovery route. No template changed.
+
+R98 explains explicit provider linking to an existing Firebase account. Provider
+appearance or an equal email/name must not automatically merge private records,
+source-caregiver identities or patient memberships. The draft reports no automatic
+linking. Its owner/provider handoff, revocation and exact UID return still need
+their own acceptance; identity proves no employment or clinical entitlement.
+
+R99's manager dashboard uses permission-relevant actionable cards with separate
+attention/approval/day contexts and direct item navigation. As a design inference,
+Primetime should keep HR support/recruiting and operational visit review in
+distinct, scoped work areas with truthful counters and clear return paths.
+Deputy's scheduling/timesheet behavior supplies no HHA, payroll or clinical rule.
+
+PROPOSED PATIENT / STAFF-PT / OFFICE CONNECTIONS
+Patient/family: permitted calendar, requests and shared patient-document instances
+stay behind revocable patient/representative membership. The caregiver applicant
+entry and HR account search cannot become a patient portal or family lookup.
+Public entry links stay generic; source/person-bearing links remain protected.
+
+Staff/PT: future My day and caseload require exact effective assignments and
+verified discipline, then patient/visit/plan/form/version/reviewer links. Provider
+login, HR account status, an application name and document-upload receipts do not
+establish those facts. Scheduling, source EVV/hours and clinical form completion
+retain independent provenance; no clock or duration value is filled by HR data.
+
+Office manager: choose permitted HR account/application work separately from
+scheduling, authorization, EVV maintenance and billing follow-up. Reports should
+retain the exact case/source receipt and permitted next action. Account support
+must not grant HHA confirmation, staffing assignment, clinical document editing
+or broad employee-file access. M03 remains the effective principal/membership/
+action contract for restricted operational accounts; M04 reports inherit it.
+
+PROPOSED ACCEPTANCE - NOT EXECUTED OR PRODUCTION-ACCEPTED HERE
+1. Exercise50/51application and100/101opportunity fixtures across permitted offices:
+   labels/counts preserve caps and unknown completeness, state filters and office
+   scope; failed/unloaded reads never become zero or complete totals.
+2. Revoke accounts.support or move the target outside an actor's office while a
+   lookup/reset is pending. Current server checks and stale-response fences deny
+   unauthorized records; HR support alone cannot read clinical/maintenance files.
+3. Reserve a reset, then fail/cancel the SDK send or exceed cooldown. Preserve
+   separate requested/sent/unknown-delivery/completed evidence, no automatic send
+   retry or invented successful delivery. Any real send needs its own authority.
+4. Test disabled, staff, non-portal and provider-managed targets, plus linked and
+   unlinked credentials. No name/email fallback merges UIDs or grants care access.
+5. Use expired/reused/unknown-mode action links and bounded return destinations:
+   no private workspace or code disclosure; existing admin/staff recovery keeps
+   working when a supported template is changed through its reviewed release.
+6. Navigate permitted management views by keyboard/assistive technology and on
+   narrow screens. Active navigation, focus, status and card-to-filter scope agree;
+   sign-out clears names, counts and reports. Patient/family/PT roles stay isolated.
+
+RELEASE, SOURCE ACCESS AND PRECISE NEXT ACTIONS
+The owning PROVIDER_SETUP.md reports Google enabled and a real chooser reached.
+Successful owner return/session acceptance is still pending its existing handoff.
+The synthetic walkthrough and real-auth test are distinct; the latter uses real
+identity verification with synthetic openings and closed application/document/
+management writes. Apple/Microsoft/Yahoo still need their separate owner setup.
+This supersedes older 'no providers configured' statements for Google only; no
+configuration, identity, consent, credentials, enrollment or payment was inspected
+or performed here. Do not advertise completed OAuth or a production launch.
+
+Version12 reports850backend/612site-tooling checks and synthetic layout tests.
+Independently read normal PR quality42258133181 at exact aebde94: both backend
+and static-site jobs completed successfully. These are automated-source checks,
+not deployed multi-user/native/clinical acceptance. No suite or release repeated.
+Developer next action: implement the bounded coverage labels/filters above, then
+the support/action-mode acceptance under the owning launch review. Existing owner
+actions remain Google handoff completion and exact account/membership/action/
+sharing/clinical inputs before activation; no duplicate question was sent.
+
+No new HHA tenant UI was observed. The16:34UTC attachment failure and the earlier
+signed-in HHA reason/action comparison remain their dated evidence, not a fresh
+authentication diagnosis or a new time read. Existing protected original-event/
+visit/reason/action/readback and hour-unit questions remain unsent/open. Original
+October24 screenshot remains resolved. No M02/M03/clinical/family task is closed.
+
+PRIMARY SOURCES - RETRIEVED NOVEMBER6,2026
+[R97] Firebase, Create custom email action handlers.
+https://firebase.google.com/docs/auth/custom-email-handler
+[R98] Firebase, Link Multiple Auth Providers to an Account Using JavaScript.
+https://firebase.google.com/docs/auth/web/account-linking
+[R99] Deputy, Managing the Dashboard on the Deputy website. Design reference;
+its product roles, time windows and approval rules are not Primetime authority.
+https://help.deputy.com/hc/en-au/articles/4657365737231-Managing-the-Dashboard-on-the-Deputy-website
+[R100] Pinned draft source/plan at aebde94; implemented/reported/proposed limits
+above remain separate from live acceptance.
+https://github.com/jnwokorie1957/pthhs/blob/aebde94ae88dff6263b238f4c2857d6db532af0c/docs/workforce/PLAN.md
+https://github.com/jnwokorie1957/pthhs/blob/aebde94ae88dff6263b238f4c2857d6db532af0c/docs/workforce/ACCOUNT_ACCESS.md
+https://github.com/jnwokorie1957/pthhs/blob/aebde94ae88dff6263b238f4c2857d6db532af0c/docs/workforce/PROVIDER_SETUP.md
+https://github.com/jnwokorie1957/pthhs/blob/aebde94ae88dff6263b238f4c2857d6db532af0c/functions/src/workforce/accountSupport.ts
+https://github.com/jnwokorie1957/pthhs/blob/aebde94ae88dff6263b238f4c2857d6db532af0c/functions/src/workforce/intakeStore.ts
+https://github.com/jnwokorie1957/pthhs/blob/aebde94ae88dff6263b238f4c2857d6db532af0c/functions/src/workforce/store.ts
+https://github.com/jnwokorie1957/pthhs/blob/aebde94ae88dff6263b238f4c2857d6db532af0c/public/assets/workforce-management.js
+https://github.com/jnwokorie1957/pthhs/actions/runs/42258133181

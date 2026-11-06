@@ -1,12 +1,22 @@
 # PTHHS caregiver workforce plan
 
-Authoritative architecture, implementation backlog and acceptance record. Version 12, November 6, 2026. Initial audit baseline: `93707e3` on `main`; current handoff integrates `main` through `2c02bf5`, preserving concurrent visit-maintenance controls, range/search/reason-staging tools, SEO records and production acceptance documentation. This file owns workforce delivery status; existing management and release documentation continues to own its established workflows.
+Authoritative architecture, implementation backlog and acceptance record. Version 13, November 6, 2026. Initial audit baseline: `93707e3` on `main`; current handoff integrates `main` through `d92e0b7`, preserving concurrent visit-maintenance controls, range/search/reason-staging tools, SEO records and production acceptance documentation. This file owns workforce delivery status; existing management and release documentation continues to own its established workflows.
 
 ## Scope and release state
 
 This change begins Phases 1–2 in the existing PTHHS repository. It is a review branch, not a production launch. No real staff accounts, role grants, patient openings, applicant records, SMS messages, employment decisions or vendor writes were created. Synthetic records exist only in tests. No production patient data was queried.
 
 **Implemented** means code exists. **Tested** identifies synthetic automated verification. **Pending** identifies work still to implement. **Blocked** identifies a specific external input or acceptance requirement. Neither a passing test nor a deployment establishes regulatory compliance.
+
+## Caregiver name directory, profiles and print packet
+
+Caregiver account search now accepts first or last name (including case-insensitive prefixes), returns distinct selectable records and asks for a narrower name when more than 25 matches exist. A minimal office-scoped directory is updated atomically whenever an application is saved or submitted. The profile reads contact, emergency and availability details directly from the application; account email and reset support remain separate from the applicant's contact email. Application, form and private-document permissions continue to be checked server-side.
+
+Authorized profiles show all structured employment forms and submitted document categories, including historical uploads. Individual PDFs and **Print complete packet** support printing the application, saved forms, photo ID and Social Security card together. A contents page identifies missing, draft and security-pending records. The formal application follows the owner's contact, education/work and reference layout, adds policy response evidence, masks the SSN and preserves actual signature/status information. The combined print copy flattens form appearances while individual source forms remain editable. Stored photo bytes are embedded without another lossy image conversion or distortion.
+
+Validation: 859 backend and 617 site/tooling/analytics checks pass (1,476 total), plus TypeScript and release verification. Synthetic browser checks cover first/last-name matching, profile contact/form/document display and individual/combined PDF actions. The 19-page synthetic combined packet was rendered and checked, including both final identity document pages; it contains no real identity data. Existing asset budgets and production gates remain unchanged.
+
+Before live launch, deploy the checked-in directory composite index. For older applications, run `node scripts/backfill-caregiver-directory.mjs` from the built functions directory in the reviewed deployment environment; this defaults to a count-only dry run. Use `--write` to populate the minimal directory after reviewing the count. It targets the existing primetimehomehealthservices project, re-reads each application transactionally and does not create portal membership or expand permissions. The migration was prepared, not run against production personnel records. See [CAREGIVER_PROFILES.md](CAREGIVER_PROFILES.md).
 
 ## Modern workforce management workspace
 

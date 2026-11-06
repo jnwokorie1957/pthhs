@@ -14,6 +14,15 @@
 
 ## Start here
 
+- [ ] Authorize the [prepared support email](evv-maintenance-resources/HHA_INTEGRATION_SUPPORT_REQUEST_2026-11-06.txt)
+  to EINTSupport@hhaexchange.com. It contains technical diagnostics and asks for
+  the applicable API contract and permitted supervised AI browser operation;
+  patient records and credentials are excluded. No message has been sent.
+- [ ] Teach the first straightforward actual-call maintenance procedure using
+  the [browser/API execution template](EVV_BROWSER_AGENT_WORKFLOW.txt): evidence,
+  permitted adjustment, reason/action/note, staff approval, HHA readback and
+  escalation. Later automatic processing remains a separate tested rule rollout.
+
 - [x] Original HHA visit form and agency reference tables inspected after owner
   sign-in. The selected visit exposes 28 reasons/five actions, using different
   IDs from the similarly named generic API references. [Comparison evidence](HHA_VISIT_REASON_CATALOG_COMPARISON_2026-11-05.md).

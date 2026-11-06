@@ -1,5 +1,21 @@
 # PTHHS Management Layer — Developer Checklist
 
+- [x] Prepared the exact technical support email to HHA's published Enterprise
+  Integration address and separated API-backed Primetime confirmation from a
+  permitted assisted HHA browser operator. [Request, not yet sent](evv-maintenance-resources/HHA_INTEGRATION_SUPPORT_REQUEST_2026-11-06.txt)
+  and [teaching/verification template](EVV_BROWSER_AGENT_WORKFLOW.txt) preserve
+  real-call evidence, supervised pilot, later approved-rule processing and staff
+  escalations. Source writes and browser automation are not accepted by this plan.
+
+- [ ] November6 17:27UTC draft management coverage: PR11/aebde94 overview counts
+  returned lists capped at50applications/100opportunities per office; API caps are
+  not visible beside the overview counts. Label loaded scope/state/cap or prove
+  authorized totals/paging before calling them office totals; preserve unknown
+  versus zero and card-to-filter agreement. Six proposed coverage/support/action-
+  mode/revocation/navigation cases, explicit accounts.support boundaries and the
+  version12/Google-handoff distinction are in [R97-R100 research](ROLE_WORKFLOW_RESEARCH.txt).
+  CI42258133181 passes; no live account, mail, clinical role or launch acceptance.
+
 - [x] November6 public SEO delivery: 141 routes/20 exact artifacts and eight
   article metadata graphs pass; the live sitemap contains36URLs. Normal Google
   Sitemaps still reports dated successful34/34/33discovered rows. Private

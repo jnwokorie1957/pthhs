@@ -1,0 +1,91 @@
+PRIMETIME AND HHA BROWSER-AGENT EXECUTION PATHS
+Updated November 6, 2026, America/Chicago.
+Status: implementation direction and teaching template; no source action or
+unattended automation is enabled or production accepted by this document.
+
+OWNER INTENT
+Use Primetime as the office's maintenance workbench. Reduce repetitive review,
+handle genuine caregiver events, explain resolved work and send larger or
+ambiguous cases to staff. Preserve the later goal of limited approved-rule
+automation and, after maintenance is proven, an owned scheduling platform.
+
+PATH A - PRIMETIME WITH A SUPPORTED HHA API
+Staff review in Primetime; a server adapter executes only supported, authorized
+HHA actions and independently reads back the result. The current empty exact-
+visit reason lookup blocks source confirmation acceptance; it does not establish
+that portal confirmation will never be possible. No generic catalog ID may be
+substituted simply because its label matches the HHA visit form.
+
+PATH B - AN ASSISTED OPERATOR IN HHA'S EXISTING UI
+A browser agent can technically navigate the existing HHA workflow, inspect
+source evidence and prepare reason/action/note selections. This path uses the
+actual HHA screens; it does not turn a scraped/manual import into the live feed.
+It has not yet been tested through an actual saved confirmation. Existing UI
+access is not proof of permission to run unattended browser automation.
+
+Confirm HHA's permitted use under the agency's agreement, account/role model and
+attribution. The published general terms restrict some automated uses; the agency's
+applicable agreement and vendor response must establish the supported scope.
+Do not bypass authentication or MFA. Staff handle sign-in/security setup when
+required; credentials are not copied into source, prompts or the teaching record.
+
+Initially the agent observes and proposes. Staff review the evidence and authorize
+the particular source change before submission. This is the initial pilot stage,
+not a decision that every future approved repetitive action permanently needs a
+separate click. Later non-discretionary execution requires explicit validated
+rules, supported access, private pilot membership and the owner's rollout approval.
+Clinical, payroll, billing or other consequential judgment remains with staff.
+
+HOW THE OWNER TEACHES A PROCEDURE
+Walk through one real example in the authorized source interface. Keep patient,
+caregiver, visit and event identifiers in protected operational storage. Store a
+de-identified procedure in the repository using these fields:
+
+- Procedure ID, version, owner/reviewer and effective date.
+- Trigger and exact issue it applies to; explicit exclusions.
+- Required genuine event evidence and exact visit/event identity checks.
+- The permitted change, bounded values and fields that must remain untouched.
+- Current applicable reason/action selection and note requirements. Display
+  descriptions alone are not an approved cross-catalog ID mapping.
+- Staff approval step for the supervised stage and required account authority.
+- Expected HHA result and independent readback that proves persistence.
+- Stop/escalate conditions, assigned staff role and next step.
+- Audit/report entry explaining the evidence, rule and actual outcome.
+
+FIRST WALKTHROUGH - TO BE SELECTED WITH THE OWNER
+Use one straightforward existing-call maintenance case, with actual caregiver
+events already present and an unambiguous source visit. The owner supplies the
+correct procedure and reason/action policy; no case outcome or correction rule
+is invented by the agent. Start in shadow mode, then a staff-reviewed test in the
+approved environment. No live record is selected for an automatic change here.
+
+STOP AND SEND TO STAFF
+Missing genuine event, multiple possible visits, conflicting source evidence,
+unavailable/inapplicable codes, changed record or authority, unsupported change,
+uncertain source result, authentication challenge, or clinical/financial judgment.
+An unresolved source submission must be reconciled before any retry.
+
+RESULTS AND REPORTS
+Proposed, approved, submitted, pending/unknown and independently confirmed are
+separate states. A button click, HTTP success or Primetime note save is not proof
+of HHA confirmation. Record actual before/after values, source receipt, approved
+rule/version, actor/reviewer and readback. Escalations state what is missing and
+who must act; verified work states what changed and why.
+
+NEXT SOURCE ACTION
+Send the reviewed technical request after explicit authorization for the outgoing
+message. Obtain the supported API lookup/action contract and browser-operation
+scope. The prepared message is in:
+evv-maintenance-resources/HHA_INTEGRATION_SUPPORT_REQUEST_2026-11-06.txt
+
+PRIMARY SOURCES CHECKED NOVEMBER 6, 2026
+HHA UI workflow includes linking EVV, editing visit times and reason/action/note:
+https://knowledge.hhaexchange.com/enterprise/Content/Documentation/Visit/Visit-N-Visit-Maintenance-S.htm
+HHA describes manual confirmation and a separate source-calendar check:
+https://knowledge.hhaexchange.com/enterprise/Content/Documentation/Visit/Visit-N-Manually-Confirm-Visits-S.htm
+Visit Maintenance is controlled through applicable role/module permissions:
+https://knowledge.hhaexchange.com/enterprise/Content/Documentation/Admin/Admin-N-Visit-Maintenance-P.htm
+General terms contain restrictions concerning automated access and use:
+https://www.hhaexchange.com/terms-of-use
+These sources establish existing UI functions and published conditions. They do
+not prove AI operation is approved for this agency or that a submission succeeded.

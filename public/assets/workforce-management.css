@@ -6,3 +6,24 @@
 .manager-card-heading p,.manager-quick-actions small,.manager-card-footnote,.manager-stats article>p,.manager-footer,.manager-account-guide p,.manager-editor-notice{color:#61777d}.manager-card-heading h2{font-size:18px}.manager-card-heading p,.manager-overview-intro p,.manager-account-guide p,.manager-editor-notice{font-size:13px}.manager-stats article>div{font-size:12px}.manager-stats article>p,.manager-card-footnote,.manager-footer{font-size:11px}.manager-quick-actions strong{font-size:13px}.manager-quick-actions small{font-size:12px}.manager-app .manager-primary,.manager-app .manager-secondary{font-size:13px}.manager-overview-grid:has(>section[hidden]){grid-template-columns:1fr}@media(max-width:550px){.manager-card-heading h2{font-size:16px}.manager-stats article>div{font-size:11px}.manager-stats article>p{font-size:10px}.manager-card-heading p,.manager-overview-intro p{font-size:12px}.manager-footer{font-size:10px}}
 
 .manager-opportunity-heading{display:flex;align-items:center;justify-content:space-between;gap:16px}.manager-opportunity-heading h3{margin:0;font-size:16px}.manager-status{display:inline-block;flex:none;font-size:10px;font-weight:600;background:#edf1f4;color:#60717d;border-radius:20px;padding:4px 10px}.manager-status-published{background:#e6f2e9;color:#387153}.manager-status-review{background:#fff4d9;color:#8a6726}.manager-status-approved{background:#eaf1f8;color:#4a7192}.manager-app .manager-opportunities article>p{margin:12px 0;color:#61777d}.manager-app .manager-opportunities .manager-record-meta{font-size:10px;color:#75898e;border-top:1px solid #eef2f3;padding-top:10px}
+.manager-app .manager-account-card{max-width:none}
+.manager-app .caregiver-search-results{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),1fr));gap:10px;margin:16px 0}
+.manager-app .caregiver-search-result{text-align:left;background:#f0f6f4;border:1px solid #cdded8;border-radius:12px;color:#153e40;padding:16px;font:600 15px 'Segoe UI',Arial,sans-serif;cursor:pointer}
+.manager-app .caregiver-search-result:hover{background:#e4eeea;border-color:#17685f}
+.manager-app .caregiver-profile-heading{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:20px 0 12px;flex-wrap:wrap}
+.manager-app .caregiver-profile-heading h2{font-size:25px;margin:0}
+.manager-app .caregiver-profile-section{padding:22px 0;border-top:1px solid #dde6e5}
+.manager-app .caregiver-profile-section h3{font-size:17px;margin:0 0 16px}
+.manager-app .caregiver-profile-fields{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:20px;margin:0 0 16px}
+.manager-app .caregiver-profile-fields dt{font-size:12px;color:#53666a;margin:0 0 5px;font-weight:600}
+.manager-app .caregiver-profile-fields dd{font-size:15px;color:#193b3e;margin:0;overflow-wrap:anywhere;white-space:pre-wrap}
+.manager-app .caregiver-file-row{display:grid;grid-template-columns:minmax(0,1fr) auto;column-gap:20px;align-items:center;padding:16px;background:#f6f9f8;border:1px solid #e0e8e5;border-radius:12px;margin-bottom:10px}
+.manager-app .caregiver-file-row h4{font-size:15px;margin:0 0 4px}
+.manager-app .caregiver-file-row p{font-size:13px;color:#53666a;margin:0;grid-column:1}
+.manager-app .caregiver-file-row button{grid-column:2;grid-row:1/3}
+.manager-app .caregiver-application-details{margin-top:20px;padding:14px 16px;border:1px solid #dce6e3;border-radius:12px}
+.manager-app .caregiver-application-details summary{cursor:pointer;font-weight:600;color:#17685f}
+.manager-app .caregiver-application-details .caregiver-profile-section:first-of-type{margin-top:18px}
+.manager-app .caregiver-print-link{display:block;margin:10px 0}
+@media(max-width:650px){.manager-app .caregiver-profile-fields{grid-template-columns:repeat(2,minmax(0,1fr))}.manager-app .caregiver-file-row{grid-template-columns:minmax(0,1fr)}.manager-app .caregiver-file-row button{grid-column:1;grid-row:auto;margin-top:12px}.manager-app .caregiver-profile-heading h2{font-size:22px}}
+.manager-app .caregiver-print-actions{display:flex;gap:10px;flex-wrap:wrap}.manager-app .caregiver-print-actions button:first-child{background:#17685f;color:#fff!important;border-color:#17685f}

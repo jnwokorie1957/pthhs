@@ -37,3 +37,9 @@ test("packet schema exposes blank questions and provenance, never an original sc
   assert.ok(body.packet.fields.length > 35); assert.ok(body.inventory.length > 20);
   assert.ok(!JSON.stringify(body).includes("base64"));
 });
+
+test("name profiles and private print routes stay release-gated with no-store responses",async()=>{
+ for(const path of ["/staff/accounts/candidate/profile","/staff/applications/candidate/pdf","/staff/applications/candidate/packet/pdf","/staff/applications/candidate/documents/file/print"]){
+  const response=await request("/primetime/workforce-api"+path);assert.equal(response.status,503);assert.equal(response.headers["Cache-Control"],"no-store");assert.deepEqual(response.body,{error:"workforce_release_pending"});
+ }
+});

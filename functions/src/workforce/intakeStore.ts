@@ -7,6 +7,7 @@ import { saveIntake, submitIntake, type Intake } from "./intake.js";
 import { prepareDocument, documentKind, documentSummary, missingRequiredDocuments, type DocumentKind, type PrivateDocument } from "./documents.js";
 import { formSchema, formRecord, type FormKind, type FormRecord } from "./eforms.js";
 import { EMPLOYER_NAME, EMPLOYER_ADDRESS, chicagoDate } from "./dates.js";
+import { directoryEntry } from "./directory.js";
 
 export function privateDocumentPath(uid: string, id: string, extension: "jpg" | "pdf" = "jpg"): string {
   if (!validId(uid) || !validId(id) || !["jpg", "pdf"].includes(extension)) throw new WorkforceError(400, "invalid_document_id");
@@ -95,6 +96,7 @@ export class IntakeStore {
       const next = saveIntake(uid, document.exists ? document.data() as Intake : null, revision, answers, office, false, now);
       if (!account.exists) tx.create(account.ref, { uid, employmentStatus: "applicant", office, createdAt: now });
       tx.set(ref, next);
+      tx.set(this.db.collection("workforceCaregiverDirectory").doc(uid), directoryEntry(next));
       tx.create(ref.collection("versions").doc(String(next.revision)), next);
       this.audit(tx, uid, "application_saved", uid, { revision: next.revision });
       return next;
@@ -114,6 +116,7 @@ export class IntakeStore {
       if (missingRequiredDocuments(documents.docs.map(d => d.data() as PrivateDocument), approvedException).length) throw new WorkforceError(409, "required_documents_missing");
       const next = submitIntake(uid, doc.data() as Intake, revision, signature, new Date().toISOString());
       tx.set(ref, next); tx.create(ref.collection("versions").doc(String(next.revision)), next);
+      tx.set(this.db.collection("workforceCaregiverDirectory").doc(uid), directoryEntry(next));
       this.audit(tx, uid, "application_submitted", uid, { revision: next.revision });
       return next;
     });

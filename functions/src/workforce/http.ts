@@ -14,6 +14,7 @@ import { readFile } from "node:fs/promises";
 import { readings, referencePages } from "./readings.js";
 import { policyDocument } from "./policyDocuments.js";
 import { renderOfficialForm, type FormKind } from "./eforms.js";
+import { renderApplication, renderDocumentPrint, renderPersonnelPacket, type PacketPart } from "./applicationPdf.js";
 // Default closed. These do not authorize applicant collection or vendor writes.
 const staffEnabled = defineString("WORKFORCE_STAFF_APPROVED", { default: "false" });
 const signInProviders = defineString("WORKFORCE_SIGN_IN_PROVIDERS", { default: "" });
@@ -123,11 +124,16 @@ export const workforceApi = process.env.PRIMETIME_API_ONLY_DEPLOY === "true" ? u
     if (staffEnabled.value() !== "true") throw new WorkforceError(503, "workforce_release_pending");
     const uid = await workforceIdentity(req);
     const store = new WorkforceStore();
+    const accountProfile=path.match(/^\/staff\/accounts\/([a-zA-Z0-9_-]{1,128})\/profile$/);
+    if(accountProfile&&req.method==="GET"){
+      if(!applicationsEnabled)throw new WorkforceError(503,"application_collection_pending");await recentWorkforceIdentity(req);
+      res.json(await new AccountSupport().profile(await store.actor(uid),accountProfile[1]!));return;
+    }
     if(path==="/staff/accounts/lookup"||/^\/staff\/accounts\/[a-zA-Z0-9_-]{1,128}\/reset$/.test(path)){
       if(!applicationsEnabled)throw new WorkforceError(503,"application_collection_pending");await recentWorkforceIdentity(req);
       if(req.method!=="POST"||!req.is("application/json")||req.rawBody.length>1000||!req.body||Array.isArray(req.body))throw new WorkforceError(400,"invalid_request");
       const actor=await store.actor(uid),support=new AccountSupport();
-      if(path.endsWith("/lookup")){if(Object.keys(req.body).some(k=>k!=="email"))throw new WorkforceError(400,"invalid_request");res.json(await support.lookup(actor,req.body.email));}
+      if(path.endsWith("/lookup")){if(Object.keys(req.body).some(k=>k!=="name"))throw new WorkforceError(400,"invalid_request");res.json(await support.search(actor,req.body.name));}
       else{if(Object.keys(req.body).length)throw new WorkforceError(400,"invalid_request");res.json(await support.reset(actor,path.split("/")[3]!));}return;
     }
     if (path === "/session" && req.method === "GET") { res.json(await store.actor(uid)); return; }
@@ -136,6 +142,35 @@ export const workforceApi = process.env.PRIMETIME_API_ONLY_DEPLOY === "true" ? u
       await recentWorkforceIdentity(req);
       const personnel = new IntakeStore();
       if (path === "/staff/applications") { res.json(await personnel.queue(await store.actor(uid))); return; }
+      const packetPrint=path.match(/^\/staff\/applications\/([a-zA-Z0-9_-]{1,128})\/packet\/pdf$/);
+      if(packetPrint){
+        if(!uploadsEnabled)throw new WorkforceError(503,"document_collection_pending");
+        const target=packetPrint[1]!,application=await personnel.hrRead(uid,target,true),context=await personnel.formContext(target,employerEin.value());
+        const parts:PacketPart[]=[{title:"Employment application",status:`${application.state} - revision ${application.revision}`,bytes:await renderApplication(application)}];
+        for(const kind of ["i9","w4","new_hire"] as FormKind[]){
+          const record=await personnel.loadForm(target,kind,uid),title={i9:"Form I-9",w4:"Form W-4",new_hire:"Texas New Hire Report"}[kind];
+          parts.push(record?{title,status:`${record.state} - revision ${record.revision}`,bytes:await renderOfficialForm(record,context)}:{title,status:"Not started"});
+        }
+        const documents=await personnel.listDocuments(target,uid);
+        if(documents.items.length>20||documents.items.reduce((sum,doc)=>sum+doc.size,0)>20_000_000)throw new WorkforceError(413,"print_packet_too_large");
+        for(const [kind,title] of Object.entries({identity:"Photo ID",social_security:"Social Security card",employment_authorization:"Employment authorization document",i9:"Previously uploaded I-9 document",w4:"Previously uploaded W-4 document"})){
+          const matches=documents.items.filter(doc=>doc.kind===kind);
+          if(!matches.length&&["identity","social_security"].includes(kind))parts.push({title,status:"Not submitted"});
+          for(const doc of matches){
+            const part:PacketPart={title,status:doc.state==="pending_review"?"Uploaded - available for review":doc.state.replaceAll("_"," ")+" - not included"};
+            if(doc.state==="pending_review")part.bytes=await renderDocumentPrint(await personnel.download(target,doc.id,uid));parts.push(part);
+          }
+        }
+        const bytes=await renderPersonnelPacket(parts,[application.answers.firstName,application.answers.lastName].filter(Boolean).join(" ")),current=await personnel.hrRead(uid,target,true);
+        if(current.revision!==application.revision)throw new WorkforceError(409,"revision_conflict");
+        res.set("Content-Type","application/pdf");res.set("Content-Disposition",'attachment; filename="private-caregiver-packet.pdf"');res.send(bytes);return;
+      }
+      const applicationPrint=path.match(/^\/staff\/applications\/([a-zA-Z0-9_-]{1,128})\/pdf$/);
+      if(applicationPrint){
+        const application=await personnel.hrRead(uid,applicationPrint[1]!,true);
+        res.set("Content-Type","application/pdf");res.set("Content-Disposition",'attachment; filename="private-employment-application.pdf"');
+        res.send(await renderApplication(application));return;
+      }
       const staffForm = path.match(/^\/staff\/applications\/([a-zA-Z0-9_-]{1,128})\/forms\/(i9|w4|new_hire)(\/pdf)?$/);
       if (staffForm) {
         if (!uploadsEnabled) throw new WorkforceError(503, "document_collection_pending");
@@ -144,7 +179,7 @@ export const workforceApi = process.env.PRIMETIME_API_ONLY_DEPLOY === "true" ? u
         if (!record) throw new WorkforceError(404,"form_not_found");
         res.set("Content-Type","application/pdf");res.set("Content-Disposition",`attachment; filename="private-${staffForm[2]}.pdf"`);res.send(await renderOfficialForm(record,await personnel.formContext(staffForm[1]!,employerEin.value())));return;
       }
-      const detail = path.match(/^\/staff\/applications\/([a-zA-Z0-9_-]{1,128})(?:\/documents(?:\/([a-zA-Z0-9_-]{1,128}))?)?$/);
+      const detail = path.match(/^\/staff\/applications\/([a-zA-Z0-9_-]{1,128})(?:\/documents(?:\/([a-zA-Z0-9_-]{1,128})(\/print)?)?)?$/);
       if (!detail) throw new WorkforceError(404, "route_not_found");
       const target = detail[1]!, docs = path.includes("/documents");
       const application = await personnel.hrRead(uid, target, docs);
@@ -152,6 +187,7 @@ export const workforceApi = process.env.PRIMETIME_API_ONLY_DEPLOY === "true" ? u
       if (!uploadsEnabled) throw new WorkforceError(503, "document_collection_pending");
       if (!detail[2]) { res.json(await personnel.listDocuments(target, uid)); return; }
       const bytes = await personnel.download(target, detail[2], uid);
+      if(detail[3]){res.set("Content-Type","application/pdf");res.set("Content-Disposition",'attachment; filename="private-personnel-document.pdf"');res.send(await renderDocumentPrint(bytes));return;}
       const pdf = bytes.subarray(0, 5).toString("ascii") === "%PDF-";
       res.set("Content-Type", pdf ? "application/pdf" : "image/jpeg"); res.set("Content-Disposition", `attachment; filename="private-document.${pdf ? "pdf" : "jpg"}"`); res.set("Content-Security-Policy", "sandbox");
       res.send(bytes); return;

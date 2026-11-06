@@ -50,8 +50,11 @@ test("application drafts persist by UID with immutable history and content-free 
   const f = fixture();
   const first = await f.store.save("synthetic-a", 0, answers, "synthetic-office");
   assert.equal(first.revision, 1); assert.equal((await f.store.load("synthetic-a"))?.uid, "synthetic-a");
+  assert.equal(f.records.get("workforceCaregiverDirectory/synthetic-a")?.firstName,"Synthetic");
   const before = structuredClone(f.records.get("workforceApplications/synthetic-a/versions/1"));
-  await f.store.save("synthetic-a", 1, { ...answers, city: "Synthetic City" }, "synthetic-office");
+  await f.store.save("synthetic-a", 1, { ...answers, firstName:"Renamed", city: "Synthetic City" }, "synthetic-office");
+  assert.equal(f.records.get("workforceCaregiverDirectory/synthetic-a")?.firstName,"Renamed");
+  assert.ok(!(f.records.get("workforceCaregiverDirectory/synthetic-a")?.namePrefixes as string[]).includes("synthetic"));
   assert.deepEqual(f.records.get("workforceApplications/synthetic-a/versions/1"), before);
   for (const [key, value] of f.records) if (key.startsWith("workforcePersonnelAudit/")) assert.ok(!JSON.stringify(value).includes("Synthetic Applicant"));
   assert.equal((f.records.get("workforceAccounts/synthetic-a")!).uid, "synthetic-a");
