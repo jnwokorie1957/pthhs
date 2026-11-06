@@ -140,7 +140,7 @@ export class IntakeStore {
       const result = await this.db.collection("workforceApplications").where("office", "==", office).limit(50).get();
       for (const d of result.docs) {
         const app = d.data() as Intake;
-        items.push({ uid: app.uid, office: app.office, state: app.state, updatedAt: app.updatedAt, revision: app.revision,
+        items.push({ uid: app.uid, displayName:[app.answers.firstName,app.answers.lastName].filter(Boolean).join(" "), office: app.office, state: app.state, updatedAt: app.updatedAt, revision: app.revision,
           weeklyHours: app.answers.weeklyHours ?? null, hoursReviewRequired: app.answers.weeklyHours === "40" });
       }
     }

@@ -17,7 +17,7 @@
       const application = response.application;
       detail.append(node('h3', 'Application · ' + application.state), node('p', 'Office: ' + application.office + ' · Packet: ' + application.packetVersion));
       const dl = document.createElement('dl');
-      for (const [key, value] of Object.entries(application.answers)) dl.append(node('dt', key), node('dd', key === 'ssn' ? '•••-••-' + String(value).replace(/\D/g, '').slice(-4) : key === 'birthDate' ? 'Restricted identity information supplied' : value || 'Not entered'));
+      for (const [key, value] of Object.entries(application.answers)) dl.append(node('dt', ({ssn:'Social Security number',birthDate:'Date of birth'}[key]||key.replace(/([a-z])([A-Z])/g,'$1 $2').replaceAll('_',' ').replace(/^./,letter=>letter.toUpperCase()))), node('dd', key === 'ssn' ? '•••-••-' + String(value).replace(/\D/g, '').slice(-4) : key === 'birthDate' ? 'Restricted identity information supplied' : value || 'Not entered'));
       detail.append(dl);
       if (application.signature) detail.append(node('p', 'Reference release signed by ' + application.signature.name + ' at ' + application.signature.signedAt + '. Source hash and answer-version evidence are retained.'));
       if (!actor.grant.permissions.includes('documents.review')) return;
@@ -51,9 +51,10 @@
     const sequence = generation;
     try {
       const response = await workforceApi('/staff/applications'); if (sequence !== generation) return;
-      list.replaceChildren(); status.textContent = response.items.length + ' applications in your authorized offices (up to 50 per office).';
+      list.replaceChildren();document.dispatchEvent(new CustomEvent('workforce-applications-updated',{detail:response.items}));status.textContent = response.items.length + (response.items.length===1?' application':' applications')+' in your assigned offices (up to 50 per office).';
+      if(!response.items.length){const empty=node('div','No applications to review yet. New applications will appear here.');empty.className='manager-empty';list.append(empty);}
       for (const item of response.items) {
-        const button = node('button', item.uid + ' · ' + item.state + (item.weeklyHours ? ' · ' + item.weeklyHours + ' hours requested' : '') + (item.hoursReviewRequired ? ' · 40 HOURS: OFFICE REVIEW REQUIRED' : ''));
+        const button = node('button', (item.displayName||'Application #'+item.uid.slice(-6).toUpperCase())+' · '+({draft:'Draft',submitted:'Submitted'}[item.state]||item.state) + (item.weeklyHours ? ' · ' + item.weeklyHours + ' hours requested' : '') + (item.hoursReviewRequired ? ' · 40 HOURS: OFFICE REVIEW REQUIRED' : ''));
         if (item.hoursReviewRequired) button.className = 'hours-review-notice';
         button.type = 'button'; button.onclick = () => open(item.uid); list.append(button);
       }

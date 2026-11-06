@@ -1,6 +1,6 @@
 # PTHHS caregiver workforce plan
 
-Authoritative architecture, implementation backlog and acceptance record. Version 11, November 6, 2026. Initial audit baseline: `93707e3` on `main`; current handoff integrates `main` through `2c02bf5`, preserving concurrent visit-maintenance controls, range/search/reason-staging tools, SEO records and production acceptance documentation. This file owns workforce delivery status; existing management and release documentation continues to own its established workflows.
+Authoritative architecture, implementation backlog and acceptance record. Version 12, November 6, 2026. Initial audit baseline: `93707e3` on `main`; current handoff integrates `main` through `2c02bf5`, preserving concurrent visit-maintenance controls, range/search/reason-staging tools, SEO records and production acceptance documentation. This file owns workforce delivery status; existing management and release documentation continues to own its established workflows.
 
 ## Scope and release state
 
@@ -8,6 +8,13 @@ This change begins Phases 1–2 in the existing PTHHS repository. It is a review
 
 **Implemented** means code exists. **Tested** identifies synthetic automated verification. **Pending** identifies work still to implement. **Blocked** identifies a specific external input or acceptance requirement. Neither a passing test nor a deployment establishes regulatory compliance.
 
+## Modern workforce management workspace
+
+The research-based redesign uses persistent navigation, a real overview and focused account, application, opportunity and team-access screens. Searchable opportunity cards show readable statuses; editing opens on demand with grouped fields. Mobile navigation and content reflow without horizontal page overflow. Design sources and the owner's ongoing research-first preference are recorded in [DESIGN_REFERENCES.md](DESIGN_REFERENCES.md).
+
+The application queue now includes an applicant display name for authorized, office-scoped reviewers without adding identity or contact fields. Permission checks, sign-out clearing, late-response protection and unavailable count states are tested. The independent management assets are bounded at 48 KB raw / 13 KB gzip; existing marketing, operations and shared workforce budgets remain unchanged.
+
+Validation: 850 backend checks and 612 site/tooling/analytics checks pass (1,462 total), plus TypeScript, generated-asset checks and release verification. Synthetic desktop/mobile browser checks cover account support, inbox navigation, opportunity filters and draft saving. No production deployment, real applicant write, staff grant or provider configuration change is included.
 ## Real Google sign-in test
 
 Google is now enabled in the existing Firebase project, and its real account chooser was reached in Chrome. The owner completes Google account selection and consent. The separate loopback auth-test server on 4176 uses the current Firebase compat SDK and real server-side identity verification, offers synthetic openings, and rejects application/document writes. The 4175 walkthrough remains synthetic. Apple, Microsoft and Yahoo await owner developer enrollment; detailed provider requirements and return URLs are in PROVIDER_SETUP.md. Production collection gates and staff grants are unchanged.

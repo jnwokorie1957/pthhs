@@ -4,6 +4,7 @@ import assert from "node:assert/strict";
 import sharp from "sharp";
 import { IntakeStore } from "./intakeStore.js";
 import type { Intake } from "./intake.js";
+import type { Actor } from "./policy.js";
 
 interface Ref { path: string; collection: (name: string) => unknown; update: (data: object) => Promise<void> }
 function fixture() {
@@ -37,6 +38,14 @@ function fixture() {
 }
 const answers = { firstName: "Synthetic", lastName: "Applicant", applicationDate: "2026-11-05", email: "synthetic@example.invalid", phone: "555-0100", eligibleToWork: "Yes", conviction: "No", jobDescriptionRead: "Yes", ssn: "000-00-0000", birthDate: "2000-01-01", street: "100 Synthetic Street", city: "Synthetic City", state: "TX", zip: "77000", highSchool_school: "Synthetic High School", ...Object.fromEntries(readings.flatMap(r => [[`read_page_${r.page}`, "Read"], ...(r.agreement ? [[`terms_page_${r.page}`, "I have questions for HR before agreeing"]] : [])])), highSchool_completed: "2018", emergencyName: "Synthetic Contact", emergencyRelationship: "Friend", availableDate: "2026-11-10", weeklyHours: "20", emergencyPhone: "555-0101" };
 const image = sharp({ create: { width: 200, height: 140, channels: 3, background: "#789abc" } }).png().toBuffer().then(b => b.toString("base64"));
+
+test("application inbox supplies names without identity answers and stays office-scoped",async()=>{
+ const f=fixture();await f.store.save("synthetic-a",0,answers,"synthetic-office");await f.store.save("synthetic-b",0,{...answers,firstName:"Other"},"other-office");
+ const actor:Actor={uid:"synthetic-hr",grant:{active:true,role:"hr",offices:["synthetic-office"],permissions:["applications.review"]}};
+ const result=await f.store.queue(actor);assert.equal(result.items.length,1);assert.equal(result.items[0]!.displayName,"Synthetic Applicant");
+ assert.ok(!JSON.stringify(result).includes(answers.ssn));assert.ok(!JSON.stringify(result).includes(answers.birthDate));assert.ok(!JSON.stringify(result).includes("synthetic-b"));
+ await assert.rejects(f.store.queue({...actor,grant:{...actor.grant,permissions:[]}}),/workforce_forbidden/);
+});
 test("application drafts persist by UID with immutable history and content-free audit metadata", async () => {
   const f = fixture();
   const first = await f.store.save("synthetic-a", 0, answers, "synthetic-office");

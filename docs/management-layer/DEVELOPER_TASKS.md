@@ -1,12 +1,27 @@
 # PTHHS Management Layer — Developer Checklist
 
+- [x] November6 public SEO delivery: 141 routes/20 exact artifacts and eight
+  article metadata graphs pass; the live sitemap contains36URLs. Normal Google
+  Sitemaps still reports dated successful34/34/33discovered rows. Private
+  noindex/anonymous401/no-store holds. No new runtime defect or owner decision
+  was established; existing location-promotion and search-outcome work remains.
+  [Dated delivery, processing and source limits](../seo/2026-11-06-seo-review.md).
+
+- [x] November6 14:34UTC draft-only caregiver entry correction: removed the
+  browse-openings promise from the closed-account notice and aligned WF-007 with
+  password/verification/recovery. PR11 commit e770d79; merge3b2490c preserves main
+  through2c02bf5 and resolves generated-register/performance-accounting conflicts.
+  All595local frontend/tooling checks and both normal42237075110 quality jobs pass;
+  generated assets/performance/audit pass. PR remains draft and unmerged; launch,
+  live accounts, HR/clinical authority and M03 are not accepted by this correction.
+
 - [ ] November6 14:28UTC caregiver entry follow-up: draft PR11 at2179a31 adds
   password/verification/recovery and verified private openings; staff email-link
-  remains separate. Reconcile older caregiver email-link backlog and closed-state
-  browse copy with plan version9. Proposed launch checks cover direct API scope,
+  remains separate. The bounded copy/backlog correction is recorded above;
+  proposed launch checks still cover direct API scope,
   stale/closed position return, duplicate interest, hosted email paths and actual
   accessible authentication. See [R94-R96 research](ROLE_WORKFLOW_RESEARCH.txt).
-  No provider configuration, account/message, draft merge or launch was performed.
+  No provider configuration, account/message or merge to main/launch was performed.
 
 - [ ] November6 workforce/M03 integration: account for draft PR11 at6c5d12b
   before creating another staff identity shell. Reuse reviewed identity patterns;

@@ -7,14 +7,16 @@
   const can = p => actor?.grant.permissions.includes('opportunities.' + p);
   const message = s => { status.textContent = s; };
   async function refresh() {
+    if(!can('read'))return;
     const sequence = generation;
     try {
       const data = await workforceApi('/staff/opportunities');
       if (sequence !== generation) return;
-      items = data.items; render();
+      items = data.items; render();document.dispatchEvent(new CustomEvent('workforce-opportunities-updated',{detail:Object.fromEntries(['draft','review','approved','published'].map(state=>[state,items.filter(item=>item.state===state).length]))}));
     } catch (error) { if (sequence === generation) message(error.message); }
   }
   function edit(o) {
+    window.WorkforceManagement?.show('opportunities');document.getElementById('staff-editor-panel').open=true;document.getElementById('staff-editor-title').textContent=o?'Edit opportunity':'New opportunity';
     form.reset(); form.elements.id.value = o?.id || ''; form.elements.revision.value = o?.revision || 0;
     for (const key of ['office', 'internalReference', 'internalNotes']) if (o) form.elements[key].value = o[key];
     for (const key of ['location', 'recruitingZip', 'weeklyHours', 'schedule', 'type']) if (o) form.elements[key].value = o.public[key];
@@ -22,14 +24,17 @@
   }
   function render() {
     list.replaceChildren();
-    if (!items.length) list.textContent = 'No opportunities in your authorized offices.';
-    for (const o of items) {
-      const card = document.createElement('article');
-      const title = document.createElement('h3'); title.textContent = o.public.location + ' · ' + o.state;
-      const details = document.createElement('p');
-      details.textContent = [o.office, o.public.recruitingZip ? 'Approved recruiting ZIP ' + o.public.recruitingZip : 'Broad area only',
-        o.public.weeklyHours + ' hours/week', o.public.schedule, o.public.type, o.public.assistance.join(', '), 'revision ' + o.revision].join(' · ');
-      card.append(title, details);
+    const query=document.getElementById('staff-search').value.trim().toLowerCase(),state=document.getElementById('staff-filter').value;
+    const filtered=items.filter(item=>(!state||item.state===state)&&(!query||[item.public.location,item.public.recruitingZip,item.internalReference].join(' ').toLowerCase().includes(query)));
+    if(!filtered.length){const empty=document.createElement('div');empty.className='manager-empty';const title=document.createElement('h3');title.textContent=items.length?'No matching opportunities':'Your next opportunity starts here';const text=document.createElement('p');text.textContent=items.length?'Try another area or status.':'Create an opening, then send it through privacy review before publishing.';empty.append(title,text);list.append(empty);}
+    for (const o of filtered) {
+      const card = document.createElement('article'),heading=document.createElement('div');heading.className='manager-opportunity-heading';
+      const title = document.createElement('h3');title.textContent=o.public.location;
+      const badge=document.createElement('span');badge.className='manager-status manager-status-'+o.state;badge.textContent={review:'In review',draft:'Draft',published:'Published',approved:'Approved',closed:'Closed',archived:'Archived'}[o.state]||o.state;
+      heading.append(title,badge);
+      const details = document.createElement('p');details.textContent=[o.public.recruitingZip?'ZIP '+o.public.recruitingZip:'Broad recruiting area',o.public.weeklyHours+' hours / week',({weekdays:'Weekdays',weekends:'Weekends',flexible:'Flexible schedule'})[o.public.schedule],o.public.assistance.map(need=>need.replaceAll('_',' ')).join(', ')].join(' · ');
+      const meta=document.createElement('p');meta.className='manager-record-meta';meta.textContent='Office: '+o.office+' · Revision '+o.revision+(o.internalReference?' · Ref. '+o.internalReference:'');
+      card.append(heading,details,meta);
       if (can('edit') && o.state !== 'archived') {
         const button = document.createElement('button'); button.textContent = 'Edit'; button.onclick = () => edit(o); card.append(button);
       }
@@ -58,7 +63,7 @@
     }
   }
   document.addEventListener('workforce-session-cleared', () => {
-    generation++; actor = null; items = []; list.replaceChildren(); form.reset(); area.hidden = true;
+    generation++; actor = null; items = []; list.replaceChildren(); form.reset();document.getElementById('staff-search').value='';document.getElementById('staff-filter').value='';document.getElementById('staff-editor-panel').open=false;area.hidden = true;
   });
   document.addEventListener('workforce-session', e => {
     generation++; actor = e.detail; area.hidden = false;
@@ -79,6 +84,7 @@
       if (sequence === generation) { edit(saved); message('Draft saved. Privacy review is required before publication.'); await refresh(); }
     } catch (error) { if (sequence === generation) message(error.message); }
   });
+  window.WorkforceRecruiting={refresh};document.getElementById('staff-search').addEventListener('input',render);document.getElementById('staff-filter').addEventListener('change',render);
   document.getElementById('staff-refresh').onclick = refresh;
   document.getElementById('staff-new').onclick = () => edit(null);
   document.getElementById('staff-grant-form').addEventListener('submit', async e => {
