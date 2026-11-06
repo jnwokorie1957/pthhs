@@ -1,8 +1,8 @@
 PRIMETIME ROLE AND WORKFLOW RESEARCH
-Updated: November 5, 2026, America/Chicago
+Updated: November 6, 2026, America/Chicago
 Scope: PTHHS /primetime, repository jnwokorie1957/pthhs.
 Latest engineering evidence: November6 UTC administrator card/filter correction is deployed and accepted over a dated stale source cache; see MAINTENANCE_CARD_FILTERS_2026-11-06.md and the 05:14UTC implementation below. Concurrent compact/reference and fresh patient/day acceptance in a7f8421 supersedes older pending desktop-control statements, within its dated limits. Billing-clock acceptance and O03/local office review remain intact. Agency lists are not visit-specific actions. Scoped staff, clinical/family authority, original-event links, HHA submissions and pilot gates remain open.
-Latest focused research: November6,2026,00:31UTC trigger (November5 office-local day). New R92 linked-payer note/reason guidance and R93 disclosure guidance inform proposed source applicability and compact role navigation. R88-R91 restricted-role requirements remain. Current priority is maintenance-first; earlier manual-snapshot priorities below are historical and do not authorize new scraped imports.
+Latest focused research: November6,2026,05:48UTC trigger, continued during the14:18UTC source follow-up. Draft workforce PR11 at6c5d12b is now accounted for as a separate identity/HR domain; it does not implement M03 assigned-care access. R94 pins its source and plan. Newer8ad80ef signed-in HHA catalog comparison supersedes the earlier sign-in dependency, while exact catalog/action mapping remains open. R9/R89 clinical-assignment and Firebase authority guidance rechecked November6. Maintenance-first remains the priority; earlier manual-snapshot priorities below are historical and do not authorize new scraped imports.
 Broad role review: November 3, 2026, 09:42 UTC heartbeat. Rechecked the official Family Dashboard [R63] and Forms [R60] guidance against repository 9821769 and the cumulative role proposals below. Requests, source holds, encounter documentation and review remain distinct; no new tenant UI or source-read acceptance is claimed by that research pass. Latest bounded implementation: 9fb89f1 Advanced EVV source-context fences, accepted 19:55-19:57 UTC; acf7e6d exact read receipts accepted 19:15 UTC. Patient/PT role, document/action, source-time/E04, usable billing/B02 and availability dependencies remain open. Dated primary links and acceptance evidence follow; earlier next-task statements are historical checkpoints.
 
 EVIDENCE BASELINE — DATED OBSERVATIONS; LATER UPDATES BELOW
@@ -2662,3 +2662,137 @@ closed its own tab and cleared private buffers. See
 MAINTENANCE_CARD_FILTERS_2026-11-06.md for scope, test/native evidence and limits.
 M03 effective principal/membership/action work remains next; owner activation
 inputs and M02/vendor source semantics remain with their existing reviews.
+
+NOVEMBER 6, 2026 - WORKFORCE DRAFT AND ASSIGNED-CARE INTEGRATION RESEARCH
+Trigger05:48UTC; continued after14:18UTC upstream refresh. Reviewed mainf714b43,
+preserving8ad80ef reason/action investigation and concurrent social-card work.
+PR11 remains open, draft and unmerged at the reviewed immutable head
+6c5d12b95aa01c8f425477bfd8045e04e0ed902f. Source inspection is not deployment,
+multi-user acceptance or authorization to activate its release parameters.
+
+OBSERVED SOURCE - DISTINCT FROM PROPOSED ROLE CONNECTIONS
+The draft auth.ts verifies the signed Firebase token, checks revocation and the
+current user, and requires a matching verified email. It reuses the project UID.
+Application operations additionally require recent authentication. Its policy.ts
+defines descriptive owner/hr/office/supervisor roles, an active office-scoped
+grant and explicit opportunity/staff/application/document permissions. Neither
+an email address nor a role label is accepted as a clinical assignment.
+
+The separate workforceApi has default-closed staff, public-opportunity,
+application/packet, document and retention release controls. Its plan owns the
+draft caregiver application/private employment-folder and office workforce
+experiences, including their pending activation and deployed acceptance. These
+are HR records, not patient document instances or encounter forms. The plan
+explicitly leaves actual hiring, source linkage, assignment and HHA/ADP writes
+outside this intake implementation. Reported branch test results were not rerun
+here; this research does not accept the whole PR or its form/retention policies.
+
+Same words have different authority contexts in the reviewed source:
+- maintenance/service.ts supervisor queue: routing metadata for a local case;
+  current protected shell/API still require administrator access.
+- draft workforce/policy.ts supervisor role: only its explicit workforce grant;
+  it supplies no patient membership or maintenance action capability.
+- revisions office_supervisor/supervisor roles: existing operational policy
+  contexts, not automatic aliases for either queue or workforce membership.
+- PT clinical access: proposed verified discipline, effective patient/visit
+  assignment, form/version and reviewer authority; none is granted by a label.
+These distinctions describe integration requirements, not a finding that the
+HR-only draft must itself implement the clinical or maintenance domain.
+
+PRIMARY GUIDANCE AND DESIGN INFERENCE
+R9 documents office association and effective patient assignments, with separate
+permission to edit another author's clinical documents. R89 requires trusted
+backend token validation and explains that changed claims reach newly issued
+tokens. Neither establishes a tenant grant or an instant membership-revocation
+mechanism. The proposed integration therefore checks current domain membership
+as well as identity; browser navigation and an older role token cannot grant it.
+
+PROPOSED SHARED RECORD LINKS AND EXPERIENCES - NOT IMPLEMENTED HERE
+Reuse the reviewed same-project identity pattern rather than create a duplicate
+staff login. Keep a protected, explicitly verified crosswalk from Firebase UID
+to actual workforce/employment identity, then to exact source caregiver/office
+references where established. Effective patient/visit membership and explicit
+actions remain separate records. Do not join by name, email, phone or identity
+document content alone, or create an HHA caregiver from an applicant submission.
+No crosswalk values or private employment records belong in public evidence.
+
+Patient/family: next visit, schedule requests and specifically shared patient
+documents retain their own revocable patient/representative membership. A staff
+application folder must never resolve through a patient-document link. Public
+service entry stays generic and does not expose record-bearing links.
+
+PT/staff: My day/caseload opens an actually assigned patient/visit and approved
+clinical form instance/version, with author/reviewer/signature history. Applicant
+progress, policy agreement, uploaded credentials and preferred hours do not
+establish qualification, assignment, clinical completion or worked/verified time.
+Future staff-hour views must retain separate schedule, recorded, original EVV,
+source-hour and office-review evidence with receipts and explicit missing states.
+
+Office manager: route permitted HR work to the workforce domain and permitted
+maintenance/scheduling/authorization/EVV/billing follow-up to their own scoped
+services. Counts, cursors, documents and reports must enforce those scopes before
+projection. An opportunity or intake record cannot establish an authorization,
+source visit, confirmed punch or payable/billable status. Do not advertise the
+draft caregiver/workforce routes as production-ready in the public navigation.
+
+PRIORITIES, DEPENDENCIES AND PROPOSED ACCEPTANCE
+P0 M03 remains the next restricted-role build: effective office/client/team
+membership, assigned principal, and separate view/note/propose/reassign/review/
+export capabilities. Reconcile the identity interface with PR11 before building
+another staff account shell; do not reuse HR permissions as default M03 grants.
+P1 M04 reports authorize their exact case/source evidence first. Patient/family
+sharing and PT encounter forms remain dependent on their separate memberships,
+discipline/source/form contracts and owner/clinical review.
+
+Acceptance cases below are proposed, not passing tests or native verification:
+1. A verified applicant or workforce-only actor is refused maintenance/clinical
+   routes without independent current membership and action authority.
+2. The supervisor queue, workforce role and revisions role never alias grants;
+   changing a local queue cannot assign access to an account.
+3. Repeated names or changed email/phone do not merge people, assign a patient
+   or create a source employee; unresolved crosswalks stay unresolved.
+4. Accepted application, policy agreement and upload receipts do not complete
+   a clinical form, create a visit assignment or fill missing EVV/hour fields.
+5. Revoke HR and operational membership independently. Older tokens, open drafts,
+   pagination, counts and report requests obey the current relevant grant.
+6. Patient/family document links cannot retrieve private employment/identity
+   files; clinical and maintenance reports include only permitted records.
+
+PRECISE NEXT ACTIONS AND IMPLEMENTATION EVIDENCE
+Developer: use the pinned PR plan as the workforce delivery owner; review its
+identity interface against M03 before integration. Keep reviewed release jobs,
+owner bootstrap and activation decisions separate. This does not request a merge,
+deployment, new grant, account, applicant collection or source write.
+Existing owner review: select exact private account identities, effective
+office/client/team memberships and permitted actions before M03 activation.
+Actual employment/source-caregiver crosswalk and clinical/family sharing remain
+separate decisions. No additional decision request was sent in this pass.
+
+Newer signed-in HHA evidence in HHA_VISIT_REASON_CATALOG_COMPARISON_2026-11-05.md
+resolves the earlier login dependency for that observed session: all28reason
+labels match the generic list but none of their IDs do; exact approved visit
+read still returns0choices. That evidence does not supply a time/event mapping.
+The14:18UTC browser follow-up exposed no usable signed-in source session in the
+current connection. Its isolated Primetime tab showed sign-in and was closed;
+formerly inventoried user tabs were unavailable through the selected binding.
+No sign-in message, source request, automatic retry, setting save or duplicate
+permission question was issued. This does not undo the earlier authenticated
+HHA comparison or diagnose the user's overall login state.
+
+P03/E04 clock/hour work remains open under its existing protected review:
+compare the exact affected historical visit's original event history and current
+approved API evidence, and obtain authoritative linkage, endpoint/filter/history
+coverage and hour-unit semantics. Original October24 screenshot remains resolved.
+No new recovered time, current-day comparison, runtime defect or deployment is
+claimed. The cumulative live checklist already owns these unchanged mappings;
+it was not rewritten merely for this session-availability check.
+
+[R94] Reviewed November6,2026: open draft PR11 and immutable source/plan.
+https://github.com/jnwokorie1957/pthhs/pull/11
+https://github.com/jnwokorie1957/pthhs/blob/6c5d12b95aa01c8f425477bfd8045e04e0ed902f/docs/workforce/PLAN.md
+https://github.com/jnwokorie1957/pthhs/blob/6c5d12b95aa01c8f425477bfd8045e04e0ed902f/functions/src/workforce/auth.ts
+https://github.com/jnwokorie1957/pthhs/blob/6c5d12b95aa01c8f425477bfd8045e04e0ed902f/functions/src/workforce/policy.ts
+https://github.com/jnwokorie1957/pthhs/blob/6c5d12b95aa01c8f425477bfd8045e04e0ed902f/functions/src/workforce/http.ts
+Rechecked primary R9/R89 November6; guidance is not tenant activation evidence:
+https://knowledge.hhaexchange.com/texas/Content/Documentation/Patient/Pat-N-Control-Access-Patient-P.htm
+https://firebase.google.com/docs/auth/admin/custom-claims

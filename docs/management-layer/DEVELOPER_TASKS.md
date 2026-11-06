@@ -1,5 +1,14 @@
 # PTHHS Management Layer — Developer Checklist
 
+- [ ] November6 workforce/M03 integration: account for draft PR11 at6c5d12b
+  before creating another staff identity shell. Reuse reviewed identity patterns;
+  preserve independent current HR, maintenance and clinical memberships/actions.
+  The workforce supervisor role, case queue and revisions role cannot alias
+  access. Six proposed cross-domain/revocation/record-link acceptance cases,
+  patient/PT/office connections and pinned evidence are in
+  [cumulative role research](ROLE_WORKFLOW_RESEARCH.txt). PR11 remains draft;
+  no merge, role activation, clinical/source grant or production acceptance here.
+
 - [x] Signed-in HHA catalog comparison: selected visit has 28 reasons and five
   actions; generic schedule/billing IDs and agency visit-edit reference IDs differ
   from the visit form despite matching labels. Exact UI visit/patient/office/date
