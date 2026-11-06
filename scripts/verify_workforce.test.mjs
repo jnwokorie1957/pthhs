@@ -62,6 +62,9 @@ test('client database and document access stay denied; application/document coll
 });
 test('new API uses existing project and preserves legacy routing and security boundary', () => {
   const config = JSON.parse(read('firebase.json'));
+  const csp=source=>config.hosting.headers.find(rule=>rule.source===source).headers.find(header=>header.key==='Content-Security-Policy').value;
+  assert.match(csp('/caregiver'),/frame-src https:\/\/primetimehomehealthservices\.firebaseapp\.com;/);
+  assert.match(csp('/caregiver'),/frame-ancestors 'none'/);assert.match(csp('**'),/frame-src 'none'/);
   for(const path of ['/caregiver/workforce-api/**','/primetime/workforce-api/**']) assert.equal(config.hosting.rewrites.find(r=>r.source===path).function.functionId,'workforceApi');
   assert.equal(config.hosting.rewrites.find(r=>r.source==='/primetime/api/**').function.functionId,'primetimeApi');
   assert.match(read('functions/src/index.ts'),/principal = await requirePrimetimeAdmin\(request\)/);
