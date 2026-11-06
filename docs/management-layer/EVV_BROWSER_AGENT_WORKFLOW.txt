@@ -106,18 +106,39 @@ misreport unrelated No Records labels in the visit form as its search result.
 The owner then taught REVIEW-DATES-001: November 1-5 inclusive, always stopping
 at yesterday and excluding today's still-incomplete submissions. The second
 member's November 1 visit has a recorded clock-in. Link Call Out returns a real
-candidate marked No Schedule Opening; that candidate is currently open. The
+candidate marked No Schedule Opening. The
 owner taught conditional reason110A / service delivery differs from schedule,
 member-confirmation action, link/close and separate handling of the other
 direction. CALL-REASON-001 preserves the conditional scope and requirement for
 actual verification evidence, without inferring a blanket rule from daytime.
-New Reason and Action Taken remain Select: the narrow host window clips popup
-controls and attempted selections have not taken effect. Asked the owner to
-maximize/move the popup and clarify member verification plus this Call Out
-direction before linking. No call link, reason/action save, source confirmation,
-time change or communication has been submitted. Dates November 2,4,5 still
-need call-detail review for this member; a complete correction rule and
-independent saved readback remain pending.
+The narrow native popup clipped its controls. Resolved staging by opening the
+exact source popup URL, read from its accessibility document, as a regular
+connected HHA tab and privately checking identical query scope. That tab selected
+110A and Confirmed visit with member or member's representative and documented.
+No note or verification evidence was invented. The owner explicitly attested
+member confirmation and approved this exact Call Out link. Link was activated
+once; an inconclusive immediate tool result was reconciled without retry.
+Fresh source Visit Info, a refreshed retained visit, the saved reason/action
+row and Call History Success established the saved link while preserving the
+existing clock-in. Find Calls closed and the helper tab was removed. General
+direct-tab opener behavior is not inferred; the maximize request is superseded.
+
+The owner next instructed the separate Visit Info EVV reason110A and member-
+confirmation action, followed by the bottom submit. Both were selected; the
+source-displayed bill-clock span was 60 minutes and original EVV timestamps
+were unchanged. Save was submitted once and HHA reported Information has been
+saved. Independent Visit Info reload retained that span, both EVV timestamps
+and two matching current-day saved reason/action rows (call link plus visit
+submission). CALL-REASON-001 and VISIT-SUBMIT-001 record this one explicitly
+approved example. No time fields, reprocess, payer submission, invented punch,
+clinical decision, free-text note or communication were made by the agent.
+The original source example remains open for owner teaching.
+
+Dates November 2,4,5 still need call-detail review for this member, and November
+3 Call Out is not independently checked. The full interval is not complete.
+This bounded browser example does not enable Primetime API writes or establish
+an autonomous routine/blanket110A policy, every source/payer acceptance, staff
+account authority or a supported vendor action contract. Those remain open.
 
 PRIMARY SOURCES CHECKED NOVEMBER 6, 2026
 HHA UI workflow includes linking EVV, editing visit times and reason/action/note:

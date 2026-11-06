@@ -103,8 +103,8 @@ search result only; Call Out and full retained history were not independently
 checked. Earlier No Records labels in other visit-form sections were not used
 as evidence. The earlier connector-blocked status is superseded by this capture.
 
-No call was selected/linked, no source Save/confirmation/reprocess was submitted,
-and no reason/action, clock, clinical or financial outcome was chosen.
+At that read-only stage no call was linked and no source Save was submitted.
+The later specifically authorized example below supersedes that action status.
 
 REVIEW-DATES-001 - REVIEW THROUGH YESTERDAY
 Version: 1. Owner-taught November 6, America/Chicago.
@@ -118,14 +118,17 @@ Current progress: November 3's call-in picker showed No Records. That popup was
 closed using its own Close control and closure was visually checked. The owner
 then clarified the full November 1-5 interval, so the review restarted at the
 first. All five calendar visit links were present; their presence/color alone
-does not complete their call reviews. November 1 Visit Info has a recorded
-clock-in and its Link Call menu offers Link Call Out. That call-out picker
-returns a real candidate with the displayed source reason No Schedule Opening.
+does not complete their call reviews. November 1 Visit Info had a recorded
+clock-in and its Link Call menu offered Link Call Out. That call-out picker
+returned a real candidate with the displayed source reason No Schedule Opening.
 Keep that private call's actual times/names/identifiers out of this register.
-November 2, 4 and 5 call details for this second member remain unreviewed.
+The owner subsequently approved this exact call-out link and visit submission;
+source readback is recorded below. November 2, 4 and 5 call details for this
+second member remain unreviewed; November 3 Call Out is not independently
+checked. Do not report the entire interval complete.
 
 CALL-REASON-001 - OWNER-TAUGHT SCHEDULE-DIFFERENCE EXAMPLE
-Version: 1. Proposed source step; no saved call link or readback accepted yet.
+Version: 2. One owner-directed call-out link and readback accepted November 6.
 The owner instructed choosing the new reason for working at a different time,
 then the member-confirmation action, linking the call and closing, with the
 other direction handled separately when applicable. The owner described 110A
@@ -140,11 +143,57 @@ not proof that anyone contacted or confirmed with the member. No communication
 was requested or sent. This candidate is Call Out, with Call In already present;
 the owner's reference to doing Call Out afterward was clarified before linking.
 
-Current staging status: the reason list opened and 110A was inspected, but
-selection attempts did not change the visible New Reason value from Select.
-Action Taken also remains Select. The owned popup extends outside the narrow
-host window and input targeting has not been reliable; no link was submitted.
-Pending owner answers: confirm actual member verification and authority for
-this specific call-out link, and maximize/move the popup so all source controls
-are reachable. Keep the candidate open; do not claim selection, persistence,
-confirmation or a completed maintenance example until independently read back.
+Initial native selection attempts did not change Select because the popup's
+controls extended outside the narrow host window. That blocker is superseded:
+the actual popup document URL was exposed by its accessibility document. Direct
+attachment was unavailable, so that exact same HHA URL was opened in a regular
+connected tab. Query scope equality was checked privately; no URL guessing,
+record change or private identifier export was used.
+
+The connected tab selected 110A and the exact dependent action Confirmed visit
+with member or member's representative and documented. The owner explicitly
+attested member confirmation and approved this specific Call Out link. Link
+was activated once. Its immediate tool result was inconclusive; it was NOT
+resubmitted. Fresh Visit Info and a separate refresh of the retained visit both
+showed the approved source call-out, with the existing clock-in unchanged.
+The visit's saved reason/action table had one matching current-day row, and
+Call History showed the source Out entry as Success with linkage evidence.
+Find Calls visibly closed. The helper tab was closed after source readback;
+the original source example remains open.
+
+No note or member contact was invented by the agent. Owner attestation,
+selected action and saved HHA evidence are distinct. This accepts one explicit
+owner-directed UI link, not an autonomous code-selection policy, general direct-
+tab opener/close contract, API write method or permission for other records.
+The maximize/move request is superseded by the control-access workaround.
+
+VISIT-SUBMIT-001 - SAVE THE OWNER-APPROVED VISIT MAINTENANCE
+Version: 1. One owner-directed example saved and independently read back.
+After linking the genuine call, the owner instructed selecting 110A again in
+Visit Info's EVV Reason Code Number / Reason Code, then the member-confirmation
+Action Taken, and submitting at the bottom. This is separate from the candidate
+call's New Reason and Action Taken selections.
+
+1. Recheck the exact visit/day, member attestation and conditional reason scope.
+2. Select the applicable visit reason, then its dependent action. For this
+   approved example the exact labels were the same 110A and member-confirmation
+   labels recorded above. Do not substitute IDs from unrelated reason catalogs.
+3. Check displayed Bill Time In/Out separately from original EVV timestamps.
+   The owner observed HHA's automatic adjustment to a one-hour scheduled span.
+   The displayed bill-clock span was verified as 60 minutes; both original EVV
+   timestamps remained unchanged. No time fields were edited by the agent.
+   This is source-display evidence, not a general rounding/payroll/billing rule.
+4. Submit the source Save control once. The source reported Information has
+   been saved. If the response is uncertain, read back before any retry.
+5. Reload Visit Info independently and verify persisted fields and source audit.
+   This example retained the 60-minute bill-clock span and both EVV timestamps.
+   The saved visit table contained two current-day matching 110A/action rows:
+   one for the call link and one for this separate visit submission.
+
+The owner authorized this exact submission after the link; the source Save
+returned and independent readback passed. No reprocess, payer submission,
+clinical decision, new clock event, invented note or communication occurred.
+The existing Call History verification entry was not newly created by this
+step. Saved maintenance does not establish every payer acceptance or a supported
+Primetime confirmation API. Additional examples and automation policy remain
+subject to their own evidence, owner direction and supported source contract.
