@@ -1,0 +1,61 @@
+OWNER-TAUGHT HHA VISIT-MAINTENANCE PROCEDURES
+Updated November 6, 2026, America/Chicago.
+Only instructions actually supplied by the owner belong in this register.
+Keep patient/caregiver/visit/event identities in HHA or protected runtime storage.
+
+SEARCH-001 - ALL COORDINATORS
+Version: 2. Owner-taught and read-only search behavior checked November 6.
+
+Owner instruction: when searching, use All instead of DEFAULT so everybody in
+the selected office is included. All is the standard coordinator search scope.
+
+Procedure:
+1. Use the office and service date/range requested by the owner. Do not change
+   office membership, account permissions or other explicit search choices.
+2. Expand Advanced Filters when necessary and inspect Coordinator before searching.
+3. In Visit Maintenance choose Select all options and verify All selected. In
+   Member Search choose the native Coordinator option All and verify that label.
+4. Search and inspect the result scope/pagination. Do not treat an empty result
+   as proof of no visits before checking office, dates and coordinator filtering.
+5. Repeat the explicit All check on every search, even if HHA restores DEFAULT.
+   A later explicit owner instruction to narrow a particular query takes priority.
+
+Observed walkthrough: the owner first selected November 6, then corrected the
+example to yesterday, November 5. Both From/To were set to November 5. DEFAULT
+returned no rows; clearing it returned results. Explicit Select all options then
+displayed All selected and the UI reported 1-20 of 637 search results. This is a
+dated UI observation, not a fixed expected census or a read of every result page.
+
+Permanent HHA preference: not established. No remember/default-search control was
+visible in the inspected maintenance screen/profile menu. No account, coordinator
+assignment, MFA or password setting was changed. The agent procedure explicitly
+sets All each time rather than relying on an unverified saved HHA preference.
+
+Maintenance teaching status: first visit selection and first confirmation-review
+check are pending. No source confirmation, clock change, reason/action save or
+completed visit-maintenance procedure has been taught or executed in this step.
+
+MEMBER-SEARCH-001 - CURRENT WELLPOINT STAR KIDS EXAMPLE
+Version: 1. Owner-instructed search scope checked November 6.
+Scope: this teaching example, not the default payer for every future search.
+
+Owner direction: go to Member Search and use the Wellpoint STAR Kids payer.
+The final STAR Kids instruction supersedes the earlier STAR PLUS wording.
+
+Procedure observed:
+1. Open Member > Search Member using HHA's existing navigation.
+2. Apply SEARCH-001 so Coordinator is All.
+3. Select the exact visible Payer entry Wellpoint - STAR Kids (RCG).
+4. Retain the current Active status unless the owner directs a different scope.
+   Active was the current search setting, not a newly taught universal policy.
+5. Search. The UI showed 25 active matches in this dated observation.
+
+For this walkthrough the owner explicitly allowed any member, so the first
+listed active STAR Kids member profile was opened. That is example-selection
+permission only, not a universal patient-selection or confirmation rule. No visit
+or first confirmation-review check has yet been identified. Keep names and
+source IDs in HHA/protected runtime; do not choose a clinical outcome or confirm
+a visit here.
+The earlier service-date instruction remains November 5 for the visit example;
+the member search itself has no service-date selection.
+These search results do not establish approval of a 25-client automation pilot.

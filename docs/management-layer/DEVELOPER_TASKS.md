@@ -4,7 +4,7 @@
   jnwokorie@pthhs.net Outlook account to EINTSupport@hhaexchange.com; exact
   subject/sender/recipient verified in Sent Items. No private records or
   credentials attached. Vendor response/source-action acceptance remain pending.
-  HHA walkthrough is open and awaits the owner's first date/example/instruction.
+  Owner-taught SEARCH-001 is recorded; first visit-maintenance teaching remains open.
 
 - [x] Prepared the exact technical support email to HHA's published Enterprise
   Integration address and separated API-backed Primetime confirmation from a
@@ -13,14 +13,15 @@
   real-call evidence, supervised pilot, later approved-rule processing and staff
   escalations. Source writes and browser automation are not accepted by this plan.
 
-- [ ] November6 17:27UTC draft management coverage: PR11/aebde94 overview counts
-  returned lists capped at50applications/100opportunities per office; API caps are
-  not visible beside the overview counts. Label loaded scope/state/cap or prove
-  authorized totals/paging before calling them office totals; preserve unknown
-  versus zero and card-to-filter agreement. Six proposed coverage/support/action-
-  mode/revocation/navigation cases, explicit accounts.support boundaries and the
-  version12/Google-handoff distinction are in [R97-R100 research](ROLE_WORKFLOW_RESEARCH.txt).
-  CI42258133181 passes; no live account, mail, clinical role or launch acceptance.
+- [x] November6 draft management list coverage implemented in PR11/2e34eb6,
+  with Careers asset-builder follow-up01defd7. Overview/inbox share a response;
+  loaded scope/caps, unknown versus zero and submitted/pipeline filters agree.
+  All631local site/tooling/analytics tests and nine new coverage cases pass;
+  synthetic native Chrome, hashes/performance/audit pass. Both normal quality
+  [42274334918 jobs](https://github.com/jnwokorie1957/pthhs/actions/runs/42274334918)
+  succeed. Draft remains unmerged/undeployed; actual-user, current-grant/emulator,
+  provider-return, accessibility and launch/M03 gates stay open. Separate caregiver
+  board coverage still needs acceptance. [Implementation/limits](ROLE_WORKFLOW_RESEARCH.txt).
 
 - [x] November6 public SEO delivery: 141 routes/20 exact artifacts and eight
   article metadata graphs pass; the live sitemap contains36URLs. Normal Google

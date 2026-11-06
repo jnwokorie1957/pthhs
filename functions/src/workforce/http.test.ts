@@ -18,7 +18,7 @@ test("opportunities require sign-in even when release gates are closed", async (
   assert.equal(result.headers["Cache-Control"], "no-store");
 });
 test("configuration cannot enable applicant collection and staff routes default closed", async () => {
-  assert.deepEqual((await request("/caregiver/workforce-api/configuration")).body, { staffEnabled: false, accountsEnabled: false, applicationsEnabled: false, documentsEnabled: false, addressLookupEnabled: false, enabledSignInProviders: [] });
+  assert.deepEqual((await request("/caregiver/workforce-api/configuration")).body, { staffEnabled: false, accountsEnabled: false, applicationsEnabled: false, documentsEnabled: false, addressLookupEnabled: false, enabledSignInProviders: [],existingAccessEnabled:false });
   const result = await request("/primetime/workforce-api/staff/opportunities", "POST");
   assert.equal(result.status, 503); assert.deepEqual(result.body, { error: "workforce_release_pending" });
 });
@@ -42,4 +42,9 @@ test("name profiles and private print routes stay release-gated with no-store re
  for(const path of ["/staff/accounts/candidate/profile","/staff/applications/candidate/pdf","/staff/applications/candidate/packet/pdf","/staff/applications/candidate/documents/file/print"]){
   const response=await request("/primetime/workforce-api"+path);assert.equal(response.status,503);assert.equal(response.headers["Cache-Control"],"no-store");assert.deepEqual(response.body,{error:"workforce_release_pending"});
  }
+});
+
+test("existing-caregiver provisioning is separately gated before any auth account or email can be created",async()=>{
+ const response=await request("/caregiver/workforce-api/existing-caregiver/access","POST");assert.equal(response.status,503);assert.deepEqual(response.body,{error:"existing_access_pending"});assert.equal(response.headers["Cache-Control"],"no-store");
+ for(const path of ["/application/hha-profile","/application/hha-files/501"]){assert.equal((await request("/caregiver/workforce-api"+path)).status,503);}
 });

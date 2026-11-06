@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import vm from 'node:vm';
 const source=fs.readFileSync(new URL('../public/assets/workforce-account.js',import.meta.url),'utf8');
-function setup({enabled=true,search='',invalidCode=false,providers=[],providerOnly=false,api=async()=>({kind:'caregiver'})}={}) {
+function setup({enabled=true,search='',invalidCode=false,providers=[],providerOnly=false,existingAccessEnabled=false,api=async()=>({kind:'caregiver'})}={}) {
  const nodes=new Map(),events=[],calls=[];
  const node=id=>{if(!nodes.has(id))nodes.set(id,{value:'',hidden:true,children:[],append(child){this.children.push(child);},listeners:{},attrs:{},setAttribute(key,value){this.attrs[key]=value;},focus(){},scrollIntoView(){},reportValidity:()=>true,addEventListener(type,fn){this.listeners[type]=fn;}});return nodes.get(id);};
  let onAuth;
@@ -11,7 +11,7 @@ function setup({enabled=true,search='',invalidCode=false,providers=[],providerOn
  auth.verifyPasswordResetCode=async()=>{if(invalidCode)throw Error();calls.push('verify-code');return 'test@example.invalid';};auth.confirmPasswordReset=async(code,password)=>calls.push(['confirm-reset',code,password]);
  const board={clear:()=>calls.push('clear'),open:async()=>calls.push('board')};
  auth.signInWithPopup=async provider=>calls.push(['provider',provider.providerId]);let nextNode=0;
- const context=vm.createContext({window:{WorkforceBoard:board,WorkforceReview:{flush:async()=>{}}},document:{createElement:()=>node('created-'+nextNode++),getElementById:node,dispatchEvent:e=>events.push(e.type)},CustomEvent:class{constructor(type,options){this.type=type;this.detail=options?.detail;}},location:{search,pathname:'/caregiver',href:'http://localhost/caregiver'+search,origin:'http://localhost'},history:{replaceState:()=>calls.push('history')},URL,URLSearchParams,firebase:{auth:{Auth:{Persistence:{SESSION:'session'}},GoogleAuthProvider:class{constructor(){this.providerId='google.com';}setCustomParameters(params){calls.push(['google-parameters',params.prompt]);}},OAuthProvider:class{constructor(id){this.providerId=id;}}}},fetch:async()=>({ok:true,json:async()=>({accountsEnabled:enabled,enabledSignInProviders:providers,providerOnly})}),setTimeout:()=>{}});
+ const context=vm.createContext({window:{WorkforceBoard:board,WorkforceReview:{flush:async()=>{}}},document:{createElement:()=>node('created-'+nextNode++),getElementById:node,dispatchEvent:e=>events.push(e.type)},CustomEvent:class{constructor(type,options){this.type=type;this.detail=options?.detail;}},location:{search,pathname:'/caregiver',href:'http://localhost/caregiver'+search,origin:'http://localhost'},history:{replaceState:()=>calls.push('history')},URL,URLSearchParams,firebase:{auth:{Auth:{Persistence:{SESSION:'session'}},GoogleAuthProvider:class{constructor(){this.providerId='google.com';}setCustomParameters(params){calls.push(['google-parameters',params.prompt]);}},OAuthProvider:class{constructor(id){this.providerId=id;}}}},fetch:async()=>({ok:true,json:async()=>({accountsEnabled:enabled,enabledSignInProviders:providers,providerOnly,existingAccessEnabled})}),setTimeout:()=>{}});
  vm.runInContext(source,context);
  return {node,auth,calls,events,start:()=>context.window.WorkforceAccount.start({createAuth:()=>auth,api}),session:user=>{auth.currentUser=user;return onAuth(user);},submit:()=>node('workforce-login').listeners.submit({preventDefault(){}})};
 }
@@ -68,4 +68,14 @@ test('signup collects the caregiver name and keeps name fields off sign-in and r
  const s=setup();await s.start();assert.equal(s.node('account-names').hidden,true);s.node('account-create').onclick();assert.equal(s.node('account-names').hidden,false);assert.equal(s.node('account-first-name').required,true);
  s.node('account-first-name').value='Hannah';s.node('account-last-name').value='Howard';s.node('workforce-password').value='SyntheticPassword123!';s.node('workforce-password-confirm').value='SyntheticPassword123!';await s.submit();assert.ok(s.calls.some(call=>Array.isArray(call)&&call[0]==='profile'&&call[1]==='Hannah Howard'));
  s.node('account-forgot').onclick();assert.equal(s.node('account-names').hidden,true);assert.equal(s.node('account-first-name').required,false);
+});
+
+test('existing caregiver access is an isolated email-only request and does not use an HHA password',async()=>{
+ const requests=[],s=setup({existingAccessEnabled:true,api:async(path,body)=>{requests.push({path,body});return {requested:true};}});await s.start();s.node('account-existing').onclick();
+ assert.equal(s.node('password-row').hidden,true);assert.equal(s.node('account-names').hidden,true);assert.equal(s.node('account-providers').hidden,true);assert.equal(s.node('job-board').hidden,true);assert.match(s.node('account-description').textContent,/HHAeXchange/);
+ s.node('workforce-email').value='legacy@example.invalid';await s.submit();assert.equal(requests[0].path,'/existing-caregiver/access');assert.equal(requests[0].body.email,'legacy@example.invalid');assert.match(s.node('session-status').textContent,/If your email matches/);assert.ok(!s.calls.includes('signin')&&!s.calls.includes('reset'));
+});
+
+test('existing access remains hidden until its separate release configuration is enabled',async()=>{
+ const s=setup();await s.start();assert.equal(s.node('account-existing').hidden,true);
 });

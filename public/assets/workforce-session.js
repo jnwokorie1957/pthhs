@@ -26,6 +26,9 @@
     owner_grant_requires_offline_review: 'Owner access requires a separate administrative review.',
     staff_identity_unverified: 'The staff account must be enabled with a verified email.',
     verified_identity_required: 'Sign in again using your verified email.',
+    existing_access_pending: 'Existing caregiver access is being prepared.',
+    hha_email_review_required: 'Your HHA email or account link needs office review.',
+    hha_profile_unavailable: 'Your HHA profile is unavailable. Please try again or contact the office.',
     workforce_release_pending: 'This workforce service is awaiting release verification.'
     ,application_collection_pending: 'Online applications are awaiting release verification.'
     ,document_collection_pending: 'Private document uploads are awaiting security and retention verification.'
@@ -57,11 +60,12 @@
     document.getElementById('caregiver-summary')?.setAttribute('hidden', '');
   };
   async function api(path, body, download = false) {
-    if (!auth?.currentUser) throw Error('Sign in required.');
-    const token = await auth.currentUser.getIdToken();
+    const guest=path==='/existing-caregiver/access';
+    if (!auth?.currentUser&&!guest) throw Error('Sign in required.');
+    const token = guest ? '' : await auth.currentUser.getIdToken();
     const r = await fetch(prefix + path, {
       method: body ? 'POST' : 'GET', cache: 'no-store',
-      headers: { Authorization: 'Bearer ' + token, ...(body ? { 'Content-Type': 'application/json' } : {}) },
+      headers: { ...(token ? {Authorization: 'Bearer '+token} : {}), ...(body ? { 'Content-Type': 'application/json' } : {}) },
       ...(body ? { body: JSON.stringify(body) } : {})
     });
     if (r.ok && download) return r.blob();

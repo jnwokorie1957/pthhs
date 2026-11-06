@@ -1,10 +1,12 @@
 import test from 'node:test';import assert from 'node:assert/strict';import fs from 'node:fs';import vm from 'node:vm';
+const hhaSource=fs.readFileSync(new URL('../public/assets/workforce-hha.js',import.meta.url),'utf8');
 const source=fs.readFileSync(new URL('../public/assets/workforce-personnel.js',import.meta.url),'utf8');
 function setup(request){
  const nodes=new Map(),listeners=new Map(),sent=[],revoked=[],timers=new Map();let timerId=0;
- const make=()=>({hidden:true,value:'',children:[],append(...nodes){this.children.push(...nodes);},replaceChildren(){this.children=[];},reportValidity:()=>true});
+ const make=()=>({hidden:true,value:'',attrs:{},setAttribute(key,value){this.attrs[key]=value;},children:[],append(...nodes){this.children.push(...nodes);},replaceChildren(){this.children=[];},reportValidity:()=>true});
  const node=id=>{if(!nodes.has(id))nodes.set(id,make());return nodes.get(id);};
- const context=vm.createContext({document:{getElementById:node,createElement:make,addEventListener:(type,fn)=>{if(!listeners.has(type))listeners.set(type,[]);listeners.get(type).push(fn);},dispatchEvent(){}},window:{open:()=>null,WorkforceSendPasswordReset:async email=>sent.push(email)},URL:{createObjectURL:()=> 'blob:private-preview',revokeObjectURL:url=>revoked.push(url)},workforceApi:(path,...args)=>path==='/staff/applications'?Promise.resolve({items:[],limitPerOffice:50}):request(path,...args),setTimeout:fn=>{timers.set(++timerId,fn);return timerId;},clearTimeout:id=>timers.delete(id),CustomEvent:class {constructor(type,options){this.type=type;this.detail=options.detail;}}});vm.runInContext(fs.readFileSync(new URL('../public/assets/workforce-contract.js',import.meta.url),'utf8'),context);vm.runInContext(source,context);
+ const context=vm.createContext({document:{getElementById:node,createElement:make,addEventListener:(type,fn)=>{if(!listeners.has(type))listeners.set(type,[]);listeners.get(type).push(fn);},dispatchEvent(){}},window:{open:()=>null,WorkforceSendPasswordReset:async email=>sent.push(email)},URL:{createObjectURL:()=> 'blob:private-preview',revokeObjectURL:url=>revoked.push(url)},workforceApi:(path,...args)=>path==='/staff/applications'?Promise.resolve({items:[],limitPerOffice:50}):request(path,...args),setTimeout:fn=>{timers.set(++timerId,fn);return timerId;},clearTimeout:id=>timers.delete(id),CustomEvent:class {constructor(type,options){this.type=type;this.detail=options.detail;}}});vm.runInContext(fs.readFileSync(new URL('../public/assets/workforce-contract.js',import.meta.url),'utf8'),context);vm.runInContext(hhaSource,context);vm.runInContext(source,context);
+
  const descendants=n=>[n,...n.children.flatMap(descendants)];
  return {node,sent,revoked,flush:async()=>{const pending=[...timers.values()];timers.clear();for(const fn of pending)await fn();},find:(id,text)=>descendants(node(id)).find(n=>n.textContent===text),emit:(type,detail)=>listeners.get(type)?.forEach(fn=>fn({detail:type==='workforce-session'?{...detail,grant:{...detail.grant,offices:['test-office']}}:detail})),search:()=>node('caregiver-account-search').onsubmit({preventDefault(){},currentTarget:node('caregiver-account-search')})};
 }
@@ -67,8 +69,8 @@ test('sign-out cancels a scheduled typeahead request',async()=>{
 
 test('HHA selections keep source identity and never assume a portal account with the same name',async()=>{
  const requests=[],record={uid:'hha-101',hhaId:'101',source:'hhaexchange',firstName:'Hannah',lastName:'Hart',state:'Active',code:'DEMO-101'};
- const s=setup(async path=>{requests.push(path);return path.endsWith('/lookup')?{items:[record]}:record;});s.emit('workforce-session',actor);await s.search();await s.find('caregiver-account-results','Hannah Hart · HHAeXchange').onclick();
- assert.ok(requests.includes('/staff/roster/101/profile'));assert.ok(!requests.some(path=>path.includes('/accounts/hha-')||path.includes('/applications/')));assert.ok(s.find('caregiver-account-detail','HHAeXchange profile'));assert.ok(!s.find('caregiver-account-detail','Send password reset email'));
+ const s=setup(async path=>{requests.push(path);return path.endsWith('/lookup')?{items:[record]}:{profile:{...record,id:'101',status:'Active',email:'legacy@example.invalid',fields:{}},files:{items:[]},accessEnabled:false};});s.emit('workforce-session',actor);await s.search();await s.find('caregiver-account-results','Hannah Hart · HHAeXchange').onclick();
+ assert.ok(requests.includes('/staff/roster/101/detail'));assert.ok(!requests.some(path=>path.includes('/accounts/hha-')||path.includes('/applications/')));assert.ok(s.find('caregiver-account-detail','Hannah Hart'));assert.ok(!s.find('caregiver-account-detail','Send password reset email'));
 });
 
 test('newly registered portal accounts have account support before their application starts',async()=>{

@@ -87,8 +87,9 @@
     accountDetail.replaceChildren(); accountMessage.textContent = 'Opening profile…';
     try {
       if(match.source==='hhaexchange'){
-        const record=await workforceApi('/staff/roster/'+encodeURIComponent(match.hhaId)+'/profile');if(!current())return;
-        accountDetail.append(node('h2',name(record)));fields(section(accountDetail,'HHAeXchange profile'),[['Caregiver code',record.code],['Status',record.state],['Checked',date(record.fetchedAt)]]);accountMessage.textContent='';return;
+        const data=await workforceApi('/staff/roster/'+encodeURIComponent(match.hhaId)+'/detail');if(!current())return;
+        window.WorkforceHha.render(accountDetail,data,workforceApi,'/staff/roster/'+encodeURIComponent(match.hhaId)+'/files/',current);
+        if(data.accessEnabled){const access=node('button','Send portal access link','btn-secondary');access.type='button';access.onclick=async()=>{access.disabled=true;try{await workforceApi('/staff/roster/'+encodeURIComponent(match.hhaId)+'/access',{});if(current())accountMessage.textContent='If the source email uniquely matches, a portal password link has been requested.';}catch(error){if(current())accountMessage.textContent=error.message;}finally{if(current())access.disabled=false;}};accountDetail.append(access);}accountMessage.textContent='';return;
       }
       const account = await workforceApi('/staff/accounts/' + encodeURIComponent(match.uid) + '/profile'); if (!current()) return;
       const heading = node('div', undefined, 'caregiver-profile-heading'); heading.append(node('h2', [match.firstName, match.lastName].filter(Boolean).join(' ')), node('span', human(account.state), 'manager-status manager-status-' + account.state)); accountDetail.append(heading);
@@ -141,6 +142,10 @@
   }
   el('caregiver-account-search').onsubmit = event => { event.preventDefault(); if(event.currentTarget.reportValidity())return search(); };
   el('caregiver-account-name').oninput = event => { clearTimeout(searchTimer); accountSelection++; results.replaceChildren(); accountDetail.replaceChildren(); accountMessage.textContent=''; if(el('caregiver-account-name').value.trim()&&!event.isComposing)searchTimer=setTimeout(search,300); };
-  document.addEventListener('workforce-session-cleared', () => { clearTimeout(searchTimer); generation++; applicationRead++; applicationSelection++; accountSelection++; actor = null; applicationData = null; release(); panel.hidden = true; support.hidden = true; list.replaceChildren(); detail.replaceChildren(); accountDetail.replaceChildren(); results.replaceChildren(); status.textContent = ''; accountMessage.textContent = ''; el('caregiver-account-name').value = ''; el('personnel-filter').value = ''; el('personnel-coverage').textContent = ''; });
-  document.addEventListener('workforce-session', event => { generation++; actor = event.detail; panel.hidden = !can('applications.review'); support.hidden = !can('accounts.support'); refreshApplications(); });
+
+  let importJob=null;el('hha-roster-sync').onclick=async()=>{const session=generation,button=el('hha-roster-sync'),message=el('hha-roster-sync-message');button.disabled=true;try{for(;;){const result=await workforceApi('/staff/roster/sync',importJob?{jobId:importJob}:{});if(session!==generation)return;importJob=result.jobId;message.textContent='Checked '+result.processed+' of '+result.total+' HHA caregiver records.';if(result.complete){importJob=null;break;}if(result.deferred){message.textContent+=' Sync paused. Select Sync again to resume.';break;}}}catch(error){if(session===generation)message.textContent=error.message;}finally{if(session===generation)button.disabled=false;}};
+
+  document.addEventListener('workforce-session-cleared', () => { el('hha-roster-sync').hidden=true;el('hha-roster-sync-message').textContent='';clearTimeout(searchTimer); generation++; applicationRead++; applicationSelection++; accountSelection++; actor = null; applicationData = null; release(); panel.hidden = true; support.hidden = true; list.replaceChildren(); detail.replaceChildren(); accountDetail.replaceChildren(); results.replaceChildren(); status.textContent = ''; accountMessage.textContent = ''; el('caregiver-account-name').value = ''; el('personnel-filter').value = ''; el('personnel-coverage').textContent = ''; });
+  document.addEventListener('workforce-session', event => { el('hha-roster-sync').hidden=!(event.detail.grant.role==='owner'&&event.detail.grant.permissions.includes('staff.manage')&&event.detail.grant.permissions.includes('accounts.support'));generation++; actor = event.detail; panel.hidden = !can('applications.review'); support.hidden = !can('accounts.support'); refreshApplications(); });
+
 })();
