@@ -1,3 +1,4 @@
+<!-- Public release: PTHHS.net published 2026-11-06; see PUBLIC_PORTAL_RELEASE.md for observed acceptance and remaining closed intake gates. -->
 # PTHHS caregiver workforce plan
 
 Authoritative architecture, implementation backlog and acceptance record. Version 18, November 6, 2026. Initial audit baseline: `93707e3` on `main`; current handoff integrates `main` through `3241116`, preserving concurrent visit-maintenance controls, range/search/reason-staging tools, SEO records and production acceptance documentation. This file owns workforce delivery status; existing management and release documentation continues to own its established workflows.

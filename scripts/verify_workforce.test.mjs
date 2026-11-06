@@ -32,7 +32,7 @@ test('ZIP, area, schedule, hours and type filters compose', () => {
   assert.equal(contract.matches({...o,recruitingZip:''},{zip:'77000'}),false);
 });
 test('existing Careers URL, homeowner sign-in entry and staff entry remain reachable', () => {
-  assert.match(read('public/index.html'),/href="\/caregiver">Caregiver Sign In/);
+  assert.match(read('public/index.html'),/href="\/caregiver">Caregiver Portal/);
   assert.match(read('public/home-care-careers.html'),/https:\/\/pthhs.net\/home-care-careers/);
   assert.match(read('public/home-care-careers.html'),/Sign in to view openings/);
   assert.match(read('public/home-care-careers.html'),/href="\/primetime\/workforce">Staff Sign In/);
