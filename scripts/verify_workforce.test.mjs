@@ -49,7 +49,8 @@ test('client database and document access stay denied; application/document coll
   for(const path of ['firestore.rules','storage.rules']) assert.match(read(path),/allow read, write: if false/);
   const backend = read('functions/src/workforce/http.ts');
   for (const gate of ['WORKFORCE_APPLICANT_COLLECTION_APPROVED','WORKFORCE_PACKET_REVIEW_APPROVED','WORKFORCE_ID_DOCUMENTS_APPROVED','WORKFORCE_ID_RETENTION_APPROVED']) assert.ok(backend.includes(`defineString("${gate}", { default: "false" })`));
-  assert.doesNotMatch(backend,/hhaexchange|adp/);
+  assert.doesNotMatch(backend,/adp|CreateCaregiver|UpdateCaregiver/);
+  assert.doesNotMatch(read("functions/src/workforce/hhaDirectory.ts"),/CreateCaregiver|UpdateCaregiver|\.mutate\(/);
   for(const path of ['public/caregiver.html','public/primetime/workforce.html']) {
     assert.doesNotMatch(read(path),/assets\/analytics|routing.number|bank.account/i);
     assert.match(read(path),/noindex,nofollow,noarchive/);

@@ -4,7 +4,12 @@ import { defineString } from "firebase-functions/params";
 import { workforceIdentity, recentWorkforceIdentity } from "./auth.js";
 import { WorkforceStore } from "./store.js";
 import { AccountSupport } from "./accountSupport.js";
-import { WorkforceError } from "./policy.js";
+import {HhaDirectory} from "./hhaDirectory.js";
+import {FirestoreWorkspaceRepository,OperationsWorkspace} from "../operations/workspace.js";
+import {operationalRead} from "../operations/reads.js";
+import {HhaSoapClient} from "../integrations/hhaexchange/client.js";
+import {hhaCredentials,hhaBaseUrl,getHhaCredentials} from "../integrations/hhaexchange/config.js";
+import { WorkforceError,requirePermission } from "./policy.js";
 import type { Action } from "./opportunities.js";
 import { IntakeStore } from "./intakeStore.js";
 import { intakePacket, packetInventory } from "./packet.js";
@@ -26,7 +31,13 @@ const retentionApproved = defineString("WORKFORCE_ID_RETENTION_APPROVED", { defa
 const intakeOffice = defineString("WORKFORCE_INTAKE_OFFICE", { default: "" });
 const placesApproved = defineString("WORKFORCE_GOOGLE_PLACES_APPROVED", { default: "false" });
 const employerEin = defineString("WORKFORCE_EMPLOYER_EIN", { default: "" });
-export const workforceApi = process.env.PRIMETIME_API_ONLY_DEPLOY === "true" ? undefined : onRequest({ region: "us-central1", maxInstances: 5, concurrency: 2, timeoutSeconds: 60, memory: "512MiB" }, async (req, res) => {
+const hhaDataApproved=defineString("PRIMETIME_OPERATIONAL_DATA_APPROVED",{default:"false"});
+function hhaDirectory(actorId:string){
+  const repository=new FirestoreWorkspaceRepository();let client:HhaSoapClient|undefined;
+  const workspace=new OperationsWorkspace(repository,(input,scope)=>{client??=new HhaSoapClient(hhaBaseUrl.value(),getHhaCredentials(),{beforeRequest:()=>repository.reserveRead(),defer:seconds=>repository.deferReads(seconds)});return operationalRead(client,input,scope);},hhaDataApproved.value()==="true");
+  return new HhaDirectory(workspace,()=>new WorkforceStore().actor(actorId));
+}
+export const workforceApi = process.env.PRIMETIME_API_ONLY_DEPLOY === "true" ? undefined : onRequest({ region: "us-central1", maxInstances: 5, concurrency: 2, timeoutSeconds: 60, memory: "512MiB",secrets:[hhaCredentials] }, async (req, res) => {
   res.set("Cache-Control", "no-store");
   res.set("X-Content-Type-Options", "nosniff");
   res.set("Referrer-Policy", "no-referrer");
@@ -124,6 +135,8 @@ export const workforceApi = process.env.PRIMETIME_API_ONLY_DEPLOY === "true" ? u
     if (staffEnabled.value() !== "true") throw new WorkforceError(503, "workforce_release_pending");
     const uid = await workforceIdentity(req);
     const store = new WorkforceStore();
+    const rosterProfile=path.match(/^\/staff\/roster\/([1-9]\d{0,9})\/profile$/);
+    if(rosterProfile&&req.method==="GET"){if(!applicationsEnabled)throw new WorkforceError(503,"application_collection_pending");await recentWorkforceIdentity(req);res.json(await hhaDirectory(uid).profile(rosterProfile[1]!));return;}
     const accountProfile=path.match(/^\/staff\/accounts\/([a-zA-Z0-9_-]{1,128})\/profile$/);
     if(accountProfile&&req.method==="GET"){
       if(!applicationsEnabled)throw new WorkforceError(503,"application_collection_pending");await recentWorkforceIdentity(req);
@@ -133,7 +146,15 @@ export const workforceApi = process.env.PRIMETIME_API_ONLY_DEPLOY === "true" ? u
       if(!applicationsEnabled)throw new WorkforceError(503,"application_collection_pending");await recentWorkforceIdentity(req);
       if(req.method!=="POST"||!req.is("application/json")||req.rawBody.length>1000||!req.body||Array.isArray(req.body))throw new WorkforceError(400,"invalid_request");
       const actor=await store.actor(uid),support=new AccountSupport();
-      if(path.endsWith("/lookup")){if(Object.keys(req.body).some(k=>k!=="name"))throw new WorkforceError(400,"invalid_request");res.json(await support.search(actor,req.body.name));}
+      if(path.endsWith("/lookup")){
+        if(Object.keys(req.body).some(k=>k!=="name"))throw new WorkforceError(400,"invalid_request");
+        const portal=await support.search(actor,req.body.name);
+        let roster:Awaited<ReturnType<HhaDirectory["search"]>>|null=null;
+        try{roster=await hhaDirectory(uid).search(req.body.name);}catch{/* Explicit source-unavailable state; never fabricate HHA matches. */}
+        const current=await store.actor(uid);requirePermission(current,"accounts.support");
+        const items=[...(roster?.items||[]),...portal.items.map(item=>({...item,source:"portal"}))].filter(item=>current.grant.offices.includes(item.office));
+        res.json({items,hasMore:!!roster?.hasMore||portal.hasMore,hhaUnavailable:!roster});
+      }
       else{if(Object.keys(req.body).length)throw new WorkforceError(400,"invalid_request");res.json(await support.reset(actor,path.split("/")[3]!));}return;
     }
     if (path === "/session" && req.method === "GET") { res.json(await store.actor(uid)); return; }

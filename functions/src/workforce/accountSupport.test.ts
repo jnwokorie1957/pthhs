@@ -60,3 +60,9 @@ test("selected account profile exposes safe account metadata and remains office 
  const s=setup(),profile=await s.service.profile(s.actor,"candidate");assert.equal(profile.email,s.user.email);assert.ok(!JSON.stringify(profile).includes("passwordHash"));
  s.docs.set("workforcePortalAccounts/candidate",{office:"office-b"});await assert.rejects(s.service.profile(s.actor,"candidate"),/workforce_forbidden/);
 });
+
+test("a named portal signup is searchable before an application exists and cannot replace an application directory",async()=>{
+ const s=setup();Object.assign(s.user,{displayName:"Hannah Howard"});s.docs.delete("workforcePortalAccounts/candidate");await s.service.register("candidate","office-a");
+ assert.equal((await s.service.search(s.actor,"How")).items[0]?.uid,"candidate");assert.equal((await s.service.search(s.actor,"Han")).items[0]?.state,"not_started");
+ const original=s.docs.get("workforceCaregiverDirectory/candidate");s.docs.set("workforceApplications/candidate",{state:"draft"});Object.assign(s.user,{displayName:"Other Name"});await s.service.register("candidate","office-a");assert.deepEqual(s.docs.get("workforceCaregiverDirectory/candidate"),original);
+});

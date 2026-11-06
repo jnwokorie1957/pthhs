@@ -7,7 +7,7 @@ function setup({enabled=true,search='',invalidCode=false,providers=[],providerOn
  const nodes=new Map(),events=[],calls=[];
  const node=id=>{if(!nodes.has(id))nodes.set(id,{value:'',hidden:true,children:[],append(child){this.children.push(child);},listeners:{},attrs:{},setAttribute(key,value){this.attrs[key]=value;},focus(){},scrollIntoView(){},reportValidity:()=>true,addEventListener(type,fn){this.listeners[type]=fn;}});return nodes.get(id);};
  let onAuth;
- const auth={currentUser:null,setPersistence:async()=>{},onAuthStateChanged:fn=>onAuth=fn,createUserWithEmailAndPassword:async()=>{calls.push('create');return {user:{sendEmailVerification:async()=>{}}};},signInWithEmailAndPassword:async()=>calls.push('signin'),sendPasswordResetEmail:async()=>{calls.push('reset');throw {code:'auth/user-not-found'};},signOut:async()=>{auth.currentUser=null;await onAuth(null);}};
+ const auth={currentUser:null,setPersistence:async()=>{},onAuthStateChanged:fn=>onAuth=fn,createUserWithEmailAndPassword:async()=>{calls.push('create');return {user:{updateProfile:async value=>calls.push(["profile",value.displayName]),sendEmailVerification:async()=>{}}};},signInWithEmailAndPassword:async()=>calls.push('signin'),sendPasswordResetEmail:async()=>{calls.push('reset');throw {code:'auth/user-not-found'};},signOut:async()=>{auth.currentUser=null;await onAuth(null);}};
  auth.verifyPasswordResetCode=async()=>{if(invalidCode)throw Error();calls.push('verify-code');return 'test@example.invalid';};auth.confirmPasswordReset=async(code,password)=>calls.push(['confirm-reset',code,password]);
  const board={clear:()=>calls.push('clear'),open:async()=>calls.push('board')};
  auth.signInWithPopup=async provider=>calls.push(['provider',provider.providerId]);let nextNode=0;
@@ -62,4 +62,10 @@ test('provider-managed accounts receive sign-in help instead of a local password
 
 test('real sign-in test keeps password forms and applications closed',async()=>{
  const s=setup({providerOnly:true,providers:['google.com'],api:async()=>({applicationsEnabled:false})});await s.start();assert.equal(s.node('workforce-login').hidden,true);await s.session(verified);assert.equal(s.node('dashboard-application').hidden,true);await s.node('dashboard-application').onclick();assert.equal(s.node('caregiver-summary').hidden,true);
+});
+
+test('signup collects the caregiver name and keeps name fields off sign-in and reset screens',async()=>{
+ const s=setup();await s.start();assert.equal(s.node('account-names').hidden,true);s.node('account-create').onclick();assert.equal(s.node('account-names').hidden,false);assert.equal(s.node('account-first-name').required,true);
+ s.node('account-first-name').value='Hannah';s.node('account-last-name').value='Howard';s.node('workforce-password').value='SyntheticPassword123!';s.node('workforce-password-confirm').value='SyntheticPassword123!';await s.submit();assert.ok(s.calls.some(call=>Array.isArray(call)&&call[0]==='profile'&&call[1]==='Hannah Howard'));
+ s.node('account-forgot').onclick();assert.equal(s.node('account-names').hidden,true);assert.equal(s.node('account-first-name').required,false);
 });

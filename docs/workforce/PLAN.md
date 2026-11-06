@@ -1,12 +1,24 @@
 # PTHHS caregiver workforce plan
 
-Authoritative architecture, implementation backlog and acceptance record. Version 13, November 6, 2026. Initial audit baseline: `93707e3` on `main`; current handoff integrates `main` through `d92e0b7`, preserving concurrent visit-maintenance controls, range/search/reason-staging tools, SEO records and production acceptance documentation. This file owns workforce delivery status; existing management and release documentation continues to own its established workflows.
+Authoritative architecture, implementation backlog and acceptance record. Version 14, November 6, 2026. Initial audit baseline: `93707e3` on `main`; current handoff integrates `main` through `c5401ff`, preserving concurrent visit-maintenance controls, range/search/reason-staging tools, SEO records and production acceptance documentation. This file owns workforce delivery status; existing management and release documentation continues to own its established workflows.
 
 ## Scope and release state
 
 This change begins Phases 1–2 in the existing PTHHS repository. It is a review branch, not a production launch. No real staff accounts, role grants, patient openings, applicant records, SMS messages, employment decisions or vendor writes were created. Synthetic records exist only in tests. No production patient data was queried.
 
 **Implemented** means code exists. **Tested** identifies synthetic automated verification. **Pending** identifies work still to implement. **Blocked** identifies a specific external input or acceptance requirement. Neither a passing test nor a deployment establishes regulatory compliance.
+
+## HHA roster and progressive name lookup
+
+Owner source direction: HHAeXchange supplies existing caregiver identities; new verified portal signups join the same search without being silently merged with HHA records. Typing a first or last name starts a 300 ms debounced lookup. Every edit immediately clears stale matches/profile selection; blank input makes no roster request; sign-out cancels scheduled work. H narrows to Hann without a submit click. Source labels distinguish HHA caregivers from portal application states.
+
+The staff API combines an explicitly scoped HHA name search with the portal directory. HHA records are deduplicated by HHA caregiver ID and checked against the current staff grant, configured office and returned OfficeIDs before disclosure. Current owner-enabled SearchCaregivers/GetCaregiverDemographics settings and the existing operational-data gate remain required; the shared HHA request budget/backoff is reused. Single-character filters are allowed only in the dedicated workforce caregiver-search scope, while generic patient/caregiver search retains its previous minimum. The bounded HHA result indicates when to narrow further. A source failure is labeled unavailable and cannot appear as a successful empty roster. No HHA writes or account matching by name are performed.
+
+Signup now collects first/last name into the Firebase Auth display name. On verified portal registration, a minimal name directory entry is created before an application exists; it preserves the established office and cannot replace an application-derived directory. Provider names are taken from the authenticated account. Applications and private documents remain owned by their portal UID. HHA selection opens the separately identified basic HHA profile; employment forms and identity folders are not inferred or attached by a matching name. Explicit existing-employee/account linking and broader HHA contact/document projections remain separate follow-up work.
+
+Validation: 864 backend and 622 site/tooling/analytics checks pass (1,486 total). Synthetic browser checks show H matching three example names and Hann narrowing to one, then opening the HHA-source profile. Read-only production configuration inspection confirmed both HHA operations are selected; no live SOAP roster results, names, new grants or provider settings were changed or claimed accepted. The local walkthrough remains synthetic. The live function connection, secret binding and workforce office grants require the reviewed production release; this branch has not deployed them.
+
+The bounded shared workforce transfer allowance is 160 KB raw / 50 KB gzip for named signup, progressive search and source-aware profiles. The independent 48 KB / 13 KB management allowance, marketing and operations budgets are unchanged.
 
 ## Caregiver name directory, profiles and print packet
 

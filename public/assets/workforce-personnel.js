@@ -3,7 +3,7 @@
   if (!panel) return;
   const status = el('personnel-message'), list = el('personnel-list'), detail = el('personnel-detail');
   const support = el('caregiver-account-support'), accountDetail = el('caregiver-account-detail'), results = el('caregiver-account-results'), accountMessage = el('caregiver-account-message');
-  let generation = 0, applicationSelection = 0, accountSelection = 0, actor, packetPromise;
+  let generation = 0, applicationSelection = 0, accountSelection = 0, actor, packetPromise, searchTimer;
   const urls = new Set(), previews = new Set();
   const node = (tag, text, className) => { const element = document.createElement(tag); if (text !== undefined) element.textContent = text; if (className) element.className = className; return element; };
   const can = permission => actor?.grant.permissions.includes(permission);
@@ -86,6 +86,10 @@
     const sequence = ++accountSelection, session = generation, current = () => sequence === accountSelection && session === generation;
     accountDetail.replaceChildren(); accountMessage.textContent = 'Opening profile…';
     try {
+      if(match.source==='hhaexchange'){
+        const record=await workforceApi('/staff/roster/'+encodeURIComponent(match.hhaId)+'/profile');if(!current())return;
+        accountDetail.append(node('h2',name(record)));fields(section(accountDetail,'HHAeXchange profile'),[['Caregiver code',record.code],['Status',record.state],['Checked',date(record.fetchedAt)]]);accountMessage.textContent='';return;
+      }
       const account = await workforceApi('/staff/accounts/' + encodeURIComponent(match.uid) + '/profile'); if (!current()) return;
       const heading = node('div', undefined, 'caregiver-profile-heading'); heading.append(node('h2', [match.firstName, match.lastName].filter(Boolean).join(' ')), node('span', human(account.state), 'manager-status manager-status-' + account.state)); accountDetail.append(heading);
       const accountArea = section(accountDetail, 'Account access');
@@ -94,7 +98,8 @@
         const send = node('button', 'Send password reset email', 'btn-secondary'); send.type = 'button';
         send.onclick = async () => { send.disabled = true; try { const result = await workforceApi('/staff/accounts/' + encodeURIComponent(account.uid) + '/reset', {}); if (!current()) return; await window.WorkforceSendPasswordReset(result.email); if (current()) accountMessage.textContent = 'Reset email requested for ' + account.email + '.'; } catch (error) { if (current()) { accountMessage.textContent = error.message; send.disabled = false; } } }; accountArea.append(send);
       } else if (!account.disabled) accountArea.append(node('p', 'Password recovery is managed by the sign-in provider.'));
-      if (can('applications.review')) await applicationProfile(match.uid, accountDetail, current, accountMessage, false);
+      if(account.state==='not_started'){accountDetail.append(node('p','Application not started.'));}
+      else if (can('applications.review')) await applicationProfile(match.uid, accountDetail, current, accountMessage, false);
       else accountDetail.append(node('p', 'Application review access required.'));
       if (current()) accountMessage.textContent = '';
     } catch (error) { if (current()) accountMessage.textContent = error.message; }
@@ -108,15 +113,18 @@
       for (const item of response.items) { const button = node('button', (item.displayName || 'Application #' + item.uid.slice(-6).toUpperCase()) + ' · ' + human(item.state)); button.type = 'button'; button.onclick = () => openApplication(item.uid); list.append(button); }
     } catch (error) { if (session === generation) status.textContent = error.message; }
   };
-  el('caregiver-account-search').onsubmit = async event => {
-    event.preventDefault(); if (!event.currentTarget.reportValidity()) return;
+  async function search() {
+    clearTimeout(searchTimer);
     const sequence = ++accountSelection, session = generation; results.replaceChildren(); accountDetail.replaceChildren(); accountMessage.textContent = 'Finding caregivers…';
     try {
       const response = await workforceApi('/staff/accounts/lookup', {name:el('caregiver-account-name').value.trim()}); if (session !== generation || sequence !== accountSelection) return;
       accountMessage.textContent = response.items.length ? (response.hasMore ? 'More matches found. Enter more letters to narrow your search.' : 'Select a caregiver to open their profile.') : 'No matching caregivers found.';
-      for (const match of response.items) { const button = node('button', [match.firstName, match.lastName].filter(Boolean).join(' ') + ' · ' + human(match.state), 'caregiver-search-result'); button.type = 'button'; button.onclick = () => openAccount(match); results.append(button); }
+      if(response.hhaUnavailable)accountMessage.textContent+=' HHAeXchange is unavailable; portal matches only.';
+      for (const match of response.items) { const button = node('button', [match.firstName, match.lastName].filter(Boolean).join(' ') + ' · ' + (match.source==='hhaexchange'?'HHAeXchange':human(match.state)), 'caregiver-search-result'); button.type = 'button'; button.onclick = () => openAccount(match); results.append(button); }
     } catch (error) { if (session === generation && sequence === accountSelection) accountMessage.textContent = error.message; }
-  };
-  document.addEventListener('workforce-session-cleared', () => { generation++; applicationSelection++; accountSelection++; actor = null; release(); panel.hidden = true; support.hidden = true; list.replaceChildren(); detail.replaceChildren(); accountDetail.replaceChildren(); results.replaceChildren(); status.textContent = ''; accountMessage.textContent = ''; el('caregiver-account-name').value = ''; });
+  }
+  el('caregiver-account-search').onsubmit = event => { event.preventDefault(); if(event.currentTarget.reportValidity())return search(); };
+  el('caregiver-account-name').oninput = event => { clearTimeout(searchTimer); accountSelection++; results.replaceChildren(); accountDetail.replaceChildren(); accountMessage.textContent=''; if(el('caregiver-account-name').value.trim()&&!event.isComposing)searchTimer=setTimeout(search,300); };
+  document.addEventListener('workforce-session-cleared', () => { clearTimeout(searchTimer); generation++; applicationSelection++; accountSelection++; actor = null; release(); panel.hidden = true; support.hidden = true; list.replaceChildren(); detail.replaceChildren(); accountDetail.replaceChildren(); results.replaceChildren(); status.textContent = ''; accountMessage.textContent = ''; el('caregiver-account-name').value = ''; });
   document.addEventListener('workforce-session', event => { generation++; actor = event.detail; panel.hidden = !can('applications.review'); support.hidden = !can('accounts.support'); });
 })();

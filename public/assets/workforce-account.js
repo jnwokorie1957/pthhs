@@ -14,6 +14,7 @@
       const newPassword=next==='newpassword',confirmation=next==='create'||newPassword;
       byId('account-title').textContent=next==='create'?'Create your account':next==='reset'?'Reset your password':newPassword?'Choose a new password':'Sign in';
       byId('account-description').textContent=next==='create'?'One account for your caregiver application.':next==='reset'?'Enter your account email to receive a password reset link.':newPassword?'Enter and confirm your new password.':'Enter your email and password to continue.';
+      byId('account-names').hidden=next!=='create';for(const id of ['account-first-name','account-last-name'])byId(id).required=next==='create';
       byId('email-row').hidden=newPassword;byId('workforce-email').required=!newPassword;
       if(providerOnly&&['signin','create'].includes(next))byId('account-description').textContent='Sign in with Google to continue.';
       byId('password-row').hidden=next==='reset';byId('confirm-password-row').hidden=!confirmation;
@@ -61,7 +62,8 @@
         }
         if(mode==='create'){
           if(password!==byId('workforce-password-confirm').value){message('The passwords do not match.');return;}
-          const result=await auth.createUserWithEmailAndPassword(email,password);passwords();
+          if(!byId("account-first-name").value.trim()||!byId("account-last-name").value.trim()){message("Enter your first and last name.");return;}
+          const result=await auth.createUserWithEmailAndPassword(email,password);passwords();await result.user.updateProfile({displayName:[byId("account-first-name").value.trim(),byId("account-last-name").value.trim()].join(" ")});
           try{await result.user.sendEmailVerification({url:location.origin+'/caregiver'});}catch{message('Your account was created, but the verification email could not be sent. Select Resend verification email to try again.');}
         }else{await auth.signInWithEmailAndPassword(email,password);passwords();}
       }catch(error){message(mode==='newpassword'?'Unable to update the password. The link may have expired. Request a new reset link.':failure(error));passwords();}

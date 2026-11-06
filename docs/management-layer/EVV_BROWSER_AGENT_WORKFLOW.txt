@@ -73,10 +73,17 @@ rule/version, actor/reviewer and readback. Escalations state what is missing and
 who must act; verified work states what changed and why.
 
 NEXT SOURCE ACTION
-Send the reviewed technical request after explicit authorization for the outgoing
-message. Obtain the supported API lookup/action contract and browser-operation
-scope. The prepared message is in:
+The owner-authorized technical request was sent November 6 from
+jnwokorie@pthhs.net to EINTSupport@hhaexchange.com and verified in Outlook Sent
+Items. Await the supported API lookup/action contract and browser-operation
+scope. The exact message is in:
 evv-maintenance-resources/HHA_INTEGRATION_SUPPORT_REQUEST_2026-11-06.txt
+
+CURRENT OWNER WALKTHROUGH
+The owner requested a live HHA teaching session after sending the support email.
+Sign-in completed and Visit Maintenance is open. The first service date/example
+and first review instruction are pending. No procedure has been learned from a
+completed example yet, and no confirmation or source change has been submitted.
 
 PRIMARY SOURCES CHECKED NOVEMBER 6, 2026
 HHA UI workflow includes linking EVV, editing visit times and reason/action/note:

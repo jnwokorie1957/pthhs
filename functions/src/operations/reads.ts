@@ -149,7 +149,7 @@ function vendorEstTimestamp(value: unknown): string {
   day(value.slice(0, 10));
   return value; // Calendar validation only. Never convert this source wall time to UTC.
 }
-export function readRequest(input: ReadInput): string {
+export function readRequest(input: ReadInput, scope?: "workforce_caregiver_search"): string {
   if (UTC_CHANGE_READS.includes(input.operation)) {
     const modified = `<ModifiedAfter>${utcTimestamp(input.modifiedAfterUtc)}</ModifiedAfter>`;
     if (["GetCaregiverPermanentWeekAvailabilityChanges", "GetCaregiverPreferenceChanges", "GetCaregiverSpecialAvailabilityChanges"].includes(input.operation)) return `<OfficeID>${identifier(input.officeId)}</OfficeID>${input.caregiverId ? `<CaregiverID>${identifier(input.caregiverId)}</CaregiverID>` : '<CaregiverID xsi:nil="true"/>'}${modified}<LastChangeSeq>${sourceCursor(input.lastId, 2147483647n)}</LastChangeSeq>`;
@@ -245,7 +245,7 @@ export function readRequest(input: ReadInput): string {
     const values = { FirstName: input.firstName, LastName: input.term ?? input.lastName,
       ...(input.operation === "SearchPatients" ? { AdmissionID: input.admissionId } : { CaregiverCode: input.caregiverCode }) };
     const pairs = Object.entries(values).filter(([, value]) => value !== undefined && value !== "");
-    if (!pairs.length || pairs.some(([, value]) => typeof value !== "string" || value.trim().length < 2 || value.length > 60 || /[\u0000-\u001f]/.test(value))) throw new WorkflowError("last_name_search_requires_2_to_60_characters");
+    if (!pairs.length || pairs.some(([, value]) => typeof value !== "string" || value.trim().length < (input.operation === "SearchCaregivers" && scope === "workforce_caregiver_search" ? 1 : 2) || value.length > 60 || /[\u0000-\u001f]/.test(value))) throw new WorkflowError("last_name_search_requires_2_to_60_characters");
     const escape = (value: string) => value.trim().replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;").replaceAll("'", "&apos;");
     return `<SearchFilters>${pairs.map(([key, value]) => `<${key}>${escape(value!)}</${key}>`).join("")}</SearchFilters>`;
   }
@@ -1003,8 +1003,8 @@ export function boundedAttachment(record: Record<string, string | null>, identit
   const filename = safeAttachmentFilename(record.FileName);
   return { filename, byteLength: bytes.length, base64: encoded, contentType: "application/octet-stream" as const };
 }
-export async function operationalRead(client: Pick<HhaSoapClient, "call">, input: ReadInput, projectionScope?: "document_metadata" | "clinical_review" | "medical_review" | "write_recovery" | "visit_discovery" | "visit_reason_review" | "maintenance_people_search"): Promise<OperationalRead> {
-  const body = readRequest(input);
+export async function operationalRead(client: Pick<HhaSoapClient, "call">, input: ReadInput, projectionScope?: "document_metadata" | "clinical_review" | "medical_review" | "write_recovery" | "visit_discovery" | "visit_reason_review" | "maintenance_people_search" | "workforce_caregiver_search"): Promise<OperationalRead> {
+  const body = readRequest(input, projectionScope === "workforce_caregiver_search" ? projectionScope : undefined);
   // One attempt per owner-requested read; shared server quota controls requests.
   let response: Awaited<ReturnType<HhaSoapClient["call"]>>;
   try { response = await client.call(input.operation, body, 1, projectionScope === "visit_reason_review" && input.operation === "GetVisitEditReasonActionTaken" ? "visit_reason_review" : undefined); }

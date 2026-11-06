@@ -2,14 +2,19 @@ import {randomUUID} from "node:crypto";
 import {getAuth, type Auth} from "firebase-admin/auth";
 import {getFirestore} from "firebase-admin/firestore";
 import {parseGrant,requirePermission,validId,WorkforceError,type Actor} from "./policy.js";
-import {nameQuery} from "./directory.js";
+import {nameQuery,directoryEntry} from "./directory.js";
 export class AccountSupport {
  constructor(private db=getFirestore(),private auth?:Auth){}
  async register(uid:string,office:string){
   if(!validId(uid)||!validId(office))throw new WorkforceError(503,"intake_office_unconfigured");
+  const user=await (this.auth??getAuth()).getUser(uid);
   await this.db.runTransaction(async tx=>{
    const ref=this.db.collection("workforcePortalAccounts").doc(uid),prior=await tx.get(ref);
-   if(!prior.exists){const personnel=await tx.get(this.db.collection("workforceAccounts").doc(uid));tx.create(ref,{uid,office:validId(personnel.data()?.office)?personnel.data()!.office:office,createdAt:new Date().toISOString()});}
+   const application=await tx.get(this.db.collection("workforceApplications").doc(uid));
+   const directory=await tx.get(this.db.collection("workforceCaregiverDirectory").doc(uid));
+   const personnel=await tx.get(this.db.collection("workforceAccounts").doc(uid)),resolvedOffice=prior.data()?.office||(validId(personnel.data()?.office)?personnel.data()!.office:office);
+   if(!prior.exists)tx.create(ref,{uid,office:resolvedOffice,createdAt:new Date().toISOString()});
+   if(!application.exists&&!directory.exists&&user.displayName?.trim()){const name=user.displayName.trim().slice(0,500);tx.set(this.db.collection("workforceCaregiverDirectory").doc(uid),directoryEntry({uid,office:resolvedOffice,answers:{firstName:name,lastName:""},state:"not_started",updatedAt:new Date().toISOString()}));}
   });
  }
  private async scope(actorId:string,target:string,reset=false){
@@ -40,7 +45,7 @@ export class AccountSupport {
  }
  async search(actor:Actor,input:unknown){
   requirePermission(actor,"accounts.support");
-  const query=nameQuery(input),items:{uid:string;firstName:string;lastName:string;state:string}[]=[];
+  const query=nameQuery(input),items:{uid:string;firstName:string;lastName:string;state:string;office:string}[]=[];
   // Re-read grants before querying; never trust a stale browser/session grant.
   const grant=await this.db.collection("workforceStaff").doc(actor.uid).get();
   if(!grant.exists)throw new WorkforceError(403,"workforce_forbidden");
@@ -53,7 +58,7 @@ export class AccountSupport {
     const record=match.data();
     // Scope also excludes staff/non-portal identities and records each access.
     try{const scope=await this.scope(actor.uid,record.uid);if(scope.office!==office)continue;
-     if(items.length===25){hasMore=true;break;}items.push({uid:record.uid,firstName:record.firstName,lastName:record.lastName,state:scope.state});
+     if(items.length===25){hasMore=true;break;}items.push({uid:record.uid,firstName:record.firstName,lastName:record.lastName,state:scope.state,office:scope.office});
     }catch(error){if(!(error instanceof WorkforceError)||![403,404].includes(error.status))throw error;}
    }
    if(items.length===25)break;
