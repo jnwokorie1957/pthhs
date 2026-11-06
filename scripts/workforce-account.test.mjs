@@ -79,3 +79,5 @@ test('existing caregiver access is an isolated email-only request and does not u
 test('existing access remains hidden until its separate release configuration is enabled',async()=>{
  const s=setup();await s.start();assert.equal(s.node('account-existing').hidden,true);
 });
+
+test('existing HHA caregivers do not enter the new-applicant application or identity-upload pathway',async()=>{const s=setup({api:async()=>({applicationsEnabled:true,existingCaregiver:true})});await s.start();await s.session(verified);assert.equal(s.node('dashboard-application').hidden,true);await s.node('dashboard-application').onclick();assert.equal(s.node('caregiver-summary').hidden,true);});

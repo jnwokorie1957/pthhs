@@ -35,6 +35,7 @@
     ,application_collection_pending: 'Online applications are awaiting release verification.'
     ,document_collection_pending: 'Private document uploads are awaiting security and retention verification.'
     ,recent_sign_in_required: 'Please sign in again before accessing sensitive records. Saved progress is kept securely.'
+    ,existing_caregiver_on_file: 'Your existing caregiver profile is on file. A new application or identity upload is not required.'
     ,employee_reactivation_review: 'You already have an employment account. Contact the office for file updates or reactivation; another full application is not required.'
     ,application_incomplete: 'Complete the required application fields before submitting.'
     ,invalid_answers: 'Check the dates, email, Social Security number format and field lengths.'

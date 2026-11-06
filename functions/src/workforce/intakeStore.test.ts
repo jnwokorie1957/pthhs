@@ -167,3 +167,5 @@ test("address request quotas bound both individual and project-wide requests", a
   f.records.set("workforceAddressLimits/_project_daily", { day: new Date().toISOString().slice(0, 10), attempts: 1000 });
   await assert.rejects(f.store.reserveAddressLookup("synthetic-b"), /address_lookup_limit/);
 });
+
+test("linked HHA caregivers retain their office physical records instead of entering new-applicant identity collection",async()=>{const f=fixture();f.records.set("workforceHhaLinks/legacy",{uid:"legacy",caregiverId:"101",office:"synthetic-office"});await assert.rejects(f.store.save("legacy",0,answers,"synthetic-office"),/existing_caregiver_on_file/);assert.equal(f.records.has("workforceApplications/legacy"),false);assert.equal(f.files.size,0);});

@@ -37,12 +37,12 @@
       message('Opening your caregiver account…');
       try{
         await user.getIdToken(true);const detail=await api('/application/session');if(sequence!==generation)return;
-        actor=detail;byId("dashboard-hha").hidden=!detail.existingCaregiver;byId('dashboard-application').hidden=detail.applicationsEnabled===false;document.title='My portal | Primetime Caregiver Portal';byId('dashboard-password').textContent=user.providerData?.length&&!user.providerData.some(p=>p.providerId==='password')?'Sign-in help':'Reset password';gateway.hidden=true;dashboard.hidden=false;message('');await window.WorkforceBoard.open(detail,api,openApplication);if(detail.existingCaregiver){byId("job-board").hidden=true;await window.WorkforceHha?.open(api);}
+        actor=detail;byId("dashboard-hha").hidden=!detail.existingCaregiver;byId('dashboard-application').hidden=detail.applicationsEnabled===false||detail.existingCaregiver===true;document.title='My portal | Primetime Caregiver Portal';byId('dashboard-password').textContent=user.providerData?.length&&!user.providerData.some(p=>p.providerId==='password')?'Sign-in help':'Reset password';gateway.hidden=true;dashboard.hidden=false;message('');await window.WorkforceBoard.open(detail,api,openApplication);if(detail.existingCaregiver){byId("job-board").hidden=true;await window.WorkforceHha?.open(api);}
         if(new URLSearchParams(location.search).get('intent')==='apply')openApplication();
       }catch(error){if(sequence===generation){message(error.message);form.hidden=true;byId('account-retry').hidden=false;}}
     }
     function openApplication(position){
-      if(!actor||actor.applicationsEnabled===false)return;clearHha();
+      if(!actor||actor.applicationsEnabled===false||actor.existingCaregiver===true)return;clearHha();
       byId('job-board').hidden=true;byId('caregiver-summary').hidden=false;
       const url=new URL(location.href);url.search='';if(position)url.searchParams.set('opportunity',position.id);history.replaceState(null,'',url.pathname+url.search);
       document.dispatchEvent(new CustomEvent('workforce-caregiver-session',{detail:{...actor,selectedOpportunity:position||null}}));

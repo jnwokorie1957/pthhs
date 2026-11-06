@@ -7,3 +7,5 @@ test('an unavailable HHA file connection is never represented as an empty succes
 test('sign-out removes source contact details and a late profile response cannot restore them',async()=>{const s=setup();let finish;const pending=s.api.open(()=>new Promise(resolve=>finish=resolve));s.clear();finish(data);await pending;assert.equal(s.panel.hidden,true);assert.equal(s.panel.children.length,0);});
 
 test('an HHA record without an attachment has no View file action',async()=>{const s=setup();await s.api.open(async()=>({...data,files:{items:[{id:'501',name:'Identification',category:'Document',attachmentAvailable:false}]}}));assert.match(s.text(),/no file attached in HHA/);assert.doesNotMatch(s.text(),/View file/);});
+
+test('existing HHA profiles explain physical identity records without claiming a digital upload',async()=>{const s=setup();await s.api.open(async()=>data);assert.match(s.text(),/records are held by the office. No upload needed/);});

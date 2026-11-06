@@ -77,6 +77,8 @@ export class IntakeStore {
     tx.create(this.db.collection("workforcePersonnelAudit").doc(randomUUID()), { actor, action, target, at: new Date().toISOString(), ...extra });
   }
   private async employeeGuard(tx: Transaction, uid: string) {
+    const sourceLink=await tx.get(this.db.collection("workforceHhaLinks").doc(uid));
+    if(sourceLink.exists)throw new WorkforceError(409,"existing_caregiver_on_file");
     const account = await tx.get(this.db.collection("workforceAccounts").doc(uid));
     if (account.exists && account.data()?.employmentStatus !== "applicant") throw new WorkforceError(409, "employee_reactivation_review");
     return account;
