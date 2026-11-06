@@ -1,0 +1,35 @@
+OWNER-TAUGHT HHA VISIT-MAINTENANCE PROCEDURES
+Updated November 6, 2026, America/Chicago.
+Only instructions actually supplied by the owner belong in this register.
+Keep patient/caregiver/visit/event identities in HHA or protected runtime storage.
+
+SEARCH-001 - ALL COORDINATORS
+Version: 1. Owner-taught and read-only search behavior checked November 6.
+
+Owner instruction: when searching, use All instead of DEFAULT so everybody in
+the selected office is included. All is the standard coordinator search scope.
+
+Procedure:
+1. Use the office and service date/range requested by the owner. Do not change
+   office membership, account permissions or other explicit search choices.
+2. Expand Advanced Filters and inspect Coordinator before searching.
+3. Choose Select all options. Verify Coordinator displays All selected.
+4. Search and inspect the result scope/pagination. Do not treat an empty result
+   as proof of no visits before checking office, dates and coordinator filtering.
+5. Repeat the explicit All check on every search, even if HHA restores DEFAULT.
+   A later explicit owner instruction to narrow a particular query takes priority.
+
+Observed walkthrough: the owner first selected November 6, then corrected the
+example to yesterday, November 5. Both From/To were set to November 5. DEFAULT
+returned no rows; clearing it returned results. Explicit Select all options then
+displayed All selected and the UI reported 1-20 of 637 search results. This is a
+dated UI observation, not a fixed expected census or a read of every result page.
+
+Permanent HHA preference: not established. No remember/default-search control was
+visible in the inspected maintenance screen/profile menu. No account, coordinator
+assignment, MFA or password setting was changed. The agent procedure explicitly
+sets All each time rather than relying on an unverified saved HHA preference.
+
+Maintenance teaching status: first visit selection and first confirmation-review
+check are pending. No source confirmation, clock change, reason/action save or
+completed visit-maintenance procedure has been taught or executed in this step.
