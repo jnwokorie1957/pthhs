@@ -1,5 +1,13 @@
 # PTHHS Management Layer — Developer Checklist
 
+- [ ] November6 14:28UTC caregiver entry follow-up: draft PR11 at2179a31 adds
+  password/verification/recovery and verified private openings; staff email-link
+  remains separate. Reconcile older caregiver email-link backlog and closed-state
+  browse copy with plan version9. Proposed launch checks cover direct API scope,
+  stale/closed position return, duplicate interest, hosted email paths and actual
+  accessible authentication. See [R94-R96 research](ROLE_WORKFLOW_RESEARCH.txt).
+  No provider configuration, account/message, draft merge or launch was performed.
+
 - [ ] November6 workforce/M03 integration: account for draft PR11 at6c5d12b
   before creating another staff identity shell. Reuse reviewed identity patterns;
   preserve independent current HR, maintenance and clinical memberships/actions.

@@ -2,7 +2,7 @@ PRIMETIME ROLE AND WORKFLOW RESEARCH
 Updated: November 6, 2026, America/Chicago
 Scope: PTHHS /primetime, repository jnwokorie1957/pthhs.
 Latest engineering evidence: November6 UTC administrator card/filter correction is deployed and accepted over a dated stale source cache; see MAINTENANCE_CARD_FILTERS_2026-11-06.md and the 05:14UTC implementation below. Concurrent compact/reference and fresh patient/day acceptance in a7f8421 supersedes older pending desktop-control statements, within its dated limits. Billing-clock acceptance and O03/local office review remain intact. Agency lists are not visit-specific actions. Scoped staff, clinical/family authority, original-event links, HHA submissions and pilot gates remain open.
-Latest focused research: November6,2026,05:48UTC trigger, continued during the14:18UTC source follow-up. Draft workforce PR11 at6c5d12b is now accounted for as a separate identity/HR domain; it does not implement M03 assigned-care access. R94 pins its source and plan. Newer8ad80ef signed-in HHA catalog comparison supersedes the earlier sign-in dependency, while exact catalog/action mapping remains open. R9/R89 clinical-assignment and Firebase authority guidance rechecked November6. Maintenance-first remains the priority; earlier manual-snapshot priorities below are historical and do not authorize new scraped imports.
+Latest focused research: November6,2026,14:28UTC. Draft workforce PR11 advanced to2179a31: caregiver password accounts, verified private openings and account/position interest now replace its earlier caregiver email-link/public-opening proposal. Staff email-link and the separate HR/maintenance/clinical boundaries remain. R94 revision evidence and new R95/R96 inform proposed recovery, entry-flow and accessibility acceptance below. No draft merge, account, email or launch is accepted here. The earlier8ad80ef signed-in HHA comparison and617bc32 assigned-care integration research remain dated evidence. Maintenance-first remains the priority; earlier manual-snapshot priorities below are historical and do not authorize new scraped imports.
 Broad role review: November 3, 2026, 09:42 UTC heartbeat. Rechecked the official Family Dashboard [R63] and Forms [R60] guidance against repository 9821769 and the cumulative role proposals below. Requests, source holds, encounter documentation and review remain distinct; no new tenant UI or source-read acceptance is claimed by that research pass. Latest bounded implementation: 9fb89f1 Advanced EVV source-context fences, accepted 19:55-19:57 UTC; acf7e6d exact read receipts accepted 19:15 UTC. Patient/PT role, document/action, source-time/E04, usable billing/B02 and availability dependencies remain open. Dated primary links and acceptance evidence follow; earlier next-task statements are historical checkpoints.
 
 EVIDENCE BASELINE — DATED OBSERVATIONS; LATER UPDATES BELOW
@@ -2796,3 +2796,105 @@ https://github.com/jnwokorie1957/pthhs/blob/6c5d12b95aa01c8f425477bfd8045e04e0ed
 Rechecked primary R9/R89 November6; guidance is not tenant activation evidence:
 https://knowledge.hhaexchange.com/texas/Content/Documentation/Patient/Pat-N-Control-Access-Patient-P.htm
 https://firebase.google.com/docs/auth/admin/custom-claims
+
+NOVEMBER 6, 2026, 14:28 UTC - CAREGIVER ACCOUNT AND PRIVATE OPENING ENTRY
+Main remains617bc32, clean; all three output mirrors match. PR11 is still open,
+draft and unmerged, now reviewed at2179a31270324b0bb39f74bd3b26c0c66274377f.
+This is a substantive draft workflow update, not a production role rollout.
+The earlier6c5d12b findings remain their pinned checkpoint; current evidence
+below supersedes its caregiver entry and opening-visibility assumptions only.
+
+OBSERVED CODE / OWNING PLAN - NOT NATIVE PRODUCTION ACCEPTANCE
+Plan version9 and ACCOUNT_ACCESS.md describe caregiver email/password account
+creation, email verification, recovery, private openings and a position-specific
+application return. workforce-account.js implements those provider calls with
+SESSION persistence, generic reset/sign-in failures, a verification refresh,
+password-field clearing and sign-out/private-content cleanup. Registration
+controls stop when accountsEnabled is false. Staff still takes the separate
+email-link branch in workforce-session.js; do not migrate office administrators,
+patient/family representatives or therapists merely because this entry changed.
+
+HTTP GET /opportunities now calls workforceIdentity before projecting openings.
+That identity check still requires a current enabled user, verified matching
+email and revoked-token validation. The new POST /opportunities/:id/interest
+also requires recent identity and current application/public release controls.
+Store.interest transaction checks a currently publishable privacy-reviewed
+opening and deduplicates by the exact account/position pair. It records interest,
+not an application submission, hiring approval, patient assignment or source visit.
+The workforce role/permission policy blob is unchanged from the previous review.
+
+The owning plan reports synthetic browser/tests and a read-only provider setting
+check. This pass did not independently inspect production provider settings,
+create a user, request verification/reset mail, record interest or access private
+personnel data. Firebase provider availability, client registration controls and
+server authorization of application/private data are distinct boundaries. A
+disabled registration button alone cannot prove provider-wide signup denial.
+Current application/packet/document and operational gates were not changed.
+
+PRIMARY GUIDANCE / PROPOSED EXPERIENCE
+R95 explains password-provider signup/sign-in, account identity across apps and
+email-enumeration protection with less-specific errors. Provider identity still
+does not grant employment, HR, clinical or patient membership. Maintain generic
+recovery results rather than turn an error into an account-existence lookup.
+R96 explains accessible existing-user authentication using password-manager and
+paste support, meaningful input purposes and alternatives/assistance. Its scope
+is not a certification of this draft or a requirement to add an unreviewed login
+provider. Current HTML has username/current-password/new-password autocomplete,
+named fields, password visibility state and live status; actual keyboard, device,
+password-manager and assistive-technology behavior remains acceptance work.
+
+Public Careers should explain the caregiver sign-in path without exposing actual
+openings in page source, static data or anonymous API output. After verification,
+preserve only the exact permitted position return; a closed/changed opening must
+remain unavailable. General application stays a separate intentional choice.
+For a closed launch, use an honest preparation/office-contact state. The reviewed
+caregiver HTML still says openings can be browsed in its bottom release notice,
+while account controls can be closed; reconcile that copy before launch rather
+than promise an inaccessible board or loosen the collection gate for a demo.
+
+Patient/family calendars/shared documents and PT My day/caseload remain under
+their own memberships and clinical instance/reviewer authority. An applicant
+return link must not resolve a patient/visit or disclose a private HR file.
+Office HR interest/application follow-up stays separate from scheduling,
+authorization, EVV and billing tasks. No new data visualizations or hours/status
+calculations are justified by an account or interest receipt.
+
+NEXT DEVELOPMENT / PROPOSED ACCEPTANCE - NOT RUN HERE
+1. Test anonymous, unverified, disabled, revoked and wrong-context sessions on
+   opening, interest and application routes, including direct API requests.
+   An independently obtained verified UID still receives only permitted data.
+2. With every release gate closed, display truthful preparation/contact copy,
+   no private openings and no collection success. Keep synthetic openings local
+   and explicitly labeled; an empty/blocked board is not a complete vacancy list.
+3. Reopen the exact selected opportunity after verification/recovery. If it was
+   closed or withdrawn meanwhile, refuse interest and explain the next step;
+   duplicate requests must not create multiple interests or imply assignment.
+4. In an approved acceptance environment, verify actual hosted email action
+   paths, sender/domain configuration, expired/reused links, generic recovery,
+   existing-account continuity and sign-out/stale-response clearing. No real
+   message is authorized or sent by this research pass.
+5. Check keyboard focus, status announcements, show/hide state, password-manager
+   fill and paste through sign-in, verification and recovery on real devices.
+   Do not claim WCAG compliance from autocomplete attributes or synthetic tests.
+
+Developer next action: reconcile the draft plan's older caregiver email-link
+backlog wording and closed-state copy with version9, then exercise the above
+cases under its existing WF-005/WF-007 launch review. Preserve current owner
+bootstrap, provider/action-domain separation and account/source crosswalk work.
+The owning branch's synthetic counts are reported evidence, not tests rerun here.
+Existing owner action remains exact launch identities/scopes and reviewed device/
+email/retention acceptance before activation; no duplicate approval question.
+No source-time, HHA UI, clinical/family access, role activation or release status
+changed in this pass. No runtime suite or deployment repeated for documentation.
+
+R94 REVISION EVIDENCE - PINNED DRAFT, REVIEWED NOVEMBER6 14:28UTC
+https://github.com/jnwokorie1957/pthhs/blob/2179a31270324b0bb39f74bd3b26c0c66274377f/docs/workforce/PLAN.md
+https://github.com/jnwokorie1957/pthhs/blob/2179a31270324b0bb39f74bd3b26c0c66274377f/docs/workforce/ACCOUNT_ACCESS.md
+https://github.com/jnwokorie1957/pthhs/blob/2179a31270324b0bb39f74bd3b26c0c66274377f/public/assets/workforce-account.js
+https://github.com/jnwokorie1957/pthhs/blob/2179a31270324b0bb39f74bd3b26c0c66274377f/functions/src/workforce/http.ts
+https://github.com/jnwokorie1957/pthhs/blob/2179a31270324b0bb39f74bd3b26c0c66274377f/functions/src/workforce/store.ts
+[R95] Firebase, Password-Based Accounts, retrieved November6,2026.
+https://firebase.google.com/docs/auth/web/password-auth
+[R96] W3C WAI, Understanding SC3.3.8 Accessible Authentication (Minimum),
+retrieved November6,2026. Design/acceptance guidance, not a compliance finding.
+https://www.w3.org/WAI/WCAG22/Understanding/accessible-authentication-minimum.html
