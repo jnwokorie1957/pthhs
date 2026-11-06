@@ -1,5 +1,17 @@
 # PTHHS Management Layer — Developer Checklist
 
+- [x] Cached maintenance visits have a fresh patient/day source-read action using
+  protected search receipts. Production reads 1/1 returned IDs and saves a neutral
+  local-review note with audit history; stale cache guards and HHA write gates stay
+  enforced. Hidden loaded filters are cleared by the bounded follow-up. See
+  [fresh-review and layout acceptance](COMPACT_WORKSPACE_AND_REASON_CATALOGS_2026-11-05.md).
+
+- [x] Compact Maintenance search (all/patient/caregiver), folded secondary controls,
+  selected-visit sections and 34 dashboard/tool sections are deployed and tested.
+  Shared-reader redocking preserves the folded body. Live agency reason catalogs
+  return 28/22/17 records. [Production evidence and remaining confirmation gaps](COMPACT_WORKSPACE_AND_REASON_CATALOGS_2026-11-05.md).
+  Four tested visit-specific reads remain empty; source confirmation is not accepted.
+
 - [ ] November6 00:31UTC role/source acceptance: prove applicable visit/payer
   reason and note rules before HHA action rollout. Retain the implemented
   separation of agency references and visit-specific choices. Proposed cases cover ID

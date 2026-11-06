@@ -14,6 +14,17 @@
 
 ## Start here
 
+- [x] An older cached visit can open a fresh HHA patient/day queue for office review.
+  Production source reading and a neutral local-note save are verified, retaining
+  existing case status/queue and audit history. Source confirmation is still gated.
+  [Acceptance and remaining source requirements](COMPACT_WORKSPACE_AND_REASON_CATALOGS_2026-11-05.md).
+
+- [x] Requested generic reason-reference catalogs are connected read-only for
+  existing administrators. Save/reload confirms 21 selected reads and production
+  counts of 28 edit reasons, 22 missed reasons and 17 missed actions. Their
+  applicability to a selected visit remains unverified; no source-write approval
+  or clinical policy was inferred. [Evidence and next source actions](COMPACT_WORKSPACE_AND_REASON_CATALOGS_2026-11-05.md).
+
 - [x] November 5: explicitly approved SearchPatients, SearchCaregivers, GetContracts,
   GetScheduleInfo and visit-scoped GetVisitEditReasonActionTaken for existing
   administrators. Normal owner-form save and reload confirmed eighteen selected

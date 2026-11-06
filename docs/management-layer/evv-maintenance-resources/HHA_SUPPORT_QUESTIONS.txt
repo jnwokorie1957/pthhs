@@ -33,6 +33,14 @@ caregiver's genuine calls, preserve their originals and avoid duplicate events.
 Include mandatory fields, omission/clearing behavior and source result identity.
 
 4. Reason/action catalog
+November 5 investigation: a raw successful historical response contains an empty
+VisitEditReasonActionTaken container; three further office-checked current-day
+visits also return zero typed reasons. Agency reference reads succeed with 28
+schedule/bill edit reasons, 22 missed reasons and 17 missed actions. The exact private
+office/visit/program identifiers should be supplied through an approved channel.
+Does the visit-specific interface return eligible choices or previously applied
+evidence? Which of these catalog IDs, if any, maps to confirmation ReasonCode and
+ActionCode? Explain this tenant/program's empty result and the required setup.
 Provide the applicable visit-edit reason codes, action-taken values, required
 notes and effective office/program/contract scope. Clarify the supported request
 for GetVisitEditReasonActionTaken and whether GetScheduleBillInfoEditReasons is
