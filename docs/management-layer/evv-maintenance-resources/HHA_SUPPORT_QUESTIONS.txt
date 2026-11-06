@@ -113,3 +113,18 @@ operation/request/result mapping, reason catalog, safe test records and a
 worked source re-read proving the existing genuine-event link/confirmation.
 Private test evidence must stay outside Git and public research. Staff-view,
 proposal/report and permission implementation can continue while awaiting this.
+
+NOVEMBER 6 DELIVERY AND BROWSER-OPERATOR FOLLOW-UP
+The concise external message is prepared in
+HHA_INTEGRATION_SUPPORT_REQUEST_2026-11-06.txt. Official Texas API documentation
+publishes EINTSupport@hhaexchange.com and routing to EISD Production Support;
+ask that team to identify the applicable existing-HHA-origin interface.
+No message is sent until the owner authorizes the specific outgoing email.
+
+Also establish whether the agency's agreement supports a supervised AI browser
+operator assisting authorized staff through existing HHA Visit Maintenance,
+the permitted identity/role/actor attribution, and any unattended-use restrictions.
+The published general terms restrict some automated access/use; do not infer
+that this agency's agreement grants or denies the proposed use without review.
+Existing UI fields prove a human workflow, not completed browser-agent acceptance.
+https://www.hhaexchange.com/terms-of-use

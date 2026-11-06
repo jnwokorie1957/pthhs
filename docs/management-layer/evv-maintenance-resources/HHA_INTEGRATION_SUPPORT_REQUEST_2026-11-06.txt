@@ -1,0 +1,56 @@
+PREPARED SUPPORT EMAIL - NOT SENT
+Prepared November 6, 2026, America/Chicago.
+To: EINTSupport@hhaexchange.com
+Subject: PTHHS - existing HHA EVV maintenance: visit reason lookup, confirmation API and assisted UI support
+
+Hello Enterprise Integration Support,
+
+Primetime Home Health Services is developing a private internal maintenance
+portal for our authorized office team. We want to maintain and confirm visits
+using genuine caregiver calls already captured in HHAeXchange, preserving the
+original events. This is not a request to create replacement clock events or
+convert to a separate EVV system.
+
+Our existing ENT API credentials read visit and patient records successfully.
+For one exact visit, GetVisitInfoV3 and GetPatientDemographics verify the visit,
+patient, office and service date. GetVisitEditReasonActionTaken then returns
+HTTP 200 / Success, zero reasons, no truncation. Receipt: 2026-11-06T05:36:07.058Z;
+correlation: ff6771bd-87db-4f8b-8905-6a02f37e7c3e.
+
+The same signed-in HHA visit form offers 28 reasons and five actions. The generic
+GetScheduleBillInfoEditReasons list has identical labels but different IDs and
+matches the separate Schedule/Bill Info Edit Reason reference table. Agency
+Visit Edit Reason/Action Taken IDs also differ from this visit form's IDs.
+We have not substituted IDs or submitted any HHA changes.
+
+Please route this to Enterprise Integration / EISD and provide:
+
+1. The supported tenant-specific reason/action lookup, correct ID namespace,
+   note requirements and any required provisioning. Does
+   GetVisitEditReasonActionTaken return eligible choices or applied history,
+   and why can it return empty while this visit's UI has choices?
+2. The supported interface for linking existing HHA-origin calls and confirming
+   maintained visits. Clarify ConfirmVisits, ConfirmVisitsV2, ConfirmVisitsEVV
+   and VisitCallInOut; required fields; preservation/omission rules; actor
+   attribution; duplicate/conflict handling; and independent result readback.
+3. An approved test environment and synthetic cases for end-to-end validation
+   before any production changes, plus this account's required entitlements.
+4. Whether our agreement permits a supervised AI browser operator to assist
+   authorized staff in HHA's existing maintenance screens, and the supported
+   account/role model and restrictions on unattended execution. We want to teach
+   explicit staff procedures, review proposals first and escalate ambiguous cases.
+
+No patient/caregiver records, affected record IDs, credentials or screenshots
+are included. We can supply the exact example through your approved secure
+case channel. Please identify that channel and the next technical step.
+
+Thank you,
+Primetime Home Health Services
+
+PREPARATION NOTES - NOT PART OF THE EMAIL BODY
+The recipient is published in HHA's Texas API documentation, which routes
+integration cases to EISD Production Support:
+https://knowledge.hhaexchange.com/edi/Content/Documentation/EDI/API-Texas-EVV-Data-Aggregator-Specs-P.htm
+The existing Enterprise/HHA-origin workflow is deliberately distinguished from
+that page's separate aggregation interface. Routing does not prove entitlement.
+User authorization to send this exact outgoing message is still pending.

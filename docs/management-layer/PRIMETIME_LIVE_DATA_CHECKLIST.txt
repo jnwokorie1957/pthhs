@@ -17,6 +17,13 @@ approved limited automation, then build the owned scheduling platform.
 [ ] M04 Protected assigned reports: action/evidence/rule and unresolved next step.
 [ ] M05 Owner-selected approximately 25-client shadow pilot and measured results.
 [ ] M06 Reviewed submissions, then approved-rule automation using actual calls.
+[x] M02e Prepared concise vendor email to the published Enterprise Integration
+    address, covering exact-visit lookup/action/readback and permitted assisted
+    browser operation. HHA_INTEGRATION_SUPPORT_REQUEST_2026-11-06.txt is unsent;
+    outgoing-message authorization and source response remain pending.
+[x] M05a API/browser teaching template recorded in EVV_BROWSER_AGENT_WORKFLOW.txt.
+    Primetime confirmation remains the goal; neither execution route has passed
+    source-write acceptance. Owner example/rule/pilot selection remains open.
 [x] M01d Cached-visit shortcut reads fresh protected patient/day evidence; production
     returned 1/1 source IDs, opened the row and saved a neutral private review note
     with audit history, preserving existing case status/queue. Source writes remain

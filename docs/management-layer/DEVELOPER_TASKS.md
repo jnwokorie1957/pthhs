@@ -1,5 +1,12 @@
 # PTHHS Management Layer — Developer Checklist
 
+- [x] Prepared the exact technical support email to HHA's published Enterprise
+  Integration address and separated API-backed Primetime confirmation from a
+  permitted assisted HHA browser operator. [Request, not yet sent](evv-maintenance-resources/HHA_INTEGRATION_SUPPORT_REQUEST_2026-11-06.txt)
+  and [teaching/verification template](EVV_BROWSER_AGENT_WORKFLOW.txt) preserve
+  real-call evidence, supervised pilot, later approved-rule processing and staff
+  escalations. Source writes and browser automation are not accepted by this plan.
+
 - [ ] November6 17:27UTC draft management coverage: PR11/aebde94 overview counts
   returned lists capped at50applications/100opportunities per office; API caps are
   not visible beside the overview counts. Label loaded scope/state/cap or prove
