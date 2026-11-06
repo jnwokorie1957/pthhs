@@ -1,5 +1,5 @@
 (() => {
-  let actor = null, items = [], generation = 0;
+  let actor = null, items = [], generation = 0, read = 0, listData = null;
   const area = document.getElementById('staff-workspace');
   const list = document.getElementById('staff-opportunities');
   const form = document.getElementById('staff-editor');
@@ -8,12 +8,17 @@
   const message = s => { status.textContent = s; };
   async function refresh() {
     if(!can('read'))return;
-    const sequence = generation;
+    const sequence = generation, request = ++read;
+    updateList({state:'loading'});
     try {
       const data = await workforceApi('/staff/opportunities');
-      if (sequence !== generation) return;
-      items = data.items; render();document.dispatchEvent(new CustomEvent('workforce-opportunities-updated',{detail:Object.fromEntries(['draft','review','approved','published'].map(state=>[state,items.filter(item=>item.state===state).length]))}));
-    } catch (error) { if (sequence === generation) message(error.message); }
+      if (sequence !== generation || request !== read) return;
+      updateList(data);
+    } catch (error) { if (sequence === generation && request === read) updateList({state:'unavailable'}); }
+  }
+  function updateList(data) {
+    listData = data; items = data.items || []; render();
+    document.dispatchEvent(new CustomEvent('workforce-opportunities-updated', {detail:data}));
   }
   function edit(o) {
     window.WorkforceManagement?.show('opportunities');document.getElementById('staff-editor-panel').open=true;document.getElementById('staff-editor-title').textContent=o?'Edit opportunity':'New opportunity';
@@ -24,8 +29,12 @@
   }
   function render() {
     list.replaceChildren();
+    const coverage = document.getElementById('staff-coverage');
+    coverage.textContent = actor ? WorkforceContract.listCoverage(listData, actor.grant.offices.length, 'Opportunities') : '';
+    if (!Array.isArray(listData?.items)) return;
     const query=document.getElementById('staff-search').value.trim().toLowerCase(),state=document.getElementById('staff-filter').value;
     const filtered=items.filter(item=>(!state||item.state===state)&&(!query||[item.public.location,item.public.recruitingZip,item.internalReference].join(' ').toLowerCase().includes(query)));
+    coverage.textContent = 'Showing ' + filtered.length + ' of ' + items.length + ' loaded opportunities. ' + coverage.textContent;
     if(!filtered.length){const empty=document.createElement('div');empty.className='manager-empty';const title=document.createElement('h3');title.textContent=items.length?'No matching opportunities':'Your next opportunity starts here';const text=document.createElement('p');text.textContent=items.length?'Try another area or status.':'Create an opening, then send it through privacy review before publishing.';empty.append(title,text);list.append(empty);}
     for (const o of filtered) {
       const card = document.createElement('article'),heading=document.createElement('div');heading.className='manager-opportunity-heading';
@@ -63,7 +72,7 @@
     }
   }
   document.addEventListener('workforce-session-cleared', () => {
-    generation++; actor = null; items = []; list.replaceChildren(); form.reset();document.getElementById('staff-search').value='';document.getElementById('staff-filter').value='';document.getElementById('staff-editor-panel').open=false;area.hidden = true;
+    generation++; read++; actor = null; items = []; listData = null; list.replaceChildren(); document.getElementById('staff-coverage').textContent=''; form.reset();document.getElementById('staff-search').value='';document.getElementById('staff-filter').value='';document.getElementById('staff-editor-panel').open=false;area.hidden = true;
   });
   document.addEventListener('workforce-session', e => {
     generation++; actor = e.detail; area.hidden = false;

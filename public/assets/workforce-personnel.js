@@ -3,7 +3,7 @@
   if (!panel) return;
   const status = el('personnel-message'), list = el('personnel-list'), detail = el('personnel-detail');
   const support = el('caregiver-account-support'), accountDetail = el('caregiver-account-detail'), results = el('caregiver-account-results'), accountMessage = el('caregiver-account-message');
-  let generation = 0, applicationSelection = 0, accountSelection = 0, actor, packetPromise, searchTimer;
+  let generation = 0, applicationSelection = 0, accountSelection = 0, applicationRead = 0, applicationData = null, actor, packetPromise, searchTimer;
   const urls = new Set(), previews = new Set();
   const node = (tag, text, className) => { const element = document.createElement(tag); if (text !== undefined) element.textContent = text; if (className) element.className = className; return element; };
   const can = permission => actor?.grant.permissions.includes(permission);
@@ -104,15 +104,31 @@
       if (current()) accountMessage.textContent = '';
     } catch (error) { if (current()) accountMessage.textContent = error.message; }
   }
-  el('personnel-refresh').onclick = async () => {
-    const session = generation;
+  function renderApplications() {
+    list.replaceChildren();
+    if (!applicationData) return;
+    const filter = el('personnel-filter').value, items = applicationData.items.filter(item => !filter || item.state === filter);
+    el('personnel-coverage').textContent = 'Showing ' + items.length + ' of ' + applicationData.items.length + ' loaded applications. ' + WorkforceContract.listCoverage(applicationData, actor.grant.offices.length, 'Applications');
+    if (!items.length) list.append(node('div', filter ? 'No matching applications in the loaded records.' : 'No applications in the loaded records.', 'manager-empty'));
+    for (const item of items) { const button = node('button', (item.displayName || 'Application #' + item.uid.slice(-6).toUpperCase()) + ' · ' + human(item.state)); button.type = 'button'; button.onclick = () => openApplication(item.uid); list.append(button); }
+  }
+  function applicationState(data) {
+    applicationData = Array.isArray(data.items) ? data : null;
+    el('personnel-coverage').textContent = WorkforceContract.listCoverage(data, actor.grant.offices.length, 'Applications');
+    renderApplications(); document.dispatchEvent(new CustomEvent('workforce-applications-updated', {detail:data}));
+  }
+  async function refreshApplications() {
+    if (!can('applications.review') || !['owner', 'hr'].includes(actor?.grant.role)) return;
+    const session = generation, read = ++applicationRead;
+    applicationSelection++; detail.replaceChildren(); status.textContent = ''; applicationState({state:'loading'});
     try {
-      const response = await workforceApi('/staff/applications'); if (session !== generation) return;
-      list.replaceChildren(); document.dispatchEvent(new CustomEvent('workforce-applications-updated', {detail:response.items})); status.textContent = response.items.length + (response.items.length === 1 ? ' application' : ' applications') + ' in your assigned offices (up to 50 per office).';
-      if (!response.items.length) list.append(node('div', 'No applications to review yet.', 'manager-empty'));
-      for (const item of response.items) { const button = node('button', (item.displayName || 'Application #' + item.uid.slice(-6).toUpperCase()) + ' · ' + human(item.state)); button.type = 'button'; button.onclick = () => openApplication(item.uid); list.append(button); }
-    } catch (error) { if (session === generation) status.textContent = error.message; }
-  };
+      const response = await workforceApi('/staff/applications'); if (session !== generation || read !== applicationRead) return;
+      applicationState(response);
+    } catch (error) { if (session === generation && read === applicationRead) applicationState({state:'unavailable'}); }
+  }
+  el('personnel-refresh').onclick = refreshApplications;
+  el('personnel-filter').onchange = () => { applicationSelection++; detail.replaceChildren(); status.textContent = ''; renderApplications(); };
+  window.WorkforcePersonnel = {refresh:refreshApplications};
   async function search() {
     clearTimeout(searchTimer);
     const sequence = ++accountSelection, session = generation; results.replaceChildren(); accountDetail.replaceChildren(); accountMessage.textContent = 'Finding caregivers…';
@@ -125,6 +141,6 @@
   }
   el('caregiver-account-search').onsubmit = event => { event.preventDefault(); if(event.currentTarget.reportValidity())return search(); };
   el('caregiver-account-name').oninput = event => { clearTimeout(searchTimer); accountSelection++; results.replaceChildren(); accountDetail.replaceChildren(); accountMessage.textContent=''; if(el('caregiver-account-name').value.trim()&&!event.isComposing)searchTimer=setTimeout(search,300); };
-  document.addEventListener('workforce-session-cleared', () => { clearTimeout(searchTimer); generation++; applicationSelection++; accountSelection++; actor = null; release(); panel.hidden = true; support.hidden = true; list.replaceChildren(); detail.replaceChildren(); accountDetail.replaceChildren(); results.replaceChildren(); status.textContent = ''; accountMessage.textContent = ''; el('caregiver-account-name').value = ''; });
-  document.addEventListener('workforce-session', event => { generation++; actor = event.detail; panel.hidden = !can('applications.review'); support.hidden = !can('accounts.support'); });
+  document.addEventListener('workforce-session-cleared', () => { clearTimeout(searchTimer); generation++; applicationRead++; applicationSelection++; accountSelection++; actor = null; applicationData = null; release(); panel.hidden = true; support.hidden = true; list.replaceChildren(); detail.replaceChildren(); accountDetail.replaceChildren(); results.replaceChildren(); status.textContent = ''; accountMessage.textContent = ''; el('caregiver-account-name').value = ''; el('personnel-filter').value = ''; el('personnel-coverage').textContent = ''; });
+  document.addEventListener('workforce-session', event => { generation++; actor = event.detail; panel.hidden = !can('applications.review'); support.hidden = !can('accounts.support'); refreshApplications(); });
 })();

@@ -25,5 +25,15 @@
     input.value = formatPhone(before);
     if (typeof caret === 'number') { let position=0, seen=0; while(position<input.value.length && seen<count) { if(/\d/.test(input.value[position]))seen++; position++; } input.setSelectionRange(position,position); }
   };
-  root.WorkforceContract = Object.freeze({ validId, selectedId, returnPath, matches, reviewNavigationAllowed, formatPhone, formatPhoneInput });
+  const listCoverage = (data, officeCount, noun) => {
+    if (!Array.isArray(data?.items)) return noun + (data?.state === 'loading' ? ' loading…' : ' unavailable. Refresh to try again.');
+    const limit = data.limitPerOffice, counts = new Map();
+    for (const item of data.items) counts.set(item.office, (counts.get(item.office) || 0) + 1);
+    const bounded = Number.isSafeInteger(limit) && limit > 0;
+    return data.items.length + ' ' + noun.toLowerCase() + ' loaded across ' + officeCount + ' assigned ' + (officeCount === 1 ? 'office' : 'offices') +
+      (bounded ? '; up to ' + limit + ' per office.' : '; read limit unavailable.') +
+      (bounded && [...counts.values()].some(count => count >= limit) ? ' An office reached the read limit; more records may exist.' : '') +
+      ' Counts cover loaded records only; office totals are not available.';
+  };
+  root.WorkforceContract = Object.freeze({ validId, selectedId, returnPath, matches, reviewNavigationAllowed, formatPhone, formatPhoneInput, listCoverage });
 })(globalThis);
