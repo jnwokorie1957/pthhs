@@ -6,7 +6,7 @@ import { pathToFileURL } from 'node:url';
 // Normalize workforce authoring line endings before hashing, so Windows-created
 // references match canonical Git/Linux bytes. Never inject marketing analytics.
 export function buildWorkforceAssets({ root = process.cwd(), check = false } = {}) {
-  for (const path of ['public/caregiver.html', 'public/primetime/workforce.html']) {
+  for (const path of ['public/caregiver.html', 'public/primetime/workforce.html', 'public/home-care-careers.html']) {
     const target = resolve(root, path), before = readFileSync(target, 'utf8');
     const after = before.replace(/(\/assets\/[^"?]+\.(?:css|js))(?:\?v=[^"']*)?/g, (_, asset) => {
       const file = resolve(root, 'public' + asset);

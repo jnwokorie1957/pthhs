@@ -40,6 +40,9 @@ November 6, 2026 verification:
 - Workforce/Primetime asset checks, unchanged performance budgets, JavaScript
   syntax and repository audit pass. The local dependency junction does not
   provide a full production/PDF build; the normal Linux PR workflow does that.
+  The first site CI run caught the Careers page's stale shared-script hash. The
+  workforce builder now covers that page as well as the two private entries,
+  with a regression for an independently stale Careers reference.
 - A separate loopback-only Chrome preview used synthetic records and blocked all
   network connections/API writes. Native observation verified overview limits,
   25-of-50 submitted and draft lists, All statuses returning 50-of-50, the
