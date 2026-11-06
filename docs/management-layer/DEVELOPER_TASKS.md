@@ -1,5 +1,14 @@
 # PTHHS Management Layer — Developer Checklist
 
+- [x] November 5 22:02UTC trigger: restored omitted raw VisitStartTime/VisitEndTime
+  in both approved visit-billing readers. Four fail-before regressions, 780
+  backend tests, 25 site checks and all four normal release jobs pass. Native
+  November 6 UTC V2 billing read returns both fields for the exact October 24
+  visit/patient/caregiver/day and matches V3; current-day read returns no billing
+  record. This is independent billing evidence, not recovered EVV/actual hours.
+  P03/E04 and native legacy/empty-field acceptance remain open. See
+  [mapping, production evidence and limits](BILLING_RECORDED_CLOCK_FIELDS_2026-11-05.md).
+
 - [x] Implemented the requested maintenance From/To range, separate patient/member
   and caregiver name/code lookups, bill-to payer/contract filtering, actionable
   rows/cards, deadline recovery and source-bound reason/action staging. Initial
