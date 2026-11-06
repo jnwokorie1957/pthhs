@@ -63,7 +63,7 @@ Search itself has no service-date selection.
 These search results do not establish approval of a 25-client automation pilot.
 
 CALENDAR-CALL-001 - SCHEDULE, EVV AND EXISTING-CALL SEARCH
-Version: 1. Owner-taught navigation and interpretation, November 6.
+Version: 2. Owner-taught navigation and interpretation, November 6.
 
 1. Open Calendar Details and check the displayed month/year and selected day.
 2. Distinguish the scheduled span from the separate green EVV span. The owner
@@ -76,6 +76,10 @@ Version: 1. Owner-taught navigation and interpretation, November 6.
    heading's day before proceeding. Inspect the EVV clock-in/out fields.
 5. Open Link Call, then Link Call In to inspect genuine candidate calls. Opening
    the picker does not authorize selecting/linking a call or saving a visit.
+   HHA may open Find Calls as a separate owned popup. It was absent from the
+   browser tab list, tab screenshot/DOM and native top-level window inventory,
+   but present in the host window's screenshot as its own screenshot region.
+   Inspect that actual popup rather than treating the visit form as its result.
 6. Interpret No Records only within the actual picker query/date/direction.
    The owner reported no calls for the first example. The agent did not
    independently establish absence of both directions or full retained history.
@@ -90,11 +94,14 @@ Dated teaching sequence: first member November 1 green EVV example; November 2
 V > Visit Info > Link Call In; owner reported No Records and requested November 3,
 with November 4 suggested for later. The owner corrected a stale Find Calls
 layer and subsequently directed the second member instead. The second member's
-November 3 visit and Visit Info are now open. The Link Call menu appeared, but
-Find Calls was not exposed in the connected browser after the launch attempts.
-Several No Records labels belonged to other visit-form sections, so they were
-not accepted as call-search evidence. The owner was asked to open Link Call In
-directly; the second member's call-search result remains unverified.
+November 3 visit and Visit Info are now open. After the owner identified the
+separate-popup issue, a new visible Link Call In click was followed by a native
+host-window screenshot. That capture exposed the owned Find Calls popup,
+independently showing No Records with the November 3 visit behind it. The popup
+was left open for the owner. This verifies the second member's current call-in
+search result only; Call Out and full retained history were not independently
+checked. Earlier No Records labels in other visit-form sections were not used
+as evidence. The earlier connector-blocked status is superseded by this capture.
 
 No call was selected/linked, no source Save/confirmation/reprocess was submitted,
 and no reason/action, clock, clinical or financial outcome was chosen.

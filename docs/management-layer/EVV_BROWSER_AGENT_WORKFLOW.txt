@@ -96,8 +96,11 @@ Link Call > Link Call In path. CALENDAR-CALL-001 records the observed November
 1-3 sequence, source-query limits and the requirement to close the prior day's
 Find Calls layer. The owner reported no calls for the first example and directed
 the second member from the same 25-result search. That second member's November
-3 Visit Info is open; the separate Find Calls window has not been exposed through
-the connector. The owner has been asked to open Link Call In directly. Do not
+3 Visit Info is open. The owner identified Find Calls as a separate popup. A new
+Link Call In click and native host-window capture exposed that owned popup even
+though tab/DOM and top-level window inventories omitted it. Find Calls visibly
+shows No Records for that current call-in search; it remains open for the owner.
+This does not prove Call Out or exhaustive retained-history absence. Do not
 misreport unrelated No Records labels in the visit form as its search result.
 No call linking, reason/action save, source confirmation or time change has been
 submitted. A complete correction rule and independent saved readback remain
