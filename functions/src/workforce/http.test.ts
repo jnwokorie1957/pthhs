@@ -18,7 +18,7 @@ test("opportunities require sign-in even when release gates are closed", async (
   assert.equal(result.headers["Cache-Control"], "no-store");
 });
 test("configuration cannot enable applicant collection and staff routes default closed", async () => {
-  assert.deepEqual((await request("/caregiver/workforce-api/configuration")).body, { staffEnabled: false, accountsEnabled: false, applicationsEnabled: false, documentsEnabled: false, addressLookupEnabled: false, enabledSignInProviders: [],existingAccessEnabled:false });
+  assert.deepEqual((await request("/caregiver/workforce-api/configuration")).body, { staffEnabled: false, accountsEnabled: false, applicationsEnabled: false, documentsEnabled: false, addressLookupEnabled: false, enabledSignInProviders: [],existingAccessEnabled:false,existingCaregiverEnrollmentReady:false });
   const result = await request("/primetime/workforce-api/staff/opportunities", "POST");
   assert.equal(result.status, 503); assert.deepEqual(result.body, { error: "workforce_release_pending" });
 });

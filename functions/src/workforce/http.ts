@@ -64,8 +64,9 @@ export const workforceApi = process.env.PRIMETIME_API_ONLY_DEPLOY === "true" ? u
     const uploadsEnabled = applicationsEnabled && documentsApproved.value() === "true" && retentionApproved.value() === "true";
     const existingAccessEnabled=staffEnabled.value()==="true"&&hhaPortalApproved.value()==="true"&&hhaDataApproved.value()==="true";
     if (path === "/configuration" && req.method === "GET") {
+      let existingCaregiverEnrollmentReady=false;if(existingAccessEnabled){try{const settings=await hhaWorkspace().settings(),office=settings.settings.officeId;if(office){const ready=await getFirestore().collection("workforceHhaRosterReady").doc(office).get();existingCaregiverEnrollmentReady=ready.exists&&ready.data()?.office===office&&typeof ready.data()?.completedAt==="string";}}catch{/* Source preparation remains closed when readiness cannot be confirmed. */}}
       const enabledSignInProviders=signInProviders.value().split(",").map(p=>p.trim()).filter(p=>["google.com","apple.com","microsoft.com","yahoo.com"].includes(p));
-      res.json({ staffEnabled: staffEnabled.value() === "true", accountsEnabled: applicationsEnabled||existingAccessEnabled, applicationsEnabled, documentsEnabled: uploadsEnabled, addressLookupEnabled: placesApproved.value() === "true", enabledSignInProviders,existingAccessEnabled }); return;
+      res.json({ staffEnabled: staffEnabled.value() === "true", accountsEnabled: applicationsEnabled||existingAccessEnabled, applicationsEnabled, documentsEnabled: uploadsEnabled, addressLookupEnabled: placesApproved.value() === "true", enabledSignInProviders,existingAccessEnabled,existingCaregiverEnrollmentReady }); return;
     }
     if(path==="/existing-caregiver/access"&&req.method==="POST"){
       if(!existingAccessEnabled)throw new WorkforceError(503,"existing_access_pending");
@@ -88,7 +89,7 @@ export const workforceApi = process.env.PRIMETIME_API_ONLY_DEPLOY === "true" ? u
     if (path === "/application/packet" && req.method === "GET") { res.json({ packet: intakePacket, inventory: packetInventory }); return; }
     if (path === "/application/session" && req.method === "GET") {
       if (!applicationsEnabled&&!existingAccessEnabled) throw new WorkforceError(503, "application_collection_pending");
-      const uid=await workforceIdentity(req),existing=existingAccessEnabled?await(await hhaEnrollment()).link(uid):null;if(existing||applicationsEnabled)await new AccountSupport().register(uid,existing?.office||intakeOffice.value());
+      const uid=await workforceIdentity(req),existing=existingAccessEnabled?await(await hhaEnrollment()).link(uid):null;await new AccountSupport().register(uid,existing?.office||intakeOffice.value());
       res.json({ uid, kind: "caregiver", applicationsEnabled, documentsEnabled: uploadsEnabled, addressLookupEnabled: placesApproved.value() === "true",existingCaregiver:!!existing }); return;
     }
     if(path==="/application/hha-profile"||/^\/application\/hha-files\/[1-9]\d{0,9}$/.test(path)){

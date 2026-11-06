@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { readFileSync } from 'node:fs';
-import { deploymentEnvironment, READ_AND_REMINDER_APPROVALS } from './prepare-deploy-env.mjs';
+import { deploymentEnvironment, workforceDeploymentEnvironment, READ_AND_REMINDER_APPROVALS } from './prepare-deploy-env.mjs';
 
 const read = path => readFileSync(new URL(path, import.meta.url), 'utf8');
 const index = read('../src/index.ts');
@@ -112,3 +112,11 @@ test('owner-reviewed production release enables only operational reads', () => {
   assert.equal(values[data], 'true');
   for (const [name, value] of Object.entries(values)) if (name.startsWith('PRIMETIME_') && name !== data) assert.equal(value, 'false');
 });
+
+const portalRelease=()=>JSON.parse(read('../workforce-deployment.json')),portalSource=read('../src/workforce/http.ts');
+test('reviewed workforce release preserves live access while keeping application and identity collection closed',()=>{const env=workforceDeploymentEnvironment(portalRelease(),portalSource,true);assert.match(env,/WORKFORCE_STAFF_APPROVED=true/);assert.match(env,/WORKFORCE_HHA_PORTAL_APPROVED=true/);for(const key of ['APPLICANT_COLLECTION','PACKET_REVIEW','ID_DOCUMENTS','ID_RETENTION','PUBLIC_OPPORTUNITIES'])assert.match(env,new RegExp('WORKFORCE_'+key+'_APPROVED=false'));assert.match(env,/WORKFORCE_PORTAL_ORIGIN=https:\/\/pthhs.net/);assert.doesNotMatch(env,/AppSecret|password|PRIVATE_KEY/);});
+test('workforce deployment rejects unknown environment keys and non-boolean approval strings',()=>{const extra=portalRelease();extra.environment.UNKNOWN='true';assert.throws(()=>workforceDeploymentEnvironment(extra,portalSource,true));const invalid=portalRelease();invalid.environment.WORKFORCE_STAFF_APPROVED='yes';assert.throws(()=>workforceDeploymentEnvironment(invalid,portalSource,true));});
+test('HHA portal cannot be released without approved source and an office',()=>{assert.throws(()=>workforceDeploymentEnvironment(portalRelease(),portalSource,false),/approved source/);const release=portalRelease();release.environment.WORKFORCE_INTAKE_OFFICE='';assert.throws(()=>workforceDeploymentEnvironment(release,portalSource,true),/office/);});
+test('workforce deployment refuses identity uploads without their collection and retention approvals',()=>{const release=portalRelease();release.environment.WORKFORCE_ID_DOCUMENTS_APPROVED='true';assert.throws(()=>workforceDeploymentEnvironment(release,portalSource,true),/prerequisites/);});
+test('workforce deployment rejects unsafe origins, malformed office IDs and unsupported providers',()=>{for(const [key,value]of [['WORKFORCE_PORTAL_ORIGIN','https://untrusted.example'],['WORKFORCE_INTAKE_OFFICE','../other'],['WORKFORCE_SIGN_IN_PROVIDERS','unknown.com']]){const release=portalRelease();release.environment[key]=value;assert.throws(()=>workforceDeploymentEnvironment(release,portalSource,true));}});
+test('new workforce parameters or relaxed code defaults require a new release review',()=>{assert.throws(()=>workforceDeploymentEnvironment(portalRelease(),portalSource+'defineString("WORKFORCE_UNREVIEWED", {default:"false"})',true),/inventory/);assert.throws(()=>workforceDeploymentEnvironment(portalRelease(),portalSource.replace('default: "false"','default: "true"'),true),/closed default/);});

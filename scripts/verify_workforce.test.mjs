@@ -35,6 +35,7 @@ test('existing Careers URL, homeowner sign-in entry and staff entry remain reach
   assert.match(read('public/index.html'),/href="\/caregiver">Caregiver Sign In/);
   assert.match(read('public/home-care-careers.html'),/https:\/\/pthhs.net\/home-care-careers/);
   assert.match(read('public/home-care-careers.html'),/Sign in to view openings/);
+  assert.match(read('public/home-care-careers.html'),/href="\/primetime\/workforce">Staff Sign In/);
   assert.doesNotMatch(read('public/home-care-careers.html'),/id="opportunity-filters"|id="opportunity-list"/);
   assert.match(read('source/primetime/index.html'),/href="\/primetime\/workforce"/);
   assert.match(read('public/primetime/workforce.html'),/id="staff-editor"/);

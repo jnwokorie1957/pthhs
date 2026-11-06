@@ -1,6 +1,10 @@
 # PTHHS caregiver workforce plan
 
-Authoritative architecture, implementation backlog and acceptance record. Version 17, November 6, 2026. Initial audit baseline: `93707e3` on `main`; current handoff integrates `main` through `9f603ac`, preserving concurrent visit-maintenance controls, range/search/reason-staging tools, SEO records and production acceptance documentation. This file owns workforce delivery status; existing management and release documentation continues to own its established workflows.
+Authoritative architecture, implementation backlog and acceptance record. Version 18, November 6, 2026. Initial audit baseline: `93707e3` on `main`; current handoff integrates `main` through `3241116`, preserving concurrent visit-maintenance controls, range/search/reason-staging tools, SEO records and production acceptance documentation. This file owns workforce delivery status; existing management and release documentation continues to own its established workflows.
+
+## Public account-access publication
+
+The owner authorized publication of Careers and authenticated portals on PTHHS.net. The reviewed release enables sign-in and account preparation while preserving closed application, upload and opportunity gates. Homepage/Careers entry points, canonical return URLs and deployment-parameter preservation are included. See [public release procedure and acceptance](PUBLIC_PORTAL_RELEASE.md). Earlier preview-only statements below describe historical milestones.
 
 ## Scope and release state
 

@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import vm from 'node:vm';
 const source=fs.readFileSync(new URL('../public/assets/workforce-account.js',import.meta.url),'utf8');
-function setup({enabled=true,search='',invalidCode=false,providers=[],providerOnly=false,existingAccessEnabled=false,api=async()=>({kind:'caregiver'})}={}) {
+function setup({enabled=true,search='',invalidCode=false,providers=[],providerOnly=false,existingAccessEnabled=false,existingCaregiverEnrollmentReady=true,api=async()=>({kind:'caregiver'})}={}) {
  const nodes=new Map(),events=[],calls=[];
  const node=id=>{if(!nodes.has(id))nodes.set(id,{value:'',hidden:true,children:[],append(child){this.children.push(child);},listeners:{},attrs:{},setAttribute(key,value){this.attrs[key]=value;},focus(){},scrollIntoView(){},reportValidity:()=>true,addEventListener(type,fn){this.listeners[type]=fn;}});return nodes.get(id);};
  let onAuth;
@@ -11,7 +11,7 @@ function setup({enabled=true,search='',invalidCode=false,providers=[],providerOn
  auth.verifyPasswordResetCode=async()=>{if(invalidCode)throw Error();calls.push('verify-code');return 'test@example.invalid';};auth.confirmPasswordReset=async(code,password)=>calls.push(['confirm-reset',code,password]);
  const board={clear:()=>calls.push('clear'),open:async()=>calls.push('board')};
  auth.signInWithPopup=async provider=>calls.push(['provider',provider.providerId]);let nextNode=0;
- const context=vm.createContext({window:{WorkforceBoard:board,WorkforceReview:{flush:async()=>{}}},document:{createElement:()=>node('created-'+nextNode++),getElementById:node,dispatchEvent:e=>events.push(e.type)},CustomEvent:class{constructor(type,options){this.type=type;this.detail=options?.detail;}},location:{search,pathname:'/caregiver',href:'http://localhost/caregiver'+search,origin:'http://localhost'},history:{replaceState:()=>calls.push('history')},URL,URLSearchParams,firebase:{auth:{Auth:{Persistence:{SESSION:'session'}},GoogleAuthProvider:class{constructor(){this.providerId='google.com';}setCustomParameters(params){calls.push(['google-parameters',params.prompt]);}},OAuthProvider:class{constructor(id){this.providerId=id;}}}},fetch:async()=>({ok:true,json:async()=>({accountsEnabled:enabled,enabledSignInProviders:providers,providerOnly,existingAccessEnabled})}),setTimeout:()=>{}});
+ const context=vm.createContext({window:{WorkforceBoard:board,WorkforceReview:{flush:async()=>{}}},document:{createElement:()=>node('created-'+nextNode++),getElementById:node,dispatchEvent:e=>events.push(e.type)},CustomEvent:class{constructor(type,options){this.type=type;this.detail=options?.detail;}},location:{search,pathname:'/caregiver',href:'http://localhost/caregiver'+search,origin:'http://localhost'},history:{replaceState:()=>calls.push('history')},URL,URLSearchParams,firebase:{auth:{Auth:{Persistence:{SESSION:'session'}},GoogleAuthProvider:class{constructor(){this.providerId='google.com';}setCustomParameters(params){calls.push(['google-parameters',params.prompt]);}},OAuthProvider:class{constructor(id){this.providerId=id;}}}},fetch:async()=>({ok:true,json:async()=>({accountsEnabled:enabled,enabledSignInProviders:providers,providerOnly,existingAccessEnabled,existingCaregiverEnrollmentReady})}),setTimeout:()=>{}});
  vm.runInContext(source,context);
  return {node,auth,calls,events,start:()=>context.window.WorkforceAccount.start({createAuth:()=>auth,api}),session:user=>{auth.currentUser=user;return onAuth(user);},submit:()=>node('workforce-login').listeners.submit({preventDefault(){}})};
 }
@@ -81,3 +81,5 @@ test('existing access remains hidden until its separate release configuration is
 });
 
 test('existing HHA caregivers do not enter the new-applicant application or identity-upload pathway',async()=>{const s=setup({api:async()=>({applicationsEnabled:true,existingCaregiver:true})});await s.start();await s.session(verified);assert.equal(s.node('dashboard-application').hidden,true);await s.node('dashboard-application').onclick();assert.equal(s.node('caregiver-summary').hidden,true);});
+
+test('initial HHA preparation explains the wait instead of claiming that an access email was sent',async()=>{const requests=[],s=setup({existingAccessEnabled:true,existingCaregiverEnrollmentReady:false,search:'?intent=existing',api:async path=>requests.push(path)});await s.start();assert.match(s.node('account-description').textContent,/profiles are being prepared/);assert.equal(s.node('workforce-login-button').disabled,true);await s.submit();assert.equal(requests.length,0);s.node('account-back').onclick();assert.equal(s.node('workforce-login-button').disabled,false);});
