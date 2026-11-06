@@ -96,15 +96,28 @@ Link Call > Link Call In path. CALENDAR-CALL-001 records the observed November
 1-3 sequence, source-query limits and the requirement to close the prior day's
 Find Calls layer. The owner reported no calls for the first example and directed
 the second member from the same 25-result search. That second member's November
-3 Visit Info is open. The owner identified Find Calls as a separate popup. A new
+3 Visit Info was opened. The owner identified Find Calls as a separate popup. A new
 Link Call In click and native host-window capture exposed that owned popup even
 though tab/DOM and top-level window inventories omitted it. Find Calls visibly
-shows No Records for that current call-in search; it remains open for the owner.
+showed No Records for that current call-in search, and was subsequently closed
+using the popup's own Close control with visual verification.
 This does not prove Call Out or exhaustive retained-history absence. Do not
 misreport unrelated No Records labels in the visit form as its search result.
-No call linking, reason/action save, source confirmation or time change has been
-submitted. A complete correction rule and independent saved readback remain
-pending owner teaching and source-contract validation.
+The owner then taught REVIEW-DATES-001: November 1-5 inclusive, always stopping
+at yesterday and excluding today's still-incomplete submissions. The second
+member's November 1 visit has a recorded clock-in. Link Call Out returns a real
+candidate marked No Schedule Opening; that candidate is currently open. The
+owner taught conditional reason110A / service delivery differs from schedule,
+member-confirmation action, link/close and separate handling of the other
+direction. CALL-REASON-001 preserves the conditional scope and requirement for
+actual verification evidence, without inferring a blanket rule from daytime.
+New Reason and Action Taken remain Select: the narrow host window clips popup
+controls and attempted selections have not taken effect. Asked the owner to
+maximize/move the popup and clarify member verification plus this Call Out
+direction before linking. No call link, reason/action save, source confirmation,
+time change or communication has been submitted. Dates November 2,4,5 still
+need call-detail review for this member; a complete correction rule and
+independent saved readback remain pending.
 
 PRIMARY SOURCES CHECKED NOVEMBER 6, 2026
 HHA UI workflow includes linking EVV, editing visit times and reason/action/note:

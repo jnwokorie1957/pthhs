@@ -94,7 +94,7 @@ Dated teaching sequence: first member November 1 green EVV example; November 2
 V > Visit Info > Link Call In; owner reported No Records and requested November 3,
 with November 4 suggested for later. The owner corrected a stale Find Calls
 layer and subsequently directed the second member instead. The second member's
-November 3 visit and Visit Info are now open. After the owner identified the
+November 3 visit and Visit Info were opened. After the owner identified the
 separate-popup issue, a new visible Link Call In click was followed by a native
 host-window screenshot. That capture exposed the owned Find Calls popup,
 independently showing No Records with the November 3 visit behind it. The popup
@@ -105,3 +105,46 @@ as evidence. The earlier connector-blocked status is superseded by this capture.
 
 No call was selected/linked, no source Save/confirmation/reprocess was submitted,
 and no reason/action, clock, clinical or financial outcome was chosen.
+
+REVIEW-DATES-001 - REVIEW THROUGH YESTERDAY
+Version: 1. Owner-taught November 6, America/Chicago.
+For the current review inspect November 1 through November 5, inclusive. Always
+stop at the previous service day; do not work today's incomplete calls while
+caregivers still have time to submit them. This is a calendar-day cutoff, not a
+rolling 24-hour window. Do not silently skip intermediate days or report an
+entire range reviewed based on one calendar page or one visit.
+
+Current progress: November 3's call-in picker showed No Records. That popup was
+closed using its own Close control and closure was visually checked. The owner
+then clarified the full November 1-5 interval, so the review restarted at the
+first. All five calendar visit links were present; their presence/color alone
+does not complete their call reviews. November 1 Visit Info has a recorded
+clock-in and its Link Call menu offers Link Call Out. That call-out picker
+returns a real candidate with the displayed source reason No Schedule Opening.
+Keep that private call's actual times/names/identifiers out of this register.
+November 2, 4 and 5 call details for this second member remain unreviewed.
+
+CALL-REASON-001 - OWNER-TAUGHT SCHEDULE-DIFFERENCE EXAMPLE
+Version: 1. Proposed source step; no saved call link or readback accepted yet.
+The owner instructed choosing the new reason for working at a different time,
+then the member-confirmation action, linking the call and closing, with the
+other direction handled separately when applicable. The owner described 110A
+as frequent and conditional on the shift/clock-time circumstances, not a code
+to apply to every call. The exact visible reason choice is:
+Service Delivery Exception: 110 - A - Service delivery differs from schedule.
+
+Do not derive that reason merely from a daytime time value or turn the example
+into an automatic rule. Exact applicability/thresholds and the evidence for
+member verification must be established. Selecting a verification action is
+not proof that anyone contacted or confirmed with the member. No communication
+was requested or sent. This candidate is Call Out, with Call In already present;
+the owner's reference to doing Call Out afterward was clarified before linking.
+
+Current staging status: the reason list opened and 110A was inspected, but
+selection attempts did not change the visible New Reason value from Select.
+Action Taken also remains Select. The owned popup extends outside the narrow
+host window and input targeting has not been reliable; no link was submitted.
+Pending owner answers: confirm actual member verification and authority for
+this specific call-out link, and maximize/move the popup so all source controls
+are reachable. Keep the candidate open; do not claim selection, persistence,
+confirmation or a completed maintenance example until independently read back.
