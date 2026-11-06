@@ -1,5 +1,22 @@
 # PTHHS Management Layer — Developer Checklist
 
+- [ ] November6 00:31UTC role/source acceptance: prove applicable visit/payer
+  reason and note rules before HHA action rollout. Retain the implemented
+  separation of agency references and visit-specific choices. Proposed cases cover ID
+  collisions, stale applicability, independent billing/EVV evidence and folded
+  source navigation with keyboard/AT. M03 scoped accounts remains the next role
+  implementation; patient/PT/form/sharing gates stay separate. See the latest
+  [cumulative research and dated primary sources](ROLE_WORKFLOW_RESEARCH.txt).
+
+- [x] November 5 22:02UTC trigger: restored omitted raw VisitStartTime/VisitEndTime
+  in both approved visit-billing readers. Four fail-before regressions, 780
+  backend tests, 25 site checks and all four normal release jobs pass. Native
+  November 6 UTC V2 billing read returns both fields for the exact October 24
+  visit/patient/caregiver/day and matches V3; current-day read returns no billing
+  record. This is independent billing evidence, not recovered EVV/actual hours.
+  P03/E04 and native legacy/empty-field acceptance remain open. See
+  [mapping, production evidence and limits](BILLING_RECORDED_CLOCK_FIELDS_2026-11-05.md).
+
 - [x] Implemented the requested maintenance From/To range, separate patient/member
   and caregiver name/code lookups, bill-to payer/contract filtering, actionable
   rows/cards, deadline recovery and source-bound reason/action staging. Initial

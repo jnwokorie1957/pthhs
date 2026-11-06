@@ -1,6 +1,6 @@
 # PTHHS caregiver workforce plan
 
-Authoritative architecture, implementation backlog and acceptance record. Version 7, November 5, 2026. Initial audit baseline: `93707e3` on `main`; current handoff integrates `main` through `d63888f`, preserving concurrent visit-maintenance controls, range/search/reason-staging tools, SEO records and production acceptance documentation. This file owns workforce delivery status; existing management and release documentation continues to own its established workflows.
+Authoritative architecture, implementation backlog and acceptance record. Version 7, November 5, 2026. Initial audit baseline: `93707e3` on `main`; current handoff integrates `main` through `86b6902`, preserving concurrent visit-maintenance controls, range/search/reason-staging tools, SEO records and production acceptance documentation. This file owns workforce delivery status; existing management and release documentation continues to own its established workflows.
 
 ## Scope and release state
 

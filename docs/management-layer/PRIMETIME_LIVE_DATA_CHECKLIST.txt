@@ -488,6 +488,42 @@ TAB 04 - VISIT PREVIEW
 [ ] P03 Verify additional affected examples, including a completed historical
     visit, and cross-check any documented alternate endpoint only after its
     identity/office boundary and entitlement are established.
+    November5 22:02UTC trigger / November6 UTC native acceptance: repaired an
+    omitted alternate projection, not missing V3/EVV/hour source data. Approved
+    GetVisitBillInfo and GetVisitBillInfoV2 both document VisitBillInfo/
+    VisitStartTime and VisitEndTime as optional0..1s:string in schema types
+    VisitBillInfoDetails/VisitBillInfoDetailsV2. Both keys now use strict direct
+    scalar parsing: literal/explicit-empty preserved; absent/nil/duplicate/
+    non-scalar/nested-only remain unknown. Operation/fetch and exact identity
+    provenance remain independent. Schedule/billed/payroll/span fields never
+    fill these clocks, original EVV fields or ActualHours/ActualHoursRounded.
+    Runtime baa3bc3, normal42119883741 all4jobs successful; four fail-before/
+    pass-after regressions,780backend/25site checks,17preserved frontend files.
+    Post-release17exact/noindex assets and11anonymous401JSON/no-store/noindex
+    boundaries pass. No grant, quota, source-write or interpretation change.
+
+    Native historical October24 preview:10IDs/9readable/1unavailable, partial;
+    no retained-page retry. Selected one office-checked exact source row and
+    read approved billingV2 once. One16-field record matches visit/patient/
+    caregiver/day; both new clocks supplied and exactly match V3. Preview
+    receipts2026-11-06T00:14:12.843Z/00:14:13.263Z; billing00:16:35.128Z.
+    This recovers omitted billing projection fields; those V3 clocks were
+    already supplied. No original-device event or missing actual-hour recovery.
+    Current-office-day November5 preview10readable/0unavailable, receipts
+    2026-11-06T00:18:06.638Z/00:18:07.012Z. One selected start-supplied/end-missing
+    row's billingV2 read succeeds00:19:08.177Z with0billing records. This is an
+    empty bounded result, not evidence that billing clocks are empty, failed
+    authentication or pending/completed status. No retry. Legacy/empty-field
+    behavior has synthetic coverage; native acceptance remains open.
+    Read-only controls21selected/both billing variantsON/visitV2OFF; no Save or
+    new access. Older13/18counts below remain dated. Restored officeToday/
+    Overview/Live/feed, closed isolated tab and cleared private buffers. No
+    values/IDs/responses saved, import/write/decision or communication.
+    Existing protected HHA/vendor action: obtain original-event/visit linkage,
+    endpoint/filter/retention/hour-unit semantics and current-day billing-empty
+    meaning before interpreting availability. P03/E04 stay open; original
+    October24 screenshot stays resolved. See
+    BILLING_RECORDED_CLOCK_FIELDS_2026-11-05.md for scope and receipt dates.
     November5 19:56UTC trigger - approved three-day comparison now succeeds.
     October23/October24/November5 first pages each return10readable/0unavailable
     details; all remain partial source pages, not complete history/census.

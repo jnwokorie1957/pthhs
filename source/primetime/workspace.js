@@ -22,6 +22,7 @@
   let generation = 0, writesEnabled = false, settings = null, investigations = [], intents = [], pendingIntentId = null, pendingRateId = null;
   let investigationSequence = 0, investigationCursor = null, investigationsLoaded = false, investigationsLoading = false, investigationReadAt = null;
   const $ = id => document.getElementById(id);
+  function focusNode(node){window.primetimeReveal?.(node);node?.focus();}
   const canRead = () => dataApproved && window.primetimeDataMode?.isLive() === true;
   const attachmentUrls = new Set();
   function releaseAttachmentUrl(url) {
@@ -40,7 +41,7 @@
   const inlineRead = () => readHome && $('readForm').parentElement === $('patientAuthorizationHost');
   function dockRead(inline) {
     if (!readHome) return;
-    const host = inline ? $('patientAuthorizationHost') : readHome;
+    const host = inline ? $('patientAuthorizationHost') : readHome.querySelector?.(':scope > .workspace-disclosure > .workspace-disclosure-body') || readHome;
     host.append($('readForm'), $('readResults'));
     $('readOperation').closest('label').hidden = inline;
     $('readPatient').readOnly = $('readId').readOnly = inline;
@@ -117,7 +118,7 @@
     selectRead(operation);
     dockRead(kind === 'patient-authorizations');
     document.dispatchEvent(new CustomEvent('primetime-workbench-selected', { detail: { view: kind === 'patient-authorizations' ? 'patients' : 'workbench' } }));
-    $(patientDiscovery || kind === 'patient-authorizations' ? 'readPatient' : 'readId').focus();
+    focusNode($(patientDiscovery || kind === 'patient-authorizations' ? 'readPatient' : 'readId'));
     const label = kind === 'patient-authorizations' ? 'Patient authorizations'
       : kind === 'patient-care-plans' ? 'Patient care-plan discovery' : kind === 'patient-documents' ? 'Patient document discovery' : kind[0].toUpperCase() + kind.slice(1);
     message(settings.enabledReads.includes(operation)
@@ -151,7 +152,7 @@
     const list = authorizationList;
     $('readId').value = list.patientId; $('readOffice').value = list.officeId;
     selectRead('SearchPatientAuthorizations', true); $('readResults').append(...list.nodes);
-    message('Showing the previously fetched list. Read source records to refresh.', true); $('readPatient').focus();
+    message('Showing the previously fetched list. Read source records to refresh.', true); focusNode($('readPatient'));
   });
   authorizationBack.hidden = true; $('readForm').append(authorizationBack);
   function paragraph(text, tag = 'p') { const p = document.createElement(tag); p.textContent = text; return p; }
@@ -306,7 +307,7 @@
           else {
             card.append(paragraph(row.flags.length ? row.flags.join('; ') : 'Both EVV clock fields returned; validity unvalidated.'));
             for (const name of ['VisitStartTime', 'VisitEndTime', 'EVVStartTime', 'EVVEndTime', 'ActualHours', 'PayHours', 'AdjustedHours']) card.append(paragraph(`${name}: ${row.facts[name] ?? 'Not supplied / unknown'}`));
-            card.append(button('Investigate visit ' + row.visitId, async () => { if (!current()) return; $('investigationForm').reset(); $('investigationVisit').value = row.visitId; $('investigationTitle').value = 'Review source EVV evidence'; $('investigationNote').focus(); message('Visit selected. Record verified findings.'); }));
+            card.append(button('Investigate visit ' + row.visitId, async () => { if (!current()) return; $('investigationForm').reset(); $('investigationVisit').value = row.visitId; $('investigationTitle').value = 'Review source EVV evidence'; focusNode($('investigationNote')); message('Visit selected. Record verified findings.'); }));
           }
           queue.append(card);
         }
@@ -331,7 +332,7 @@
           $('readId').value = record.ID; $('readPatient').value = input.patientId; $('readOffice').value = officeId;
           selectRead('GetPatientAuthorizationInfo', true);
           authorizationSelection = { id: record.ID, patientId: input.patientId, officeId, contractId: record.ContractID, generation, fetchedAt: data.fetchedAt };
-          $('readId').focus();
+          focusNode($('readId'));
           message(settings.enabledReads.includes('GetPatientAuthorizationInfo')
             ? 'Exact authorization IDs selected. Choose Read source records to fetch evidence.'
             : 'Exact authorization IDs selected. This read requires owner enablement after entitlement review.', true);
@@ -347,7 +348,7 @@
       }));
       if (['GetCaregiverPermanentWeekAvailability', 'GetCaregiverSpecialAvailability'].includes(data.operation)) card.append(button('Propose availability change', async () => {
         const special = data.operation === 'GetCaregiverSpecialAvailability'; $('availabilityOperation').value = special ? 'UpdateCaregiverSpecialAvailability' : 'UpdateCaregiverPermanentWeekAvailability';
-        $('availabilityCaregiver').value = record.CaregiverID; $('availabilityRecord').value = special ? record.SpecialAvailabilityID : record.PermanentWeekID; $('availabilityFrom').focus();
+        $('availabilityCaregiver').value = record.CaregiverID; $('availabilityRecord').value = special ? record.SpecialAvailabilityID : record.PermanentWeekID; focusNode($('availabilityFrom'));
         message('Availability record selected. Preparation reads the source again and preserves other days.');
       }));
       if (['GetCaregiverMedicals', 'GetCaregiverOtherCompliance'].includes(data.operation)) card.append(button('Review this item’s due count', async () => {
@@ -375,7 +376,7 @@
       if (data.operation === 'SearchPayrollBatches') card.append(button('Inspect selected batch caregivers', async () => { $('readId').value = record.BatchID; selectRead('SearchPayrollBatchCaregivers'); message('Selected batch only. No prior batch records are carried forward.'); }));
       if (data.operation === 'SearchPayrollBatchCaregivers') card.append(button('Inspect caregiver pay rates', async () => { $('readId').value = record.CaregiverID; selectRead('GetCaregiverRates'); message('Caregiver selected. Source rates are not a payroll calculation or payment.'); }));
       if (data.operation === 'SearchPatientPOC') card.append(button('Inspect care plan tasks', async () => { $('readId').value = record.ID; selectRead('GetPatientPOCInfo'); message('Care plan selected. No care instructions are changed.'); }));
-      if (data.operation === 'GetCaregiverRates') card.append(button('Prepare review of this rate', async () => { $('rateCaregiver').value = record.CaregiverID; $('rateId').value = record.CaregiverRateID; $('rateAmount').value = ''; $('rateRationale').value = ''; $('rateAmount').focus(); message('Rate selected. Enter the proposed hourly rate and reason; no source write will occur.'); }));
+      if (data.operation === 'GetCaregiverRates') card.append(button('Prepare review of this rate', async () => { $('rateCaregiver').value = record.CaregiverID; $('rateId').value = record.CaregiverRateID; $('rateAmount').value = ''; $('rateRationale').value = ''; focusNode($('rateAmount')); message('Rate selected. Enter the proposed hourly rate and reason; no source write will occur.'); }));
       const visitId = record.VisitID || (['GetScheduleInfo', 'GetVisitInfoV3', 'GetVisitBillInfoV2', 'GetVisitPayrollInfoV2'].includes(data.operation) ? record.ID : null);
       if (visitId) card.append(button('Review this visit', async () => { $('investigationVisit').value = visitId; $('intentVisit').value = visitId; $('readId').value = visitId; selectRead('GetVisitInfoV3'); message('Visit selected. Open its evidence or create an investigation below.'); }));
       target.append(card);
@@ -871,7 +872,7 @@
       for (const e of item.events) card.append(paragraph(`${e.at} · ${e.actor} · ${e.action}: ${e.note}`));
       card.append(button('Update investigation', async () => {
         if (sequence !== investigationSequence || !canRead()) return;
-        $('investigationId').value = item.id; $('investigationRevision').value = item.revision; $('investigationVisit').value = item.visitId; $('investigationTitle').value = item.title; $('investigationAssignee').value = item.assignee; $('investigationStatus').value = item.status; $('investigationFollowUp').value = item.followUpAt || ''; $('investigationNote').value = ''; $('investigationTitle').focus();
+        $('investigationId').value = item.id; $('investigationRevision').value = item.revision; $('investigationVisit').value = item.visitId; $('investigationTitle').value = item.title; $('investigationAssignee').value = item.assignee; $('investigationStatus').value = item.status; $('investigationFollowUp').value = item.followUpAt || ''; $('investigationNote').value = ''; focusNode($('investigationTitle'));
       })); target.append(card);
     }
     if (!visible.length) target.append(paragraph(rows.length ? 'No loaded investigations match these filters. Older records may still be available.' : 'No investigations returned by this read.'));
@@ -954,8 +955,8 @@
   document.querySelectorAll('[data-workflow]').forEach(control => control.addEventListener('click', () => {
     const workflow = control.dataset.workflow;
     if (workflow === 'audit') return action(loadAudit);
-    if (workflow === 'investigations') { if (canRead()) $('investigationStatusFilter')?.focus(); return action(loadInvestigations); }
-    if (workflow === 'settings') { $('ownerForm').closest('details').open = true; $('ownerOffice').focus(); return; }
+    if (workflow === 'investigations') { if (canRead()) focusNode($('investigationStatusFilter')); return action(loadInvestigations); }
+    if (workflow === 'settings') { $('ownerForm').closest('details').open = true; focusNode($('ownerOffice')); return; }
     selectRead(workflow);
     if (control.dataset.patientSource) {
       const patient = $(control.dataset.patientSource)?.value || '';
@@ -963,7 +964,7 @@
       $('readOffice').value = settings?.officeId || '';
     }
     if (workflow === 'SearchPatientAuthorizations') dockRead(true);
-    if (workflow === 'SearchPatients' || workflow === 'SearchCaregivers') $('readTerm').focus(); else $(workflow === 'SearchPatientAuthorizations' ? 'readPatient' : 'readDate').focus();
+    if (workflow === 'SearchPatients' || workflow === 'SearchCaregivers') focusNode($('readTerm')); else focusNode($(workflow === 'SearchPatientAuthorizations' ? 'readPatient' : 'readDate'));
     message('Review inputs, then choose Read source records.', true);
   }));
   if ($('manualSnapshotForm')) {
@@ -1167,7 +1168,7 @@
         || window.primetimeDataMode?.isLive() !== true || !settings?.officeId || officeId !== settings.officeId) return;
       clearSnapshots(); $('manualPatientId').value = id; sourcePatientSelected = true;
       document.dispatchEvent(new Event('primetime-patient-history-selected'));
-      $('manualPatientId').focus();
+      focusNode($('manualPatientId'));
       snapshotAction(() => loadSnapshots());
     });
     document.addEventListener('primetime-source-context-cleared', () => {

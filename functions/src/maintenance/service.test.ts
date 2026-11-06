@@ -10,7 +10,7 @@ const row = { id: "15", patientId: "25", caregiverId: "35", scheduledStart: date
   actualStart: date + " 08:57", actualEnd: null, evvStart: date + " 08:57", evvEnd: null, state: "source_unvalidated",
   error: null, detailFetchedAt: date + "T15:00:00.000Z", officeCheckedAt: date + "T15:00:01.000Z" } as const;
 const input = { date, visitId: "15", revision: 0, sourceReceipt: row.detailFetchedAt, status: "in_review", queue: "administrator", followUpAt: null, note: "Synthetic source review; no HHA action.", proposalKind: "investigate", selectedCallIds: [] };
-function fixture() {
+function fixture(sourceLookup?: ConstructorParameters<typeof MaintenanceService>[5]) {
   const records = new Map<string, Versioned>();
   let writes = 0, callReads = 0, afterDay: (() => void) | null = null;
   const current = { dataApproved: true, settings: { officeId: "123", revision: 1, enabledReads: ["SearchVisitsV2", "GetVisitInfoV3", "GetPatientDemographics", "GetCallDashBoardData"] } };
@@ -35,7 +35,7 @@ function fixture() {
     return structuredClone(reasonSource);
   } } as never,
     (async () => { afterDay?.(); return structuredClone(day); }) as never,
-    (async () => { callReads++; return structuredClone(calls); }) as never, () => new Date(date + "T16:00:00.000Z"));
+    (async () => { callReads++; return structuredClone(calls); }) as never, () => new Date(date + "T16:00:00.000Z"), sourceLookup);
   return { service, current, day, calls, records, sourceQueries,reasonSource, counts: () => ({ writes, callReads }), afterDay(value: () => void) { afterDay = value; } };
 }
 test("maintenance saves one durable local case per office/day/visit, with immutable first receipt and revision conflicts", async () => {
@@ -46,6 +46,12 @@ test("maintenance saves one durable local case per office/day/visit, with immuta
   const next = await f.service.save({ ...input, revision: 1, status: "needs_attention", queue: "supervisor", note: "Synthetic next step: inspect actual calls." }, actor.uid);
   assert.equal(next.item.id, first.item.id); assert.equal(next.item.events.length, 2); assert.deepEqual(next.item.initialSource, row);
   assert.equal(f.records.size, 1); assert.deepEqual(f.counts(), { writes: 2, callReads: 0 });
+});
+test('a current protected search receipt supports local review while an old office cache stays blocked',async()=>{
+ const fresh={...row,detailFetchedAt:date+'T16:00:00.000Z',officeCheckedAt:date+'T16:00:00.000Z'};
+ const f=fixture(async(day,id,receipt)=>day===date&&id===fresh.id&&receipt===fresh.detailFetchedAt?fresh:null);f.day.officeDayCache.stale=true;
+ const saved=await f.service.save({...input,sourceReceipt:fresh.detailFetchedAt},actor.uid);assert.equal(saved.item.source.detailFetchedAt,fresh.detailFetchedAt);assert.equal(saved.hhaWritesEnabled,false);assert.equal(saved.item.hhaSubmission,'not_submitted');
+ const denied=fixture(async()=>null);denied.day.officeDayCache.stale=true;await assert.rejects(denied.service.save({...input,sourceReceipt:fresh.detailFetchedAt},actor.uid),/maintenance_source_stale/);
 });
 test("source facts and arbitrary clock/reason/approval fields cannot be injected", async () => {
   const f = fixture();

@@ -131,8 +131,9 @@
       [day.items.length, 'Source visits loaded'], [day.items.filter(gaps).length, 'Missing EVV fields · not a diagnosis'],
       [saved.filter(row => row.status !== 'office_review_complete').length, 'Open office cases loaded'],
       [saved.filter(row => row.status === 'awaiting_hha_action').length, 'Awaiting HHA action · loaded cases']
-    ].map(([number, label], index) => { const box = el('button', '', 'maintenance-metric'); box.type = 'button'; box.append(el('strong', Number(number).toLocaleString()), el('span', label)); box.addEventListener('click', () => { $('maintenanceFilter').value = ['all','gaps','cases','awaiting_hha_action'][index]; report = false; showTab(); render(); $('maintenanceList').scrollIntoView?.({block:'start'}); }); return box; }));
+    ].map(([number, label], index) => { const box = el('button', '', 'maintenance-metric'); box.type = 'button';box.setAttribute('aria-pressed',String($('maintenanceFilter').value===['all','gaps','cases','awaiting_hha_action'][index])); box.append(el('strong', Number(number).toLocaleString()), el('span', label)); box.addEventListener('click', () => { $('maintenanceFilter').value = ['all','gaps','cases','awaiting_hha_action'][index]; report = false; showTab(); render(); $('maintenanceList').scrollIntoView?.({block:'start'}); }); return box; }));
     const search = $('maintenanceSearch').value.trim().toLowerCase(), filter = $('maintenanceFilter').value;
+    const filterSummary=$('maintenanceLoadedFilters')?.querySelector?.('summary');if(filterSummary)filterSummary.textContent='Filter loaded visits'+(filter==='all'&&!search?'':' · active');
     const rows = day.items.filter(row => {
       const item = cases.get(row.id);
       return (!search || [row.id, row.patientId, row.caregiverId].some(value => value?.toLowerCase().includes(search)))
@@ -171,7 +172,10 @@
   }
   function detail() {
     const host = $('maintenanceDetail'), row = day?.items.find(item => item.id === selected), item = cases.get(selected);
+    const expanded=new Set(host.dataset.visit===selected?[...host.querySelectorAll('details')].filter(node=>node.open).map(node=>node.dataset.section):[]);
     host.replaceChildren();
+    host.dataset.visit=row?.id||'';
+    const section=(key,title)=>{const node=el('details','','maintenance-section');node.dataset.section=key;node.open=expanded.has(key);node.append(el('summary',title));return node;};
     if (!row) { host.append(el('h3', 'Choose a visit'), el('p', 'Select a source visit to inspect its evidence and start an office case.')); return; }
     const back = button('← Back to visit queue', () => { selected = null; selectionTicket++; $('maintenanceQueue').classList.remove('has-selection'); render(); detail(); $('maintenanceList').scrollIntoView?.({block:'start'}); }); back.dataset.browse = 'true';
     host.append(back, el('h3', `Visit ${row.id}`), el('p', `Patient ${[row.patientLastName,row.patientFirstName].filter(Boolean).join(', ') || row.patientId || 'not read'} · Caregiver ${[row.caregiverLastName,row.caregiverFirstName].filter(Boolean).join(', ') || row.caregiverId || 'not read'} · ${serviceDate(row)}`, 'maintenance-subjects'));
@@ -190,7 +194,8 @@
       host.append(el('p', 'Source facts changed since this office review. Reinspect the current times and call evidence before saving a new proposal. The case history retains earlier receipts.', 'maintenance-boundary'));
     }
     if (row.state === 'unavailable' || !row.patientId) { host.append(el('p', 'This source read did not establish a usable visit context. Refresh the feed before opening an office case.')); return; }
-    const callSection = el('div', '', 'maintenance-section'); callSection.append(el('h4', 'Caregiver calls & attempts'), el('p', 'Actual HHA call records for this patient, caregiver and day. The API does not establish their exact visit link or a complete attempt history. Call type and status are shown as source codes; a supported reason-code catalog is still pending.'));
+    if(!searchMode){const fresh=button('Read fresh HHA visits for this patient/day',()=>document.dispatchEvent(new CustomEvent('primetime-maintenance-read-patient-day',{detail:{kind:'patient',id:row.patientId,firstName:row.patientFirstName,lastName:row.patientLastName,code:row.admissionId,date:serviceDate(row)}})));fresh.dataset.sourceRead='true';fresh.dataset.sourceLabel='Read fresh HHA visits for this patient/day';host.append(fresh,el('p','This opens a fresh patient/day queue with new review receipts. Other cached visits keep their original timestamps.','maintenance-help'));}
+    const callSection = section('calls','Caregiver calls & attempts'); callSection.append(el('p', 'Actual HHA call records for this patient, caregiver and day. Exact visit links, complete history and the meaning of source type/status values remain unverified.'));
     async function ensureCase(ticket) {
       if (!caseKnown.has(row.id)) throw new Error('case_not_loaded');
       if (cases.has(row.id)) return;
@@ -266,7 +271,7 @@
         cases.set(row.id, verifyCase(value.item)); render(); detail(); message('Office review saved with its source receipt and audit history. No HHA confirmation or clock change was submitted.');
       });
     });
-    host.append(form);
+    const review=section('review','Office review & next action');review.append(form);host.append(review);
     if (item) {
       const history = el('details', '', 'maintenance-section'); history.append(el('summary', `Case history · ${item.events.length} events`)); const list = el('ol', '', 'maintenance-history');
       for (const event of [...item.events].reverse()) list.append(el('li', `${new Date(event.at).toLocaleString()} · ${event.actor} · ${event.action.replaceAll('_', ' ')} · ${labels[event.status]} · ${labels[event.queue]}. ${event.note}`));
