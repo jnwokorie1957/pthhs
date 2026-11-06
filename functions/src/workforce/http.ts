@@ -3,6 +3,7 @@ import { onRequest } from "firebase-functions/v2/https";
 import { defineString } from "firebase-functions/params";
 import { workforceIdentity, recentWorkforceIdentity } from "./auth.js";
 import { WorkforceStore } from "./store.js";
+import { AccountSupport } from "./accountSupport.js";
 import { WorkforceError } from "./policy.js";
 import type { Action } from "./opportunities.js";
 import { IntakeStore } from "./intakeStore.js";
@@ -15,6 +16,7 @@ import { policyDocument } from "./policyDocuments.js";
 import { renderOfficialForm, type FormKind } from "./eforms.js";
 // Default closed. These do not authorize applicant collection or vendor writes.
 const staffEnabled = defineString("WORKFORCE_STAFF_APPROVED", { default: "false" });
+const signInProviders = defineString("WORKFORCE_SIGN_IN_PROVIDERS", { default: "" });
 const publicEnabled = defineString("WORKFORCE_PUBLIC_OPPORTUNITIES_APPROVED", { default: "false" });
 const collectionApproved = defineString("WORKFORCE_APPLICANT_COLLECTION_APPROVED", { default: "false" });
 const packetApproved = defineString("WORKFORCE_PACKET_REVIEW_APPROVED", { default: "false" });
@@ -32,7 +34,8 @@ export const workforceApi = process.env.PRIMETIME_API_ONLY_DEPLOY === "true" ? u
     const applicationsEnabled = staffEnabled.value() === "true" && collectionApproved.value() === "true" && packetApproved.value() === "true" && !!intakeOffice.value();
     const uploadsEnabled = applicationsEnabled && documentsApproved.value() === "true" && retentionApproved.value() === "true";
     if (path === "/configuration" && req.method === "GET") {
-      res.json({ staffEnabled: staffEnabled.value() === "true", accountsEnabled: applicationsEnabled, applicationsEnabled, documentsEnabled: uploadsEnabled, addressLookupEnabled: placesApproved.value() === "true" }); return;
+      const enabledSignInProviders=signInProviders.value().split(",").map(p=>p.trim()).filter(p=>["google.com","apple.com","microsoft.com","yahoo.com"].includes(p));
+      res.json({ staffEnabled: staffEnabled.value() === "true", accountsEnabled: applicationsEnabled, applicationsEnabled, documentsEnabled: uploadsEnabled, addressLookupEnabled: placesApproved.value() === "true", enabledSignInProviders }); return;
     }
     if (path === "/opportunities" && req.method === "GET") {
       await workforceIdentity(req);
@@ -50,7 +53,8 @@ export const workforceApi = process.env.PRIMETIME_API_ONLY_DEPLOY === "true" ? u
     if (path === "/application/packet" && req.method === "GET") { res.json({ packet: intakePacket, inventory: packetInventory }); return; }
     if (path === "/application/session" && req.method === "GET") {
       if (!applicationsEnabled) throw new WorkforceError(503, "application_collection_pending");
-      res.json({ uid: await workforceIdentity(req), kind: "caregiver", applicationsEnabled, documentsEnabled: uploadsEnabled, addressLookupEnabled: placesApproved.value() === "true" }); return;
+      const uid=await workforceIdentity(req);await new AccountSupport().register(uid,intakeOffice.value());
+      res.json({ uid, kind: "caregiver", applicationsEnabled, documentsEnabled: uploadsEnabled, addressLookupEnabled: placesApproved.value() === "true" }); return;
     }
     if (path === "/application" || path.startsWith("/application/")) {
       if (!applicationsEnabled) throw new WorkforceError(503, "application_collection_pending");
@@ -119,6 +123,13 @@ export const workforceApi = process.env.PRIMETIME_API_ONLY_DEPLOY === "true" ? u
     if (staffEnabled.value() !== "true") throw new WorkforceError(503, "workforce_release_pending");
     const uid = await workforceIdentity(req);
     const store = new WorkforceStore();
+    if(path==="/staff/accounts/lookup"||/^\/staff\/accounts\/[a-zA-Z0-9_-]{1,128}\/reset$/.test(path)){
+      if(!applicationsEnabled)throw new WorkforceError(503,"application_collection_pending");await recentWorkforceIdentity(req);
+      if(req.method!=="POST"||!req.is("application/json")||req.rawBody.length>1000||!req.body||Array.isArray(req.body))throw new WorkforceError(400,"invalid_request");
+      const actor=await store.actor(uid),support=new AccountSupport();
+      if(path.endsWith("/lookup")){if(Object.keys(req.body).some(k=>k!=="email"))throw new WorkforceError(400,"invalid_request");res.json(await support.lookup(actor,req.body.email));}
+      else{if(Object.keys(req.body).length)throw new WorkforceError(400,"invalid_request");res.json(await support.reset(actor,path.split("/")[3]!));}return;
+    }
     if (path === "/session" && req.method === "GET") { res.json(await store.actor(uid)); return; }
     if (path.startsWith("/staff/applications") && req.method === "GET") {
       if (!applicationsEnabled) throw new WorkforceError(503, "application_collection_pending");

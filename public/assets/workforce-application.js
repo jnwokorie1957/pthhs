@@ -241,7 +241,7 @@
     document.getElementById('private-document-list').replaceChildren();
     document.getElementById('application-signature-name').value = '';
     document.getElementById('release-read').checked = false; document.getElementById('electronic-consent').checked = false;
-    panel.hidden = true; document.getElementById('portal-release-notice').hidden = false; documentsEnabled = false; saveQueue = Promise.resolve(); documentsPanel.hidden = true; officialForms.hidden = true; rolePanel.hidden = true;
+    panel.hidden = true; document.getElementById('portal-release-notice').hidden = true; documentsEnabled = false; saveQueue = Promise.resolve(); documentsPanel.hidden = true; officialForms.hidden = true; rolePanel.hidden = true;
   });
   document.addEventListener('workforce-caregiver-session', async event => {
     reviewNavigation = WorkforceContract.reviewNavigationAllowed(location.hostname,event.detail.previewNavigation);

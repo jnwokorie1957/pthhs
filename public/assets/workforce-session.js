@@ -9,6 +9,9 @@
   const errors = {
     opportunity_unavailable: 'This position is no longer available. Please browse the current openings.',
     invalid_opportunity: 'Check the recruiting area, hours, ZIP and at least one broad assistance need.',
+    caregiver_account_unavailable: 'No accessible caregiver portal account was found for this email.',
+    provider_managed_password: 'This account uses an external sign-in provider or is unavailable for password reset.',
+    account_reset_limit: 'A reset was requested recently. Please wait before sending another email.',
     revision_conflict: 'This record changed. Refresh and reopen its latest revision.',
     independent_privacy_review_required: 'A different authorized staff member must review the public details and confirm the privacy attestation.',
     privacy_review_stale: 'The public details need a new privacy review.',
@@ -103,6 +106,7 @@
     } catch { message('Secure sign-in is unavailable. Please retry later.'); }
   }
   if (!staff) { window.WorkforceAccount.start({createAuth:()=>{auth=firebase.auth();return auth;},api}); return; }
+  window.WorkforceSendPasswordReset=email=>auth.sendPasswordResetEmail(email,{url:location.origin+'/caregiver'});
   form.addEventListener('submit', async e => {
     e.preventDefault(); if (busy || !auth) return;
     busy = true;

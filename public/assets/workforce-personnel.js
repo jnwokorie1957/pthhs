@@ -59,4 +59,21 @@
       }
     } catch (error) { if (sequence === generation) status.textContent = error.message; }
   };
+  const support=document.getElementById('caregiver-account-support'),accountDetail=document.getElementById('caregiver-account-detail'),accountMessage=document.getElementById('caregiver-account-message');
+  let accountGeneration=0;
+  document.addEventListener('workforce-session-cleared',()=>{accountGeneration++;support.hidden=true;accountDetail.replaceChildren();accountMessage.textContent='';document.getElementById('caregiver-account-email').value='';});
+  document.addEventListener('workforce-session',event=>{support.hidden=!(['owner','hr'].includes(event.detail.grant.role)&&event.detail.grant.permissions.includes('accounts.support'));});
+  document.getElementById('caregiver-account-search').onsubmit=async event=>{
+    event.preventDefault();if(!event.currentTarget.reportValidity())return;const sequence=++accountGeneration;accountDetail.replaceChildren();accountMessage.textContent='Finding caregiver account…';
+    try{
+      const account=await workforceApi('/staff/accounts/lookup',{email:document.getElementById('caregiver-account-email').value.trim()});if(sequence!==accountGeneration)return;
+      accountMessage.textContent='';const labels={'password':'Email and password','google.com':'Google','apple.com':'Apple','microsoft.com':'Microsoft','yahoo.com':'Yahoo'};
+      accountDetail.append(node('h3',account.email),node('p','Sign-in: '+account.providers.map(p=>labels[p]||p).join(', ')),node('p','Email: '+(account.emailVerified?'Verified':'Not yet verified')+' · Account: '+(account.disabled?'Disabled':'Active')),node('p','Application: '+account.state.replaceAll('_',' ')+' · Office: '+account.office));
+      if(account.disabled){accountDetail.append(node('p','This account is disabled.'));return;}
+      if(!account.providers.includes('password')){accountDetail.append(node('p','Password recovery is managed by the sign-in provider. Ask the caregiver to use that provider’s account recovery.'));return;}
+      const send=node('button','Send password reset email');send.type='button';send.className='btn-secondary';send.onclick=async()=>{
+        send.disabled=true;try{const result=await workforceApi('/staff/accounts/'+encodeURIComponent(account.uid)+'/reset',{});if(sequence!==accountGeneration)return;await window.WorkforceSendPasswordReset(result.email);if(sequence===accountGeneration)accountMessage.textContent='Password reset email requested for '+account.email+'. Ask the caregiver to check their inbox and spam folder.';}catch(error){if(sequence===accountGeneration){accountMessage.textContent=error.message;send.disabled=false;}}
+      };accountDetail.append(send,node('p','The caregiver chooses their own new password. Staff cannot view passwords or reset links.'));
+    }catch(error){if(sequence===accountGeneration)accountMessage.textContent=error.message;}
+  };
 })();
