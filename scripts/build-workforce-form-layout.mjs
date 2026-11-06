@@ -5,7 +5,7 @@ for(const kind of Object.keys(schemas)){
  const schema=schemas[kind];schema.fields.forEach((f,i)=>f.required=kind==='w4'?[0,1,2,3,4,5,6,7,9,10,11].includes(i):['Last Name (Family Name)','First Name Given Name','Address Street Number and Name','City or Town','State','ZIP Code','Date of Birth mmddyyyy'].includes(f.id));
  schema.employerFields=kind==='w4'?[
   {key:'companyAddress',label:'Employer name and address — automatically entered',rect:{x:94.6,y:35.968,width:293.45,height:30},multiline:true},
-  {key:'firstDay',label:'First date of employment — HR confirms',rect:{x:389.8,y:35.968,width:77.45,height:12}},
+  {key:'firstDay',label:'First date of employment — office confirms',rect:{x:389.8,y:35.968,width:77.45,height:12}},
   {key:'ein',label:'Employer EIN — automatically entered',rect:{x:469,y:35.968,width:107,height:12}}
  ]:[
   {key:'name',label:'Employer company name — automatically entered',rect:{x:36.69,y:53.04,width:202.18,height:13.7}},
