@@ -90,10 +90,18 @@ The owner next directed Member Search and clarified the current payer to
 Wellpoint - STAR Kids (RCG). Coordinator All and status Active return 25 matches;
 MEMBER-SEARCH-001 records that example scope, without making STAR Kids or Active
 a universal payer/status policy. The owner allowed any member for this example,
-and the first active STAR Kids profile is open with Calendar Details available.
-The first visit selection and first confirmation-review check remain pending;
-no confirmation or source change has been submitted. The visit example's
-requested date remains November 5.
+and the first active STAR Kids profile was opened. The owner then taught the
+calendar's separate schedule/green EVV spans and the dated V > Visit Info >
+Link Call > Link Call In path. CALENDAR-CALL-001 records the observed November
+1-3 sequence, source-query limits and the requirement to close the prior day's
+Find Calls layer. The owner reported no calls for the first example and directed
+the second member from the same 25-result search. That second member's November
+3 Visit Info is open; the separate Find Calls window has not been exposed through
+the connector. The owner has been asked to open Link Call In directly. Do not
+misreport unrelated No Records labels in the visit form as its search result.
+No call linking, reason/action save, source confirmation or time change has been
+submitted. A complete correction rule and independent saved readback remain
+pending owner teaching and source-contract validation.
 
 PRIMARY SOURCES CHECKED NOVEMBER 6, 2026
 HHA UI workflow includes linking EVV, editing visit times and reason/action/note:

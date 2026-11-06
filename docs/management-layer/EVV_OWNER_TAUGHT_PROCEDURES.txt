@@ -31,12 +31,12 @@ visible in the inspected maintenance screen/profile menu. No account, coordinato
 assignment, MFA or password setting was changed. The agent procedure explicitly
 sets All each time rather than relying on an unverified saved HHA preference.
 
-Maintenance teaching status: first visit selection and first confirmation-review
-check are pending. No source confirmation, clock change, reason/action save or
-completed visit-maintenance procedure has been taught or executed in this step.
+Maintenance teaching status: calendar and call-search navigation are recorded
+below. No source confirmation, clock change, reason/action save or completed
+visit-maintenance correction has been taught or executed.
 
 MEMBER-SEARCH-001 - CURRENT WELLPOINT STAR KIDS EXAMPLE
-Version: 1. Owner-instructed search scope checked November 6.
+Version: 2. Owner-instructed search scope checked November 6.
 Scope: this teaching example, not the default payer for every future search.
 
 Owner direction: go to Member Search and use the Wellpoint STAR Kids payer.
@@ -52,10 +52,49 @@ Procedure observed:
 
 For this walkthrough the owner explicitly allowed any member, so the first
 listed active STAR Kids member profile was opened. That is example-selection
-permission only, not a universal patient-selection or confirmation rule. No visit
-or first confirmation-review check has yet been identified. Keep names and
-source IDs in HHA/protected runtime; do not choose a clinical outcome or confirm
-a visit here.
-The earlier service-date instruction remains November 5 for the visit example;
-the member search itself has no service-date selection.
+permission only, not a universal patient-selection or confirmation rule. After
+the first example's missing calls, the owner directed returning to the same
+search and selecting the second listed member. Coordinator All, the same payer
+and Active were reapplied; 25 links returned and the second member was opened.
+Keep names and source IDs in HHA/protected runtime; do not choose a clinical
+outcome or confirm a visit here. The calendar demonstration moved through
+November 1-3, superseding November 5 for these particular examples. Member
+Search itself has no service-date selection.
 These search results do not establish approval of a 25-client automation pilot.
+
+CALENDAR-CALL-001 - SCHEDULE, EVV AND EXISTING-CALL SEARCH
+Version: 1. Owner-taught navigation and interpretation, November 6.
+
+1. Open Calendar Details and check the displayed month/year and selected day.
+2. Distinguish the scheduled span from the separate green EVV span. The owner
+   explained the green wording/link as recorded EVV clock times. Do not copy
+   private event times into this register or substitute scheduled times for EVV.
+3. The owner described a yellow V as a no-activity cue. The inspected marker's
+   inline color was orange. This is a navigation cue, not proof that every call
+   source or direction has been exhaustively checked.
+4. Click that day's V or its EVV time link, then Visit Info. Verify the visit
+   heading's day before proceeding. Inspect the EVV clock-in/out fields.
+5. Open Link Call, then Link Call In to inspect genuine candidate calls. Opening
+   the picker does not authorize selecting/linking a call or saving a visit.
+6. Interpret No Records only within the actual picker query/date/direction.
+   The owner reported no calls for the first example. The agent did not
+   independently establish absence of both directions or full retained history.
+7. Close Find Calls itself before changing days, then close the old visit when
+   necessary. Confirm that a reopened picker belongs to the new visit/day. A
+   stale Find Calls layer from the previous day must not be used as evidence.
+8. Missing calls on successive days is an owner-taught investigation heuristic:
+   the caregiver may not have called in their time yet. Check each requested
+   day separately; do not invent punches or infer an approved exception.
+
+Dated teaching sequence: first member November 1 green EVV example; November 2
+V > Visit Info > Link Call In; owner reported No Records and requested November 3,
+with November 4 suggested for later. The owner corrected a stale Find Calls
+layer and subsequently directed the second member instead. The second member's
+November 3 visit and Visit Info are now open. The Link Call menu appeared, but
+Find Calls was not exposed in the connected browser after the launch attempts.
+Several No Records labels belonged to other visit-form sections, so they were
+not accepted as call-search evidence. The owner was asked to open Link Call In
+directly; the second member's call-search result remains unverified.
+
+No call was selected/linked, no source Save/confirmation/reprocess was submitted,
+and no reason/action, clock, clinical or financial outcome was chosen.
