@@ -139,7 +139,7 @@ Occupational Safety and Health Administration. www.osha.gov. 1-800-321-6742. DSG
 ## Vaccination record statement
 I have received the Hepatitis B vaccine series in the last 12 months.
 
-Last date received: completed privately with HR.
+Last date received: completed privately with the office.
 
 ## Declination statement
 I decline the hepatitis B vaccination at this time. I understand that by declining this vaccine, I continue to be at risk of acquiring Hepatitis B, a serious disease. If in the future I continue to have occupational exposure to blood or other potentially infectious material and I want to be vaccinated with Hepatitis B vaccine, I can receive the vaccination series at no charge to me.`,
@@ -178,7 +178,7 @@ The implementation of Direct Payroll Deposits will greatly benefit all the emplo
 1. Patient's rights.
 1. Emergency preparedness.
 
-The orientation record includes the initials of the preceptor, initials of the employee and date of orientation for each topic, plus employee and supervisor signatures and dates. These are completed with HR following the actual orientation.`,
+The orientation record includes the initials of the preceptor, initials of the employee and date of orientation for each topic, plus employee and supervisor signatures and dates. These are completed with the office following the actual orientation.`,
 20: `Texas Health and Human Services Commission
 
 Cecile Erwin Young, Executive Commissioner
@@ -310,7 +310,7 @@ Notwithstanding the foregoing, this Agreement does not require arbitration of cl
 To the fullest extent permitted by law, Employee expressly waives the right to bring, file, or join any class or collective action against Company, as well as against Company's other employees, owners, directors, parent companies, subsidiaries, affiliates, or officers. Employee expressly agrees that Employee will resolve any dispute or claim in a single action between only Employee and Company and Company's other employees, owners, directors, parent companies, subsidiaries, affiliates, or officers. Accordingly, Employee agrees that Employee will not serve as a class or collective action representative or join a class or collective action against Company or Company's other employees, owners, directors, parent companies, subsidiaries, affiliates, or officers.`
 };
 
-export const POLICY_EDITION = "digital-reading-2026-11-05-v1";
+export const POLICY_EDITION = "digital-reading-2026-11-05-v2";
 export function policyDocument(page: number) {
   const text = documents[page];
   if (!text) return null;

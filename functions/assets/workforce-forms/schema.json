@@ -1156,7 +1156,7 @@
       },
       {
         "key": "firstDay",
-        "label": "First date of employment — HR confirms",
+        "label": "First date of employment — office confirms",
         "rect": {
           "x": 389.8,
           "y": 35.968,
@@ -1456,7 +1456,7 @@
       },
       {
         "key": "firstDay",
-        "label": "Actual date of hire — HR confirms",
+        "label": "Actual date of hire — office confirms",
         "rect": {
           "x": 320,
           "y": 364.5,

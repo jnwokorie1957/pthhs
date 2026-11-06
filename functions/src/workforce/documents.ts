@@ -14,7 +14,9 @@ export function missingRequiredDocuments(documents: Pick<PrivateDocument, "kind"
     && !(exception?.approved === true && exception.kinds.includes(kind)));
 }
 export function documentKind(value: unknown): DocumentKind {
-  if (!DOCUMENT_KINDS.includes(value as DocumentKind)) throw new WorkforceError(400, "invalid_document_kind");
+  // Historical categories remain readable; new uploads are identity documents.
+  // Tax/employment forms use their dedicated structured completion endpoints.
+  if (!requiredDocumentKinds.includes(value as DocumentKind)) throw new WorkforceError(400, "invalid_document_kind");
   return value as DocumentKind;
 }
 // Decode and re-encode raster images. Never store originals, embedded metadata,

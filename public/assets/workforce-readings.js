@@ -31,7 +31,7 @@
         const checkbox = document.createElement('input'); checkbox.type = 'checkbox'; checkbox.id = 'application-read_page_' + reading.page;
         const readId = 'read_page_' + reading.page, termsId = 'terms_page_' + reading.page;
         checkbox.checked = answers[readId] === 'Read' && (!reading.agreement || answers[termsId] === 'I agree');
-        checkbox.disabled = submitted || !checkbox.checked; checkbox.setAttribute('aria-required', 'true');
+        checkbox.disabled = true; checkbox.setAttribute('aria-required', 'true');
         checkbox.onchange = () => {
           onChange(readId, checkbox.checked ? 'Read' : '');
           if (reading.agreement) onChange(termsId, checkbox.checked ? 'I agree' : '');
@@ -39,15 +39,6 @@
         };
         label.append(checkbox, text('span', 'I read and I agree. *'));
         let loaded = false;
-        const questions = reading.agreement ? text('button', 'Questions for HR') : null;
-        if (questions) {
-          questions.type = 'button'; questions.id = 'application-' + termsId; questions.className = 'policy-questions'; questions.disabled = submitted || !checkbox.checked;
-          questions.onclick = () => {
-            checkbox.checked = false; onChange(readId, 'Read'); onChange(termsId, 'I have questions for HR before agreeing');
-            status.textContent = 'Questions for HR before agreeing'; status.hidden = false;
-          };
-          if (answers[termsId] === 'I have questions for HR before agreeing') { status.textContent = 'Questions for HR before agreeing'; status.hidden = false; }
-        }
         open.onclick = async () => {
           if (loaded) { body.hidden = !body.hidden; open.setAttribute('aria-expanded', String(!body.hidden)); return; }
           open.disabled = true; status.textContent = 'Loading…'; status.hidden = false;
@@ -62,12 +53,11 @@
             documentBody(body, doc.text, [answers.firstName, answers.lastName].filter(Boolean).join(' '));
             if (reading.note) { const note = text('p', reading.note); note.className = 'policy-note'; body.append(note); }
             body.hidden = false; loaded = true; open.setAttribute('aria-expanded', 'true'); checkbox.disabled = submitted;
-            if (questions) questions.disabled = submitted;
             status.hidden = true;
           } catch { status.textContent = 'Unable to load. Please try again.'; status.hidden = false; }
           finally { open.disabled = false; }
         };
-        card.append(body, label); if (questions) card.append(questions); card.append(status); target.append(card);
+        card.append(body, label, status); target.append(card);
       }
     }
   };

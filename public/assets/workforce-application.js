@@ -12,7 +12,8 @@
   let packet, record = null, answers = {}, sections = [], step = 0, generation = 0;
   let documentItems = [], addressEnabled = false, detachAddress = () => {};
   let version = 0, savedVersion = -1, saveQueue = Promise.resolve(), timer, documentsEnabled = false;
-  let selectedFile = null, previewUrl = null, uploading = false;
+  const selectedDocuments = new Map();
+  let uploading = false;
   let reviewNavigation = false;
   const completionSummary = document.createElement('section'), reviewNote = document.createElement('p'), marked = new WeakMap();
   completionSummary.id = 'application-completion-summary'; completionSummary.className = 'completion-summary';
@@ -38,10 +39,10 @@
   function refreshCompleteness() {
     if (!packet || record?.state === 'submitted') { completionSummary.hidden = true; return; }
     const missing = packet.fields.filter(f => f.required && !answers[f.id]?.trim() && (!f.id.startsWith('terms_page_') || answers[f.id.replace('terms_page_', 'read_page_')] === 'Read')).map(field => ({
-      label: field.label, section: field.section, controlId: field.id === 'jobDescriptionRead' ? 'job-description-read' : 'application-' + field.id,
-      activate: async () => { try { const next = sections.indexOf(field.section); if (next > step) validateStep(); await saveNavigation(); step = next; render(); focusMissing(field.id === 'jobDescriptionRead' ? 'job-description-read' : 'application-' + field.id); } catch(error) { showError(error); } }
+      label: field.label, section: field.section, controlId: field.id === 'jobDescriptionRead' ? 'job-description-read' : 'application-' + field.id.replace('terms_page_', 'read_page_'),
+      activate: async () => { try { const next = sections.indexOf(field.section); if (next > step) validateStep(); await saveNavigation(); step = next; render(); focusMissing(field.id === 'jobDescriptionRead' ? 'job-description-read' : 'application-' + field.id.replace('terms_page_', 'read_page_')); } catch(error) { showError(error); } }
     }));
-    for (const kind of requiredDocuments()) missing.push({ label: kind === 'identity' ? 'Photo ID upload' : 'Social Security card upload', section: 'Documents', controlId: 'document-file', activate: async () => { try { const next = sections.indexOf('Documents'); if (next > step) validateStep(); await saveNavigation(); step = next; render(); document.getElementById('private-document-kind').value = kind; document.getElementById('document-file').focus(); } catch(error) { showError(error); } } });
+    for (const kind of requiredDocuments()) missing.push({ label: kind === 'identity' ? 'Photo ID upload' : 'Social Security card upload', section: 'Documents', controlId: kind + '-choose', activate: async () => { try { const next = sections.indexOf('Documents'); if (next > step) validateStep(); await saveNavigation(); step = next; render(); document.getElementById(kind + '-choose').focus(); } catch(error) { showError(error); } } });
     if (step === sections.length) for (const [id,label] of [['release-read','Read the past-employment release'],['electronic-consent','Choose electronic signing'],['application-signature-name','Your electronic signature']]) {
       const control = document.getElementById(id); if (control.type === 'checkbox' ? !control.checked : !control.value.trim()) missing.push({label,section:'Review & submit',controlId:id});
     }
@@ -71,11 +72,15 @@
     }
   }
   const text = (tag, value) => { const node = document.createElement(tag); node.textContent = value; return node; };
-  function clearImage() {
-    if (previewUrl) URL.revokeObjectURL(previewUrl);
-    previewUrl = null; selectedFile = null;
-    const preview = document.getElementById('document-preview'); preview.removeAttribute('src'); preview.hidden = true;
-    document.getElementById('document-file').value = ''; document.getElementById('document-camera').value = '';
+  function clearImage(kind) {
+    for (const key of kind ? [kind] : ['identity', 'social_security']) {
+      const selected = selectedDocuments.get(key); if (selected?.url) URL.revokeObjectURL(selected.url);
+      selectedDocuments.delete(key);
+      const preview = document.getElementById(key + '-preview'); preview.removeAttribute('src'); preview.hidden = true;
+      for (const suffix of ['file', 'camera']) document.getElementById(key + '-' + suffix).value = '';
+      document.getElementById(key + '-selection').textContent = 'No file selected';
+      document.getElementById(key + '-upload').disabled = true; document.getElementById(key + '-clear').hidden = true;
+    }
   }
   async function download(path, filename) {
     const sequence = generation;
@@ -95,10 +100,10 @@
       documentItems = data.items; renderDocumentChecklist();
       const list = document.getElementById('private-document-list'); list.replaceChildren();
       if (!data.items.length) list.append(text('p', 'Your private folder has no uploaded documents yet.'));
-      for (const doc of data.items) {
+      for (const doc of data.items.filter(item => ['identity', 'social_security'].includes(item.kind))) {
         const card = document.createElement('article'); card.className = 'document-receipt';
         const names = { identity: 'Photo ID', social_security: 'Social Security card', employment_authorization: 'Employment-authorization document', i9: 'Form I-9', w4: 'Form W-4' };
-        card.append(text('h3', names[doc.kind] || 'Private document'), text('p', doc.state === 'pending_security_review' ? 'PDF received · security review pending. The original PDF is private and is not opened here.' : doc.state === 'pending_review' ? 'Uploaded · awaiting HR review. This is not a verified eligibility result.' : 'Upload not confirmed · contact HR before retrying.'));
+        card.append(text('h3', names[doc.kind] || 'Private document'), text('p', doc.state === 'pending_security_review' ? 'PDF received · security review pending. The original PDF is private and is not opened here.' : doc.state === 'pending_review' ? 'Uploaded · awaiting review. This is not a verified eligibility result.' : 'Upload not confirmed · contact the office before retrying.'));
         if (doc.state === 'pending_review') {
           const button = text('button', 'Download my document'); button.type = 'button';
           button.onclick = () => download('/application/documents/' + encodeURIComponent(doc.id), doc.contentType === 'application/pdf' ? 'private-document.pdf' : 'private-document.jpg'); card.append(button);
@@ -126,7 +131,7 @@
     if (reviewNavigation) return;
     const missing = packet.fields.find(f => f.section === sections[step] && f.required && !answers[f.id]?.trim());
     if (!missing) return;
-    const control = document.getElementById(missing.id === 'jobDescriptionRead' ? 'job-description-read' : 'application-' + missing.id);
+    const control = document.getElementById(missing.id === 'jobDescriptionRead' ? 'job-description-read' : 'application-' + missing.id.replace('terms_page_', 'read_page_'));
     control?.focus(); control?.setAttribute('aria-invalid', 'true');
     throw Error('Complete ' + missing.label + ' before continuing. You can still save this draft.');
   }
@@ -139,7 +144,7 @@
     }
     target.append(text('h3', 'Acknowledgments in the paper packet'), text('blockquote', source.initialAcknowledgment),
       text('p', 'Employee signature/date and supervisor signature/date are separate.'), text('blockquote', source.discussionAcknowledgment),
-      text('p', 'The revised/discussed acknowledgment and its employee/supervisor signatures are completed with HR when that discussion occurs.'));
+      text('p', 'The revised/discussed acknowledgment and its employee/supervisor signatures are completed with the office when that discussion occurs.'));
     document.getElementById('job-description-read').checked = answers.jobDescriptionRead === 'Yes';
     document.getElementById('job-description-read').disabled = record?.state === 'submitted';
     document.getElementById('job-description-questions').value = answers.jobDescriptionQuestions || '';
@@ -163,7 +168,7 @@
     queueMicrotask(refreshCompleteness);
     detachAddress(); window.WorkforceReadings.clear();
     const submitted = record?.state === 'submitted';
-    document.getElementById('application-status-badge').textContent = submitted ? 'Submitted for HR review' : 'Draft';
+    document.getElementById('application-status-badge').textContent = submitted ? 'Submitted for review' : 'Draft';
     const nav = document.getElementById('application-steps'); nav.replaceChildren();
     [...sections, 'Review & submit'].forEach((label, i) => {
       const button = text('button', (i + 1) + '. ' + label); button.type = 'button';
@@ -184,8 +189,8 @@
     signaturePanel.hidden = submitted || step !== sections.length;
     if (submitted) {
       if (roleStep) renderRoleDescription();
-      fields.append(text('p', 'Your application has been sent to HR. Employment, screening and onboarding approval are separate.'));
-      message.textContent = 'Submitted ' + new Date(record.submittedAt).toLocaleString() + '. Contact HR if a correction is needed.';
+      fields.append(text('p', 'Your application has been sent to the office. Employment, screening and onboarding approval are separate.'));
+      message.textContent = 'Submitted ' + new Date(record.submittedAt).toLocaleString() + '. Contact the office if a correction is needed.';
       return;
     }
     if (step === sections.length) { renderReview(); return; }
@@ -199,7 +204,7 @@
       const label = document.createElement('label'); label.className = 'application-label';
       label.append(text('span', field.label + (field.required ? ' *' : '')));
       const input = document.createElement(field.type === 'textarea' ? 'textarea' : field.type === 'choice' ? 'select' : 'input');
-      input.name = field.id; input.id = 'application-' + field.id;
+      input.name = field.id; input.id = 'application-' + field.id.replace('terms_page_', 'read_page_');
       input.setAttribute('aria-required', String(field.required));
       if (field.type === 'choice') {
         const placeholder = text('option', 'Select an answer'); placeholder.value = ''; input.append(placeholder);
@@ -227,7 +232,7 @@
       });
       label.append(input); grid.append(label);
     }
-    fields.append(grid, text('p', '* Minimum submission fields. HR may request additional information. You can save an incomplete draft.'));
+    fields.append(grid, text('p', '* Minimum submission fields. The office may request additional information. You can save an incomplete draft.'));
     const street = document.getElementById('application-street');
     if (street) detachAddress = window.WorkforceAddress.attach(street, address => {
       for (const key of ['street', 'city', 'state', 'zip']) { answers[key] = address[key]; const control = document.getElementById('application-' + key); if (control) control.value = address[key]; }
@@ -265,13 +270,13 @@
         const parts = new Intl.DateTimeFormat('en-US',{timeZone:'America/Chicago',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date());
         const value = type => parts.find(p=>p.type===type).value; answers.applicationDate = value('year') + '-' + value('month') + '-' + value('day');
       }
-      if (record && record.packetVersion !== packet.version) throw Error('HR must review the application version before you continue.');
+      if (record && record.packetVersion !== packet.version) throw Error('The office must review the application version before you continue.');
       version = 0; savedVersion = record ? 0 : -1; step = 0; sections = [...new Set(packet.fields.map(f => f.section)), 'Documents', 'Tax & employment forms'];
       const inventory = document.getElementById('packet-inventory'); inventory.replaceChildren();
-      const stageLabels = { application: 'Application', hr: 'Office / HR completes this', onboarding: 'HR will guide you during onboarding', payroll: 'Secure payroll onboarding', employment: 'After employment begins' };
+      const stageLabels = { application: 'Application', hr: 'The office completes this', onboarding: 'The office will guide you during onboarding', payroll: 'Secure payroll onboarding', employment: 'After employment begins' };
       for (const item of schema.inventory) inventory.append(text('li', item.title + ' — ' + stageLabels[item.stage]));
       const selected = WorkforceContract.selectedId(location.search);
-      document.getElementById('selected-opportunity').textContent = selected ? 'Selected opportunity: ' + selected + '. HR reviews your application before any assignment. Interest submission will be handled separately.' : '';
+      document.getElementById('selected-opportunity').textContent = selected ? 'Selected opportunity: ' + selected + '. The office reviews your application before any assignment. Interest submission will be handled separately.' : '';
       message.textContent = record ? 'Your saved application is ready.' : 'Read the PAS attendant role, then complete Contact information. Progress saves securely after you make changes.';
       render(); await loadDocuments();
     } catch (error) { if (sequence === generation) { showError(error); fields.replaceChildren(); form.hidden = true; signaturePanel.hidden = true; } }
@@ -285,10 +290,10 @@
     const sequence = generation, button = document.getElementById('application-submit'); button.disabled = true;
     try {
       const missing = packet.fields.find(f => f.required && !answers[f.id]?.trim());
-      if (missing) { step = sections.indexOf(missing.section); render(); document.getElementById(missing.id === 'jobDescriptionRead' ? 'job-description-read' : 'application-' + missing.id)?.focus(); throw Error('Complete ' + missing.label + ' before submitting.'); }
+      if (missing) { step = sections.indexOf(missing.section); render(); document.getElementById(missing.id === 'jobDescriptionRead' ? 'job-description-read' : 'application-' + missing.id.replace('terms_page_', 'read_page_'))?.focus(); throw Error('Complete ' + missing.label + ' before submitting.'); }
       await save();
       await loadDocuments();
-      // The server checks required receipts and trusted HR exceptions together.
+      // The server checks required receipts and trusted office exceptions together.
       // A local checklist must not override an approved alternative arrangement.
       const result = await workforceApi('/application/submit', { revision: record.revision, signature: {
         name: document.getElementById('application-signature-name').value,
@@ -298,35 +303,43 @@
     } catch (error) { if (sequence === generation) showError(error); }
     finally { button.disabled = false; }
   };
-  function choose(file) {
-    clearImage();
-    if (!file) return;
-    if ((!['image/jpeg', 'image/png', 'application/pdf'].includes(file.type) && !/\.(pdf|jpe?g|png)$/i.test(file.name)) || file.size > 8 * 1024 * 1024) { documentMessage.textContent = 'Choose a PDF, JPEG or PNG no larger than 8 MB.'; return; }
-    selectedFile = file;
-    if (file.type === 'application/pdf' || /\.pdf$/i.test(file.name)) { documentMessage.textContent = 'PDF selected. It will be received privately for security review when you select Upload securely.'; return; }
-    previewUrl = URL.createObjectURL(file);
-    const preview = document.getElementById('document-preview'); preview.src = previewUrl; preview.hidden = false;
-    documentMessage.textContent = 'Check the image, then select Upload securely. It has not been uploaded yet.';
+  function choose(kind, file) {
+    if (uploading || !file) return;
+    clearImage(kind);
+    const status = document.getElementById(kind + '-selection');
+    if ((!['image/jpeg', 'image/png', 'application/pdf'].includes(file.type) && !/\.(pdf|jpe?g|png)$/i.test(file.name)) || file.size > 8 * 1024 * 1024) { status.textContent = 'Choose a PDF, JPEG or PNG no larger than 8 MB.'; return; }
+    const pdf = file.type === 'application/pdf' || /\.pdf$/i.test(file.name), url = pdf ? null : URL.createObjectURL(file);
+    selectedDocuments.set(kind, { file, url });
+    if (url) { const preview = document.getElementById(kind + '-preview'); preview.src = url; preview.hidden = false; }
+    status.textContent = file.name + ' — ready to save';
+    document.getElementById(kind + '-upload').disabled = false; document.getElementById(kind + '-clear').hidden = false;
   }
-  for (const id of ['document-file', 'document-camera']) document.getElementById(id).addEventListener('change', event => choose(event.target.files?.[0]));
-  document.getElementById('document-clear').onclick = clearImage;
-  documentForm.addEventListener('submit', async e => {
-    e.preventDefault(); if (uploading || !documentsEnabled) return;
-    if (!selectedFile) { documentMessage.textContent = 'Choose an image or take a photo first.'; return; }
-    const sequence = generation; uploading = true; document.getElementById('document-upload').disabled = true;
-    try {
-      await save();
-      const base64 = await new Promise((resolve, reject) => { const reader = new FileReader(); reader.onload = () => resolve(String(reader.result).split(',')[1]); reader.onerror = reject; reader.readAsDataURL(selectedFile); });
-      if (sequence !== generation) return;
-      await workforceApi('/application/documents', { kind: document.getElementById('private-document-kind').value, base64 });
-      if (sequence === generation) { clearImage(); documentMessage.textContent = 'Received securely. Security/HR verification is still pending.'; await loadDocuments(); }
-    } catch (error) { if (sequence === generation) documentMessage.textContent = error.message; }
-    finally { uploading = false; document.getElementById('document-upload').disabled = false; }
-  });
+  for (const kind of ['identity', 'social_security']) {
+    for (const [button, input] of [['choose', 'file'], ['take-photo', 'camera']]) {
+      document.getElementById(kind + '-' + button).onclick = () => document.getElementById(kind + '-' + input).click();
+      document.getElementById(kind + '-' + input).addEventListener('change', event => choose(kind, event.target.files?.[0]));
+    }
+    document.getElementById(kind + '-clear').onclick = () => { if (!uploading) clearImage(kind); };
+    document.getElementById(kind + '-upload-form').addEventListener('submit', async event => {
+      event.preventDefault(); if (uploading || !documentsEnabled) return;
+      const selected = selectedDocuments.get(kind); if (!selected) return;
+      const sequence = generation; uploading = true;
+      for (const button of documentForm.querySelectorAll('button')) button.disabled = true;
+      try {
+        await save();
+        const base64 = await new Promise((resolve, reject) => { const reader = new FileReader(); reader.onload = () => resolve(String(reader.result).split(',')[1]); reader.onerror = reject; reader.readAsDataURL(selected.file); });
+        if (sequence !== generation) return;
+        await workforceApi('/application/documents', { kind, base64 });
+        if (sequence === generation) { clearImage(kind); document.getElementById(kind + '-selection').textContent = 'Received securely — review pending'; await loadDocuments(); }
+      } catch (error) { if (sequence === generation) document.getElementById(kind + '-selection').textContent = error.message; }
+      finally {
+        uploading = false;
+        for (const button of documentForm.querySelectorAll('button')) button.disabled = false;
+        for (const key of ['identity', 'social_security']) document.getElementById(key + '-upload').disabled = !selectedDocuments.has(key);
+      }
+    });
+  }
   for (const kind of ['i9', 'w4', 'new_hire']) document.getElementById('complete-' + kind).onclick = async () => { try { await saveNavigation(); await window.WorkforceForms.open(kind, {...answers}); } catch (error) { showError(error); } };
-  for (const kind of ['i9', 'w4']) document.getElementById('return-' + kind).onclick = async () => {
-    try { await saveNavigation(); step = sections.indexOf('Documents'); render(); document.getElementById('private-document-kind').value = kind; } catch (error) { showError(error); }
-  };
   document.getElementById('job-description-read').addEventListener('change', event => {
     answers.jobDescriptionRead = event.target.checked ? 'Yes' : ''; version++; clearTimeout(timer); timer = setTimeout(() => save().catch(showError), 1500);
   });

@@ -7,11 +7,15 @@ import sharp from "sharp";
 import { readFileSync } from "node:fs";
 import { intakePacket, packetInventory, PACKET_SHA256 } from "./packet.js";
 import { intakeAnswers, saveIntake, submitIntake } from "./intake.js";
-import { sanitizeDocument, prepareDocument, documentSummary, missingRequiredDocuments, type PrivateDocument } from "./documents.js";
+import { sanitizeDocument, prepareDocument, documentSummary, missingRequiredDocuments, documentKind, type PrivateDocument } from "./documents.js";
 import { privateDocumentPath, requireDocumentOwner } from "./intakeStore.js";
 import { parseGrant, requirePermission, type Actor } from "./policy.js";
 import { recentWorkforceIdentity } from "./auth.js";
 const now = "2026-11-05T18:00:00.000Z";
+test("identity uploads cannot receive tax forms or other document categories",()=>{
+ assert.equal(documentKind("identity"),"identity");assert.equal(documentKind("social_security"),"social_security");
+ for(const kind of ["i9","w4","new_hire","employment_authorization","",null])assert.throws(()=>documentKind(kind),/invalid_document_kind/);
+});
 const answers = () => ({ firstName: "Synthetic", lastName: "Applicant", applicationDate: "2026-11-05", email: "synthetic@example.invalid", phone: "555-0100", eligibleToWork: "Yes", conviction: "No", jobDescriptionRead: "Yes", ssn: "000-00-0000", birthDate: "2000-01-01", street: "100 Synthetic Street", city: "Synthetic City", state: "TX", zip: "77000", highSchool_school: "Synthetic High School", ...Object.fromEntries(readings.flatMap(r => [[`read_page_${r.page}`, "Read"], ...(r.agreement ? [[`terms_page_${r.page}`, "I have questions for HR before agreeing"]] : [])])), highSchool_completed: "2018", emergencyName: "Synthetic Contact", emergencyRelationship: "Friend", emergencyAddress: "1 Test Road", emergencyPhone: "555-0101" });
 test("packet maps all 27 pages and only digitizes applicant-owned questions", () => {
   assert.deepEqual(packetInventory.flatMap(item => item.pages), Array.from({ length: 27 }, (_, i) => i + 1));

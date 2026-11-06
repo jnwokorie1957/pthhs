@@ -3,7 +3,7 @@
 import { jobDescription, jobDescriptionSha256 } from "./jobDescription.js";
 import { readings } from "./readings.js";
 export const PACKET_SHA256 = "74ad51735132bbe38a07a8d89daaa51bc935650229a9c6f56d1c2e1b1dcd4a20";
-export const PACKET_VERSION = "pthhs-intake-2026-11-05-v4";
+export const PACKET_VERSION = "pthhs-intake-2026-11-05-v5";
 export interface IntakeField {
   id: string; label: string; section: string; sourcePage: number;
   type: "text" | "date" | "email" | "tel" | "textarea" | "ssn" | "choice";
@@ -14,7 +14,7 @@ function field(id: string, label: string, section: string, sourcePage: number, t
   fields.push({ id, label, section, sourcePage, type, required, maxLength: type === "textarea" ? 2000 : 250, options });
 }
 field("jobDescriptionRead", "I have read the complete PAS attendant job description", "PAS attendant role", 1, "choice", true, ["Yes"]);
-field("jobDescriptionQuestions", "Questions for HR (optional)", "PAS attendant role", 2, "textarea");
+field("jobDescriptionQuestions", "Questions (optional)", "PAS attendant role", 2, "textarea");
 field("firstName", "First name", "Contact information", 3, "text", true);
 field("lastName", "Last name", "Contact information", 3, "text", true);
 field("applicationDate", "Date", "Contact information", 3, "date", true);

@@ -39,7 +39,7 @@ test('client database and document access stay denied; application/document coll
     assert.match(read(path),/noindex,nofollow,noarchive/);
   }
   assert.match(read('public/caregiver.html'),/capture="environment"/);
-  assert.match(read('public/caregiver.html'),/id="document-file" type="file"/);
+  for (const kind of ['identity','social_security']) assert.match(read('public/caregiver.html'),new RegExp(`id="${kind}-file" type="file"`));
   assert.match(read('public/caregiver.html'),/id="private-documents"/);
 });
 test('new API uses existing project and preserves legacy routing and security boundary', () => {
@@ -68,8 +68,11 @@ test('complete role reading and dedicated document/form steps remain available',
   const html = read('public/caregiver.html');
   for (const id of ['job-description-step','job-description-text','job-description-read','job-description-questions','official-forms']) assert.ok(html.includes(`id="${id}"`));
   assert.match(html,/accept="image\/jpeg,image\/png,application\/pdf"/);
-  assert.match(html,/href="\/assets\/forms\/i9-2025\.pdf"/);
-  assert.match(html,/href="\/assets\/forms\/w4-2026\.pdf"/);
+  assert.match(html,/id="complete-i9"/);
+  assert.match(html,/id="complete-w4"/);
+  assert.doesNotMatch(html,/private-document-kind|return-i9|return-w4|Completed Form [IW]-[49]/);
+  const formsArea=html.slice(html.indexOf('id="official-forms"'),html.indexOf('id="application-navigation"'));
+  assert.doesNotMatch(formsArea,/type="file"|Upload completed/);
   const manifest = JSON.parse(read('public/assets/forms/manifest.json'));
   const w4 = manifest.forms.find(f => f.id === 'w4-2026');
   const bytes = fs.readFileSync(new URL('../public'+w4.file,import.meta.url));
