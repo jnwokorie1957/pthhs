@@ -33,6 +33,8 @@ test("W-4 signature binds own identity, exact source and values; PDF keeps field
  const bytes=await renderOfficialForm(signed),pdf=await PDFDocument.load(bytes),form=pdf.getForm();
  assert.equal(pdf.getPageCount(),5);assert.equal(form.getTextField(schema.fields[0]!.id).getText(),"Synthetic");
  assert.ok(form.getTextField("topmostSubform[0].Page1[0].f1_12[0]").getText()?.includes(EMPLOYER_NAME));
+ for(const id of ["topmostSubform[0].Page1[0].f1_12[0]","topmostSubform[0].Page1[0].f1_13[0]","topmostSubform[0].Page1[0].f1_14[0]"])assert.equal(form.getField(id).isReadOnly(),true);
+ assert.equal(form.getField(schema.fields[0]!.id).isReadOnly(),false);
  assert.throws(()=>formRecord("synthetic-a","test-office",schema,signed,{revision:1,fields},"Synthetic Applicant",false,now),/form_already_submitted/);
 });
 
@@ -43,6 +45,7 @@ test("Texas new-hire employee information stays separate from employer hire/pay 
  const pdf=await PDFDocument.load(await renderOfficialForm(record,{ein:"00-0000000"}));
  assert.equal(pdf.getPageCount(),2);assert.equal(pdf.getForm().getTextField("firstName").getText(),"Synthetic");assert.equal(pdf.getForm().getTextField("employer_ein").getText(),"00-0000000");
  assert.ok(!pdf.getForm().getTextField("employer_firstDay").getText());
+ for(const f of schema.employerFields||[])assert.equal(pdf.getForm().getField("employer_"+f.key).isReadOnly(),true);
 });
 test("I-9 employee signing requires accepted offer and one valid status; employer attestation stays blank",async()=>{
  const schema=await formSchema("i9");const fields={"Last Name (Family Name)":"Applicant","First Name Given Name":"Synthetic","Address Street Number and Name":"100 Test Road","City or Town":"Houston",State:"TX","ZIP Code":"77000","Date of Birth mmddyyyy":"01/01/2000",CB_1:true};
@@ -52,4 +55,5 @@ test("I-9 employee signing requires accepted offer and one valid status; employe
  assert.equal(pdf.getPageCount(),4);assert.equal(pdf.getForm().getTextField("Signature of Employee").getText(),"Synthetic Applicant");
  assert.equal(pdf.getForm().getTextField("Today's Date mmddyyy").getText(),"11/05/2026");assert.equal(pdf.getForm().getTextField("Employers Business or Org Name").getText(),EMPLOYER_NAME);
  assert.ok(!pdf.getForm().getTextField("Signature of Employer or AR").getText());
+ for(const id of ["Employers Business or Org Name","Employers Business or Org Address"])assert.equal(pdf.getForm().getField(id).isReadOnly(),true);
 });

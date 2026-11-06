@@ -79,5 +79,7 @@ export async function renderOfficialForm(record:FormRecord,employer:EmployerCont
   else {const font=await doc.embedFont(StandardFonts.Helvetica);doc.getPages()[0]!.drawText(`Prepared for HR review ${date} - not filed with Texas`,{x:36,y:10,size:8,font});}
  }
  else { const font=await doc.embedFont(StandardFonts.Helvetica);doc.getPages()[0]!.drawText("DRAFT - NOT SIGNED",{x:36,y:10,size:8,font}); }
+ const locked=record.kind==="i9"?["Employers Business or Org Name","Employers Business or Org Address"]:record.kind==="w4"?["topmostSubform[0].Page1[0].f1_12[0]","topmostSubform[0].Page1[0].f1_13[0]","topmostSubform[0].Page1[0].f1_14[0]"]:(schema.employerFields||[]).map(field=>"employer_"+field.key);
+ for(const id of locked)form.getField(id).enableReadOnly();
  doc.setModificationDate(new Date(record.updatedAt));return Buffer.from(await doc.save());
 }

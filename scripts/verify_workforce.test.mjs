@@ -7,6 +7,15 @@ const read = p => fs.readFileSync(new URL('../'+p, import.meta.url),'utf8');
 const context = vm.createContext({ URLSearchParams });
 vm.runInContext(read('public/assets/workforce-contract.js'), context);
 const contract = context.WorkforceContract;
+test('phone numbers format area codes consistently while preserving international/extension values',()=>{
+ assert.equal(contract.formatPhone('7135551234'),'(713) 555-1234');
+ assert.equal(contract.formatPhone('1 713 555 1234'),'+1 (713) 555-1234');
+ assert.equal(contract.formatPhone('(713) 555-1234'),'(713) 555-1234');
+ assert.equal(contract.formatPhone(''),'');
+ assert.equal(contract.formatPhone('+44 20 1234 5678'),'+44 20 1234 5678');
+ const input={value:'123',selectionStart:3,setSelectionRange(start){this.selectionStart=start;}};
+ contract.formatPhoneInput(input);assert.equal(input.value,'(123)');assert.equal(input.selectionStart,4);
+});
 test('free review navigation requires the local preview session and cannot be enabled for live applicants', () => {
   for(const host of ['localhost','127.0.0.1','[::1]']) { assert.equal(contract.reviewNavigationAllowed(host,true),true); assert.equal(contract.reviewNavigationAllowed(host,false),false); }
   for(const host of ['pthhs.net','www.pthhs.net','localhost.example.com','']) assert.equal(contract.reviewNavigationAllowed(host,true),false);
@@ -38,7 +47,9 @@ test('client database and document access stay denied; application/document coll
     assert.doesNotMatch(read(path),/assets\/analytics|routing.number|bank.account/i);
     assert.match(read(path),/noindex,nofollow,noarchive/);
   }
-  assert.match(read('public/caregiver.html'),/capture="environment"/);
+  assert.match(read('public/assets/workforce-camera.js'),/getUserMedia/);
+  assert.match(read('public/assets/workforce-camera.js'),/audio: false/);
+  assert.doesNotMatch(read('public/caregiver.html'),/Save Photo ID|Save Social Security card|capture="environment"/);
   for (const kind of ['identity','social_security']) assert.match(read('public/caregiver.html'),new RegExp(`id="${kind}-file" type="file"`));
   assert.match(read('public/caregiver.html'),/id="private-documents"/);
 });
@@ -58,7 +69,7 @@ test('build pruning explicitly retains all workforce runtime assets', () => {
 });
 test('sensitive application data has no browser persistence or analytics sink', () => {
   for (const asset of ['workforce-application.js','workforce-personnel.js']) assert.doesNotMatch(read('public/assets/'+asset),/localStorage|sessionStorage|console\.|gtag|analytics|innerHTML/);
-  assert.match(read('public/assets/workforce-application.js'),/URL\.revokeObjectURL/);
+  assert.match(read('public/assets/workforce-camera.js'),/URL\.revokeObjectURL/);
   const storage = read('functions/src/workforce/intakeStore.ts');
   assert.doesNotMatch(storage,/makePublic|getSignedUrl|firebaseStorageDownloadTokens|originalFilename/);
   assert.match(storage,/generation: record.generation/);

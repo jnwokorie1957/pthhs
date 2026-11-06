@@ -12,7 +12,6 @@
   let packet, record = null, answers = {}, sections = [], step = 0, generation = 0;
   let documentItems = [], addressEnabled = false, detachAddress = () => {};
   let version = 0, savedVersion = -1, saveQueue = Promise.resolve(), timer, documentsEnabled = false;
-  const selectedDocuments = new Map();
   let uploading = false;
   let reviewNavigation = false;
   const completionSummary = document.createElement('section'), reviewNote = document.createElement('p'), marked = new WeakMap();
@@ -74,22 +73,11 @@
   const text = (tag, value) => { const node = document.createElement(tag); node.textContent = value; return node; };
   function clearImage(kind) {
     for (const key of kind ? [kind] : ['identity', 'social_security']) {
-      const selected = selectedDocuments.get(key); if (selected?.url) URL.revokeObjectURL(selected.url);
-      selectedDocuments.delete(key);
-      const preview = document.getElementById(key + '-preview'); preview.removeAttribute('src'); preview.hidden = true;
-      for (const suffix of ['file', 'camera']) document.getElementById(key + '-' + suffix).value = '';
+
+      for (const suffix of ['file']) document.getElementById(key + '-' + suffix).value = '';
       document.getElementById(key + '-selection').textContent = 'No file selected';
-      document.getElementById(key + '-upload').disabled = true; document.getElementById(key + '-clear').hidden = true;
+
     }
-  }
-  async function download(path, filename) {
-    const sequence = generation;
-    try {
-      const blob = await workforceApi(path, undefined, true);
-      if (sequence !== generation) return;
-      const url = URL.createObjectURL(blob), link = document.createElement('a');
-      link.href = url; link.download = filename; link.click(); setTimeout(() => URL.revokeObjectURL(url), 1000);
-    } catch (error) { if (sequence === generation) documentMessage.textContent = error.message; }
   }
   async function loadDocuments() {
     const sequence = generation;
@@ -98,17 +86,12 @@
       const data = await workforceApi('/application/documents');
       if (sequence !== generation) return;
       documentItems = data.items; renderDocumentChecklist();
-      const list = document.getElementById('private-document-list'); list.replaceChildren();
-      if (!data.items.length) list.append(text('p', 'Your private folder has no uploaded documents yet.'));
-      for (const doc of data.items.filter(item => ['identity', 'social_security'].includes(item.kind))) {
-        const card = document.createElement('article'); card.className = 'document-receipt';
-        const names = { identity: 'Photo ID', social_security: 'Social Security card', employment_authorization: 'Employment-authorization document', i9: 'Form I-9', w4: 'Form W-4' };
-        card.append(text('h3', names[doc.kind] || 'Private document'), text('p', doc.state === 'pending_security_review' ? 'PDF received · security review pending. The original PDF is private and is not opened here.' : doc.state === 'pending_review' ? 'Uploaded · awaiting review. This is not a verified eligibility result.' : 'Upload not confirmed · contact the office before retrying.'));
-        if (doc.state === 'pending_review') {
-          const button = text('button', 'Download my document'); button.type = 'button';
-          button.onclick = () => download('/application/documents/' + encodeURIComponent(doc.id), doc.contentType === 'application/pdf' ? 'private-document.pdf' : 'private-document.jpg'); card.append(button);
-        }
-        list.append(card);
+      document.getElementById('private-document-list').replaceChildren();
+      for (const kind of ['identity', 'social_security']) {
+        const doc = [...data.items].sort((a,b)=>b.createdAt.localeCompare(a.createdAt)).find(item => item.kind === kind && ['pending_review', 'pending_security_review'].includes(item.state));
+        const view = document.getElementById(kind + '-view'); view.hidden = !doc || doc.state !== 'pending_review';
+        if (doc) document.getElementById(kind + '-selection').textContent = doc.state === 'pending_security_review' ? 'Uploaded — security review pending' : 'Uploaded';
+        view.onclick = async () => { try { const sequence = generation, blob = await workforceApi('/application/documents/' + encodeURIComponent(doc.id), undefined, true); if (sequence === generation) window.WorkforceCamera.view(blob, kind === 'identity' ? 'Photo ID' : 'Social Security card'); } catch (error) { documentMessage.textContent = error.message; } };
       }
     } catch (error) { if (sequence === generation) documentMessage.textContent = error.message; }
   }
@@ -129,6 +112,10 @@
   function showError(error) { message.textContent = error.message; }
   function validateStep() {
     if (reviewNavigation) return;
+    if (sections[step] === 'Documents' && (uploading || requiredDocuments().length)) {
+      document.getElementById((requiredDocuments()[0] || 'identity') + '-choose').focus();
+      throw Error('Upload your Photo ID and Social Security card before continuing.');
+    }
     const missing = packet.fields.find(f => f.section === sections[step] && f.required && !answers[f.id]?.trim());
     if (!missing) return;
     const control = document.getElementById(missing.id === 'jobDescriptionRead' ? 'job-description-read' : 'application-' + missing.id.replace('terms_page_', 'read_page_'));
@@ -166,7 +153,7 @@
   }
   function render() {
     queueMicrotask(refreshCompleteness);
-    detachAddress(); window.WorkforceReadings.clear();
+    detachAddress(); window.WorkforceCamera.clear(); window.WorkforceReadings.clear();
     const submitted = record?.state === 'submitted';
     document.getElementById('application-status-badge').textContent = submitted ? 'Submitted for review' : 'Draft';
     const nav = document.getElementById('application-steps'); nav.replaceChildren();
@@ -219,6 +206,7 @@
         if (addressAutocomplete[field.id]) input.autocomplete = addressAutocomplete[field.id];
       }
       input.value = answers[field.id] || '';
+      if (field.type === 'tel') { input.value = WorkforceContract.formatPhone(input.value); input.inputMode = 'tel'; input.placeholder = '(713) 555-1234'; }
       if (field.type === 'ssn') {
         const mask = () => { const digits = (answers[field.id] || '').replace(/\D/g, ''); input.type = digits.length === 9 ? 'text' : 'password'; input.value = digits.length === 9 ? '***-**-' + digits.slice(-4) : answers[field.id] || ''; };
         input.addEventListener('focus', () => { input.type = 'password'; input.value = answers[field.id] || ''; input.select(); });
@@ -226,6 +214,7 @@
         label.append(text('small', 'Only the last four digits remain visible after you leave this field.'));
       }
       input.addEventListener('input', () => {
+        if (field.type === 'tel') WorkforceContract.formatPhoneInput(input);
         answers[field.id] = input.value; version++; message.textContent = 'Unsaved changes…';
         if (field.id === 'weeklyHours') updateHoursNotice();
         clearTimeout(timer); timer = setTimeout(() => save().catch(showError), 1500);
@@ -303,41 +292,29 @@
     } catch (error) { if (sequence === generation) showError(error); }
     finally { button.disabled = false; }
   };
-  function choose(kind, file) {
-    if (uploading || !file) return;
-    clearImage(kind);
+  async function choose(kind, file) {
+    if (uploading || !documentsEnabled || !file) return;
     const status = document.getElementById(kind + '-selection');
     if ((!['image/jpeg', 'image/png', 'application/pdf'].includes(file.type) && !/\.(pdf|jpe?g|png)$/i.test(file.name)) || file.size > 8 * 1024 * 1024) { status.textContent = 'Choose a PDF, JPEG or PNG no larger than 8 MB.'; return; }
-    const pdf = file.type === 'application/pdf' || /\.pdf$/i.test(file.name), url = pdf ? null : URL.createObjectURL(file);
-    selectedDocuments.set(kind, { file, url });
-    if (url) { const preview = document.getElementById(kind + '-preview'); preview.src = url; preview.hidden = false; }
-    status.textContent = file.name + ' — ready to save';
-    document.getElementById(kind + '-upload').disabled = false; document.getElementById(kind + '-clear').hidden = false;
+    const sequence = generation; uploading = true; status.textContent = 'Uploading…';
+    for (const button of documentForm.querySelectorAll('button')) button.disabled = true;
+    try {
+      await save();
+      const base64 = await new Promise((resolve, reject) => { const reader = new FileReader(); reader.onload = () => resolve(String(reader.result).split(',')[1]); reader.onerror = reject; reader.readAsDataURL(file); });
+      if (sequence !== generation) return;
+      await workforceApi('/application/documents', { kind, base64 });
+      if (sequence === generation) { clearImage(kind); status.textContent = 'Uploaded'; await loadDocuments(); }
+    } catch (error) { if (sequence === generation) status.textContent = 'Upload failed. Choose the file or take the photo again. ' + error.message; }
+    finally { uploading = false; for (const button of documentForm.querySelectorAll('button')) button.disabled = false; }
   }
   for (const kind of ['identity', 'social_security']) {
-    for (const [button, input] of [['choose', 'file'], ['take-photo', 'camera']]) {
-      document.getElementById(kind + '-' + button).onclick = () => document.getElementById(kind + '-' + input).click();
-      document.getElementById(kind + '-' + input).addEventListener('change', event => choose(kind, event.target.files?.[0]));
-    }
-    document.getElementById(kind + '-clear').onclick = () => { if (!uploading) clearImage(kind); };
-    document.getElementById(kind + '-upload-form').addEventListener('submit', async event => {
-      event.preventDefault(); if (uploading || !documentsEnabled) return;
-      const selected = selectedDocuments.get(kind); if (!selected) return;
-      const sequence = generation; uploading = true;
-      for (const button of documentForm.querySelectorAll('button')) button.disabled = true;
-      try {
-        await save();
-        const base64 = await new Promise((resolve, reject) => { const reader = new FileReader(); reader.onload = () => resolve(String(reader.result).split(',')[1]); reader.onerror = reject; reader.readAsDataURL(selected.file); });
-        if (sequence !== generation) return;
-        await workforceApi('/application/documents', { kind, base64 });
-        if (sequence === generation) { clearImage(kind); document.getElementById(kind + '-selection').textContent = 'Received securely — review pending'; await loadDocuments(); }
-      } catch (error) { if (sequence === generation) document.getElementById(kind + '-selection').textContent = error.message; }
-      finally {
-        uploading = false;
-        for (const button of documentForm.querySelectorAll('button')) button.disabled = false;
-        for (const key of ['identity', 'social_security']) document.getElementById(key + '-upload').disabled = !selectedDocuments.has(key);
-      }
-    });
+    document.getElementById(kind + '-choose').onclick = () => document.getElementById(kind + '-file').click();
+    document.getElementById(kind + '-file').addEventListener('change', event => { const file = event.target.files?.[0]; event.target.value = ''; choose(kind, file); });
+    document.getElementById(kind + '-take-photo').onclick = async () => {
+      const sequence = generation, file = await window.WorkforceCamera.capture(kind === 'identity' ? 'Take a Photo ID picture' : 'Take a Social Security card picture');
+      if (sequence === generation && sections[step] === 'Documents') await choose(kind, file);
+    };
+    document.getElementById(kind + '-upload-form').addEventListener('submit', event => event.preventDefault());
   }
   for (const kind of ['i9', 'w4', 'new_hire']) document.getElementById('complete-' + kind).onclick = async () => { try { await saveNavigation(); await window.WorkforceForms.open(kind, {...answers}); } catch (error) { showError(error); } };
   document.getElementById('job-description-read').addEventListener('change', event => {

@@ -3,7 +3,7 @@
 import { jobDescription, jobDescriptionSha256 } from "./jobDescription.js";
 import { readings } from "./readings.js";
 export const PACKET_SHA256 = "74ad51735132bbe38a07a8d89daaa51bc935650229a9c6f56d1c2e1b1dcd4a20";
-export const PACKET_VERSION = "pthhs-intake-2026-11-05-v5";
+export const PACKET_VERSION = "pthhs-intake-2026-11-05-v6";
 export interface IntakeField {
   id: string; label: string; section: string; sourcePage: number;
   type: "text" | "date" | "email" | "tel" | "textarea" | "ssn" | "choice";
@@ -11,7 +11,7 @@ export interface IntakeField {
 }
 const fields: IntakeField[] = [];
 function field(id: string, label: string, section: string, sourcePage: number, type: IntakeField["type"] = "text", required = false, options: string[] = []) {
-  fields.push({ id, label, section, sourcePage, type, required, maxLength: type === "textarea" ? 2000 : 250, options });
+  fields.push({ id, label, section, sourcePage, type: /phone$/i.test(id) ? "tel" : type, required, maxLength: type === "textarea" ? 2000 : 250, options });
 }
 field("jobDescriptionRead", "I have read the complete PAS attendant job description", "PAS attendant role", 1, "choice", true, ["Yes"]);
 field("jobDescriptionQuestions", "Questions (optional)", "PAS attendant role", 2, "textarea");
@@ -24,11 +24,11 @@ for (const [id, label] of [["street", "Street address"], ["unit", "Apartment, un
 field("phone", "Phone number", "Contact information", 3, "tel", true);
 field("alternatePhone", "Alternate phone number", "Contact information", 3, "tel");
 field("email", "Email address", "Contact information", 3, "email", true);
-for (const [id, label] of [["emergencyName", "In case of emergency, notify: name"], ["emergencyRelationship", "Relationship"], ["emergencyAddress", "Emergency contact address"]]) field(id!, label!, "Emergency contact", 3, "text", true);
+for (const [id, label] of [["emergencyName", "In case of emergency, notify: name"], ["emergencyRelationship", "Relationship"]]) field(id!, label!, "Emergency contact", 3, "text", true);
 field("emergencyPhone", "Emergency contact phone number", "Emergency contact", 3, "tel", true);
-field("availableDate", "Preferred start date", "Availability & eligibility", 3, "date");
+field("availableDate", "Preferred start date", "Availability & eligibility", 3, "date", true);
 field("workTime", "Full time / part time", "Availability & eligibility", 3, "choice", false, ["Full time", "Part time"]);
-field("weeklyHours", "Preferred weekly hours", "Availability & eligibility", 3, "choice", false, ["10", "20", "30", "40"]);
+field("weeklyHours", "Preferred weekly hours", "Availability & eligibility", 3, "choice", true, ["10", "20", "30", "40"]);
 field("eligibleToWork", "Are you eligible to work in the U.S.?", "Availability & eligibility", 3, "choice", true, ["Yes", "No"]);
 field("visaType", "If on visa, what type?", "Availability & eligibility", 3);
 field("conviction", "Have you ever been convicted of a crime?", "Availability & eligibility", 3, "choice", true, ["Yes", "No"]);

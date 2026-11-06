@@ -16,7 +16,7 @@ test("identity uploads cannot receive tax forms or other document categories",()
  assert.equal(documentKind("identity"),"identity");assert.equal(documentKind("social_security"),"social_security");
  for(const kind of ["i9","w4","new_hire","employment_authorization","",null])assert.throws(()=>documentKind(kind),/invalid_document_kind/);
 });
-const answers = () => ({ firstName: "Synthetic", lastName: "Applicant", applicationDate: "2026-11-05", email: "synthetic@example.invalid", phone: "555-0100", eligibleToWork: "Yes", conviction: "No", jobDescriptionRead: "Yes", ssn: "000-00-0000", birthDate: "2000-01-01", street: "100 Synthetic Street", city: "Synthetic City", state: "TX", zip: "77000", highSchool_school: "Synthetic High School", ...Object.fromEntries(readings.flatMap(r => [[`read_page_${r.page}`, "Read"], ...(r.agreement ? [[`terms_page_${r.page}`, "I have questions for HR before agreeing"]] : [])])), highSchool_completed: "2018", emergencyName: "Synthetic Contact", emergencyRelationship: "Friend", emergencyAddress: "1 Test Road", emergencyPhone: "555-0101" });
+const answers = () => ({ firstName: "Synthetic", lastName: "Applicant", applicationDate: "2026-11-05", email: "synthetic@example.invalid", phone: "555-0100", eligibleToWork: "Yes", conviction: "No", jobDescriptionRead: "Yes", ssn: "000-00-0000", birthDate: "2000-01-01", street: "100 Synthetic Street", city: "Synthetic City", state: "TX", zip: "77000", highSchool_school: "Synthetic High School", ...Object.fromEntries(readings.flatMap(r => [[`read_page_${r.page}`, "Read"], ...(r.agreement ? [[`terms_page_${r.page}`, "I have questions for HR before agreeing"]] : [])])), highSchool_completed: "2018", emergencyName: "Synthetic Contact", emergencyRelationship: "Friend", availableDate: "2026-11-10", weeklyHours: "20", emergencyPhone: "555-0101" });
 test("packet maps all 27 pages and only digitizes applicant-owned questions", () => {
   assert.deepEqual(packetInventory.flatMap(item => item.pages), Array.from({ length: 27 }, (_, i) => i + 1));
   assert.equal(new Set(intakePacket.fields.map(f => f.id)).size, intakePacket.fields.length);
@@ -25,13 +25,18 @@ test("packet maps all 27 pages and only digitizes applicant-owned questions", ()
   assert.ok(packetInventory.find(i => i.pages.includes(25))?.state.includes("current_official_form"));
 });
 test("owner-requested v2 groups, required fields, education and single work record are explicit", () => {
-  for(const id of ["firstName","lastName","emergencyName","emergencyRelationship","emergencyAddress","emergencyPhone"])assert.equal(intakePacket.fields.find(f=>f.id===id)?.required,true);
+  assert.ok(!intakePacket.fields.some(f=>f.id==="emergencyAddress"));
+  for(const id of ["firstName","lastName","emergencyName","emergencyRelationship","emergencyPhone","availableDate","weeklyHours"])assert.equal(intakePacket.fields.find(f=>f.id===id)?.required,true);
   for (const id of ["street", "birthDate", "ssn", "highSchool_school", "highSchool_completed", "jobDescriptionRead"]) assert.equal(intakePacket.fields.find(f => f.id === id)?.required, true);
   for (const field of intakePacket.fields.filter(f => f.id.startsWith("college_"))) assert.equal(field.required, false);
   assert.equal(intakePacket.fields.find(f => f.id === "firstName")?.section, "Contact information");
   assert.ok(!intakePacket.fields.some(f => f.section === "About you" || f.id.startsWith("job2_") || ["highSchool_major", "highSchool_degree"].includes(f.id)));
   assert.deepEqual(intakePacket.fields.find(f => f.id === "weeklyHours")?.options, ["10", "20", "30", "40"]);
   assert.ok(intakePacket.fields.some(f => f.id === "unit" && !f.required));
+});
+test("submission requires preferred start date and weekly hours without requesting an emergency address",()=>{
+ for(const id of ["availableDate","weeklyHours"] as const){const input=answers();input[id]="";const draft=saveIntake("synthetic-a",null,0,input,"synthetic-office",false,now);assert.throws(()=>submitIntake("synthetic-a",draft,1,{name:"Synthetic Applicant",electronicConsent:true,documentRead:true},now),/application_incomplete/);}
+ for(const field of intakePacket.fields.filter(f=>/phone$/i.test(f.id)))assert.equal(field.type,"tel");
 });
 
 test("updated duplex readings include all continuation pages and preserve a request to discuss terms without forcing agreement",()=>{
