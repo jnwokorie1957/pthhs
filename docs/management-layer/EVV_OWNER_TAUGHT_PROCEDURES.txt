@@ -36,7 +36,7 @@ below. No source confirmation, clock change, reason/action save or completed
 visit-maintenance correction has been taught or executed.
 
 MEMBER-SEARCH-001 - CURRENT WELLPOINT STAR KIDS EXAMPLE
-Version: 2. Owner-instructed search scope checked November 6.
+Version: 3. Owner-instructed search scope and next-member selection checked November 6.
 Scope: this teaching example, not the default payer for every future search.
 
 Owner direction: go to Member Search and use the Wellpoint STAR Kids payer.
@@ -61,6 +61,13 @@ outcome or confirm a visit here. The calendar demonstration moved through
 November 1-3, superseding November 5 for these particular examples. Member
 Search itself has no service-date selection.
 These search results do not establish approval of a 25-client automation pilot.
+
+For a later request to review the next member, rerun the same scoped search,
+recheck All coordinators and the exact payer, locate the previously reviewed
+source identity privately in the returned list, then select the immediately
+following result. Verify that the opened profile matches that selected result.
+Do not assume a fixed row number remains the next member after filters or
+result order change. This was checked in the subsequent owner-directed review.
 
 CALENDAR-CALL-001 - SCHEDULE, EVV AND EXISTING-CALL SEARCH
 Version: 2. Owner-taught navigation and interpretation, November 6.
@@ -207,7 +214,7 @@ Primetime confirmation API. Additional examples and automation policy remain
 subject to their own evidence, owner direction and supported source contract.
 
 SCHEDULE-GATE-001 - STOP WHEN EVV EXCEEDS SCHEDULED HOURS
-Version: 1. Explicit owner instruction November 6; applies to subsequent work.
+Version: 2. Explicit owner instruction and first candidate-overage stop November 6.
 
 The owner directed paying attention to scheduled hours and stopping to work
 together whenever EVV is greater than the scheduled hours.
@@ -231,8 +238,21 @@ together whenever EVV is greater than the scheduled hours.
    and unresolved, then continue only within the requested past-day review.
    Do not mark a missing-call visit confirmed merely to clear its queue.
 
-Follow-up evidence: eight selected-visit call pickers were empty, so no new
-source writes or overage handling occurred. The stop rule is recorded; a new
-positive overage case has not yet been worked through with the owner. Today's
-visits were excluded, and the final past-day Visit Info was left open with
-Find Calls closed. Scope limits remain explicit in REVIEW-DATES-001.
+First follow-up evidence: eight selected-visit call pickers were empty, so no
+source writes or overage handling occurred. Today's visits were excluded.
+Scope limits remain explicit in REVIEW-DATES-001.
+
+Subsequent next-member review: the first requested past-day visit had an
+existing clock-in and no linked clock-out, so its completed EVV duration was
+unknown. Find Calls returned multiple call-out candidates. Pairing the evening
+candidate with the recorded clock-in would exceed scheduled hours. The agent
+stopped immediately before selecting any reason/action, linking, editing or
+saving. The other candidate was not treated as interchangeable or inferred to
+belong to another date. Find Calls and the visit remain open for owner teaching;
+later dates are unreviewed and today was excluded. No new source write occurred.
+
+This demonstrates the candidate-overage stop before a new link. The source's
+recorded EVV duration remains unknown until a valid pair is established; do not
+misreport the prospective span as an already saved duration. Owner guidance on
+this overage and candidate ambiguity is pending. No resolution, exception policy
+or permission to continue the remaining dates is inferred from this stop.

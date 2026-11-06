@@ -147,9 +147,22 @@ results, with no linked EVV clocks displayed. No call link, reason/action save
 or visit submission was performed in this follow-up. The selected-query review
 is complete; those visits remain unresolved. The result does not establish
 exhaustive retained-history absence or confirmed visits. Per-day private source
-details remain in protected evidence. November 5 Visit Info is retained with
-Find Calls closed, and November 6 was not opened. No positive overage case was
-encountered or resolved; the new stop rule remains for the next genuine case.
+details remain in protected evidence. At that review's completion November 5
+Visit Info was retained with Find Calls closed, and November 6 was not opened.
+No positive overage case was encountered or resolved in that four-day follow-up.
+
+The owner subsequently requested the next same-payer member's November 1-5
+review with the same explicit stop condition. Reapplied the scoped search,
+matched the previous source identity privately and selected the following
+result, verifying the opened profile. The first requested day's visit has a
+recorded clock-in and no linked clock-out. Its source EVV duration is unknown.
+Find Calls returned multiple Call Out candidates; the evening candidate would
+produce a span greater than the schedule. SCHEDULE-GATE-001 stopped the work
+before reason/action selection, linking, edits or Save. The other candidate
+was not chosen or reassigned to another date. No new source write occurred.
+Find Calls remains open for owner teaching; later requested dates remain
+unreviewed and today's visits were excluded. Owner guidance on the overage and
+candidate ambiguity is pending; this is a verified stop, not a resolved case.
 
 This bounded browser example does not enable Primetime API writes or establish
 an autonomous routine/blanket110A policy, every source/payer acceptance, staff
