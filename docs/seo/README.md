@@ -3,6 +3,12 @@
 These files remain useful for planning, but they do not override current public
 facts, payer evidence, or claim-release controls.
 
+- [November 6 public delivery and SEO review](2026-11-06-seo-review.md) —
+  141 public routes, 20 exact artifacts and eight article graphs pass. The live
+  sitemap has 36 URLs; Google's dated successful canonical row still reports 34
+  discovered URLs. Private noindex/authentication protections and existing owner
+  location/claim blockers remain. No runtime defect, resubmission or new release.
+
 - [November 5 article delivery and SEO review](2026-11-05-seo-review.md) — both
   new guides and their listing links match served Git bytes. The 21:09 follow-up
   verifies 139 public routes/18 exact artifacts and an explicit October26–November1

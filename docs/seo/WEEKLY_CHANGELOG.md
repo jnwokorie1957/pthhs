@@ -2,6 +2,13 @@
 
 ## Week of November 2, 2026
 
+November6 16:19UTC trigger: all141public routes and20exact artifacts pass;
+eight article headlines/dates/resolved Organization authors match their source.
+The36-URL sitemap is delivered; normal Google Sitemaps rows remain Success with
+older34/34/33discovered counts, not indexed counts. Private noindex/authentication
+and owner claim/location gates remain. No runtime change or duplicate release.
+See [dated review](2026-11-06-seo-review.md).
+
 November5 21:09UTC: all139public routes and18exact artifacts pass technical
 delivery checks. The canonical Google sitemap row is Success/readNovember5/
 34discovered URLs, not an indexed count. Custom October26–November1 versus

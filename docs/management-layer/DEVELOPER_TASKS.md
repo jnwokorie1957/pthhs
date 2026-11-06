@@ -1,5 +1,12 @@
 # PTHHS Management Layer — Developer Checklist
 
+- [x] November6 public SEO delivery: 141 routes/20 exact artifacts and eight
+  article metadata graphs pass; the live sitemap contains36URLs. Normal Google
+  Sitemaps still reports dated successful34/34/33discovered rows. Private
+  noindex/anonymous401/no-store holds. No new runtime defect or owner decision
+  was established; existing location-promotion and search-outcome work remains.
+  [Dated delivery, processing and source limits](../seo/2026-11-06-seo-review.md).
+
 - [x] November6 14:34UTC draft-only caregiver entry correction: removed the
   browse-openings promise from the closed-account notice and aligned WF-007 with
   password/verification/recovery. PR11 commit e770d79; merge3b2490c preserves main
