@@ -43,3 +43,13 @@ Google sign-in explicitly requests the provider account chooser. The caregiver C
 ## Real Google account test
 
 Google is enabled in the existing Firebase project. Use `http://localhost:4176/caregiver` for real Google authentication; `4175` remains the synthetic walkthrough. The current caregiver SDK is Firebase compat 13.2.0, and its CSP allows the Google API helper plus same-origin/project auth frames. The test server validates real Firebase identities while rejecting all applicant/document writes. See [provider setup](PROVIDER_SETUP.md) for the owner handoff and other provider registrations. No operator credentials or provider secrets are stored in Git.
+
+## Management email/password sign-in
+
+The management dashboard now defaults to email/password sign-in using the same Firebase Authentication account and credentials as the caregiver sign-in page. **Email link** remains available as an alternate method. No account is created or linked by this screen. Server verification still requires an enabled verified Firebase identity, an active workforce grant, explicit permissions, office scope and recent authentication for sensitive records. A caregiver account without a staff grant cannot enter management by choosing the password option.
+
+Password fields use current-password autocomplete, are cleared immediately after submission and on method changes/sign-out, and are never logged or stored by application code. The existing SESSION persistence remains in place. Failed password attempts show generic messages. **Forgot password?** sends the standard Firebase reset email with a return to /primetime/workforce. Email-action links still confirm their recipient, consume the actual Firebase code and recover expired links to requesting a fresh link.
+
+The staff-only authentication asset loads before the common session controller and is retained by both release pruning checks. It is budgeted with the management page at 50 KB raw / 13 KB gzip; the caregiver/shared-workforce allowance is unchanged. Regression checks cover password forwarding/clearing, email-link mode and confirmation, invalid passwords, duplicate attempts, reset return paths, expired links and sign-out cleanup. Real password entry is performed by the owner; acceptance is recorded after successful live sign-in.
+
+Validation: 647 site/tooling/analytics tests and all local release checks pass. The backend remains unchanged from its 881 passing checks. The real hosted password form is open for the owner-controlled sign-in test; no password is requested in chat or entered by the agent.

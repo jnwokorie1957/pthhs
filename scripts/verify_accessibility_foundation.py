@@ -263,6 +263,7 @@ expected_runtime_assets = {
     "assets/workforce-application.js",
     "assets/workforce-personnel.js",
     "assets/workforce-management.js",
+    "assets/workforce-management-auth.js",
     "assets/workforce-management.css",
     "assets/workforce-address.js",
     "assets/workforce-readings.js",

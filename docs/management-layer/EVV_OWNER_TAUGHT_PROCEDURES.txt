@@ -214,7 +214,7 @@ Primetime confirmation API. Additional examples and automation policy remain
 subject to their own evidence, owner direction and supported source contract.
 
 SCHEDULE-GATE-001 - STOP WHEN EVV EXCEEDS SCHEDULED HOURS
-Version: 2. Explicit owner instruction and first candidate-overage stop November 6.
+Version: 3. Stop verified; one subsequent owner-directed exception saved November 6.
 
 The owner directed paying attention to scheduled hours and stopping to work
 together whenever EVV is greater than the scheduled hours.
@@ -222,6 +222,9 @@ together whenever EVV is greater than the scheduled hours.
 1. Inspect the selected visit's scheduled hours and actual EVV evidence before
    linking a call, changing a field or submitting. Keep scheduled, original
    EVV and adjusted Bill Time values separate.
+   Use the calendar's saved S span or Schedule tab for the actual schedule;
+   keep Visit Info's Suggested Schedule Time label distinct. Do not establish
+   a saved-schedule change solely by comparing differently labeled displays.
 2. If EVV exceeds the schedule, stop on that visit and wait for the owner. Do
    not continue other dates, apply a reason/action, link or save that case while
    waiting. Preserve the precise issue in protected evidence and explain it
@@ -248,11 +251,58 @@ unknown. Find Calls returned multiple call-out candidates. Pairing the evening
 candidate with the recorded clock-in would exceed scheduled hours. The agent
 stopped immediately before selecting any reason/action, linking, editing or
 saving. The other candidate was not treated as interchangeable or inferred to
-belong to another date. Find Calls and the visit remain open for owner teaching;
-later dates are unreviewed and today was excluded. No new source write occurred.
+belong to another date. At that checkpoint the source remained unchanged,
+Find Calls stayed open for owner teaching and later dates were unreviewed.
 
 This demonstrates the candidate-overage stop before a new link. The source's
 recorded EVV duration remains unknown until a valid pair is established; do not
-misreport the prospective span as an already saved duration. Owner guidance on
-this overage and candidate ambiguity is pending. No resolution, exception policy
-or permission to continue the remaining dates is inferred from this stop.
+misreport the prospective span as an already saved duration.
+
+The owner then specifically directed the evening candidate link, supplied fresh
+member verification for that case and required stopping on Visit Info before
+final Save. That one link was saved and read back, preserving the original
+clock-in. The owner subsequently clarified final Save with 110A/member action
+and the EVV-NOTE-001 note. Save was performed once and independently read back:
+the genuine EVV timestamps, approved bill-clock values, new saved reason/action
+row and exact requested note all persisted. No time field was edited by the
+agent. The Suggested Schedule Time span displayed after this workflow differed
+from its initial value. A separate calendar S check confirmed the current saved
+schedule span, alongside the separate EVV span. The initial calendar S was not
+independently captured; the exact cause/transition and any general scheduling/
+rounding policy were not established. Do not infer those from the suggestion.
+
+This is a specific owner-directed continuation after a successful stop, not
+permission to waive the stop rule on another case. Record the owner's actual
+instructions and carry out only those steps; a note template does not authorize
+an overage. Payer acceptance and a general exception policy remain unverified.
+
+After the approved save, the remaining requested past-day visits were reviewed
+in order. Eight selected-visit call pickers showed No Records; those visits
+were left unchanged and unresolved. No note was added to unverified/missing-call
+visits. The final past-day Visit Info remains open with Find Calls closed;
+today's visits were excluded. This review is not exhaustive retained-call absence.
+
+EVV-NOTE-001 - MEMBER-VERIFIED SERVICES AND ORIGINAL EVV TIMES
+Version: 1. Explicit owner instruction November 6; one note saved and read back.
+
+Owner instruction: every time, state member verified services were delivered
+in the notes, and include the EVV time. Apply this to subsequently authorized
+member-verified EVV maintenance entries, using the actual verification fact.
+
+Template, with placeholders rather than private source values:
+Member verified services were delivered. EVV clock-in: [original source date/time]; EVV clock-out: [original source date/time].
+
+Use the genuine source EVV timestamps, including their displayed dates and
+AM/PM. Do not substitute scheduled or Bill Time values, convert timezones,
+invent an unavailable endpoint, add a contact method/person or make a clinical
+claim. Missing evidence is not repaired by this note. Current-case owner
+attestation may support that case's call link and visit Save without asking
+again; do not transfer an attestation to another member or an unverified date.
+
+In the accepted example the exact note was placed in Visit Info New Note,
+checked before Save, then found intact in the saved reason/action history on
+an independent reload. A saved acknowledgment and stable visit/patient/office/
+caregiver identities plus service day and original clocks were checked. No
+historical notes were backfilled, and no note text containing real source times
+or identities was copied into this public register. API retrieval mapping for
+this specific note origin is not established by the UI save.

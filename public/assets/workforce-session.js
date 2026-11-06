@@ -5,7 +5,7 @@
   if (!form) return;
   const staff = location.pathname.startsWith('/primetime/');
   const prefix = staff ? '/primetime/workforce-api' : '/caregiver/workforce-api';
-  let auth, generation = 0, pendingLink = '', busy = false;
+  let auth, generation = 0, staffAuth;
   const errors = {
     opportunity_unavailable: 'This position is no longer available. Please browse the current openings.',
     invalid_opportunity: 'Check the recruiting area, hours, ZIP and at least one broad assistance need.',
@@ -81,7 +81,7 @@
     const sequence = ++generation;
     hide(); signout.hidden = !user;
     document.dispatchEvent(new CustomEvent('workforce-session-cleared'));
-    if (!user) { form.hidden = false; message('Enter your email to receive a secure sign-in link.'); return; }
+    if (!user) { form.hidden = false; message('Sign in with your email and password, or use an email link.'); return; }
     form.hidden = true; message('Verifying account access…');
     try {
       const actor = await api(staff ? '/session' : '/application/session');
@@ -104,36 +104,18 @@
       auth = firebase.auth();
       await auth.setPersistence(firebase.auth.Auth.Persistence.SESSION);
       if (auth.isSignInWithEmailLink(location.href)) {
-        pendingLink = location.href;
+        staffAuth.link(location.href);
         history.replaceState(null, '', staff ? '/primetime/workforce' : WorkforceContract.returnPath(location.search));
-        document.getElementById('workforce-login-button').textContent = 'Finish sign in';
       }
       auth.onAuthStateChanged(user => {
-        if (pendingLink) { form.hidden = false; message('Confirm the email that received this link.'); }
+        if (staffAuth.pending()) { form.hidden = false; message('Confirm the email that received this link.'); }
         else session(user);
       });
     } catch { message('Secure sign-in is unavailable. Please retry later.'); }
   }
   if (!staff) { window.WorkforceAccount.start({createAuth:()=>{auth=firebase.auth();return auth;},api}); return; }
   window.WorkforceSendPasswordReset=email=>auth.sendPasswordResetEmail(email,{url:location.origin+'/caregiver'});
-  form.addEventListener('submit', async e => {
-    e.preventDefault(); if (busy || !auth) return;
-    busy = true;
-    const button = document.getElementById('workforce-login-button'); button.disabled = true;
-    try {
-      const email = document.getElementById('workforce-email').value.trim();
-      if (pendingLink) {
-        const result = await auth.signInWithEmailLink(email, pendingLink);
-        pendingLink = ''; await session(result.user);
-      } else {
-        await auth.sendSignInLinkToEmail(email, {
-          url: location.origin + (staff ? '/primetime/workforce' : WorkforceContract.returnPath(location.search)), handleCodeInApp: true
-        });
-        message('Check your email for a sign-in link.');
-      }
-    } catch { message('Unable to complete sign-in. Check the email or request a fresh link by reloading this page.'); }
-    finally { busy = false; button.disabled = false; }
-  });
+  staffAuth=window.WorkforceManagementAuth({form,auth:()=>auth,session,message});
   signout.addEventListener('click', async () => {
     ++generation; hide(); document.dispatchEvent(new CustomEvent('workforce-session-cleared'));
     try { await auth.signOut(); } catch { message('Sign-out could not be confirmed. Close this browser session.'); }

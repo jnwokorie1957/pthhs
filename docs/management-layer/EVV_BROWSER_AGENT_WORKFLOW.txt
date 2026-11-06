@@ -155,14 +155,52 @@ The owner subsequently requested the next same-payer member's November 1-5
 review with the same explicit stop condition. Reapplied the scoped search,
 matched the previous source identity privately and selected the following
 result, verifying the opened profile. The first requested day's visit has a
-recorded clock-in and no linked clock-out. Its source EVV duration is unknown.
+recorded clock-in and no linked clock-out at the initial review. Its completed
+source EVV duration was unknown at that point.
 Find Calls returned multiple Call Out candidates; the evening candidate would
 produce a span greater than the schedule. SCHEDULE-GATE-001 stopped the work
 before reason/action selection, linking, edits or Save. The other candidate
-was not chosen or reassigned to another date. No new source write occurred.
-Find Calls remains open for owner teaching; later requested dates remain
-unreviewed and today's visits were excluded. Owner guidance on the overage and
-candidate ambiguity is pending; this is a verified stop, not a resolved case.
+was not chosen or reassigned to another date. At that stop no source write had
+occurred and the case remained open for owner guidance.
+
+The owner then directed the exact evening link, explicitly attested current-case
+member verification and required a stop on Visit Info before final Save. One
+link was submitted; an inconclusive tool response was reconciled without retry.
+Fresh source reads proved the approved clock-out, preserved clock-in and a new
+saved110A/member-action row. The helper tab closed. No final Save occurred until
+the owner separately clarified that step and requested the standard note.
+
+EVV-NOTE-001 records the new standing note instruction: member verified services
+were delivered, plus original EVV clock-in/out dates and times. The actual note
+stayed only in HHA/runtime; the register has placeholders. It was checked in
+New Note, saved once with the approved visit-level110A/member action and found
+exactly in saved reason/action history after independent reload. Original EVV
+and approved bill-clock values persisted. Visit Info's Suggested Schedule Time
+span after the link/save workflow differed from that field's initial display.
+A separate read of the actual calendar S line confirmed the current saved
+schedule and its separate EVV span. The initial saved S line was not captured,
+so a change in the actual schedule cannot be established solely from those
+different labels. No agent time-field edit occurred; the source cause/precise
+transition was not proven. The owner was told the observed values and label
+distinction. Use actual calendar/Schedule values for subsequent comparisons;
+this is not a general rounding rule or authorization to bypass the overage gate.
+
+UI readback retained visit/patient/office/caregiver identities and service day;
+volatile time-related URL parameters changed. Full query-string equality was
+not used as a substitute for record identity and independently saved fields.
+No API identity guard was changed. A successful Save can leave an Information
+has been saved message overlay; acknowledge its OK before calendar navigation.
+Inspect that blocker before repeating a failed calendar click; never repeat a
+Save merely because navigation or the immediate tool response was uncertain.
+
+The remaining four requested past-day visits were then reviewed: both Call In
+and Call Out for each showed No Records, eight actual source picker views.
+They remain unchanged/unconfirmed, with no note, link or Save performed there.
+The current requested member review is complete for those selected queries,
+not exhaustive retained-event absence or payer acceptance. November5VisitInfo
+is retained with Find Calls closed; today's visits were excluded. Reuse the
+standing note format only when member verification and the action are actually
+authorized; the general overage stop rule remains in force for new cases.
 
 This bounded browser example does not enable Primetime API writes or establish
 an autonomous routine/blanket110A policy, every source/payer acceptance, staff

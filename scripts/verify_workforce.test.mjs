@@ -71,7 +71,7 @@ test('new API uses existing project and preserves legacy routing and security bo
   assert.match(read('functions/src/index.ts'),/principal = await requirePrimetimeAdmin\(request\)/);
 });
 test('build pruning explicitly retains all workforce runtime assets', () => {
-  for (const asset of ['workforce-hha.js','workforce-management.css','workforce-management.js','workforce.css','workforce.js','workforce-contract.js','workforce-session.js','workforce-staff.js','workforce-application.js','workforce-personnel.js','workforce-address.js','workforce-readings.js','workforce-forms.js','workforce-form-fields.js','workforce-form-layout.css']) {
+  for (const asset of ['workforce-management-auth.js','workforce-hha.js','workforce-management.css','workforce-management.js','workforce.css','workforce.js','workforce-contract.js','workforce-session.js','workforce-staff.js','workforce-application.js','workforce-personnel.js','workforce-address.js','workforce-readings.js','workforce-forms.js','workforce-form-fields.js','workforce-form-layout.css']) {
     assert.ok(read('scripts/accessibility_foundation.py').includes('assets/'+asset));
     assert.ok(read('scripts/verify_accessibility_foundation.py').includes('assets/'+asset));
   }

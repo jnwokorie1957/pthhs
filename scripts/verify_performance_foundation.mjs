@@ -187,12 +187,12 @@ const phpFiles = await walk(publicDir, (file) => file.endsWith('.php'));
 if (phpFiles.length) errors.push(`public PHP endpoints remain: ${phpFiles.join(', ')}`);
 
 const publicFiles = await walk(publicDir);
-const isManagementFile=file=>['primetime/workforce.html','assets/workforce-management.css','assets/workforce-management.js'].includes(path.relative(publicDir,file).replaceAll(path.sep,'/'));
+const isManagementFile=file=>['primetime/workforce.html','assets/workforce-management.css','assets/workforce-management.js','assets/workforce-management-auth.js'].includes(path.relative(publicDir,file).replaceAll(path.sep,'/'));
 const managementFiles=publicFiles.filter(isManagementFile);
 const managementBytes=(await Promise.all(managementFiles.map(file=>fs.stat(file)))).reduce((sum,stat)=>sum+stat.size,0);
 let managementGzip=0;for(const file of managementFiles)managementGzip+=gzipSync(await fs.readFile(file)).length;
 // Dedicated staff dashboard: navigation, live summaries and task-specific panes, without a UI library.
-if(managementBytes>48_000||managementGzip>13_000)errors.push(`workforce management exceeds 48 KB raw / 13 KB gzip budget: ${managementBytes}/${managementGzip}`);
+if(managementBytes>50_000||managementGzip>13_000)errors.push(`workforce management exceeds 50 KB raw / 13 KB gzip budget: ${managementBytes}/${managementGzip}`);
 const isWorkforceFile = file => {
   const relative = path.relative(publicDir, file).replaceAll(path.sep, '/');
   return !isManagementFile(file)&&(relative === 'caregiver.html' || relative.startsWith('assets/workforce'));
