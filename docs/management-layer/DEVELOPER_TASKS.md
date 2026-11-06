@@ -1,5 +1,13 @@
 # PTHHS Management Layer — Developer Checklist
 
+- [ ] November6 source-action/M03 follow-up: design separate genuine-event
+  link, visit-save and independent readback receipts, current action/modality
+  permissions, and the owner-taught overage stop/unknown state. One specifically
+  approved HHA UI example is verified; Primetime API submission remains locked.
+  Positive overage, uncertain-response/revocation, patient/representative and PT
+  form/assignment cases still need acceptance. Nine proposed cases, dependencies
+  and primary references R101-R108 are in [role research](ROLE_WORKFLOW_RESEARCH.txt).
+
 - [x] November6 18:54UTC bounded live-source comparison: protected attachment
   restored; October23/24 first10details readable; November6 first page4readable/
   6read-limit-deferred. An independent exact October24 V3 read matches identity,
@@ -13,14 +21,15 @@
   jnwokorie@pthhs.net Outlook account to EINTSupport@hhaexchange.com; exact
   subject/sender/recipient verified in Sent Items. No private records or
   credentials attached. Vendor response/source-action acceptance remain pending.
-  Owner-taught SEARCH-001 is recorded; first visit-maintenance teaching remains open.
+  One case-specific HHA UI link/save passed readback; broader teaching remains open.
 
 - [x] Prepared the exact technical support email to HHA's published Enterprise
   Integration address and separated API-backed Primetime confirmation from a
   permitted assisted HHA browser operator. [Sent request](evv-maintenance-resources/HHA_INTEGRATION_SUPPORT_REQUEST_2026-11-06.txt)
   and [teaching/verification template](EVV_BROWSER_AGENT_WORKFLOW.txt) preserve
   real-call evidence, supervised pilot, later approved-rule processing and staff
-  escalations. Source writes and browser automation are not accepted by this plan.
+  escalations. General API/unattended source actions remain gated; the one approved HHA UI
+  example does not authorize other records or bypass M03/action acceptance.
 
 - [x] November6 draft management list coverage implemented in PR11/2e34eb6,
   with Careers asset-builder follow-up01defd7. Overview/inbox share a response;

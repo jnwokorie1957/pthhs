@@ -3172,3 +3172,212 @@ https://github.com/jnwokorie1957/pthhs/commit/01defd7a754f7149a893d050d4050b59d3
 https://github.com/jnwokorie1957/pthhs/blob/01defd7a754f7149a893d050d4050b59d35f8b6c/docs/workforce/LIST_COVERAGE.md
 https://github.com/jnwokorie1957/pthhs/blob/01defd7a754f7149a893d050d4050b59d35f8b6c/scripts/workforce-coverage.test.mjs
 https://github.com/jnwokorie1957/pthhs/actions/runs/42274334918
+
+
+NOVEMBER 6, 2026 - 20:27 UTC ROLE RESEARCH: CASE-SPECIFIC SOURCE ACTIONS
+Status: new observed-workflow evidence and proposed product requirements.
+This research pass made no HHA record operation, source import or communication.
+
+WHAT CHANGED; OBSERVED VERSUS PROPOSED
+The owning, separately authorized HHA walkthrough now records one genuine Call
+Out link followed by a separate Visit Info save. Both were independently read
+back. Owner attestation and approval applied to that example only. Source history
+distinguished the two actions; an older verification entry was not newly created.
+An inconclusive immediate Link response was reconciled without a second Link.
+The case-specific UI result supersedes earlier claims that no source example had
+ever succeeded. It does not enable the Primetime API or autonomous maintenance.
+Evidence is the nonsensitive taught register/workflow at 5dfc3da [R107]; this
+pass reviewed that recorded observation, not a fresh replay of the source UI.
+
+Concurrent owner teaching added SCHEDULE-GATE-001: stop and wait for the owner
+if actual EVV exceeds scheduled hours; do not continue other dates while waiting.
+An adjusted Bill Time span does not remove that stop. Missing endpoints, units
+or date coverage leave comparison unknown and require clarification before a
+write. The earlier approved source example preceded this instruction and cannot
+be reused as an automatic overage rule. No positive overage case has been tested.
+REVIEW-DATES-001 uses past service days through yesterday, not a rolling 24 hours.
+The subsequent selected November 2-5 visits had eight independently inspected
+Call In/Out pickers with no records. They were left unchanged/unresolved; this
+completes those queries, not exhaustive retained history or confirmed visits.
+
+Recorded UI limitation: Find Calls can be an owned popup absent from tab/DOM
+inventory. A hidden popup or an unrelated No Records section is not empty call
+evidence. Scope must remain bound to the actual visit, service day and direction,
+with closure checked before the next query. No private popup URL, subject/call
+identity, timestamp or saved record belongs in this research/public entry route.
+
+CURRENT PRIMARY GUIDANCE; DESIGN INFERENCES ARE IDENTIFIED
+HHA's maintenance guide describes filtered visits, EVV attempts, authorization
+links and link/edit actions with exception documentation [R101]. Its separate
+manual-confirmation guide distinguishes bulk operations and directs a calendar
+check after save [R102]. These public functions do not prove tenant entitlement,
+the correctness of a chosen code, payer acceptance or permission to automate.
+Product inference: keep discovery, evidence, proposal, authorized attempt and
+independent readback visibly separate; a populated field is not an action receipt.
+
+Vendor documentation locates Visit Maintenance authority in role permissions
+[R103]. Additional Call Dashboard permissions distinguish linking unrecognized
+phone, FOB and GPS evidence [R104]. Product inference: a general office role or
+view permission must not silently authorize every link/modality exception. Keep
+exact current action/office authority and any modality exception independently
+reviewable; do not change those settings to make an example work.
+
+HHS guidance requires identity/authority verification for an otherwise unknown
+personal representative before electronic PHI access [R105]. Proposed family
+membership must therefore be independently verified. A staff-recorded member
+attestation about one visit is not a reusable patient/representative portal grant.
+The HHS page was last reviewed July 26, 2013; retrieved November 6, 2026. It is
+not presented as a newly issued rule or a determination of this agency's status.
+
+For future skilled home-health/PT records, eCFR 484.110 describes assessment,
+plan, interventions/responses and progress content, authenticated author/time
+and protected records [R106]. Proposed clinical form/version/author links follow
+those concepts. Applicability, discipline, signature and retention policy still
+need the agency's verified scope; this research establishes no Medicare
+certification, offered therapy service, clinical decision or legal determination.
+
+PROPOSED ROLE EXPERIENCES AND SHARED LINKS
+Patient/representative: a permitted schedule shows scheduled time separately
+from recorded source events and office follow-up. Approved shared documents have
+their version/date/author and visibility scope; requests or corrections have an
+explicit receipt. A family member can supply a permitted visit statement only
+through an approved verified relationship and evidence channel. That statement
+does not authorize choosing HHA reason/action codes, editing clocks, submitting
+a source visit or seeing another member. Do not add messaging by implication.
+
+Staff/PT: My day and caseload are derived from effective assignments, office and
+verified discipline. A visit links to the applicable care plan/order and approved
+form instance/version; documentation retains author, review/signature state and
+amendment history. Clinical documentation remains separate from an EVV link or
+an HR application. An employee/HR UID or raw discipline code alone proves neither
+PT authority nor patient assignment. Explicitly granted maintenance work, if any,
+uses the independent action rules rather than inheriting clinical or HR powers.
+
+Office manager: one queue can connect schedule, authorization/service source,
+actual event attempts, office cases and billing follow-up, while preserving their
+separate dates, receipts, units and decisions. Track Call In, Call Out and Visit
+Info save independently for each selected date. A no-record query stays unresolved
+with bounded scope; today may be monitored but is outside this owner-taught
+past-day maintenance range. Stop on a possible overage before links/edits/save;
+do not use adjusted bill time to classify original EVV as within schedule. Unknown
+comparison inputs are not zero. Billing follow-up reports source state without
+declaring payable hours, cash, claim acceptance or a general rounding policy.
+
+Administrator/supervisor: authorize current office/assignment/action scope,
+review evidence and handle the owner's stop/escalation path. The proposed work
+areas are observe, propose, attest/review, link a genuine event, save a source
+visit, reconcile an uncertain attempt, and view/export permitted reports. These
+are proposed action categories, not newly registered permissions or grants.
+Revocation must apply at request, response, report and any later source action.
+
+The protected record chain should retain: principal and effective membership;
+patient/representative or staff assignment; source office/visit/service day;
+candidate event and direction; applicable source catalog/reason/action/note
+requirements; evidence receipt/fingerprint and proposal revision; actor approval
+and attestation provenance; separate per-action attempts and independent readback.
+Clinical links additionally retain plan/form version/author/reviewer. Public
+site entries remain generic sign-in/role guidance; no person-bearing deep link
+or picker URL is placed in marketing, analytics, public assets or research.
+
+CURRENT IMPLEMENTATION AND BOUNDARIES
+Main 5dfc3da maintenance source still preserves hhaSubmission=not_submitted;
+the HHA submit control is locked. Calls retain same-patient/caregiver/day evidence
+with visit linkage explicitly unproved. Office case queue labels do not establish
+scoped staff accounts. The external HHA UI example must not be used to mark a
+Primetime submission successful or fabricate a source call-to-visit API link.
+
+Draft PR11 advanced to a49dfcf. Its policy still has explicit HR/recruiting
+permissions and states that workforce roles do not imply legacy clinical/admin
+access. Management's coverage controller retains the verified capped-list fix.
+Normal PR quality 42276236543 has both jobs successful, independently read here.
+Provider setup still reports the real Google return/session handoff pending;
+the synthetic board/management-closed auth preview is not production acceptance.
+No suite, provider setup, role grant, clinical portal or deployment was repeated.
+
+PRIORITIES, DEPENDENCIES AND PRECISE NEXT ACTIONS
+P0: retain the supported source-action/catalog/readback gate and the owner-taught
+overage stop. Specify a protected per-action evidence/reconciliation contract
+before changing the local not_submitted model. An external source observation
+requires its own approved provenance/identity/readback channel; do not ingest
+browser-scraped records or populate it from this research. An uncertain attempt
+stays unknown until reconciled; a timeout is not permission to redispatch.
+P0: implement/test an explicit stop/unknown presentation for SCHEDULE-GATE-001
+and a service-date/direction progress model. Comparison basis, units/timezone and
+endpoint coverage must be accepted before a runtime overage calculation. No
+financial inference, source write or new grant is needed to design these cases.
+P1: M03 current principal/office/action and modality boundaries, then M04 scoped
+reports with separate linked/saved/readback/unresolved evidence and range coverage.
+P2: patient/representative schedule/document sharing and assigned staff/PT My day,
+caseload and versioned clinical documentation remain gated by exact relationship,
+discipline, form, sharing, signature and retention inputs. Reuse reviewed identity
+patterns; do not build an independent HR-derived clinical authority shell.
+
+Existing owner action: work together on the next genuine positive overage case
+if encountered; verify the comparison inputs before any new action and apply the
+stop instruction meanwhile. The earlier member attestation/link/save approvals
+are already consumed for their one completed example, not questions to ask again.
+General thresholds/exceptions, individual role/action and clinical/sharing inputs
+remain pending. The HHA technical email is already sent; vendor action remains
+the supported API event/visit/reason/action/preservation/readback contract. No
+resend, new owner prompt, account change or source action is made by this research.
+
+PROPOSED ACCEPTANCE CASES - NOT EXECUTED BY THIS RESEARCH
+1. Exercise the actual owned picker and a stale hidden picker on another day or
+   direction. Only verified current scope can supply evidence. No popup is an
+   unavailable observation, not No Records; changing date/direction closes and
+   invalidates prior candidates. Empty one-direction results imply no other query.
+2. At an office-timezone midnight boundary, maintenance eligibility stops at the
+   prior calendar day. Reports enumerate each requested day/direction/action;
+   one successful visit cannot complete an entire date range. Today-read access
+   remains distinct from maintenance eligibility.
+3. Separate link and Visit Info submission attempts/receipts. Preserve existing
+   original EVV fields; require current applicable reason/action/note rules and
+   actual attestation evidence. A matching reason label from another namespace
+   or the previous visit cannot authorize a new action.
+4. Make a Link/Save response uncertain. No automatic redispatch; refresh exact
+   source scope and reconcile history before offering an authorized next step.
+   Absent readback stays unknown/escalated, not failed or successfully completed.
+5. Provide positive, equal, missing-endpoint, cross-day, unclear-unit and
+   adjusted-bill-time examples for the overage gate. A verified overage stops all
+   later dates in that review until owner direction; unknown inputs stop writes.
+   Do not cap/round source punches to pass. The positive source case remains open.
+6. Revoke/move the office or effective assignment while a picker, approval,
+   source read or report is pending. Deny stale/foreign data and actions; HR
+   accounts.support, supervisor labels and matching names provide no fallback.
+7. Verify a permitted patient/representative statement and then revoke it. It
+   cannot grant another member's schedule/document or HHA action authority.
+   Owner-recorded case attestation is distinguishable from direct member input.
+8. Reassign a PT case or update its clinical form/plan version during editing.
+   Scope, author, reviewer and version are rechecked; source EVV/billing states
+   cannot sign a clinical note or fill missing documentation.
+9. Compare source readback, original EVV, adjusted bill fields and office case
+   status in an assigned report. A saved source step neither approves an entire
+   range nor establishes payer acceptance/payable hours; unavailable details and
+   source/cached/manual observation provenance remain explicit.
+
+PRIMARY SOURCES - RETRIEVED NOVEMBER 6, 2026
+[R101] HHAeXchange, Visit Maintenance Feature. Public functionality, not tenant
+entitlement or source-action acceptance for this agency.
+https://knowledge.hhaexchange.com/enterprise/Content/Documentation/Visit/Visit-N-Visit-Maintenance-S.htm
+[R102] HHAeXchange, Manually Confirm Visits. Separate bulk functions/calendar
+readback; not the exact transaction contract for this observed link/save example.
+https://knowledge.hhaexchange.com/enterprise/Content/Documentation/Visit/Visit-N-Manually-Confirm-Visits-S.htm
+[R103] HHAeXchange, Enable Visit Maintenance Permissions.
+https://knowledge.hhaexchange.com/enterprise/Content/Documentation/Admin/Admin-N-Visit-Maintenance-P.htm
+[R104] HHAeXchange, Permissions for Linking EVV; unrecognized phone/FOB/GPS scope.
+https://knowledge.hhaexchange.com/enterprise/Content/Documentation/Visit/Visit-N-Link-EVV-Permissions-P.htm
+[R105] HHS, verification of personal-representative identity/authority; older
+published guidance, last reviewed July 26, 2013, checked November 6, 2026.
+https://www.hhs.gov/hipaa/for-professionals/faq/how-would-a-covered-entity-know-if-someone-were-a-personal-representative/index.html
+[R106] eCFR, 42 CFR 484.110. Page displays title current through November 4, 2026;
+clinical record design reference subject to verified agency applicability.
+https://www.ecfr.gov/current/title-42/chapter-IV/subchapter-G/part-484/subpart-C/section-484.110
+[R107] Recorded authorized HHA observation and owner rules, main 5dfc3da.
+https://github.com/jnwokorie1957/pthhs/blob/5dfc3da4cec5bf56e28a7bf9db6d2f48b492c001/docs/management-layer/EVV_OWNER_TAUGHT_PROCEDURES.txt
+https://github.com/jnwokorie1957/pthhs/blob/5dfc3da4cec5bf56e28a7bf9db6d2f48b492c001/docs/management-layer/EVV_BROWSER_AGENT_WORKFLOW.txt
+https://github.com/jnwokorie1957/pthhs/blob/5dfc3da4cec5bf56e28a7bf9db6d2f48b492c001/functions/src/maintenance/service.ts
+[R108] Pinned draft HR/controller/provider evidence; draft remains unmerged.
+https://github.com/jnwokorie1957/pthhs/blob/a49dfcf8395bcf52695ef67f857f64fdb4130f2e/functions/src/workforce/policy.ts
+https://github.com/jnwokorie1957/pthhs/blob/a49dfcf8395bcf52695ef67f857f64fdb4130f2e/public/assets/workforce-management.js
+https://github.com/jnwokorie1957/pthhs/blob/a49dfcf8395bcf52695ef67f857f64fdb4130f2e/docs/workforce/PROVIDER_SETUP.md
+https://github.com/jnwokorie1957/pthhs/actions/runs/42276236543

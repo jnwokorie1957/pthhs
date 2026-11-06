@@ -19,10 +19,14 @@
   the applicable API contract and permitted supervised AI browser operation;
   patient records and credentials are excluded. Sent November 6 from the owner's
   specified jnwokorie@pthhs.net account and verified in Outlook Sent Items.
-- [ ] Teach the first straightforward actual-call maintenance procedure using
-  the [browser/API execution template](EVV_BROWSER_AGENT_WORKFLOW.txt): evidence,
-  permitted adjustment, reason/action/note, staff approval, HHA readback and
-  escalation. Later automatic processing remains a separate tested rule rollout.
+- [ ] Complete broader maintenance teaching and scoped-action acceptance using
+  the [browser/API execution template](EVV_BROWSER_AGENT_WORKFLOW.txt). One
+  specifically approved genuine call-out link and separate Visit Info save now
+  have independent source readback; their approvals are consumed for that case.
+  [Owner-taught rules](EVV_OWNER_TAUGHT_PROCEDURES.txt) require stopping for EVV
+  over schedule or unknown comparison inputs before a write. A positive overage
+  example, general exceptions and individual action authority remain pending;
+  later automation is a separate tested rollout. Do not repeat completed approvals.
 
 - [x] Original HHA visit form and agency reference tables inspected after owner
   sign-in. The selected visit exposes 28 reasons/five actions, using different
@@ -32,7 +36,8 @@
   eligible choices. The [prepared technical questions](evv-maintenance-resources/HHA_SUPPORT_QUESTIONS.txt)
   include the receipt/correlation. The concise email is sent; the full reference
   packet was not attached and HHA's reply is pending. Sign-in is resolved for the
-  current session; no source confirmation has been enabled.
+  current session; Primetime source submission remains disabled. The separately
+  approved HHA UI example does not establish its supported API action contract.
 
 - [x] An older cached visit can open a fresh HHA patient/day queue for office review.
   Production source reading and a neutral local-note save are verified, retaining
