@@ -65,3 +65,15 @@ test("storage failure propagates rather than reporting a successful save", async
   const store = new WorkforceStore({ collection: () => ({ doc: () => ({}) }), runTransaction: async () => { throw Error("storage unavailable"); } } as unknown as ConstructorParameters<typeof WorkforceStore>[0]);
   await assert.rejects(store.mutate("editor", "synthetic-id", 0, data), /storage unavailable/);
 });
+test("candidate interest is idempotent and accepts only a currently reviewed published opening",async()=>{
+ const f=fixture(),draft=await f.store.mutate("editor","synthetic-id",0,data);
+ await assert.rejects(f.store.interest("candidate","synthetic-id"),/opportunity_unavailable/);
+ const published={...draft,state:"published",review:{revision:draft.revision,reviewer:"independent-reviewer",at:"2026-11-05T00:00:00Z"}};
+ f.documents.set("workforceOpportunities/synthetic-id",published);
+ assert.deepEqual(await f.store.interest("candidate","synthetic-id"),{recorded:true,opportunityId:"synthetic-id"});
+ const before=structuredClone(f.documents);await f.store.interest("candidate","synthetic-id");assert.deepEqual(f.documents,before);
+ const interests=[...f.documents.entries()].filter(([key])=>key.startsWith("workforceOpportunityInterests/"));assert.equal(interests.length,1);
+ const interest=interests[0]![1] as {uid:string;office:string};assert.equal(interest.uid,"candidate");assert.equal(interest.office,"synthetic-office");
+ f.documents.set("workforceOpportunities/synthetic-id",{...published,state:"closed"});await assert.rejects(f.store.interest("other-candidate","synthetic-id"),/opportunity_unavailable/);
+ assert.equal([...f.documents.keys()].filter(key=>key.startsWith("workforceOpportunityInterests/")).length,1);
+});

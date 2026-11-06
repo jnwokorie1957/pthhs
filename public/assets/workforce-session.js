@@ -7,6 +7,7 @@
   const prefix = staff ? '/primetime/workforce-api' : '/caregiver/workforce-api';
   let auth, generation = 0, pendingLink = '', busy = false;
   const errors = {
+    opportunity_unavailable: 'This position is no longer available. Please browse the current openings.',
     invalid_opportunity: 'Check the recruiting area, hours, ZIP and at least one broad assistance need.',
     revision_conflict: 'This record changed. Refresh and reopen its latest revision.',
     independent_privacy_review_required: 'A different authorized staff member must review the public details and confirm the privacy attestation.',
@@ -101,6 +102,7 @@
       });
     } catch { message('Secure sign-in is unavailable. Please retry later.'); }
   }
+  if (!staff) { window.WorkforceAccount.start({createAuth:()=>{auth=firebase.auth();return auth;},api}); return; }
   form.addEventListener('submit', async e => {
     e.preventDefault(); if (busy || !auth) return;
     busy = true;

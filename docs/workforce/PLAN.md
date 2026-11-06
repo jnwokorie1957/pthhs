@@ -1,12 +1,18 @@
 # PTHHS caregiver workforce plan
 
-Authoritative architecture, implementation backlog and acceptance record. Version 8, November 5, 2026. Initial audit baseline: `93707e3` on `main`; current handoff integrates `main` through `86b6902`, preserving concurrent visit-maintenance controls, range/search/reason-staging tools, SEO records and production acceptance documentation. This file owns workforce delivery status; existing management and release documentation continues to own its established workflows.
+Authoritative architecture, implementation backlog and acceptance record. Version 9, November 6, 2026. Initial audit baseline: `93707e3` on `main`; current handoff integrates `main` through `86b6902`, preserving concurrent visit-maintenance controls, range/search/reason-staging tools, SEO records and production acceptance documentation. This file owns workforce delivery status; existing management and release documentation continues to own its established workflows.
 
 ## Scope and release state
 
 This change begins Phases 1–2 in the existing PTHHS repository. It is a review branch, not a production launch. No real staff accounts, role grants, patient openings, applicant records, SMS messages, employment decisions or vendor writes were created. Synthetic records exist only in tests. No production patient data was queried.
 
 **Implemented** means code exists. **Tested** identifies synthetic automated verification. **Pending** identifies work still to implement. **Blocked** identifies a specific external input or acceptance requirement. Neither a passing test nor a deployment establishes regulatory compliance.
+
+## Caregiver accounts and private opportunities
+
+Account creation, email verification, password sign-in and email recovery now use the existing Firebase Authentication email/password provider. The polished signed-in job board supports city/ZIP/schedule/hours filters, position details and application handoff. Both the public Careers page and openings API require sign-in before showing positions. Verified identities are required server-side, and application interest is idempotent and checked against a current published, privacy-reviewed opening. Credentials are managed in Firebase Authentication, outside application records and Git. See [account access](ACCOUNT_ACCESS.md) for the owner console and launch acceptance details.
+
+Validation: 843 backend and 588 site/tooling/analytics tests pass (1,431 total). Synthetic browser checks covered creation, verification, recovery and the board/application path. No real emails or accounts were created. The bounded workforce asset allowance is now 148 KB raw / 46 KB gzip; marketing and operations budgets are unchanged. Existing production release gates remain closed.
 
 ## Identity capture, form controls and application details (owner revision)
 

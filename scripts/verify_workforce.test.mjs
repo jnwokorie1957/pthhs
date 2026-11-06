@@ -34,7 +34,8 @@ test('ZIP, area, schedule, hours and type filters compose', () => {
 test('existing Careers URL, homeowner sign-in entry and staff entry remain reachable', () => {
   assert.match(read('public/index.html'),/href="\/caregiver">Caregiver Sign In/);
   assert.match(read('public/home-care-careers.html'),/https:\/\/pthhs.net\/home-care-careers/);
-  assert.match(read('public/home-care-careers.html'),/id="opportunity-filters"/);
+  assert.match(read('public/home-care-careers.html'),/Sign in to view openings/);
+  assert.doesNotMatch(read('public/home-care-careers.html'),/id="opportunity-filters"|id="opportunity-list"/);
   assert.match(read('source/primetime/index.html'),/href="\/primetime\/workforce"/);
   assert.match(read('public/primetime/workforce.html'),/id="staff-editor"/);
 });

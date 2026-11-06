@@ -33,7 +33,7 @@
     }
     target.append(list);
   }
-  window.WorkforceReview = { freeNavigation: () => reviewNavigation, paintMissing };
+  window.WorkforceReview = { freeNavigation: () => reviewNavigation, paintMissing, flush: saveNavigation };
   function focusMissing(id) { const control=document.getElementById(id); if(control?.disabled) control.closest('.packet-reading-card')?.querySelector('button')?.focus(); else control?.focus(); }
   function refreshCompleteness() {
     if (!packet || record?.state === 'submitted') { completionSummary.hidden = true; return; }
@@ -265,7 +265,7 @@
       const stageLabels = { application: 'Application', hr: 'The office completes this', onboarding: 'The office will guide you during onboarding', payroll: 'Secure payroll onboarding', employment: 'After employment begins' };
       for (const item of schema.inventory) inventory.append(text('li', item.title + ' — ' + stageLabels[item.stage]));
       const selected = WorkforceContract.selectedId(location.search);
-      document.getElementById('selected-opportunity').textContent = selected ? 'Selected opportunity: ' + selected + '. The office reviews your application before any assignment. Interest submission will be handled separately.' : '';
+      document.getElementById('selected-opportunity').textContent = event.detail.selectedOpportunity ? 'Applying for personal care attendant · ' + event.detail.selectedOpportunity.location + ' · ' + event.detail.selectedOpportunity.weeklyHours + ' hours/week. Your interest is recorded; complete your application below.' : selected ? 'Selected position reference: ' + selected : '';
       message.textContent = record ? 'Your saved application is ready.' : 'Read the PAS attendant role, then complete Contact information. Progress saves securely after you make changes.';
       render(); await loadDocuments();
     } catch (error) { if (sequence === generation) { showError(error); fields.replaceChildren(); form.hidden = true; signaturePanel.hidden = true; } }

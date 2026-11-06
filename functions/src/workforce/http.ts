@@ -35,7 +35,15 @@ export const workforceApi = process.env.PRIMETIME_API_ONLY_DEPLOY === "true" ? u
       res.json({ staffEnabled: staffEnabled.value() === "true", accountsEnabled: applicationsEnabled, applicationsEnabled, documentsEnabled: uploadsEnabled, addressLookupEnabled: placesApproved.value() === "true" }); return;
     }
     if (path === "/opportunities" && req.method === "GET") {
+      await workforceIdentity(req);
       res.json(publicEnabled.value() === "true" && staffEnabled.value() === "true" ? await new WorkforceStore().publicList() : { items: [], release: "pending" }); return;
+    }
+    const interest = path.match(/^\/opportunities\/([a-zA-Z0-9_-]{1,128})\/interest$/);
+    if (interest && req.method === "POST") {
+      if (!applicationsEnabled || publicEnabled.value() !== "true") throw new WorkforceError(503,"application_collection_pending");
+      const uid=await recentWorkforceIdentity(req);
+      if (!req.is("application/json") || req.rawBody.length>100 || !req.body || Array.isArray(req.body) || Object.keys(req.body).length) throw new WorkforceError(400,"invalid_request");
+      res.json(await new WorkforceStore().interest(uid,interest[1]!)); return;
     }
     // The schema has no completed records or original packet scans. Actual
     // collection requires separately reviewed server-side release parameters.

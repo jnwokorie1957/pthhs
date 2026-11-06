@@ -7,14 +7,14 @@ async function request(path: string, method = "GET") {
   process.env.WORKFORCE_PUBLIC_OPPORTUNITIES_APPROVED = "false";
   let status = 200, body: unknown;
   const headers: Record<string, string> = {};
-  const req = { path, method };
+  const req = { path, method, get: () => undefined };
   const res = { set: (k: string, v: string) => { headers[k] = v; }, status: (s: number) => { status = s; return res; }, json: (b: unknown) => { body = b; return res; } };
-  await workforceApi(req as Parameters<NonNullable<typeof workforceApi>>[0], res as unknown as Parameters<NonNullable<typeof workforceApi>>[1]);
+  await workforceApi(req as unknown as Parameters<NonNullable<typeof workforceApi>>[0], res as unknown as Parameters<NonNullable<typeof workforceApi>>[1]);
   return { status, body, headers };
 }
-test("public release remains empty without querying storage or requiring authentication", async () => {
+test("opportunities require sign-in even when release gates are closed", async () => {
   const result = await request("/caregiver/workforce-api/opportunities");
-  assert.equal(result.status, 200); assert.deepEqual(result.body, { items: [], release: "pending" });
+  assert.equal(result.status, 401); assert.deepEqual(result.body, { error: "sign_in_required" });
   assert.equal(result.headers["Cache-Control"], "no-store");
 });
 test("configuration cannot enable applicant collection and staff routes default closed", async () => {

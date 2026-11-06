@@ -92,7 +92,7 @@ for path in marketing_pages:
     if re.search(r"<!--\[if\s+(?:lt|gt|IE)", text, re.I):
         errors.append(f"obsolete IE conditional remains: {relative}")
     for href, label in parser.primary_actions:
-        if relative == "home-care-careers.html" and href == "/caregiver" and " ".join(label.split()) == "Sign In":
+        if relative == "home-care-careers.html" and href == "/caregiver" and " ".join(label.split()) in {"Sign In", "Sign in to view openings"}:
             continue
         if href != "/home-care-contact-us" or " ".join(label.split()) != "Get Started":
             errors.append(f"nonstandard primary action in {relative}: {href} / {label!r}")

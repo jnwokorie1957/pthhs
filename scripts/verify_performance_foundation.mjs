@@ -202,9 +202,9 @@ let workforceGzip = 0;
 for (const file of workforceFiles) workforceGzip += gzipSync(await fs.readFile(file)).length;
 // The actual packet wizard, private image capture and scoped HR review add no
 // browser library. Bound their added transfer separately from operations.
-// Direct camera capture, single-choice forms and phone formatting use no new
-// library. Reviewed workforce output is 121.4 KB raw / 37.7 KB compressed.
-if (workforceBytes > 124_000 || workforceGzip > 38_000) errors.push(`workforce output exceeds 124 KB raw / 38 KB gzip budget: ${workforceBytes}/${workforceGzip}`);
+// Complete account creation/recovery and the private job board add about 22 KB
+// raw / 7 KB gzip without a new runtime library. Keep separate from operations.
+if (workforceBytes > 148_000 || workforceGzip > 46_000) errors.push(`workforce output exceeds 148 KB raw / 46 KB gzip budget: ${workforceBytes}/${workforceGzip}`);
 const publicBytes = (await Promise.all(publicFiles.map((file) => fs.stat(file)))).reduce((sum, stat) => sum + stat.size, 0);
 const internalFiles = publicFiles.filter(file => isInternalAppFile(file, publicDir) && !isWorkforceFile(file));
 const internalBytes = (await Promise.all(internalFiles.map(file => fs.stat(file)))).reduce((sum, stat) => sum + stat.size, 0);
