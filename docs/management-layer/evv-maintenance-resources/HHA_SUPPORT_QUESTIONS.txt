@@ -124,6 +124,14 @@ publishes EINTSupport@hhaexchange.com and routing to EISD Production Support;
 ask that team to identify the applicable existing-HHA-origin interface.
 The owner authorized the specific concise email and specified the business
 sender; that message has been sent once from the verified Outlook account.
+November6 21:02UTC: the verified business mailbox contains an HHA-domain
+acknowledgment for the exact request subject, received17:55:55Z. The available
+preview confirms receipt and Customer Care review and includes a case reference.
+Keep that reference/private message link in the mailbox. No full body or
+attachment was fetched and no technical API/action/field contract is established
+by this acknowledgment. Follow the existing case; do not resend or send a new
+follow-up without its own instruction. The active HHA prospective-overage
+STOP/WAIT handoff is independent and remains with the owner.
 
 Also establish whether the agency's agreement supports a supervised AI browser
 operator assisting authorized staff through existing HHA Visit Maintenance,

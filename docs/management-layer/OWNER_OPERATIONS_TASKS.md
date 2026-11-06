@@ -18,7 +18,10 @@
   to EINTSupport@hhaexchange.com. It contains technical diagnostics and asks for
   the applicable API contract and permitted supervised AI browser operation;
   patient records and credentials are excluded. Sent November 6 from the owner's
-  specified jnwokorie@pthhs.net account and verified in Outlook Sent Items.
+  specified jnwokorie@pthhs.net account and verified in Outlook Sent Items. A
+  matching HHA-domain case acknowledgment received17:55:55Z is now verified from
+  headers/preview; the private case reference stays in the mailbox. Technical
+  contract/entitlement acceptance is still pending; do not resend.
 - [ ] Complete broader maintenance teaching and scoped-action acceptance using
   the [browser/API execution template](EVV_BROWSER_AGENT_WORKFLOW.txt). One
   specifically approved genuine call-out link and separate Visit Info save now
@@ -35,7 +38,8 @@
   contract. The exact same UI visit passes API identity checks but returns no
   eligible choices. The [prepared technical questions](evv-maintenance-resources/HHA_SUPPORT_QUESTIONS.txt)
   include the receipt/correlation. The concise email is sent; the full reference
-  packet was not attached and HHA's reply is pending. Sign-in is resolved for the
+  packet was not attached. HHA acknowledged a case; the technical response and
+  supported source contract remain unestablished. Sign-in is resolved for the
   current session; Primetime source submission remains disabled. The separately
   approved HHA UI example does not establish its supported API action contract.
 

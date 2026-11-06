@@ -75,10 +75,25 @@ approved limited automation, then build the owned scheduling platform.
     address, covering exact-visit lookup/action/readback and permitted assisted
     browser operation. HHA_INTEGRATION_SUPPORT_REQUEST_2026-11-06.txt records
     the owner-authorized November 6 send from jnwokorie@pthhs.net, verified in
-    Outlook Sent Items. The vendor response/source contract remain pending.
+    Outlook Sent Items. November6 21:02UTC check of the same business mailbox
+    finds an HHA-domain acknowledgment received17:55:55Z for the exact request
+    subject. Its preview confirms receipt and Customer Care case review; a case
+    reference is present and stays in the mailbox. No full body was fetched.
+    This proves acknowledgment, not the supported source/API contract. Technical
+    details remain unestablished; await the existing case rather than resending.
 [x] M05a API/browser teaching template recorded in EVV_BROWSER_AGENT_WORKFLOW.txt.
-    Primetime confirmation remains the goal; neither execution route has passed
-    source-write acceptance. Owner example/rule/pilot selection remains open.
+    Primetime confirmation remains the goal. One specifically owner-approved
+    HHA UI call link and separate visit save now have independent readback; this
+    does not enable Primetime API writes or generalize authority to other records.
+    Broader rule/pilot and scoped-action acceptance remain open.
+[ ] M05b The subsequent prospective candidate-pair overage triggered the owner's
+    STOP/WAIT rule before any link, reason/action, Save or later-date review.
+    The stop is demonstrated; resolution/comparison policy remain unaccepted.
+    Continue only after the existing owner-guidance question is answered; do not
+    continue other HHA dates or treat the unlinked candidate as recorded EVV.
+    EVV_OWNER_TAUGHT_PROCEDURES.txt preserves the exact bounded teaching scope.
+    This21:02UTC pass did not access HHA or re-read historical/current API pages;
+    the18:54comparison stays dated, P03/E04 open and originalOct24resolved.
 [x] M01d Cached-visit shortcut reads fresh protected patient/day evidence; production
     returned 1/1 source IDs, opened the row and saved a neutral private review note
     with audit history, preserving existing case status/queue. Source writes remain

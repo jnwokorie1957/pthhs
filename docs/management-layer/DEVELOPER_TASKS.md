@@ -20,7 +20,9 @@
 - [x] Owner-authorized HHA support email sent November 6 from the verified
   jnwokorie@pthhs.net Outlook account to EINTSupport@hhaexchange.com; exact
   subject/sender/recipient verified in Sent Items. No private records or
-  credentials attached. Vendor response/source-action acceptance remain pending.
+  credentials attached. The business mailbox now has an HHA case acknowledgment
+  for the exact request (received November6 17:55:55Z); technical source-contract/
+  generalized action acceptance remain pending. No resend or new source read.
   One case-specific HHA UI link/save passed readback; broader teaching remains open.
 
 - [x] Prepared the exact technical support email to HHA's published Enterprise
