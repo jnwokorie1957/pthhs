@@ -48,6 +48,17 @@ approved limited automation, then build the owned scheduling platform.
     COMPACT_WORKSPACE_AND_REASON_CATALOGS_2026-11-05.md.
 [x] M01a Administrator review workspace implemented: full office/day source queue,
     durable source-bound cases, genuine scoped call evidence and proposals.
+[x] M01c November6 card/filter correction accepted: Open office reviews excludes
+    completed reviews; case-card counts join to loaded source visits. Shortcuts
+    clear text/reset paging. Runtime7b04ff0,normal42167961782 all4jobs pass;
+    2fail-before regressions/563frontend-tooling/25site checks,17exact private
+    assets and11anonymous401JSON/no-store/noindex boundaries pass. Production
+    service-dayNovember5:639loaded/407EVV-gap matches,1completed saved review,
+    0open/awaiting subsets; default40rows/next80/reset40 verified. Cache remains
+    explicitly stale with03:12:13.393Z-04:48:19.682Z November6 generation receipts;
+    no new scan, recovered clock/hour, save or HHA confirmation claimed. Positive
+    open/awaiting and off-list cases remain synthetic; M03/M02 stay open. See
+    MAINTENANCE_CARD_FILTERS_2026-11-06.md for bounded acceptance and cleanup.
 [x] M04a Local office reports implemented: queue/follow-up/explanation, selected
     actual calls, provenance and explicit loaded-page coverage; no HHA completion
     claim. Production save, empty scoped call receipt, report download and reload

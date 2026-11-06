@@ -1,5 +1,14 @@
 # PTHHS Management Layer — Developer Checklist
 
+- [x] November6 maintenance card/filter correction: Open office reviews excludes
+  completed reviews; both case cards count only reviews with loaded source visits.
+  Card shortcuts clear text and reset visual paging. Two fail-before regressions,
+  all563frontend/tooling checks,25site checks and all4normal release jobs pass.
+  Production verifies one completed saved review excluded from the zero-open
+  subset, all639/407card matches, text clearing and paging reset over an explicitly
+  stale dated cache. No source read/save or role activation was introduced. See
+  [scope, acceptance and limits](MAINTENANCE_CARD_FILTERS_2026-11-06.md).
+
 - [x] Cached maintenance visits have a fresh patient/day source-read action using
   protected search receipts. Production reads 1/1 returned IDs and saves a neutral
   local-review note with audit history; stale cache guards and HHA write gates stay

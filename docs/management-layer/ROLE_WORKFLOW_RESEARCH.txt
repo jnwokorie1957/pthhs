@@ -1,7 +1,7 @@
 PRIMETIME ROLE AND WORKFLOW RESEARCH
 Updated: November 5, 2026, America/Chicago
 Scope: PTHHS /primetime, repository jnwokorie1957/pthhs.
-Latest engineering evidence: November6 UTC reconciliation preserves the accepted November5 administrator office-day and local maintenance work, adds the successful compact-workspace release and independently verified billing-clock projection, and retains their native/source limits. Agency reference lists do not establish visit-specific actions. Named staff access, authoritative event links, HHA submissions, clinical roles and pilot/automation remain open. See the November6 00:31UTC section below.
+Latest engineering evidence: November6 UTC administrator card/filter correction is deployed and accepted over a dated stale source cache; see MAINTENANCE_CARD_FILTERS_2026-11-06.md and the 05:14UTC implementation below. Concurrent compact/reference and fresh patient/day acceptance in a7f8421 supersedes older pending desktop-control statements, within its dated limits. Billing-clock acceptance and O03/local office review remain intact. Agency lists are not visit-specific actions. Scoped staff, clinical/family authority, original-event links, HHA submissions and pilot gates remain open.
 Latest focused research: November6,2026,00:31UTC trigger (November5 office-local day). New R92 linked-payer note/reason guidance and R93 disclosure guidance inform proposed source applicability and compact role navigation. R88-R91 restricted-role requirements remain. Current priority is maintenance-first; earlier manual-snapshot priorities below are historical and do not authorize new scraped imports.
 Broad role review: November 3, 2026, 09:42 UTC heartbeat. Rechecked the official Family Dashboard [R63] and Forms [R60] guidance against repository 9821769 and the cumulative role proposals below. Requests, source holds, encounter documentation and review remain distinct; no new tenant UI or source-read acceptance is claimed by that research pass. Latest bounded implementation: 9fb89f1 Advanced EVV source-context fences, accepted 19:55-19:57 UTC; acf7e6d exact read receipts accepted 19:15 UTC. Patient/PT role, document/action, source-time/E04, usable billing/B02 and availability dependencies remain open. Dated primary links and acceptance evidence follow; earlier next-task statements are historical checkpoints.
 
@@ -2631,3 +2631,34 @@ Rechecked existing HHA workflow sources, with no new tenant acceptance:
 https://knowledge.hhaexchange.com/enterprise/Content/Documentation/Visit/Visit-N-Visit-Maintenance-S.htm
 https://knowledge.hhaexchange.com/enterprise/Content/Documentation/Clinical/Clinical-N-HHAX-Forms-Basic.htm
 https://knowledge.hhaexchange.com/enterprise/Content/Documentation/Patient/Pat-N-Family-Portal-Schedule-Function-P.htm
+
+NOVEMBER 6, 2026, 05:14 UTC - ADMINISTRATOR CARD/FILTER IMPLEMENTATION
+Runtime7b04ff0 and all4normal42167961782 jobs pass. The Open office cases metric
+previously counted unresolved reviews but opened all saved states, including
+completed reviews. Case-card counts could include saved cases absent from the
+loaded source visits; retained text filters could hide counted matches.
+Open office reviews now has its own unresolved filter. Open/awaiting cards use
+loaded visit joins and labels; all card shortcuts clear text and reset paging40.
+Saved cases and local report scope retain their independent meanings. No source,
+role, clinical/financial, HHA action, account or permission contract changed.
+
+Two fail-before regressions,563frontend/tooling checks,25ordered site checks,
+17asset preservation,3timezones x8time checks,17exact/noindex production assets
+and11anonymous protected boundaries pass. Native production shows1completed
+saved case and0open/awaiting subsets; completed review remains in Saved cases.
+All639loaded/407missing-field matches, keyboard Enter, text clearing, paging80
+and reset40 agree. This uses an explicitly stale November5 cache whose November6
+source generation ran03:12:13.393Z-04:48:19.682Z, not a new source scan or newly
+resolved EVV work. Positive open/awaiting and off-list cases remain synthetic;
+broader keyboard/AT and patient/staff/PT capabilities are not accepted here.
+
+The owning a7f8421 compact/reference and fresh patient/day evidence supersedes
+older pending desktop-control statements in this cumulative research. Native
+current source reason lists remain reference-only; exact reason/action, genuine
+event linkage and supported confirmation/readback gates remain open. This pass
+made no fresh source shortcut/call read, case save, import or communication.
+Isolated native verification restored default filters/Overview/officeToday/Live,
+closed its own tab and cleared private buffers. See
+MAINTENANCE_CARD_FILTERS_2026-11-06.md for scope, test/native evidence and limits.
+M03 effective principal/membership/action work remains next; owner activation
+inputs and M02/vendor source semantics remain with their existing reviews.
