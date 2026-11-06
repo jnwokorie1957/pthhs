@@ -41,7 +41,7 @@
   const inlineRead = () => readHome && $('readForm').parentElement === $('patientAuthorizationHost');
   function dockRead(inline) {
     if (!readHome) return;
-    const host = inline ? $('patientAuthorizationHost') : readHome;
+    const host = inline ? $('patientAuthorizationHost') : readHome.querySelector?.(':scope > .workspace-disclosure > .workspace-disclosure-body') || readHome;
     host.append($('readForm'), $('readResults'));
     $('readOperation').closest('label').hidden = inline;
     $('readPatient').readOnly = $('readId').readOnly = inline;

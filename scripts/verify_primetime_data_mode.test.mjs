@@ -3499,6 +3499,12 @@ test('patient authorization selection opens one scoped reader in Patients and re
   assert.equal(app.element('readPatient').readOnly, false); assert.equal(app.element('fixtureOperationLabel').hidden, false);
   assert.equal(app.calls.length, before);
 });
+test('returning an inline source reader keeps the form and results inside its folded tool body',async()=>{
+ const app=connectedWorkspace({enabledReads:['GetPatientDemographics','SearchPatientAuthorizations']});await app.signIn();await tick();await tick();
+ const home=app.element('fixtureReadHome'),body=app.element('fixtureDisclosureBody');body.append=home.append;home.append(body);home.querySelector=selector=>selector===':scope > .workspace-disclosure > .workspace-disclosure-body'?body:null;
+ await clickNode(authorizationButtons(app)[0]);assert.equal(app.element('readForm').parentElement,app.element('patientAuthorizationHost'));
+ app.document.dispatchEvent(new DetailEvent('primetime-view-changed',{detail:{view:'workbench'}}));assert.equal(app.element('readForm').parentElement,body);assert.equal(app.element('readResults').parentElement,body);assert.equal(home.children.includes(app.element('readForm')),false);
+});
 
 test('inline authorization failures and exact contract selection remain visible without legacy ambiguous shortcuts', async () => {
   let fail = false;
