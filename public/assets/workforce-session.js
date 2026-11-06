@@ -9,6 +9,8 @@
   const errors = {
     opportunity_unavailable: 'This position is no longer available. Please browse the current openings.',
     invalid_opportunity: 'Check the recruiting area, hours, ZIP and at least one broad assistance need.',
+    caregiver_document_download_failed_application_http_400_vendor_negative_310_reason_file_unavailable: 'HHA has this document record, but no file is attached.',
+    hha_document_not_attached: 'HHA has this document record, but no file is attached.',
     caregiver_account_unavailable: 'This caregiver profile is unavailable to your account.',
     print_packet_too_large: 'Packet too large. Print each file separately.',
     invalid_caregiver_name: 'Enter a first or last name.',

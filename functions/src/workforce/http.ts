@@ -1,3 +1,5 @@
+import {getFirestore} from "firebase-admin/firestore";
+import {cachedHhaNames} from "./hhaCachedNames.js";
 import { randomUUID } from "node:crypto";
 import { onRequest } from "firebase-functions/v2/https";
 import { defineString } from "firebase-functions/params";
@@ -60,10 +62,10 @@ export const workforceApi = process.env.PRIMETIME_API_ONLY_DEPLOY === "true" ? u
   try {
     const applicationsEnabled = staffEnabled.value() === "true" && collectionApproved.value() === "true" && packetApproved.value() === "true" && !!intakeOffice.value();
     const uploadsEnabled = applicationsEnabled && documentsApproved.value() === "true" && retentionApproved.value() === "true";
-    const existingAccessEnabled=applicationsEnabled&&hhaPortalApproved.value()==="true"&&hhaDataApproved.value()==="true";
+    const existingAccessEnabled=staffEnabled.value()==="true"&&hhaPortalApproved.value()==="true"&&hhaDataApproved.value()==="true";
     if (path === "/configuration" && req.method === "GET") {
       const enabledSignInProviders=signInProviders.value().split(",").map(p=>p.trim()).filter(p=>["google.com","apple.com","microsoft.com","yahoo.com"].includes(p));
-      res.json({ staffEnabled: staffEnabled.value() === "true", accountsEnabled: applicationsEnabled, applicationsEnabled, documentsEnabled: uploadsEnabled, addressLookupEnabled: placesApproved.value() === "true", enabledSignInProviders,existingAccessEnabled }); return;
+      res.json({ staffEnabled: staffEnabled.value() === "true", accountsEnabled: applicationsEnabled||existingAccessEnabled, applicationsEnabled, documentsEnabled: uploadsEnabled, addressLookupEnabled: placesApproved.value() === "true", enabledSignInProviders,existingAccessEnabled }); return;
     }
     if(path==="/existing-caregiver/access"&&req.method==="POST"){
       if(!existingAccessEnabled)throw new WorkforceError(503,"existing_access_pending");
@@ -85,16 +87,20 @@ export const workforceApi = process.env.PRIMETIME_API_ONLY_DEPLOY === "true" ? u
     // collection requires separately reviewed server-side release parameters.
     if (path === "/application/packet" && req.method === "GET") { res.json({ packet: intakePacket, inventory: packetInventory }); return; }
     if (path === "/application/session" && req.method === "GET") {
-      if (!applicationsEnabled) throw new WorkforceError(503, "application_collection_pending");
-      const uid=await workforceIdentity(req),existing=existingAccessEnabled?await(await hhaEnrollment()).link(uid):null;await new AccountSupport().register(uid,existing?.office||intakeOffice.value());
+      if (!applicationsEnabled&&!existingAccessEnabled) throw new WorkforceError(503, "application_collection_pending");
+      const uid=await workforceIdentity(req),existing=existingAccessEnabled?await(await hhaEnrollment()).link(uid):null;if(existing||applicationsEnabled)await new AccountSupport().register(uid,existing?.office||intakeOffice.value());
       res.json({ uid, kind: "caregiver", applicationsEnabled, documentsEnabled: uploadsEnabled, addressLookupEnabled: placesApproved.value() === "true",existingCaregiver:!!existing }); return;
+    }
+    if(path==="/application/hha-profile"||/^\/application\/hha-files\/[1-9]\d{0,9}$/.test(path)){
+      if(!existingAccessEnabled)throw new WorkforceError(503,"existing_access_pending");const uid=await recentWorkforceIdentity(req);
+      if(path==="/application/hha-profile"&&req.method==="GET"){if(!existingAccessEnabled)throw new WorkforceError(503,"existing_access_pending");res.json(await(await hhaEnrollment()).profile(uid));return;}
+      const hhaFile=path.match(/^\/application\/hha-files\/([1-9]\d{0,9})$/);
+      if(hhaFile&&req.method==="GET"){if(!existingAccessEnabled)throw new WorkforceError(503,"existing_access_pending");const file=await(await hhaEnrollment()).file(uid,hhaFile[1]!);res.set("Content-Type",file.bytes.subarray(0,5).toString("ascii")==="%PDF-"?"application/pdf":"application/octet-stream");res.set("Content-Disposition","attachment; filename*=UTF-8''"+encodeURIComponent(file.filename));res.set("Content-Security-Policy","sandbox");res.send(file.bytes);return;}
+      throw new WorkforceError(405,"method_not_allowed");
     }
     if (path === "/application" || path.startsWith("/application/")) {
       if (!applicationsEnabled) throw new WorkforceError(503, "application_collection_pending");
       const uid = await recentWorkforceIdentity(req), store = new IntakeStore();
-      if(path==="/application/hha-profile"&&req.method==="GET"){if(!existingAccessEnabled)throw new WorkforceError(503,"existing_access_pending");res.json(await(await hhaEnrollment()).profile(uid));return;}
-      const hhaFile=path.match(/^\/application\/hha-files\/([1-9]\d{0,9})$/);
-      if(hhaFile&&req.method==="GET"){if(!existingAccessEnabled)throw new WorkforceError(503,"existing_access_pending");const file=await(await hhaEnrollment()).file(uid,hhaFile[1]!);res.set("Content-Type",file.bytes.subarray(0,5).toString("ascii")==="%PDF-"?"application/pdf":"application/octet-stream");res.set("Content-Disposition","attachment; filename*=UTF-8''"+encodeURIComponent(file.filename));res.set("Content-Security-Policy","sandbox");res.send(file.bytes);return;}
       const officialForm = path.match(/^\/application\/forms\/(i9|w4|new_hire)(\/pdf)?$/);
       if (officialForm) {
         if (!uploadsEnabled) throw new WorkforceError(503, "document_collection_pending");
@@ -166,7 +172,7 @@ export const workforceApi = process.env.PRIMETIME_API_ONLY_DEPLOY === "true" ? u
     }
     const rosterDetail=path.match(/^\/staff\/roster\/([1-9]\d{0,9})\/(detail|access|files\/([1-9]\d{0,9}))$/);
     if(rosterDetail){
-      if(!applicationsEnabled||hhaDataApproved.value()!=="true")throw new WorkforceError(503,"existing_access_pending");await recentWorkforceIdentity(req);
+      if(!existingAccessEnabled)throw new WorkforceError(503,"existing_access_pending");await recentWorkforceIdentity(req);
       const actor=await store.actor(uid),service=await hhaEnrollment(),profile=existingAccessEnabled?await service.stage(actor,rosterDetail[1]!):await service.inspect(actor,rosterDetail[1]!);
       if(rosterDetail[2]==="access"&&req.method==="POST"){if(!existingAccessEnabled)throw new WorkforceError(503,"existing_access_pending");if(!req.is("application/json")||req.rawBody.length>100||!req.body||Object.keys(req.body).length)throw new WorkforceError(400,"invalid_request");res.json(await service.requestAccess(profile.email,"staff:"+uid));return;}
       if(req.method!=="GET")throw new WorkforceError(405,"method_not_allowed");
@@ -175,24 +181,24 @@ export const workforceApi = process.env.PRIMETIME_API_ONLY_DEPLOY === "true" ? u
       const currentActor=await store.actor(uid);requirePermission(currentActor,"accounts.support",profile.office);const documentsAllowed=currentActor.grant.permissions.includes("documents.review");if(!documentsAllowed){files=null;delete profile.fields.BirthDate;}res.json({profile,files,filesUnavailable:!files,filesPermissionDenied:!documentsAllowed,accessEnabled:existingAccessEnabled});return;
     }
     const rosterProfile=path.match(/^\/staff\/roster\/([1-9]\d{0,9})\/profile$/);
-    if(rosterProfile&&req.method==="GET"){if(!applicationsEnabled)throw new WorkforceError(503,"application_collection_pending");await recentWorkforceIdentity(req);res.json(await hhaDirectory(uid).profile(rosterProfile[1]!));return;}
+    if(rosterProfile&&req.method==="GET"){if(!applicationsEnabled&&!existingAccessEnabled)throw new WorkforceError(503,"application_collection_pending");await recentWorkforceIdentity(req);res.json(await hhaDirectory(uid).profile(rosterProfile[1]!));return;}
     const accountProfile=path.match(/^\/staff\/accounts\/([a-zA-Z0-9_-]{1,128})\/profile$/);
     if(accountProfile&&req.method==="GET"){
-      if(!applicationsEnabled)throw new WorkforceError(503,"application_collection_pending");await recentWorkforceIdentity(req);
+      if(!applicationsEnabled&&!existingAccessEnabled)throw new WorkforceError(503,"application_collection_pending");await recentWorkforceIdentity(req);
       res.json(await new AccountSupport().profile(await store.actor(uid),accountProfile[1]!));return;
     }
     if(path==="/staff/accounts/lookup"||/^\/staff\/accounts\/[a-zA-Z0-9_-]{1,128}\/reset$/.test(path)){
-      if(!applicationsEnabled)throw new WorkforceError(503,"application_collection_pending");await recentWorkforceIdentity(req);
+      if(!applicationsEnabled&&!existingAccessEnabled)throw new WorkforceError(503,"application_collection_pending");await recentWorkforceIdentity(req);
       if(req.method!=="POST"||!req.is("application/json")||req.rawBody.length>1000||!req.body||Array.isArray(req.body))throw new WorkforceError(400,"invalid_request");
       const actor=await store.actor(uid),support=new AccountSupport();
       if(path.endsWith("/lookup")){
         if(Object.keys(req.body).some(k=>k!=="name"))throw new WorkforceError(400,"invalid_request");
         const portal=await support.search(actor,req.body.name);
         let roster:Awaited<ReturnType<HhaDirectory["search"]>>|null=null;
-        try{roster=await hhaDirectory(uid).search(req.body.name);}catch{/* Explicit source-unavailable state; never fabricate HHA matches. */}
+        let hhaCached=false;try{roster=await hhaDirectory(uid).search(req.body.name);}catch{if(existingAccessEnabled){try{const settings=await hhaWorkspace().settings(),office=settings.settings.officeId;if(office&&["SearchCaregivers","GetCaregiverDemographics"].every(operation=>settings.settings.enabledReads.includes(operation))){requirePermission(await store.actor(uid),"accounts.support",office);const snapshot=await getFirestore().collection("workforceHhaProfiles").where("office","==",office).select("id","office","firstName","lastName","status","code","fetchedAt").limit(5001).get();const cached=cachedHhaNames(await store.actor(uid),office,req.body.name,snapshot.docs.map(doc=>doc.data()));if((await hhaWorkspace().settings()).settings.revision!==settings.settings.revision)throw new WorkforceError(409,"revision_conflict");roster=cached;hhaCached=true;}}catch{/* No source names are fabricated. */}}}
         const current=await store.actor(uid);requirePermission(current,"accounts.support");
         const items=[...(roster?.items||[]),...portal.items.map(item=>({...item,source:"portal"}))].filter(item=>current.grant.offices.includes(item.office));
-        res.json({items,hasMore:!!roster?.hasMore||portal.hasMore,hhaUnavailable:!roster});
+        res.json({items,hasMore:!!roster?.hasMore||portal.hasMore,hhaUnavailable:!roster||hhaCached,hhaCached});
       }
       else{if(Object.keys(req.body).length)throw new WorkforceError(400,"invalid_request");res.json(await support.reset(actor,path.split("/")[3]!));}return;
     }

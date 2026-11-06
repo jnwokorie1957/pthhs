@@ -28,9 +28,9 @@ export class HhaEnrollment {
    const id=job.ids[offset];try{await this.stage(actor,id);}catch(error){if(error instanceof WorkforceError&&error.code==="hha_office_mismatch"){offset++;continue;}throw error;}offset++;
   }}catch{deferred=true;}
   finally{await this.db.runTransaction(async tx=>{const doc=await tx.get(ref);if(doc.data()?.lease!==lease)throw new WorkforceError(409,"revision_conflict");tx.update(ref,{offset,leaseUntil:0});});}
-  await this.staff(actor);return {jobId,processed:offset,total:job.ids.length,complete:offset===job.ids.length,deferred};
+  await this.staff(actor);if(offset===job.ids.length)await this.db.collection("workforceHhaRosterReady").doc(this.office).set({office:this.office,completedAt:new Date().toISOString(),total:job.ids.length});return {jobId,processed:offset,total:job.ids.length,complete:offset===job.ids.length,deferred};
  }
- private async match(email:string){const query=await this.db.collection("workforceHhaProfiles").where("emailKey","==",hash(email)).limit(2).get();if(query.docs.length!==1)return null;const profile=query.docs[0]!.data() as HhaProfile;if(profile.office!==this.office)return null;return profile;}
+ private async match(email:string){const ready=await this.db.collection("workforceHhaRosterReady").doc(this.office).get();if(!ready.exists||ready.data()?.office!==this.office||typeof ready.data()?.completedAt!=="string")return null;const query=await this.db.collection("workforceHhaProfiles").where("emailKey","==",hash(email)).limit(2).get();if(query.docs.length!==1)return null;const profile=query.docs[0]!.data() as HhaProfile;if(profile.office!==this.office)return null;return profile;}
  async requestAccess(input:unknown,network:string){
   const email=hhaEmail(input),emailKey=hash(email),networkKey=hash(network||"unknown");
   try{

@@ -90,10 +90,83 @@ The owner next directed Member Search and clarified the current payer to
 Wellpoint - STAR Kids (RCG). Coordinator All and status Active return 25 matches;
 MEMBER-SEARCH-001 records that example scope, without making STAR Kids or Active
 a universal payer/status policy. The owner allowed any member for this example,
-and the first active STAR Kids profile is open with Calendar Details available.
-The first visit selection and first confirmation-review check remain pending;
-no confirmation or source change has been submitted. The visit example's
-requested date remains November 5.
+and the first active STAR Kids profile was opened. The owner then taught the
+calendar's separate schedule/green EVV spans and the dated V > Visit Info >
+Link Call > Link Call In path. CALENDAR-CALL-001 records the observed November
+1-3 sequence, source-query limits and the requirement to close the prior day's
+Find Calls layer. The owner reported no calls for the first example and directed
+the second member from the same 25-result search. That second member's November
+3 Visit Info was opened. The owner identified Find Calls as a separate popup. A new
+Link Call In click and native host-window capture exposed that owned popup even
+though tab/DOM and top-level window inventories omitted it. Find Calls visibly
+showed No Records for that current call-in search, and was subsequently closed
+using the popup's own Close control with visual verification.
+This does not prove Call Out or exhaustive retained-history absence. Do not
+misreport unrelated No Records labels in the visit form as its search result.
+The owner then taught REVIEW-DATES-001: November 1-5 inclusive, always stopping
+at yesterday and excluding today's still-incomplete submissions. The second
+member's November 1 visit has a recorded clock-in. Link Call Out returns a real
+candidate marked No Schedule Opening. The
+owner taught conditional reason110A / service delivery differs from schedule,
+member-confirmation action, link/close and separate handling of the other
+direction. CALL-REASON-001 preserves the conditional scope and requirement for
+actual verification evidence, without inferring a blanket rule from daytime.
+The narrow native popup clipped its controls. Resolved staging by opening the
+exact source popup URL, read from its accessibility document, as a regular
+connected HHA tab and privately checking identical query scope. That tab selected
+110A and Confirmed visit with member or member's representative and documented.
+No note or verification evidence was invented. The owner explicitly attested
+member confirmation and approved this exact Call Out link. Link was activated
+once; an inconclusive immediate tool result was reconciled without retry.
+Fresh source Visit Info, a refreshed retained visit, the saved reason/action
+row and Call History Success established the saved link while preserving the
+existing clock-in. Find Calls closed and the helper tab was removed. General
+direct-tab opener behavior is not inferred; the maximize request is superseded.
+
+The owner next instructed the separate Visit Info EVV reason110A and member-
+confirmation action, followed by the bottom submit. Both were selected; the
+source-displayed bill-clock span was 60 minutes and original EVV timestamps
+were unchanged. Save was submitted once and HHA reported Information has been
+saved. Independent Visit Info reload retained that span, both EVV timestamps
+and two matching current-day saved reason/action rows (call link plus visit
+submission). CALL-REASON-001 and VISIT-SUBMIT-001 record this one explicitly
+approved example. No time fields, reprocess, payer submission, invented punch,
+clinical decision, free-text note or communication were made by the agent.
+The original member profile was retained for owner teaching.
+
+The owner then requested the remaining November 2-5 review, excluding today,
+and explicitly taught SCHEDULE-GATE-001: compare actual EVV with scheduled
+hours; stop on any overage and wait for the owner before further changes.
+Adjusted bill time does not satisfy that EVV comparison. This later instruction
+overrides any inference that the earlier one-hour example is an automatic
+overage-handling rule. Missing endpoints or unclear comparison remain unknown.
+
+All four requested past-day visits were subsequently inspected in order. Both
+Call In and Call Out pickers were opened for each: eight source No Records
+results, with no linked EVV clocks displayed. No call link, reason/action save
+or visit submission was performed in this follow-up. The selected-query review
+is complete; those visits remain unresolved. The result does not establish
+exhaustive retained-history absence or confirmed visits. Per-day private source
+details remain in protected evidence. At that review's completion November 5
+Visit Info was retained with Find Calls closed, and November 6 was not opened.
+No positive overage case was encountered or resolved in that four-day follow-up.
+
+The owner subsequently requested the next same-payer member's November 1-5
+review with the same explicit stop condition. Reapplied the scoped search,
+matched the previous source identity privately and selected the following
+result, verifying the opened profile. The first requested day's visit has a
+recorded clock-in and no linked clock-out. Its source EVV duration is unknown.
+Find Calls returned multiple Call Out candidates; the evening candidate would
+produce a span greater than the schedule. SCHEDULE-GATE-001 stopped the work
+before reason/action selection, linking, edits or Save. The other candidate
+was not chosen or reassigned to another date. No new source write occurred.
+Find Calls remains open for owner teaching; later requested dates remain
+unreviewed and today's visits were excluded. Owner guidance on the overage and
+candidate ambiguity is pending; this is a verified stop, not a resolved case.
+
+This bounded browser example does not enable Primetime API writes or establish
+an autonomous routine/blanket110A policy, every source/payer acceptance, staff
+account authority or a supported vendor action contract. Those remain open.
 
 PRIMARY SOURCES CHECKED NOVEMBER 6, 2026
 HHA UI workflow includes linking EVV, editing visit times and reason/action/note:

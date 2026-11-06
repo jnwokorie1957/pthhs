@@ -31,12 +31,12 @@ visible in the inspected maintenance screen/profile menu. No account, coordinato
 assignment, MFA or password setting was changed. The agent procedure explicitly
 sets All each time rather than relying on an unverified saved HHA preference.
 
-Maintenance teaching status: first visit selection and first confirmation-review
-check are pending. No source confirmation, clock change, reason/action save or
-completed visit-maintenance procedure has been taught or executed in this step.
+Maintenance teaching status: calendar and call-search navigation are recorded
+below. No source confirmation, clock change, reason/action save or completed
+visit-maintenance correction has been taught or executed.
 
 MEMBER-SEARCH-001 - CURRENT WELLPOINT STAR KIDS EXAMPLE
-Version: 1. Owner-instructed search scope checked November 6.
+Version: 3. Owner-instructed search scope and next-member selection checked November 6.
 Scope: this teaching example, not the default payer for every future search.
 
 Owner direction: go to Member Search and use the Wellpoint STAR Kids payer.
@@ -52,10 +52,207 @@ Procedure observed:
 
 For this walkthrough the owner explicitly allowed any member, so the first
 listed active STAR Kids member profile was opened. That is example-selection
-permission only, not a universal patient-selection or confirmation rule. No visit
-or first confirmation-review check has yet been identified. Keep names and
-source IDs in HHA/protected runtime; do not choose a clinical outcome or confirm
-a visit here.
-The earlier service-date instruction remains November 5 for the visit example;
-the member search itself has no service-date selection.
+permission only, not a universal patient-selection or confirmation rule. After
+the first example's missing calls, the owner directed returning to the same
+search and selecting the second listed member. Coordinator All, the same payer
+and Active were reapplied; 25 links returned and the second member was opened.
+Keep names and source IDs in HHA/protected runtime; do not choose a clinical
+outcome or confirm a visit here. The calendar demonstration moved through
+November 1-3, superseding November 5 for these particular examples. Member
+Search itself has no service-date selection.
 These search results do not establish approval of a 25-client automation pilot.
+
+For a later request to review the next member, rerun the same scoped search,
+recheck All coordinators and the exact payer, locate the previously reviewed
+source identity privately in the returned list, then select the immediately
+following result. Verify that the opened profile matches that selected result.
+Do not assume a fixed row number remains the next member after filters or
+result order change. This was checked in the subsequent owner-directed review.
+
+CALENDAR-CALL-001 - SCHEDULE, EVV AND EXISTING-CALL SEARCH
+Version: 2. Owner-taught navigation and interpretation, November 6.
+
+1. Open Calendar Details and check the displayed month/year and selected day.
+2. Distinguish the scheduled span from the separate green EVV span. The owner
+   explained the green wording/link as recorded EVV clock times. Do not copy
+   private event times into this register or substitute scheduled times for EVV.
+3. The owner described a yellow V as a no-activity cue. The inspected marker's
+   inline color was orange. This is a navigation cue, not proof that every call
+   source or direction has been exhaustively checked.
+4. Click that day's V or its EVV time link, then Visit Info. Verify the visit
+   heading's day before proceeding. Inspect the EVV clock-in/out fields.
+5. Open Link Call, then Link Call In to inspect genuine candidate calls. Opening
+   the picker does not authorize selecting/linking a call or saving a visit.
+   HHA may open Find Calls as a separate owned popup. It was absent from the
+   browser tab list, tab screenshot/DOM and native top-level window inventory,
+   but present in the host window's screenshot as its own screenshot region.
+   Inspect that actual popup rather than treating the visit form as its result.
+6. Interpret No Records only within the actual picker query/date/direction.
+   The owner reported no calls for the first example. The agent did not
+   independently establish absence of both directions or full retained history.
+7. Close Find Calls itself before changing days, then close the old visit when
+   necessary. Confirm that a reopened picker belongs to the new visit/day. A
+   stale Find Calls layer from the previous day must not be used as evidence.
+8. Missing calls on successive days is an owner-taught investigation heuristic:
+   the caregiver may not have called in their time yet. Check each requested
+   day separately; do not invent punches or infer an approved exception.
+
+Dated teaching sequence: first member November 1 green EVV example; November 2
+V > Visit Info > Link Call In; owner reported No Records and requested November 3,
+with November 4 suggested for later. The owner corrected a stale Find Calls
+layer and subsequently directed the second member instead. The second member's
+November 3 visit and Visit Info were opened. After the owner identified the
+separate-popup issue, a new visible Link Call In click was followed by a native
+host-window screenshot. That capture exposed the owned Find Calls popup,
+independently showing No Records with the November 3 visit behind it. The popup
+was left open for the owner. This verifies the second member's current call-in
+search result only; Call Out and full retained history were not independently
+checked. Earlier No Records labels in other visit-form sections were not used
+as evidence. The earlier connector-blocked status is superseded by this capture.
+
+At that read-only stage no call was linked and no source Save was submitted.
+The later specifically authorized example below supersedes that action status.
+
+REVIEW-DATES-001 - REVIEW THROUGH YESTERDAY
+Version: 2. Owner-taught and follow-up checked November 6, America/Chicago.
+For the current review inspect November 1 through November 5, inclusive. Always
+stop at the previous service day; do not work today's incomplete calls while
+caregivers still have time to submit them. This is a calendar-day cutoff, not a
+rolling 24-hour window. Do not silently skip intermediate days or report an
+entire range reviewed based on one calendar page or one visit.
+
+Current progress: November 3's call-in picker showed No Records. That popup was
+closed using its own Close control and closure was visually checked. The owner
+then clarified the full November 1-5 interval, so the review restarted at the
+first. All five calendar visit links were present; their presence/color alone
+does not complete their call reviews. November 1 Visit Info had a recorded
+clock-in and its Link Call menu offered Link Call Out. That call-out picker
+returned a real candidate with the displayed source reason No Schedule Opening.
+Keep that private call's actual times/names/identifiers out of this register.
+The owner subsequently approved this exact call-out link and visit submission;
+source readback is recorded below. The subsequent requested four-day follow-up
+was then reviewed in date order. Both selected-visit call directions were
+opened separately for each day: eight genuine Find Calls views showed No
+Records. No linked EVV clocks were displayed on those visits. Their source
+schedule scopes were checked, but an EVV duration could not be established.
+No call was linked, code/action selected or source Save submitted during that
+follow-up. The review is complete for those inspected UI queries; the visits
+remain unresolved. This is not exhaustive retained-call-history absence or a
+completed confirmation claim. Private per-day details stay in protected evidence.
+
+CALL-REASON-001 - OWNER-TAUGHT SCHEDULE-DIFFERENCE EXAMPLE
+Version: 2. One owner-directed call-out link and readback accepted November 6.
+Apply the later SCHEDULE-GATE-001 before any new call link or visit submission.
+The owner instructed choosing the new reason for working at a different time,
+then the member-confirmation action, linking the call and closing, with the
+other direction handled separately when applicable. The owner described 110A
+as frequent and conditional on the shift/clock-time circumstances, not a code
+to apply to every call. The exact visible reason choice is:
+Service Delivery Exception: 110 - A - Service delivery differs from schedule.
+
+Do not derive that reason merely from a daytime time value or turn the example
+into an automatic rule. Exact applicability/thresholds and the evidence for
+member verification must be established. Selecting a verification action is
+not proof that anyone contacted or confirmed with the member. No communication
+was requested or sent. This candidate is Call Out, with Call In already present;
+the owner's reference to doing Call Out afterward was clarified before linking.
+
+Initial native selection attempts did not change Select because the popup's
+controls extended outside the narrow host window. That blocker is superseded:
+the actual popup document URL was exposed by its accessibility document. Direct
+attachment was unavailable, so that exact same HHA URL was opened in a regular
+connected tab. Query scope equality was checked privately; no URL guessing,
+record change or private identifier export was used.
+
+The connected tab selected 110A and the exact dependent action Confirmed visit
+with member or member's representative and documented. The owner explicitly
+attested member confirmation and approved this specific Call Out link. Link
+was activated once. Its immediate tool result was inconclusive; it was NOT
+resubmitted. Fresh Visit Info and a separate refresh of the retained visit both
+showed the approved source call-out, with the existing clock-in unchanged.
+The visit's saved reason/action table had one matching current-day row, and
+Call History showed the source Out entry as Success with linkage evidence.
+Find Calls visibly closed. The helper tab was closed after source readback;
+the original source example remains open.
+
+No note or member contact was invented by the agent. Owner attestation,
+selected action and saved HHA evidence are distinct. This accepts one explicit
+owner-directed UI link, not an autonomous code-selection policy, general direct-
+tab opener/close contract, API write method or permission for other records.
+The maximize/move request is superseded by the control-access workaround.
+
+VISIT-SUBMIT-001 - SAVE THE OWNER-APPROVED VISIT MAINTENANCE
+Version: 1. One owner-directed example saved and independently read back.
+After linking the genuine call, the owner instructed selecting 110A again in
+Visit Info's EVV Reason Code Number / Reason Code, then the member-confirmation
+Action Taken, and submitting at the bottom. This is separate from the candidate
+call's New Reason and Action Taken selections.
+
+1. Recheck the exact visit/day, member attestation and conditional reason scope.
+   Apply SCHEDULE-GATE-001 to actual EVV evidence before continuing.
+2. Select the applicable visit reason, then its dependent action. For this
+   approved example the exact labels were the same 110A and member-confirmation
+   labels recorded above. Do not substitute IDs from unrelated reason catalogs.
+3. Check displayed Bill Time In/Out separately from original EVV timestamps.
+   The owner observed HHA's automatic adjustment to a one-hour scheduled span.
+   The displayed bill-clock span was verified as 60 minutes; both original EVV
+   timestamps remained unchanged. No time fields were edited by the agent.
+   This is source-display evidence, not a general rounding/payroll/billing rule.
+4. Submit the source Save control once. The source reported Information has
+   been saved. If the response is uncertain, read back before any retry.
+5. Reload Visit Info independently and verify persisted fields and source audit.
+   This example retained the 60-minute bill-clock span and both EVV timestamps.
+   The saved visit table contained two current-day matching 110A/action rows:
+   one for the call link and one for this separate visit submission.
+
+The owner authorized this exact submission after the link; the source Save
+returned and independent readback passed. No reprocess, payer submission,
+clinical decision, new clock event, invented note or communication occurred.
+The existing Call History verification entry was not newly created by this
+step. Saved maintenance does not establish every payer acceptance or a supported
+Primetime confirmation API. Additional examples and automation policy remain
+subject to their own evidence, owner direction and supported source contract.
+
+SCHEDULE-GATE-001 - STOP WHEN EVV EXCEEDS SCHEDULED HOURS
+Version: 2. Explicit owner instruction and first candidate-overage stop November 6.
+
+The owner directed paying attention to scheduled hours and stopping to work
+together whenever EVV is greater than the scheduled hours.
+
+1. Inspect the selected visit's scheduled hours and actual EVV evidence before
+   linking a call, changing a field or submitting. Keep scheduled, original
+   EVV and adjusted Bill Time values separate.
+2. If EVV exceeds the schedule, stop on that visit and wait for the owner. Do
+   not continue other dates, apply a reason/action, link or save that case while
+   waiting. Preserve the precise issue in protected evidence and explain it
+   without publishing identities or raw timestamps.
+3. An adjusted bill-clock span that fits the schedule does not remove an EVV
+   overage. Do not round, cap, shift or invent punches to make the comparison
+   fit. The earlier approved one-hour example preceded this stop instruction
+   and is not permission to handle a new overage automatically.
+4. Inspect genuine candidate calls before pairing them. If the available pair
+   would exceed the schedule, stop before linking it. Missing endpoints or
+   unclear units/date coverage make the comparison unknown, not zero; obtain
+   clarification before a source write when the gate cannot be assessed.
+5. If the inspected call searches return No Records, leave the visit unchanged
+   and unresolved, then continue only within the requested past-day review.
+   Do not mark a missing-call visit confirmed merely to clear its queue.
+
+First follow-up evidence: eight selected-visit call pickers were empty, so no
+source writes or overage handling occurred. Today's visits were excluded.
+Scope limits remain explicit in REVIEW-DATES-001.
+
+Subsequent next-member review: the first requested past-day visit had an
+existing clock-in and no linked clock-out, so its completed EVV duration was
+unknown. Find Calls returned multiple call-out candidates. Pairing the evening
+candidate with the recorded clock-in would exceed scheduled hours. The agent
+stopped immediately before selecting any reason/action, linking, editing or
+saving. The other candidate was not treated as interchangeable or inferred to
+belong to another date. Find Calls and the visit remain open for owner teaching;
+later dates are unreviewed and today was excluded. No new source write occurred.
+
+This demonstrates the candidate-overage stop before a new link. The source's
+recorded EVV duration remains unknown until a valid pair is established; do not
+misreport the prospective span as an already saved duration. Owner guidance on
+this overage and candidate ambiguity is pending. No resolution, exception policy
+or permission to continue the remaining dates is inferred from this stop.

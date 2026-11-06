@@ -136,7 +136,7 @@
     try {
       const response = await workforceApi('/staff/accounts/lookup', {name:el('caregiver-account-name').value.trim()}); if (session !== generation || sequence !== accountSelection) return;
       accountMessage.textContent = response.items.length ? (response.hasMore ? 'More matches found. Enter more letters to narrow your search.' : 'Select a caregiver to open their profile.') : 'No matching caregivers found.';
-      if(response.hhaUnavailable)accountMessage.textContent+=' HHAeXchange is unavailable; portal matches only.';
+      if(response.hhaUnavailable)accountMessage.textContent+=response.hhaCached?' Live HHA lookup is busy. Showing synchronized HHA names and portal matches.':' HHAeXchange is unavailable; portal matches only.';
       for (const match of response.items) { const button = node('button', [match.firstName, match.lastName].filter(Boolean).join(' ') + ' · ' + (match.source==='hhaexchange'?'HHAeXchange':human(match.state)), 'caregiver-search-result'); button.type = 'button'; button.onclick = () => openAccount(match); results.append(button); }
     } catch (error) { if (session === generation && sequence === accountSelection) accountMessage.textContent = error.message; }
   }

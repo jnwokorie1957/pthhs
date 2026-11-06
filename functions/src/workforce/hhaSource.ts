@@ -26,11 +26,11 @@ export class HhaProfileSource {
  async documents(id:string){
   await this.profile(id);const prior=await this.settings(),source=await this.workspace.query({operation:"SearchCaregiverDocument",caregiverId:id},this.actorId,"workforce_caregiver_profile");
   if(source.source!=="hhaexchange"||source.operation!=="SearchCaregiverDocument")throw new WorkforceError(503,"hha_files_unavailable");
-  const seen=new Set<string>();const items=source.records.map(row=>{const fileId=identifier(row.CaregiverDocID);if(row.CaregiverID!==id||seen.has(fileId))throw new WorkforceError(403,"hha_file_owner_mismatch");seen.add(fileId);return {id:fileId,name:row.FileName||"HHA document",category:row.CaregiverDocumentType||"Document",createdAt:row.CreatedOn||null,size:row.FileSize||null};});
+  const seen=new Set<string>();const items=source.records.map(row=>{const fileId=identifier(row.CaregiverDocID);if(row.CaregiverID!==id||seen.has(fileId))throw new WorkforceError(403,"hha_file_owner_mismatch");seen.add(fileId);return {id:fileId,name:row.FileName||row.CaregiverDocumentType||"HHA document",attachmentAvailable:!!row.FileName?.trim()&&row.FileSize!=="0",category:row.CaregiverDocumentType||"Document",createdAt:row.CreatedOn||null,size:row.FileSize||null};});
   if((await this.settings()).revision!==prior.revision)throw new WorkforceError(409,"revision_conflict");return {items,truncated:source.truncated,source:"hhaexchange",fetchedAt:source.fetchedAt};
  }
  async download(id:string,fileId:string){
-  identifier(fileId);const before=await this.documents(id),file=before.items.find(file=>file.id===fileId);if(!file)throw new WorkforceError(404,"document_not_found");
+  identifier(fileId);const before=await this.documents(id),file=before.items.find(file=>file.id===fileId);if(!file)throw new WorkforceError(404,"document_not_found");if(!file.attachmentAvailable)throw new WorkforceError(409,"hha_document_not_attached");
   const result=await this.workspace.query({operation:"DownloadCaregiverDocument",id:fileId},this.actorId,"workforce_caregiver_profile");
   if(result.source!=="hhaexchange"||result.operation!=="DownloadCaregiverDocument"||!result.attachment)throw new WorkforceError(503,"hha_files_unavailable");
   const current=await this.documents(id),same=current.items.find(item=>item.id===fileId);if(!same||JSON.stringify(same)!==JSON.stringify(file))throw new WorkforceError(409,"revision_conflict");

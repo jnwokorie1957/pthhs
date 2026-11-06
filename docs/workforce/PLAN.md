@@ -1,12 +1,16 @@
 # PTHHS caregiver workforce plan
 
-Authoritative architecture, implementation backlog and acceptance record. Version 15, November 6, 2026. Initial audit baseline: `93707e3` on `main`; current handoff integrates `main` through `9f603ac`, preserving concurrent visit-maintenance controls, range/search/reason-staging tools, SEO records and production acceptance documentation. This file owns workforce delivery status; existing management and release documentation continues to own its established workflows.
+Authoritative architecture, implementation backlog and acceptance record. Version 16, November 6, 2026. Initial audit baseline: `93707e3` on `main`; current handoff integrates `main` through `9f603ac`, preserving concurrent visit-maintenance controls, range/search/reason-staging tools, SEO records and production acceptance documentation. This file owns workforce delivery status; existing management and release documentation continues to own its established workflows.
 
 ## Scope and release state
 
 This change begins Phases 1–2 in the existing PTHHS repository. It is a review branch, not a production launch. No real staff accounts, role grants, patient openings, applicant records, SMS messages, employment decisions or vendor writes were created. Synthetic records exist only in tests. No production patient data was queried.
 
 **Implemented** means code exists. **Tested** identifies synthetic automated verification. **Pending** identifies work still to implement. **Blocked** identifies a specific external input or acceptance requirement. Neither a passing test nor a deployment establishes regulatory compliance.
+
+## Live caregiver read connection and midnight refresh
+
+Owner-authorized live source preparation is now enabled separately from application collection. The real source returned 1,843 caregiver IDs; the resumable private profile import is in progress. File listing works, while sampled document-only rows report no binary attached. Real recovery email delivery and the valid reset screen were observed; owner password completion remains a handoff. A real hosted test portal and office-scoped owner access are configured, and the local daily midnight refresh automation is active. See [live acceptance and remaining limits](LIVE_HHA_ACCEPTANCE.md). Earlier review-only statements below are historical and do not supersede this specific live-read authorization.
 
 ## Existing HHA caregiver portal access
 

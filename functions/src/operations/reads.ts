@@ -1032,7 +1032,7 @@ export async function operationalRead(client: Pick<HhaSoapClient, "call">, input
     const transient = response.error?.kind === "transport" && response.error.code === "network_unavailable" && response.httpStatus === 0
       || response.error?.kind === "protocol" && [408, 500, 502, 503, 504].includes(response.httpStatus);
     if (previewRead && transient) throw new WorkflowError("hha_source_temporarily_unavailable", 503);
-    if (input.operation === "DownloadPatientDocument") {
+    if (["DownloadPatientDocument","DownloadCaregiverDocument"].includes(input.operation)) {
       // Expose only protocol diagnostics, never vendor messages, XML, filenames,
       // subject identifiers, credentials or opaque error/detail strings.
       const kind = ["application", "soap_fault", "protocol", "transport"].includes(response.error?.kind ?? "") ? response.error!.kind : "unclassified";
@@ -1041,9 +1041,9 @@ export async function operationalRead(client: Pick<HhaSoapClient, "call">, input
       const message = response.error?.message ?? "";
       const reason = /(?:not\s+authori[sz]ed|access\s+denied|permission|authentication|invalid\s+credentials)/i.test(message) ? "access_refused"
         : /(?:SOAPAction|method.{0,60}(?:not\s+supported|not\s+available|disabled)|operation.{0,60}not\s+supported)/i.test(message) ? "method_refused"
-        : /(?:(?:file|document).{0,100}(?:not\s+found|does\s+not\s+exist|not\s+available)|could\s+not\s+find.{0,60}file)/i.test(message) ? "file_unavailable"
+        : /(?:(?:file|document).{0,100}(?:not\s+found|does\s+not\s+exist|not\s+available|is\s+attached)|could\s+not\s+find.{0,60}file)/i.test(message) ? "file_unavailable"
         : /(?:nullreferenceexception|object\s+reference\s+not\s+set)/i.test(message) ? "source_null_reference" : "unclassified";
-      throw new WorkflowError(`patient_document_download_failed_${kind}_http_${http}_vendor_${vendor}_reason_${reason}`, 502);
+      throw new WorkflowError(`${input.operation==="DownloadCaregiverDocument"?"caregiver":"patient"}_document_download_failed_${kind}_http_${http}_vendor_${vendor}_reason_${reason}`, 502);
     }
     throw new WorkflowError("hha_read_failed", 502);
   }

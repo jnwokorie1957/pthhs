@@ -48,3 +48,11 @@ test("existing-caregiver provisioning is separately gated before any auth accoun
  const response=await request("/caregiver/workforce-api/existing-caregiver/access","POST");assert.equal(response.status,503);assert.deepEqual(response.body,{error:"existing_access_pending"});assert.equal(response.headers["Cache-Control"],"no-store");
  for(const path of ["/application/hha-profile","/application/hha-files/501"]){assert.equal((await request("/caregiver/workforce-api"+path)).status,503);}
 });
+
+ test("HHA account release permits source access configuration without enabling applicant or upload collection",async()=>{
+ process.env.WORKFORCE_STAFF_APPROVED="true";process.env.WORKFORCE_HHA_PORTAL_APPROVED="true";process.env.PRIMETIME_OPERATIONAL_DATA_APPROVED="true";process.env.WORKFORCE_APPLICANT_COLLECTION_APPROVED="false";
+ let body:any;const res={set(){return res;},json(value:any){body=value;return res;}};
+ await workforceApi!({path:"/configuration",method:"GET"} as any,res as any);
+ assert.equal(body.existingAccessEnabled,true);assert.equal(body.accountsEnabled,true);assert.equal(body.applicationsEnabled,false);assert.equal(body.documentsEnabled,false);
+ for(const key of ["WORKFORCE_STAFF_APPROVED","WORKFORCE_HHA_PORTAL_APPROVED","PRIMETIME_OPERATIONAL_DATA_APPROVED","WORKFORCE_APPLICANT_COLLECTION_APPROVED"])delete process.env[key];
+ });

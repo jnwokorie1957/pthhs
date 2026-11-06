@@ -1,0 +1,6 @@
+import test from 'node:test';import assert from 'node:assert/strict';
+import {cachedHhaNames} from './hhaCachedNames.js';import type {Actor} from './policy.js';
+const actor:Actor={uid:'owner',grant:{active:true,role:'owner',offices:['12'],permissions:['accounts.support']}},now=Date.parse('2026-11-06T12:00:00Z');
+const row={id:'101',office:'12',firstName:'Hannah',lastName:'Hart',email:'private@example.invalid',fields:{SSN:'private'},fetchedAt:'2026-11-06T11:00:00Z'};
+test('synchronized names narrow by source name without exposing contacts or becoming portal UIDs',()=>{const result=cachedHhaNames(actor,'12','Hann',[row],now);assert.equal(result.items[0]?.uid,'hha-101');assert.doesNotMatch(JSON.stringify(result),/private|SSN|email/);assert.equal(cachedHhaNames(actor,'12','Henry',[row],now).items.length,0);});
+test('cached name fallback excludes expired, future, malformed and other-office source rows and requires current permission',()=>{assert.equal(cachedHhaNames(actor,'12','H',[{...row,office:'13'},{...row,id:'invalid'},{...row,fetchedAt:'invalid'},{...row,fetchedAt:'2026-11-01T00:00:00Z'},{...row,fetchedAt:'2026-11-07T00:00:00Z'}],now).items.length,0);assert.throws(()=>cachedHhaNames({...actor,grant:{...actor.grant,active:false}},'12','H',[row],now),/workforce_forbidden/);});
