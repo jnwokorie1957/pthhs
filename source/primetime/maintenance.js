@@ -194,6 +194,7 @@
       host.append(el('p', 'Source facts changed since this office review. Reinspect the current times and call evidence before saving a new proposal. The case history retains earlier receipts.', 'maintenance-boundary'));
     }
     if (row.state === 'unavailable' || !row.patientId) { host.append(el('p', 'This source read did not establish a usable visit context. Refresh the feed before opening an office case.')); return; }
+    if(!searchMode){const fresh=button('Read fresh HHA visits for this patient/day',()=>document.dispatchEvent(new CustomEvent('primetime-maintenance-read-patient-day',{detail:{kind:'patient',id:row.patientId,firstName:row.patientFirstName,lastName:row.patientLastName,code:row.admissionId,date:serviceDate(row)}})));fresh.dataset.sourceRead='true';fresh.dataset.sourceLabel='Read fresh HHA visits for this patient/day';host.append(fresh,el('p','This opens a fresh patient/day queue with new review receipts. Other cached visits keep their original timestamps.','maintenance-help'));}
     const callSection = section('calls','Caregiver calls & attempts'); callSection.append(el('p', 'Actual HHA call records for this patient, caregiver and day. Exact visit links, complete history and the meaning of source type/status values remain unverified.'));
     async function ensureCase(ticket) {
       if (!caseKnown.has(row.id)) throw new Error('case_not_loaded');
