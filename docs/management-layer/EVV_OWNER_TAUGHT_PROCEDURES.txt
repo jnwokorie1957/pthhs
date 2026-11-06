@@ -222,6 +222,9 @@ together whenever EVV is greater than the scheduled hours.
 1. Inspect the selected visit's scheduled hours and actual EVV evidence before
    linking a call, changing a field or submitting. Keep scheduled, original
    EVV and adjusted Bill Time values separate.
+   Use the calendar's saved S span or Schedule tab for the actual schedule;
+   keep Visit Info's Suggested Schedule Time label distinct. Do not establish
+   a saved-schedule change solely by comparing differently labeled displays.
 2. If EVV exceeds the schedule, stop on that visit and wait for the owner. Do
    not continue other dates, apply a reason/action, link or save that case while
    waiting. Preserve the precise issue in protected evidence and explain it
@@ -262,9 +265,11 @@ clock-in. The owner subsequently clarified final Save with 110A/member action
 and the EVV-NOTE-001 note. Save was performed once and independently read back:
 the genuine EVV timestamps, approved bill-clock values, new saved reason/action
 row and exact requested note all persisted. No time field was edited by the
-agent. The scheduled span displayed after this workflow differed from its
-initial value; the exact source cause and transition step were not established.
-Do not infer an automatic scheduling/rounding policy from that observation.
+agent. The Suggested Schedule Time span displayed after this workflow differed
+from its initial value. A separate calendar S check confirmed the current saved
+schedule span, alongside the separate EVV span. The initial calendar S was not
+independently captured; the exact cause/transition and any general scheduling/
+rounding policy were not established. Do not infer those from the suggestion.
 
 This is a specific owner-directed continuation after a successful stop, not
 permission to waive the stop rule on another case. Record the owner's actual

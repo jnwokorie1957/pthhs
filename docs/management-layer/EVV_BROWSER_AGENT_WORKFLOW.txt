@@ -175,11 +175,15 @@ were delivered, plus original EVV clock-in/out dates and times. The actual note
 stayed only in HHA/runtime; the register has placeholders. It was checked in
 New Note, saved once with the approved visit-level110A/member action and found
 exactly in saved reason/action history after independent reload. Original EVV
-and approved bill-clock values persisted. The displayed scheduled span after
-the link/save workflow differed from the initial schedule. No agent time-field
-edit occurred; the source cause/precise transition was not proven. The owner
-was told the observed schedule change. This is not a general rounding rule or
-authorization to bypass the initial overage gate on another case.
+and approved bill-clock values persisted. Visit Info's Suggested Schedule Time
+span after the link/save workflow differed from that field's initial display.
+A separate read of the actual calendar S line confirmed the current saved
+schedule and its separate EVV span. The initial saved S line was not captured,
+so a change in the actual schedule cannot be established solely from those
+different labels. No agent time-field edit occurred; the source cause/precise
+transition was not proven. The owner was told the observed values and label
+distinction. Use actual calendar/Schedule values for subsequent comparisons;
+this is not a general rounding rule or authorization to bypass the overage gate.
 
 UI readback retained visit/patient/office/caregiver identities and service day;
 volatile time-related URL parameters changed. Full query-string equality was
