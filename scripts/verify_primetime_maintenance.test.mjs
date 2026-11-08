@@ -51,6 +51,58 @@ function fixture({ active = false, live = true, rows = [row], fakeTimers = false
     handler(value) { handler = value; }, delay(value) { delayed = value; }, enter() { active = true; document.dispatchEvent(Object.assign(new Event('primetime-view-changed'), { detail: { view: 'maintenance' } })); },
     ready() { active = true; document.dispatchEvent(new Event('primetime-ready')); }, demo() { live = false; document.dispatchEvent(new Event('primetime-data-mode-changed')); }, leave() { active = false; document.dispatchEvent(Object.assign(new Event('primetime-view-changed'), { detail: { view: 'overview' } })); } };
 }
+
+test('maintenance evidence distinguishes supplied and absent endpoints without accepting a schedule comparison', async () => {
+  const f = fixture(); f.ready(); await tick(); f.ids.get('maintenanceList').querySelectorAll('button')[0].click(); await tick();
+  const evidence = f.text(f.ids.get('maintenanceEvidence'));
+  assert.match(evidence, /HHA schedule fields: start supplied; end supplied/);
+  assert.match(evidence, /Recorded visit fields: start supplied; end not supplied in this response/);
+  assert.match(evidence, /EVV fields: start supplied; end not supplied in this response/);
+  assert.match(evidence, /Schedule comparison: Not established in Primetime/);
+  assert.match(evidence, /saved Calendar S \/ Schedule tab.*SuggestedScheduleTime/);
+  assert.match(evidence, /comparison is unknown, stop.*owner.*continuing other dates/);
+  assert.equal(f.ids.get('maintenanceNote').value, '');
+  assert.ok(f.ids.get('maintenanceDetail').querySelectorAll('button').find(n => n.textContent.startsWith('Submit to HHA')).disabled);
+  assert.ok(f.calls.every(([path]) => !/maintenance\/(save|calls|reasons)/.test(path)));
+});
+
+test('unavailable visit details remain unknown even when the row contains stale clock values', async () => {
+  const f = fixture({ rows: [{ ...row, state: 'unavailable' }] }); f.ready(); await tick();
+  f.ids.get('maintenanceList').querySelectorAll('button')[0].click(); await tick();
+  const detail = f.text(f.ids.get('maintenanceDetail'));
+  assert.match(f.text(f.ids.get('maintenanceEvidence')), /Detail read unavailable; clock presence is unknown/);
+  assert.doesNotMatch(detail, /08:57|Not supplied by HHA|start supplied|end supplied/);
+  assert.match(detail, /Source detail unavailable/);
+  assert.equal(f.ids.get('maintenanceCaseForm'), undefined);
+});
+
+test('all six source endpoints still leave comparison and member verification unestablished', async () => {
+  const f = fixture({ rows: [{ ...row, actualEnd: date + ' 12:00', evvEnd: date + ' 12:00' }] }); f.ready(); await tick();
+  f.ids.get('maintenanceList').querySelectorAll('button')[0].click(); await tick();
+  const evidence = f.text(f.ids.get('maintenanceEvidence'));
+  assert.equal((evidence.match(/start supplied; end supplied/g) || []).length, 3);
+  assert.match(evidence, /Schedule comparison: Not established in Primetime/);
+  assert.match(evidence, /Clock fields do not establish member verification/);
+  assert.doesNotMatch(evidence, /within schedule|payable|billable|verified services delivered/i);
+  assert.equal(f.ids.get('maintenanceNote').value, '');
+  assert.ok(f.ids.get('maintenanceDetail').querySelectorAll('button').find(n => n.textContent.startsWith('Submit to HHA')).disabled);
+});
+
+test('protected report uses the saved case evidence while selected visit evidence uses the current feed', async () => {
+  const current = { ...row, actualEnd: date + ' 12:00', evvEnd: date + ' 12:00' };
+  const f = fixture({ rows: [current] }); f.ready(); await tick(); f.ids.get('maintenanceList').querySelectorAll('button')[0].click(); await tick();
+  f.ids.get('maintenanceNote').value = 'Synthetic source review'; f.event('maintenanceCaseForm', 'submit'); await tick();
+  assert.match(f.text(f.ids.get('maintenanceEvidence')), /EVV fields: start supplied; end supplied/);
+  f.event('maintenanceReportTab'); assert.match(f.text(f.ids.get('maintenanceReportRows')), /Saved case evidence.*EVV fields: start supplied; end not supplied in this response/);
+  f.event('maintenanceExport'); const report = await f.exported().text();
+  assert.match(report, /Saved case evidence/);
+  assert.match(report, /EVV fields: start supplied; end not supplied in this response/);
+  assert.match(report, /Schedule comparison: Not established in Primetime/);
+  assert.match(report, /HHA changes submitted by this workspace: 0/);
+  f.document.dispatchEvent(new Event('primetime-signed-out'));
+  assert.doesNotMatch(f.text(f.ids.get('maintenanceDetail')), /Evidence before source maintenance|start supplied/);
+  assert.equal(f.ids.get('maintenanceReportRows').children.length, 0);
+});
 test('maintenance stays idle outside the live authenticated active workspace', async () => {
   const f = fixture(); await tick(); assert.equal(f.calls.length, 0); f.ready(); await tick(); assert.equal(f.calls.length, 2);
   f.demo(); await tick(); assert.equal(f.ids.get('maintenanceList').children.length, 0); assert.equal(f.calls.length, 2);
