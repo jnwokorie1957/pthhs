@@ -1,5 +1,17 @@
 # PTHHS Management Layer — Developer Checklist
 
+- [x] November8 deployed read-only maintenance evidence presentation and saved
+  report receipts (PR12/ad02ae5). Supplied/absent endpoints and unavailable detail
+  reads remain distinct; saved Calendar S/Suggested/Bill fields stay separate.
+  Comparison remains unestablished, notes blank and HHA submission locked. All656
+  site/analytics tests and both PR-quality/Hosting release jobs passed; ten live
+  artifacts match reviewed Git bytes. [Evidence and limits](MAINTENANCE_EVIDENCE_CHECKS_2026-11-08.md).
+- [ ] Authenticated production acceptance of that panel: restore the approved
+  Primetime session, open Visit maintenance/select one visit, compare labels with
+  that exact row/receipt and verify source submit remains locked. Fresh tab needs
+  sign-in; retained tab was not attachable. No message/login/source action was
+  attempted. This pending check does not reopen completed owner case approvals.
+
 - [ ] November6 source-action/M03 follow-up: design separate genuine-event
   link, visit-save and independent readback receipts, current action/modality
   permissions, and the owner-taught overage stop/unknown state. One specifically

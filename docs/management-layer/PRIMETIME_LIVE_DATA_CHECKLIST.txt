@@ -1761,3 +1761,40 @@ Unselected reads are work to scope and verify, not automatically failed APIs.
 [ ] DownloadCaregiverDocument
 [ ] DownloadPatientDocument
 [ ] DownloadCaregiverPicture
+
+
+NOVEMBER8,2026 — MAINTENANCE SOURCE-EVIDENCE DISPLAY / REPORT RECEIPTS
+Deployed PR12/ad02ae529362101d357bdff59c7bea984cac5083 through explicit
+Hosting-only42484358665 after both PR-quality42484244304 jobs passed. Existing
+source mappings remain ScheduleStartTime/EndTime -> scheduledStart/End,
+VisitStartTime/EndTime -> actualStart/End, EVVStartTime/EndTime -> evvStart/End,
+from approved GetVisitInfoV3 projection. New display classifies presence only;
+unavailable detail reads remain unknown and suppress stale retained clock text.
+Readable absent values mean not supplied in this response, never pending/missed,
+worked/verified/payable/billable or zero duration. No time parsing/unit inference,
+scheduled/Suggested/payroll/billed substitution, source reads or recovery claim.
+All endpoints supplied still leaves schedule comparison unestablished. Existing
+saved CalendarS/Schedule tab vs SuggestedScheduleTime/BillTime distinction and
+owner stop/unknown guidance are visible. Notes remain blank; SubmitHHA locked.
+Saved case report cards/export use saved source receipts, not newer feed values;
+current selection uses current loaded receipt. Loaded-only report scope retained.
+
+Acceptance: four new before-fail/after-pass synthetic regressions;17maintenance,
+656site/analytics tests pass; deterministic assets/performance/accessibility/SEO
+metadata/audit/diff checks pass. Both Hosting release jobs succeeded, backend and
+analytics deploy skipped. Actual production10artifacts exactGitbytes13:20:59UTC,
+including unaffected portal release; private shell/header noindex and anonymous
+session401/no-store confirmed. Authenticated selected-visit browser acceptance
+PENDING: fresh tab requires sign-in and retained tab cannot be attached. No
+authentication message sent or source read/write/save/link/confirm performed.
+Next owner/operator action: restore existing approved Primetime sign-in, open
+Visitmaintenance/select one visit and compare panel labels with that exact
+row/receipt, confirm source submit stays locked; no source work needed for check.
+General M03/E04/P03/action/original-event/units/readback and clinical gates remain
+open; existing vendor acknowledgment does not establish a technical contract.
+Original October24 screenshot is still resolved by its October31 independent
+reread. This UI change neither reopens that case nor recovers remaining fields.
+Evidence: MAINTENANCE_EVIDENCE_CHECKS_2026-11-08.md; ROLE_WORKFLOW_RESEARCH.txt;
+https://github.com/jnwokorie1957/pthhs/pull/12
+https://github.com/jnwokorie1957/pthhs/actions/runs/42484244304
+https://github.com/jnwokorie1957/pthhs/actions/runs/42484358665

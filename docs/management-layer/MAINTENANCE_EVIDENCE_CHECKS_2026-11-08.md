@@ -76,6 +76,31 @@ dependencies used the four pinned package.json versions through the installed
 pnpm runtime because this Windows host has no npm executable; normal CI must
 still run its locked npm-ci build and both PR quality jobs.
 
-Production deployment and browser acceptance are pending at this checkpoint.
-Do not mark this document as live acceptance until both Hosting release jobs
-succeed and actual production asset and authorized UI behavior are checked.
+## Release and actual production checks
+
+PR [#12](https://github.com/jnwokorie1957/pthhs/pull/12) merged at
+`ad02ae529362101d357bdff59c7bea984cac5083`. Both normal PR quality jobs
+([42484244304](https://github.com/jnwokorie1957/pthhs/actions/runs/42484244304))
+passed. Existing explicit Hosting-only release
+[42484358665](https://github.com/jnwokorie1957/pthhs/actions/runs/42484358665)
+passed release_scope and build_and_deploy; backend and analytics deploy jobs were
+skipped by design. No release control or backend parameter changed.
+
+November 8 at 13:20:59 UTC: ten production artifacts match exact reviewed Git
+bytes, including the maintenance shell/script/style, homepage/Careers and both
+portal pages. Private-page meta/header noindex protections and anonymous
+Primetime session 401/no-store/noindex pass. Public-byte checks are not
+authenticated row acceptance or a claim of fresh HHA data.
+
+Authenticated selected-visit production acceptance remains **pending**. A fresh
+Primetime page requires sign-in; the retained authorized tab could not be
+attached. The original operations page was not navigated or reloaded. No sign-in
+message was sent, no credentials entered and no private source read, case save,
+call read, source link/confirmation or real report download was attempted.
+
+Precise next owner/operator action: restore the existing approved Primetime
+session on the trusted browser, open Visit maintenance, select one source visit
+and compare the new panel's labels with that exact row and receipt; verify Submit
+to HHA remains locked. No save or source action is needed for this display check.
+The four new synthetic regressions establish runtime and saved-report behavior;
+they do not close this real-session acceptance item or the broader M03 contract.

@@ -3381,3 +3381,70 @@ https://github.com/jnwokorie1957/pthhs/blob/a49dfcf8395bcf52695ef67f857f64fdb413
 https://github.com/jnwokorie1957/pthhs/blob/a49dfcf8395bcf52695ef67f857f64fdb4130f2e/public/assets/workforce-management.js
 https://github.com/jnwokorie1957/pthhs/blob/a49dfcf8395bcf52695ef67f857f64fdb4130f2e/docs/workforce/PROVIDER_SETUP.md
 https://github.com/jnwokorie1957/pthhs/actions/runs/42276236543
+
+
+NOVEMBER 8, 2026 — SOURCE-ACTION/M03 READ-ONLY EVIDENCE PRESENTATION DEPLOYED
+Implementation for the November 6 researched-feature heartbeat, checked November8.
+Observed production: reviewed PR12 is merged at ad02ae529362101d357bdff59c7bea984cac5083.
+Normal PR quality42484244304 passed both site/repository and backend jobs. The
+existing explicit Hosting-only workflow42484358665 passed release_scope and
+build_and_deploy; Functions/analytics deploy jobs were skipped by design.
+Ten actual production artifacts match exact reviewed Git bytes at13:20:59UTC,
+including maintenance JS/shell, homepage/Careers and caregiver/management portals.
+Private-page meta/header noindex and anonymous session401/no-store are verified.
+
+Implemented, not a new accepted source action: selecting a visit now distinguishes
+readable source fields supplied/absent from unavailable detail reads (unknown).
+Unavailable rows suppress retained clock text. Existing approved GetVisitInfoV3
+mapping: ScheduleStartTime/EndTime -> scheduledStart/End; VisitStartTime/EndTime
+-> actualStart/End; EVVStartTime/EndTime -> evvStart/End. No additional API read,
+manual import, date parsing, subtraction, hours conversion or status inference.
+All supplied endpoints still leave schedule comparison Not established in
+Primetime. Actual saved CalendarS/Schedule tab, SuggestedScheduleTime and BillTime
+remain distinct. Owner stop/unknown guidance is visible; notes stay blank, no
+member attestation is inferred and Submit to HHA stays locked. Source case and
+visit links retain existing protected office/source-ID/receipt associations;
+queues do not grant access. No clinical, financial or sending decision occurs.
+
+Protected office report cards and text exports use each saved case source receipt
+and explicitly may differ from the current feed. The selected visit uses its
+current loaded feed receipt. No report is described as an exhaustive office
+census; no private record links, values, IDs or raw responses are published.
+Four new synthetic regressions failed before the edit and pass afterward:
+partial endpoints, unavailable/stale clock suppression, all-endpoints still
+unknown/blank attestation/locked source submission, and saved/current evidence
+separation with sign-out clearing. All656site/analytics tests,17maintenance tests,
+deterministic assets,141page performance/accessibility, metadata and audit passed.
+
+Acceptance limit and precise next action: authenticated production selection is
+PENDING. A fresh browser page requires sign-in; the retained authorized tab could
+not be attached without changing the user's page. No link/email/SMS was sent and
+no login, source call, case save or source action was attempted. Owner/operator:
+restore the approved Primetime session on the trusted browser, open Visit
+maintenance and select one visit; check the new evidence panel's supplied/absent
+or unavailable labels against that same row/receipt and verify source submission
+remains locked. Do not save/link/confirm just to accept this display. Synthetic
+saved-report coverage is verified; no real protected report was downloaded.
+
+Priority/dependencies: P0 presentation slice delivered; general M03/E04/P03
+contracts, actual saved-schedule equivalence/units, exact original-event linkage,
+uncertain-response/action/modality/revocation and owner-taught exception acceptance
+remain open. A specific already-completed owner case is not reopened; original
+October24 screenshot remains resolved by October31 reread. No missing time is
+claimed recovered. Existing acknowledged vendor request remains the technical
+contract path; no resend. Patient/representative authority and PT caseload,
+assignment/form/version/clinical review remain separate pending acceptance cases.
+
+Concurrent release reconciliation: PR11 and caregiver/management portal account
+access are now published upstream c3a5a82. Earlier draft/unmerged descriptions in
+this cumulative research are dated history. No backend flag, provider, permission,
+roster completion claim or clinical role was broadened by this frontend release.
+
+Dated implementation sources checked November8,2026:
+https://github.com/jnwokorie1957/pthhs/pull/12
+https://github.com/jnwokorie1957/pthhs/actions/runs/42484244304
+https://github.com/jnwokorie1957/pthhs/actions/runs/42484358665
+https://github.com/jnwokorie1957/pthhs/blob/ad02ae529362101d357bdff59c7bea984cac5083/source/primetime/maintenance.js
+https://github.com/jnwokorie1957/pthhs/blob/ad02ae529362101d357bdff59c7bea984cac5083/functions/src/views/visits.ts
+https://github.com/jnwokorie1957/pthhs/blob/32411161cd45d23c8f6458d69e1f67a73cf169b8/docs/management-layer/EVV_OWNER_TAUGHT_PROCEDURES.txt
+https://github.com/jnwokorie1957/pthhs/blob/c3a5a82b51cbba46af8d6ff0faa6b7af07f5ba15/docs/workforce/PUBLIC_PORTAL_RELEASE.md
