@@ -16,6 +16,15 @@
   function el(tag, text = '', className = '') { const node = document.createElement(tag); node.textContent = text; if (className) node.className = className; return node; }
   function button(text, action) { const node = el('button', text, 'btn secondary'); node.type = 'button'; node.addEventListener('click', action); return node; }
   function time(value) { return value || 'Not supplied by HHA'; }
+  const comparisonNotice = 'Schedule comparison: Not established in Primetime. Supplied clock fields do not establish that the EVV span fits the saved schedule.';
+  const sourceWorkNotice = 'Before source work, compare the actual saved Calendar S / Schedule tab with the original EVV punches. SuggestedScheduleTime and adjusted Bill Time are separate fields. If the EVV span exceeds the saved schedule or the comparison is unknown, stop and ask the owner before continuing other dates.';
+  const verificationNotice = 'Clock fields do not establish member verification. Keep the review note factual; no attestation is filled in automatically.';
+  function evidenceLines(row) {
+    if (row.state === 'unavailable') return ['Detail read unavailable; clock presence is unknown.', comparisonNotice];
+    const supplied = value => typeof value === 'string' && value.trim() ? 'supplied' : 'not supplied in this response';
+    return [['HHA schedule fields', 'scheduledStart', 'scheduledEnd'], ['Recorded visit fields', 'actualStart', 'actualEnd'], ['EVV fields', 'evvStart', 'evvEnd']]
+      .map(([label, start, end]) => `${label}: start ${supplied(row[start])}; end ${supplied(row[end])}.`).concat(comparisonNotice);
+  }
   function checked(ticket) { if (ticket !== generation || !active()) throw new Error('context_changed'); }
   function controls() {
     const remaining = Math.max(0, sourceRetryAt - Date.now());
@@ -184,12 +193,16 @@
     if(row.caregiverId)relatedSearch.append(button("Use this caregiver in range search",()=>document.dispatchEvent(new CustomEvent('primetime-maintenance-select-person',{detail:{kind:'caregiver',id:row.caregiverId,firstName:row.caregiverFirstName,lastName:row.caregiverLastName,code:row.caregiverCode}}))));
     host.append(relatedSearch);
     const times = el('div', '', 'maintenance-times');
-    for (const [title, start, end] of [['Scheduled', row.scheduledStart, row.scheduledEnd], ['Actual', row.actualStart, row.actualEnd], ['EVV', row.evvStart, row.evvEnd]]) {
+    for (const [title, start, end] of [['Schedule fields (HHA API)', row.scheduledStart, row.scheduledEnd], ['Recorded visit fields', row.actualStart, row.actualEnd], ['EVV fields (HHA API)', row.evvStart, row.evvEnd]]) {
       const box = el('div', '', 'maintenance-time'); box.append(el('h4', title));
-      for (const [label, value] of [['Start', start], ['End', end]]) { const p = el('p', time(value)); p.prepend(el('span', label)); box.append(p); }
+      for (const [label, value] of [['Start', start], ['End', end]]) { const p = el('p', row.state === 'unavailable' ? 'Source detail unavailable' : time(value)); p.prepend(el('span', label)); box.append(p); }
       times.append(box);
     }
     host.append(times, el('p', `Visit fetched ${row.detailFetchedAt || 'not available'}; office membership checked ${row.officeCheckedAt || 'not available'}. Missing fields do not prove a missed visit.`, 'maintenance-help'));
+    const evidence = el('section', '', 'maintenance-section'); evidence.id = 'maintenanceEvidence';
+    const evidenceTitle = el('h4', 'Evidence before source maintenance'); evidenceTitle.id = 'maintenanceEvidenceTitle'; evidence.setAttribute('aria-labelledby', evidenceTitle.id);
+    evidence.append(evidenceTitle, ...evidenceLines(row).map(line => el('p', line)), el('p', sourceWorkNotice, 'maintenance-boundary'), el('p', verificationNotice, 'maintenance-help'));
+    host.append(evidence);
     if (item && ['patientId', 'caregiverId', 'scheduledStart', 'scheduledEnd', 'actualStart', 'actualEnd', 'evvStart', 'evvEnd'].some(key => item.source[key] !== row[key])) {
       host.append(el('p', 'Source facts changed since this office review. Reinspect the current times and call evidence before saving a new proposal. The case history retains earlier receipts.', 'maintenance-boundary'));
     }
@@ -284,12 +297,13 @@
     return ['PRIMETIME OFFICE MAINTENANCE REPORT', `Office ${day.scope.officeId} | Service dates ${searchMode ? `${searchMode.from} through ${searchMode.to}` : day.scope.date} | Generated ${new Date().toISOString()}`,
       ...(searchMode?['Range reports cover cases opened/loaded in this workspace session; they are not a complete office case census.']:[]),
       `${rows.length} loaded cases. ${casePageComplete && !searchMode ? 'All requested case pages are loaded; cases may change concurrently.' : 'Case list incomplete; report covers loaded/opened cases only.'}`,
-      'HHA changes submitted by this workspace: 0. Office reviews and proposals are not HHA confirmations.', '', ...rows.flatMap(item => [
+      'HHA changes submitted by this workspace: 0. Office reviews and proposals are not HHA confirmations.', sourceWorkNotice, verificationNotice, '', ...rows.flatMap(item => [
         `Visit ${item.visitId} | Service date ${item.date} | Patient ${item.source.patientId} | Caregiver ${item.source.caregiverId}`,
         `${labels[item.status]} | ${labels[item.queue]} | Follow-up ${item.followUpAt || 'not set'} | Revision ${item.revision}`,
         `Next action: ${labels[item.proposal?.kind] || 'Review refreshed evidence'} | Selected source calls: ${item.proposal?.selectedCallIds.join(', ') || 'none'}`,
         `Reason / action staged: ${item.proposal?.reasonId || 'none'} / ${item.proposal?.actionId || 'none'}`,
         `Latest note: ${item.events.at(-1)?.note || 'none'}`, `Source visit fetched: ${item.source.detailFetchedAt}; office checked: ${item.source.officeCheckedAt}`,
+        'Saved case evidence (may differ from the current feed):', ...evidenceLines(item.source),
         `Calls fetched: ${item.calls?.fetchedAt || 'not read'}; exact visit linkage not established.`, ''])].join('\n');
   }
   function renderReport() {
@@ -299,7 +313,9 @@
     for (const item of cases.values()) {
       const box = el('div', '', 'maintenance-report-card'); box.append(el('strong', `Visit ${item.visitId} · ${labels[item.status]}`),
         el('p', `${labels[item.queue]} · Follow-up ${item.followUpAt ? new Date(item.followUpAt).toLocaleString() : 'not set'}`),
-        el('p', item.events.at(-1)?.note || ''), el('p', `Proposed action: ${labels[item.proposal?.kind] || 'Review refreshed call evidence'}. HHA submission: not submitted.`));
+        el('p', item.events.at(-1)?.note || ''), el('p', `Proposed action: ${labels[item.proposal?.kind] || 'Review refreshed call evidence'}. HHA submission: not submitted.`),
+        el('p', `Saved case evidence · visit fetched ${item.source.detailFetchedAt || 'not available'}. It may differ from the current feed.`, 'maintenance-help'),
+        ...evidenceLines(item.source).map(line => el('p', line)));
       box.append(button('Open office case', () => { selected = item.visitId; report = false; showTab(); render(); detail(); })); host.append(box);
     }
   }
