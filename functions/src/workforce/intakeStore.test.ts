@@ -145,6 +145,14 @@ test("submitted intake and its signature have immutable version history", async 
   const original = f.records.get("workforceApplications/synthetic-a/versions/1") as unknown as Intake;
   assert.equal(original.state, "draft"); assert.equal(original.signature, null);
   await assert.rejects(f.store.submit("synthetic-a", submitted.revision, { name: [answers.firstName, answers.lastName].join(" "), documentRead: true, electronicConsent: true }), /application_already_submitted/);
+  assert.deepEqual([...f.records].filter(([path]) => path.startsWith("workforceOnboardingJobs/")), [
+    ["workforceOnboardingJobs/synthetic-a", {
+      applicationUid: "synthetic-a", applicationRevision: submitted.revision,
+      office: "synthetic-office", submittedAt: submitted.updatedAt,
+      hha: { target: "applicant", state: "awaiting_connection" },
+      adp: { target: "approved_hire", state: "awaiting_connection" }
+    }]
+  ]);
 });
 test("required personnel documents are enforced by the server and PDF quarantine cannot be downloaded", async () => {
   const f = fixture(); const draft = await f.store.save("synthetic-a", 0, answers, "synthetic-office");

@@ -119,6 +119,12 @@ export class IntakeStore {
       const next = submitIntake(uid, doc.data() as Intake, revision, signature, new Date().toISOString());
       tx.set(ref, next); tx.create(ref.collection("versions").doc(String(next.revision)), next);
       tx.set(this.db.collection("workforceCaregiverDirectory").doc(uid), directoryEntry(next));
+      // Use the immutable application as the transfer source. Keep answers and files out of the queue.
+      tx.create(this.db.collection("workforceOnboardingJobs").doc(uid), {
+        applicationUid: uid, applicationRevision: next.revision, office: next.office, submittedAt: next.updatedAt,
+        hha: { target: "applicant", state: "awaiting_connection" },
+        adp: { target: "approved_hire", state: "awaiting_connection" }
+      });
       this.audit(tx, uid, "application_submitted", uid, { revision: next.revision });
       return next;
     });

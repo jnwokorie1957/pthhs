@@ -4,9 +4,12 @@ import { getAuth } from "firebase-admin/auth";
 import { parseGrant, requirePermission, validId, WorkforceError, type Actor, type Grant } from "./policy.js";
 import { saveOpportunity, transition, publicOpportunity, type Opportunity, type Action } from "./opportunities.js";
 
+const INVITATION_LIFETIME_MS = 86_400_000;
+
 interface StaffInvitation {
   grant: Grant;
   issuedBy: string;
+  issuedAt?: number;
   expiresAt: number;
   state: "pending" | "accepted" | "cancelled";
 }
@@ -53,27 +56,15 @@ export class WorkforceStore {
       if (user && (await tx.get(this.db.collection("workforceStaff").doc(user.uid))).exists) {
         throw new WorkforceError(409, "staff_already_registered");
       }
-      const invite: StaffInvitation = { grant, issuedBy: uid, state: "pending", expiresAt: now + 7 * 86400000 };
+      const invite: StaffInvitation = {
+        grant, issuedBy: uid, state: "pending", issuedAt: now, expiresAt: now + INVITATION_LIFETIME_MS
+      };
       tx.set(ref, invite);
       tx.create(this.db.collection("workforceAudit").doc(randomUUID()), {
         actor: uid, target: ref.id, action: "staff_invited", offices: grant.offices, at: new Date(now).toISOString()
       });
     });
     return { email };
-  }
-  async cancelStaffInvite(uid: string, address: unknown) {
-    const ref = this.invitation(workEmail(address));
-    await this.db.runTransaction(async tx => {
-      await this.inviteManager(tx, uid, []);
-      const invite = (await tx.get(ref)).data() as StaffInvitation | undefined;
-      if (invite?.state !== "pending") throw new WorkforceError(409, "staff_invite_not_pending");
-      await this.inviteManager(tx, uid, invite.grant.offices);
-      tx.set(ref, { ...invite, state: "cancelled" });
-      tx.create(this.db.collection("workforceAudit").doc(randomUUID()), {
-        actor: uid, target: ref.id, action: "staff_invite_cancelled", at: new Date().toISOString()
-      });
-    });
-    return { cancelled: true };
   }
   async acceptStaffInvite(uid: string, now = Date.now()): Promise<Actor> {
     const user = await this.auth().getUser(uid);
@@ -90,7 +81,10 @@ export class WorkforceStore {
         return { uid, grant };
       }
       const invite = (await tx.get(ref)).data() as StaffInvitation | undefined;
-      if (invite?.state !== "pending" || invite.expiresAt <= now) {
+      if (invite?.state !== "pending") throw new WorkforceError(403, "staff_invite_unavailable");
+      // Older records stored only the expiry, seven days from issue.
+      const issuedAt = invite.issuedAt ?? invite.expiresAt - 7 * INVITATION_LIFETIME_MS;
+      if (Math.min(invite.expiresAt, issuedAt + INVITATION_LIFETIME_MS) <= now) {
         throw new WorkforceError(403, "staff_invite_unavailable");
       }
       const grant = parseGrant(invite.grant);

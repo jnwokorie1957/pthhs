@@ -262,13 +262,11 @@ export const workforceApi = process.env.PRIMETIME_API_ONLY_DEPLOY === "true" ? u
     if (path === "/staff/opportunities" && req.method === "GET") { res.json(await store.list(uid)); return; }
     if (req.method !== "POST") throw new WorkforceError(405, "method_not_allowed");
     if (!req.is("application/json") || req.rawBody.length > 12000 || !req.body || typeof req.body !== "object" || Array.isArray(req.body)) throw new WorkforceError(400, "invalid_request");
-    if (path === "/staff/invitations" || path === "/staff/invitations/cancel" || path === "/staff/invitations/accept") {
+    if (path === "/staff/invitations" || path === "/staff/invitations/accept") {
       const recentUid = await recentWorkforceIdentity(req);
       if (path === "/staff/invitations/accept") {
         if (Object.keys(req.body).length) throw new WorkforceError(400, "invalid_request");
         res.json(await store.acceptStaffInvite(recentUid));
-      } else if (path === "/staff/invitations/cancel") {
-        res.json(await store.cancelStaffInvite(recentUid, req.body.email));
       } else {
         res.json(await store.inviteStaff(recentUid, req.body.email, req.body.grant));
       }

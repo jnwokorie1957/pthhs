@@ -113,7 +113,7 @@ test("owner can invite a work email before the Firebase account exists, and only
   assert.equal([...documents.values()].filter(value => (value as {action?:string}).action === "staff_invite_accepted").length, 1);
 });
 
-test("pending invitations stop at expiry, cancellation or loss of the issuer's office scope", async () => {
+test("pending invitations stop after 24 hours or loss of the issuer's office scope", async () => {
   const {store, documents, users, grant} = fixture();
   const owner = {...grant, role:"owner", permissions:["staff.manage"]};
   documents.set("workforceStaff/owner", owner);
@@ -121,11 +121,12 @@ test("pending invitations stop at expiry, cancellation or loss of the issuer's o
   const now = Date.parse("2026-11-09T12:00:00Z");
   users.set("new-staff", {uid:"new-staff", email, emailVerified:true, disabled:false});
   await store.inviteStaff("owner", email, grant, now);
-  await assert.rejects(store.acceptStaffInvite("new-staff", now + 7 * 86400000), /staff_invite_unavailable/);
-  await assert.rejects(store.cancelStaffInvite("editor", email), /workforce_forbidden/);
-  await store.cancelStaffInvite("owner", email);
-  await assert.rejects(store.acceptStaffInvite("new-staff", now), /staff_invite_unavailable/);
-  await store.inviteStaff("owner", email, grant, now);
+  const day = 86_400_000;
+  await assert.rejects(store.acceptStaffInvite("new-staff", now + day), /staff_invite_unavailable/);
+  const key = [...documents.keys()].find(path => path.startsWith("workforceStaffInvitations/"))!;
+  const { issuedAt: _, ...oldInvite } = documents.get(key) as { issuedAt: number };
+  documents.set(key, { ...oldInvite, expiresAt: now + 7 * day });
+  await assert.rejects(store.acceptStaffInvite("new-staff", now + day), /staff_invite_unavailable/);
   documents.set("workforceStaff/owner", {...owner, offices:["other-office"]});
   await assert.rejects(store.acceptStaffInvite("new-staff", now), /workforce_forbidden/);
   assert.equal(documents.has("workforceStaff/new-staff"), false);

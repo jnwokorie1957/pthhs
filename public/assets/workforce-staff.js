@@ -5,7 +5,6 @@
   const form = document.getElementById('staff-editor');
   const invites = document.getElementById('staff-invite-form');
   const inviteStatus = document.getElementById('staff-invite-status');
-  const cancelInvite = document.getElementById('cancel-staff-invite');
   const grantStatus = document.getElementById('staff-grant-status');
   const status = document.getElementById('session-status');
   const can = p => actor?.grant.permissions.includes('opportunities.' + p);
@@ -105,25 +104,20 @@
   document.getElementById('staff-refresh').onclick = refresh;
   document.getElementById('staff-new').onclick = () => edit(null);
   let invitationBusy = false;
-  async function invitationAction(cancel) {
+  async function sendInvitation() {
     if (invitationBusy || !actor) return;
     if (!invites.elements.email.reportValidity()) return;
     const sequence = generation;
     const data = new FormData(invites), email = data.get('email');
     const permissions = data.getAll('permissions');
-    if (!cancel && !permissions.length) {
+    if (!permissions.length) {
       inviteStatus.textContent = 'Choose at least one permission.';
       return;
     }
     const submit = invites.querySelector('[type="submit"]');
-    invitationBusy = submit.disabled = cancelInvite.disabled = true;
-    inviteStatus.textContent = cancel ? 'Cancelling invitation…' : 'Preparing invitation…';
+    invitationBusy = submit.disabled = true;
+    inviteStatus.textContent = 'Preparing invitation…';
     try {
-      if (cancel) {
-        await workforceApi('/staff/invitations/cancel', {email});
-        if (sequence === generation) inviteStatus.textContent = 'Pending invitation cancelled.';
-        return;
-      }
       const invite = await workforceApi('/staff/invitations', {email, grant: {
         active: true, role: data.get('role'), offices: [data.get('office')], permissions
       }});
@@ -137,11 +131,10 @@
     } catch (error) {
       if (sequence === generation) inviteStatus.textContent = error.message;
     } finally {
-      invitationBusy = submit.disabled = cancelInvite.disabled = false;
+      invitationBusy = submit.disabled = false;
     }
   }
-  invites.addEventListener('submit', e => { e.preventDefault(); return invitationAction(false); });
-  cancelInvite.onclick = () => invitationAction(true);
+  invites.addEventListener('submit', e => { e.preventDefault(); return sendInvitation(); });
   document.getElementById('staff-grant-form').addEventListener('submit', async e => {
     e.preventDefault(); const sequence = generation, f = new FormData(e.target);
     try {

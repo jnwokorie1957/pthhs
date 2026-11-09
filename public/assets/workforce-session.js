@@ -23,7 +23,6 @@
     workforce_forbidden: 'Your current permissions do not allow this action in this office.',
     staff_access_required: 'Individual staff access has not been granted to this account.',
     staff_invite_unavailable: 'No active invitation matches this work email. Ask the owner to send a new invitation.',
-    staff_invite_not_pending: 'No pending invitation was found for that email.',
     staff_already_registered: 'This account already has staff access on file. Use Manage existing access to change it.',
     invalid_staff_email: 'Enter a valid work email address.',
     staff_access_revoked: 'Staff access has been revoked.',
