@@ -1859,3 +1859,40 @@ https://github.com/jnwokorie1957/pthhs/pull/15
 https://github.com/jnwokorie1957/pthhs/actions/runs/42658468399
 https://github.com/jnwokorie1957/pthhs/actions/runs/42658720746
 https://github.com/jnwokorie1957/pthhs/blob/70217005e11b3babdec623739ec939f5f772fc45/functions/src/views/visits.ts
+
+
+NOVEMBER 9, 2026 — OFFICE-DAY FIRST READ AND RETRY EVIDENCE
+
+PR18 shows a reported delay before the first batch instead of leaving
+Overview at collection queued. The protected office-day cache already supplies
+officeDayCache.error and officeDayCache.progress.retryAt. The display maps known
+read outcomes to fixed labels for a shared read limit, vendor cooldown, temporary
+source failure, or disabled read. A retry timestamp describes the next background
+attempt. A retained result keeps its original fetch range and chart counts. An
+unknown first batch leaves totals unknown. The change does not schedule new reads.
+
+Clock sources remain GetVisitInfoV3Result/VisitInfo direct ScheduleStartTime,
+ScheduleEndTime, VisitStartTime, VisitEndTime, EVVStartTime, EVVEndTime,
+ActualHours and ActualHoursRounded. The WSDL lists these as optional strings.
+ScheduleDuration/ScheduleDurationHours and
+ScheduleDuration/ScheduleDurationMinutes are integer components of the schedule.
+The actual-hour units and original-event linkage
+remain unestablished for the remaining gaps. October 31 resolved the original
+October 24 screenshot. The November 6 historical comparison remains dated.
+
+Both PR quality jobs and both Hosting release jobs passed for 7a80e1c725e514ec8315ffe1d3940f0788de9053.
+The two delay cases reproduced before the fix and passed after it. All 307
+focused tests passed, with deterministic assets, repository audit and the 500 KB
+budget. At 2026-11-09 19:50 UTC, the versioned dashboard and maintenance scripts
+and shells matched the reviewed release. The protected route denied anonymous
+access with no-store/noindex. The dashboard delay tests use synthetic cache
+receipts and the exact served asset. The approved retained browser attachment
+still times out, so no fresh protected source comparison or clock recovery is
+claimed. Restore that session to compare approved same-office October 23/24
+and current-day reads, then verify a naturally occurring delay and recovery.
+The existing vendor case still needs exact original-event linkage, history scope,
+actual-hour units and preservation/readback. P03/E04 remain open.
+
+https://github.com/jnwokorie1957/pthhs/pull/18
+https://github.com/jnwokorie1957/pthhs/actions/runs/42686635499
+https://github.com/jnwokorie1957/pthhs/actions/runs/42686922671

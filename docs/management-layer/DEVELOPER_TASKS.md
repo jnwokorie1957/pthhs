@@ -1,5 +1,14 @@
 # PTHHS Management Layer — Developer Checklist
 
+- [x] November 9 office-day delay display deployed (PR18/7a80e1c).
+  Initial read failures show the reported reason and retry time. Existing
+  charts keep their fetch receipts. Both quality and Hosting jobs passed.
+  [Source and acceptance evidence](PRIMETIME_LIVE_DATA_CHECKLIST.txt).
+- [x] November 9 workforce entry routing deployed (PR17). Both staff paths
+  select staff sign-in and preserve anonymous denial. Confirm office and role
+  scope with an existing authorized staff account.
+  [Portal release evidence](../workforce/PUBLIC_PORTAL_RELEASE.md).
+
 - [x] November 9 visit detail read states deployed (PR15/7021700). The queue
   and selected visit distinguish deferred and withheld detail from readable
   fields that HHA left empty. A failed detail cannot trigger a changed-facts

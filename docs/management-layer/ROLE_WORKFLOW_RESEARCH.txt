@@ -3530,3 +3530,19 @@ https://github.com/jnwokorie1957/pthhs/pull/14
 https://github.com/jnwokorie1957/pthhs/actions/runs/42554957630
 https://github.com/jnwokorie1957/pthhs/actions/runs/42555134855
 https://github.com/jnwokorie1957/pthhs/blob/79912aa23d2f43e5cc8b3d0a333f6c0ffff99b09/source/primetime/maintenance.js
+
+
+NOVEMBER 9, 2026 — STAFF ENTRY ROUTING
+
+PR17 routes /workforce and /workforce/ through staff sign-in and the existing
+/primetime/workforce-api. The legacy entry redirects to the canonical staff route
+with its query preserved. /caregiver retains its own entry. Both quality jobs
+and the Hosting release passed. Production shells and the versioned session
+script matched Git, and the route regression passed against the served bytes.
+Anonymous session denial and noindex/no-store remained in place. An existing
+approved staff account is needed to verify its office and role scope. The
+route check does not establish invitation acceptance or applicant handoff.
+
+https://github.com/jnwokorie1957/pthhs/pull/17
+https://github.com/jnwokorie1957/pthhs/actions/runs/42673198808
+https://github.com/jnwokorie1957/pthhs/actions/runs/42686922671

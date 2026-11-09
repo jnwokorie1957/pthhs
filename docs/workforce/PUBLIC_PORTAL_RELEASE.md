@@ -54,3 +54,20 @@ No email was entered, no link sent, no account created and no password changed
 in this verification. Individual enrollment acceptance requires a separately
 approved eligible account and owner-controlled credential entry. No permissions,
 source records, feature flags or runtime deployment changed for this follow-up.
+
+
+## Staff sign-in at both workforce URLs
+
+The November 9 Hosting release verified `/workforce` and `/workforce/`
+against the reviewed staff shell. The legacy address redirects to
+`/workforce` with its query preserved. The caregiver shell and versioned
+session script matched Git. The regression confirmed staff startup for both
+workforce paths and separate caregiver startup. Portal HTML and configuration
+kept noindex/no-store. Anonymous staff and Primetime sessions returned 401.
+Existing caregiver setup stayed ready, with applications and documents disabled.
+
+Verify signed-in office and role scope with an existing authorized staff
+account at `/workforce/`. Invite lifetime, acceptance and applicant handoff
+need separate acceptance.
+
+[PR 17](https://github.com/jnwokorie1957/pthhs/pull/17) · [Quality](https://github.com/jnwokorie1957/pthhs/actions/runs/42673198808) · [Hosting](https://github.com/jnwokorie1957/pthhs/actions/runs/42686922671)
