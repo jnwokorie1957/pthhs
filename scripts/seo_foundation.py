@@ -407,7 +407,9 @@ def generate_robots() -> None:
 def expand_redirects() -> int:
     config_path = ROOT / "firebase.json"
     config = json.loads(config_path.read_text())
-    redirects = config["hosting"].setdefault("redirects", [])
+    hosting = config["hosting"]
+    redirects = hosting.setdefault("redirects", [])
+    rewrite_targets = {row.get("destination") for row in hosting.get("rewrites", [])}
     known = {row.get("source"): row for row in redirects}
 
     for source, destination in DOCUMENTED_LEGACY_REDIRECTS.items():
@@ -423,7 +425,8 @@ def expand_redirects() -> int:
         if any(token in source for token in ("*", ":")) or source.endswith(".html"):
             continue
         html_source = f"{source}.html"
-        if html_source not in known:
+        # A static rewrite destination is a served file, not a legacy alias.
+        if html_source not in known and html_source not in rewrite_targets:
             additions.append(
                 {"source": html_source, "destination": row["destination"], "type": 301}
             )
