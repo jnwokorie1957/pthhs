@@ -7,6 +7,8 @@
     not_attempted_after_batch_gate: 'Details deferred after a source or access limit',
     read_budget_exhausted_retry_next_minute: 'Shared read limit reached',
     vendor_backoff_active: 'Vendor retry delay recorded',
+    hha_source_temporarily_unavailable: 'HHA source temporarily unavailable',
+    read_not_owner_enabled: 'Required source read is disabled',
     visit_patient_office_mismatch: 'Patient office could not be verified',
     visit_date_scope_mismatch: 'Source visit date differs from the selected day',
     visit_not_uniquely_returned: 'Source did not return one matching visit'
@@ -597,10 +599,14 @@
     }
   }
   function renderLiveOverview(view, office = false) {
-    if (office && view.officeDayCache?.known === false) {
-      for (const id of ['dashboardOverviewMetrics', 'dashboardOverviewExceptions', 'dashboardCoverage', 'dashboardAlerts', 'dashboardTimeline', 'dashboardEvidenceChart']) unavailable(id, 'Office-day collection queued', 'The server is collecting this office day in background batches. No complete totals are available yet.');
-      text('dashboardOverviewStatus', 'Office-day collection queued. Background progress continues with the browser closed.');
-      text('dashboardOverviewMetadata', `HHA API · office ${view.scope.officeId} · ${view.scope.date} · waiting for the first source batch.`);
+    const cache = view.officeDayCache, progress = cache?.progress;
+    const error = typeof cache?.error === 'string' && cache.error ? ` ${visitDetailReason(cache.error)}.` : '';
+    const retry = progress?.retryAt ? ` Next background attempt after ${progress.retryAt}.` : '';
+    if (office && cache?.known === false) {
+      const status = error || retry ? 'Office-day collection delayed' : 'Office-day collection queued';
+      for (const id of ['dashboardOverviewMetrics', 'dashboardOverviewExceptions', 'dashboardCoverage', 'dashboardAlerts', 'dashboardTimeline', 'dashboardEvidenceChart']) unavailable(id, status, 'Waiting for the first source batch.');
+      text('dashboardOverviewStatus', status + '.' + error + retry);
+      text('dashboardOverviewMetadata', `HHA API · office ${view.scope.officeId} · ${view.scope.date}`);
       text('dashboardOverviewCompleteness', 'Returned visit count is not known yet.');
       text('dashboardReadiness', 'Waiting for source records; no example or zero totals are substituted.'); return;
     }
@@ -675,9 +681,8 @@
     text('dashboardOverviewStatus', scan.done ? scan.complete ? 'Office-day read complete: all returned visits checked.' : 'Office-day read finished with unavailable details or truncated discovery.' : `Reading entire office day: ${evidence.records} of ${sourceIds} visits checked…`);
     text('dashboardOverviewMetadata', `HHA API · office ${view.scope.officeId} · ${view.scope.date} · searches ${scan.startedAt} → ${scan.latestSearchAt}. Each visit retains its own detail/office-check receipts. Sequential reads are not an atomic snapshot.`);
     text('dashboardOverviewCompleteness', `${evidence.records} / ${sourceIds} returned IDs checked; ${evidence.unavailable} unavailable details.${view.discovery?.truncated ? ' Search truncated; office coverage incomplete.' : ''}`);
-    if (view.officeDayCache) {
-      const cache = view.officeDayCache, progress = cache.progress;
-      text('dashboardOverviewStatus', `${cache.stale ? 'Cached result · source update delayed. ' : ''}${cache.done ? cache.complete ? 'Office-day read complete: all returned visits checked.' : 'Office-day read finished with unavailable details or truncated discovery.' : `Background collection: ${evidence.records} of ${sourceIds} visits checked.`}${progress.refreshing ? ` Next refresh: ${progress.checked} of ${progress.total} checked; charts retain the completed result.` : ''}${progress.retryAt ? ` HHA retry after ${progress.retryAt}.` : ''}`);
+    if (cache) {
+      text('dashboardOverviewStatus', `${cache.stale ? 'Cached result · source update delayed. ' : ''}${cache.done ? cache.complete ? 'Office-day read complete: all returned visits checked.' : 'Office-day read finished with unavailable details or truncated discovery.' : `Background collection: ${evidence.records} of ${sourceIds} visits checked.`}${progress.refreshing ? ` Next refresh: ${progress.checked} of ${progress.total} checked; charts retain the completed result.` : ''}${error}${retry}`);
       text('dashboardOverviewMetadata', `HHA API · office ${view.scope.officeId} · ${view.scope.date} · searches ${cache.startedAt} → ${cache.latestSearchAt} · server collection continues with the browser closed. ${cache.stale ? 'Cached result; update delayed.' : 'Protected API cache; checked ' + cache.checkedAt + '.'} Each visit retains detail/office-check receipts; sequential reads are not an atomic snapshot.`);
     }
     text('dashboardReadiness', `${evidence.readable} readable visits; ${evidence.unavailable} unavailable. Charts cover the whole collected office-day result, with progress disclosed above. Field presence does not determine completion, EVV compliance, eligibility or billable hours.`);
