@@ -3546,3 +3546,100 @@ route check does not establish invitation acceptance or applicant handoff.
 https://github.com/jnwokorie1957/pthhs/pull/17
 https://github.com/jnwokorie1957/pthhs/actions/runs/42673198808
 https://github.com/jnwokorie1957/pthhs/actions/runs/42686922671
+
+
+NOVEMBER 9, 2026 — LINKED EVV OVERAGE AND ROLE-SPECIFIC EVIDENCE
+
+Observed in the November 9 authorized HHA walkthrough. The Calendar card
+displayed the saved schedule span and two already-linked EVV clocks for the
+same visit. The linked clock span exceeded the schedule, so the review stopped
+before any action or review of later dates. This is a positive Calendar example
+for SCHEDULE-GATE-001. The earlier candidate-pair example remains a separate
+pre-link stop. Visit Info did not open in this walkthrough. Its reason/action
+catalog, call history, readback and payable fields remain unverified for this
+example. The current pass compares that dated observation with source and public
+docs. The held owner workflow was left at its recorded stopping point.
+
+Current Primetime evidence at 2b28eb502e5c7ec31953129e764967a22075cfcc. The maintenance case records local
+state and history with hhaSubmission fixed to not_submitted. GetCallDashBoardData
+evidence is scoped to the same patient, caregiver and day with visit linkage
+unsupplied. PR14 preserves saved-only history without a current source row.
+PR15 distinguishes unavailable detail from a readable response with empty
+fields. PR18 shows a protected cache delay and scheduled retry without replacing
+the existing chart receipts. PR17 verified the staff entry and anonymous
+boundaries. The workforce office and supervisor roles authorize their scoped
+workforce functions. Clinical and legacy administrator access have separate
+checks. No authenticated new-role or native overage feature is established.
+
+Patient and representative, P2. Show the saved schedule and a separately
+labelled request receipt or concern. The Family Portal describes a request
+for a scheduled visit and a concern for a completed visit before billing
+(R7, checked again November 9). Proposed links open one shared appointment
+and independently released documents under current patient/representative
+membership. A relationship change must remove both schedule and document
+access. Keep visit confirmation signatures, consent, clinical signatures and
+document releases as distinct receipts. HHA documents that skipping a requested
+patient signature can flag timesheet follow-up independently of Call Dashboard
+placement (R111). Family request effects and document sharing still require
+the authorized tenant policy and a protected representative example.
+
+PT and field staff, P2. Mobile visit history and agency-assigned patients can
+appear together in the caregiver Patients list (R110). Build the PT caseload
+from effective patient/office assignment. Use the assigned visit and approved
+discipline, service, contract and form version to open clinical documentation
+(R9, R18 and R73, rechecked November 9). My Day can show an assigned schedule,
+visit and applicable tasks with separate document and EVV status. Recheck
+scope and author/reviewer authority when opening or submitting a document.
+A recent visit, workforce role or captured patient signature provides no
+clinical assignment or signing authority.
+
+Office manager, P0/P1. Keep saved schedule, suggested time, original EVV,
+recorded visit times and billing evidence visible as separate sources.
+HHA describes an office-configurable authorization review horizon and a
+prebilling exception that can also leave Calendar rows white (R109).
+Require the exact visit/service/authorization match and its date, unit and
+check receipt before displaying an authorization conclusion. Retain separate
+EVV, authorization and billing follow-up states. The market-specific billed
+hours guide (R112) describes constraints on adjustments. Applicability,
+source units, rounding and payer outcomes still require the applicable
+contract and exact source evidence.
+
+Acceptance cases proposed for the next build:
+1. With the same office, visit and date, show a Calendar-derived linked overage
+   as held for owner review with its provenance. Preserve the exact observed
+   schedule and EVV fields in protected evidence only. A prospective candidate
+   or missing endpoint keeps its distinct proposed/unknown state. Reopened
+   cases retain the stop, including with an adjusted bill clock in range.
+2. From a white or out-of-horizon Calendar state, require exact current
+   authorization evidence before describing the visit as authorized. A case
+   may have a completed local review and an open authorization, EVV or billing
+   follow-up. A delayed API response leaves its field totals unknown or dated.
+3. Revoke the family link or expire the PT assignment while an appointment or
+   document is open. Verify that both the record read and related action fail.
+   A valid assignment to a different encounter or older form version cannot
+   open the current clinical record. Test schedule, document and signing
+   permissions independently through the existing authenticated entry points.
+
+Next owner action for the held visit is to direct its exact disposition
+before continuing that review. The previous case's approval is spent. Before
+generalizing, confirm the schedule and EVV comparison basis and office/action
+authority. The existing HHA case still needs exact original-event linkage,
+visit-level reason/action and preservation/readback. Staff, PT and family
+acceptance need authorized effective relationships and approved document
+scope. Public Careers and workforce sign-in stay separate from patient/clinical
+record access.
+
+PRIMARY SOURCES CHECKED NOVEMBER 9, 2026
+[R109] HHAeXchange Enterprise, What types of visits can I create in the system?
+https://knowledge.hhaexchange.com/enterprise/Content/Documentation/Visit/FAQ-Visit-N-Create-a-Visit-S.htm
+[R110] HHAeXchange+, Mobile App Patients Page.
+https://knowledge.hhaexchange.com/caregiver/Content/Documentation/Mobile/Mobi-CG-UW-Patients-Page-P.htm
+[R111] HHAeXchange Enterprise, Patient Signature Report.
+https://knowledge.hhaexchange.com/enterprise/Content/Documentation/Mobile/FAQ-Mobi-C-Patient-Signature-Report-P.htm
+[R112] HHAeXchange Texas, Billed Hours Rules for Visit Start and End Times and EVV Durations.
+https://knowledge.hhaexchange.com/texas/Content/Documentation/Visit/Visit-N-Billed-Hours-Rules-P.htm
+[R113] Primetime source, owner stop procedure and release evidence.
+https://github.com/jnwokorie1957/pthhs/blob/2b28eb502e5c7ec31953129e764967a22075cfcc/docs/management-layer/EVV_OWNER_TAUGHT_PROCEDURES.txt
+https://github.com/jnwokorie1957/pthhs/blob/2b28eb502e5c7ec31953129e764967a22075cfcc/functions/src/maintenance/service.ts
+https://github.com/jnwokorie1957/pthhs/blob/2b28eb502e5c7ec31953129e764967a22075cfcc/functions/src/workforce/policy.ts
+https://github.com/jnwokorie1957/pthhs/actions/runs/42686922671

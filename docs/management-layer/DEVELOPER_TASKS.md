@@ -1,5 +1,13 @@
 # PTHHS Management Layer — Developer Checklist
 
+- [ ] November 9 linked EVV overage. An authorized Calendar observation
+  exercised the owner stop on a visit with both EVV clocks already linked.
+  Design a protected review hold with source-specific evidence. Test linked,
+  candidate and unknown comparisons separately, retain open authorization/EVV/
+  billing follow-up, and wait for the accepted comparison and action contracts
+  before enabling a calculation or source action.
+  [Role research and proposed acceptance](ROLE_WORKFLOW_RESEARCH.txt).
+
 - [x] November 9 office-day delay display deployed (PR18/7a80e1c).
   Initial read failures show the reported reason and retry time. Existing
   charts keep their fetch receipts. Both quality and Hosting jobs passed.

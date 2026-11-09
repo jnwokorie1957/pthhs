@@ -27,9 +27,12 @@
   specifically approved genuine call-out link and separate Visit Info save now
   have independent source readback; their approvals are consumed for that case.
   [Owner-taught rules](EVV_OWNER_TAUGHT_PROCEDURES.txt) require stopping for EVV
-  over schedule or unknown comparison inputs before a write. A positive overage
-  example, general exceptions and individual action authority remain pending;
-  later automation is a separate tested rollout. Do not repeat completed approvals.
+  over schedule or unknown comparison inputs before a write. The November 9
+  authorized Calendar walkthrough exercised the stop with two already-linked
+  EVV clocks. Direct the exact disposition of that held visit before continuing.
+  General comparison/exception policy and individual action authority remain
+  pending. Later automation needs separate acceptance. Prior approvals were
+  specific to the earlier example. [Evidence and scope](ROLE_WORKFLOW_RESEARCH.txt).
 
 - [x] Original HHA visit form and agency reference tables inspected after owner
   sign-in. The selected visit exposes 28 reasons/five actions, using different
