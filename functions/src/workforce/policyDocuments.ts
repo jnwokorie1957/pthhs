@@ -154,9 +154,8 @@ Please contact your supervisor if you have any questions.`,
 
 After due consideration, I hereby knowingly and voluntarily elect to ACCEPT or DECLINE this offer of coverage. I understand that I will not have another opportunity to enroll in coverage under the health plan until next open enrollment period.
 
-## Election choices on the separate enrollment record
-- Accept
-- Decline. Please email a copy to irab@pthhs.net.`,
+## Coverage election
+Choose Accept or Decline, then acknowledge your election below.`,
 18: `Please be advised that effective January 2017, Primetime Home Health Services, Inc. will no longer be issuing payroll checks. Instead, your pay will be directly deposited into your bank account.
 
 In accordance with this new payroll disbursement procedure, every employee is required to provide the Human Resources department within 7 days of application; you can email a copy to irab@pthhs.net:

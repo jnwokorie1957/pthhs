@@ -37,8 +37,8 @@
    if(kind==='w4'&&index>=9&&index<=14){input.inputMode='decimal';input.placeholder='0 if none';}
   }
   if(pageNumber===1){
-   if(kind==='w4'||kind==='i9'){
-    add('official-signature-name','Employee signature','text',fullName,kind+'-signature',()=>{},true);
+   if(kind==='w4'||kind==='i9'||kind==='cch'){
+    add('official-signature-name',kind==='cch'?'Applicant signature':'Employee signature','text',fullName,kind+'-signature',()=>{},true);
     add('official-signature-date','Signature date — recorded when signed','text',employer.signingDate,kind+'-signature-date',null);
    }
    for(const field of schema.employerFields||[])add('official-employer-'+field.key,field.label,field.multiline?'multiline':'text',/phone|fax/.test(field.key)?WorkforceContract.formatPhone(employer[field.key]||''):employer[field.key]||'',kind+'-employer-'+field.key,null);

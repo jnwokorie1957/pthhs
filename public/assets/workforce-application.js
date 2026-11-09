@@ -12,6 +12,7 @@
   let packet, record = null, answers = {}, sections = [], step = 0, generation = 0;
   let documentItems = [], addressEnabled = false, detachAddress = () => {};
   let version = 0, savedVersion = -1, saveQueue = Promise.resolve(), timer, documentsEnabled = false;
+  const uploadKinds = {identity: 'Photo ID', social_security: 'Social Security card', insurance_card: 'Health insurance card'};
   let uploading = false;
   let reviewNavigation = false;
   const completionSummary = document.createElement('section'), reviewNote = document.createElement('p'), marked = new WeakMap();
@@ -34,12 +35,20 @@
     target.append(list);
   }
   window.WorkforceReview = { freeNavigation: () => reviewNavigation, paintMissing, flush: saveNavigation };
-  function focusMissing(id) { const control=document.getElementById(id); if(control?.disabled) control.closest('.packet-reading-card')?.querySelector('button')?.focus(); else control?.focus(); }
+  const fieldControl = id => id === 'jobDescriptionRead' ? 'job-description-read' : id === 'terms_page_17' ? 'application-terms_page_17' : 'application-' + id.replace('terms_page_', 'read_page_');
+  function focusMissing(id) {
+    const control = document.getElementById(id);
+    if (id === 'application-terms_page_17' && !control) {
+      document.querySelector('[aria-controls="policy-document-17"]')?.focus();
+    } else if (control?.disabled || control?.closest('[hidden]')) {
+      control.closest('.packet-reading-card')?.querySelector('button')?.focus();
+    } else control?.focus();
+  }
   function refreshCompleteness() {
     if (!packet || record?.state === 'submitted') { completionSummary.hidden = true; return; }
-    const missing = packet.fields.filter(f => f.required && !answers[f.id]?.trim() && (!f.id.startsWith('terms_page_') || answers[f.id.replace('terms_page_', 'read_page_')] === 'Read')).map(field => ({
-      label: field.label, section: field.section, controlId: field.id === 'jobDescriptionRead' ? 'job-description-read' : 'application-' + field.id.replace('terms_page_', 'read_page_'),
-      activate: async () => { try { const next = sections.indexOf(field.section); if (next > step) validateStep(); await saveNavigation(); step = next; render(); focusMissing(field.id === 'jobDescriptionRead' ? 'job-description-read' : 'application-' + field.id.replace('terms_page_', 'read_page_')); } catch(error) { showError(error); } }
+    const missing = packet.fields.filter(f => f.required && !answers[f.id]?.trim() && (f.id === 'terms_page_17' || !f.id.startsWith('terms_page_') || answers[f.id.replace('terms_page_', 'read_page_')] === 'Read')).map(field => ({
+      label: field.label, section: field.section, controlId: fieldControl(field.id),
+      activate: async () => { try { const next = sections.indexOf(field.section); if (next > step) validateStep(); await saveNavigation(); step = next; render(); focusMissing(fieldControl(field.id)); } catch(error) { showError(error); } }
     }));
     for (const kind of requiredDocuments()) missing.push({ label: kind === 'identity' ? 'Photo ID upload' : 'Social Security card upload', section: 'Documents', controlId: kind + '-choose', activate: async () => { try { const next = sections.indexOf('Documents'); if (next > step) validateStep(); await saveNavigation(); step = next; render(); document.getElementById(kind + '-choose').focus(); } catch(error) { showError(error); } } });
     if (step === sections.length) for (const [id,label] of [['release-read','Read the past-employment release'],['electronic-consent','Choose electronic signing'],['application-signature-name','Your electronic signature']]) {
@@ -72,7 +81,7 @@
   }
   const text = (tag, value) => { const node = document.createElement(tag); node.textContent = value; return node; };
   function clearImage(kind) {
-    for (const key of kind ? [kind] : ['identity', 'social_security']) {
+    for (const key of kind ? [kind] : Object.keys(uploadKinds)) {
 
       for (const suffix of ['file']) document.getElementById(key + '-' + suffix).value = '';
       document.getElementById(key + '-selection').textContent = 'No file selected';
@@ -87,11 +96,11 @@
       if (sequence !== generation) return;
       documentItems = data.items; renderDocumentChecklist();
       document.getElementById('private-document-list').replaceChildren();
-      for (const kind of ['identity', 'social_security']) {
+      for (const kind of Object.keys(uploadKinds)) {
         const doc = [...data.items].sort((a,b)=>b.createdAt.localeCompare(a.createdAt)).find(item => item.kind === kind && ['pending_review', 'pending_security_review'].includes(item.state));
         const view = document.getElementById(kind + '-view'); view.hidden = !doc || doc.state !== 'pending_review';
         if (doc) document.getElementById(kind + '-selection').textContent = doc.state === 'pending_security_review' ? 'Uploaded — security review pending' : 'Uploaded';
-        view.onclick = async () => { try { const sequence = generation, blob = await workforceApi('/application/documents/' + encodeURIComponent(doc.id), undefined, true); if (sequence === generation) window.WorkforceCamera.view(blob, kind === 'identity' ? 'Photo ID' : 'Social Security card'); } catch (error) { documentMessage.textContent = error.message; } };
+        view.onclick = async () => { try { const sequence = generation, blob = await workforceApi('/application/documents/' + encodeURIComponent(doc.id), undefined, true); if (sequence === generation) window.WorkforceCamera.view(blob, uploadKinds[kind]); } catch (error) { documentMessage.textContent = error.message; } };
       }
     } catch (error) { if (sequence === generation) documentMessage.textContent = error.message; }
   }
@@ -118,8 +127,9 @@
     }
     const missing = packet.fields.find(f => f.section === sections[step] && f.required && !answers[f.id]?.trim());
     if (!missing) return;
-    const control = document.getElementById(missing.id === 'jobDescriptionRead' ? 'job-description-read' : 'application-' + missing.id.replace('terms_page_', 'read_page_'));
-    control?.focus(); control?.setAttribute('aria-invalid', 'true');
+    const id = fieldControl(missing.id);
+    focusMissing(id);
+    document.getElementById(id)?.setAttribute('aria-invalid', 'true');
     throw Error('Complete ' + missing.label + ' before continuing. You can still save this draft.');
   }
   function renderRoleDescription() {
@@ -279,7 +289,7 @@
     const sequence = generation, button = document.getElementById('application-submit'); button.disabled = true;
     try {
       const missing = packet.fields.find(f => f.required && !answers[f.id]?.trim());
-      if (missing) { step = sections.indexOf(missing.section); render(); document.getElementById(missing.id === 'jobDescriptionRead' ? 'job-description-read' : 'application-' + missing.id.replace('terms_page_', 'read_page_'))?.focus(); throw Error('Complete ' + missing.label + ' before submitting.'); }
+      if (missing) { step = sections.indexOf(missing.section); render(); focusMissing(fieldControl(missing.id)); throw Error('Complete ' + missing.label + ' before submitting.'); }
       await save();
       await loadDocuments();
       // The server checks required receipts and trusted office exceptions together.
@@ -289,8 +299,16 @@
         electronicConsent: document.getElementById('electronic-consent').checked, documentRead: document.getElementById('release-read').checked
       } });
       if (sequence === generation) { record = result.application; render(); }
-    } catch (error) { if (sequence === generation) showError(error); }
-    finally { button.disabled = false; }
+    } catch (error) {
+      if (sequence === generation) {
+        if (error.code === 'cch_signature_required') {
+          step = sections.indexOf('Tax & employment forms');
+          render();
+          document.getElementById('complete-cch').focus();
+        }
+        showError(error);
+      }
+    } finally { button.disabled = false; }
   };
   async function choose(kind, file) {
     if (uploading || !documentsEnabled || !file) return;
@@ -307,16 +325,16 @@
     } catch (error) { if (sequence === generation) status.textContent = 'Upload failed. Choose the file or take the photo again. ' + error.message; }
     finally { uploading = false; for (const button of documentForm.querySelectorAll('button')) button.disabled = false; }
   }
-  for (const kind of ['identity', 'social_security']) {
+  for (const kind of Object.keys(uploadKinds)) {
     document.getElementById(kind + '-choose').onclick = () => document.getElementById(kind + '-file').click();
     document.getElementById(kind + '-file').addEventListener('change', event => { const file = event.target.files?.[0]; event.target.value = ''; choose(kind, file); });
     document.getElementById(kind + '-take-photo').onclick = async () => {
-      const sequence = generation, file = await window.WorkforceCamera.capture(kind === 'identity' ? 'Take a Photo ID picture' : 'Take a Social Security card picture');
+      const sequence = generation, file = await window.WorkforceCamera.capture('Photograph your ' + uploadKinds[kind]);
       if (sequence === generation && sections[step] === 'Documents') await choose(kind, file);
     };
     document.getElementById(kind + '-upload-form').addEventListener('submit', event => event.preventDefault());
   }
-  for (const kind of ['i9', 'w4', 'new_hire']) document.getElementById('complete-' + kind).onclick = async () => { try { await saveNavigation(); await window.WorkforceForms.open(kind, {...answers}); } catch (error) { showError(error); } };
+  for (const kind of ['i9', 'w4', 'new_hire', 'cch']) document.getElementById('complete-' + kind).onclick = async () => { try { await saveNavigation(); await window.WorkforceForms.open(kind, {...answers}); } catch (error) { showError(error); } };
   document.getElementById('job-description-read').addEventListener('change', event => {
     answers.jobDescriptionRead = event.target.checked ? 'Yes' : ''; version++; clearTimeout(timer); timer = setTimeout(() => save().catch(showError), 1500);
   });

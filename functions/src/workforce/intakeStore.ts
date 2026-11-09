@@ -5,7 +5,7 @@ import { FORM_BUCKET } from "../forms/library.js";
 import { parseGrant, requirePermission, validId, WorkforceError, type Actor } from "./policy.js";
 import { saveIntake, submitIntake, type Intake } from "./intake.js";
 import { prepareDocument, documentKind, documentSummary, missingRequiredDocuments, type DocumentKind, type PrivateDocument } from "./documents.js";
-import { formSchema, formRecord, type FormKind, type FormRecord } from "./eforms.js";
+import { formSchema, formRecord, requireSignedCch, type FormKind, type FormRecord } from "./eforms.js";
 import { EMPLOYER_NAME, EMPLOYER_ADDRESS, chicagoDate } from "./dates.js";
 import { directoryEntry } from "./directory.js";
 
@@ -116,7 +116,9 @@ export class IntakeStore {
       const approvedException = review?.approved === true && review.office === application.office && typeof review.approvedBy === "string"
         && typeof review.approvedAt === "string" && Array.isArray(review.kinds) ? { approved: true, kinds: review.kinds as DocumentKind[] } : undefined;
       if (missingRequiredDocuments(documents.docs.map(d => d.data() as PrivateDocument), approvedException).length) throw new WorkforceError(409, "required_documents_missing");
-      const next = submitIntake(uid, doc.data() as Intake, revision, signature, new Date().toISOString());
+      const next = submitIntake(uid, application, revision, signature, new Date().toISOString());
+      const cch = await tx.get(this.db.collection("workforceFormDrafts").doc(`${uid}_cch`));
+      requireSignedCch(cch.data() as FormRecord | undefined, uid, application.office, next.signature!.name);
       tx.set(ref, next); tx.create(ref.collection("versions").doc(String(next.revision)), next);
       tx.set(this.db.collection("workforceCaregiverDirectory").doc(uid), directoryEntry(next));
       this.audit(tx, uid, "application_submitted", uid, { revision: next.revision });
@@ -179,7 +181,7 @@ export class IntakeStore {
       const limit = this.db.collection("workforceDocumentLimits").doc(uid), count = await tx.get(limit);
       if (Number(count.data()?.count ?? 0) >= 100) throw new WorkforceError(429, "document_folder_limit_reached");
       tx.set(limit, { count: Number(count.data()?.count ?? 0) + 1 });
-      tx.create(ref, { ...record, retentionClass: "employment_identity", legalHold: false });
+      tx.create(ref, { ...record, retentionClass: kind === "insurance_card" ? "employment_insurance" : "employment_identity", legalHold: false });
       this.audit(tx, uid, "document_upload_started", id, { kind });
     });
     try {
@@ -193,6 +195,22 @@ export class IntakeStore {
       await this.db.runTransaction(async tx => {
         const pending = await tx.get(ref);
         if (pending.data()?.state !== "upload_pending") throw new WorkforceError(409, "document_not_ready");
+        if (kind === "identity" || kind === "social_security") {
+          const documents = await tx.get(this.db.collection("workforcePrivateDocuments").where("uid", "==", uid).limit(100));
+          const receipts = documents.docs.map(doc => doc.data() as PrivateDocument);
+          if (!missingRequiredDocuments([...receipts, completed]).length) {
+            // The mail worker can retry delivery by this stable upload ID.
+            // The recipient must sign in with the applicable staff grants.
+            tx.create(this.db.collection("workforceIdentityMail").doc(id), {
+              to: ["irab@pthhs.net"],
+              message: {
+                subject: "Caregiver identification documents received",
+                text: "A caregiver uploaded their photo ID and Social Security card. Sign in to review the files and their status: "
+                  + "https://pthhs.net/primetime/workforce#application=" + encodeURIComponent(uid)
+              }
+            });
+          }
+        }
         tx.update(ref, { generation, state: prepared.state });
         this.audit(tx, uid, "document_uploaded", id, { kind, size: bytes.length });
       });

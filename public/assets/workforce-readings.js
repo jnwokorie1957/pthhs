@@ -30,7 +30,10 @@
         const label = document.createElement('label'); label.className = 'application-check';
         const checkbox = document.createElement('input'); checkbox.type = 'checkbox'; checkbox.id = 'application-read_page_' + reading.page;
         const readId = 'read_page_' + reading.page, termsId = 'terms_page_' + reading.page;
-        checkbox.checked = answers[readId] === 'Read' && (!reading.agreement || answers[termsId] === 'I agree');
+        let choice = answers[termsId];
+        const election = reading.election;
+        checkbox.checked = answers[readId] === 'Read' && (!reading.agreement || choice === 'I agree')
+          && (!election || election.includes(choice));
         checkbox.disabled = true; checkbox.setAttribute('aria-required', 'true');
         checkbox.onchange = () => {
           onChange(readId, checkbox.checked ? 'Read' : '');
@@ -52,7 +55,35 @@
             const company = text('p', 'Primetime Home Health Services, Inc.'); company.className = 'policy-company'; body.append(company);
             documentBody(body, doc.text, [answers.firstName, answers.lastName].filter(Boolean).join(' '));
             if (reading.note) { const note = text('p', reading.note); note.className = 'policy-note'; body.append(note); }
-            body.hidden = false; loaded = true; open.setAttribute('aria-expanded', 'true'); checkbox.disabled = submitted;
+            if (election) {
+              const group = document.createElement('fieldset');
+              group.append(text('legend', 'Health insurance coverage *'));
+              election.forEach((value, index) => {
+                const row = document.createElement('label');
+                row.className = 'application-check';
+                const option = document.createElement('input');
+                option.type = 'radio';
+                option.name = termsId;
+                option.id = 'application-' + termsId + (index ? '-' + index : '');
+                option.value = value;
+                option.checked = value === choice;
+                option.setAttribute('aria-required', 'true');
+                option.disabled = submitted;
+                option.onchange = () => {
+                  if (!option.checked) return;
+                  choice = value;
+                  checkbox.checked = false;
+                  checkbox.disabled = false;
+                  onChange(readId, '');
+                  onChange(termsId, value);
+                };
+                row.append(option, text('span', value));
+                group.append(row);
+              });
+              body.append(group);
+            }
+            body.hidden = false; loaded = true; open.setAttribute('aria-expanded', 'true');
+            checkbox.disabled = submitted || !!election && !election.includes(choice);
             status.hidden = true;
           } catch { status.textContent = 'Unable to load. Please try again.'; status.hidden = false; }
           finally { open.disabled = false; }
