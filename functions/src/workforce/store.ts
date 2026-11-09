@@ -1,11 +1,111 @@
 import { createHash, randomUUID } from "node:crypto";
-import { getFirestore } from "firebase-admin/firestore";
+import { getFirestore, type Transaction } from "firebase-admin/firestore";
 import { getAuth } from "firebase-admin/auth";
 import { parseGrant, requirePermission, validId, WorkforceError, type Actor, type Grant } from "./policy.js";
 import { saveOpportunity, transition, publicOpportunity, type Opportunity, type Action } from "./opportunities.js";
 
+interface StaffInvitation {
+  grant: Grant;
+  issuedBy: string;
+  expiresAt: number;
+  state: "pending" | "accepted" | "cancelled";
+}
+
+function workEmail(value: unknown): string {
+  const email = typeof value === "string" ? value.trim().toLowerCase() : "";
+  if (email.length > 254 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    throw new WorkforceError(400, "invalid_staff_email");
+  }
+  return email;
+}
+
 export class WorkforceStore {
-  constructor(private db = getFirestore()) {}
+  constructor(private db = getFirestore(), private auth = getAuth) {}
+  private invitation(email: string) {
+    const key = createHash("sha256").update(email).digest("hex");
+    return this.db.collection("workforceStaffInvitations").doc(key);
+  }
+  private async inviteManager(tx: Transaction, uid: string, offices: string[]) {
+    const owner = await tx.get(this.db.collection("workforceStaff").doc(uid));
+    if (!owner.exists) throw new WorkforceError(403, "staff_access_required");
+    const actor = { uid, grant: parseGrant(owner.data()) };
+    requirePermission(actor, "staff.manage");
+    for (const office of offices) requirePermission(actor, "staff.manage", office);
+  }
+  async inviteStaff(uid: string, address: unknown, input: unknown, now = Date.now()) {
+    const email = workEmail(address), grant = parseGrant(input);
+    if (!grant.active || grant.role === "owner" || !grant.permissions.length) {
+      throw new WorkforceError(400, "invalid_staff_grant");
+    }
+    const manager = await this.actor(uid);
+    requirePermission(manager, "staff.manage");
+    const user = await this.auth().getUserByEmail(email).catch(error => {
+      if (error.code === "auth/user-not-found") return null;
+      throw error;
+    });
+    if (user?.uid === uid || user?.disabled) throw new WorkforceError(409, "invalid_staff_target");
+    const ref = this.invitation(email);
+    await this.db.runTransaction(async tx => {
+      await this.inviteManager(tx, uid, grant.offices);
+      const prior = (await tx.get(ref)).data() as StaffInvitation | undefined;
+      if (prior?.state === "pending") await this.inviteManager(tx, uid, prior.grant.offices);
+      if (prior?.state === "accepted" && !user) throw new WorkforceError(409, "staff_already_registered");
+      if (user && (await tx.get(this.db.collection("workforceStaff").doc(user.uid))).exists) {
+        throw new WorkforceError(409, "staff_already_registered");
+      }
+      const invite: StaffInvitation = { grant, issuedBy: uid, state: "pending", expiresAt: now + 7 * 86400000 };
+      tx.set(ref, invite);
+      tx.create(this.db.collection("workforceAudit").doc(randomUUID()), {
+        actor: uid, target: ref.id, action: "staff_invited", offices: grant.offices, at: new Date(now).toISOString()
+      });
+    });
+    return { email };
+  }
+  async cancelStaffInvite(uid: string, address: unknown) {
+    const ref = this.invitation(workEmail(address));
+    await this.db.runTransaction(async tx => {
+      await this.inviteManager(tx, uid, []);
+      const invite = (await tx.get(ref)).data() as StaffInvitation | undefined;
+      if (invite?.state !== "pending") throw new WorkforceError(409, "staff_invite_not_pending");
+      await this.inviteManager(tx, uid, invite.grant.offices);
+      tx.set(ref, { ...invite, state: "cancelled" });
+      tx.create(this.db.collection("workforceAudit").doc(randomUUID()), {
+        actor: uid, target: ref.id, action: "staff_invite_cancelled", at: new Date().toISOString()
+      });
+    });
+    return { cancelled: true };
+  }
+  async acceptStaffInvite(uid: string, now = Date.now()): Promise<Actor> {
+    const user = await this.auth().getUser(uid);
+    if (!user.email || !user.emailVerified || user.disabled) throw new WorkforceError(401, "verified_identity_required");
+    const ref = this.invitation(workEmail(user.email));
+    const staff = this.db.collection("workforceStaff").doc(uid);
+    return this.db.runTransaction(async tx => {
+      // Concurrent sign-in callbacks may reach this endpoint after activation.
+      // Return the current active grant without consuming or replacing it.
+      const current = await tx.get(staff);
+      if (current.exists) {
+        const grant = parseGrant(current.data());
+        if (!grant.active) throw new WorkforceError(403, "staff_access_revoked");
+        return { uid, grant };
+      }
+      const invite = (await tx.get(ref)).data() as StaffInvitation | undefined;
+      if (invite?.state !== "pending" || invite.expiresAt <= now) {
+        throw new WorkforceError(403, "staff_invite_unavailable");
+      }
+      const grant = parseGrant(invite.grant);
+      if (!grant.active || grant.role === "owner" || invite.issuedBy === uid) {
+        throw new WorkforceError(403, "staff_invite_unavailable");
+      }
+      await this.inviteManager(tx, invite.issuedBy, grant.offices);
+      tx.create(staff, grant);
+      tx.set(ref, { ...invite, state: "accepted" });
+      tx.create(this.db.collection("workforceAudit").doc(randomUUID()), {
+        actor: uid, target: ref.id, action: "staff_invite_accepted", at: new Date(now).toISOString()
+      });
+      return { uid, grant };
+    });
+  }
   async actor(uid: string): Promise<Actor> {
     const doc = await this.db.collection("workforceStaff").doc(uid).get();
     if (!doc.exists) throw new WorkforceError(403, "staff_access_required");

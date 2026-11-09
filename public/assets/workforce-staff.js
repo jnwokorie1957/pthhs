@@ -3,6 +3,10 @@
   const area = document.getElementById('staff-workspace');
   const list = document.getElementById('staff-opportunities');
   const form = document.getElementById('staff-editor');
+  const invites = document.getElementById('staff-invite-form');
+  const inviteStatus = document.getElementById('staff-invite-status');
+  const cancelInvite = document.getElementById('cancel-staff-invite');
+  const grantStatus = document.getElementById('staff-grant-status');
   const status = document.getElementById('session-status');
   const can = p => actor?.grant.permissions.includes('opportunities.' + p);
   const message = s => { status.textContent = s; };
@@ -73,14 +77,18 @@
   }
   document.addEventListener('workforce-session-cleared', () => {
     generation++; read++; actor = null; items = []; listData = null; list.replaceChildren(); document.getElementById('staff-coverage').textContent=''; form.reset();document.getElementById('staff-search').value='';document.getElementById('staff-filter').value='';document.getElementById('staff-editor-panel').open=false;area.hidden = true;
+    invites.reset();
+    inviteStatus.textContent = grantStatus.textContent = '';
   });
   document.addEventListener('workforce-session', e => {
     generation++; actor = e.detail; area.hidden = false;
     form.hidden = !can('edit'); document.getElementById('staff-new').hidden = !can('edit');
     document.getElementById('staff-grants').hidden = !(actor.grant.role === 'owner' && actor.grant.permissions.includes('staff.manage'));
-    form.elements.office.replaceChildren(...actor.grant.offices.map(id => {
+    const officeOptions = () => actor.grant.offices.map(id => {
       const option = document.createElement('option'); option.value = id; option.textContent = id; return option;
-    }));
+    });
+    form.elements.office.replaceChildren(...officeOptions());
+    invites.elements.office.replaceChildren(...officeOptions());
     refresh();
   });
   form.addEventListener('submit', async e => {
@@ -96,12 +104,50 @@
   window.WorkforceRecruiting={refresh};document.getElementById('staff-search').addEventListener('input',render);document.getElementById('staff-filter').addEventListener('change',render);
   document.getElementById('staff-refresh').onclick = refresh;
   document.getElementById('staff-new').onclick = () => edit(null);
+  let invitationBusy = false;
+  async function invitationAction(cancel) {
+    if (invitationBusy || !actor) return;
+    if (!invites.elements.email.reportValidity()) return;
+    const sequence = generation;
+    const data = new FormData(invites), email = data.get('email');
+    const permissions = data.getAll('permissions');
+    if (!cancel && !permissions.length) {
+      inviteStatus.textContent = 'Choose at least one permission.';
+      return;
+    }
+    const submit = invites.querySelector('[type="submit"]');
+    invitationBusy = submit.disabled = cancelInvite.disabled = true;
+    inviteStatus.textContent = cancel ? 'Cancelling invitation…' : 'Preparing invitation…';
+    try {
+      if (cancel) {
+        await workforceApi('/staff/invitations/cancel', {email});
+        if (sequence === generation) inviteStatus.textContent = 'Pending invitation cancelled.';
+        return;
+      }
+      const invite = await workforceApi('/staff/invitations', {email, grant: {
+        active: true, role: data.get('role'), offices: [data.get('office')], permissions
+      }});
+      if (sequence !== generation) return;
+      try {
+        await window.WorkforceSendStaffInvitation(invite.email);
+        if (sequence === generation) inviteStatus.textContent = 'Sign-in email requested for ' + invite.email + '. Access starts when they sign in.';
+      } catch {
+        if (sequence === generation) inviteStatus.textContent = 'Invitation saved. The email could not be sent. Select Send invitation to retry.';
+      }
+    } catch (error) {
+      if (sequence === generation) inviteStatus.textContent = error.message;
+    } finally {
+      invitationBusy = submit.disabled = cancelInvite.disabled = false;
+    }
+  }
+  invites.addEventListener('submit', e => { e.preventDefault(); return invitationAction(false); });
+  cancelInvite.onclick = () => invitationAction(true);
   document.getElementById('staff-grant-form').addEventListener('submit', async e => {
     e.preventDefault(); const sequence = generation, f = new FormData(e.target);
     try {
       await workforceApi('/staff/grant', { uid: f.get('uid'), grant: { role: f.get('role'), active: f.has('active'),
         offices: f.get('offices').split(',').map(s => s.trim()), permissions: f.getAll('permissions') } });
-      if (sequence === generation) message('Staff access saved and audited.');
-    } catch (error) { if (sequence === generation) message(error.message); }
+      if (sequence === generation) grantStatus.textContent = 'Staff access saved.';
+    } catch (error) { if (sequence === generation) grantStatus.textContent = error.message; }
   });
 })();

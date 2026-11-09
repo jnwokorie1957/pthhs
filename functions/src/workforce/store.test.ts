@@ -3,12 +3,18 @@ import assert from "node:assert/strict";
 import { WorkforceStore } from "./store.js";
 import type { Opportunity } from "./opportunities.js";
 import type { Grant } from "./policy.js";
+import type { Auth } from "firebase-admin/auth";
 function fixture() {
   const documents = new Map<string, unknown>();
+  const users = new Map<string, { uid: string; email: string; emailVerified: boolean; disabled: boolean }>();
   const queries: { path: string; field: string; value: unknown }[] = [];
   function collection(path: string): unknown {
     return {
-      doc: (id: string) => ({ path: path + "/" + id, collection: (child: string) => collection(path + "/" + id + "/" + child) }),
+      doc: (id: string) => {
+        const key = path + "/" + id;
+        return { id, path: key, collection: (child: string) => collection(key + "/" + child),
+          get: async () => ({ exists: documents.has(key), data: () => structuredClone(documents.get(key)) }) };
+      },
       where: (field: string, _: string, value: unknown) => ({ limit: () => ({ get: async () => {
         queries.push({ path, field, value });
         return { docs: [...documents].filter(([key, data]) => key.startsWith(path + "/") && key.split("/").length === 2 && (data as Record<string, unknown>)[field] === value).map(([, data]) => ({ data: () => structuredClone(data) })) };
@@ -30,7 +36,15 @@ function fixture() {
   };
   const grant: Grant = { active: true, role: "office", offices: ["synthetic-office"], permissions: ["opportunities.read", "opportunities.edit"] };
   documents.set("workforceStaff/editor", grant);
-  return { store: new WorkforceStore(db as unknown as ConstructorParameters<typeof WorkforceStore>[0]), documents, queries, grant };
+  const auth = {
+    async getUser(uid: string) { return users.get(uid); },
+    async getUserByEmail(email: string) {
+      const user = [...users.values()].find(value => value.email === email);
+      if (!user) throw Object.assign(Error(), {code: "auth/user-not-found"});
+      return user;
+    }
+  };
+  return { store: new WorkforceStore(db as unknown as ConstructorParameters<typeof WorkforceStore>[0], () => auth as unknown as Auth), documents, users, queries, grant };
 }
 const data = { office: "synthetic-office", internalReference: "synthetic-reference", internalNotes: "Synthetic only", public: { location: "Synthetic area", recruitingZip: "", weeklyHours: 12, schedule: "flexible", assistance: ["respite"], type: "assignment" } };
 test("opportunity updates commit an audit event and immutable version with the record", async () => {
@@ -76,4 +90,43 @@ test("candidate interest is idempotent and accepts only a currently reviewed pub
  const interest=interests[0]![1] as {uid:string;office:string};assert.equal(interest.uid,"candidate");assert.equal(interest.office,"synthetic-office");
  f.documents.set("workforceOpportunities/synthetic-id",{...published,state:"closed"});await assert.rejects(f.store.interest("other-candidate","synthetic-id"),/opportunity_unavailable/);
  assert.equal([...f.documents.keys()].filter(key=>key.startsWith("workforceOpportunityInterests/")).length,1);
+});
+
+test("owner can invite a work email before the Firebase account exists, and only its verified holder gets the selected permissions", async () => {
+  const {store, documents, users, grant} = fixture();
+  documents.set("workforceStaff/owner", {...grant, role: "owner", permissions: ["staff.manage"]});
+  const email = "teammate@example.invalid";
+  const now = Date.parse("2026-11-09T12:00:00Z");
+  const hr = {...grant, role: "hr", permissions: ["applications.review"]};
+  await assert.rejects(store.inviteStaff("editor", email, hr, now), /workforce_forbidden/);
+  await assert.rejects(store.inviteStaff("owner", email, {...hr, offices:["other-office"]}, now), /workforce_forbidden/);
+  assert.deepEqual(await store.inviteStaff("owner", " TeamMate@example.invalid ", hr, now), {email});
+  assert.equal(documents.has("workforceStaff/new-staff"), false);
+  users.set("new-staff", {uid:"new-staff", email, emailVerified:false, disabled:false});
+  await assert.rejects(store.acceptStaffInvite("new-staff", now), /verified_identity_required/);
+  users.set("uninvited", {uid:"uninvited", email:"different@example.invalid", emailVerified:true, disabled:false});
+  await assert.rejects(store.acceptStaffInvite("uninvited", now), /staff_invite_unavailable/);
+  users.get("new-staff")!.emailVerified = true;
+  assert.deepEqual(await store.acceptStaffInvite("new-staff", now), {uid:"new-staff", grant:hr});
+  assert.deepEqual(await store.acceptStaffInvite("new-staff", now), {uid:"new-staff", grant:hr});
+  await assert.rejects(store.inviteStaff("owner", email, grant, now), /staff_already_registered/);
+  assert.equal([...documents.values()].filter(value => (value as {action?:string}).action === "staff_invite_accepted").length, 1);
+});
+
+test("pending invitations stop at expiry, cancellation or loss of the issuer's office scope", async () => {
+  const {store, documents, users, grant} = fixture();
+  const owner = {...grant, role:"owner", permissions:["staff.manage"]};
+  documents.set("workforceStaff/owner", owner);
+  const email = "teammate@example.invalid";
+  const now = Date.parse("2026-11-09T12:00:00Z");
+  users.set("new-staff", {uid:"new-staff", email, emailVerified:true, disabled:false});
+  await store.inviteStaff("owner", email, grant, now);
+  await assert.rejects(store.acceptStaffInvite("new-staff", now + 7 * 86400000), /staff_invite_unavailable/);
+  await assert.rejects(store.cancelStaffInvite("editor", email), /workforce_forbidden/);
+  await store.cancelStaffInvite("owner", email);
+  await assert.rejects(store.acceptStaffInvite("new-staff", now), /staff_invite_unavailable/);
+  await store.inviteStaff("owner", email, grant, now);
+  documents.set("workforceStaff/owner", {...owner, offices:["other-office"]});
+  await assert.rejects(store.acceptStaffInvite("new-staff", now), /workforce_forbidden/);
+  assert.equal(documents.has("workforceStaff/new-staff"), false);
 });

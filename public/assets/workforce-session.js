@@ -22,6 +22,10 @@
     invalid_transition: 'This action is unavailable for the current status. Refresh the list.',
     workforce_forbidden: 'Your current permissions do not allow this action in this office.',
     staff_access_required: 'Individual staff access has not been granted to this account.',
+    staff_invite_unavailable: 'No active invitation matches this work email. Ask the owner to send a new invitation.',
+    staff_invite_not_pending: 'No pending invitation was found for that email.',
+    staff_already_registered: 'This account already has staff access on file. Use Manage existing access to change it.',
+    invalid_staff_email: 'Enter a valid work email address.',
     staff_access_revoked: 'Staff access has been revoked.',
     invalid_staff_grant: 'Check the role, offices and explicit permissions.',
     invalid_staff_target: 'Use another verified staff member’s Firebase UID.',
@@ -73,7 +77,7 @@
     });
     if (r.ok && download) return r.blob();
     const result = await r.json();
-    if (!r.ok) throw Error(errors[result.error] || 'The request could not be completed. Retry or contact the office.');
+    if (!r.ok) throw Object.assign(Error(errors[result.error] || 'The request could not be completed. Retry or contact the office.'), {code: result.error});
     return result;
   }
   window.workforceApi = api;
@@ -84,7 +88,10 @@
     if (!user) { form.hidden = false; message('Sign in with your email and password, or use an email link.'); return; }
     form.hidden = true; message('Verifying account access…');
     try {
-      const actor = await api(staff ? '/session' : '/application/session');
+      const actor = await api(staff ? '/session' : '/application/session').catch(error => {
+        if (!staff || sequence !== generation || error.code !== 'staff_access_required') throw error;
+        return api('/staff/invitations/accept', {});
+      });
       if (sequence !== generation) return;
       message('Signed in. Permissions are verified for this session.');
       if (staff) document.dispatchEvent(new CustomEvent('workforce-session', { detail: actor }));
@@ -115,6 +122,9 @@
   }
   if (!staff) { window.WorkforceAccount.start({createAuth:()=>{auth=firebase.auth();return auth;},api}); return; }
   window.WorkforceSendPasswordReset=email=>auth.sendPasswordResetEmail(email,{url:location.origin+'/caregiver'});
+  window.WorkforceSendStaffInvitation = email => auth.sendSignInLinkToEmail(email, {
+    url: location.origin + '/workforce', handleCodeInApp: true
+  });
   staffAuth=window.WorkforceManagementAuth({form,auth:()=>auth,session,message});
   signout.addEventListener('click', async () => {
     ++generation; hide(); document.dispatchEvent(new CustomEvent('workforce-session-cleared'));
