@@ -17,3 +17,28 @@ test('forgot password validates the email only and sends a management return pat
 test('duplicate submissions and mode switching are blocked while Firebase is pending',async()=>{let finish;const s=setup({signInWithEmailAndPassword:()=>new Promise(resolve=>finish=resolve)});s.node('staff-password').value='SyntheticPassword123!';const pending=s.submit();await s.submit();s.node('staff-link-method').onclick();assert.equal(s.node('staff-password-row').hidden,false);assert.equal(s.node('workforce-login-button').disabled,true);finish();await pending;assert.equal(s.node('workforce-login-button').disabled,false);});
 test('sign-out clears a revealed password and resets the sign-in method',()=>{const s=setup();s.node('staff-password').value='SyntheticPassword123!';s.node('staff-show-password').onclick();assert.equal(s.node('staff-password').type,'text');s.clear();assert.equal(s.node('staff-password').value,'');assert.equal(s.node('staff-password').type,'password');assert.equal(s.node('staff-show-password').attrs['aria-pressed'],'false');});
 test('expired sign-in links recover to requesting a fresh link',async()=>{const s=setup({signInWithEmailLink:async()=>{throw {code:'auth/expired-action-code'};}});s.controller.link('expired');await s.submit();assert.equal(s.controller.pending(),false);assert.equal(s.node('staff-signin-methods').hidden,false);assert.equal(s.node('workforce-login-button').textContent,'Send sign-in link');assert.match(s.messages.at(-1),/Request a new link/);});
+
+test('both served workforce paths initialize the staff sign-in and configuration', () => {
+  const sessionScript = fs.readFileSync(new URL('../public/assets/workforce-session.js', import.meta.url), 'utf8');
+  for (const [pathname, expected] of [
+    ['/workforce', ['staff', '/primetime/workforce-api/configuration']],
+    ['/workforce/', ['staff', '/primetime/workforce-api/configuration']],
+    ['/primetime/workforce', ['staff', '/primetime/workforce-api/configuration']],
+    ['/caregiver', ['caregiver']],
+  ]) {
+    const calls = [];
+    vm.runInNewContext(sessionScript, {
+      document: { getElementById: () => ({ addEventListener() {} }) },
+      location: { pathname },
+      window: {
+        WorkforceAccount: { start: () => calls.push('caregiver') },
+        WorkforceManagementAuth: () => { calls.push('staff'); return {}; },
+      },
+      fetch: async path => {
+        calls.push(path);
+        return { ok: true, json: async () => ({ staffEnabled: false }) };
+      },
+    });
+    assert.deepEqual(calls, expected, pathname);
+  }
+});

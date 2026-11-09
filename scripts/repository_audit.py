@@ -172,7 +172,7 @@ class PublicReferenceParser(HTMLParser):
                     self.references.append((attribute, parts[0]))
 
 
-def public_route_exists(url_path: str, redirects: set[str]) -> bool:
+def public_route_exists(url_path: str, configured_routes: set[str]) -> bool:
     clean = unquote(url_path).rstrip("/") or "/"
     if clean in GENERATED_PUBLIC_PATHS or any(
         clean.startswith(prefix) for prefix in GENERATED_PUBLIC_PREFIXES
@@ -180,7 +180,7 @@ def public_route_exists(url_path: str, redirects: set[str]) -> bool:
         return True
     if any(clean.startswith(prefix) for prefix in FIREBASE_RESERVED_PREFIXES):
         return True
-    if clean in redirects:
+    if clean in configured_routes:
         return True
     if clean == "/":
         return (PUBLIC / "index.html").is_file()
@@ -197,7 +197,7 @@ def validate_public_reference(
     source: Path,
     attribute: str,
     value: str,
-    redirects: set[str],
+    configured_routes: set[str],
 ) -> bool:
     value = value.strip()
     if not value or value.startswith("#") or value.startswith("//"):
@@ -215,7 +215,7 @@ def validate_public_reference(
         base = PurePosixPath(source_url).parent
         candidate_path = "/" + str(base.joinpath(unquote(parsed.path))).lstrip("/")
 
-    if not public_route_exists(candidate_path, redirects):
+    if not public_route_exists(candidate_path, configured_routes):
         fail(
             "broken public reference: "
             f"{source.relative_to(ROOT)} [{attribute}] -> {value}"
@@ -225,11 +225,26 @@ def validate_public_reference(
 
 def validate_public_html(text_by_path: dict[Path, str]) -> tuple[int, int, int]:
     firebase = json.loads((ROOT / "firebase.json").read_text(encoding="utf-8"))
+    hosting = firebase.get("hosting", {})
     redirects = {
         row.get("source", "")
-        for row in firebase.get("hosting", {}).get("redirects", [])
+        for row in hosting.get("redirects", [])
         if row.get("source") and not any(char in row["source"] for char in "*: ")
     }
+    # Only exact static rewrites can stand in for a public file. Function
+    # rewrites and globs do not establish that a specific link has a target.
+    rewrites = set()
+    for row in hosting.get("rewrites", []):
+        source = row.get("source", "")
+        destination = row.get("destination", "")
+        if not re.fullmatch(r"/[A-Za-z0-9._/-]+", source) or not destination.startswith("/"):
+            continue
+        target = (PUBLIC / destination.lstrip("/")).resolve()
+        if not target.is_relative_to(PUBLIC) or not target.is_file():
+            fail(f"missing static rewrite target: {source} -> {destination}")
+            continue
+        rewrites.add(source.rstrip("/"))
+    configured_routes = redirects | rewrites
     checked = 0
     internal_pages = 0
     marketing_pages = marketing_html_files(PUBLIC)
@@ -241,7 +256,7 @@ def validate_public_html(text_by_path: dict[Path, str]) -> tuple[int, int, int]:
         parser = PublicReferenceParser()
         parser.feed(text)
         for attribute, value in parser.references:
-            checked += int(validate_public_reference(path, attribute, value, redirects))
+            checked += int(validate_public_reference(path, attribute, value, configured_routes))
     return len(marketing_pages), internal_pages, checked
 
 

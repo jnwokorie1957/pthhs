@@ -3,7 +3,7 @@
   const status = document.getElementById('session-status');
   const signout = document.getElementById('workforce-signout');
   if (!form) return;
-  const staff = location.pathname === '/workforce' || location.pathname.startsWith('/primetime/');
+  const staff = ['/workforce', '/workforce/'].includes(location.pathname) || location.pathname.startsWith('/primetime/');
   const prefix = staff ? '/primetime/workforce-api' : '/caregiver/workforce-api';
   let auth, generation = 0, staffAuth;
   const errors = {
