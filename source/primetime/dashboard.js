@@ -2,6 +2,18 @@
   'use strict';
   const visitStatusId = 'dashboardVisitStatus', visitRowsId = 'dashboardVisitRows', environmentDetailsId = 'environmentDetails';
   const clockFields = ['scheduledStart', 'scheduledEnd', 'actualStart', 'actualEnd', 'evvStart', 'evvEnd'];
+  const visitDetailReasons = {
+    not_attempted_batch_time_budget: 'Detail read deferred by the batch time limit',
+    not_attempted_after_batch_gate: 'Details deferred after a source or access limit',
+    read_budget_exhausted_retry_next_minute: 'Shared read limit reached',
+    vendor_backoff_active: 'Vendor retry delay recorded',
+    visit_patient_office_mismatch: 'Patient office could not be verified',
+    visit_date_scope_mismatch: 'Source visit date differs from the selected day',
+    visit_not_uniquely_returned: 'Source did not return one matching visit'
+  };
+  function visitDetailReason(error) {
+    return Object.hasOwn(visitDetailReasons, error) ? visitDetailReasons[error] : 'Source detail could not be verified';
+  }
   function filterExceptions(items, term = '', priority = 'all') {
     const search = term.trim().toLowerCase();
     return items.filter(item => (!search || `${item.id} ${item.issue}`.toLowerCase().includes(search)) && (priority === 'all' || item.priority === priority));
@@ -14,15 +26,6 @@
       || (!live && (payload.source !== 'synthetic' || payload.validation !== 'synthetic'))
       || !['ready', 'empty', 'partial'].includes(payload.state)) throw new Error('invalid_visit_preview');
     const value = field => typeof field === 'string' && field.trim() !== '' ? field : null;
-    const detailReasons = {
-      not_attempted_batch_time_budget: 'Page time limit reached; retry this page',
-      not_attempted_after_batch_gate: 'Remaining details deferred after a source or access limit',
-      read_budget_exhausted_retry_next_minute: 'Shared read limit reached; retry next minute',
-      vendor_backoff_active: 'Vendor retry delay active',
-      visit_patient_office_mismatch: 'Patient office could not be verified',
-      visit_date_scope_mismatch: 'Source visit date differs from the selected day',
-      visit_not_uniquely_returned: 'Source did not return one matching visit'
-    };
     const ids = new Set();
     const items = payload.items.map(item => {
       if (!item || typeof item.id !== 'string' || (live ? !/^[1-9]\d{0,9}$/.test(item.id) : !item.id.startsWith('DEMO-'))
@@ -32,7 +35,7 @@
       if (live && item.state === 'unavailable') return { id: item.id, state: 'unavailable', patientId: null, caregiverId: null,
         scheduledStart: null, scheduledEnd: null, actualStart: null, actualEnd: null, evvStart: null, evvEnd: null,
         detailFetchedAt: null, officeCheckedAt: null, evvInType: null, evvOutType: null, actualHours: null, actualHoursRounded: null, scheduleDurationHours: null, scheduleDurationMinutes: null, billedAmount: null,
-        detailReason: detailReasons[item.error] || 'Source detail could not be verified' };
+        detailReason: visitDetailReason(item.error) };
       const result = Object.fromEntries(['id', 'patientId', 'caregiverId', ...clockFields, 'state'].map(key => [key, value(item[key])]));
       for (const key of ['actualHours', 'actualHoursRounded', 'scheduleDurationHours', 'scheduleDurationMinutes', 'billedAmount', 'evvInType', 'evvOutType']) {
         if (item[key] !== null && item[key] !== undefined && (typeof item[key] !== 'string' || item[key].length > 128)) throw new Error('invalid_visit_preview');
@@ -222,7 +225,7 @@
     if (cache.complete !== (cache.done && !payload.discovery.truncated && items.every(row => row.state !== 'unavailable'))) throw new Error('invalid_office_day_cache');
     return { ...payload, items, officeDay: { ...cache }, officeDayCache: cache };
   }
-  window.primetimeDashboardModel = Object.freeze({ filterExceptions, normalizeVisitPreview, sourceEvidence, sourceInterval, normalizePatientProfile, normalizeVisitContext, normalizeCallEvents, collectOfficeDay, normalizeOfficeDay });
+  window.primetimeDashboardModel = Object.freeze({ filterExceptions, normalizeVisitPreview, sourceEvidence, sourceInterval, normalizePatientProfile, normalizeVisitContext, normalizeCallEvents, collectOfficeDay, normalizeOfficeDay, visitDetailReason });
   if (typeof document === 'undefined') return;
   const controller = window.primetimeDataMode;
   const fixtures = window.primetimeDemoData;

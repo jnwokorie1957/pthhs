@@ -1213,7 +1213,7 @@ test('Preview, EVV and staffing distinguish unavailable details from absent fiel
     assert.match(returned, /900001/);
     assert.match(returned, /Not supplied by HHA/);
     assert.match(unavailable, /900002/);
-    assert.match(unavailable, /Detail unavailable: Shared read limit reached; retry next minute/);
+    assert.match(unavailable, /Detail unavailable: Shared read limit reached/);
     assert.doesNotMatch(unavailable, /Not supplied by HHA|UNVERIFIED-|08:04:00|08:00:00|12:00:00/);
   }
   assert.deepEqual(rows('dashboardVisitRows')[1].children.slice(3, 8).map(nodeText), Array(5).fill('Detail unavailable'));
@@ -1942,7 +1942,7 @@ test('visit billed amount appears in Billing from the verified visit page and cl
     });
     const before = nodeText(app.element('dashboardBillingPipeline'));
     assert.match(before, /Visit billed amount/); assert.match(before, /17\.30/); assert.match(before, /0\.00/);
-    assert.match(before, /Not supplied by HHA/); assert.match(before, /Detail unavailable: Vendor retry delay active/);
+    assert.match(before, /Not supplied by HHA/); assert.match(before, /Detail unavailable: Vendor retry delay recorded/);
     assert.match(before, /GetVisitInfoV3 BilledAmount/); assert.match(before, /GetVisitBillInfoV2/);
     assert.doesNotMatch(before, /PRIVATE_UNVERIFIED_AMOUNT/);
     assert.equal(app.calls.filter(c => /visit-context|visit-patient/.test(c.path)).length, 0);
