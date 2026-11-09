@@ -16,11 +16,15 @@
   function el(tag, text = '', className = '') { const node = document.createElement(tag); node.textContent = text; if (className) node.className = className; return node; }
   function button(text, action) { const node = el('button', text, 'btn secondary'); node.type = 'button'; node.addEventListener('click', action); return node; }
   function time(value) { return value || 'Not supplied by HHA'; }
-  const comparisonNotice = 'Schedule comparison: Not established in Primetime. Supplied clock fields do not establish that the EVV span fits the saved schedule.';
-  const sourceWorkNotice = 'Before source work, compare the actual saved Calendar S / Schedule tab with the original EVV punches. SuggestedScheduleTime and adjusted Bill Time are separate fields. If the EVV span exceeds the saved schedule or the comparison is unknown, stop and ask the owner before continuing other dates.';
-  const verificationNotice = 'Clock fields do not establish member verification. Keep the review note factual; no attestation is filled in automatically.';
+  const comparisonNotice = 'Schedule comparison: Not established in Primetime.';
+  const sourceWorkNotice = 'Compare the actual saved Calendar S / Schedule tab with original EVV punches. SuggestedScheduleTime and Bill Time are separate fields. If the EVV span exceeds the saved schedule or the comparison is unknown, stop and ask the owner before continuing other dates.';
+  const verificationNotice = 'Clock fields do not establish member verification. Enter a factual review note.';
+  function unavailableEvidence(row) {
+    const reason = window.primetimeDashboardModel?.visitDetailReason?.(row.error) ?? 'Detail unavailable';
+    return `${reason}. Clock presence is unknown.`;
+  }
   function evidenceLines(row) {
-    if (row.state === 'unavailable') return ['Detail read unavailable; clock presence is unknown.', comparisonNotice];
+    if (row.state === 'unavailable') return [unavailableEvidence(row), comparisonNotice];
     const supplied = value => typeof value === 'string' && value.trim() ? 'supplied' : 'not supplied in this response';
     return [['HHA schedule fields', 'scheduledStart', 'scheduledEnd'], ['Recorded visit fields', 'actualStart', 'actualEnd'], ['EVV fields', 'evvStart', 'evvEnd']]
       .map(([label, start, end]) => `${label}: start ${supplied(row[start])}; end ${supplied(row[end])}.`).concat(comparisonNotice);
@@ -153,8 +157,8 @@
       const item = cases.get(row.id), node = el('button', '', 'maintenance-row'); node.type = 'button'; node.setAttribute('aria-pressed', String(selected === row.id));
       const person = (last, first, id) => last || first ? `${last || ''}${last && first ? ', ' : ''}${first || ''} · ${id}` : id || 'not read';
       node.append(el('strong', `${serviceDate(row)} · Visit ${row.id}`), el('small', `Patient: ${person(row.patientLastName,row.patientFirstName,row.patientId)} · Caregiver: ${person(row.caregiverLastName,row.caregiverFirstName,row.caregiverId)}`),
-        el('small', `${time(row.scheduledStart)} → ${time(row.scheduledEnd)}`),
-        el('span', item ? labels[item.status] : row.state === 'unavailable' ? 'Source read failed' : gaps(row) ? 'EVV fields to inspect' : 'Source times returned',
+        el('small', row.state === 'unavailable' ? unavailableEvidence(row) : `${time(row.scheduledStart)} → ${time(row.scheduledEnd)}`),
+        el('span', item ? labels[item.status] : row.state === 'unavailable' ? 'Source detail unavailable' : gaps(row) ? 'EVV fields to inspect' : 'Source times returned',
           'maintenance-pill' + (item?.status === 'office_review_complete' ? ' complete' : gaps(row) ? ' attention' : '')), el('small','Open visit →'));
       node.addEventListener('click', () => { void openVisit(row); });
       $('maintenanceList').append(node);
@@ -205,15 +209,15 @@
       for (const [label, value] of [['Start', start], ['End', end]]) { const p = el('p', row.state === 'unavailable' ? 'Source detail unavailable' : time(value)); p.prepend(el('span', label)); box.append(p); }
       times.append(box);
     }
-    host.append(times, el('p', `Visit fetched ${row.detailFetchedAt || 'not available'}; office membership checked ${row.officeCheckedAt || 'not available'}. Missing fields do not prove a missed visit.`, 'maintenance-help'));
+    host.append(times, el('p', `Visit fetched ${row.detailFetchedAt || 'not available'}. Office checked ${row.officeCheckedAt || 'not available'}. Missing fields do not prove a missed visit.`, 'maintenance-help'));
     const evidence = el('section', '', 'maintenance-section'); evidence.id = 'maintenanceEvidence';
     const evidenceTitle = el('h4', 'Evidence before source maintenance'); evidenceTitle.id = 'maintenanceEvidenceTitle'; evidence.setAttribute('aria-labelledby', evidenceTitle.id);
     evidence.append(evidenceTitle, ...evidenceLines(row).map(line => el('p', line)), el('p', sourceWorkNotice, 'maintenance-boundary'), el('p', verificationNotice, 'maintenance-help'));
     host.append(evidence);
-    if (item && ['patientId', 'caregiverId', 'scheduledStart', 'scheduledEnd', 'actualStart', 'actualEnd', 'evvStart', 'evvEnd'].some(key => item.source[key] !== row[key])) {
-      host.append(el('p', 'Source facts changed since this office review. Reinspect the current times and call evidence before saving a new proposal. The case history retains earlier receipts.', 'maintenance-boundary'));
+    if (item && row.state === 'source_unvalidated' && ['patientId', 'caregiverId', 'scheduledStart', 'scheduledEnd', 'actualStart', 'actualEnd', 'evvStart', 'evvEnd'].some(key => item.source[key] !== row[key])) {
+      host.append(el('p', 'Source facts changed since this office review. Recheck the current times and calls before saving.', 'maintenance-boundary'));
     }
-    if (row.state === 'unavailable' || !row.patientId) { host.append(el('p', 'This source read did not establish a usable visit context. Refresh the feed before opening an office case.')); return; }
+    if (row.state === 'unavailable' || !row.patientId) { host.append(el('p', 'Refresh the feed to load the source visit before opening an office case.')); return; }
     if(!searchMode){const fresh=button('Read fresh HHA visits for this patient/day',()=>document.dispatchEvent(new CustomEvent('primetime-maintenance-read-patient-day',{detail:{kind:'patient',id:row.patientId,firstName:row.patientFirstName,lastName:row.patientLastName,code:row.admissionId,date:serviceDate(row)}})));fresh.dataset.sourceRead='true';fresh.dataset.sourceLabel='Read fresh HHA visits for this patient/day';host.append(fresh,el('p','This opens a fresh patient/day queue with new review receipts. Other cached visits keep their original timestamps.','maintenance-help'));}
     const callSection = section('calls','Caregiver calls & attempts'); callSection.append(el('p', 'Actual HHA call records for this patient, caregiver and day. Exact visit links, complete history and the meaning of source type/status values remain unverified.'));
     async function ensureCase(ticket) {

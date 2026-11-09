@@ -3,6 +3,9 @@ import test from 'node:test';
 import vm from 'node:vm';
 import { readFile } from 'node:fs/promises';
 const source = await readFile(new URL('../source/primetime/maintenance.js', import.meta.url), 'utf8');
+const dashboardSource = await readFile(new URL('../source/primetime/dashboard.js', import.meta.url), 'utf8');
+const dashboardWindow = {};
+vm.runInNewContext(dashboardSource, { window: dashboardWindow });
 const tick = async () => { for (let i = 0; i < 20; i++) await new Promise(resolve => setImmediate(resolve)); };
 const date = '2026-11-05';
 const row = { id: '15', patientId: '25', caregiverId: '35', state: 'source_unvalidated', scheduledStart: date + ' 09:00', scheduledEnd: date + ' 12:00',
@@ -42,7 +45,7 @@ function fixture({ active = false, live = true, rows = [row], fakeTimers = false
     if (path.endsWith('/maintenance/reasons')) { saved = {...saved, revision:saved.revision+1, reasonCatalog:{fetchedAt:date+'T16:00:00Z',truncated:false,reasons:[{id:'55',name:'Synthetic reason',status:'Source status',actions:[{id:'65',name:'Synthetic action',status:'Source status'}]}]}};return{ok:true,item:saved,hhaWritesEnabled:false}; }
     throw new Error('unexpected route');
   };
-  vm.runInNewContext(source, { document, window: { primetimeDataMode: { isActive: () => active, isLive: () => live }, primetimeApiFetch: async (...args) => {
+  vm.runInNewContext(source, { document, window: { primetimeDashboardModel: dashboardWindow.primetimeDashboardModel, primetimeDataMode: { isActive: () => active, isLive: () => live }, primetimeApiFetch: async (...args) => {
     calls.push(args); if (delayed) return delayed;
     const value = await handler(...args); return new Response(JSON.stringify(value), { status: value.status || 200 });
   } }, AbortController, CustomEvent, Date, Intl, Map, Set, setTimeout:fakeTimers ? (fn,ms)=>{const id=nextTimer++;timers.set(id,{fn,ms});return id;} : setTimeout, clearTimeout:fakeTimers ? id=>timers.delete(id) : clearTimeout, URL: { createObjectURL(blob) { exported = blob; return 'blob:synthetic'; }, revokeObjectURL() {} }, Blob });
@@ -70,7 +73,7 @@ test('unavailable visit details remain unknown even when the row contains stale 
   const f = fixture({ rows: [{ ...row, state: 'unavailable' }] }); f.ready(); await tick();
   f.ids.get('maintenanceList').querySelectorAll('button')[0].click(); await tick();
   const detail = f.text(f.ids.get('maintenanceDetail'));
-  assert.match(f.text(f.ids.get('maintenanceEvidence')), /Detail read unavailable; clock presence is unknown/);
+  assert.match(f.text(f.ids.get('maintenanceEvidence')), /Source detail could not be verified\. Clock presence is unknown/);
   assert.doesNotMatch(detail, /08:57|Not supplied by HHA|start supplied|end supplied/);
   assert.match(detail, /Source detail unavailable/);
   assert.equal(f.ids.get('maintenanceCaseForm'), undefined);
@@ -259,4 +262,50 @@ test('a matching report case opens the normal visit review and reads its current
   assert.equal(read.length, 1);
   assert.deepEqual(JSON.parse(read[0][1].body), { date, visitId: row.id });
   assert.ok(f.calls.every(([path]) => !/maintenance\/(save|calls|reasons)/.test(path)));
+});
+
+test('maintenance distinguishes deferred, withheld and empty detail fields in the queue', async () => {
+  const reasons = [
+    ['not_attempted_batch_time_budget', /deferred by the batch time limit/],
+    ['not_attempted_after_batch_gate', /deferred after a source or access limit/],
+    ['read_budget_exhausted_retry_next_minute', /Shared read limit reached/],
+    ['vendor_backoff_active', /Vendor retry delay recorded/],
+    ['visit_patient_office_mismatch', /Patient office could not be verified/],
+    ['visit_date_scope_mismatch', /Source visit date differs from the selected day/],
+    ['visit_not_uniquely_returned', /Source did not return one matching visit/],
+    ['constructor', /Source detail could not be verified/],
+  ];
+  const unavailable = reasons.map(([error], index) => ({ ...row, id: String(20 + index), state: 'unavailable', error }));
+  const readable = { ...row, scheduledStart: null, scheduledEnd: null };
+  const f = fixture({ rows: [...unavailable, readable] });
+  f.ready(); await tick();
+  const buttons = f.ids.get('maintenanceList').querySelectorAll('button');
+  for (const [index, [error, expected]] of reasons.entries()) {
+    const label = f.text(buttons[index]);
+    assert.match(label, expected);
+    assert.match(label, /Clock presence is unknown/);
+    assert.doesNotMatch(label, /Not supplied by HHA|Source read failed|09:00|12:00|constructor/);
+    assert.ok(!label.includes(error));
+  }
+  assert.match(f.text(buttons.at(-1)), /Not supplied by HHA/);
+  assert.equal(f.ids.get('maintenanceMetrics').children[1].children[0].textContent, '1');
+  buttons[2].click(); await tick();
+  assert.match(f.text(f.ids.get('maintenanceEvidence')), /Shared read limit reached/);
+});
+
+test('an unavailable refresh cannot claim that a saved visit changed', async () => {
+  const unavailable = { id: row.id, state: 'unavailable', error: 'vendor_backoff_active' };
+  const saved = { visitId: row.id, officeId: day.scope.officeId, date, revision: 1,
+    status: 'in_review', queue: 'office_manager', hhaSubmission: 'not_submitted', source: row, events: [] };
+  const f = fixture({ rows: [unavailable] });
+  f.handler(async path => {
+    if (path.includes('/views/office-day')) return { ...day, items: [unavailable] };
+    if (path.includes('/maintenance/cases')) return { ok: true, scope: day.scope, items: [saved], nextCursor: null, hhaWritesEnabled: false };
+    return { ok: true, item: saved, hhaWritesEnabled: false };
+  });
+  f.ready(); await tick(); f.ids.get('maintenanceList').querySelectorAll('button')[0].click(); await tick();
+  const detail = f.text(f.ids.get('maintenanceDetail'));
+  assert.match(detail, /Vendor retry delay recorded/);
+  assert.doesNotMatch(detail, /Source facts changed|08:57/);
+  assert.equal(f.ids.get('maintenanceCaseForm'), undefined);
 });
