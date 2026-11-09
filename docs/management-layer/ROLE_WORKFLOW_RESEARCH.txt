@@ -3484,3 +3484,49 @@ https://pthhs.net/caregiver?intent=existing
 https://github.com/jnwokorie1957/pthhs/blob/7508583c9a0ecef8847e82ae929a1a6de025a619/functions/src/workforce/http.ts
 https://github.com/jnwokorie1957/pthhs/blob/7508583c9a0ecef8847e82ae929a1a6de025a619/functions/src/workforce/hhaEnrollment.ts
 https://github.com/jnwokorie1957/pthhs/actions/runs/42304582766
+
+
+NOVEMBER 9, 2026 03:14 UTC — OFFICE REPORT SAVED CASE NAVIGATION
+
+The report lists saved office cases independently of the loaded source visits.
+The previous Open office case action could switch to an empty visit panel when
+its source visit was missing. It also skipped normal selection and case loading
+for a readable match. The two failures reproduced with synthetic cases.
+
+The report now offers the ordinary visit review when the loaded row matches the
+case visit, service date and valid patient identity in its current office scope.
+It uses the existing selection and scoped case read when needed. When the source
+row is missing, unreadable or mismatched, the report shows a dated read-only
+saved revision and a disclosure for its existing history. Opening that history
+uses the retained case receipt and requires no new source or case request. An
+operator can load the matching readable visit to make an office update.
+
+This implements the P1 office follow-up record link within the current scoped
+maintenance workspace. The saved view exposes the same protected case events
+and distinguishes them from current source times. It carries no edit form or
+HHA submission control. The normal visit review still checks its existing
+source, office, revision and submission controls. Patient/representative and PT
+permissions still depend on the separate recorded owner and source contracts.
+
+PR14 released as 79912aa23d2f43e5cc8b3d0a333f6c0ffff99b09. Both normal quality
+jobs and both Hosting-only release jobs passed. Two regressions cover saved
+history across missing, unavailable and mismatched rows, plus normal selection
+and the exact case revision request. All 658 site/analytics tests and asset,
+performance, audit and diff checks passed. Both new regressions also passed
+against the generated script that matched the live version byte for byte.
+Six production HTTP checks verified the versioned shell/script, anonymous
+session denial and caregiver readiness/noindex protections.
+
+Authenticated browser acceptance is pending. The fresh production page requires
+sign-in. Restore the approved Primetime session and open the office report. Use
+an existing saved case without a matching readable visit to expand its history,
+then open a matching visit and verify the normal review and revision. A suitable
+saved-only case may need to appear naturally. No source or case save is needed
+for this display acceptance. Production asset and synthetic behavior evidence
+remain separate from these protected browser checks.
+
+Implementation and release sources checked November 9, 2026 UTC:
+https://github.com/jnwokorie1957/pthhs/pull/14
+https://github.com/jnwokorie1957/pthhs/actions/runs/42554957630
+https://github.com/jnwokorie1957/pthhs/actions/runs/42555134855
+https://github.com/jnwokorie1957/pthhs/blob/79912aa23d2f43e5cc8b3d0a333f6c0ffff99b09/source/primetime/maintenance.js

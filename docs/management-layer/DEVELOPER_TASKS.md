@@ -1,5 +1,17 @@
 # PTHHS Management Layer — Developer Checklist
 
+- [x] November 9 saved office case navigation deployed (PR14/79912aa). The
+  report opens a matching readable visit through the standard review flow.
+  Missing, unavailable or mismatched rows keep their saved revision and history
+  readable in place. Two regressions and all 658 site/analytics tests passed.
+  Both quality and Hosting-only jobs passed. The versioned production script
+  matches Git and passes the two synthetic regressions.
+  [Maintenance release evidence](MAINTENANCE_EVIDENCE_CHECKS_2026-11-08.md).
+- [ ] Include saved case navigation in the pending authenticated maintenance
+  acceptance. Restore the approved Primetime session, expand an existing
+  saved-only history and open a case with a matching readable visit. Verify
+  the saved receipt and normal revision without saving a record.
+
 - [x] November9 caregiver API indexing header deployed (PR13/a983fe5). The
   Hosting-only rule covers successful `/caregiver/workforce-api/**` responses.
   Both PR-quality and release jobs passed; ten production routes verified,

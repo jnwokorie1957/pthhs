@@ -104,3 +104,36 @@ and compare the new panel's labels with that exact row and receipt; verify Submi
 to HHA remains locked. No save or source action is needed for this display check.
 The four new synthetic regressions establish runtime and saved-report behavior;
 they do not close this real-session acceptance item or the broader M03 contract.
+
+
+## Saved office case navigation
+
+November 9, 2026 UTC. The report could send users to an empty visit panel when a
+saved case appeared ahead of its source row. A matching row also skipped the
+standard case selection. [PR #14](https://github.com/jnwokorie1957/pthhs/pull/14)
+fixes both paths. The visit, service date and valid patient must agree within the
+current office scope to open the normal review. Otherwise, the report exposes a
+read-only saved revision and a history disclosure with the saved receipt. The
+saved view needs no new request or edit form.
+
+Local validation passed 29 maintenance/search tests and 658 site/analytics
+tests. Two new regressions reproduced both defects before the fix. Deterministic
+assets, performance, repository audit and diff checks passed. Both new tests
+also passed against the generated script served in production. Repository
+quality [42554957630](https://github.com/jnwokorie1957/pthhs/actions/runs/42554957630)
+and Hosting-only [42555134855](https://github.com/jnwokorie1957/pthhs/actions/runs/42555134855)
+passed both required jobs. The release is `79912aa23d2f43e5cc8b3d0a333f6c0ffff99b09`.
+
+At 03:14:08 UTC the live shell, versioned maintenance script and caregiver
+setup shell matched the reviewed Git bytes. The script fingerprint matched the
+shell reference. Anonymous Primetime access returned 401/no-store/noindex. Both
+workforce configuration routes retained noindex/no-store, ready setup, and
+closed application/document collection.
+
+The fresh production page requires sign-in. Protected report acceptance remains
+pending. In the approved Primetime session, expand the saved history on an
+existing case without a matching readable source visit and confirm the date and
+revision. Open a case with a matching readable visit to verify the usual review
+and case revision. Use the existing records and keep the exercise read-only.
+The two synthetic regressions establish both display paths independently of the
+pending live session check.
