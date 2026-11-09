@@ -179,6 +179,13 @@
     for (const value of values) { const option = el('option', labels[value]); option.value = value; node.append(option); }
     node.value = current; label.append(node); return label;
   }
+  function caseHistoryList(item) {
+    const list = el('ol', '', 'maintenance-history');
+    for (const event of [...item.events].reverse()) {
+      list.append(el('li', `${new Date(event.at).toLocaleString()} · ${event.actor} · ${event.action.replaceAll('_', ' ')} · ${labels[event.status]} · ${labels[event.queue]}. ${event.note}`));
+    }
+    return list;
+  }
   function detail() {
     const host = $('maintenanceDetail'), row = day?.items.find(item => item.id === selected), item = cases.get(selected);
     const expanded=new Set(host.dataset.visit===selected?[...host.querySelectorAll('details')].filter(node=>node.open).map(node=>node.dataset.section):[]);
@@ -286,9 +293,9 @@
     });
     const review=section('review','Office review & next action');review.append(form);host.append(review);
     if (item) {
-      const history = el('details', '', 'maintenance-section'); history.append(el('summary', `Case history · ${item.events.length} events`)); const list = el('ol', '', 'maintenance-history');
-      for (const event of [...item.events].reverse()) list.append(el('li', `${new Date(event.at).toLocaleString()} · ${event.actor} · ${event.action.replaceAll('_', ' ')} · ${labels[event.status]} · ${labels[event.queue]}. ${event.note}`));
-      history.append(list); host.append(history);
+      const history = el('details', '', 'maintenance-section');
+      history.append(el('summary', `Case history · ${item.events.length} events`), caseHistoryList(item));
+      host.append(history);
     }
     controls();
   }
@@ -310,13 +317,30 @@
     const host = $('maintenanceReportRows'); host.replaceChildren();
     host.append(el('p', `${cases.size} loaded cases. ${casePageComplete && !searchMode ? 'All requested case pages are loaded. Cases can change concurrently.' : 'Case list incomplete; report covers loaded/opened cases only.'}`, 'maintenance-help'));
     if (!cases.size) host.append(el('p', 'Save an office review from the visit queue to include it in the staff report.', 'maintenance-empty'));
+    const rowsById = new Map((day?.items ?? []).map(row => [row.id, row]));
     for (const item of cases.values()) {
       const box = el('div', '', 'maintenance-report-card'); box.append(el('strong', `Visit ${item.visitId} · ${labels[item.status]}`),
         el('p', `${labels[item.queue]} · Follow-up ${item.followUpAt ? new Date(item.followUpAt).toLocaleString() : 'not set'}`),
         el('p', item.events.at(-1)?.note || ''), el('p', `Proposed action: ${labels[item.proposal?.kind] || 'Review refreshed call evidence'}. HHA submission: not submitted.`),
         el('p', `Saved case evidence · visit fetched ${item.source.detailFetchedAt || 'not available'}. It may differ from the current feed.`, 'maintenance-help'),
         ...evidenceLines(item.source).map(line => el('p', line)));
-      box.append(button('Open office case', () => { selected = item.visitId; report = false; showTab(); render(); detail(); })); host.append(box);
+      const row = rowsById.get(item.visitId);
+      if (row?.state === 'source_unvalidated' && serviceDate(row) === item.date && validId(row.patientId) && row.patientId === item.source.patientId) {
+        box.append(button('Open office case', () => {
+          report = false; showTab(); void openVisit(row);
+        }));
+      } else {
+        box.append(el('p', `Read-only saved case for ${item.date} · revision ${item.revision}. Load the matching readable visit to update the office review.`, 'maintenance-help'));
+        const history = el('details', '', 'maintenance-section');
+        history.append(el('summary', `View saved case history · ${item.events.length} events`));
+        history.addEventListener('toggle', () => {
+          if (history.open && history.children.length === 1 && active() && cases.get(item.visitId) === item) {
+            history.append(item.events.length ? caseHistoryList(item) : el('p', 'No saved case events.'));
+          }
+        });
+        box.append(history);
+      }
+      host.append(box);
     }
   }
   function showTab() { $('maintenanceQueue').hidden = report; $('maintenanceReport').hidden = !report; $('maintenanceQueueTab').setAttribute('aria-pressed', String(!report)); $('maintenanceReportTab').setAttribute('aria-pressed', String(report)); }

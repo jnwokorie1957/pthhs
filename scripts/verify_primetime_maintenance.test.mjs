@@ -205,3 +205,58 @@ test('metric shortcuts clear unrelated text filters and an empty open-review que
  f.ids.get('maintenanceMetrics').children[2].click();assert.equal(f.ids.get('maintenanceList').querySelectorAll('button').length,0);
  assert.equal(f.ids.get('maintenanceMetrics').children[2].children[0].textContent,'0');assert.equal(f.calls.length,requests);
 });
+
+test('reports retain saved history for cases without a matching readable visit', async () => {
+  const rows = [
+    { ...row, id: '16', state: 'unavailable' },
+    { ...row, id: '17', patientId: '26' },
+    { ...row, id: '18', serviceDate: '2026-11-04' },
+  ];
+  const saved = ['15', '16', '17', '18'].map(visitId => ({
+    visitId, officeId: day.scope.officeId, date, revision: 2,
+    status: 'needs_attention', queue: 'office_manager', hhaSubmission: 'not_submitted',
+    source: { ...row, id: visitId },
+    events: [
+      { at: date + 'T16:00:00Z', actor: 'synthetic-office', action: 'office_review_updated', note: 'Earlier synthetic follow-up', status: 'in_review', queue: 'administrator' },
+      { at: date + 'T17:00:00Z', actor: 'synthetic-office', action: 'office_review_updated', note: 'Latest synthetic follow-up', status: 'needs_attention', queue: 'office_manager' },
+    ],
+  }));
+  const f = fixture({ rows });
+  f.handler(async path => path.includes('/views/office-day') ? { ...day, items: rows } : { ok: true, scope: day.scope, items: saved, nextCursor: null, hhaWritesEnabled: false });
+  f.ready(); await tick(); f.event('maintenanceReportTab');
+  const report = f.ids.get('maintenanceReportRows'), requests = f.calls.length;
+  assert.equal(report.querySelectorAll('button').length, 0);
+  const histories = report.querySelectorAll('details');
+  assert.equal(histories.length, 4);
+  assert.match(f.text(report), /Read-only saved case for 2026-11-05/);
+  assert.doesNotMatch(f.text(report), /Earlier synthetic follow-up/);
+  histories[0].open = true; histories[0].dispatchEvent(new Event('toggle'));
+  assert.match(f.text(histories[0]), /Earlier synthetic follow-up/);
+  assert.equal(f.calls.length, requests);
+  assert.equal(f.ids.get('maintenanceReport').hidden, false);
+  assert.equal(f.ids.get('maintenanceCaseForm'), undefined);
+  f.document.dispatchEvent(new Event('primetime-signed-out'));
+  assert.equal(report.children.length, 0);
+});
+
+test('a matching report case opens the normal visit review and reads its current saved revision', async () => {
+  const saved = { visitId: row.id, officeId: day.scope.officeId, date, revision: 1,
+    status: 'in_review', queue: 'office_manager', hhaSubmission: 'not_submitted', source: row, events: [] };
+  const f = fixture();
+  f.handler(async path => {
+    if (path.includes('/views/office-day')) return day;
+    if (path.includes('/maintenance/cases')) return { ok: true, scope: day.scope, items: [saved], nextCursor: null, hhaWritesEnabled: false };
+    assert.ok(path.endsWith('/maintenance/case'));
+    return { ok: true, item: { ...saved, revision: 2 }, hhaWritesEnabled: false };
+  });
+  f.ready(); await tick(); f.event('maintenanceReportTab');
+  const open = f.ids.get('maintenanceReportRows').querySelectorAll('button').find(node => node.textContent === 'Open office case');
+  assert.ok(open); open.click(); await tick();
+  assert.equal(f.ids.get('maintenanceReport').hidden, true);
+  assert.ok(f.ids.get('maintenanceQueue').classList.contains('has-selection'));
+  assert.match(f.text(f.ids.get('maintenanceDetail')), /Office case · revision 2/);
+  const read = f.calls.filter(([path]) => path.endsWith('/maintenance/case'));
+  assert.equal(read.length, 1);
+  assert.deepEqual(JSON.parse(read[0][1].body), { date, visitId: row.id });
+  assert.ok(f.calls.every(([path]) => !/maintenance\/(save|calls|reasons)/.test(path)));
+});
