@@ -1374,13 +1374,33 @@ test('completed server result stays whole during background refresh and is label
   const app = await cachedOfficeFixture(path => {
     if (fail) return { ...response({ ok: false }), ok: false, status: 503 };
     const p = cachedOfficeDay(path); p.officeDayCache.stale = true;
-    p.officeDayCache.progress = { checked: 10, total: 23, retryAt: null, refreshing: true }; return response(p);
+    p.officeDayCache.error = 'hha_source_temporarily_unavailable';
+    p.officeDayCache.progress = { checked: 10, total: 23, retryAt: '2026-10-10T08:01:00Z', refreshing: true }; return response(p);
   });
   assert.match(app.element('dashboardOverviewStatus').textContent, /Cached result.*Next refresh: 10 of 23/);
+  assert.match(app.element('dashboardOverviewStatus').textContent, /HHA source temporarily unavailable.*Next background attempt after/);
   assert.match(app.element('dashboardOverviewCompleteness').textContent, /23 \/ 23/);
   fail = true; await app.click('dashboardOverviewRefresh'); await tick();
   assert.match(app.element('dashboardOverviewStatus').textContent, /update unavailable.*cached/);
   assert.match(app.element('dashboardOverviewCompleteness').textContent, /23 \/ 23/);
+});
+test('office-day cache discloses a first-read delay before any clock totals exist', async () => {
+  const retryAt = '2026-10-10T08:01:00Z';
+  const app = await cachedOfficeFixture(path => {
+    const p = cachedOfficeDay(path, 0);
+    p.state = 'partial';
+    p.fetchedAt = null;
+    p.discovery.selectedCount = null;
+    Object.assign(p.officeDayCache, { known: false, done: false, complete: false, stale: true,
+      startedAt: null, latestSearchAt: null, completedAt: null, updatedAt: null, error: 'vendor_backoff_active',
+      progress: { checked: 0, total: null, retryAt, refreshing: false } });
+    return response(p);
+  });
+  assert.match(app.element('dashboardOverviewStatus').textContent, /Vendor retry delay recorded/);
+  assert.match(app.element('dashboardOverviewStatus').textContent, /Next background attempt after 2026-10-10T08:01:00Z/);
+  assert.doesNotMatch(nodeText(app.element('dashboardOverviewMetrics')), /0 \/ 0|queued/);
+  assert.match(app.element('dashboardOverviewCompleteness').textContent, /not known/);
+  assert.equal(app.calls.filter(c => c.path.includes('/views/visits?')).length, 1);
 });
 test('late cached day cannot repaint a changed date, Demo, hidden view or signed-out session', async () => {
   for (const action of ['date', 'demo', 'signout', 'hidden', 'leave']) {
