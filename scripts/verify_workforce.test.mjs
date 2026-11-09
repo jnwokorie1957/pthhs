@@ -35,9 +35,9 @@ test('existing Careers URL, homeowner sign-in entry and staff entry remain reach
   assert.match(read('public/index.html'),/href="\/caregiver">Caregiver Portal/);
   assert.match(read('public/home-care-careers.html'),/https:\/\/pthhs.net\/home-care-careers/);
   assert.match(read('public/home-care-careers.html'),/Sign in to view openings/);
-  assert.match(read('public/home-care-careers.html'),/href="\/primetime\/workforce">Staff Sign In/);
+  assert.match(read('public/home-care-careers.html'),/href="\/workforce">Staff Sign In/);
   assert.doesNotMatch(read('public/home-care-careers.html'),/id="opportunity-filters"|id="opportunity-list"/);
-  assert.match(read('source/primetime/index.html'),/href="\/primetime\/workforce"/);
+  assert.match(read('source/primetime/index.html'),/href="\/workforce"/);
   assert.match(read('public/primetime/workforce.html'),/id="staff-editor"/);
 });
 
@@ -66,7 +66,11 @@ test('new API uses existing project and preserves legacy routing and security bo
   const config = JSON.parse(read('firebase.json'));
   const csp=source=>config.hosting.headers.find(rule=>rule.source===source).headers.find(header=>header.key==='Content-Security-Policy').value;
   assert.match(csp('/caregiver'),/frame-src 'self' https:\/\/primetimehomehealthservices\.firebaseapp\.com;/);
-  assert.match(csp('/caregiver'),/frame-ancestors 'none'/);assert.match(csp('**'),/frame-src 'none'/);
+  assert.match(csp('/caregiver'),/frame-ancestors 'none'/);
+  assert.equal(csp('/workforce'), csp('/primetime{,/**}'));
+  assert.equal(config.hosting.rewrites.find(rule=>rule.source==='/workforce').destination, '/primetime/workforce.html');
+  assert.equal(config.hosting.redirects.find(rule=>rule.source==='/primetime/workforce').destination, '/workforce');
+  assert.match(read('public/home-care-careers.html'), /href="\/workforce">Staff Sign In/);assert.match(csp('**'),/frame-src 'none'/);
   for(const path of ['/caregiver/workforce-api/**','/primetime/workforce-api/**']) assert.equal(config.hosting.rewrites.find(r=>r.source===path).function.functionId,'workforceApi');
   assert.equal(config.hosting.rewrites.find(r=>r.source==='/primetime/api/**').function.functionId,'primetimeApi');
   assert.match(read('functions/src/index.ts'),/principal = await requirePrimetimeAdmin\(request\)/);

@@ -3,7 +3,7 @@
   const status = document.getElementById('session-status');
   const signout = document.getElementById('workforce-signout');
   if (!form) return;
-  const staff = location.pathname.startsWith('/primetime/');
+  const staff = location.pathname === '/workforce' || location.pathname.startsWith('/primetime/');
   const prefix = staff ? '/primetime/workforce-api' : '/caregiver/workforce-api';
   let auth, generation = 0, staffAuth;
   const errors = {
@@ -105,7 +105,7 @@
       await auth.setPersistence(firebase.auth.Auth.Persistence.SESSION);
       if (auth.isSignInWithEmailLink(location.href)) {
         staffAuth.link(location.href);
-        history.replaceState(null, '', staff ? '/primetime/workforce' : WorkforceContract.returnPath(location.search));
+        history.replaceState(null, '', staff ? '/workforce' : WorkforceContract.returnPath(location.search));
       }
       auth.onAuthStateChanged(user => {
         if (staffAuth.pending()) { form.hidden = false; message('Confirm the email that received this link.'); }
