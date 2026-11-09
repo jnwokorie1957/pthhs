@@ -675,6 +675,15 @@
         ]
       },
       {
+        "source": "/caregiver/workforce-api/**",
+        "headers": [
+          {
+            "key": "X-Robots-Tag",
+            "value": "noindex, nofollow, noarchive"
+          }
+        ]
+      },
+      {
         "source": "/caregiver",
         "headers": [
           {
