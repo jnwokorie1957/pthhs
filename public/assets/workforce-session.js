@@ -46,6 +46,7 @@
     ,document_upload_unconfirmed: 'The upload could not be confirmed. Check its status before trying again.'
     ,upload_limit_reached: 'The upload attempt limit has been reached. Please try again later.'
     ,save_application_first: 'Save your application before uploading documents.'
+    ,cch_signature_required: 'Sign and submit the DPS CCH Verification Form under Tax & employment forms.'
     ,required_documents_missing: 'Upload the required ID and Social Security card, or contact the office about an approved alternative arrangement.'
     ,invalid_pdf: 'Choose a complete PDF file, or upload a clear JPEG or PNG.'
     ,address_lookup_unavailable: 'Address suggestions are unavailable. You can still type your complete address.'
@@ -73,7 +74,7 @@
     });
     if (r.ok && download) return r.blob();
     const result = await r.json();
-    if (!r.ok) throw Error(errors[result.error] || 'The request could not be completed. Retry or contact the office.');
+    if (!r.ok) throw Object.assign(Error(errors[result.error] || 'The request could not be completed. Retry or contact the office.'), {code: result.error});
     return result;
   }
   window.workforceApi = api;

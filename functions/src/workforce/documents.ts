@@ -1,6 +1,6 @@
 import sharp from "sharp";
 import { WorkforceError } from "./policy.js";
-export const DOCUMENT_KINDS = ["identity", "social_security", "employment_authorization", "i9", "w4"] as const;
+export const DOCUMENT_KINDS = ["identity", "social_security", "insurance_card", "employment_authorization", "i9", "w4"] as const;
 export type DocumentKind = typeof DOCUMENT_KINDS[number];
 export const MAX_DOCUMENT_BYTES = 8 * 1024 * 1024;
 export interface PrivateDocument {
@@ -14,9 +14,9 @@ export function missingRequiredDocuments(documents: Pick<PrivateDocument, "kind"
     && !(exception?.approved === true && exception.kinds.includes(kind)));
 }
 export function documentKind(value: unknown): DocumentKind {
-  // Historical categories remain readable; new uploads are identity documents.
+  // Historical categories remain readable. Insurance cards are optional.
   // Tax/employment forms use their dedicated structured completion endpoints.
-  if (!requiredDocumentKinds.includes(value as DocumentKind)) throw new WorkforceError(400, "invalid_document_kind");
+  if (value !== "insurance_card" && !requiredDocumentKinds.includes(value as DocumentKind)) throw new WorkforceError(400, "invalid_document_kind");
   return value as DocumentKind;
 }
 // Decode and re-encode raster images. Never store originals, embedded metadata,

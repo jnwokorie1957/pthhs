@@ -55,16 +55,16 @@
     } catch (error) { packetPromise = null; if (current()) disclosure.append(node('p', 'Could not load responses. Reopen the profile.')); }
     if (!current()) return;
     if (!can('documents.review')) { target.append(node('p', 'Private document access required.')); return; }
-    const formsArea = section(target, 'Employment forms'), documentsArea = section(target, 'Identification documents');
+    const formsArea = section(target, 'Employment forms'), documentsArea = section(target, 'Private documents');
     const base = '/staff/applications/' + encodeURIComponent(uid);
-    await Promise.allSettled([...(Object.entries({i9:'Form I-9',w4:'Form W-4',new_hire:'Texas New Hire Report'}).map(async ([kind, title]) => {
+    await Promise.allSettled([...(Object.entries({i9:'Form I-9',w4:'Form W-4',new_hire:'Texas New Hire Report',cch:'DPS CCH Verification Form'}).map(async ([kind, title]) => {
       const row = node('div', undefined, 'caregiver-file-row'); row.append(node('h4', title)); formsArea.append(row);
       try { const result = await workforceApi(base + '/forms/' + kind); if (!current()) return; const form = result.form; row.append(node('p', form ? human(form.state) + ' · Updated ' + date(form.updatedAt) : 'Not started'));
         if (form) pdfButton(row, 'View / print ' + title, base + '/forms/' + kind + '/pdf', current, message);
       } catch { if (current()) row.append(node('p', 'Unavailable. Reopen the profile.')); }
     })), (async () => {
       try { const docs = await workforceApi(base + '/documents'); if (!current()) return;
-        for (const [kind, title] of Object.entries({identity:'Photo ID',social_security:'Social Security card',employment_authorization:'Employment authorization document',i9:'Uploaded I-9',w4:'Uploaded W-4'})) {
+        for (const [kind, title] of Object.entries({identity:'Photo ID',social_security:'Social Security card',insurance_card:'Health insurance card',employment_authorization:'Employment authorization document',i9:'Uploaded I-9',w4:'Uploaded W-4'})) {
           if (!['identity','social_security'].includes(kind) && !docs.items.some(doc => doc.kind === kind)) continue;
           const row = node('div', undefined, 'caregiver-file-row'); row.append(node('h4', title)); documentsArea.append(row); const matches = docs.items.filter(doc => doc.kind === kind);
           if (!matches.length) row.append(node('p', 'Not submitted'));
@@ -146,6 +146,12 @@
   let importJob=null;el('hha-roster-sync').onclick=async()=>{const session=generation,button=el('hha-roster-sync'),message=el('hha-roster-sync-message');button.disabled=true;try{for(;;){const result=await workforceApi('/staff/roster/sync',importJob?{jobId:importJob}:{});if(session!==generation)return;importJob=result.jobId;message.textContent='Checked '+result.processed+' of '+result.total+' HHA caregiver records.';if(result.complete){importJob=null;break;}if(result.deferred){message.textContent+=' Sync paused. Select Sync again to resume.';break;}}}catch(error){if(session===generation)message.textContent=error.message;}finally{if(session===generation)button.disabled=false;}};
 
   document.addEventListener('workforce-session-cleared', () => { el('hha-roster-sync').hidden=true;el('hha-roster-sync-message').textContent='';clearTimeout(searchTimer); generation++; applicationRead++; applicationSelection++; accountSelection++; actor = null; applicationData = null; release(); panel.hidden = true; support.hidden = true; list.replaceChildren(); detail.replaceChildren(); accountDetail.replaceChildren(); results.replaceChildren(); status.textContent = ''; accountMessage.textContent = ''; el('caregiver-account-name').value = ''; el('personnel-filter').value = ''; el('personnel-coverage').textContent = ''; });
-  document.addEventListener('workforce-session', event => { el('hha-roster-sync').hidden=!(event.detail.grant.role==='owner'&&event.detail.grant.permissions.includes('staff.manage')&&event.detail.grant.permissions.includes('accounts.support'));generation++; actor = event.detail; panel.hidden = !can('applications.review'); support.hidden = !can('accounts.support'); refreshApplications(); });
+  document.addEventListener('workforce-session', event => { el('hha-roster-sync').hidden=!(event.detail.grant.role==='owner'&&event.detail.grant.permissions.includes('staff.manage')&&event.detail.grant.permissions.includes('accounts.support'));generation++; actor = event.detail; panel.hidden = !can('applications.review'); support.hidden = !can('accounts.support'); refreshApplications();
+    const linkedApplication = window.location?.hash?.match(/^#application=([a-zA-Z0-9_-]{1,128})$/);
+    if (linkedApplication && can('applications.review') && can('documents.review')) {
+      queueMicrotask(() => {
+        if (actor === event.detail && window.WorkforceManagement.show('applications')) openApplication(linkedApplication[1]);
+      });
+    } });
 
 })();

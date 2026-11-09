@@ -13,10 +13,10 @@ import { parseGrant, requirePermission, type Actor } from "./policy.js";
 import { recentWorkforceIdentity } from "./auth.js";
 const now = "2026-11-05T18:00:00.000Z";
 test("identity uploads cannot receive tax forms or other document categories",()=>{
- assert.equal(documentKind("identity"),"identity");assert.equal(documentKind("social_security"),"social_security");
+ assert.equal(documentKind("insurance_card"),"insurance_card");assert.equal(documentKind("identity"),"identity");assert.equal(documentKind("social_security"),"social_security");
  for(const kind of ["i9","w4","new_hire","employment_authorization","",null])assert.throws(()=>documentKind(kind),/invalid_document_kind/);
 });
-const answers = () => ({ firstName: "Synthetic", lastName: "Applicant", applicationDate: "2026-11-05", email: "synthetic@example.invalid", phone: "555-0100", eligibleToWork: "Yes", conviction: "No", jobDescriptionRead: "Yes", ssn: "000-00-0000", birthDate: "2000-01-01", street: "100 Synthetic Street", city: "Synthetic City", state: "TX", zip: "77000", highSchool_school: "Synthetic High School", ...Object.fromEntries(readings.flatMap(r => [[`read_page_${r.page}`, "Read"], ...(r.agreement ? [[`terms_page_${r.page}`, "I have questions for HR before agreeing"]] : [])])), highSchool_completed: "2018", emergencyName: "Synthetic Contact", emergencyRelationship: "Friend", availableDate: "2026-11-10", weeklyHours: "20", emergencyPhone: "555-0101" });
+const answers = () => ({ firstName: "Synthetic", lastName: "Applicant", applicationDate: "2026-11-05", email: "synthetic@example.invalid", phone: "555-0100", eligibleToWork: "Yes", conviction: "No", jobDescriptionRead: "Yes", ssn: "000-00-0000", birthDate: "2000-01-01", street: "100 Synthetic Street", city: "Synthetic City", state: "TX", zip: "77000", highSchool_school: "Synthetic High School", ...Object.fromEntries(readings.flatMap(r => [[`read_page_${r.page}`, "Read"], ...(r.election ? [[`terms_page_${r.page}`, "Accept"]] : []), ...(r.agreement ? [[`terms_page_${r.page}`, "I have questions for HR before agreeing"]] : [])])), highSchool_completed: "2018", emergencyName: "Synthetic Contact", emergencyRelationship: "Friend", availableDate: "2026-11-10", weeklyHours: "20", emergencyPhone: "555-0101" });
 test("packet maps all 27 pages and only digitizes applicant-owned questions", () => {
   assert.deepEqual(packetInventory.flatMap(item => item.pages), Array.from({ length: 27 }, (_, i) => i + 1));
   assert.equal(new Set(intakePacket.fields.map(f => f.id)).size, intakePacket.fields.length);
@@ -156,4 +156,17 @@ test("sensitive document operations require a recent verified login", async () =
   const request = { get: () => "Bearer synthetic-only" };
   assert.equal(await recentWorkforceIdentity(request, fixture(10) as unknown as Parameters<typeof recentWorkforceIdentity>[1], current), "synthetic-a");
   for (const age of [901, -120]) await assert.rejects(recentWorkforceIdentity(request, fixture(age) as unknown as Parameters<typeof recentWorkforceIdentity>[1], current), /recent_sign_in_required/);
+});
+
+test("health coverage requires an explicit accept or decline plus acknowledgment", () => {
+ const signature = {name: "Synthetic Applicant", electronicConsent: true, documentRead: true};
+ const save = (extra: Record<string, string>) => saveIntake("synthetic-a", null, 0, {...answers(), ...extra}, "synthetic-office", false, now);
+ for (const extra of [{terms_page_17: ""}, {read_page_17: ""}]) {
+  assert.throws(() => submitIntake("synthetic-a", save(extra as Record<string,string>), 1, signature, now), /application_incomplete/);
+ }
+ assert.throws(() => save({terms_page_17: "Accept,Decline"}), /invalid_answers/);
+ for (const choice of ["Accept", "Decline"]) {
+  const submitted = submitIntake("synthetic-a", save({terms_page_17: choice}), 1, signature, now);
+  assert.equal(submitted.policyAcknowledgments?.find(item => item.page === 17)?.response, choice);
+ }
 });
