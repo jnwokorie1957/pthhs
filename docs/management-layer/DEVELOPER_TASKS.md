@@ -1,5 +1,13 @@
 # PTHHS Management Layer — Developer Checklist
 
+- [x] November 9 visit detail read states deployed (PR15/7021700). The queue
+  and selected visit distinguish deferred and withheld detail from readable
+  fields that HHA left empty. A failed detail cannot trigger a changed-facts
+  claim against a saved case. Both release jobs and 301 focused tests passed.
+  The two new regressions pass against the exact served scripts. Protected
+  acceptance and current-day source comparison require approved sign-in.
+  [Field and release evidence](PRIMETIME_LIVE_DATA_CHECKLIST.txt).
+
 - [x] November 9 saved office case navigation deployed (PR14/79912aa). The
   report opens a matching readable visit through the standard review flow.
   Missing, unavailable or mismatched rows keep their saved revision and history

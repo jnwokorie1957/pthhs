@@ -1798,3 +1798,64 @@ Evidence: MAINTENANCE_EVIDENCE_CHECKS_2026-11-08.md; ROLE_WORKFLOW_RESEARCH.txt;
 https://github.com/jnwokorie1957/pthhs/pull/12
 https://github.com/jnwokorie1957/pthhs/actions/runs/42484244304
 https://github.com/jnwokorie1957/pthhs/actions/runs/42484358665
+
+
+NOVEMBER 9, 2026 16:51 UTC — VISIT DETAIL READ STATES IN THE MAINTENANCE QUEUE
+
+PR15 corrects two frontend misreadings. The queue rendered withheld clock fields
+as empty HHA fields. A comparison with a saved case also treated withheld
+values as evidence of changed source facts. The queue and selected visit now
+explain known detail results and keep clock presence unknown on unavailable
+rows. A readable source response can still show an unsupplied clock field.
+The saved-case change notice requires readable current detail.
+
+Source status contract. The office-day projection preserves `state` and `error`
+from the approved visit preview. Its unavailable rows clear all clock and
+subject facts. The dashboard and maintenance share a fixed reason map for
+not_attempted_batch_time_budget, not_attempted_after_batch_gate,
+read_budget_exhausted_retry_next_minute, vendor_backoff_active,
+visit_patient_office_mismatch, visit_date_scope_mismatch and
+visit_not_uniquely_returned. Unknown codes receive a generic unavailable label.
+These reasons describe the recorded read outcome. Existing receipts and controls
+govern retry and freshness. The UI continues to keep pending/completed and
+worked/payable/billable/verified decisions outside clock presence.
+
+Field contract reviewed in functions/src/views/visits.ts and existing WSDL
+research. GetVisitInfoV3Result/VisitInfo contains ScheduleStartTime and
+ScheduleEndTime, VisitStartTime and VisitEndTime, EVVStartTime and EVVEndTime.
+They project to scheduledStart/End, actualStart/End and evvStart/End respectively.
+The captured WSDL declares optional s:string fields. ActualHours and
+ActualHoursRounded remain independent raw strings. The separate optional
+ScheduleDuration/ScheduleDurationHours and ScheduleDuration/ScheduleDurationMinutes
+are integer hour/minute components. The release changes read-state display.
+Original punch linkage, actual-hour interpretation and supported alternate source
+contracts still require vendor evidence. Clock fields retain source provenance.
+
+Both regressions fail before the fix and pass afterward. All 301 focused tests,
+deterministic assets, performance and audit checks passed under the existing
+500 KB app limit. PR quality 42658468399 passed both jobs. The normal explicit
+Hosting-only run 42658720746 passed release_scope and build_and_deploy for
+70217005e11b3babdec623739ec939f5f772fc45. Backend and analytics jobs skipped.
+At 16:51:26 UTC seven public HTTP checks passed. The live shell and both
+fingerprinted scripts match reviewed Git bytes. Anonymous Primetime access
+returned 401/no-store/noindex. Workforce readiness, noindex and closed collection
+flags were checked. Both new synthetic regressions also passed against the
+exact shipped scripts.
+
+Source comparison remains pending. The retained approved tab timed out on
+attachment and a fresh production page required sign-in during this check.
+The November 6 October 23/24 receipts stay dated. The original October 24
+screenshot remains resolved by the October 31 reread. Today's office-day data
+and protected UI could not be verified. Restore the approved Primetime session
+in attached Chrome. Then compare bounded same-office/date completed historical
+examples and the current office day through approved reads. Verify the labels
+against an unavailable detail and a readable field-empty example in that
+scope. Follow existing quota and cooldown receipts. The vendor's next action
+on the open case is exact original-event linkage, endpoint/history scope,
+actual-hour units and preservation/readback. The targeted November 9 business
+mailbox check surfaced no new technical reply. The existing request stays open.
+
+https://github.com/jnwokorie1957/pthhs/pull/15
+https://github.com/jnwokorie1957/pthhs/actions/runs/42658468399
+https://github.com/jnwokorie1957/pthhs/actions/runs/42658720746
+https://github.com/jnwokorie1957/pthhs/blob/70217005e11b3babdec623739ec939f5f772fc45/functions/src/views/visits.ts
