@@ -54,8 +54,10 @@ def noindex(text: str) -> bool:
 
 
 firebase = json.loads((ROOT / "firebase.json").read_text())
-redirect_rows = firebase["hosting"].get("redirects", [])
+hosting = firebase["hosting"]
+redirect_rows = hosting.get("redirects", [])
 redirects = {row.get("source"): row for row in redirect_rows if row.get("type") == 301}
+rewrite_targets = {row.get("destination") for row in hosting.get("rewrites", [])}
 
 titles: dict[str, list[str]] = {}
 descriptions: dict[str, list[str]] = {}
@@ -198,6 +200,10 @@ for source, row in redirects.items():
         continue
     html_source = f"{source}.html"
     twin = redirects.get(html_source)
+    if html_source in rewrite_targets:
+        if not hosting.get("cleanUrls") or any(rule.get("source") == html_source for rule in redirect_rows):
+            errors.append(f"static rewrite target must retain clean URL routing: {html_source}")
+        continue
     if not twin or twin.get("destination") != row.get("destination"):
         errors.append(f"missing explicit .html redirect twin: {source}")
 
