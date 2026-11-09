@@ -3448,3 +3448,39 @@ https://github.com/jnwokorie1957/pthhs/blob/ad02ae529362101d357bdff59c7bea984cac
 https://github.com/jnwokorie1957/pthhs/blob/ad02ae529362101d357bdff59c7bea984cac5083/functions/src/views/visits.ts
 https://github.com/jnwokorie1957/pthhs/blob/32411161cd45d23c8f6458d69e1f67a73cf169b8/docs/management-layer/EVV_OWNER_TAUGHT_PROCEDURES.txt
 https://github.com/jnwokorie1957/pthhs/blob/c3a5a82b51cbba46af8d6ff0faa6b7af07f5ba15/docs/workforce/PUBLIC_PORTAL_RELEASE.md
+
+
+NOVEMBER 8, 2026 CENTRAL / NOVEMBER 9 UTC — EXISTING-CAREGIVER SETUP READY
+Observed production follow-up to the published Careers/portal release. The
+November6 preparation progress remains dated history. At November9 01:47 UTC,
+the public same-origin configuration returned HTTP200/no-store with existing
+access and existingCaregiverEnrollmentReady=true. Account/staff access and
+Google sign-in remain enabled; applications and documents remain disabled. The
+live /caregiver?intent=existing screen shows Existing caregiver access and an
+enabled Send portal access link control without the preparation-wait message.
+Anonymous application-session access still returns HTTP401/no-store.
+
+Acceptance is limited to the configured office preparation marker and the
+public setup entry. The flag is not a source count, fresh roster census,
+individual match, completed enrollment or evidence of message delivery. The
+existing backend still requires a unique stored email match in the configured
+office and rechecks the source profile; preparation may have skipped office
+mismatches. No email was entered, no link requested, no account or password
+changed, and no protected record or source profile was read for this check.
+
+Role link: public Careers leads to the separate protected caregiver account;
+existing staff identity comes through the approved office-scoped HHA match.
+Office account support continues under its existing grants. Caregiver sign-in
+or roster readiness confers no patient/representative, PT assignment, clinical
+file, billing or source maintenance authority. Other protected workflows and
+PR12 authenticated visit acceptance remain unchanged. Individual enrollment
+verification remains a separate owner-approved account step; do not send a
+real access link merely to test the preparation display.
+
+Priority: verified P1 workforce setup transition, with no runtime change needed.
+No new provider, data scope, feature flag, HHA write, operational decision,
+communication, repeated test suite or deployment. November9 UTC evidence:
+https://pthhs.net/caregiver?intent=existing
+https://github.com/jnwokorie1957/pthhs/blob/7508583c9a0ecef8847e82ae929a1a6de025a619/functions/src/workforce/http.ts
+https://github.com/jnwokorie1957/pthhs/blob/7508583c9a0ecef8847e82ae929a1a6de025a619/functions/src/workforce/hhaEnrollment.ts
+https://github.com/jnwokorie1957/pthhs/actions/runs/42304582766

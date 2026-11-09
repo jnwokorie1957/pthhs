@@ -31,3 +31,26 @@ Browser acceptance followed the actual homepage Caregiver Sign In link to https:
 Initial HHA roster preparation was still running at the release check (1,632 of 1,843 source IDs processed). Public configuration correctly reports existingCaregiverEnrollmentReady=false until completion. Existing-caregiver setup therefore displays its preparation state; it does not claim a setup email was sent prematurely. Daily midnight source refresh remains scheduled. New accounts and existing password sign-in are available independently; applications, identity uploads and public job publication remain closed.
 
 The owner requested the final homepage navigation label **Caregiver Portal**, retaining the same /caregiver destination. The label-only update is included in the final release record.
+
+
+## Existing caregiver setup readiness follow-up
+
+Observed November 8, 2026 Central time (November 9, 01:47 UTC). The deployed
+public `/caregiver/workforce-api/configuration` returns HTTP 200/no-store with
+`existingAccessEnabled` and `existingCaregiverEnrollmentReady` true. Accounts,
+staff access and Google sign-in remain enabled; applications and document
+collection remain disabled. Anonymous application session returns HTTP 401
+with no-store.
+
+The live [existing caregiver setup](https://pthhs.net/caregiver?intent=existing)
+screen displays **Existing caregiver access** and an enabled **Send portal
+access link** button. The earlier preparation message is no longer shown. This
+supersedes the dated preparation state above; it does not establish a fresh
+roster count or a successful match for any individual.
+
+The release checks the office preparation marker, while an actual request still
+requires the existing unique scoped email match and fresh source-profile check.
+No email was entered, no link sent, no account created and no password changed
+in this verification. Individual enrollment acceptance requires a separately
+approved eligible account and owner-controlled credential entry. No permissions,
+source records, feature flags or runtime deployment changed for this follow-up.

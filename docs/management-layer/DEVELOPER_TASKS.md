@@ -1,5 +1,14 @@
 # PTHHS Management Layer — Developer Checklist
 
+- [x] November8 Central/November9 UTC: published existing-caregiver setup
+  now recognizes the configured-office preparation marker. Live public
+  configuration is 200/no-store with readiness true, applications/documents
+  closed; the existing-access screen shows its enabled setup button and no
+  preparation wait. Anonymous application session remains 401/no-store.
+  [Readiness evidence](../workforce/PUBLIC_PORTAL_RELEASE.md) covers the setup
+  entry only; individual enrollment, credential entry and link delivery were
+  not attempted. PR12 authenticated maintenance acceptance remains separate.
+
 - [x] November8 deployed read-only maintenance evidence presentation and saved
   report receipts (PR12/ad02ae5). Supplied/absent endpoints and unavailable detail
   reads remain distinct; saved Calendar S/Suggested/Bill fields stay separate.
