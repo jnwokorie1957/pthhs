@@ -1,5 +1,13 @@
 # PTHHS Management Layer — Developer Checklist
 
+- [x] November9 caregiver API indexing header deployed (PR13/a983fe5). The
+  Hosting-only rule covers successful `/caregiver/workforce-api/**` responses.
+  Both PR-quality and release jobs passed; ten production routes verified,
+  including 200/no-store/noindex configuration, anonymous 401/no-store denial,
+  private HTML noindex and unchanged public Careers/sitemap. No backend,
+  permissions or portal feature flags changed.
+  [SEO release evidence](../seo/2026-11-09-caregiver-api-noindex.md).
+
 - [x] November8 Central/November9 UTC: published existing-caregiver setup
   now recognizes the configured-office preparation marker. Live public
   configuration is 200/no-store with readiness true, applications/documents

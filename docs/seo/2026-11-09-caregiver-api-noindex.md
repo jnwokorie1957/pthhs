@@ -33,6 +33,29 @@ The overlapping counts are dated and not indexed-page totals. The delivered
 36-URL sitemap excludes the private portals. No resubmission, public job claim,
 payer, location, or owner decision changes are needed for this fix.
 
-Release through the existing Hosting-only workflow after both normal PR quality
-jobs pass. Deployment and actual response-header acceptance are pending at this
-checkpoint.
+## Release and production acceptance
+
+PR [#13](https://github.com/jnwokorie1957/pthhs/pull/13) passed both normal quality
+jobs in [42549183680](https://github.com/jnwokorie1957/pthhs/actions/runs/42549183680).
+The merged configuration is `a983fe5259561fa198ba08d6d82a1fdbd814b046`. The existing
+explicit Hosting-only run
+[42549337088](https://github.com/jnwokorie1957/pthhs/actions/runs/42549337088)
+passed release_scope and build_and_deploy. Backend and analytics deployment jobs
+were skipped. There was no new function, permission or release-control change.
+
+November 9 at 02:10:40 UTC: ten production routes passed. Both workforce
+configuration paths return HTTP 200/no-store and the expected robots header.
+Caregiver setup readiness and Google sign-in remain available; applications and
+uploads remain closed. Three anonymous session routes remain 401/no-store. The
+workforce API's anonymous error responses need no indexing inference from a
+header; their access-denied status is independently verified. This does not
+claim Google crawled, indexed or removed any route.
+
+Five static artifacts match exact Git bytes: Careers, caregiver setup, both
+private Primetime shells and the sitemap. Careers remains indexable, private
+shells retain meta/header noindex, and the 36-URL sitemap excludes them. The
+prior Search Console observations remain dated; no resubmission was made.
+Local validation passed 54 focused tests, eight SEO metadata tests, deterministic
+asset checks, the repository audit and diff checks. The normal CI and Hosting
+build ran their existing full checks. No individual account, source record,
+owner decision or business claim was changed.

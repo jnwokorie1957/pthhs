@@ -3,6 +3,11 @@
 These files remain useful for planning, but they do not override current public
 facts, payer evidence, or claim-release controls.
 
+- [November 9 caregiver API indexing header](2026-11-09-caregiver-api-noindex.md)
+  — live successful caregiver API responses now carry noindex. Production
+  session denial, private shell protections, Careers and sitemap remain intact.
+  Both quality and Hosting-only release jobs passed; no backend was redeployed.
+
 - [November 6 public delivery and SEO review](2026-11-06-seo-review.md) —
   141 public routes, 20 exact artifacts and eight article graphs pass. The live
   sitemap has 36 URLs; Google's dated successful canonical row still reports 34
