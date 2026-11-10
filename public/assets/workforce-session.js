@@ -23,8 +23,15 @@
     workforce_forbidden: 'Your current permissions do not allow this action in this office.',
     staff_access_required: 'Individual staff access has not been granted to this account.',
     staff_invite_unavailable: 'No active invitation matches this work email. Ask the owner to send a new invitation.',
+    staff_invite_link_required: 'Open the original invitation from your work email to set up your account.',
     staff_training_required: 'Complete staff training to open the workspace.',
     staff_training_incomplete: 'Training progress is still being recorded. Try continuing in a moment.',
+    staff_password_setup_required: 'Set your staff password before continuing.',
+    staff_username_taken: 'That username is already in use. Choose another or leave it blank.',
+    invalid_staff_username: 'Use 3 to 32 letters, numbers, periods, hyphens, or underscores. Start with a letter or number.',
+    weak_staff_password: 'Use at least 8 characters with uppercase, lowercase, a number, and a special character.',
+    staff_auth_rate_limit: 'Too many requests. Please wait before trying again.',
+    staff_auth_unavailable: 'Staff email is temporarily unavailable. Please try again.',
     staff_already_registered: 'This account already has staff access on file. Use Manage existing access to change it.',
     invalid_staff_email: 'Enter a valid work email address.',
     staff_access_revoked: 'Staff access has been revoked.',
@@ -68,7 +75,7 @@
     document.getElementById('caregiver-summary')?.setAttribute('hidden', '');
   };
   async function api(path, body, download = false) {
-    const guest=path==='/existing-caregiver/access';
+    const guest=['/existing-caregiver/access','/staff-auth/password-setup','/staff-auth/resolve-username'].includes(path);
     if (!auth?.currentUser&&!guest) throw Error('Sign in required.');
     const token = guest ? '' : await auth.currentUser.getIdToken();
     const r = await fetch(prefix + path, {
@@ -82,7 +89,7 @@
     return result;
   }
   window.workforceApi = api;
-  async function session(user) {
+  async function session(user, choosePassword = false, activationCode = '') {
     const sequence = ++generation;
     hide(); signout.hidden = !user;
     document.dispatchEvent(new CustomEvent('workforce-session-cleared'));
@@ -91,9 +98,14 @@
     try {
       const actor = await api(staff ? '/session' : '/application/session').catch(error => {
         if (!staff || sequence !== generation || error.code !== 'staff_access_required') throw error;
-        return api('/staff/invitations/accept', {});
+        return api('/staff/invitations/accept', activationCode ? {activationCode} : {});
       });
       if (sequence !== generation) return;
+      if (staff && (choosePassword || actor.passwordSetupRequired)) {
+        message('');
+        staffAuth.setup(user.email);
+        return;
+      }
       if (staff && actor.trainingRequired) {
         message('');
         window.WorkforceTraining.require(() => {
@@ -119,7 +131,12 @@
       auth = firebase.auth();
       await auth.setPersistence(firebase.auth.Auth.Persistence.SESSION);
       if (auth.isSignInWithEmailLink(location.href)) {
-        staffAuth.link(location.href);
+        const params = new URLSearchParams(location.search);
+        let continuation;
+        try { continuation = new URL(params.get('continueUrl')); } catch { /* Direct action URL. */ }
+        const state = continuation?.origin === location.origin && continuation.pathname === '/workforce'
+          ? continuation.searchParams : params;
+        staffAuth.link(location.href, state.get('staffSetup') === '1', state.get('staffInvite') || '');
         history.replaceState(null, '', staff ? '/workforce' : WorkforceContract.returnPath(location.search));
       }
       auth.onAuthStateChanged(user => {
@@ -130,10 +147,13 @@
   }
   if (!staff) { window.WorkforceAccount.start({createAuth:()=>{auth=firebase.auth();return auth;},api}); return; }
   window.WorkforceSendPasswordReset=email=>auth.sendPasswordResetEmail(email,{url:location.origin+'/caregiver'});
-  window.WorkforceSendStaffInvitation = email => auth.sendSignInLinkToEmail(email, {
-    url: location.origin + '/workforce', handleCodeInApp: true
-  });
-  staffAuth=window.WorkforceManagementAuth({form,auth:()=>auth,session,message});
+  window.WorkforceSendStaffInvitation = ({email, activationCode}) => {
+    const url = new URL('/workforce', location.origin);
+    url.searchParams.set('staffSetup', '1');
+    url.searchParams.set('staffInvite', activationCode);
+    return auth.sendSignInLinkToEmail(email, {url:url.href,handleCodeInApp:true});
+  };
+  staffAuth=window.WorkforceManagementAuth({form,auth:()=>auth,session,message,api});
   signout.addEventListener('click', async () => {
     ++generation; hide(); document.dispatchEvent(new CustomEvent('workforce-session-cleared'));
     try { await auth.signOut(); } catch { message('Sign-out could not be confirmed. Close this browser session.'); }

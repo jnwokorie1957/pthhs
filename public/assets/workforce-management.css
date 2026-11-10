@@ -44,3 +44,5 @@
 #staff-training-video { display: block; width: 100%; aspect-ratio: 1440 / 928; background: #0b202d; border-radius: 8px; }
 .manager-training-actions { display: flex; flex-wrap: wrap; gap: 10px; }
 .manager-training-actions button:disabled { opacity: .55; cursor: not-allowed; }
+#staff-first-time, #staff-password-rules { color: #4b6269; font-size: 12px; margin: 0 0 14px; }
+#staff-back-to-signin { margin-top: 10px; }

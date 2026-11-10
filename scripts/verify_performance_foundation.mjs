@@ -192,7 +192,7 @@ const managementFiles=publicFiles.filter(isManagementFile);
 const managementBytes=(await Promise.all(managementFiles.map(file=>fs.stat(file)))).reduce((sum,stat)=>sum+stat.size,0);
 let managementGzip=0;for(const file of managementFiles)managementGzip+=gzipSync(await fs.readFile(file)).length;
 // Dedicated staff dashboard: navigation, live summaries and task-specific panes, without a UI library.
-if(managementBytes>57_000||managementGzip>15_000)errors.push(`workforce management exceeds 57 KB raw / 15 KB gzip budget: ${managementBytes}/${managementGzip}`);
+if(managementBytes>62_000||managementGzip>16_000)errors.push(`workforce management exceeds 62 KB raw / 16 KB gzip budget: ${managementBytes}/${managementGzip}`);
 const trainingBytes = (await fs.stat(path.join(publicDir, 'training/staff-workspace-walkthrough-v1.mp4'))).size;
 if (trainingBytes > 750_000) errors.push('Staff training video exceeds the 750 KB media budget');
 const isWorkforceFile = file => {
@@ -213,7 +213,7 @@ for (const file of workforceFiles) workforceGzip += gzipSync(await fs.readFile(f
 // browser library. Bound their added transfer separately from operations.
 // Complete account creation/recovery and the private job board add about 22 KB
 // raw / 7 KB gzip without a new runtime library. Keep separate from operations.
-if (workforceBytes > 171_000 || workforceGzip > 53_000) errors.push(`workforce output exceeds 171 KB raw / 53 KB gzip budget: ${workforceBytes}/${workforceGzip}`);
+if (workforceBytes > 172_000 || workforceGzip > 54_000) errors.push(`workforce output exceeds 172 KB raw / 54 KB gzip budget: ${workforceBytes}/${workforceGzip}`);
 const publicBytes = (await Promise.all(publicFiles.map((file) => fs.stat(file)))).reduce((sum, stat) => sum + stat.size, 0);
 const internalFiles = publicFiles.filter(file => isInternalAppFile(file, publicDir) && !isWorkforceFile(file)&&!isManagementFile(file));
 const internalBytes = (await Promise.all(internalFiles.map(file => fs.stat(file)))).reduce((sum, stat) => sum + stat.size, 0);

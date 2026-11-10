@@ -4,7 +4,8 @@ import { randomUUID } from "node:crypto";
 import { onRequest } from "firebase-functions/v2/https";
 import { defineString } from "firebase-functions/params";
 import { workforceIdentity, recentWorkforceIdentity } from "./auth.js";
-import { WorkforceStore } from "./store.js";
+import { WorkforceStore, workEmail } from "./store.js";
+import { StaffCredentials } from "./staffCredentials.js";
 import { AccountSupport } from "./accountSupport.js";
 import {HhaDirectory} from "./hhaDirectory.js";
 import {HhaProfileSource} from "./hhaSource.js";
@@ -164,11 +165,34 @@ export const workforceApi = process.env.PRIMETIME_API_ONLY_DEPLOY === "true" ? u
       throw new WorkforceError(404, "route_not_found");
     }
     if (staffEnabled.value() !== "true") throw new WorkforceError(503, "workforce_release_pending");
+    if (path.startsWith("/staff-auth/") && req.method === "POST") {
+      if (!req.is("application/json") || req.rawBody.length > 1000 || !req.body || Array.isArray(req.body)) {
+        throw new WorkforceError(400, "invalid_request");
+      }
+      const credentials = new StaffCredentials(new WorkforceStore());
+      if (path === "/staff-auth/password-setup") {
+        res.json(await credentials.sendSetup(workEmail(req.body.email), req.ip || "unknown", portalOrigin.value())); return;
+      }
+      if (path === "/staff-auth/resolve-username") {
+        res.json(await credentials.resolve(req.body.username, req.body.password, req.ip || "unknown")); return;
+      }
+      if (path === "/staff-auth/credentials") {
+        res.json(await credentials.set(await recentWorkforceIdentity(req), req.body.password, req.body.username)); return;
+      }
+      throw new WorkforceError(404, "route_not_found");
+    }
     const uid = await workforceIdentity(req);
     const store = new WorkforceStore();
+    const credentials = new StaffCredentials(store);
+    const staffSession = async (actor: Awaited<ReturnType<typeof store.actor>>) => ({
+      ...actor, trainingRequired: await store.trainingRequired(actor),
+      passwordSetupRequired: await credentials.setupRequired(actor.uid),
+    });
     if (path === "/session" && req.method === "GET") {
-      const actor = await store.actor(uid);
-      res.json({ ...actor, trainingRequired: await store.trainingRequired(actor) }); return;
+      res.json(await staffSession(await store.actor(uid))); return;
+    }
+    if (path.startsWith("/staff/") && path !== "/staff/invitations/accept" && await credentials.setupRequired(uid)) {
+      throw new WorkforceError(403, "staff_password_setup_required");
     }
     if (path === "/staff/training" && req.method === "POST") {
       if (!req.is("application/json") || req.rawBody.length > 100 || !req.body
@@ -280,9 +304,12 @@ export const workforceApi = process.env.PRIMETIME_API_ONLY_DEPLOY === "true" ? u
     if (path === "/staff/invitations" || path === "/staff/invitations/accept") {
       const recentUid = await recentWorkforceIdentity(req);
       if (path === "/staff/invitations/accept") {
-        if (Object.keys(req.body).length) throw new WorkforceError(400, "invalid_request");
-        const actor = await store.acceptStaffInvite(recentUid);
-        res.json({ ...actor, trainingRequired: await store.trainingRequired(actor) });
+        const activation = req.body.activationCode;
+        if (Object.keys(req.body).some(key => key !== "activationCode")
+          || (activation !== undefined && (typeof activation !== "string" || !/^[a-f0-9-]{36}$/.test(activation)))) {
+          throw new WorkforceError(400, "invalid_request");
+        }
+        res.json(await staffSession(await store.acceptStaffInvite(recentUid, Date.now(), activation)));
       } else {
         res.json(await store.inviteStaff(recentUid, req.body.email, req.body.grant));
       }

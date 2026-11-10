@@ -2,10 +2,10 @@ import test from 'node:test';import assert from 'node:assert/strict';import fs f
 const source=fs.readFileSync(new URL('../public/assets/workforce-management-auth.js',import.meta.url),'utf8');
 function setup(overrides={}){
  const nodes=new Map(),events=new Map(),calls=[],messages=[];let submit;
- const node=id=>{if(!nodes.has(id))nodes.set(id,{value:'',hidden:false,required:false,type:'password',attrs:{},reportValidity:()=>true,setAttribute(k,v){this.attrs[k]=v;},addEventListener(type,fn){if(type==='submit')submit=fn;}});return nodes.get(id);};
- const auth={signInWithEmailAndPassword:async(email,password)=>calls.push({kind:'password',email,password}),sendSignInLinkToEmail:async(email,settings)=>calls.push({kind:'link',email,settings}),signInWithEmailLink:async(email,link)=>{calls.push({kind:'confirm',email,link});return {user:{uid:'verified-staff'}};},sendPasswordResetEmail:async(email,settings)=>calls.push({kind:'reset',email,settings}),...overrides};
+ const node=id=>{if(!nodes.has(id))nodes.set(id,{value:'',hidden:false,required:false,type:'password',attrs:{},reportValidity:()=>true,focus(){},setAttribute(k,v){this.attrs[k]=v;},addEventListener(type,fn){if(type==='submit')submit=fn;}});return nodes.get(id);};
+ const auth={signInWithEmailAndPassword:async(email,password)=>{calls.push({kind:'password',email,password});return {user:{uid:'verified-staff'}};},sendSignInLinkToEmail:async(email,settings)=>calls.push({kind:'link',email,settings}),signInWithEmailLink:async(email,link)=>{calls.push({kind:'confirm',email,link});return {user:{uid:'verified-staff'}};},...overrides};
  const window={},context=vm.createContext({window,document:{getElementById:node,addEventListener:(type,fn)=>events.set(type,fn)},location:{origin:'https://portal.example.invalid'}});vm.runInContext(source,context);
- const controller=window.WorkforceManagementAuth({form:node('workforce-login'),auth:()=>auth,session:async user=>calls.push({kind:'session',uid:user.uid}),message:text=>messages.push(text)});
+ const controller=window.WorkforceManagementAuth({form:node('workforce-login'),auth:()=>auth,session:async user=>calls.push({kind:'session',uid:user.uid}),message:text=>messages.push(text),api:async(path,body)=>{calls.push({kind:'api',path,body});return {email:'office@example.invalid',saved:true};}});
  node('workforce-email').value='office@example.invalid';
  return {node,calls,messages,controller,submit:()=>submit({preventDefault(){}}),clear:()=>events.get('workforce-session-cleared')()};
 }
@@ -13,7 +13,42 @@ test('management password is the default and is sent only through Firebase then 
 test('email link remains available without a password and returns to management',async()=>{const s=setup();s.node('staff-password').value='discarded';s.node('staff-link-method').onclick();assert.equal(s.node('staff-password').value,'');assert.equal(s.node('staff-password').required,false);assert.equal(s.node('staff-password-row').hidden,true);await s.submit();assert.equal(s.calls[0].kind,'link');assert.equal(s.calls[0].settings.url,'https://portal.example.invalid/workforce');assert.equal(s.calls[0].settings.handleCodeInApp,true);});
 test('email-link confirmation never requires a password and consumes its token once',async()=>{const s=setup();s.controller.link('synthetic-link');assert.equal(s.node('staff-signin-methods').hidden,true);assert.equal(s.node('staff-password').required,false);await s.submit();assert.equal(s.calls[0].kind,'confirm');assert.equal(s.calls[1].uid,'verified-staff');assert.equal(s.controller.pending(),false);});
 test('incorrect passwords receive generic errors and never expose the attempted password',async()=>{const s=setup({signInWithEmailAndPassword:async()=>{throw {code:'auth/invalid-credential'};}});s.node('staff-password').value='DoNotKeepThis123!';await s.submit();assert.equal(s.node('staff-password').value,'');assert.match(s.messages.at(-1),/Unable to sign in/);assert.doesNotMatch(s.messages.join(' '),/DoNotKeep/);assert.equal(s.node('workforce-login-button').disabled,false);});
-test('forgot password validates the email only and sends a management return path',async()=>{const s=setup();await s.node('staff-forgot-password').onclick();assert.equal(s.calls[0].kind,'reset');assert.equal(s.calls[0].settings.url,'https://portal.example.invalid/workforce');assert.match(s.messages.at(-1),/If an account uses this email/);});
+test('forgot password opens recovery for an active staff account', async () => {
+  const s = setup();
+  s.node('staff-forgot-password').onclick();
+  assert.equal(s.node('staff-password-row').hidden, true);
+  assert.equal(s.node('workforce-email').type, 'email');
+  await s.submit();
+  assert.equal(s.calls[0].path, '/staff-auth/password-setup');
+  assert.equal(s.calls[0].body.email, 'office@example.invalid');
+  assert.match(s.messages.at(-1), /active staff account/);
+});
+test('a password setup link asks for a new password before access and accepts the eight-character minimum', async () => {
+  const s = setup();
+  s.controller.link('synthetic-setup-link', true);
+  assert.equal(s.node('workforce-login-button').textContent, 'Continue');
+  await s.submit();
+  s.controller.setup('office@example.invalid');
+  s.node('staff-new-password').value = 'Demo12!';
+  s.node('staff-confirm-password').value = 'Demo12!';
+  await s.submit();
+  assert.match(s.messages.at(-1), /at least 8 characters/);
+  assert.ok(!s.calls.some(call => call.kind === 'api'));
+  s.node('staff-new-password').value = 'Demo123!';
+  s.node('staff-confirm-password').value = 'Demo123!';
+  s.node('staff-new-username').value = 'demo.staff';
+  await s.submit();
+  assert.equal(s.calls[2].path, '/staff-auth/credentials');
+  assert.deepEqual(s.calls[3], {kind:'password',email:'office@example.invalid',password:'Demo123!'});
+});
+test('username sign-in verifies the password through the staff resolver before Firebase sign-in', async () => {
+  const s = setup();
+  s.node('workforce-email').value = 'demo.staff';
+  s.node('staff-password').value = 'Demo123!';
+  await s.submit();
+  assert.equal(s.calls[0].path, '/staff-auth/resolve-username');
+  assert.deepEqual(s.calls[1], {kind:'password',email:'office@example.invalid',password:'Demo123!'});
+});
 test('duplicate submissions and mode switching are blocked while Firebase is pending',async()=>{let finish;const s=setup({signInWithEmailAndPassword:()=>new Promise(resolve=>finish=resolve)});s.node('staff-password').value='SyntheticPassword123!';const pending=s.submit();await s.submit();s.node('staff-link-method').onclick();assert.equal(s.node('staff-password-row').hidden,false);assert.equal(s.node('workforce-login-button').disabled,true);finish();await pending;assert.equal(s.node('workforce-login-button').disabled,false);});
 test('sign-out clears a revealed password and resets the sign-in method',()=>{const s=setup();s.node('staff-password').value='SyntheticPassword123!';s.node('staff-show-password').onclick();assert.equal(s.node('staff-password').type,'text');s.clear();assert.equal(s.node('staff-password').value,'');assert.equal(s.node('staff-password').type,'password');assert.equal(s.node('staff-show-password').attrs['aria-pressed'],'false');});
 test('expired sign-in links recover to requesting a fresh link',async()=>{const s=setup({signInWithEmailLink:async()=>{throw {code:'auth/expired-action-code'};}});s.controller.link('expired');await s.submit();assert.equal(s.controller.pending(),false);assert.equal(s.node('staff-signin-methods').hidden,false);assert.equal(s.node('workforce-login-button').textContent,'Send sign-in link');assert.match(s.messages.at(-1),/Request a new link/);});
