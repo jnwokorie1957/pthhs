@@ -1,6 +1,6 @@
 import type {OperationsWorkspace} from "../operations/workspace.js";
 import {FieldPath, type Firestore} from "firebase-admin/firestore";
-import {cachedHhaName} from "./hhaCachedNames.js";
+import {ACTIVE_HHA_CAREGIVER_STATUS, cachedHhaName} from "./hhaCachedNames.js";
 import {identifier} from "../operations/reads.js";
 import {nameQuery,normalizeName} from "./directory.js";
 import {requirePermission,WorkforceError,type Actor} from "./policy.js";
@@ -33,7 +33,13 @@ export class HhaDirectory {
    hasMore ||= source.truncated;for(const row of source.records)ids.add(identifier(row.CaregiverID));
   }
   hasMore ||= ids.size>8;const items=[];
-  for(const id of [...ids].slice(0,8)){const row=await this.record(id,context);if(row&&[row.firstName,row.lastName,row.firstName+" "+row.lastName].some(value=>normalizeName(value).startsWith(query)))items.push(row);}
+  for (const id of [...ids].slice(0, 8)) {
+   const row = await this.record(id, context);
+   if (row?.state === ACTIVE_HHA_CAREGIVER_STATUS
+     && [row.firstName, row.lastName, row.firstName + " " + row.lastName].some(value => normalizeName(value).startsWith(query))) {
+    items.push(row);
+   }
+  }
   const current=await this.scope();if(current.office!==context.office||current.revision!==context.revision)throw new WorkforceError(409,"revision_conflict");
   return {items,hasMore,source:"hhaexchange" as const};
  }
@@ -42,7 +48,8 @@ export class HhaDirectory {
   const {office, revision} = await this.scope();
   const profiles = db.collection("workforceHhaProfiles");
   const pageSize = 50;
-  let query = profiles.where("office", "==", office).orderBy("lastName").orderBy(FieldPath.documentId());
+  let query = profiles.where("office", "==", office).where("status", "==", ACTIVE_HHA_CAREGIVER_STATUS)
+   .orderBy("lastName").orderBy(FieldPath.documentId());
   if (after !== undefined) {
    if (typeof after !== "string" || !/^[1-9]\d{0,9}$/.test(after)) throw new WorkforceError(400, "invalid_request");
    const cursor = await profiles.doc(after).get();

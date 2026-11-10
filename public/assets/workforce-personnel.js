@@ -146,12 +146,13 @@
       nextCaregiverPage = query ? null : response.next;
       moreCaregivers.hidden = !nextCaregiverPage;
       if (query) {
-        accountMessage.textContent = response.items.length ? (response.hasMore ? 'More matches found. Enter more letters to narrow your search.' : 'Select a caregiver to open their profile.') : 'No matching caregivers found.';
+        accountMessage.textContent = response.hasMore ? 'Enter more letters to narrow your search.'
+          : response.items.length ? 'Select a caregiver to open their profile.' : 'No matching caregivers found.';
         if(response.hhaUnavailable)accountMessage.textContent+=response.hhaCached?' Live HHA lookup is busy. Showing synchronized HHA names and portal matches.':' HHAeXchange is unavailable; portal matches only.';
       } else {
         accountMessage.textContent = (response.syncedAt ? 'Last completed HHA sync: ' + date(response.syncedAt) + ' CT.' : 'No completed HHA sync on record.')
           + (response.refreshFailed ? ' The latest refresh failed.' : '')
-          + (results.childElementCount || response.items.length ? ' Showing saved HHA names.' : ' No recently synced names on this page.');
+          + (results.childElementCount || response.items.length ? ' Showing active HHA caregivers.' : ' No recently synced active caregivers on this page.');
       }
       for (const match of response.items) { const button = node('button', [match.firstName, match.lastName].filter(Boolean).join(' ') + ' · ' + (match.source==='hhaexchange'?'HHAeXchange':human(match.state)), 'caregiver-search-result'); button.type = 'button'; button.onclick = () => openAccount(match); results.append(button); }
     } catch (error) { if (session === generation && sequence === accountSelection) accountMessage.textContent = error.message; }

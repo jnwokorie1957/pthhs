@@ -4,11 +4,11 @@ import {HhaDirectory} from "./hhaDirectory.js";
 import {readRequest} from "../operations/reads.js";
 import type {Actor} from "./policy.js";
 function setup(){
- const state={approved:true,enabled:true,revision:1,office:"12",recordOffice:"12",wrongId:false,change:false};const queries:{operation:string;firstName?:string;lastName?:string}[]=[];
+ const state={approved:true,enabled:true,revision:1,office:"12",recordOffice:"12",wrongId:false,change:false,status:"Active"};const queries:{operation:string;firstName?:string;lastName?:string}[]=[];
  const actor:Actor={uid:"owner",grant:{active:true,role:"owner",offices:["12"],permissions:["accounts.support"]}};
  const workspace={settings:async()=>({dataApproved:state.approved,settings:{officeId:state.office,revision:state.revision,enabledReads:state.enabled?["SearchCaregivers","GetCaregiverDemographics"]:[]}}),query:async(input:{operation:string;id?:string})=>{
   queries.push(input);if(state.change)state.revision++;
-  return {operation:input.operation,source:"hhaexchange",fetchedAt:"2026-11-06T12:00:00Z",truncated:false,records:input.operation==="SearchCaregivers"?[{CaregiverID:"101"}]:[{ID:state.wrongId?"999":input.id,FirstName:"Hannah",LastName:"Hart",CaregiverCode:"CG-1",OfficeIDs:JSON.stringify([state.recordOffice]),"Status/Name":"Active"}]};
+  return {operation:input.operation,source:"hhaexchange",fetchedAt:"2026-11-06T12:00:00Z",truncated:false,records:input.operation==="SearchCaregivers"?[{CaregiverID:"101"}]:[{ID:state.wrongId?"999":input.id,FirstName:"Hannah",LastName:"Hart",CaregiverCode:"CG-1",OfficeIDs:JSON.stringify([state.recordOffice]),"Status/Name":state.status}]};
  }};
  return {state,actor,queries,directory:new HhaDirectory(workspace as unknown as ConstructorParameters<typeof HhaDirectory>[0],async()=>actor)};
 }
@@ -30,15 +30,24 @@ test("source settings changes and wrong caregiver identities cannot return a pro
  const s=setup();s.state.change=true;await assert.rejects(s.directory.search("H"),/revision_conflict/);
  const other=setup();other.state.wrongId=true;await assert.rejects(other.directory.profile("101"),/caregiver_account_unavailable/);
 });
+test("live name search excludes HHA caregivers marked inactive", async () => {
+ const s = setup();
+ s.state.status = "Inactive";
+ assert.deepEqual((await s.directory.search("Hannah Hart")).items, []);
+});
 test("roster pages use the approved office, return names only and disclose incomplete refreshes", async () => {
  const s = setup();
  const syncedAt = new Date().toISOString();
  const rows = Array.from({length:51}, (_, index) => {
   const id = String(index + 100);
-  return {id, data: () => ({id, office:"12", firstName:"Sample", lastName:"Caregiver", fetchedAt:syncedAt, email:"private@example.invalid"})};
+  return {id, data: () => ({id, office:"12", firstName:"Sample", lastName:"Caregiver", status:"Active", fetchedAt:syncedAt, email:"private@example.invalid"})};
  });
  let offset = 0;
  const query = {
+  where(field: string, operator: string, value: string) {
+   assert.deepEqual([field, operator, value], ["status", "==", "Active"]);
+   return query;
+  },
   orderBy() { return query; },
   startAfter(lastName: string, id: string) {
    assert.equal(lastName, "Caregiver");
