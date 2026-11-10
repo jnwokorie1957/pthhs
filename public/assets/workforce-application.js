@@ -97,9 +97,11 @@
       documentItems = data.items; renderDocumentChecklist();
       document.getElementById('private-document-list').replaceChildren();
       for (const kind of Object.keys(uploadKinds)) {
-        const doc = [...data.items].sort((a,b)=>b.createdAt.localeCompare(a.createdAt)).find(item => item.kind === kind && ['pending_review', 'pending_security_review'].includes(item.state));
+        const matches = data.items.filter(item => item.kind === kind).sort((a,b) => b.createdAt.localeCompare(a.createdAt));
+        const doc = matches.find(item => ['pending_review', 'pending_security_review'].includes(item.state));
         const view = document.getElementById(kind + '-view'); view.hidden = !doc || doc.state !== 'pending_review';
         if (doc) document.getElementById(kind + '-selection').textContent = doc.state === 'pending_security_review' ? 'Uploaded — security review pending' : 'Uploaded';
+        else if (matches[0]?.state === 'security_rejected') document.getElementById(kind + '-selection').textContent = 'This PDF did not pass security review. Upload a replacement.';
         view.onclick = async () => { try { const sequence = generation, blob = await workforceApi('/application/documents/' + encodeURIComponent(doc.id), undefined, true); if (sequence === generation) window.WorkforceCamera.view(blob, uploadKinds[kind]); } catch (error) { documentMessage.textContent = error.message; } };
       }
     } catch (error) { if (sequence === generation) documentMessage.textContent = error.message; }

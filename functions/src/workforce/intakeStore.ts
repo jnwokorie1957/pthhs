@@ -209,6 +209,7 @@ export class IntakeStore {
             // The recipient must sign in with the applicable staff grants.
             tx.create(this.db.collection("workforceIdentityMail").doc(id), {
               to: ["irab@pthhs.net"],
+              cc: ["jnwokorie@pthhs.net"],
               message: {
                 subject: "Caregiver identification documents received",
                 text: "A caregiver uploaded their photo ID and Social Security card. Sign in to review the files and their status: "
@@ -249,5 +250,26 @@ export class IntakeStore {
     const [bytes] = await this.bucket.file(privateDocumentPath(uid, id, record.extension ?? "jpg"), { generation: record.generation! }).download({ validation: "crc32c" });
     if (bytes.length !== record.size || createHash("sha256").update(bytes).digest("hex") !== record.sha256) throw new WorkforceError(503, "document_integrity_error");
     return bytes;
+  }
+
+  // Server-side only. The scanner reads the exact object generation and checks
+  // its digest before reporting a verdict. A new upload always gets a new ID.
+  async recordPdfScan(id: string, generation: string, sha256: string, verdict: "clean" | "rejected") {
+    if (!validId(id) || !/^\d+$/.test(generation) || !/^[0-9a-f]{64}$/.test(sha256)
+      || (verdict !== "clean" && verdict !== "rejected")) throw new WorkforceError(400, "invalid_pdf_scan");
+    const ref = this.db.collection("workforcePrivateDocuments").doc(id);
+    const state = verdict === "clean" ? "pending_review" : "security_rejected";
+    return this.db.runTransaction(async tx => {
+      const snapshot = await tx.get(ref);
+      const document = snapshot.data() as PrivateDocument | undefined;
+      if (!document || document.extension !== "pdf" || document.generation !== generation || document.sha256 !== sha256) {
+        throw new WorkforceError(409, "pdf_scan_version_mismatch");
+      }
+      if (document.state === state) return { state };
+      if (document.state !== "pending_security_review") throw new WorkforceError(409, "document_not_ready");
+      tx.update(ref, { state });
+      this.audit(tx, "pdf-scanner", "document_security_scan", id, { verdict });
+      return { state };
+    });
   }
 }

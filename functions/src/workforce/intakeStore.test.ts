@@ -166,6 +166,18 @@ test("required personnel documents are enforced by the server and PDF quarantine
   const doc = await f.store.upload("synthetic-a", "social_security", pdf.toString("base64"));
   assert.equal(doc.state, "pending_security_review");
   await assert.rejects(f.store.download("synthetic-a", doc.id, "synthetic-a"), /document_not_ready/);
+  const record = f.records.get("workforcePrivateDocuments/" + doc.id)!;
+  const generation = String(record.generation), digest = String(record.sha256);
+  await assert.rejects(f.store.recordPdfScan(doc.id, generation + "1", digest, "clean"), /pdf_scan_version_mismatch/);
+  await assert.rejects(f.store.recordPdfScan(doc.id, generation, "0".repeat(64), "clean"), /pdf_scan_version_mismatch/);
+  assert.deepEqual(await f.store.recordPdfScan(doc.id, generation, digest, "clean"), {state:"pending_review"});
+  assert.deepEqual(await f.store.recordPdfScan(doc.id, generation, digest, "clean"), {state:"pending_review"});
+  assert.deepEqual(await f.store.download("synthetic-a", doc.id, "synthetic-a"), pdf);
+  await assert.rejects(f.store.recordPdfScan(doc.id, generation, digest, "rejected"), /document_not_ready/);
+  const rejected = await f.store.upload("synthetic-a", "insurance_card", pdf.toString("base64"));
+  const rejectedRecord = f.records.get("workforcePrivateDocuments/" + rejected.id)!;
+  assert.deepEqual(await f.store.recordPdfScan(rejected.id, String(rejectedRecord.generation), String(rejectedRecord.sha256), "rejected"), {state:"security_rejected"});
+  await assert.rejects(f.store.download("synthetic-a", rejected.id, "synthetic-a"), /document_not_ready/);
   await f.store.saveForm("synthetic-a", "cch", {revision: 0, fields: {"Applicant Name Print": signature.name}, submit: true, signature: {...signature, formRead: true}});
   const submitted = await f.store.submit("synthetic-a", draft.revision, signature);
   assert.equal(submitted.state, "submitted"); // HR/security eligibility is still pending.
@@ -193,6 +205,7 @@ test("insurance is optional and a completed identity pair queues a private porta
  const id = await f.store.upload("synthetic-a", "identity", await image);
  const queued = f.records.get("workforceIdentityMail/" + id.id);
  assert.deepEqual(queued?.to, ["irab@pthhs.net"]);
+ assert.deepEqual(queued?.cc, ["jnwokorie@pthhs.net"]);
  const notice = queued?.message as {text: string; attachments?: unknown};
  assert.match(notice.text, /https:\/\/pthhs\.net\/primetime\/workforce#application=synthetic-a$/);
  assert.equal(notice.attachments, undefined);

@@ -4,7 +4,7 @@ export const DOCUMENT_KINDS = ["identity", "social_security", "insurance_card", 
 export type DocumentKind = typeof DOCUMENT_KINDS[number];
 export const MAX_DOCUMENT_BYTES = 8 * 1024 * 1024;
 export interface PrivateDocument {
-  id: string; uid: string; kind: DocumentKind; state: "upload_pending" | "pending_review" | "pending_security_review" | "upload_failed";
+  id: string; uid: string; kind: DocumentKind; state: "upload_pending" | "pending_review" | "pending_security_review" | "security_rejected" | "upload_failed";
   createdAt: string; size: number; sha256: string | null; generation: string | null;
   extension?: "jpg" | "pdf"; contentType?: "image/jpeg" | "application/pdf";
 }
