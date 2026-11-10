@@ -485,6 +485,21 @@ test('preview retains returned HHA duration fields and strips them from unavaila
   assert.throws(() => model.normalizeVisitPreview(payload, expected));
 });
 
+test('visit preview distinguishes an empty clock field from an absent one', async () => {
+  const app = connectedWorkspace({ preview: date => {
+    const page = livePreview(date);
+    Object.assign(page.items[0], { actualStart: date + ' 08:00', actualEnd: '', evvStart: null, evvEnd: '' });
+    return page;
+  } });
+  await app.signIn(); await tick(); await tick();
+  const cells = descendants(app.element('dashboardVisitRows'));
+  const actual = nodeText(cells.find(e => e['data-label'] === 'Actual start / end'));
+  const evv = nodeText(cells.find(e => e['data-label'] === 'EVV start / end'));
+  assert.match(actual, /08:00\s+Empty HHA clock field/);
+  assert.doesNotMatch(actual, /Recorded clock span/);
+  assert.match(evv, /Not supplied by HHA\s+Empty HHA clock field/);
+});
+
 test('visit receipts remain distinct from search, validate explicitly and disappear with unavailable details', () => {
   const model = dashboardModel().primetimeDashboardModel, date = '2026-10-10';
   const page = livePreview(date), expected = { mode: 'live', date, officeId: '123' };
@@ -4066,10 +4081,11 @@ test('preview carries literal EVV source types beside independent clocks and cle
   const model = dashboardModel().primetimeDashboardModel, date = '2026-10-10', expected = { mode: 'live', officeId: '123', date };
   const payload = livePreview(date); Object.assign(payload.items[0], { evvInType: '0', evvOutType: '', evvEnd: '', actualHours: '' });
   let row = model.normalizeVisitPreview(payload, expected).items[0];
-  assert.equal(row.evvInType, '0'); assert.equal(row.evvOutType, ''); assert.equal(row.evvEnd, null); assert.equal(row.actualHours, '');
+  assert.equal(row.evvInType, '0'); assert.equal(row.evvOutType, ''); assert.equal(row.evvEnd, ''); assert.equal(row.actualHours, '');
+  assert.equal(model.sourceEvidence([row]).evvPairs, 0);
   payload.items[0].state = 'unavailable';
   row = model.normalizeVisitPreview(payload, expected).items[0];
-  assert.equal(row.evvInType, null); assert.equal(row.evvOutType, null);
+  assert.equal(row.evvInType, null); assert.equal(row.evvOutType, null); assert.equal(row.evvEnd, null);
   payload.items[0].state = 'source_unvalidated';
   for (const bad of [7, {}, 'x'.repeat(129)]) { payload.items[0].evvInType = bad; assert.throws(() => model.normalizeVisitPreview(payload, expected)); }
   const app = connectedWorkspace({ preview: day => { const p = livePreview(day); Object.assign(p.items[0], { evvInType: '<literal-type>', evvOutType: '', evvEnd: null, actualHours: '' }); return p; } });

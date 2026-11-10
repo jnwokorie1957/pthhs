@@ -2,6 +2,7 @@
   'use strict';
   const visitStatusId = 'dashboardVisitStatus', visitRowsId = 'dashboardVisitRows', environmentDetailsId = 'environmentDetails';
   const clockFields = ['scheduledStart', 'scheduledEnd', 'actualStart', 'actualEnd', 'evvStart', 'evvEnd'];
+  const clockText = value => value === '' ? 'Empty HHA clock field' : value ?? 'Not supplied by HHA';
   const visitDetailReasons = {
     not_attempted_batch_time_budget: 'Detail read deferred by the batch time limit',
     not_attempted_after_batch_gate: 'Details deferred after a source or access limit',
@@ -38,7 +39,8 @@
         scheduledStart: null, scheduledEnd: null, actualStart: null, actualEnd: null, evvStart: null, evvEnd: null,
         detailFetchedAt: null, officeCheckedAt: null, evvInType: null, evvOutType: null, actualHours: null, actualHoursRounded: null, scheduleDurationHours: null, scheduleDurationMinutes: null, billedAmount: null,
         detailReason: visitDetailReason(item.error) };
-      const result = Object.fromEntries(['id', 'patientId', 'caregiverId', ...clockFields, 'state'].map(key => [key, value(item[key])]));
+      const result = Object.fromEntries(['id', 'patientId', 'caregiverId', 'state'].map(key => [key, value(item[key])]));
+      for (const key of clockFields) result[key] = live && item[key] === '' ? '' : value(item[key]);
       for (const key of ['actualHours', 'actualHoursRounded', 'scheduleDurationHours', 'scheduleDurationMinutes', 'billedAmount', 'evvInType', 'evvOutType']) {
         if (item[key] !== null && item[key] !== undefined && (typeof item[key] !== 'string' || item[key].length > 128)) throw new Error('invalid_visit_preview');
         result[key] = item[key] ?? null;
@@ -498,8 +500,8 @@
           bar.setAttribute('width', String(interval.width * 14.4)); bar.setAttribute('height', '13'); bar.setAttribute('rx', '3');
           bar.setAttribute('class', 'source-timeline-bar ' + tone); drawing.append(bar);
           track.append(drawing);
-        } else track.append(node('span', from || to ? 'See source values below' : 'Fields not supplied', 'source-timeline-no-bar'));
-        lane.append(track, node('small', `${from || 'Not supplied'} → ${to || 'Not supplied'}`));
+        } else track.append(node('span', from || to ? 'See source values below' : 'No clock values', 'source-timeline-no-bar'));
+        lane.append(track, node('small', `${clockText(from)} → ${clockText(to)}`));
         row.append(lane);
       }
       row.append(sourceRecordTools(view, item, captured));
@@ -635,12 +637,16 @@
     });
     chart.append(node('small', `${evidence.unavailable} unavailable detail(s) excluded. A supplied value is not an approved visit status.`));
     replace('dashboardEvidenceChart', chart);
-    replace('dashboardOverviewExceptions', table(['Visit', 'EVV start (source)', 'EVV end (source)', 'Source field evidence'], view.items.map(item => [item.id, item.evvStart, item.evvEnd,
-      item.state === 'unavailable' ? 'Detail unavailable: ' + item.detailReason : item.evvStart && item.evvEnd ? 'Both fields supplied' : item.evvStart || item.evvEnd ? 'One field supplied' : 'Neither field supplied'])));
+    replace('dashboardOverviewExceptions', table(['Visit', 'EVV start (source)', 'EVV end (source)', 'Source field evidence'], view.items.map(item => item.state === 'unavailable'
+      ? [item.id, null, null, 'Detail unavailable: ' + item.detailReason]
+      : [item.id, clockText(item.evvStart), clockText(item.evvEnd), item.evvStart && item.evvEnd ? 'Both fields supplied' : item.evvStart || item.evvEnd ? 'One field supplied' : 'Neither field supplied'])));
     }
     if (!office) {
     const sourceNote = () => node('p', `HHA API source page · ${view.scope.date} · search fetched ${view.fetchedAt || 'time not supplied'}. The selected page follows Visit Preview; it is not the full office.`, 'source-metadata');
-    const sourceField = (item, key) => item.state === 'unavailable' ? 'Detail unavailable' : item[key] || 'Not supplied by HHA';
+    const sourceField = (item, key) => {
+      if (item.state === 'unavailable') return 'Detail unavailable';
+      return clockFields.includes(key) ? clockText(item[key]) : item[key] || 'Not supplied by HHA';
+    };
     const unavailableDetail = item => 'Detail unavailable: ' + item.detailReason;
     const callContext = context();
     replace('dashboardExceptions', sourceNote(), table(['Visit', 'Patient', 'Caregiver', 'Actual start', 'Actual end', 'EVV start', 'EVV end', 'Source detail', 'Call evidence'],
@@ -867,7 +873,7 @@
       renderTimeline(view);
       unavailable('dashboardEvidenceChart', 'Synthetic example mode', 'All records in this mode are generated examples. Switch Demo data off to load live HHA evidence.');
     }
-    const pair = (start, end) => `${start || 'Not supplied by HHA'}\n${end || 'Not supplied by HHA'}`;
+    const pair = (start, end) => `${clockText(start)}\n${clockText(end)}`;
     const captured = context();
     const { sourceScheduleHours, sourceActualHours, sourceRoundedActualHours, sourceRecordedClockSpan, sourceEvvTypes } = window.primetimeSourceTime;
     const recordedPair = item => {
