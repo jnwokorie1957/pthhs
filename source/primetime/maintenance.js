@@ -173,7 +173,15 @@
       node.addEventListener('click', () => { void openVisit(row); });
       $('maintenanceList').append(node);
     }
-    if (!rows.length) $('maintenanceList').append(el('p', searchMode&&searchMode.checkedThrough<searchMode.totalIds ? 'No readable matches yet. Continue source search to check the remaining visit IDs.' : cache.known ? 'No loaded source visits match these filters.' : 'The source collector has not returned this day yet. Refresh after collection progresses.', 'maintenance-empty'));
+    if (!rows.length) {
+      let emptyMessage = cache.known ? 'No loaded visits match these filters.' : 'Waiting for source collection.';
+      if (searchMode && !day.items.length) {
+        if (searchMode.nextCursor) emptyMessage = 'Continue source search to check more visits.';
+        else if (searchMode.complete) emptyMessage = 'No readable visits match this source search.';
+        else emptyMessage = 'No readable matches. Source coverage is incomplete.';
+      }
+      $('maintenanceList').append(el('p', emptyMessage, 'maintenance-empty'));
+    }
     $('maintenanceMoreVisits').hidden = rows.length <= limit; $('maintenanceMoreCases').hidden = !cursor;
     renderReport(); controls();
   }
