@@ -1989,3 +1989,60 @@ visit still needs the owner's disposition before any visit action.
 https://github.com/jnwokorie1957/pthhs/pull/21
 https://github.com/jnwokorie1957/pthhs/actions/runs/42878931082
 https://github.com/jnwokorie1957/pthhs/actions/runs/42879373268
+
+
+NOVEMBER 10, 2026 21:19 UTC — EXPLICIT EMPTY CLOCKS AND HISTORICAL FOLLOW-UP
+
+The later same-office October 24 preview returned nine readable details
+out of ten, compared with four in the 18:55 UTC receipt. All nine supplied
+the recorded start/end pair. Six supplied both EVV fields and both duration
+strings. The other three supplied EVV start alone and explicitly empty
+ActualHours and ActualHoursRounded. The shared read limit withheld the
+tenth detail and displayed a retry delay. The check stopped at that limit.
+Counts compare bounded pages, without claiming an exact cross-read row join
+or complete office coverage.
+
+The earlier October 23 page had ten readable actual pairs and eight with
+both EVV fields and both durations. In the November 10 follow-up, four of
+ten current-day details were readable. One had all six fields, three had
+both duration strings explicitly empty and six details were withheld or
+deferred by the shared limit. The source preview supplies field evidence
+without establishing visit completion, pending status or original-event
+linkage. The original October 24 screenshot remains resolved by the
+October 31 reread.
+
+The public WSDL was checked anonymously. GetVisitInfoV3Result/VisitInfo has
+optional strings ScheduleStartTime, ScheduleEndTime, VisitStartTime,
+VisitEndTime, EVVStartTime, EVVEndTime, ActualHours and ActualHoursRounded.
+ScheduleDuration/ScheduleDurationHours and
+ScheduleDuration/ScheduleDurationMinutes are integer hour/minute components.
+The SOAP projector already preserves an
+explicit empty scalar and rejects nil, duplicate or non-scalar evidence.
+The dashboard had folded empty clock strings into null. PR23 preserves
+the existing distinction and labels explicit empties in Visit Preview,
+the timeline and evidence tables. Empty endpoints add no chart count or
+recorded span. Raw duration fields retain their separate provenance and
+interpretation gates.
+
+The rendering regression failed before and passed after the fix. All 517
+focused tests, deterministic assets, repository audit and the 500 KB budget
+passed. Both quality and both Hosting jobs passed for
+f2c52fc9492ab5494db40ceac5469ad7e83a536d. Eight public checks at 21:19 UTC
+verified the exact served assets, private noindex and anonymous denial.
+The signed-in browser initially opened the older cached shell. A normal
+reload after the displayed cooldown loaded the new fingerprint. The live
+current-day preview displayed an empty actual clock, kept its duration
+column separate and showed no recorded span for the empty endpoint.
+The Hosting shell currently advertises max-age=3600. Review revalidation
+for the shell separately from its fingerprinted scripts.
+
+Check the remaining withheld detail only through the existing scoped
+retry after its displayed delay when needed. HHA still needs to establish
+original-event linkage, retained history coverage, duration units and
+preservation/readback. P03/E04 remain open. The held November 2 Calendar
+visit still requires the owner's exact disposition.
+
+https://cloud.hhaexchange.com/Integration/ENT/V1.8/ws.asmx?WSDL
+https://github.com/jnwokorie1957/pthhs/pull/23
+https://github.com/jnwokorie1957/pthhs/actions/runs/42903393278
+https://github.com/jnwokorie1957/pthhs/actions/runs/42903608709

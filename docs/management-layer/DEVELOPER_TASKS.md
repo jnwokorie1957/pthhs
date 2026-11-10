@@ -1,5 +1,15 @@
 # PTHHS Management Layer — Developer Checklist
 
+- [x] November 10 explicit empty clock display deployed (PR23/f2c52fc).
+  Visit Preview and evidence retain an empty HHA clock separately from an
+  absent field or unavailable detail. Signed-in production showed an empty
+  actual endpoint with no recorded span after reloading the new shell.
+  [Field and release evidence](PRIMETIME_LIVE_DATA_CHECKLIST.txt).
+- [ ] Review revalidation for the Primetime HTML shell. A fresh Chrome tab
+  initially served the prior fingerprint after a Hosting release. Check
+  direct routes and private noindex while preserving fingerprinted asset
+  caching and protected API responses.
+
 - [x] November 10 office report scope deployed (PR22/86fa979). The report
   and download carry the accepted range or cached-day receipt. The protected
   range identifies the applied filters, and unapplied scope edits lock export.
