@@ -137,7 +137,6 @@
         const state = continuation?.origin === location.origin && continuation.pathname === '/workforce'
           ? continuation.searchParams : params;
         staffAuth.link(location.href, state.get('staffSetup') === '1', state.get('staffInvite') || '');
-        history.replaceState(null, '', staff ? '/workforce' : WorkforceContract.returnPath(location.search));
       }
       auth.onAuthStateChanged(user => {
         if (staffAuth.pending()) { form.hidden = false; message('Confirm the email that received this link.'); }

@@ -33,11 +33,11 @@ window.WorkforceManagementAuth = ({form, auth, session, message, api}) => {
     identifier.placeholder = passwordMode ? 'Username or work email' : 'you@work.com';
     password.required = passwordMode;
     nextPassword.required = confirmation.required = choosing;
-    get('staff-login-heading').textContent = choosing ? 'Create a password' : 'Welcome to your workspace';
+    get('staff-login-heading').textContent = choosing ? 'Create a password' : confirming ? 'Confirm your work email' : 'Welcome to your workspace';
     get('manager-login-description').textContent = {
       password:'Sign in with your username or work email and password.',
       reset:'Enter your work email to receive a secure password setup link.',
-      confirm:'Confirm the work email that received your link.',
+      confirm:linkForSetup ? 'Enter your invited work email to create a password.' : 'Confirm the work email that received your link.',
       choose:'Your work email is verified.'
     }[mode];
     get('workforce-login-button').textContent = {
@@ -78,6 +78,7 @@ window.WorkforceManagementAuth = ({form, auth, session, message, api}) => {
         const result = await auth().signInWithEmailLink(login, emailLink);
         const choose = linkForSetup;
         const invite = activationCode;
+        history.replaceState(null, '', '/workforce');
         emailLink = '';
         linkForSetup = false;
         activationCode = '';
@@ -108,11 +109,7 @@ window.WorkforceManagementAuth = ({form, auth, session, message, api}) => {
     } catch (error) {
       clearPasswords();
       if (mode === 'confirm') {
-        emailLink = '';
-        linkForSetup = false;
-        activationCode = '';
-        show('password');
-        message('This link is invalid or expired. Ask the sender for a new invitation, or use Forgot password? if your account is already set up.');
+        message('Check that you entered the invited work email. If the link has expired or was already used, ask for a new invitation.');
       } else if (mode === 'reset' || mode === 'choose') {
         message(error.code?.startsWith('staff_') || ['weak_staff_password','invalid_staff_username'].includes(error.code)
           ? error.message : 'Could not complete password setup. Request a fresh link and try again.');

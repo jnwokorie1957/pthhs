@@ -4,7 +4,7 @@ function setup(overrides={}){
  const nodes=new Map(),events=new Map(),calls=[],messages=[];let submit;
  const node=id=>{if(!nodes.has(id))nodes.set(id,{value:'',hidden:false,required:false,type:'password',attrs:{},reportValidity:()=>true,focus(){},setAttribute(k,v){this.attrs[k]=v;},addEventListener(type,fn){if(type==='submit')submit=fn;}});return nodes.get(id);};
  const auth={signInWithEmailAndPassword:async(email,password)=>{calls.push({kind:'password',email,password});return {user:{uid:'verified-staff'}};},sendSignInLinkToEmail:async(email,settings)=>calls.push({kind:'link',email,settings}),signInWithEmailLink:async(email,link)=>{calls.push({kind:'confirm',email,link});return {user:{uid:'verified-staff'}};},...overrides};
- const window={},context=vm.createContext({window,document:{getElementById:node,addEventListener:(type,fn)=>events.set(type,fn)},location:{origin:'https://portal.example.invalid'}});vm.runInContext(source,context);
+ const window={},context=vm.createContext({window,document:{getElementById:node,addEventListener:(type,fn)=>events.set(type,fn)},history:{replaceState(){}},location:{origin:'https://portal.example.invalid'}});vm.runInContext(source,context);
  const controller=window.WorkforceManagementAuth({form:node('workforce-login'),auth:()=>auth,session:async user=>calls.push({kind:'session',uid:user.uid}),message:text=>messages.push(text),api:async(path,body)=>{calls.push({kind:'api',path,body});return {email:'office@example.invalid',saved:true};}});
  node('workforce-email').value='office@example.invalid';
  return {node,calls,messages,controller,submit:()=>submit({preventDefault(){}}),clear:()=>events.get('workforce-session-cleared')()};
@@ -60,7 +60,21 @@ test('username sign-in verifies the password through the staff resolver before F
 });
 test('duplicate submissions and mode switching are blocked while Firebase is pending',async()=>{let finish;const s=setup({signInWithEmailAndPassword:()=>new Promise(resolve=>finish=resolve)});s.node('staff-password').value='SyntheticPassword123!';const pending=s.submit();await s.submit();s.node('staff-forgot-password').onclick();assert.equal(s.node('staff-password-row').hidden,false);assert.equal(s.node('workforce-login-button').disabled,true);finish();await pending;assert.equal(s.node('workforce-login-button').disabled,false);});
 test('sign-out clears a revealed password and resets the sign-in method',()=>{const s=setup();s.node('staff-password').value='SyntheticPassword123!';s.node('staff-show-password').onclick();assert.equal(s.node('staff-password').type,'text');s.clear();assert.equal(s.node('staff-password').value,'');assert.equal(s.node('staff-password').type,'password');assert.equal(s.node('staff-show-password').attrs['aria-pressed'],'false');});
-test('expired invitation links return to password sign-in',async()=>{const s=setup({signInWithEmailLink:async()=>{throw {code:'auth/expired-action-code'};}});s.controller.link('expired');await s.submit();assert.equal(s.controller.pending(),false);assert.equal(s.node('staff-password-row').hidden,false);assert.equal(s.node('workforce-login-button').textContent,'Sign in');assert.match(s.messages.at(-1),/new invitation/);});
+test('a failed email confirmation leaves the invitation open for a corrected email', async () => {
+  const s = setup({signInWithEmailLink:async email => {
+    if (email !== 'office@example.invalid') throw {code:'auth/invalid-action-code'};
+    return {user:{uid:'verified-staff'}};
+  }});
+  s.controller.link('synthetic-setup-link', true);
+  s.node('workforce-email').value = 'wrong@example.invalid';
+  await s.submit();
+  assert.equal(s.controller.pending(), true);
+  assert.equal(s.node('staff-login-heading').textContent, 'Confirm your work email');
+  assert.match(s.messages.at(-1), /invited work email/);
+  s.node('workforce-email').value = 'office@example.invalid';
+  await s.submit();
+  assert.equal(s.calls.at(-1).uid, 'verified-staff');
+});
 
 test('both served workforce paths initialize the staff sign-in and configuration', () => {
   const sessionScript = fs.readFileSync(new URL('../public/assets/workforce-session.js', import.meta.url), 'utf8');
