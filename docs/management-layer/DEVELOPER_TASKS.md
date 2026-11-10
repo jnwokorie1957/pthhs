@@ -1,5 +1,11 @@
 # PTHHS Management Layer — Developer Checklist
 
+- [x] November 10 canonical sitemap discovery reconciled. Search Console
+  reports 36 discovered pages, matching the live file count. All 36 canonical
+  routes and five private entry responses passed delivery checks. Indexing and
+  outcome measurement stay separate.
+  [Evidence and existing owner blocker](../seo/2026-11-10-canonical-sitemap-discovery.md).
+
 - [ ] November 9 linked EVV overage. An authorized Calendar observation
   exercised the owner stop on a visit with both EVV clocks already linked.
   Design a protected review hold with source-specific evidence. Test linked,

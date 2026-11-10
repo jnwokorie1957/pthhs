@@ -3,6 +3,11 @@
 These files remain useful for planning, but they do not override current public
 facts, payer evidence, or claim-release controls.
 
+- [November 10 canonical sitemap discovery](2026-11-10-canonical-sitemap-discovery.md)
+  — Search Console now reports 36 discovered pages for the canonical sitemap,
+  matching the live count. All 36 canonical URLs and private entry protections
+  passed the delivery checks. Indexing and outcomes remain separate.
+
 - [November 9 caregiver API indexing header](2026-11-09-caregiver-api-noindex.md)
   — live successful caregiver API responses now carry noindex. Production
   session denial, private shell protections, Careers and sitemap remain intact.
