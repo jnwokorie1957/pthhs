@@ -3841,3 +3841,45 @@ https://github.com/jnwokorie1957/pthhs/blob/af1ee810c82841a229085c80d333a3395c0c
 https://github.com/jnwokorie1957/pthhs/blob/af1ee810c82841a229085c80d333a3395c0c3f45/functions/src/maintenance/search.ts
 https://github.com/jnwokorie1957/pthhs/blob/af1ee810c82841a229085c80d333a3395c0c3f45/docs/management-layer/PRIMETIME_LIVE_DATA_CHECKLIST.txt
 https://github.com/jnwokorie1957/pthhs/actions/runs/42879373268
+
+
+NOVEMBER 10, 2026 21:08 UTC — PROTECTED OFFICE REPORT SCOPE RELEASE
+
+PR22 carries the accepted office/day or range receipt into Staff report and
+its protected text download. A range names the filters captured from the
+successful request and preserves checked/returned IDs, readable matches,
+unavailable reasons, truncated discovery, continuation and search time.
+A cached day identifies the background API cache, checked time, loaded
+coverage and source search window. Saved case coverage and export generation
+time have separate lines. Applied filter identifiers stay within the
+authenticated view and its download.
+
+Editing To or a person or contract filter marks the retained result as
+previous and revokes its active download URL. Editing From clears the old
+workspace. Export waits for the next accepted current result. The existing
+office/session fences clear protected receipts. The late continuation test
+confirms a response for the prior query cannot restore it after edits.
+The build shortens private maintenance helper names in its generated asset
+to fit the existing size limit.
+
+All 516 focused tests, deterministic assets, performance, audit and diff
+checks passed. Both quality jobs and both Hosting-only jobs passed for
+86fa979c2df56a906d48e5cb907b692594f06cf9. At 21:08 UTC eight public checks
+matched the versioned assets, private noindex and anonymous denial. All 35
+maintenance and search tests passed against the two exact served scripts.
+Cases included incomplete continuation, finished gaps, a complete empty
+range, an unapplied filter edit and office access changes.
+
+The signed-in November 10 cache report matched the queue receipt, showed a
+separate case count and enabled download. Changing To kept the old receipt
+under a previous-result label and disabled download. This check used the
+existing authorized Chrome session and kept private case values in the app.
+The protected download and filtered HHA range were exercised synthetically.
+Confirm a naturally incomplete filtered range during the next approved
+office review. Family document and PT encounter acceptance still require
+the approved relationships and versions. The held Calendar case still needs
+the owner's disposition.
+
+https://github.com/jnwokorie1957/pthhs/pull/22
+https://github.com/jnwokorie1957/pthhs/actions/runs/42901193663
+https://github.com/jnwokorie1957/pthhs/actions/runs/42901839757

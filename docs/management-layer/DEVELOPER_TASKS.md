@@ -1,13 +1,14 @@
 # PTHHS Management Layer — Developer Checklist
 
-- [ ] Carry the existing range or cached-day receipt into Office report and
-  its protected download. Bind office, service dates and applied patient,
-  caregiver or contract filters to the accepted result. Show source coverage,
-  loaded saved cases and generation time separately. Identify the previous
-  result and disable download after unapplied scope edits. Test continuation,
-  finished gaps, complete empty results, filter edits and access changes using
-  existing source reads.
+- [x] November 10 office report scope deployed (PR22/86fa979). The report
+  and download carry the accepted range or cached-day receipt. The protected
+  range identifies the applied filters, and unapplied scope edits lock export.
+  Signed-in production confirmed the cache receipt and end-date lock. The
+  range and generated text passed synthetic tests against both served scripts.
   [Role research and acceptance cases](ROLE_WORKFLOW_RESEARCH.txt).
+- [ ] During the next approved filtered-range review, confirm report coverage
+  against an existing continuation or finished gap. Inspect the protected
+  scope and receipt in place and respect the displayed source limits.
 
 - [x] November 10 empty range coverage deployed (PR21/6b9fda2). The queue
   distinguishes continuation, finished gaps and a complete search with no
