@@ -166,6 +166,22 @@ export const workforceApi = process.env.PRIMETIME_API_ONLY_DEPLOY === "true" ? u
     if (staffEnabled.value() !== "true") throw new WorkforceError(503, "workforce_release_pending");
     const uid = await workforceIdentity(req);
     const store = new WorkforceStore();
+    if (path === "/session" && req.method === "GET") {
+      const actor = await store.actor(uid);
+      res.json({ ...actor, trainingRequired: await store.trainingRequired(actor) }); return;
+    }
+    if (path === "/staff/training" && req.method === "POST") {
+      if (!req.is("application/json") || req.rawBody.length > 100 || !req.body
+        || Object.keys(req.body).length !== 1 || !["start", "complete"].includes(req.body.action)) {
+        throw new WorkforceError(400, "invalid_request");
+      }
+      res.json(await store.recordTraining(uid, req.body.action)); return;
+    }
+    if (path.startsWith("/staff/") && path !== "/staff/invitations/accept") {
+      if (await store.trainingRequired(await store.actor(uid))) {
+        throw new WorkforceError(403, "staff_training_required");
+      }
+    }
     if(path==="/staff/roster/sync"&&req.method==="POST"){
       if(!existingAccessEnabled)throw new WorkforceError(503,"existing_access_pending");await recentWorkforceIdentity(req);
       if(!req.is("application/json")||req.rawBody.length>300||!req.body||Object.keys(req.body).some(key=>key!=="jobId")||req.body.jobId!==undefined&&typeof req.body.jobId!=="string")throw new WorkforceError(400,"invalid_request");
@@ -203,7 +219,6 @@ export const workforceApi = process.env.PRIMETIME_API_ONLY_DEPLOY === "true" ? u
       }
       else{if(Object.keys(req.body).length)throw new WorkforceError(400,"invalid_request");res.json(await support.reset(actor,path.split("/")[3]!));}return;
     }
-    if (path === "/session" && req.method === "GET") { res.json(await store.actor(uid)); return; }
     if (path.startsWith("/staff/applications") && req.method === "GET") {
       if (!applicationsEnabled) throw new WorkforceError(503, "application_collection_pending");
       await recentWorkforceIdentity(req);
@@ -266,7 +281,8 @@ export const workforceApi = process.env.PRIMETIME_API_ONLY_DEPLOY === "true" ? u
       const recentUid = await recentWorkforceIdentity(req);
       if (path === "/staff/invitations/accept") {
         if (Object.keys(req.body).length) throw new WorkforceError(400, "invalid_request");
-        res.json(await store.acceptStaffInvite(recentUid));
+        const actor = await store.acceptStaffInvite(recentUid);
+        res.json({ ...actor, trainingRequired: await store.trainingRequired(actor) });
       } else {
         res.json(await store.inviteStaff(recentUid, req.body.email, req.body.grant));
       }

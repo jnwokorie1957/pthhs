@@ -23,6 +23,8 @@
     workforce_forbidden: 'Your current permissions do not allow this action in this office.',
     staff_access_required: 'Individual staff access has not been granted to this account.',
     staff_invite_unavailable: 'No active invitation matches this work email. Ask the owner to send a new invitation.',
+    staff_training_required: 'Complete staff training to open the workspace.',
+    staff_training_incomplete: 'Training progress is still being recorded. Try continuing in a moment.',
     staff_already_registered: 'This account already has staff access on file. Use Manage existing access to change it.',
     invalid_staff_email: 'Enter a valid work email address.',
     staff_access_revoked: 'Staff access has been revoked.',
@@ -92,6 +94,13 @@
         return api('/staff/invitations/accept', {});
       });
       if (sequence !== generation) return;
+      if (staff && actor.trainingRequired) {
+        message('');
+        window.WorkforceTraining.require(() => {
+          if (sequence === generation) session(user);
+        });
+        return;
+      }
       message('Signed in. Permissions are verified for this session.');
       if (staff) document.dispatchEvent(new CustomEvent('workforce-session', { detail: actor }));
       else document.dispatchEvent(new CustomEvent('workforce-caregiver-session', { detail: actor }));

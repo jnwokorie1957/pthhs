@@ -5,6 +5,8 @@ import { parseGrant, requirePermission, validId, WorkforceError, type Actor, typ
 import { saveOpportunity, transition, publicOpportunity, type Opportunity, type Action } from "./opportunities.js";
 
 const INVITATION_LIFETIME_MS = 86_400_000;
+const TRAINING_VERSION = "workspace-walkthrough-v1";
+const TRAINING_DURATION_MS = 49_000;
 
 interface StaffInvitation {
   grant: Grant;
@@ -106,6 +108,39 @@ export class WorkforceStore {
     const grant = parseGrant(doc.data());
     if (!grant.active) throw new WorkforceError(403, "staff_access_revoked");
     return { uid, grant };
+  }
+  private training(uid: string) {
+    return this.db.collection("workforceStaffTraining").doc(uid);
+  }
+  async trainingRequired(actor: Actor): Promise<boolean> {
+    if (actor.grant.role === "owner") return false;
+    const progress = (await this.training(actor.uid).get()).data();
+    return progress?.version !== TRAINING_VERSION || typeof progress.completedAt !== "number";
+  }
+  async recordTraining(uid: string, action: "start" | "complete", now = Date.now()) {
+    const ref = this.training(uid);
+    return this.db.runTransaction(async tx => {
+      const staff = await tx.get(this.db.collection("workforceStaff").doc(uid));
+      if (!staff.exists) throw new WorkforceError(403, "staff_access_required");
+      const grant = parseGrant(staff.data());
+      if (!grant.active) throw new WorkforceError(403, "staff_access_revoked");
+      if (grant.role === "owner") return { complete: true };
+      const progress = (await tx.get(ref)).data();
+      if (progress?.version === TRAINING_VERSION) {
+        if (typeof progress.completedAt === "number") return { complete: true };
+        if (action === "start" && typeof progress.startedAt === "number") return { complete: false };
+      }
+      if (action === "start") {
+        tx.set(ref, { version: TRAINING_VERSION, startedAt: now });
+        return { complete: false };
+      }
+      if (progress?.version !== TRAINING_VERSION || typeof progress.startedAt !== "number"
+        || now - progress.startedAt < TRAINING_DURATION_MS) {
+        throw new WorkforceError(409, "staff_training_incomplete");
+      }
+      tx.set(ref, { version: TRAINING_VERSION, startedAt: progress.startedAt, completedAt: now });
+      return { complete: true };
+    });
   }
   async list(uid: string) {
     const actor = await this.actor(uid);

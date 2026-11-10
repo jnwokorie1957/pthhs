@@ -47,6 +47,22 @@ function fixture() {
   return { store: new WorkforceStore(db as unknown as ConstructorParameters<typeof WorkforceStore>[0], () => auth as unknown as Auth), documents, users, queries, grant };
 }
 const data = { office: "synthetic-office", internalReference: "synthetic-reference", internalNotes: "Synthetic only", public: { location: "Synthetic area", recruitingZip: "", weeklyHours: 12, schedule: "flexible", assistance: ["respite"], type: "assignment" } };
+test("staff training persists per account and cannot be completed before the video duration", async () => {
+  const { store, documents, grant } = fixture();
+  const now = Date.parse("2026-11-10T17:00:00Z");
+  const actor = await store.actor("editor");
+  assert.equal(await store.trainingRequired(actor), true);
+  await assert.rejects(store.recordTraining("editor", "complete", now), /staff_training_incomplete/);
+  await store.recordTraining("editor", "start", now);
+  await store.recordTraining("editor", "start", now + 1000);
+  await assert.rejects(store.recordTraining("editor", "complete", now + 48_999), /staff_training_incomplete/);
+  assert.deepEqual(await store.recordTraining("editor", "complete", now + 49_000), {complete: true});
+  assert.equal(await store.trainingRequired(await store.actor("editor")), false);
+  assert.equal(await store.trainingRequired({uid: "other-editor", grant}), true);
+  assert.equal(await store.trainingRequired({uid: "owner", grant: {...grant, role: "owner"}}), false);
+  documents.set("workforceStaff/editor", {...grant, active: false});
+  await assert.rejects(store.recordTraining("editor", "complete", now + 50_000), /staff_access_revoked/);
+});
 test("opportunity updates commit an audit event and immutable version with the record", async () => {
   const f = fixture();
   const first = await f.store.mutate("editor", "synthetic-id", 0, data);

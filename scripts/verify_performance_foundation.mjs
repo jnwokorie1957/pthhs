@@ -187,12 +187,14 @@ const phpFiles = await walk(publicDir, (file) => file.endsWith('.php'));
 if (phpFiles.length) errors.push(`public PHP endpoints remain: ${phpFiles.join(', ')}`);
 
 const publicFiles = await walk(publicDir);
-const isManagementFile=file=>['primetime/workforce.html','assets/workforce-management.css','assets/workforce-management.js','assets/workforce-management-auth.js'].includes(path.relative(publicDir,file).replaceAll(path.sep,'/'));
+const isManagementFile=file=>['primetime/workforce.html','assets/workforce-management.css','assets/workforce-management.js','assets/workforce-management-auth.js','assets/workforce-training.js'].includes(path.relative(publicDir,file).replaceAll(path.sep,'/'));
 const managementFiles=publicFiles.filter(isManagementFile);
 const managementBytes=(await Promise.all(managementFiles.map(file=>fs.stat(file)))).reduce((sum,stat)=>sum+stat.size,0);
 let managementGzip=0;for(const file of managementFiles)managementGzip+=gzipSync(await fs.readFile(file)).length;
 // Dedicated staff dashboard: navigation, live summaries and task-specific panes, without a UI library.
-if(managementBytes>52_000||managementGzip>13_000)errors.push(`workforce management exceeds 52 KB raw / 13 KB gzip budget: ${managementBytes}/${managementGzip}`);
+if(managementBytes>57_000||managementGzip>15_000)errors.push(`workforce management exceeds 57 KB raw / 15 KB gzip budget: ${managementBytes}/${managementGzip}`);
+const trainingBytes = (await fs.stat(path.join(publicDir, 'training/staff-workspace-walkthrough-v1.mp4'))).size;
+if (trainingBytes > 750_000) errors.push('Staff training video exceeds the 750 KB media budget');
 const isWorkforceFile = file => {
   const relative = path.relative(publicDir, file).replaceAll(path.sep, '/');
   return !isManagementFile(file)&&(relative === 'caregiver.html' || relative.startsWith('assets/workforce'));
@@ -215,7 +217,7 @@ if (workforceBytes > 171_000 || workforceGzip > 53_000) errors.push(`workforce o
 const publicBytes = (await Promise.all(publicFiles.map((file) => fs.stat(file)))).reduce((sum, stat) => sum + stat.size, 0);
 const internalFiles = publicFiles.filter(file => isInternalAppFile(file, publicDir) && !isWorkforceFile(file)&&!isManagementFile(file));
 const internalBytes = (await Promise.all(internalFiles.map(file => fs.stat(file)))).reduce((sum, stat) => sum + stat.size, 0);
-const marketingBudget = assessMarketingBudget(publicBytes - internalBytes - workforceBytes - managementBytes - officialFormBytes - viewerBytes);
+const marketingBudget = assessMarketingBudget(publicBytes - internalBytes - workforceBytes - managementBytes - officialFormBytes - viewerBytes - trainingBytes);
 if (marketingBudget.error) errors.push(marketingBudget.error);
 if (marketingBudget.warning) console.warn('PERFORMANCE_FOUNDATION_QA: WARNING -', marketingBudget.warning);
 // The authenticated app now includes source review, Demo/Live and durable
