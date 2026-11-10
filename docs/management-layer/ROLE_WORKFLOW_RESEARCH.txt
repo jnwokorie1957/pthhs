@@ -3754,3 +3754,90 @@ https://github.com/jnwokorie1957/pthhs/blob/6a872537e37866c00b556a249686b550eb89
 https://github.com/jnwokorie1957/pthhs/blob/6a872537e37866c00b556a249686b550eb898ceb/functions/src/operations/patientDocuments.ts
 https://github.com/jnwokorie1957/pthhs/pull/20
 https://github.com/jnwokorie1957/pthhs/actions/runs/42858800705
+
+
+NOVEMBER 10, 2026 19:51 UTC — APPLIED SEARCH SCOPE AND LINKED VISIT EVIDENCE
+
+Observed implementation at af1ee810c82841a229085c80d333a3395c0c3f45.
+Maintenance sends the applied patient, caregiver or contract predicate when
+selected. The server binds it to the continuation cursor. The receipt event
+carries office and dates, and Office report downloads use those dates with
+saved case coverage. The report omits the applied filter categories. Editing
+the To date clears the search cursor while the previous range remains
+downloadable with its old dates and no previous-search label. Two synthetic
+checks reproduced those observations. PR21's empty-queue release supplies
+the distinction between a finished search with gaps and a complete empty
+result. Its coverage still needs to follow the report. [R119]
+
+Authorized observations. The November 9 HHA Calendar review stopped at a
+linked EVV overage. Its remaining dates were unreviewed. In the November 10
+18:53–18:55 UTC authorized Primetime previews, a fresh tab reused the approved
+session. October 24 returned four readable details before a shared read limit
+and five subsequent deferrals. The current-day Overview retained a completed
+cache during a delayed update. The office saw a held review, unavailable
+source details and a dated retained result. The original October 24 example remains resolved by its
+October 31 reread. [R119]
+
+P1 office report. Bind coverage to the applied query at the accepted result,
+including office, service dates and which person or contract filters were
+applied. Use the existing source receipt to show checked/returned IDs,
+readable matches, withheld details, truncation, continuation and fetch time.
+Label a cached day and its timestamp separately. Keep saved-case coverage,
+generation time, authorization evidence, EVV linkage and billing stage
+distinct. When the user edits an unapplied filter or date, identify the
+previous result and prevent a download under the newly selected scope.
+Permit download again after an accepted current result. A changed office
+or session clears protected evidence. Reuse the current search and checks.
+
+P2 patient/representative. Keep the permitted appointment and the agency's
+request decision on the same exact visit link, with an independent document
+release for the current patient and version. The documented HHA family
+dashboard filters before opening patient or caregiver Calendar and retains
+distinct request and exception histories (R8, rechecked). If an authorized
+visit ever has verified service segments, check schedule access and document
+sharing for each displayed link.
+Keep public navigation at sign-in.
+
+P2 PT/staff. Use effective assignment and discipline to open the exact
+encounter and approved form version. Keep authoring, review, signature and
+sharing permissions separate. HHA's skilled-visit prebilling documentation
+rule depends on the specific contract's accepted document type and e-doc
+status (R118). Treat that vendor requirement as separate evidence from the
+therapist's document state and the office's local follow-up.
+
+Conditional HHA connection. The documented Multiple Service Visits feature
+uses a single clock pair across configured back-to-back non-skilled services,
+with distinct service codes, authorizations and duties (R117). It is a
+different vendor configuration from the previously researched consecutive
+and overnight-split behavior. Before linking segments, obtain exact
+office/visit/service relationships and the source's original-event contract.
+Preserve each segment's date, authorization and billing evidence. The
+observed previews and held Calendar review provide no segment proof.
+
+Acceptance. Use a filtered complete empty result, then a different filter
+with pending continuation and a final page with deferred detail. Screen and
+download must retain the applied scope and match the accepted coverage.
+Editing To or the person/contract filters must not relabel retained evidence.
+A session or office change must revoke any active report link. For future
+role acceptance, revoke a family document release while schedule access
+remains and expire a PT assignment while its prior form is open. Prove that
+another service segment, unapproved contract rule or local case resolution
+does not supply the missing authorization, clock, document or billing fact.
+
+The next implementation task is the report scope and coverage. Family and
+PT checks require approved relationships and document versions. The owner
+must still direct disposition of the held Calendar visit before its review
+continues. HHA still needs to supply original-event linkage, history scope,
+duration units and readback for the approved integration.
+
+PRIMARY SOURCES CHECKED NOVEMBER 10, 2026
+[R117] HHAeXchange Enterprise, Multiple Service Visits.
+https://knowledge.hhaexchange.com/enterprise/Content/Documentation/Patient/Pat-N-Multiple-Service-Visits-S.htm
+[R118] HHAeXchange Enterprise, Clinical Documentation prebilling exception.
+https://knowledge.hhaexchange.com/enterprise/Content/Documentation/Billing/Bill-N-Clinical-Documentation-P.htm
+[R119] Primetime search and report source, release and authenticated evidence.
+https://github.com/jnwokorie1957/pthhs/blob/af1ee810c82841a229085c80d333a3395c0c3f45/source/primetime/maintenance-search.js
+https://github.com/jnwokorie1957/pthhs/blob/af1ee810c82841a229085c80d333a3395c0c3f45/source/primetime/maintenance.js
+https://github.com/jnwokorie1957/pthhs/blob/af1ee810c82841a229085c80d333a3395c0c3f45/functions/src/maintenance/search.ts
+https://github.com/jnwokorie1957/pthhs/blob/af1ee810c82841a229085c80d333a3395c0c3f45/docs/management-layer/PRIMETIME_LIVE_DATA_CHECKLIST.txt
+https://github.com/jnwokorie1957/pthhs/actions/runs/42879373268

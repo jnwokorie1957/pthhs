@@ -1,9 +1,12 @@
 # PTHHS Management Layer — Developer Checklist
 
 - [ ] Carry the existing range or cached-day receipt into Office report and
-  its protected download. Show source search coverage, loaded saved cases and
-  report generation time separately. Test partial continuation, finished gaps,
-  true empty results and access changes without adding source reads.
+  its protected download. Bind office, service dates and applied patient,
+  caregiver or contract filters to the accepted result. Show source coverage,
+  loaded saved cases and generation time separately. Identify the previous
+  result and disable download after unapplied scope edits. Test continuation,
+  finished gaps, complete empty results, filter edits and access changes using
+  existing source reads.
   [Role research and acceptance cases](ROLE_WORKFLOW_RESEARCH.txt).
 
 - [x] November 10 empty range coverage deployed (PR21/6b9fda2). The queue
