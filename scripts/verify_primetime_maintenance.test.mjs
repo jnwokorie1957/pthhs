@@ -264,6 +264,33 @@ test('a matching report case opens the normal visit review and reads its current
   assert.ok(f.calls.every(([path]) => !/maintenance\/(save|calls|reasons)/.test(path)));
 });
 
+test('a saved case for another patient stays in the report when opened from the queue', async () => {
+  for (const listed of [true, false]) {
+    const saved = { visitId: row.id, officeId: day.scope.officeId, date, revision: 1,
+      status: listed ? 'office_review_complete' : 'awaiting_hha_action', queue: 'office_manager', hhaSubmission: 'not_submitted',
+      source: { ...row, patientId: '26' }, events: [],
+      calls: { visitLink: 'not_supplied_by_source', records: [{ CallDashboardID: '45', CallTime: date + ' 08:00' }] } };
+    const f = fixture();
+    f.handler(async path => {
+      if (path.includes('/views/office-day')) return day;
+      if (path.includes('/maintenance/cases')) return { ok: true, scope: day.scope, items: listed ? [saved] : [], nextCursor: null, hhaWritesEnabled: false };
+      assert.ok(path.endsWith('/maintenance/case'));
+      return { ok: true, item: saved, hhaWritesEnabled: false };
+    });
+    f.ready(); await tick(); f.ids.get('maintenanceList').querySelectorAll('button')[0].click(); await tick();
+    const detail = f.ids.get('maintenanceDetail'), queue = f.ids.get('maintenanceList');
+    assert.match(f.text(detail), /Saved case and current visit differ.*Office report/);
+    assert.equal(detail.querySelectorAll('form').length, 0);
+    assert.doesNotMatch(f.text(detail), /Call 45|Read caregiver calls|Office case · revision/);
+    assert.doesNotMatch(f.text(queue), /Office review complete|Awaiting HHA action/);
+    assert.equal(f.ids.get('maintenanceMetrics').children[3].children[0].textContent, '0');
+    f.event('maintenanceReportTab');
+    assert.match(f.text(f.ids.get('maintenanceReportRows')), /Read-only saved case/);
+    assert.equal(f.ids.get('maintenanceReportRows').querySelectorAll('button').length, 0);
+    assert.ok(f.calls.every(([path]) => !/maintenance\/(save|calls|reasons)/.test(path)));
+  }
+});
+
 test('maintenance distinguishes deferred, withheld and empty detail fields in the queue', async () => {
   const reasons = [
     ['not_attempted_batch_time_budget', /deferred by the batch time limit/],
