@@ -1896,3 +1896,41 @@ actual-hour units and preservation/readback. P03/E04 remain open.
 https://github.com/jnwokorie1957/pthhs/pull/18
 https://github.com/jnwokorie1957/pthhs/actions/runs/42686635499
 https://github.com/jnwokorie1957/pthhs/actions/runs/42686922671
+
+
+NOVEMBER 10, 2026 — RANGE SEARCH COMPLETION AND WITHHELD DETAILS
+
+PR20 distinguishes a range with a next page from a search finished with gaps.
+The range endpoint returns nextCursor independently from complete, along with
+checkedThrough, totalIds, truncated, unavailable and unknownPayers. The receipt
+uses the cursor for continuation. It retains earlier truncation and unavailable
+detail reasons across the range and gives known reasons fixed labels. Unknown
+codes use a generic message. A readable visit remains available alongside
+withheld detail. An absent bill-to match stays separate from EVV field presence.
+There is no additional search, quota retry or change to the source read scope.
+
+GetVisitInfoV3Result/VisitInfo still supplies the distinct ScheduleStartTime,
+ScheduleEndTime, VisitStartTime, VisitEndTime, EVVStartTime, EVVEndTime,
+ActualHours and ActualHoursRounded optional strings. The integer schedule
+components are ScheduleDuration/ScheduleDurationHours and
+ScheduleDuration/ScheduleDurationMinutes. Withheld detail supplies no clock evidence. Actual-hour
+units and original-event linkage remain open for the remaining gaps.
+The October 31 reread resolved the original October 24 screenshot visit.
+
+The multi-page regression failed on the former continuation prompt and
+now covers both withheld details and earlier truncation. All 309 focused
+tests, deterministic assets, performance and audit passed. Both quality and
+both Hosting jobs passed for d914da02beba6c3c5190b1d296d94a36ba918391. At 2026-11-10 16:52 UTC, seven public
+HTTP checks verified the exact fingerprinted assets, private noindex and
+anonymous denial. The regression passed against the exact served script
+using synthetic receipts. The latest bounded historical/current-day source
+comparison remains November 6. The approved Primetime tab was unavailable
+on the preceding pass. Restore that session for approved same-office October
+23/24 and current-day reads and compare a naturally incomplete range with
+its receipt. The bounded vendor topic search surfaced no new technical reply.
+The open case still needs retained original-event linkage, coverage, units
+and preservation/readback. P03/E04 remain open.
+
+https://github.com/jnwokorie1957/pthhs/pull/20
+https://github.com/jnwokorie1957/pthhs/actions/runs/42858487994
+https://github.com/jnwokorie1957/pthhs/actions/runs/42858800705

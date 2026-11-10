@@ -1,5 +1,11 @@
 # PTHHS Management Layer — Developer Checklist
 
+- [x] November 10 range receipt deployed (PR20/d914da0). It separates
+  next-page availability from a finished search with gaps and retains earlier
+  unavailable detail and truncation across pages. The regression passed against
+  the exact served maintenance script.
+  [Source and acceptance evidence](PRIMETIME_LIVE_DATA_CHECKLIST.txt).
+
 - [x] November 10 office queue case scope deployed (PR19/092ebc3).
   A readable visit requires a matching patient and date to open its saved
   editor or inherit its status. Mismatched cases remain in read-only Office
