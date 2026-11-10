@@ -129,19 +129,39 @@
   }
   el('personnel-refresh').onclick = refreshApplications;
   el('personnel-filter').onchange = () => { applicationSelection++; detail.replaceChildren(); status.textContent = ''; renderApplications(); };
-  window.WorkforcePersonnel = {refresh:refreshApplications};
-  async function search() {
+  const moreCaregivers = el('caregiver-roster-more');
+  let nextCaregiverPage = null;
+  async function search(after) {
     clearTimeout(searchTimer);
-    const sequence = ++accountSelection, session = generation; results.replaceChildren(); accountDetail.replaceChildren(); accountMessage.textContent = 'Finding caregivers…';
+    const query = el('caregiver-account-name').value.trim();
+    const sequence = ++accountSelection, session = generation;
+    if (!after) { results.replaceChildren(); accountDetail.replaceChildren(); }
+    if (!after) moreCaregivers.hidden = true;
+    moreCaregivers.disabled = true;
+    accountMessage.textContent = 'Finding caregivers…';
     try {
-      const response = await workforceApi('/staff/accounts/lookup', {name:el('caregiver-account-name').value.trim()}); if (session !== generation || sequence !== accountSelection) return;
-      accountMessage.textContent = response.items.length ? (response.hasMore ? 'More matches found. Enter more letters to narrow your search.' : 'Select a caregiver to open their profile.') : 'No matching caregivers found.';
-      if(response.hhaUnavailable)accountMessage.textContent+=response.hhaCached?' Live HHA lookup is busy. Showing synchronized HHA names and portal matches.':' HHAeXchange is unavailable; portal matches only.';
+      const response = query ? await workforceApi('/staff/accounts/lookup', {name:query})
+        : await workforceApi('/staff/roster' + (after ? '?after=' + encodeURIComponent(after) : ''));
+      if (session !== generation || sequence !== accountSelection) return;
+      nextCaregiverPage = query ? null : response.next;
+      moreCaregivers.hidden = !nextCaregiverPage;
+      if (query) {
+        accountMessage.textContent = response.items.length ? (response.hasMore ? 'More matches found. Enter more letters to narrow your search.' : 'Select a caregiver to open their profile.') : 'No matching caregivers found.';
+        if(response.hhaUnavailable)accountMessage.textContent+=response.hhaCached?' Live HHA lookup is busy. Showing synchronized HHA names and portal matches.':' HHAeXchange is unavailable; portal matches only.';
+      } else {
+        accountMessage.textContent = (response.syncedAt ? 'Last completed HHA sync: ' + date(response.syncedAt) + ' CT.' : 'No completed HHA sync on record.')
+          + (response.refreshFailed ? ' The latest refresh failed.' : '')
+          + (results.childElementCount || response.items.length ? ' Showing saved HHA names.' : ' No recently synced names on this page.');
+      }
       for (const match of response.items) { const button = node('button', [match.firstName, match.lastName].filter(Boolean).join(' ') + ' · ' + (match.source==='hhaexchange'?'HHAeXchange':human(match.state)), 'caregiver-search-result'); button.type = 'button'; button.onclick = () => openAccount(match); results.append(button); }
     } catch (error) { if (session === generation && sequence === accountSelection) accountMessage.textContent = error.message; }
+    finally { if (session === generation) moreCaregivers.disabled = false; }
   }
+  moreCaregivers.onclick = () => search(nextCaregiverPage);
+  window.WorkforcePersonnel = {refresh:refreshApplications, browse:() => { if (can('accounts.support') && !results.childElementCount) search(); }};
+  document.addEventListener('workforce-session-cleared', () => { moreCaregivers.hidden = true; nextCaregiverPage = null; });
   el('caregiver-account-search').onsubmit = event => { event.preventDefault(); if(event.currentTarget.reportValidity())return search(); };
-  el('caregiver-account-name').oninput = event => { clearTimeout(searchTimer); accountSelection++; results.replaceChildren(); accountDetail.replaceChildren(); accountMessage.textContent=''; if(el('caregiver-account-name').value.trim()&&!event.isComposing)searchTimer=setTimeout(search,300); };
+  el('caregiver-account-name').oninput = event => { clearTimeout(searchTimer); accountSelection++; results.replaceChildren(); accountDetail.replaceChildren(); moreCaregivers.hidden=true; accountMessage.textContent=''; if(!event.isComposing)searchTimer=setTimeout(search,300); };
 
   let importJob=null;el('hha-roster-sync').onclick=async()=>{const session=generation,button=el('hha-roster-sync'),message=el('hha-roster-sync-message');button.disabled=true;try{for(;;){const result=await workforceApi('/staff/roster/sync',importJob?{jobId:importJob}:{});if(session!==generation)return;importJob=result.jobId;message.textContent='Checked '+result.processed+' of '+result.total+' HHA caregiver records.';if(result.complete){importJob=null;break;}if(result.deferred){message.textContent+=' Sync paused. Select Sync again to resume.';break;}}}catch(error){if(session===generation)message.textContent=error.message;}finally{if(session===generation)button.disabled=false;}};
 

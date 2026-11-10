@@ -30,3 +30,39 @@ test("source settings changes and wrong caregiver identities cannot return a pro
  const s=setup();s.state.change=true;await assert.rejects(s.directory.search("H"),/revision_conflict/);
  const other=setup();other.state.wrongId=true;await assert.rejects(other.directory.profile("101"),/caregiver_account_unavailable/);
 });
+test("roster pages use the approved office, return names only and disclose incomplete refreshes", async () => {
+ const s = setup();
+ const syncedAt = new Date().toISOString();
+ const rows = Array.from({length:51}, (_, index) => {
+  const id = String(index + 100);
+  return {id, data: () => ({id, office:"12", firstName:"Sample", lastName:"Caregiver", fetchedAt:syncedAt, email:"private@example.invalid"})};
+ });
+ let offset = 0;
+ const query = {
+  orderBy() { return query; },
+  startAfter(lastName: string, id: string) {
+   assert.equal(lastName, "Caregiver");
+   offset = rows.findIndex(row => row.id === id) + 1;
+   return query;
+  },
+  select() { return query; },
+  limit(size: number) { return {get: async () => ({docs:rows.slice(offset, offset + size)})}; }
+ };
+ const db = {collection(name: string) {
+  if (name === "workforceHhaProfiles") return {
+   where(field: string, operator: string, value: string) {
+    assert.deepEqual([field, operator, value], ["office", "==", "12"]);
+    return query;
+   },
+   doc(id: string) { return {get: async () => rows.find(row => row.id === id)}; }
+  };
+  return {doc: () => ({get: async () => ({data: () => name === "workforceHhaSyncRuns" ? {state:"failed"} : {completedAt:syncedAt}})})};
+ }} as unknown as Parameters<HhaDirectory["browse"]>[0];
+ const first = await s.directory.browse(db);
+ assert.equal(first.items.length, 50);
+ assert.equal(first.syncedAt, syncedAt);
+ assert.equal(first.refreshFailed, true);
+ assert.doesNotMatch(JSON.stringify(first), /private@example/);
+ assert.deepEqual((await s.directory.browse(db, first.next!)).items.map(item => item.hhaId), ["150"]);
+ assert.equal(s.queries.length, 0);
+});

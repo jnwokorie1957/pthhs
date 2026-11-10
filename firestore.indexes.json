@@ -1,5 +1,8 @@
 {
-  "indexes": [{"collectionGroup":"workforceCaregiverDirectory","queryScope":"COLLECTION","fields":[{"fieldPath":"office","order":"ASCENDING"},{"fieldPath":"namePrefixes","arrayConfig":"CONTAINS"}]}],
+  "indexes": [
+    {"collectionGroup":"workforceCaregiverDirectory","queryScope":"COLLECTION","fields":[{"fieldPath":"office","order":"ASCENDING"},{"fieldPath":"namePrefixes","arrayConfig":"CONTAINS"}]},
+    {"collectionGroup":"workforceHhaProfiles","queryScope":"COLLECTION","fields":[{"fieldPath":"office","order":"ASCENDING"},{"fieldPath":"lastName","order":"ASCENDING"}]}
+  ],
   "fieldOverrides": [
     {
       "collectionGroup": "websiteActiveSessions",

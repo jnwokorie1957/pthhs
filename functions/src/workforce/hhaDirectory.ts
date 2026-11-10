@@ -1,4 +1,6 @@
 import type {OperationsWorkspace} from "../operations/workspace.js";
+import {FieldPath, type Firestore} from "firebase-admin/firestore";
+import {cachedHhaName} from "./hhaCachedNames.js";
 import {identifier} from "../operations/reads.js";
 import {nameQuery,normalizeName} from "./directory.js";
 import {requirePermission,WorkforceError,type Actor} from "./policy.js";
@@ -36,4 +38,31 @@ export class HhaDirectory {
   return {items,hasMore,source:"hhaexchange" as const};
  }
  async profile(id:string){const context=await this.scope(),record=await this.record(identifier(id),context);if(!record)throw new WorkforceError(404,"caregiver_account_unavailable");const current=await this.scope();if(current.office!==context.office||current.revision!==context.revision)throw new WorkforceError(409,"revision_conflict");return record;}
+ async browse(db: Firestore, after?: unknown) {
+  const {office, revision} = await this.scope();
+  const profiles = db.collection("workforceHhaProfiles");
+  const pageSize = 50;
+  let query = profiles.where("office", "==", office).orderBy("lastName").orderBy(FieldPath.documentId());
+  if (after !== undefined) {
+   if (typeof after !== "string" || !/^[1-9]\d{0,9}$/.test(after)) throw new WorkforceError(400, "invalid_request");
+   const cursor = await profiles.doc(after).get();
+   const data = cursor.data();
+   if (data?.office !== office || typeof data.lastName !== "string") throw new WorkforceError(400, "invalid_request");
+   query = query.startAfter(data.lastName, cursor.id);
+  }
+  const [page, ready, run] = await Promise.all([
+   query.select("id", "office", "firstName", "lastName", "status", "code", "fetchedAt").limit(pageSize + 1).get(),
+   db.collection("workforceHhaRosterReady").doc(office).get(),
+   db.collection("workforceHhaSyncRuns").doc(office).get(),
+  ]);
+  const current = await this.scope();
+  if (current.office !== office || current.revision !== revision) throw new WorkforceError(409, "revision_conflict");
+  const now = Date.now();
+  return {
+   items: page.docs.slice(0, pageSize).map(doc => cachedHhaName(office, doc.data(), now)).filter(item => item !== null),
+   next: page.docs.length > pageSize ? page.docs[pageSize - 1]!.id : null,
+   syncedAt: ready.data()?.completedAt ?? null,
+   refreshFailed: run.data()?.state === "failed",
+  };
+ }
 }

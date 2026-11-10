@@ -206,6 +206,11 @@ export const workforceApi = process.env.PRIMETIME_API_ONLY_DEPLOY === "true" ? u
         throw new WorkforceError(403, "staff_training_required");
       }
     }
+    if (path === "/staff/roster" && req.method === "GET") {
+      if (!existingAccessEnabled) throw new WorkforceError(503,"existing_access_pending");
+      await recentWorkforceIdentity(req);
+      res.json(await hhaDirectory(uid).browse(getFirestore(), req.query.after)); return;
+    }
     if(path==="/staff/roster/sync"&&req.method==="POST"){
       if(!existingAccessEnabled)throw new WorkforceError(503,"existing_access_pending");await recentWorkforceIdentity(req);
       if(!req.is("application/json")||req.rawBody.length>300||!req.body||Object.keys(req.body).some(key=>key!=="jobId")||req.body.jobId!==undefined&&typeof req.body.jobId!=="string")throw new WorkforceError(400,"invalid_request");
