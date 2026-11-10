@@ -27,8 +27,7 @@ export function compactStaticAttributes(html) {
         }))).join('');
 }
 
-// Only local identifiers change. Compression and property renaming stay off;
-// function/class names and the public DOM/API contracts remain intact.
+// Only local identifiers change. Compression and property renaming stay off.
 const minifierOptions = Object.freeze({
   compress: false,
   mangle: { toplevel: false },
@@ -44,7 +43,11 @@ export async function renderPrimetimeAssets(sourceDir = defaultSource) {
     const source = lf(await readFile(resolve(sourceDir, name), 'utf8'));
     let content = source;
     if (name.endsWith('.js')) {
-      const result = await minify(source, minifierOptions);
+      // Maintenance helpers are private to its closure and never read by name.
+      const options = name === 'maintenance.js'
+        ? { ...minifierOptions, mangle: { toplevel: false, keep_fnames: false } }
+        : minifierOptions;
+      const result = await minify(source, options);
       if (typeof result.code !== 'string') throw new Error(`No generated code for ${name}`);
       content = `/*source/primetime/${name}*/${result.code}\n`;
     }

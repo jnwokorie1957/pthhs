@@ -21,7 +21,20 @@
   function option(value,text){const node=document.createElement('option');node.value=value;node.textContent=text;return node;}
   function clearChoice(kind){$('maintenance'+kind+'Choice').replaceChildren(option('',kind==='Patient'?'All patients / members':'All caregivers'));$('maintenance'+kind+'Choice').value='';}
   function showKind(){for(const title of ['Patient','Caregiver'])$('maintenance'+title+'Fields').hidden=$('maintenanceSearchKind').value!==title.toLowerCase();}
-  function changeKind(){for(const title of ['Patient','Caregiver']){for(const field of ['First','Last','Code'])$('maintenance'+title+field).value='';clearChoice(title);peopleOffsets[title.toLowerCase()]=null;}cursor=query=null;showKind();controls();message('Search method selected. Choose Search HHA visits to apply it.');}
+  function scopeEdited() {
+    cursor = query = null;
+    controls();
+    document.dispatchEvent(new Event('primetime-maintenance-scope-edited'));
+  }
+  function changeKind() {
+    for (const title of ['Patient', 'Caregiver']) {
+      for (const field of ['First', 'Last', 'Code']) $('maintenance' + title + field).value = '';
+      clearChoice(title);
+      peopleOffsets[title.toLowerCase()] = null;
+    }
+    showKind(); scopeEdited();
+    message('Search method selected. Choose Search HHA visits to apply it.');
+  }
   function payerLabel(){const summary=$('maintenancePayerFilters').querySelector?.('summary');if(summary)summary.textContent='Payer filter'+($('maintenancePayer').value?' · selected':'');}
   function clearReferences(){$('maintenanceReferenceRows').replaceChildren();$('maintenanceReferenceStatus').textContent='';}
   function check(ticket){if(ticket!==epoch||!active())throw new Error('context_changed');}
@@ -40,10 +53,13 @@
   async function find(kind,ticket,more=false){const title=kind==='patient'?'Patient':'Caregiver',body=personBody(kind);message('Searching HHA '+(kind==='patient'?'patient/member':'caregiver')+' profiles and checking office membership…');
     const value=await api('/people',ticket,{...body,offset:more?peopleOffsets[kind]||0:0});
     if(value.kind!==kind||!Array.isArray(value.items)||value.items.length>5||value.items.some(item=>typeof item.id!=='string'||!/^\d+$/.test(item.id)))throw new Error('invalid_source_response');
-    const choice=$('maintenance'+title+'Choice');if(!more)clearChoice(title);
+    const choice=$('maintenance'+title+'Choice'), previousChoice=choice.value;
+    if (!more) clearChoice(title);
     for(const item of value.items)choice.append(option(item.id,`${item.lastName||''}, ${item.firstName||''} · ${item.code||item.id}`));
     if(!more&&value.items.length===1)choice.value=value.items[0].id;
-    peopleOffsets[kind]=value.nextOffset;message(`${value.items.length} office-checked ${kind} profiles on this page.${value.nextOffset!==null?' More matching profiles are available.':''}${value.truncated?' HHA search was truncated; narrow the name/code.':''} Choose the correct profile.`);
+    peopleOffsets[kind]=value.nextOffset;
+    if (choice.value !== previousChoice) scopeEdited();
+    message(`${value.items.length} office-checked ${kind} profiles on this page.${value.nextOffset!==null?' More matching profiles are available.':''}${value.truncated?' HHA search was truncated; narrow the name/code.':''} Choose the correct profile.`);
   }
   function parameters(){const from=$('maintenanceDate').value,to=$('maintenanceDateTo').value;
     const valid=day=>/^\d{4}-\d{2}-\d{2}$/.test(day)&&Number.isFinite(Date.parse(day))&&new Date(day+'T00:00:00Z').toISOString().slice(0,10)===day;
@@ -56,19 +72,36 @@
   }
   async function search(ticket,next=false){const chosen=parameters();if(next&&JSON.stringify(chosen)!==JSON.stringify(query))throw new Error('maintenance_search_changed_restart');
     if(!next){cursor=null;query=chosen;document.dispatchEvent(new Event('primetime-maintenance-search-started'));controls();}
+    const appliedQuery = query;
     message(`Reading HHA visits from ${chosen.from} through ${chosen.to}…`);
     const value=await api('/search',ticket,{...chosen,...(next&&cursor?{cursor}:{})});
+    if (query !== appliedQuery) return;
     if(value.source!=='hhaexchange'||value.scope?.from!==chosen.from||value.scope?.to!==chosen.to||!Array.isArray(value.items)||typeof value.checkedThrough!=='number'||typeof value.totalIds!=='number'||value.nextCursor!==null&&typeof value.nextCursor!=='string')throw new Error('invalid_source_response');
-    cursor=value.nextCursor;document.dispatchEvent(new CustomEvent('primetime-maintenance-results',{detail:value}));
+    const filters = [
+      chosen.patientId && `Patient ID ${chosen.patientId}`,
+      chosen.caregiverId && `Caregiver ID ${chosen.caregiverId}`,
+      chosen.contractId && `Payer contract ID ${chosen.contractId}`
+    ].filter(Boolean);
+    cursor=value.nextCursor;document.dispatchEvent(new CustomEvent('primetime-maintenance-results',{detail:{...value, filters}}));
     message(`${value.checkedThrough} of ${value.totalIds} returned source IDs checked.${cursor?' More source pages remain; continue to read them.':' Source-page reading finished.'}${value.truncated?' Discovery was truncated; narrow the search.':''}`);
     if(value.retryAfterSeconds){retryAt=Date.now()+value.retryAfterSeconds*1000;retryTimer=setTimeout(()=>{retryTimer=null;if(ticket===epoch)controls();},value.retryAfterSeconds*1000);message(`Source progress saved. Continue after ${value.retryAfterSeconds} seconds; loaded visits are usable now.`);}
   }
   for(const kind of ['patient','caregiver']){const title=kind==='patient'?'Patient':'Caregiver';$('maintenanceFind'+title).addEventListener('click',()=>action(ticket=>find(kind,ticket)));$('maintenance'+title+'More').addEventListener('click',()=>action(ticket=>find(kind,ticket,true)));
-    for(const suffix of ['First','Last','Code'])$('maintenance'+title+suffix).addEventListener('input',()=>{clearChoice(title);peopleOffsets[kind]=null;controls();});
+    $('maintenance'+title+'Choice').addEventListener('change',scopeEdited);
+    for(const suffix of ['First','Last','Code'])$('maintenance'+title+suffix).addEventListener('input',()=>{clearChoice(title);peopleOffsets[kind]=null;scopeEdited();});
   }
-  $('maintenanceLoadPayers').addEventListener('click',()=>action(async ticket=>{const value=await api('/contracts',ticket);if(!Array.isArray(value.items)||value.items.length>200)throw new Error('invalid_source_response');$('maintenancePayer').replaceChildren(option('','All payers / contracts'),...value.items.map(item=>option(item.id,`${item.name||'Unnamed contract'} · ${item.id}`)));message(`${value.items.length} HHA office contracts loaded.${value.truncated?' The source list was truncated.':''}`);}));
+  $('maintenanceLoadPayers').addEventListener('click', () => action(async ticket => {
+    const value = await api('/contracts', ticket);
+    if (!Array.isArray(value.items) || value.items.length > 200) throw new Error('invalid_source_response');
+    const payer = $('maintenancePayer'), previous = payer.value;
+    payer.replaceChildren(option('', 'All payers / contracts'), ...value.items.map(item => option(item.id, `${item.name || 'Unnamed contract'} · ${item.id}`)));
+    payer.value = '';
+    payerLabel();
+    if (previous) scopeEdited();
+    message(`${value.items.length} HHA office contracts loaded.${value.truncated ? ' The source list was truncated.' : ''}`);
+  }));
   $('maintenanceSearchKind').addEventListener('change',changeKind);
-  $('maintenancePayer').addEventListener('change',payerLabel);
+  $('maintenancePayer').addEventListener('change',()=>{payerLabel();scopeEdited();});
   $('maintenanceReferenceCatalog').addEventListener('change',clearReferences);
   $('maintenanceReadReferences').addEventListener('click',()=>action(async ticket=>{clearReferences();$('maintenanceReferenceStatus').textContent='Reading HHA reference codes…';const catalog=$('maintenanceReferenceCatalog').value,value=await api('/reference-codes?catalog='+encodeURIComponent(catalog),ticket);if(value.catalog!==catalog||value.scope!=='agency_reference'||value.supportsConfirmation!==false||!Array.isArray(value.items)||value.items.length>200)throw new Error('invalid_source_response');
     $('maintenanceReferenceStatus').textContent=`${value.items.length} source codes · ${value.operation} · fetched ${value.fetchedAt}.${value.truncated?' Partial list.':''} Reference only; not approved for a selected visit.`;
@@ -77,9 +110,8 @@
   $('maintenanceSearchSource').addEventListener('click',()=>action(ticket=>search(ticket)));
   $('maintenanceContinueSearch').addEventListener('click',()=>action(ticket=>search(ticket,true)));
   $('maintenanceDateTo').value=$('maintenanceDate').value;
-  $('maintenanceDateTo').addEventListener('change',()=>{cursor=null;query=null;controls();message('Dates changed. Choose Search HHA visits.');});
-  $('maintenanceDate').addEventListener('change',()=>{cursor=null;query=null;controls();message('Dates changed. Choose Search HHA visits.');});
-  $('maintenanceResetSearch').addEventListener('click',()=>{resetPrivate();$('maintenanceDateTo').value=$('maintenanceDate').value;message('Filters reset. Choose Search HHA visits.');});
+  for (const id of ['maintenanceDate','maintenanceDateTo']) $(id).addEventListener('change',()=>{scopeEdited();message('Dates changed. Choose Search HHA visits.');});
+  $('maintenanceResetSearch').addEventListener('click',()=>{resetPrivate();$('maintenanceDateTo').value=$('maintenanceDate').value;scopeEdited();message('Filters reset. Choose Search HHA visits.');});
   document.addEventListener('primetime-ready',()=>{ready=true;resetPrivate();if(!$('maintenanceDateTo').value)$('maintenanceDateTo').value=$('maintenanceDate').value;capabilities();});
   document.addEventListener('primetime-signed-out',()=>{ready=false;resetPrivate();});
   document.addEventListener('primetime-data-mode-changed',resetPrivate);

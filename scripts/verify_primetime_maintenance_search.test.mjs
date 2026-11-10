@@ -27,11 +27,36 @@ test('separate first/last/code lookup fields resolve a profile before filtering 
  const f=fixture();f.ids.get('maintenanceSearchKind').value='patient';f.event('maintenanceSearchKind','change');f.ids.get('maintenancePatientFirst').value='Synthetic';f.ids.get('maintenancePatientLast').value='Person';f.ids.get('maintenancePatientCode').value='TEST';f.event('maintenanceFindPatient');await tick();
  assert.deepEqual(JSON.parse(f.calls[0][1].body),{kind:'patient',firstName:'Synthetic',lastName:'Person',code:'TEST',offset:0});assert.equal(f.ids.get('maintenancePatientChoice').value,'25');
  f.ids.get('maintenanceDate').value='2026-10-23';f.event('maintenanceSearchSource');await tick();assert.equal(JSON.parse(f.calls[1][1].body).patientId,'25');
+ assert.deepEqual(Array.from(f.results[0].filters), ['Patient ID 25']);
  f.event('maintenancePatientLast','input');assert.equal(f.ids.get('maintenancePatientChoice').children.length,1);
 });
 test('ambiguous name searches require a source identity choice; payer selection passes the real contract ID',async()=>{
  const f=fixture();f.ids.get('maintenanceSearchKind').value='patient';f.event('maintenanceSearchKind','change');f.ids.get('maintenancePatientFirst').value='Synthetic';f.event('maintenanceSearchSource');await tick();assert.equal(f.calls.length,0);assert.match(f.ids.get('maintenanceSearchStatus').textContent,/select the matching patient/);
  f.ids.get('maintenanceSearchKind').value='all';f.event('maintenanceSearchKind','change');f.event('maintenanceLoadPayers');await tick();f.ids.get('maintenancePayer').value='75';f.ids.get('maintenanceDate').value='2026-10-23';f.event('maintenanceSearchSource');await tick();assert.equal(JSON.parse(f.calls[1][1].body).contractId,'75');
+ assert.deepEqual(Array.from(f.results[0].filters), ['Payer contract ID 75']);
+});
+test('scope edits invalidate continuation and fence an in-flight response', async () => {
+  const f = fixture(); let edits = 0, finish;
+  f.document.addEventListener('primetime-maintenance-scope-edited', () => edits++);
+  f.ids.get('maintenanceDate').value = '2026-10-23';
+  const value = { ok: true, source: 'hhaexchange', scope: { from: '2026-10-23', to: '2026-11-05' },
+    items: [], checkedThrough: 1, totalIds: 2, nextCursor: 'next' };
+  f.handler(() => Promise.resolve(value));
+  f.event('maintenanceSearchSource'); await tick();
+  assert.equal(f.ids.get('maintenanceContinueSearch').hidden, false);
+  f.handler(() => new Promise(resolve => { finish = resolve; }));
+  f.event('maintenanceContinueSearch'); await tick();
+  f.ids.get('maintenancePayer').value = '75';
+  f.event('maintenancePayer', 'change');
+  assert.equal(f.ids.get('maintenanceContinueSearch').hidden, true);
+  assert.equal(edits, 1);
+  finish(value); await tick();
+  assert.equal(f.results.length, 1);
+  f.ids.get('maintenanceDateTo').value = '2026-11-06'; f.event('maintenanceDateTo', 'change');
+  f.event('maintenancePatientChoice', 'change');
+  f.event('maintenanceResetSearch');
+  assert.equal(edits, 4);
+  assert.equal(f.calls.length, 2);
 });
 test('a deferred page retains its cursor, disables premature reads and resumes after the source delay',async()=>{
  const f=fixture();f.ids.get('maintenanceDate').value='2026-10-23';f.handler(async()=>({ok:true,source:'hhaexchange',mode:'live',scope:{officeId:'123',from:'2026-10-23',to:'2026-11-05'},items:[],unavailable:[],checkedThrough:1,totalIds:3,nextCursor:'synthetic-cursor',retryAfterSeconds:25}));
