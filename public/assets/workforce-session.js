@@ -93,7 +93,7 @@
     const sequence = ++generation;
     hide(); signout.hidden = !user;
     document.dispatchEvent(new CustomEvent('workforce-session-cleared'));
-    if (!user) { form.hidden = false; message('Sign in with your email and password, or use an email link.'); return; }
+    if (!user) { form.hidden = false; message('Sign in with your username or work email and password.'); return; }
     form.hidden = true; message('Verifying account access…');
     try {
       const actor = await api(staff ? '/session' : '/application/session').catch(error => {

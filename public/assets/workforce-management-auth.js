@@ -19,7 +19,6 @@ window.WorkforceManagementAuth = ({form, auth, session, message, api}) => {
     const choosing = mode === 'choose';
     const confirming = mode === 'confirm';
     const passwordMode = mode === 'password';
-    get('staff-signin-methods').hidden = confirming || choosing || mode === 'reset';
     get('staff-password-row').hidden = !passwordMode;
     get('staff-identifier-row').hidden = choosing;
     get('staff-new-credentials').hidden = !choosing;
@@ -31,24 +30,21 @@ window.WorkforceManagementAuth = ({form, auth, session, message, api}) => {
     identifier.placeholder = passwordMode ? 'Username or work email' : 'you@work.com';
     password.required = passwordMode;
     nextPassword.required = confirmation.required = choosing;
-    get('staff-password-method').setAttribute('aria-pressed', String(passwordMode));
-    get('staff-link-method').setAttribute('aria-pressed', String(mode === 'link'));
     get('manager-login-description').textContent = {
       password:'Sign in with your username or work email and password.',
-      link:'Receive a secure sign-in link by email.',
       reset:'Enter your work email to receive a secure password setup link.',
       confirm:'Confirm the work email that received your link.',
       choose:'Choose your password. You can also add a username for future sign-ins.'
     }[mode];
     get('workforce-login-button').textContent = {
-      password:'Sign in', link:'Send sign-in link', reset:'Send password setup email', confirm:'Continue', choose:'Save password and sign in'
+      password:'Sign in', reset:'Send password setup email', confirm:'Continue', choose:'Save password and sign in'
     }[mode];
     if (confirming && !linkForSetup) get('workforce-login-button').textContent = 'Finish sign in';
     clearPasswords();
   }
   function setBusy(value) {
     busy = value;
-    for (const id of ['workforce-login-button','staff-password-method','staff-link-method','staff-forgot-password','staff-back-to-signin']) {
+    for (const id of ['workforce-login-button','staff-forgot-password','staff-back-to-signin']) {
       get(id).disabled = value;
     }
   }
@@ -57,8 +53,6 @@ window.WorkforceManagementAuth = ({form, auth, session, message, api}) => {
     show(next);
     message('');
   };
-  get('staff-password-method').onclick = () => change('password');
-  get('staff-link-method').onclick = () => change('link');
   get('staff-forgot-password').onclick = () => change('reset');
   get('staff-back-to-signin').onclick = () => change('password');
   get('staff-show-password').onclick = () => {
@@ -106,9 +100,6 @@ window.WorkforceManagementAuth = ({form, auth, session, message, api}) => {
         clearPasswords();
         const email = login.includes('@') ? login : (await api('/staff-auth/resolve-username', {username:login,password:secret})).email;
         await auth().signInWithEmailAndPassword(email, secret);
-      } else {
-        await auth().sendSignInLinkToEmail(login, {url:location.origin + '/workforce',handleCodeInApp:true});
-        message('Check your email for a sign-in link.');
       }
     } catch (error) {
       clearPasswords();
@@ -116,15 +107,15 @@ window.WorkforceManagementAuth = ({form, auth, session, message, api}) => {
         emailLink = '';
         linkForSetup = false;
         activationCode = '';
-        show('link');
-        message('This link could not sign you in. Request a new link or use your password.');
+        show('password');
+        message('This link is invalid or expired. Ask the sender for a new invitation, or use Forgot password? if your account is already set up.');
       } else if (mode === 'reset' || mode === 'choose') {
         message(error.code?.startsWith('staff_') || ['weak_staff_password','invalid_staff_username'].includes(error.code)
           ? error.message : 'Could not complete password setup. Request a fresh link and try again.');
       } else if (error.code === 'auth/too-many-requests' || error.code === 'staff_auth_rate_limit') {
         message('Too many attempts. Please wait before trying again.');
       } else {
-        message('Unable to sign in. Check your username or work email and password, or use an email link.');
+        message('Unable to sign in. Check your username or work email and password.');
       }
     } finally {
       setBusy(false);
