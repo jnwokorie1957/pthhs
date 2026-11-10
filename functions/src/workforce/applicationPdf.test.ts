@@ -24,6 +24,7 @@ test("private image print conversion preserves proportions and existing PDF page
 test("one print packet includes application and both identity document PDFs with a contents page",async()=>{
  const source=await PDFDocument.create();source.addPage([612,792]);const form=source.getForm(),field=form.createTextField("synthetic");field.addToPage(source.getPages()[0]!);field.setText("Synthetic Applicant");
  const bytes=Buffer.from(await source.save()),packet=await PDFDocument.load(await renderPersonnelPacket([{title:"Application",status:"Draft",bytes},{title:"Form W-4",status:"Not started"},{title:"Photo ID",status:"Available",bytes},{title:"Social Security card",status:"Available",bytes}],"Synthetic Applicant"));
+ assert.ok(packet.getPages().every(page=>!page.node.Annots()?.size()));
  assert.equal(packet.getPageCount(),4);assert.equal(packet.getForm().getFields().length,0);assert.equal(packet.getTitle(),"Private caregiver personnel packet");
  // Print flattening leaves the individual source form editable.
  assert.equal((await PDFDocument.load(bytes)).getForm().getFields().length,1);

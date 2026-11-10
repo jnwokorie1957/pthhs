@@ -1,4 +1,4 @@
-import { PDFDocument, StandardFonts, rgb, type PDFPage } from "pdf-lib";
+import { PDFDocument, PDFName, StandardFonts, rgb, type PDFPage } from "pdf-lib";
 import type { Intake } from "./intake.js";
 import { intakePacket } from "./packet.js";
 import { EMPLOYER_NAME, EMPLOYER_ADDRESS } from "./dates.js";
@@ -61,9 +61,9 @@ export async function renderApplication(application: Intake): Promise<Buffer> {
   paragraph(application.signature?"Electronic consent and the signed answer revision are retained with the application record.":"Draft application. No applicant signature has been recorded.");
   section("Application record");row([["Status",application.state],["Revision",String(application.revision)],["Last updated",application.updatedAt]]);row([["Packet version",application.packetVersion]]);
   next("Policy and Role Acknowledgments");
-  paragraph("This record lists the applicant's saved responses. Reading an acknowledgment does not certify a background check, completed training, benefit election or employer approval.");
+  paragraph("This record lists the applicant's saved responses. The health insurance entry records the applicant coverage choice. Screening, training, and employer approvals are handled separately.");
   row([["PAS attendant job description",a.jobDescriptionRead==="Yes"?"Read and agreed":"Not acknowledged"],["Recorded at",application.roleAcknowledgment?.readAt||"Not submitted"]]);if(a.jobDescriptionQuestions)row([["Applicant questions",a.jobDescriptionQuestions]]);
-  for(const reading of intakePacket.readings){section(reading.title);paragraph("Reading: "+(a[`read_page_${reading.page}`]||"Not acknowledged")+"   |   Agreement: "+(a[`terms_page_${reading.page}`]||"Not applicable"));}
+  for(const reading of intakePacket.readings){section(reading.title);paragraph("Reading: "+(a[`read_page_${reading.page}`]||"Not acknowledged")+(reading.election?"   |   Coverage election: ":"   |   Agreement: ")+(a[`terms_page_${reading.page}`]||(reading.election?"Not selected":"Not applicable")));}
   pdf.getPages().forEach((p,index)=>{p.drawText(`CONFIDENTIAL PERSONNEL RECORD  |  ${application.state.toUpperCase()}  |  Page ${index+1} of ${pdf.getPageCount()}`,{x:36,y:30,size:8,font,color:gray});});
   pdf.setTitle("Private employment application");pdf.setAuthor(EMPLOYER_NAME);return Buffer.from(await pdf.save());
 }
@@ -91,7 +91,12 @@ export async function renderPersonnelPacket(parts:PacketPart[],applicant=""):Pro
   const records:{part:PacketPart;source:PDFDocument|null}[]=[];
   for(const part of parts){
     const source=part.bytes?await PDFDocument.load(part.bytes):null;
-    if(source&&source.getForm().getFields().length)source.getForm().flatten();
+    if(source){
+      const form=source.getForm();
+      if(form.getFields().length)form.flatten();
+      // The print copy keeps the painted values without interactive annotations.
+      for(const page of source.getPages())page.node.delete(PDFName.of("Annots"));
+    }
     records.push({part,source});
   }
   const inventoryPages=Math.max(1,Math.ceil(parts.length/8));

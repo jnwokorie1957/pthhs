@@ -23,7 +23,7 @@ import { GoogleAddressLookup } from "./addresses.js";
 import { readFile } from "node:fs/promises";
 import { readings, referencePages } from "./readings.js";
 import { policyDocument } from "./policyDocuments.js";
-import { renderOfficialForm, type FormKind } from "./eforms.js";
+import { renderOfficialForm, FORM_TITLES, type FormKind } from "./eforms.js";
 import { renderApplication, renderDocumentPrint, renderPersonnelPacket, type PacketPart } from "./applicationPdf.js";
 // Default closed. These do not authorize applicant collection or vendor writes.
 const staffEnabled = defineString("WORKFORCE_STAFF_APPROVED", { default: "false" });
@@ -103,7 +103,7 @@ export const workforceApi = process.env.PRIMETIME_API_ONLY_DEPLOY === "true" ? u
     if (path === "/application" || path.startsWith("/application/")) {
       if (!applicationsEnabled) throw new WorkforceError(503, "application_collection_pending");
       const uid = await recentWorkforceIdentity(req), store = new IntakeStore();
-      const officialForm = path.match(/^\/application\/forms\/(i9|w4|new_hire)(\/pdf)?$/);
+      const officialForm = path.match(/^\/application\/forms\/(i9|w4|new_hire|cch)(\/pdf)?$/);
       if (officialForm) {
         if (!uploadsEnabled) throw new WorkforceError(503, "document_collection_pending");
         const kind = officialForm[1] as FormKind;
@@ -275,13 +275,13 @@ export const workforceApi = process.env.PRIMETIME_API_ONLY_DEPLOY === "true" ? u
         if(!uploadsEnabled)throw new WorkforceError(503,"document_collection_pending");
         const target=packetPrint[1]!,application=await personnel.hrRead(uid,target,true),context=await personnel.formContext(target,employerEin.value());
         const parts:PacketPart[]=[{title:"Employment application",status:`${application.state} - revision ${application.revision}`,bytes:await renderApplication(application)}];
-        for(const kind of ["i9","w4","new_hire"] as FormKind[]){
-          const record=await personnel.loadForm(target,kind,uid),title={i9:"Form I-9",w4:"Form W-4",new_hire:"Texas New Hire Report"}[kind];
+        for(const kind of Object.keys(FORM_TITLES) as FormKind[]){
+          const record=await personnel.loadForm(target,kind,uid),title=FORM_TITLES[kind];
           parts.push(record?{title,status:`${record.state} - revision ${record.revision}`,bytes:await renderOfficialForm(record,context)}:{title,status:"Not started"});
         }
         const documents=await personnel.listDocuments(target,uid);
         if(documents.items.length>20||documents.items.reduce((sum,doc)=>sum+doc.size,0)>20_000_000)throw new WorkforceError(413,"print_packet_too_large");
-        for(const [kind,title] of Object.entries({identity:"Photo ID",social_security:"Social Security card",employment_authorization:"Employment authorization document",i9:"Previously uploaded I-9 document",w4:"Previously uploaded W-4 document"})){
+        for(const [kind,title] of Object.entries({identity:"Photo ID",social_security:"Social Security card",insurance_card:"Health insurance card",employment_authorization:"Employment authorization document",i9:"Previously uploaded I-9 document",w4:"Previously uploaded W-4 document"})){
           const matches=documents.items.filter(doc=>doc.kind===kind);
           if(!matches.length&&["identity","social_security"].includes(kind))parts.push({title,status:"Not submitted"});
           for(const doc of matches){
@@ -299,7 +299,7 @@ export const workforceApi = process.env.PRIMETIME_API_ONLY_DEPLOY === "true" ? u
         res.set("Content-Type","application/pdf");res.set("Content-Disposition",'attachment; filename="private-employment-application.pdf"');
         res.send(await renderApplication(application));return;
       }
-      const staffForm = path.match(/^\/staff\/applications\/([a-zA-Z0-9_-]{1,128})\/forms\/(i9|w4|new_hire)(\/pdf)?$/);
+      const staffForm = path.match(/^\/staff\/applications\/([a-zA-Z0-9_-]{1,128})\/forms\/(i9|w4|new_hire|cch)(\/pdf)?$/);
       if (staffForm) {
         if (!uploadsEnabled) throw new WorkforceError(503, "document_collection_pending");
         const record = await personnel.loadForm(staffForm[1]!, staffForm[2] as FormKind, uid);

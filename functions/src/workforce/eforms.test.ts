@@ -57,3 +57,25 @@ test("I-9 employee signing requires accepted offer and one valid status; employe
  assert.ok(!pdf.getForm().getTextField("Signature of Employer or AR").getText());
  for(const id of ["Employers Business or Org Name","Employers Business or Org Address"])assert.equal(pdf.getForm().getField(id).isReadOnly(),true);
 });
+
+test("DPS CCH captures the applicant name, signature and Houston date only", async () => {
+ const schema = await formSchema("cch"), name = "Synthetic Applicant";
+ const input = {revision: 0, fields: {"Applicant Name Print": name}, submit: true,
+   signature: {name, electronicConsent: true, formRead: true}};
+ const at = "2026-11-10T02:15:00.000Z";
+ assert.throws(() => formRecord("test-user", "test-office", schema, null,
+   {...input, fields: {...input.fields, Date: "01/01/2000"}}, name, false, at), /invalid_form_fields/);
+ assert.throws(() => formRecord("test-user", "test-office", schema, null,
+   {...input, fields: {"Applicant Name Print": "Someone Else"}}, name, false, at), /signature_required/);
+ assert.throws(() => formRecord("test-user", "test-office", schema, null,
+   {...input, signature: {...input.signature, name: ""}}, name, false, at), /signature_required/);
+ const record = formRecord("test-user", "test-office", schema, null, input, name, false, at);
+ const form = (await PDFDocument.load(await renderOfficialForm(record))).getForm();
+ assert.deepEqual(form.getFields().map(f => f.getName()).sort(),
+   ["Applicant Name Print", "Applicant Signature", "Date", "employer_name"]);
+ assert.equal(form.getTextField("Applicant Name Print").getText(), name);
+ assert.equal(form.getTextField("Applicant Signature").getText(), name);
+ assert.equal(form.getTextField("Date").getText(), "11/09/2026");
+ assert.equal(form.getTextField("employer_name").getText(), "PRIMETIME HOME HEALTH SERVICES, INC.");
+ assert.ok(form.getFields().every(f => f.isReadOnly()));
+});

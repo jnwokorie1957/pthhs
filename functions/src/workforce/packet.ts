@@ -3,7 +3,7 @@
 import { jobDescription, jobDescriptionSha256 } from "./jobDescription.js";
 import { readings } from "./readings.js";
 export const PACKET_SHA256 = "74ad51735132bbe38a07a8d89daaa51bc935650229a9c6f56d1c2e1b1dcd4a20";
-export const PACKET_VERSION = "pthhs-intake-2026-11-05-v6";
+export const PACKET_VERSION = "pthhs-intake-2026-11-09-v7";
 export interface IntakeField {
   id: string; label: string; section: string; sourcePage: number;
   type: "text" | "date" | "email" | "tel" | "textarea" | "ssn" | "choice";
@@ -50,6 +50,7 @@ for (let i = 1; i <= 1; i++) {
 for (const [key, label] of [["referenceCompany", "Company name"], ["referenceAddress", "Company address"], ["referenceCityStateZip", "Company city, state, ZIP code"], ["referencePhone", "Company telephone number"], ["referenceSupervisor", "Supervisor"], ["referenceDates", "Date employed"]]) field(key!, label!, "References", 5);
 for (const reading of readings) {
   field(`read_page_${reading.page}`, `I read and I agree: ${reading.title}`, "Policies & acknowledgments", reading.page, "choice", true, ["Read"]);
+  if (reading.election) field(`terms_page_${reading.page}`, "Health insurance coverage: accept or decline", "Policies & acknowledgments", reading.page, "choice", true, reading.election);
   if (reading.agreement) field(`terms_page_${reading.page}`, `Your response: ${reading.title}`, "Policies & acknowledgments", reading.page, "choice", true, ["I agree", "I have questions for HR before agreeing"]);
 }
 
@@ -78,13 +79,13 @@ export const packetInventory = [
   { pages: [7], title: "Employability misconduct registry verification", stage: "hr", state: "staff_only" },
   { pages: [8], title: "Verification of employability of unlicensed persons", stage: "onboarding", state: "current_requirements_review" },
   { pages: [9, 10], title: "Confidentiality agreement and protected health information pledge", stage: "onboarding", state: "source_review_required" },
-  { pages: [11], title: "DPS CCH verification form", stage: "hr", state: "not_a_consent_authorization" },
+  { pages: [11], title: "DPS CCH verification form", stage: "application", state: "digitized_applicant_acknowledgment_agency_sections_separate" },
   { pages: [12], title: "Emergency preparedness policy acknowledgment", stage: "onboarding", state: "source_review_required" },
   { pages: [13], title: "Employee contract addendum", stage: "onboarding", state: "legal_review_required" },
   { pages: [14], title: "OSHA bloodborne pathogens fact sheet", stage: "onboarding", state: "reference" },
   { pages: [15], title: "Hepatitis B vaccination or decline", stage: "onboarding", state: "restricted_medical_record" },
   { pages: [16], title: "Workers compensation notice", stage: "onboarding", state: "current_policy_review" },
-  { pages: [17], title: "Health insurance coverage election", stage: "onboarding", state: "current_policy_review" },
+  { pages: [17], title: "Health insurance coverage election", stage: "application", state: "digitized_required_single_election" },
   { pages: [18], title: "Direct deposit notification", stage: "payroll", state: "use_approved_adp_not_email" },
   { pages: [19], title: "Orientation checklist", stage: "onboarding", state: "staff_and_employee_attestations" },
   { pages: [20, 21], title: "Complete HHSC rate information letter", stage: "hr", state: "full_reference_not_pay_promise" },
