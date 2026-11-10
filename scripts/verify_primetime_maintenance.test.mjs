@@ -177,6 +177,8 @@ test('range receipt distinguishes a remaining page from a finished search with u
     unavailable: [{ id: '16', error: 'visit_patient_office_mismatch' }, { id: '17', error: 'unknown_source_code' }] });
   const receipt = f.ids.get('maintenanceReceipt');
   assert.match(receipt.textContent, /More source reads remain/);
+  const list = f.ids.get('maintenanceList');
+  assert.match(f.text(list), /Continue source search/);
   deliver({ ...base, items: [{ ...row, serviceDate: date }], checkedThrough: 3, nextCursor: null, complete: true, unavailable: [] });
   assert.match(receipt.textContent, /3 of 3 returned IDs checked.*Search finished with gaps/);
   assert.match(receipt.textContent, /2 unavailable.*Patient office could not be verified.*Source detail could not be verified/);
@@ -188,6 +190,13 @@ test('range receipt distinguishes a remaining page from a finished search with u
   deliver({ ...base, checkedThrough: 2, nextCursor: 'next', unavailable: [], truncated: true });
   deliver({ ...base, checkedThrough: 3, nextCursor: null, unavailable: [], complete: true });
   assert.match(receipt.textContent, /Search finished with gaps.*HHA discovery truncated/);
+  assert.match(f.text(list), /No readable matches.*coverage is incomplete/);
+  assert.doesNotMatch(f.text(list), /Continue source search|match these filters/);
+
+  f.document.dispatchEvent(new Event('primetime-maintenance-search-started'));
+  deliver({ ...base, totalIds: 0, checkedThrough: 0, nextCursor: null, unavailable: [], complete: true });
+  assert.match(receipt.textContent, /Source pages checked/);
+  assert.match(f.text(list), /No readable visits match this source search/);
 });
 test('source reason/action choices are selectable, staged with the note, and never submitted to HHA',async()=>{
  const f=fixture();f.ready();await tick();f.ids.get('maintenanceList').querySelectorAll('button')[0].click();await tick();
