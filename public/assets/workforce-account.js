@@ -28,7 +28,7 @@
       byId('workforce-email').readOnly=next==='reset'&&!!actor;
       document.title=byId('account-title').textContent+' | Primetime Caregiver Portal';byId('account-title').focus({preventScroll:true});
     }
-    function clear(){clearHha();byId('account-retry').hidden=true;actor=null;dashboard.hidden=true;byId('job-board').hidden=true;byId('caregiver-summary').hidden=true;window.WorkforceBoard.clear();document.dispatchEvent(new CustomEvent('workforce-session-cleared'));byId('portal-release-notice').hidden=true;}
+    function clear(){window.WorkforcePractice?.setVerified(false);clearHha();byId('account-retry').hidden=true;actor=null;dashboard.hidden=true;byId('job-board').hidden=true;byId('caregiver-summary').hidden=true;window.WorkforceBoard.clear();document.dispatchEvent(new CustomEvent('workforce-session-cleared'));byId('portal-release-notice').hidden=true;}
     async function session(user){
       const sequence=++generation;clear();byId('workforce-signout').hidden=!user;
       if(!user){screen(initialMode());message('');return;}
@@ -38,7 +38,7 @@
       message('Opening your caregiver account…');
       try{
         await user.getIdToken(true);const detail=await api('/application/session');if(sequence!==generation)return;
-        actor=detail;byId("dashboard-hha").hidden=!detail.existingCaregiver;byId('dashboard-application').hidden=detail.applicationsEnabled===false||detail.existingCaregiver===true;document.title='My portal | Primetime Caregiver Portal';byId('dashboard-password').textContent=user.providerData?.length&&!user.providerData.some(p=>p.providerId==='password')?'Sign-in help':'Reset password';gateway.hidden=true;dashboard.hidden=false;message('');await window.WorkforceBoard.open(detail,api,openApplication);if(detail.existingCaregiver){byId("job-board").hidden=true;await window.WorkforceHha?.open(api);}
+        actor=detail;byId("dashboard-hha").hidden=!detail.existingCaregiver;byId('dashboard-application').hidden=detail.applicationsEnabled===false||detail.existingCaregiver===true;document.title='My portal | Primetime Caregiver Portal';byId('dashboard-password').textContent=user.providerData?.length&&!user.providerData.some(p=>p.providerId==='password')?'Sign-in help':'Reset password';gateway.hidden=true;dashboard.hidden=false;window.WorkforcePractice?.setVerified(true);message('');await window.WorkforceBoard.open(detail,api,openApplication);if(detail.existingCaregiver){byId("job-board").hidden=true;await window.WorkforceHha?.open(api);}
         if(new URLSearchParams(location.search).get('intent')==='apply')openApplication();
       }catch(error){if(sequence===generation){message(error.message);form.hidden=true;byId('account-retry').hidden=false;}}
     }
