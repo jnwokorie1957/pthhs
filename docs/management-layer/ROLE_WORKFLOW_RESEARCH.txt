@@ -3670,3 +3670,87 @@ acceptance remain separate prerequisites.
 https://github.com/jnwokorie1957/pthhs/pull/19
 https://github.com/jnwokorie1957/pthhs/actions/runs/42856887385
 https://github.com/jnwokorie1957/pthhs/actions/runs/42857170140
+
+
+NOVEMBER 10, 2026 — OFFICE REPORT COVERAGE AND ROLE HANDOFF
+
+Observed source at 6a872537e37866c00b556a249686b550eb898ceb. PR20 keeps returned IDs checked, readable
+matches, unavailable detail, truncated discovery and continuation in the
+maintenance range receipt. Both release jobs passed and the regression ran
+against the exact served asset. Office report and its protected text download
+still disclose only loaded case coverage, saved evidence and generation time.
+A reviewer reading the file cannot tell if the source range had an unread
+page or finished with withheld details. PR19 separately keeps a mismatched
+saved review in its own history. These are two independent coverage questions.
+
+Compare with the authorized November 9 Calendar observation. The owner stop
+left later dates unreviewed. A report covering the selected date range could
+still contain a narrower set of source checks and saved cases. No new private
+session was opened. The prior browser attachment was unavailable. The
+existing held visit needs owner disposition before that review resumes.
+
+Proposed P1 office work: carry the existing range receipt into Office report
+and its download. State the selected service dates, checked/returned IDs,
+readable matches, unavailable count, truncation, next-page availability and
+latest search receipt. Show saved-case coverage and report generation time
+separately. On a background day, identify its API cache and fetch range.
+Reusing the accepted receipt preserves the existing office and patient/visit
+checks. Keep unavailable and staged work outside any completion tally.
+A local case can close while authorization, EVV or billing follow-up remains
+open. HHA's invoice search distinguishes batch, invoice and visit, and its
+reports distinguish service, invoice and payment dates (R114–R115). For a
+future billing handoff require the exact source stage, authorized relationship,
+date basis and independent receipt. Local case state provides no billing fact.
+
+Patient/representative, P2. Show the selected patient's allowed appointment,
+original schedule and request decision as separate facts. HHA's documented
+schedule management is enabled for each family member and applicable patient
+(R16, rechecked). Shared document access still requires an exact patient,
+instance/version and current release. The administrator's document reader
+checks patient/office and document membership again around attachment access.
+It provides source files with limited metadata and no established encounter
+or sharing relationship. Retain separate permissions for schedule requests
+and document retrieval. Public navigation links to the approved sign-in entry.
+
+PT/field staff, P2. Build My day and the caseload from current effective
+office and patient assignment. Link an assigned visit to its applicable
+clinical form and version. Separate author, reviewer, signer and export
+permissions. HHA places visit and patient attachments into a patient list
+with different actions based on origin, and exposes configured submission
+states and filtered administrator exports (R21/R10, rechecked). A record
+in a list is evidence of visibility only. An expired assignment or a
+changed version must be checked again before opening the document or any
+approved export. Patient sharing and workforce eligibility are separate.
+
+Proposed acceptance:
+1. Open Office report after a source page with a cursor, then after the last
+   page with unavailable or previously truncated detail. Report and download
+   preserve the respective receipt. Readable visits remain usable and only
+   the loaded cases appear. A completed local review does not fill missing
+   source or billing evidence.
+2. Verify a true empty range, a partially loaded case list, and a cached day.
+   Each has its own coverage and timestamps. Changing patient, office, date
+   or session invalidates the prior report action and its generated link.
+3. Use a permitted family appointment without a document release and an
+   assigned PT visit with a form version that has changed. Check each link
+   and allowed action at retrieval. Export or review rights do not follow
+   from schedule access. Billing evidence with an invoice date outside the
+   selected service range stays separate and needs exact visit linkage.
+
+The next bounded build uses existing receipt data and creates no new read,
+grant or source action. Signed-in acceptance requires the approved Primetime
+session and an existing incomplete range. Family and clinician examples
+still require the approved relationships and document scope in the owner
+checklist. HHA's open technical case still needs retained event and visit
+linkage and supported readback before source actions expand.
+
+PRIMARY SOURCES CHECKED NOVEMBER 10, 2026
+[R114] HHAeXchange Enterprise, Review Invoice Details.
+https://knowledge.hhaexchange.com/enterprise/Content/Documentation/Billing/Bill-N-Review-Invoice-S.htm
+[R115] HHAeXchange Texas, Billing Reports Definitions.
+https://knowledge.hhaexchange.com/texas/Content/Documentation/Reports/RP-N-Billing-Reports-Definitions-P.htm
+[R116] Primetime source and range release evidence.
+https://github.com/jnwokorie1957/pthhs/blob/6a872537e37866c00b556a249686b550eb898ceb/source/primetime/maintenance.js
+https://github.com/jnwokorie1957/pthhs/blob/6a872537e37866c00b556a249686b550eb898ceb/functions/src/operations/patientDocuments.ts
+https://github.com/jnwokorie1957/pthhs/pull/20
+https://github.com/jnwokorie1957/pthhs/actions/runs/42858800705

@@ -1,5 +1,11 @@
 # PTHHS Management Layer — Developer Checklist
 
+- [ ] Carry the existing range or cached-day receipt into Office report and
+  its protected download. Show source search coverage, loaded saved cases and
+  report generation time separately. Test partial continuation, finished gaps,
+  true empty results and access changes without adding source reads.
+  [Role research and acceptance cases](ROLE_WORKFLOW_RESEARCH.txt).
+
 - [x] November 10 range receipt deployed (PR20/d914da0). It separates
   next-page availability from a finished search with gaps and retains earlier
   unavailable detail and truncation across pages. The regression passed against
