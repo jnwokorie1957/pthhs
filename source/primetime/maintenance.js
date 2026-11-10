@@ -19,10 +19,8 @@
   const comparisonNotice = 'Schedule comparison: Not established in Primetime.';
   const sourceWorkNotice = 'Compare the saved Calendar S / Schedule tab with original EVV. SuggestedScheduleTime and Bill Time are separate. If EVV exceeds the schedule or the comparison is unknown, stop for the owner before continuing other dates.';
   const verificationNotice = 'Clock fields do not establish member verification. Enter a factual review note.';
-  function unavailableEvidence(row) {
-    const reason = window.primetimeDashboardModel?.visitDetailReason?.(row.error) ?? 'Detail unavailable';
-    return `${reason}. Clock presence is unknown.`;
-  }
+  const detailReason = error => window.primetimeDashboardModel?.visitDetailReason?.(error) ?? 'Detail unavailable';
+  const unavailableEvidence = row => `${detailReason(row.error)}. Clock presence is unknown.`;
   function evidenceLines(row) {
     if (row.state === 'unavailable') return [unavailableEvidence(row), comparisonNotice];
     const supplied = value => typeof value === 'string' && value.trim() ? 'supplied' : 'not supplied in this response';
@@ -142,7 +140,14 @@
   function render() {
     if (!day) return;
     const cache = searchMode ? { known: true, complete: searchMode.complete, stale: false, checkedAt: searchMode.checkedAt, startedAt: searchMode.fetchedAt, completedAt: searchMode.complete ? searchMode.checkedAt : null } : day.officeDayCache;
-    $('maintenanceReceipt').textContent = searchMode ? `Office ${day.scope.officeId} · ${searchMode.from} through ${searchMode.to} · Direct HHA API search. ${searchMode.checkedThrough} of ${searchMode.totalIds} returned IDs checked; ${day.items.length} matching readable visits loaded. ${searchMode.complete ? 'Source pages checked.' : 'More source reads remain.'} ${searchMode.truncated ? 'HHA discovery was truncated; narrow the search.' : ''} ${searchMode.unknownPayers ? `${searchMode.unknownPayers} visits had no bill-to contract evidence.` : ''} Source fetched ${searchMode.fetchedAt}.` : `Office ${day.scope.officeId} · ${day.scope.date} · Background HHA API feed, checked ${new Date(cache.checkedAt).toLocaleString()}. `
+    $('maintenanceReceipt').textContent = searchMode
+      ? `Office ${day.scope.officeId} · ${searchMode.from} through ${searchMode.to} · Direct HHA API search. `
+        + `${searchMode.checkedThrough} of ${searchMode.totalIds} returned IDs checked; ${day.items.length} readable matches. `
+        + `${searchMode.nextCursor ? 'More source reads remain.' : searchMode.complete ? 'Source pages checked.' : 'Search finished with gaps.'} `
+        + `${searchMode.unavailableCount ? `${searchMode.unavailableCount} unavailable (${searchMode.unavailableReasons.join(', ')}).` : ''} `
+        + `${searchMode.truncated ? 'HHA discovery truncated; narrow the search.' : ''} `
+        + `${searchMode.unknownPayers ? `${searchMode.unknownPayers} visits lacked bill-to evidence.` : ''} Source fetched ${searchMode.fetchedAt}.`
+      : `Office ${day.scope.officeId} · ${day.scope.date} · Background HHA API feed, checked ${new Date(cache.checkedAt).toLocaleString()}. `
       + `${cache.complete ? 'All returned visit IDs collected.' : 'Collection is partial; counts reflect loaded records.'} ${cache.stale ? 'Feed is stale; saves are blocked.' : ''} `
       + `Source generation started ${cache.startedAt || 'not yet'}; completed ${cache.completedAt || 'pending'}. Times retain source values. Saved office cases are separate from HHA.`;
     $('maintenanceMetrics').replaceChildren(...[
@@ -380,10 +385,16 @@
     if(value?.ok!==true||value.source!=='hhaexchange'||value.mode!=='live'||value.scope?.from!==from||value.scope?.to!==to||!validId(value.scope.officeId)||!Array.isArray(value.items)||value.items.some(row=>!validId(row.id)||typeof row.serviceDate!=='string'||row.serviceDate<from||row.serviceDate>to)) {message('Search response could not be verified. Search again.');return;}
     const previous=searchMode&&day?.scope.officeId===value.scope.officeId?day.items:[];
     const combined=new Map(previous.map(row=>[row.id,row]));for(const row of value.items)combined.set(row.id,row);
-    searchMode={...value.scope,...value,unknownPayers:(searchMode?.unknownPayers||0)+value.unknownPayers,unavailableCount:(searchMode?.unavailableCount||0)+value.unavailable.length,unavailableCodes:[...new Set([...(searchMode?.unavailableCodes||[]),...value.unavailable.map(row=>row.error)])].slice(0,10)};
-    searchMode.complete=value.complete&&searchMode.unknownPayers===0&&searchMode.unavailableCount===0;
+    searchMode = {
+      ...value.scope, ...value,
+      truncated: searchMode?.truncated || value.truncated,
+      unknownPayers: (searchMode?.unknownPayers || 0) + value.unknownPayers,
+      unavailableCount: (searchMode?.unavailableCount || 0) + value.unavailable.length,
+      unavailableReasons: [...new Set([...(searchMode?.unavailableReasons || []), ...value.unavailable.map(row => detailReason(row.error))])].slice(0, 10)
+    };
+    searchMode.complete = value.complete && !searchMode.truncated && searchMode.unknownPayers === 0 && searchMode.unavailableCount === 0;
     day={scope:{officeId:value.scope.officeId,date:from},items:[...combined.values()]};
-    render(); detail(); message(`${day.items.length} matching readable source visits loaded. ${value.checkedThrough} of ${value.totalIds} source IDs checked.${value.nextCursor?' Continue source search for remaining visits.':''}${searchMode.unavailableCount?` ${searchMode.unavailableCount} source detail reads were unavailable (${searchMode.unavailableCodes.join(', ')}).`:''}`);
+    render(); detail(); message(`${day.items.length} readable source matches. ${value.checkedThrough} of ${value.totalIds} IDs checked.`);
   });
   document.addEventListener('primetime-maintenance-search-error',event=>message(event.detail||'HHA search did not finish. Loaded visits remain available.'));
   document.addEventListener('primetime-maintenance-capabilities',event=>{if(day&&event.detail?.officeId!==day.scope.officeId){clear('Office context changed. Refresh to load its source data.');return;}const draft=$('maintenanceNote')?.value;reasonPermission=event.detail?.enabledReads?.includes('GetVisitEditReasonActionTaken')===true;if(day){detail();if(typeof draft==='string'&&$('maintenanceNote'))$('maintenanceNote').value=draft;}});

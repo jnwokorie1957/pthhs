@@ -165,6 +165,30 @@ test('range rows save under their actual service date and show patient/caregiver
  assert.match(f.text(f.ids.get('maintenanceList')),/Member, Synthetic/);f.ids.get('maintenanceList').querySelectorAll('button')[0].click();await tick();f.ids.get('maintenanceNote').value='Synthetic historical source review';f.event('maintenanceCaseForm','submit');await tick();
  const save=f.calls.find(([path])=>path.endsWith('/maintenance/save'));assert.equal(JSON.parse(save[1].body).date,'2026-10-24');assert.equal(f.saved().date,'2026-10-24');
 });
+test('range receipt distinguishes a remaining page from a finished search with unavailable details', async () => {
+  const f = fixture(); f.ready(); await tick();
+  f.ids.get('maintenanceDateTo').value = date;
+  f.document.dispatchEvent(new Event('primetime-maintenance-search-started'));
+  const base = { ok: true, source: 'hhaexchange', mode: 'live', scope: { officeId: '123', from: date, to: date },
+    items: [], totalIds: 3, complete: false, unknownPayers: 0, truncated: false,
+    fetchedAt: date + 'T16:00:00Z', checkedAt: date + 'T16:00:01Z' };
+  const deliver = detail => f.document.dispatchEvent(new CustomEvent('primetime-maintenance-results', { detail }));
+  deliver({ ...base, checkedThrough: 2, nextCursor: 'next',
+    unavailable: [{ id: '16', error: 'visit_patient_office_mismatch' }, { id: '17', error: 'unknown_source_code' }] });
+  const receipt = f.ids.get('maintenanceReceipt');
+  assert.match(receipt.textContent, /More source reads remain/);
+  deliver({ ...base, items: [{ ...row, serviceDate: date }], checkedThrough: 3, nextCursor: null, complete: true, unavailable: [] });
+  assert.match(receipt.textContent, /3 of 3 returned IDs checked.*Search finished with gaps/);
+  assert.match(receipt.textContent, /2 unavailable.*Patient office could not be verified.*Source detail could not be verified/);
+  assert.doesNotMatch(receipt.textContent, /More source reads remain|unknown_source_code/);
+  assert.equal(f.ids.get('maintenanceList').querySelectorAll('button').length, 1);
+  assert.ok(f.calls.every(([path]) => !/maintenance\/(save|calls|reasons)/.test(path)));
+
+  f.document.dispatchEvent(new Event('primetime-maintenance-search-started'));
+  deliver({ ...base, checkedThrough: 2, nextCursor: 'next', unavailable: [], truncated: true });
+  deliver({ ...base, checkedThrough: 3, nextCursor: null, unavailable: [], complete: true });
+  assert.match(receipt.textContent, /Search finished with gaps.*HHA discovery truncated/);
+});
 test('source reason/action choices are selectable, staged with the note, and never submitted to HHA',async()=>{
  const f=fixture();f.ready();await tick();f.ids.get('maintenanceList').querySelectorAll('button')[0].click();await tick();
  f.ids.get('maintenanceDetail').querySelectorAll('button').find(n=>n.textContent==='Load HHA reason / action codes').click();await tick();
