@@ -7,6 +7,7 @@ window.WorkforceManagementAuth = ({form, auth, session, message, api}) => {
   const confirmation = get('staff-confirm-password');
   const username = get('staff-new-username');
   let mode = 'password', emailLink = '', linkForSetup = false, activationCode = '', setupEmail = '', busy = false;
+  let verifiedEmail = '';
 
   function clearPasswords() {
     for (const input of [password, nextPassword, confirmation]) input.value = '';
@@ -20,13 +21,15 @@ window.WorkforceManagementAuth = ({form, auth, session, message, api}) => {
     const confirming = mode === 'confirm';
     const passwordMode = mode === 'password';
     get('staff-password-row').hidden = !passwordMode;
-    get('staff-identifier-row').hidden = choosing;
     get('staff-new-credentials').hidden = !choosing;
     get('staff-back-to-signin').hidden = mode !== 'reset';
     get('staff-first-time').hidden = !passwordMode;
     identifier.type = passwordMode ? 'text' : 'email';
     identifier.required = !choosing;
-    get('staff-identifier-label').textContent = passwordMode ? 'Username or work email' : 'Work email';
+    identifier.readOnly = choosing;
+    if (choosing) identifier.value = setupEmail;
+    if (mode === 'reset' && !identifier.value.includes('@')) identifier.value = verifiedEmail;
+    get('staff-identifier-label').textContent = passwordMode ? 'Username or work email' : choosing ? 'Verified work email' : 'Work email';
     identifier.placeholder = passwordMode ? 'Username or work email' : 'you@work.com';
     password.required = passwordMode;
     nextPassword.required = confirmation.required = choosing;
@@ -34,10 +37,10 @@ window.WorkforceManagementAuth = ({form, auth, session, message, api}) => {
       password:'Sign in with your username or work email and password.',
       reset:'Enter your work email to receive a secure password setup link.',
       confirm:'Confirm the work email that received your link.',
-      choose:'Choose your password. You can also add a username for future sign-ins.'
+      choose:'Your work email is verified. Choose and confirm your password to continue.'
     }[mode];
     get('workforce-login-button').textContent = {
-      password:'Sign in', reset:'Send password setup email', confirm:'Continue', choose:'Save password and sign in'
+      password:'Sign in', reset:'Send password reset link', confirm:'Continue', choose:'Save password and sign in'
     }[mode];
     if (confirming && !linkForSetup) get('workforce-login-button').textContent = 'Finish sign in';
     clearPasswords();
@@ -138,6 +141,7 @@ window.WorkforceManagementAuth = ({form, auth, session, message, api}) => {
       show('confirm');
     },
     setup(email) {
+      verifiedEmail = email;
       setupEmail = email;
       show('choose');
       form.hidden = false;
