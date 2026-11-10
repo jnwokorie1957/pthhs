@@ -191,8 +191,8 @@ const isManagementFile=file=>['primetime/workforce.html','assets/workforce-manag
 const managementFiles=publicFiles.filter(isManagementFile);
 const managementBytes=(await Promise.all(managementFiles.map(file=>fs.stat(file)))).reduce((sum,stat)=>sum+stat.size,0);
 let managementGzip=0;for(const file of managementFiles)managementGzip+=gzipSync(await fs.readFile(file)).length;
-// Dedicated staff dashboard: navigation, live summaries and task-specific panes, without a UI library.
-if(managementBytes>62_000||managementGzip>16_000)errors.push(`workforce management exceeds 62 KB raw / 16 KB gzip budget: ${managementBytes}/${managementGzip}`);
+// The staff dashboard includes navigation, live summaries and an office-scoped team review pane.
+if(managementBytes>64_000||managementGzip>16_000)errors.push(`workforce management exceeds 64 KB raw / 16 KB gzip budget: ${managementBytes}/${managementGzip}`);
 const trainingBytes = (await fs.stat(path.join(publicDir, 'training/staff-workspace-walkthrough-v1.mp4'))).size;
 if (trainingBytes > 750_000) errors.push('Staff training video exceeds the 750 KB media budget');
 const isWorkforceFile = file => {

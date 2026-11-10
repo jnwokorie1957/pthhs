@@ -15,9 +15,14 @@ function fixture() {
         return { id, path: key, collection: (child: string) => collection(key + "/" + child),
           get: async () => ({ exists: documents.has(key), data: () => structuredClone(documents.get(key)) }) };
       },
-      where: (field: string, _: string, value: unknown) => ({ limit: () => ({ get: async () => {
+      where: (field: string, operator: string, value: unknown) => ({ limit: (limit: number) => ({ get: async () => {
         queries.push({ path, field, value });
-        return { docs: [...documents].filter(([key, data]) => key.startsWith(path + "/") && key.split("/").length === 2 && (data as Record<string, unknown>)[field] === value).map(([, data]) => ({ data: () => structuredClone(data) })) };
+        const docs = [...documents].filter(([key, data]) => {
+          if (!key.startsWith(path + "/") || key.split("/").length !== 2) return false;
+          const fieldValue = (data as Record<string, unknown>)[field];
+          return operator === "array-contains" ? Array.isArray(fieldValue) && fieldValue.includes(value) : fieldValue === value;
+        });
+        return { docs: docs.slice(0, limit).map(([key, data]) => ({ id: key.split("/")[1], data: () => structuredClone(data) })) };
       } }) })
     };
   }
@@ -38,6 +43,7 @@ function fixture() {
   documents.set("workforceStaff/editor", grant);
   const auth = {
     async getUser(uid: string) { return users.get(uid); },
+    async getUsers(ids: { uid: string }[]) { return { users: ids.flatMap(({ uid }) => users.get(uid) ?? []) }; },
     async getUserByEmail(email: string) {
       const user = [...users.values()].find(value => value.email === email);
       if (!user) throw Object.assign(Error(), {code: "auth/user-not-found"});
@@ -46,6 +52,20 @@ function fixture() {
   };
   return { store: new WorkforceStore(db as unknown as ConstructorParameters<typeof WorkforceStore>[0], () => auth as unknown as Auth), documents, users, queries, grant };
 }
+test("office managers can review team accounts only in their assigned offices", async () => {
+  const { store, documents, users, grant } = fixture();
+  documents.set("workforceStaff/manager", {...grant, role:"office_manager", permissions:["staff.review"]});
+  for (const [uid, offices] of [["shared", ["synthetic-office", "other-office"]], ["outside", ["other-office"]]] as const) {
+    documents.set("workforceStaff/" + uid, {...grant, offices});
+    users.set(uid, {uid, email:uid + "@example.invalid", emailVerified:true, disabled:false});
+  }
+  await assert.rejects(store.reviewTeam("editor"), /workforce_forbidden/);
+  await assert.rejects(store.inviteStaff("manager", "new@example.invalid", grant), /workforce_forbidden/);
+  const { items } = await store.reviewTeam("manager");
+  assert.deepEqual(items.map(({email, offices}) => ({email, offices})), [
+    {email:"shared@example.invalid", offices:["synthetic-office"]}
+  ]);
+});
 const data = { office: "synthetic-office", internalReference: "synthetic-reference", internalNotes: "Synthetic only", public: { location: "Synthetic area", recruitingZip: "", weeklyHours: 12, schedule: "flexible", assistance: ["respite"], type: "assignment" } };
 test("staff training persists per account and cannot be completed before the video duration", async () => {
   const { store, documents, grant } = fixture();

@@ -119,7 +119,7 @@
     renderApplications(); document.dispatchEvent(new CustomEvent('workforce-applications-updated', {detail:data}));
   }
   async function refreshApplications() {
-    if (!can('applications.review') || !['owner', 'hr'].includes(actor?.grant.role)) return;
+    if (!can('applications.review')) return;
     const session = generation, read = ++applicationRead;
     applicationSelection++; detail.replaceChildren(); status.textContent = ''; applicationState({state:'loading'});
     try {

@@ -239,4 +239,30 @@ export class WorkforceStore {
       return { updated: true };
     });
   }
+  async reviewTeam(uid: string) {
+    const actor = await this.actor(uid);
+    requirePermission(actor, "staff.review");
+    const limitPerOffice = 50;
+    const snapshots = await Promise.all(actor.grant.offices.map(office => this.db.collection("workforceStaff")
+      .where("offices", "array-contains", office).limit(limitPerOffice).get()));
+    const grants = new Map(snapshots.flatMap(snapshot => snapshot.docs.map(doc => [doc.id, parseGrant(doc.data())] as const)));
+    const ids = [...grants.keys()];
+    const users = [];
+    for (let offset = 0; offset < ids.length; offset += 100) {
+      const batch = await this.auth().getUsers(ids.slice(offset, offset + 100).map(uid => ({ uid })));
+      users.push(...batch.users);
+    }
+    // Recheck access after the lookups and restrict the response to the original office scope.
+    const current = await this.actor(uid);
+    requirePermission(current, "staff.review");
+    for (const office of actor.grant.offices) requirePermission(current, "staff.review", office);
+    return {
+      limitPerOffice,
+      items: users.filter(user => user.email).map(user => {
+        const grant = grants.get(user.uid)!;
+        return { email: user.email, active: grant.active && !user.disabled, role: grant.role, permissions: grant.permissions,
+          offices: grant.offices.filter(office => actor.grant.offices.includes(office)) };
+      }).sort((a, b) => a.email!.localeCompare(b.email!)),
+    };
+  }
 }

@@ -298,6 +298,7 @@ export const workforceApi = process.env.PRIMETIME_API_ONLY_DEPLOY === "true" ? u
       res.set("Content-Type", pdf ? "application/pdf" : "image/jpeg"); res.set("Content-Disposition", `attachment; filename="private-document.${pdf ? "pdf" : "jpg"}"`); res.set("Content-Security-Policy", "sandbox");
       res.send(bytes); return;
     }
+    if (path === "/staff/team" && req.method === "GET") { res.json(await store.reviewTeam(uid)); return; }
     if (path === "/staff/opportunities" && req.method === "GET") { res.json(await store.list(uid)); return; }
     if (req.method !== "POST") throw new WorkforceError(405, "method_not_allowed");
     if (!req.is("application/json") || req.rawBody.length > 12000 || !req.body || typeof req.body !== "object" || Array.isArray(req.body)) throw new WorkforceError(400, "invalid_request");

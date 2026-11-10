@@ -2,7 +2,7 @@ import test from 'node:test';import assert from 'node:assert/strict';import fs f
 const source=fs.readFileSync(new URL('../public/assets/workforce-management.js',import.meta.url),'utf8');
 function setup(request=async()=>({items:[]})){
  const elements=new Map(),events=new Map();
- const make=(dataset={})=>({dataset,hidden:true,textContent:'',value:'',attrs:{},handlers:{},clicks:0,setAttribute(key,value){this.attrs[key]=value;},focus(){},addEventListener(name,fn){this.handlers[name]=fn;},dispatchEvent(event){this.handlers[event.type]?.(event);},click(){this.clicks++;this.handlers.click?.();this.onclick?.();}});
+ const make=(dataset={})=>({dataset,hidden:true,textContent:'',value:'',attrs:{},handlers:{},clicks:0,replaceChildren(){},setAttribute(key,value){this.attrs[key]=value;},focus(){},addEventListener(name,fn){this.handlers[name]=fn;},dispatchEvent(event){this.handlers[event.type]?.(event);},click(){this.clicks++;this.handlers.click?.();this.onclick?.();}});
  const el=id=>{if(!elements.has(id))elements.set(id,make());return elements.get(id);};
  const names=['overview','accounts','applications','opportunities','access'],panels=names.map(managerPanel=>make({managerPanel})),links=names.map(managerGo=>make({managerGo,managerView:managerGo}));
  const features=[make({managerFeature:'opportunities'})];
@@ -21,6 +21,21 @@ test('restricted staff cannot navigate to owner or unrelated data tools',()=>{
  const s=setup();s.emit('workforce-session',{grant:{role:'hr',offices:['office-a'],permissions:['accounts.support']}});
  assert.equal(s.show('access'),false);assert.equal(s.show('applications'),false);assert.equal(s.show('opportunities'),false);assert.equal(s.show('accounts'),true);
  assert.equal(s.links.find(link=>link.dataset.managerGo==='access').hidden,true);assert.equal(s.features[0].hidden,true);
+});
+test('office staff land on caregiver accounts and only managers can replay training or review team access', () => {
+  const s = setup();
+  const permissions = ['accounts.support', 'applications.review', 'opportunities.read'];
+  s.emit('workforce-session', {grant:{role:'office', offices:['office-a'], permissions}});
+  assert.deepEqual(s.links.filter(link => !link.hidden).map(link => link.dataset.managerGo), ['accounts', 'applications', 'opportunities']);
+  assert.equal(s.panels[1].hidden, false);
+  assert.equal(s.show('overview'), false);
+  assert.equal(s.show('access'), false);
+  assert.equal(s.el('staff-training-replay').hidden, true);
+  s.emit('workforce-session-cleared');
+  s.emit('workforce-session', {grant:{role:'office_manager', offices:['office-a'], permissions:[...permissions, 'staff.review']}});
+  assert.equal(s.show('overview'), false);
+  assert.equal(s.show('access'), true);
+  assert.equal(s.el('staff-training-replay').hidden, false);
 });
 test('summary cards reflect received states and never substitute a failed count with zero',async()=>{
  const s=setup();s.emit('workforce-session',owner);s.emit('workforce-applications-updated',{state:'unavailable'});assert.equal(s.el('manager-count-applications').textContent,'—');assert.match(s.el('manager-applications-coverage').textContent,/unavailable/);
