@@ -37,6 +37,10 @@ let inlineStyles = 0;
 for (const file of htmlFiles) {
   const relative = path.relative(root, file);
   const html = await fs.readFile(file, "utf8");
+  const primaryNav = html.match(/<nav\b[^>]*class="site-nav"[^>]*>([\s\S]*?)<\/nav>/i);
+  if (primaryNav && [...primaryNav[1].matchAll(/<a\b[^>]*href="\/caregiver"[^>]*>Caregiver Portal<\/a>/g)].length !== 1) {
+    fail(`${relative}: primary navigation must have one Caregiver Portal link`);
+  }
   const assetPattern = /(\b(?:href|src)=)(["'])(\/assets\/[^"'?#]+\.(?:css|js))(?:\?v=([^"'#]*))?\2/gi;
   for (const match of html.matchAll(assetPattern)) {
     const assetUrl = match[3];
