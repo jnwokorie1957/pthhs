@@ -28,6 +28,7 @@ test('a password setup link asks for a new password before access and accepts th
   assert.equal(s.node('workforce-login-button').textContent, 'Continue');
   await s.submit();
   s.controller.setup('office@example.invalid');
+  assert.equal(s.node('staff-login-heading').textContent, 'Create a password');
   assert.equal(s.node('staff-identifier-label').textContent, 'Verified work email');
   assert.equal(s.node('workforce-email').readOnly, true);
   assert.equal(s.node('workforce-email').value, 'office@example.invalid');
@@ -43,6 +44,7 @@ test('a password setup link asks for a new password before access and accepts th
   assert.equal(s.calls[2].path, '/staff-auth/credentials');
   assert.deepEqual(s.calls[3], {kind:'password',email:'office@example.invalid',password:'Demo123!'});
   s.clear();
+  assert.equal(s.node('staff-login-heading').textContent, 'Welcome to your workspace');
   s.node('workforce-email').value = 'demo.staff';
   s.node('staff-forgot-password').onclick();
   assert.equal(s.node('workforce-email').readOnly, false);

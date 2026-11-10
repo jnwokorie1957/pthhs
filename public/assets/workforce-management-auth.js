@@ -33,11 +33,12 @@ window.WorkforceManagementAuth = ({form, auth, session, message, api}) => {
     identifier.placeholder = passwordMode ? 'Username or work email' : 'you@work.com';
     password.required = passwordMode;
     nextPassword.required = confirmation.required = choosing;
+    get('staff-login-heading').textContent = choosing ? 'Create a password' : 'Welcome to your workspace';
     get('manager-login-description').textContent = {
       password:'Sign in with your username or work email and password.',
       reset:'Enter your work email to receive a secure password setup link.',
       confirm:'Confirm the work email that received your link.',
-      choose:'Your work email is verified. Choose and confirm your password to continue.'
+      choose:'Your work email is verified.'
     }[mode];
     get('workforce-login-button').textContent = {
       password:'Sign in', reset:'Send password reset link', confirm:'Continue', choose:'Save password and sign in'
