@@ -1934,3 +1934,58 @@ and preservation/readback. P03/E04 remain open.
 https://github.com/jnwokorie1957/pthhs/pull/20
 https://github.com/jnwokorie1957/pthhs/actions/runs/42858487994
 https://github.com/jnwokorie1957/pthhs/actions/runs/42858800705
+
+
+NOVEMBER 10, 2026 18:55 UTC — EMPTY RANGE RESULTS AND SAME-OFFICE COMPARISON
+
+PR21 keeps three empty queue results distinct. An API nextCursor allows the
+office to continue. With no cursor, a complete search with no matches has a
+separate message from a search with incomplete source coverage. The range
+receipt still explains unavailable details, truncated discovery and missing
+bill-to evidence. Loaded row filters retain a separate message.
+
+Both quality jobs and both Hosting jobs passed for
+6b9fda294d5d975d01ae0144bc2e8f259b986577. The regression reproduced the
+misleading empty result before the fix. All 86 focused tests, deterministic
+assets, repository audit and the 500 KB budget passed. At 18:52:55 UTC seven
+public HTTP checks matched the versioned assets and private access boundary.
+The regression passed against the exact served script with synthetic receipts.
+A naturally empty maintenance range was not exercised in this live comparison.
+
+The old approved tab timed out. A fresh tab in the same Chrome session restored
+authenticated Primetime without a sign-in change. One bounded, on-demand visit
+preview per date verified the same office. Figures are readable page details,
+with no visit IDs or raw values retained.
+
+Date          Readable  Actual pair  EVV pair  Both duration fields  All six
+2026-10-23    10 of 10      10           8              8               8
+2026-10-24     4 of 10       4           3              3               3
+2026-11-10    10 of 10       1           1              1               1
+
+October 24 showed one shared read-limit outcome and five deferred details
+after the limit. The retry and next-page controls were available. The check
+stopped there and did not treat those details as field-empty. On readable
+historical details, the actual pair was supplied even when the EVV pair and
+both durations were not supplied. The current-day Overview separately retained
+a completed cached result while its next source update was delayed. These
+limited pages do not establish the office census, freshness of every detail,
+visit completion or the reason for each readable field absence. The original
+October 24 screenshot remains resolved by the October 31 reread.
+
+The visit projection reads GetVisitInfoV3Result/VisitInfo/VisitStartTime,
+VisitEndTime, EVVStartTime, EVVEndTime, ActualHours and ActualHoursRounded as
+separate optional strings. ScheduleDuration/ScheduleDurationHours and
+ScheduleDuration/ScheduleDurationMinutes are separate integer hour/minute
+components. The displayed field pairs and duration presence do not establish
+original-event linkage or the unit of every raw duration format. No new clock
+or duration was recovered, and no schedule or other field was substituted.
+
+Use the existing scoped preview retry after its displayed delay to check
+deferred October 24 details. The vendor still needs to provide original-event
+linkage, retained history coverage, duration units and preservation/readback
+for the approved integration. P03/E04 remain open. The held November 2 Calendar
+visit still needs the owner's disposition before any visit action.
+
+https://github.com/jnwokorie1957/pthhs/pull/21
+https://github.com/jnwokorie1957/pthhs/actions/runs/42878931082
+https://github.com/jnwokorie1957/pthhs/actions/runs/42879373268

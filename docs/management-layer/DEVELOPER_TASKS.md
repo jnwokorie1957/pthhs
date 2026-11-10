@@ -6,6 +6,13 @@
   true empty results and access changes without adding source reads.
   [Role research and acceptance cases](ROLE_WORKFLOW_RESEARCH.txt).
 
+- [x] November 10 empty range coverage deployed (PR21/6b9fda2). The queue
+  distinguishes continuation, finished gaps and a complete search with no
+  matches. The regression passed against the served script. A bounded,
+  same-office authenticated preview separated readable historical field gaps
+  from details deferred by the shared read limit.
+  [Field, access and release evidence](PRIMETIME_LIVE_DATA_CHECKLIST.txt).
+
 - [x] November 10 range receipt deployed (PR20/d914da0). It separates
   next-page availability from a finished search with gaps and retains earlier
   unavailable detail and truncation across pages. The regression passed against
