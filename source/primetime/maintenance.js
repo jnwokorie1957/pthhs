@@ -9,6 +9,7 @@
   let day = null, cases = new Map(), cursor = null, selected = null, limit = 40, report = false, downloadUrl = null;
   let sourceRetryAt = 0, cooldownTimer = null;
   let searchMode = null, selectionTicket = 0, caseKnown = new Set(), reasonPermission = null, casePageComplete = false;
+  let scopePending = false;
   const serviceDate = row => row?.serviceDate || day?.scope.date;
   const active = () => ready && window.primetimeDataMode?.isLive?.() === true && panel.classList.contains('is-active') && !document.hidden;
   const message = text => { $('maintenanceStatus').textContent = text; };
@@ -28,6 +29,7 @@
       .map(([label, start, end]) => `${label}: start ${supplied(row[start])}; end ${supplied(row[end])}.`).concat(comparisonNotice);
   }
   function checked(ticket) { if (ticket !== generation || !active()) throw new Error('context_changed'); }
+  const canDownload = () => active() && day && !busy && !scopePending;
   function controls() {
     const remaining = Math.max(0, sourceRetryAt - Date.now());
     for (const node of panel.querySelectorAll('button,input,select,textarea')) {
@@ -37,6 +39,7 @@
       node.disabled = !active() || busy && !browse || node.dataset.locked === 'true' || sourceRead && remaining > 0;
       if (sourceRead) node.textContent = (node.dataset.sourceLabel || 'Read caregiver calls') + (remaining ? ` · wait ${Math.ceil(remaining / 1000)}s` : '');
     }
+    $('maintenanceExport').disabled = !canDownload();
     if (remaining && active() && cooldownTimer === null) {
       const ticket = generation;
       cooldownTimer = setTimeout(() => { cooldownTimer = null; if (ticket === generation) controls(); }, Math.min(remaining, 1000));
@@ -45,7 +48,7 @@
   function revoke() { if (downloadUrl) URL.revokeObjectURL(downloadUrl); downloadUrl = null; }
   function clear(note = 'Open this workspace with live data enabled to review visits.') {
     generation++; abort?.abort(); abort = null; busy = false; revoke(); day = null; cases.clear(); cursor = null; selected = null; limit = 40;
-    searchMode = null; casePageComplete = false; selectionTicket++; caseKnown.clear(); $('maintenanceQueue').classList.remove('has-selection');
+    searchMode = null; scopePending = false; casePageComplete = false; selectionTicket++; caseKnown.clear(); $('maintenanceQueue').classList.remove('has-selection');
     if (cooldownTimer !== null) clearTimeout(cooldownTimer); cooldownTimer = null;
     for (const id of ['maintenanceList', 'maintenanceMetrics', 'maintenanceReportRows']) $(id).replaceChildren();
     $('maintenanceDetail').replaceChildren(el('h3', 'Choose a visit'), el('p', 'Open a source visit to inspect times and start an office case.'));
@@ -137,19 +140,33 @@
     return item && (row.state === 'unavailable' || matchesCase(row, item)) ? item : null;
   }
   const openCase = item => !!item && item.status !== 'office_review_complete';
-  function render() {
-    if (!day) return;
-    const cache = searchMode ? { known: true, complete: searchMode.complete, stale: false, checkedAt: searchMode.checkedAt, startedAt: searchMode.fetchedAt, completedAt: searchMode.complete ? searchMode.checkedAt : null } : day.officeDayCache;
-    $('maintenanceReceipt').textContent = searchMode
-      ? `Office ${day.scope.officeId} · ${searchMode.from} through ${searchMode.to} · Direct HHA API search. `
+  const scopeNotice = 'Previous result. Apply the new search scope to download.';
+  function sourceReceipt() {
+    const office = `Office ${day.scope.officeId}`;
+    if (searchMode) {
+      const filters = searchMode.filters?.join(', ') || 'None';
+      return `${office} · ${searchMode.from} through ${searchMode.to} · Direct HHA API search. Applied filters: ${filters}. `
         + `${searchMode.checkedThrough} of ${searchMode.totalIds} returned IDs checked; ${day.items.length} readable matches. `
         + `${searchMode.nextCursor ? 'More source reads remain.' : searchMode.complete ? 'Source pages checked.' : 'Search finished with gaps.'} `
         + `${searchMode.unavailableCount ? `${searchMode.unavailableCount} unavailable (${searchMode.unavailableReasons.join(', ')}).` : ''} `
         + `${searchMode.truncated ? 'HHA discovery truncated; narrow the search.' : ''} `
-        + `${searchMode.unknownPayers ? `${searchMode.unknownPayers} visits lacked bill-to evidence.` : ''} Source fetched ${searchMode.fetchedAt}.`
-      : `Office ${day.scope.officeId} · ${day.scope.date} · Background HHA API feed, checked ${new Date(cache.checkedAt).toLocaleString()}. `
-      + `${cache.complete ? 'All returned visit IDs collected.' : 'Collection is partial; counts reflect loaded records.'} ${cache.stale ? 'Feed is stale; saves are blocked.' : ''} `
-      + `Source generation started ${cache.startedAt || 'not yet'}; completed ${cache.completedAt || 'pending'}. Times retain source values. Saved office cases are separate from HHA.`;
+        + `${searchMode.unknownPayers ? `${searchMode.unknownPayers} visits lacked bill-to evidence.` : ''} Latest search ${searchMode.fetchedAt}.`;
+    }
+    const cache = day.officeDayCache;
+    const scope = `${office} · ${day.scope.date} · Background HHA API cache. Checked ${cache.checkedAt}.`;
+    if (!cache.known) return `${scope} Waiting for source data. Coverage unknown.`;
+    const unavailable = day.items.filter(row => row.state === 'unavailable').length;
+    return `${scope} ${day.items.length} of ${day.discovery?.selectedCount ?? 'unknown'} returned IDs checked; ${day.items.length - unavailable} readable, ${unavailable} unavailable. `
+      + `${cache.complete ? 'All returned IDs collected.' : 'Coverage incomplete.'} ${day.discovery?.truncated ? 'HHA discovery truncated. ' : ''}`
+      + `Searches ${cache.startedAt} to ${cache.latestSearchAt || day.fetchedAt || 'unknown'}. ${cache.stale ? 'Feed is stale. Saves are blocked.' : ''} `
+      + `${cache.error ? detailReason(cache.error) + '. ' : ''}${cache.progress?.retryAt ? `Next attempt after ${cache.progress.retryAt}.` : ''}`;
+  }
+  function renderReceipt() {
+    $('maintenanceReceipt').textContent = (scopePending ? scopeNotice + ' ' : '') + sourceReceipt();
+  }
+  function render() {
+    if (!day) return;
+    renderReceipt();
     $('maintenanceMetrics').replaceChildren(...[
       [day.items.length, 'Source visits loaded'], [day.items.filter(gaps).length, 'Missing EVV fields · not a diagnosis'],
       [day.items.filter(row => openCase(caseForRow(row))).length, 'Open office reviews · loaded visits'],
@@ -174,7 +191,7 @@
       $('maintenanceList').append(node);
     }
     if (!rows.length) {
-      let emptyMessage = cache.known ? 'No loaded visits match these filters.' : 'Waiting for source collection.';
+      let emptyMessage = searchMode || day.officeDayCache.known ? 'No loaded visits match these filters.' : 'Waiting for source collection.';
       if (searchMode && !day.items.length) {
         if (searchMode.nextCursor) emptyMessage = 'Continue source search to check more visits.';
         else if (searchMode.complete) emptyMessage = 'No readable visits match this source search.';
@@ -324,11 +341,12 @@
     }
     controls();
   }
+  function caseCoverage() {
+    return `${cases.size} loaded cases. ${casePageComplete && !searchMode ? 'All requested case pages are loaded. Cases can change concurrently.' : 'Report covers loaded or opened cases only.'}`;
+  }
   function reportText() {
     const rows = [...cases.values()];
-    return ['PRIMETIME OFFICE MAINTENANCE REPORT', `Office ${day.scope.officeId} | Service dates ${searchMode ? `${searchMode.from} through ${searchMode.to}` : day.scope.date} | Generated ${new Date().toISOString()}`,
-      ...(searchMode?['Range reports cover cases opened/loaded in this workspace session; they are not a complete office case census.']:[]),
-      `${rows.length} loaded cases. ${casePageComplete && !searchMode ? 'All requested case pages are loaded; cases may change concurrently.' : 'Case list incomplete; report covers loaded/opened cases only.'}`,
+    return ['PRIMETIME OFFICE MAINTENANCE REPORT', `Generated ${new Date().toISOString()}`, sourceReceipt(), caseCoverage(),
       'HHA changes submitted by this workspace: 0. Office reviews and proposals are not HHA confirmations.', sourceWorkNotice, verificationNotice, '', ...rows.flatMap(item => [
         `Visit ${item.visitId} | Service date ${item.date} | Patient ${item.source.patientId} | Caregiver ${item.source.caregiverId}`,
         `${labels[item.status]} | ${labels[item.queue]} | Follow-up ${item.followUpAt || 'not set'} | Revision ${item.revision}`,
@@ -340,7 +358,9 @@
   }
   function renderReport() {
     const host = $('maintenanceReportRows'); host.replaceChildren();
-    host.append(el('p', `${cases.size} loaded cases. ${casePageComplete && !searchMode ? 'All requested case pages are loaded. Cases can change concurrently.' : 'Case list incomplete; report covers loaded/opened cases only.'}`, 'maintenance-help'));
+    if (!day) return;
+    if (scopePending) host.append(el('p', scopeNotice, 'maintenance-help'));
+    host.append(el('p', sourceReceipt(), 'source-metadata'), el('p', caseCoverage(), 'maintenance-help'));
     if (!cases.size) host.append(el('p', 'Save an office review from the visit queue to include it in the staff report.', 'maintenance-empty'));
     const rowsById = new Map((day?.items ?? []).map(row => [row.id, row]));
     for (const item of cases.values()) {
@@ -369,10 +389,14 @@
     }
   }
   function showTab() { $('maintenanceQueue').hidden = report; $('maintenanceReport').hidden = !report; $('maintenanceQueueTab').setAttribute('aria-pressed', String(!report)); $('maintenanceReportTab').setAttribute('aria-pressed', String(report)); }
-  function restart() { clear(); if (active()) void action(load); }
+  function restart(preserveScopeEdits = false) {
+    const pending = preserveScopeEdits && scopePending;
+    clear(); scopePending = pending;
+    if (active()) void action(load);
+  }
   $('maintenanceDate').value = $('dashboardOverviewDate')?.value || new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Chicago', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date());
   $('maintenanceDate').addEventListener('change', () => clear('Service dates changed. Choose Search HHA visits to read the selected range.'));
-  $('maintenanceRefresh').addEventListener('click', () => { const detail = {handled:false}; document.dispatchEvent(new CustomEvent('primetime-maintenance-refresh',{detail})); if(!detail.handled)restart(); });
+  $('maintenanceRefresh').addEventListener('click', () => { const detail = {handled:false}; document.dispatchEvent(new CustomEvent('primetime-maintenance-refresh',{detail})); if(!detail.handled)restart(true); });
   for (const id of ['maintenanceSearch', 'maintenanceFilter']) $(id).addEventListener(id.endsWith('Search') ? 'input' : 'change', () => { limit = 40; render(); });
   $('maintenanceMoreVisits').addEventListener('click', () => { limit += 40; render(); });
   $('maintenanceMoreCases').addEventListener('click', () => action(async ticket => {
@@ -381,11 +405,17 @@
   $('maintenanceQueueTab').addEventListener('click', () => { report = false; showTab(); });
   $('maintenanceReportTab').addEventListener('click', () => { report = true; showTab(); renderReport(); });
   $('maintenanceExport').addEventListener('click', () => {
-    if (!active() || !day || busy) return; revoke(); downloadUrl = URL.createObjectURL(new Blob([reportText()], { type: 'text/plain;charset=utf-8' }));
+    if (!canDownload()) return; revoke(); downloadUrl = URL.createObjectURL(new Blob([reportText()], { type: 'text/plain;charset=utf-8' }));
     const link = el('a'); link.href = downloadUrl; link.download = `primetime-office-maintenance-${day.scope.date}.txt`; document.body.append(link); link.click(); link.remove();
     message('Private staff report downloaded. It describes office reviews and unsubmitted proposals.');
   });
   document.addEventListener('primetime-ready', () => { ready = true; restart(); });
+  document.addEventListener('primetime-maintenance-scope-edited', () => {
+    if (!active() || scopePending) return;
+    scopePending = true;
+    revoke(); controls();
+    if (day) { renderReceipt(); if (report) renderReport(); }
+  });
   document.addEventListener('primetime-maintenance-search-started',()=>clear('Searching HHA for the selected date range…'));
   document.addEventListener('primetime-maintenance-results',event=>{
     if(!active())return;
@@ -407,7 +437,7 @@
   document.addEventListener('primetime-maintenance-search-error',event=>message(event.detail||'HHA search did not finish. Loaded visits remain available.'));
   document.addEventListener('primetime-maintenance-capabilities',event=>{if(day&&event.detail?.officeId!==day.scope.officeId){clear('Office context changed. Refresh to load its source data.');return;}const draft=$('maintenanceNote')?.value;reasonPermission=event.detail?.enabledReads?.includes('GetVisitEditReasonActionTaken')===true;if(day){detail();if(typeof draft==='string'&&$('maintenanceNote'))$('maintenanceNote').value=draft;}});
   document.addEventListener('primetime-signed-out', () => { ready = false; clear('Sign in to open visit maintenance.'); });
-  document.addEventListener('primetime-data-mode-changed', restart);
+  document.addEventListener('primetime-data-mode-changed', () => restart());
   // This workspace owns its date and server-checked office context. Preview page
   // refreshes must not discard its draft; its own session/mode/date events do.
   document.addEventListener('primetime-view-changed', event => { if (event.detail?.view === 'maintenance') restart(); else clear(); });

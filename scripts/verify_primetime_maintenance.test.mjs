@@ -29,7 +29,7 @@ function fixture({ active = false, live = true, rows = [row], fakeTimers = false
   ids.get('dashboardOverviewDate').value = date; ids.get('maintenanceFilter').value = 'all';
   ids.get('maintenanceWorkspace').children.push(...[...ids.entries()].filter(([id]) => id !== 'maintenanceWorkspace').map(([,node]) => node));
   const document = new EventTarget(); document.hidden = false; document.getElementById = id => ids.get(id); document.createElement = tag => new Element(tag); document.body = new Element('body');
-  const calls = []; let saved = null, exported = null, delayed = null;
+  const calls = [], revoked = []; let saved = null, exported = null, delayed = null;
   let handler = async (path, options) => {
     if (path.includes('/views/office-day')) return { ...day, items: structuredClone(rows) };
     if (path.includes('/maintenance/cases')) return { ok: true, scope: day.scope, items: saved ? [saved] : [], nextCursor: null, hhaWritesEnabled: false };
@@ -48,9 +48,9 @@ function fixture({ active = false, live = true, rows = [row], fakeTimers = false
   vm.runInNewContext(source, { document, window: { primetimeDashboardModel: dashboardWindow.primetimeDashboardModel, primetimeDataMode: { isActive: () => active, isLive: () => live }, primetimeApiFetch: async (...args) => {
     calls.push(args); if (delayed) return delayed;
     const value = await handler(...args); return new Response(JSON.stringify(value), { status: value.status || 200 });
-  } }, AbortController, CustomEvent, Date, Intl, Map, Set, setTimeout:fakeTimers ? (fn,ms)=>{const id=nextTimer++;timers.set(id,{fn,ms});return id;} : setTimeout, clearTimeout:fakeTimers ? id=>timers.delete(id) : clearTimeout, URL: { createObjectURL(blob) { exported = blob; return 'blob:synthetic'; }, revokeObjectURL() {} }, Blob });
+  } }, AbortController, CustomEvent, Date, Intl, Map, Set, setTimeout:fakeTimers ? (fn,ms)=>{const id=nextTimer++;timers.set(id,{fn,ms});return id;} : setTimeout, clearTimeout:fakeTimers ? id=>timers.delete(id) : clearTimeout, URL: { createObjectURL(blob) { exported = blob; return 'blob:synthetic'; }, revokeObjectURL(url) { revoked.push(url); } }, Blob });
   const event = (id, name = 'click') => ids.get(id).dispatchEvent(new Event(name, { cancelable: true }));
-  return { ids, calls, document, event, fireTimeouts(){for(const[id,timer]of [...timers]){timers.delete(id);timer.fn();}}, text(node) { return node.textContent + node.children.map(child => this.text(child)).join(' '); }, saved: () => saved, exported: () => exported,
+  return { ids, calls, revoked, document, event, fireTimeouts(){for(const[id,timer]of [...timers]){timers.delete(id);timer.fn();}}, text(node) { return node.textContent + node.children.map(child => this.text(child)).join(' '); }, saved: () => saved, exported: () => exported,
     handler(value) { handler = value; }, delay(value) { delayed = value; }, enter() { active = true; document.dispatchEvent(Object.assign(new Event('primetime-view-changed'), { detail: { view: 'maintenance' } })); },
     ready() { active = true; document.dispatchEvent(new Event('primetime-ready')); }, demo() { live = false; document.dispatchEvent(new Event('primetime-data-mode-changed')); }, leave() { active = false; document.dispatchEvent(Object.assign(new Event('primetime-view-changed'), { detail: { view: 'overview' } })); } };
 }
@@ -99,6 +99,8 @@ test('protected report uses the saved case evidence while selected visit evidenc
   f.event('maintenanceReportTab'); assert.match(f.text(f.ids.get('maintenanceReportRows')), /Saved case evidence.*EVV fields: start supplied; end not supplied in this response/);
   f.event('maintenanceExport'); const report = await f.exported().text();
   assert.match(report, /Saved case evidence/);
+  assert.match(report, /Generated \d{4}-\d{2}-\d{2}T.*\nOffice .*Background HHA API cache/);
+  assert.match(report, /1 loaded cases/);
   assert.match(report, /EVV fields: start supplied; end not supplied in this response/);
   assert.match(report, /Schedule comparison: Not established in Primetime/);
   assert.match(report, /HHA changes submitted by this workspace: 0/);
@@ -197,6 +199,51 @@ test('range receipt distinguishes a remaining page from a finished search with u
   deliver({ ...base, totalIds: 0, checkedThrough: 0, nextCursor: null, unavailable: [], complete: true });
   assert.match(receipt.textContent, /Source pages checked/);
   assert.match(f.text(list), /No readable visits match this source search/);
+});
+test('report and download retain accepted range coverage and lock on pending scope or office changes', async () => {
+  const f = fixture();
+  f.ready(); await tick();
+  f.ids.get('maintenanceDateTo').value = date;
+  f.event('maintenanceReportTab');
+  const exportButton = f.ids.get('maintenanceExport'), report = f.ids.get('maintenanceReportRows');
+  const scope = { officeId: '123', from: date, to: date };
+  const fetchedAt = date + 'T16:00:00Z';
+  const base = { ok: true, source: 'hhaexchange', mode: 'live', scope, fetchedAt, checkedAt: fetchedAt,
+    items: [], totalIds: 2, unknownPayers: 0, truncated: false, filters: ['Patient ID 25', 'Payer contract ID 75'] };
+  const start = () => f.document.dispatchEvent(new Event('primetime-maintenance-search-started'));
+  const deliver = detail => f.document.dispatchEvent(new CustomEvent('primetime-maintenance-results', { detail }));
+  start();
+  deliver({ ...base, checkedThrough: 1, nextCursor: 'next', unavailable: [{ id: '16', error: 'vendor_backoff_active' }], complete: false });
+  const receipt = f.ids.get('maintenanceReceipt');
+  assert.match(receipt.textContent, /Applied filters: Patient ID 25, Payer contract ID 75.*1 of 2.*More source reads remain.*Vendor retry delay recorded/);
+  assert.ok(f.text(report).includes(receipt.textContent));
+  f.event('maintenanceExport');
+  assert.ok((await f.exported().text()).includes(receipt.textContent));
+  deliver({ ...base, checkedThrough: 2, nextCursor: null, unavailable: [], complete: true, items: [{ ...row, serviceDate: date }] });
+  assert.match(receipt.textContent, /2 of 2.*1 readable match.*finished with gaps.*1 unavailable/);
+  f.event('maintenanceExport');
+  assert.ok((await f.exported().text()).includes(receipt.textContent));
+  const lastExport = f.exported(), callsBefore = f.calls.length;
+  f.ids.get('maintenanceDateTo').value = '2026-11-06';
+  f.document.dispatchEvent(new Event('primetime-maintenance-scope-edited'));
+  assert.match(f.text(report), /Previous result.*Patient ID 25, Payer contract ID 75/);
+  assert.equal(exportButton.disabled, true);
+  f.event('maintenanceExport');
+  assert.equal(f.exported(), lastExport);
+  assert.deepEqual(f.revoked, ['blob:synthetic', 'blob:synthetic']);
+  assert.equal(f.calls.length, callsBefore);
+  start();
+  assert.equal(exportButton.disabled, true);
+  deliver({ ...base, scope: { ...scope, to: '2026-11-06' }, filters: ['Caregiver ID 35'], totalIds: 0,
+    checkedThrough: 0, nextCursor: null, unavailable: [], complete: true });
+  assert.match(f.text(report), /Applied filters: Caregiver ID 35.*0 of 0.*Source pages checked/);
+  assert.equal(exportButton.disabled, false);
+  f.event('maintenanceExport');
+  f.document.dispatchEvent(new CustomEvent('primetime-maintenance-capabilities', { detail: { officeId: '124' } }));
+  assert.equal(exportButton.disabled, true);
+  assert.equal(report.children.length, 0);
+  assert.equal(f.revoked.length, 3);
+  assert.equal(f.calls.length, callsBefore);
 });
 test('source reason/action choices are selectable, staged with the note, and never submitted to HHA',async()=>{
  const f=fixture();f.ready();await tick();f.ids.get('maintenanceList').querySelectorAll('button')[0].click();await tick();
