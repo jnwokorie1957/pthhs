@@ -219,7 +219,24 @@ export const workforceApi = process.env.PRIMETIME_API_ONLY_DEPLOY === "true" ? u
     const rosterDetail=path.match(/^\/staff\/roster\/([1-9]\d{0,9})\/(detail|access|files\/([1-9]\d{0,9}))$/);
     if(rosterDetail){
       if(!existingAccessEnabled)throw new WorkforceError(503,"existing_access_pending");await recentWorkforceIdentity(req);
-      const actor=await store.actor(uid),service=await hhaEnrollment(),profile=existingAccessEnabled?await service.stage(actor,rosterDetail[1]!):await service.inspect(actor,rosterDetail[1]!);
+      const actor=await store.actor(uid),service=await hhaEnrollment(),id=rosterDetail[1]!;
+      let profile;
+      try { profile = await service.stage(actor, id); }
+      catch (error) {
+        const code = (error as {code?:string})?.code;
+        const canUseSavedProfile = req.method === "GET" && rosterDetail[2] === "detail"
+          && ["read_budget_exhausted_retry_next_minute", "vendor_backoff_active", "hha_read_failed",
+            "hha_source_temporarily_unavailable", "hha_profile_unavailable"].includes(code ?? "");
+        if (!canUseSavedProfile) throw error;
+        const saved = await hhaDirectory(uid).savedProfile(getFirestore(), id);
+        if (!saved) throw new WorkforceError(503, "hha_profile_unavailable");
+        const current = await store.actor(uid);
+        requirePermission(current, "accounts.support", saved.office);
+        const documentsAllowed = current.grant.permissions.includes("documents.review");
+        if (!documentsAllowed) delete saved.fields.BirthDate;
+        res.json({profile:saved, savedProfile:true, files:null, filesUnavailable:true,
+          filesPermissionDenied:!documentsAllowed, accessEnabled:false}); return;
+      }
       if(rosterDetail[2]==="access"&&req.method==="POST"){if(!existingAccessEnabled)throw new WorkforceError(503,"existing_access_pending");if(!req.is("application/json")||req.rawBody.length>100||!req.body||Object.keys(req.body).length)throw new WorkforceError(400,"invalid_request");res.json(await service.requestAccess(profile.email,"staff:"+uid));return;}
       if(req.method!=="GET")throw new WorkforceError(405,"method_not_allowed");
       if(rosterDetail[3]){requirePermission(actor,"documents.review",profile.office);const file=await new HhaProfileSource(hhaWorkspace(),uid,profile.office).download(profile.id,rosterDetail[3]);requirePermission(await store.actor(uid),"documents.review",profile.office);res.set("Content-Type",file.bytes.subarray(0,5).toString("ascii")==="%PDF-"?"application/pdf":"application/octet-stream");res.set("Content-Disposition","attachment; filename*=UTF-8''"+encodeURIComponent(file.filename));res.set("Content-Security-Policy","sandbox");res.send(file.bytes);return;}

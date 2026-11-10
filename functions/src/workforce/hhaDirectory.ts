@@ -1,9 +1,10 @@
 import type {OperationsWorkspace} from "../operations/workspace.js";
 import {FieldPath, type Firestore} from "firebase-admin/firestore";
-import {ACTIVE_HHA_CAREGIVER_STATUS, cachedHhaName} from "./hhaCachedNames.js";
+import {ACTIVE_HHA_CAREGIVER_STATUS, HHA_ROSTER_FRESHNESS_MS, cachedHhaName} from "./hhaCachedNames.js";
 import {identifier} from "../operations/reads.js";
 import {nameQuery,normalizeName} from "./directory.js";
 import {requirePermission,WorkforceError,type Actor} from "./policy.js";
+import type {HhaProfile} from "./hhaSource.js";
 
 type Workspace=Pick<OperationsWorkspace,"settings"|"query">;
 export class HhaDirectory {
@@ -44,32 +45,50 @@ export class HhaDirectory {
   return {items,hasMore,source:"hhaexchange" as const};
  }
  async profile(id:string){const context=await this.scope(),record=await this.record(identifier(id),context);if(!record)throw new WorkforceError(404,"caregiver_account_unavailable");const current=await this.scope();if(current.office!==context.office||current.revision!==context.revision)throw new WorkforceError(409,"revision_conflict");return record;}
+ async savedProfile(db: Firestore, id: string): Promise<HhaProfile | null> {
+  const {office, revision} = await this.scope();
+  const row = (await db.collection("workforceHhaProfiles").doc(identifier(id)).get()).data();
+  const name = row && cachedHhaName(office, row, Date.now());
+  if (!name || name.hhaId !== id || typeof row?.email !== "string" || !row.fields || typeof row.fields !== "object") {
+   return null;
+  }
+  const current = await this.scope();
+  if (current.office !== office || current.revision !== revision) throw new WorkforceError(409, "revision_conflict");
+  return {id, office, firstName:name.firstName, lastName:name.lastName, status:name.state, code:name.code,
+   fetchedAt:name.fetchedAt, email:row.email, fields:row.fields};
+ }
  async browse(db: Firestore, after?: unknown) {
   const {office, revision} = await this.scope();
   const profiles = db.collection("workforceHhaProfiles");
   const pageSize = 50;
-  let query = profiles.where("office", "==", office).where("status", "==", ACTIVE_HHA_CAREGIVER_STATUS)
-   .orderBy("lastName").orderBy(FieldPath.documentId());
+  const active = profiles.where("office", "==", office).where("status", "==", ACTIVE_HHA_CAREGIVER_STATUS);
+  let query = active.orderBy("lastName").orderBy("firstName").orderBy(FieldPath.documentId());
   if (after !== undefined) {
    if (typeof after !== "string" || !/^[1-9]\d{0,9}$/.test(after)) throw new WorkforceError(400, "invalid_request");
    const cursor = await profiles.doc(after).get();
    const data = cursor.data();
-   if (data?.office !== office || typeof data.lastName !== "string") throw new WorkforceError(400, "invalid_request");
-   query = query.startAfter(data.lastName, cursor.id);
+   if (data?.office !== office || typeof data.lastName !== "string" || typeof data.firstName !== "string") {
+    throw new WorkforceError(400, "invalid_request");
+   }
+   query = query.startAfter(data.lastName, data.firstName, cursor.id);
   }
-  const [page, ready, run] = await Promise.all([
+  const now = Date.now();
+  const [page, ready, run, count] = await Promise.all([
    query.select("id", "office", "firstName", "lastName", "status", "code", "fetchedAt").limit(pageSize + 1).get(),
    db.collection("workforceHhaRosterReady").doc(office).get(),
    db.collection("workforceHhaSyncRuns").doc(office).get(),
+   active.where("fetchedAt", ">", new Date(now - HHA_ROSTER_FRESHNESS_MS).toISOString())
+    .where("fetchedAt", "<=", new Date(now).toISOString()).count().get(),
   ]);
   const current = await this.scope();
   if (current.office !== office || current.revision !== revision) throw new WorkforceError(409, "revision_conflict");
-  const now = Date.now();
   return {
+   activeCount: count.data().count,
    items: page.docs.slice(0, pageSize).map(doc => cachedHhaName(office, doc.data(), now)).filter(item => item !== null),
    next: page.docs.length > pageSize ? page.docs[pageSize - 1]!.id : null,
    syncedAt: ready.data()?.completedAt ?? null,
    refreshFailed: run.data()?.state === "failed",
+   refreshRunning: run.data()?.state === "running",
   };
  }
 }

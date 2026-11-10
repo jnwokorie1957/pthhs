@@ -35,6 +35,20 @@ test("live name search excludes HHA caregivers marked inactive", async () => {
  s.state.status = "Inactive";
  assert.deepEqual((await s.directory.search("Hannah Hart")).items, []);
 });
+test("saved details require a current active profile in the assigned office", async () => {
+ const s = setup();
+ const row = {id:"101", office:"12", firstName:"Sample", lastName:"Caregiver", status:"Active",
+  fetchedAt:new Date().toISOString(), email:"sample@example.invalid", fields:{EmployeeType:"Employee"}, emailKey:"private-index"};
+ const db = {collection: () => ({doc: () => ({get: async () => ({data: () => row})})})};
+ const firestore = db as unknown as Parameters<HhaDirectory["savedProfile"]>[0];
+ assert.equal((await s.directory.savedProfile(firestore, "101"))?.fields.EmployeeType, "Employee");
+ assert.doesNotMatch(JSON.stringify(await s.directory.savedProfile(firestore, "101")), /private-index/);
+ row.status = "Inactive";
+ assert.equal(await s.directory.savedProfile(firestore, "101"), null);
+ row.status = "Active";
+ row.office = "99";
+ assert.equal(await s.directory.savedProfile(firestore, "101"), null);
+});
 test("roster pages use the approved office, return names only and disclose incomplete refreshes", async () => {
  const s = setup();
  const syncedAt = new Date().toISOString();
@@ -43,14 +57,21 @@ test("roster pages use the approved office, return names only and disclose incom
   return {id, data: () => ({id, office:"12", firstName:"Sample", lastName:"Caregiver", status:"Active", fetchedAt:syncedAt, email:"private@example.invalid"})};
  });
  let offset = 0;
+ const sortFields: unknown[] = [];
  const query = {
   where(field: string, operator: string, value: string) {
-   assert.deepEqual([field, operator, value], ["status", "==", "Active"]);
+   if (field === "status") assert.deepEqual([operator, value], ["==", "Active"]);
+   else {
+    assert.equal(field, "fetchedAt");
+    assert.ok([">", "<="].includes(operator));
+    assert.ok(Number.isFinite(Date.parse(value)));
+   }
    return query;
   },
-  orderBy() { return query; },
-  startAfter(lastName: string, id: string) {
-   assert.equal(lastName, "Caregiver");
+  count() { return {get: async () => ({data: () => ({count: rows.length})})}; },
+  orderBy(field: unknown) { sortFields.push(field); return query; },
+  startAfter(lastName: string, firstName: string, id: string) {
+   assert.deepEqual([lastName, firstName], ["Caregiver", "Sample"]);
    offset = rows.findIndex(row => row.id === id) + 1;
    return query;
   },
@@ -69,6 +90,8 @@ test("roster pages use the approved office, return names only and disclose incom
  }} as unknown as Parameters<HhaDirectory["browse"]>[0];
  const first = await s.directory.browse(db);
  assert.equal(first.items.length, 50);
+ assert.equal(first.activeCount, 51);
+ assert.deepEqual(sortFields.slice(0, 2), ["lastName", "firstName"]);
  assert.equal(first.syncedAt, syncedAt);
  assert.equal(first.refreshFailed, true);
  assert.doesNotMatch(JSON.stringify(first), /private@example/);

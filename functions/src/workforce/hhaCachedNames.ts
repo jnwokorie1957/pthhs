@@ -1,13 +1,14 @@
 import {nameQuery,normalizeName} from './directory.js';
 import {requirePermission,type Actor} from './policy.js';
 export const ACTIVE_HHA_CAREGIVER_STATUS = 'Active';
+export const HHA_ROSTER_FRESHNESS_MS = 36 * 3600000;
 // Names only. Cached source records never authorize account linking or file reads.
 export function cachedHhaName(office: string, row: Record<string, unknown>, now: number) {
  const {id, firstName, lastName, fetchedAt} = row;
  if (row.office !== office || row.status !== ACTIVE_HHA_CAREGIVER_STATUS || typeof id !== 'string' || !/^[1-9]\d{0,9}$/.test(id)
   || typeof firstName !== 'string' || typeof lastName !== 'string' || typeof fetchedAt !== 'string') return null;
  const age = now - Date.parse(fetchedAt);
- if (!Number.isFinite(age) || age < 0 || age >= 36 * 3600000) return null;
+ if (!Number.isFinite(age) || age < 0 || age >= HHA_ROSTER_FRESHNESS_MS) return null;
  return {uid:'hha-'+id,hhaId:id,source:'hhaexchange' as const,firstName,lastName,state:ACTIVE_HHA_CAREGIVER_STATUS,code:String(row.code||''),office,fetchedAt};
 }
 export function cachedHhaNames(actor:Actor,office:string,input:unknown,rows:Record<string,unknown>[],now=Date.now()){

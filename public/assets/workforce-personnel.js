@@ -89,7 +89,9 @@
       if(match.source==='hhaexchange'){
         const data=await workforceApi('/staff/roster/'+encodeURIComponent(match.hhaId)+'/detail');if(!current())return;
         window.WorkforceHha.render(accountDetail,data,workforceApi,'/staff/roster/'+encodeURIComponent(match.hhaId)+'/files/',current);
-        if(data.accessEnabled){const access=node('button','Send portal access link','btn-secondary');access.type='button';access.onclick=async()=>{access.disabled=true;try{await workforceApi('/staff/roster/'+encodeURIComponent(match.hhaId)+'/access',{});if(current())accountMessage.textContent='If the source email uniquely matches, a portal password link has been requested.';}catch(error){if(current())accountMessage.textContent=error.message;}finally{if(current())access.disabled=false;}};accountDetail.append(access);}accountMessage.textContent='';return;
+        if(data.accessEnabled){const access=node('button','Send portal access link','btn-secondary');access.type='button';access.onclick=async()=>{access.disabled=true;try{await workforceApi('/staff/roster/'+encodeURIComponent(match.hhaId)+'/access',{});if(current())accountMessage.textContent='If the source email uniquely matches, a portal password link has been requested.';}catch(error){if(current())accountMessage.textContent=error.message;}finally{if(current())access.disabled=false;}};accountDetail.append(access);}
+        accountMessage.textContent=data.savedProfile ? 'HHA unavailable. Details saved ' + date(data.profile.fetchedAt) + ' CT.' : '';
+        return;
       }
       const account = await workforceApi('/staff/accounts/' + encodeURIComponent(match.uid) + '/profile'); if (!current()) return;
       const heading = node('div', undefined, 'caregiver-profile-heading'); heading.append(node('h2', [match.firstName, match.lastName].filter(Boolean).join(' ')), node('span', human(account.state), 'manager-status manager-status-' + account.state)); accountDetail.append(heading);
@@ -150,11 +152,18 @@
           : response.items.length ? 'Select a caregiver to open their profile.' : 'No matching caregivers found.';
         if(response.hhaUnavailable)accountMessage.textContent+=response.hhaCached?' Live HHA lookup is busy. Showing synchronized HHA names and portal matches.':' HHAeXchange is unavailable; portal matches only.';
       } else {
-        accountMessage.textContent = (response.syncedAt ? 'Last completed HHA sync: ' + date(response.syncedAt) + ' CT.' : 'No completed HHA sync on record.')
-          + (response.refreshFailed ? ' The latest refresh failed.' : '')
-          + (results.childElementCount || response.items.length ? ' Showing active HHA caregivers.' : ' No recently synced active caregivers on this page.');
+        accountMessage.textContent = response.activeCount.toLocaleString() + ' active HHA caregivers available. '
+          + (response.syncedAt ? 'Last sync: ' + date(response.syncedAt) + ' CT.' : 'First sync pending.')
+          + (response.refreshFailed ? ' The latest refresh failed.' : response.refreshRunning ? ' Refresh in progress.' : '');
       }
-      for (const match of response.items) { const button = node('button', [match.firstName, match.lastName].filter(Boolean).join(' ') + ' · ' + (match.source==='hhaexchange'?'HHAeXchange':human(match.state)), 'caregiver-search-result'); button.type = 'button'; button.onclick = () => openAccount(match); results.append(button); }
+      const {items} = response;
+      if (query) items.sort((a, b) => a.lastName.localeCompare(b.lastName) || a.firstName.localeCompare(b.firstName));
+      for (const match of items) {
+        const displayName = [match.lastName, match.firstName].filter(Boolean).join(', ');
+        const source = match.source === 'hhaexchange' ? 'HHAeXchange' : human(match.state);
+        const button = node('button', displayName + ' · ' + source, 'caregiver-search-result');
+        button.type = 'button'; button.onclick = () => openAccount(match); results.append(button);
+      }
     } catch (error) { if (session === generation && sequence === accountSelection) accountMessage.textContent = error.message; }
     finally { if (session === generation) moreCaregivers.disabled = false; }
   }
