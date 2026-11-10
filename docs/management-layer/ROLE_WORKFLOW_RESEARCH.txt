@@ -3643,3 +3643,30 @@ https://github.com/jnwokorie1957/pthhs/blob/2b28eb502e5c7ec31953129e764967a22075
 https://github.com/jnwokorie1957/pthhs/blob/2b28eb502e5c7ec31953129e764967a22075cfcc/functions/src/maintenance/service.ts
 https://github.com/jnwokorie1957/pthhs/blob/2b28eb502e5c7ec31953129e764967a22075cfcc/functions/src/workforce/policy.ts
 https://github.com/jnwokorie1957/pthhs/actions/runs/42686922671
+
+
+NOVEMBER 10, 2026 — OFFICE QUEUE PATIENT AND DATE MATCH
+
+A saved office review can precede the current patient on a visit row with the
+same visit ID. The report already offered such a case as read-only history.
+PR19 applies the same patient and service-date check to the queue. A mismatch
+does not supply a status badge or count for the current readable visit, and
+opening it keeps current source evidence visible and points to Office report.
+The prior call, reason, proposal and editable review stay out
+of the current visit detail. Saved report history remains available under the
+existing office scope. A matching case follows the normal saved revision read.
+
+The regression covers both a case already listed and one returned by the
+selected-visit lookup. All 308 focused tests passed. Both quality and both
+Hosting jobs passed for 092ebc329df6992277cbcfaf62babb9f80cee84a. At 2026-11-10 16:43 UTC, the versioned maintenance
+asset and shell matched the reviewed Git bytes. The regression also passed
+against the exact served script with synthetic receipts. Anonymous denial and
+private noindex were verified. Signed-in acceptance requires the approved
+Primetime session and an existing matching case or a naturally occurring
+mismatch. The stop for the held linked overage still needs owner direction.
+Office-scope checks, source action approval and patient/clinician role
+acceptance remain separate prerequisites.
+
+https://github.com/jnwokorie1957/pthhs/pull/19
+https://github.com/jnwokorie1957/pthhs/actions/runs/42856887385
+https://github.com/jnwokorie1957/pthhs/actions/runs/42857170140

@@ -1,5 +1,15 @@
 # PTHHS Management Layer — Developer Checklist
 
+- [x] November 10 office queue case scope deployed (PR19/092ebc3).
+  A readable visit requires a matching patient and date to open its saved
+  editor or inherit its status. Mismatched cases remain in read-only Office
+  report history. The regression passed against the served maintenance asset.
+  [Role and acceptance evidence](ROLE_WORKFLOW_RESEARCH.txt).
+- [ ] Include the queue identity check in the pending authenticated maintenance
+  acceptance. Use the approved session and existing records to compare a
+  matching case and any naturally occurring mismatched case. Preserve the
+  current source receipts and saved report history.
+
 - [x] November 10 canonical sitemap discovery reconciled. Search Console
   reports 36 discovered pages, matching the live file count. All 36 canonical
   routes and five private entry responses passed delivery checks. Indexing and
