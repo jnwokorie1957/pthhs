@@ -5,12 +5,16 @@
   absent field or unavailable detail. Signed-in production showed an empty
   actual endpoint with no recorded span after reloading the new shell.
   [Field and release evidence](PRIMETIME_LIVE_DATA_CHECKLIST.txt).
-- [ ] Review revalidation for the Primetime HTML shell. A fresh Chrome tab
-  initially served the prior fingerprint after a Hosting release. Check
-  actual HTML aliases, a previously cached revisit/reload and history return.
-  Verify the served fingerprint and private noindex alongside the separate
-  API/source receipt. Preserve fingerprinted asset caching and protected API
-  responses. [Acceptance and primary references](ROLE_WORKFLOW_RESEARCH.txt).
+- [x] November 11 Primetime HTML revalidation deployed (PR24/24047bd).
+  The canonical entry returns no-cache; three HTML aliases redirect to it.
+  Production bytes, private noindex, immutable assets and protected API
+  policies pass. Chrome revisit, normal reload and history return retain
+  the current fingerprint. [Release and limits](../seo/2026-11-11-primetime-shell-revalidation.md).
+- [ ] At the next runtime release, observe a previously cached Primetime
+  entry crossing the release boundary. The new policy applies after a
+  network response; it cannot retroactively evict an older fresh response
+  or force an already open/history-restored page to fetch source data.
+  [Acceptance and primary references](ROLE_WORKFLOW_RESEARCH.txt).
 
 - [x] November 10 office report scope deployed (PR22/86fa979). The report
   and download carry the accepted range or cached-day receipt. The protected

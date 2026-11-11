@@ -3936,3 +3936,26 @@ https://www.rfc-editor.org/rfc/rfc9111.html#section-5.2.2.4
 https://github.com/jnwokorie1957/pthhs/blob/11baba7a345d8d6706d7ba3722ac46d4953bd76f/firebase.json
 https://github.com/jnwokorie1957/pthhs/blob/11baba7a345d8d6706d7ba3722ac46d4953bd76f/docs/management-layer/PRIMETIME_LIVE_DATA_CHECKLIST.txt
 https://github.com/jnwokorie1957/pthhs/actions/runs/42903608709
+
+
+NOVEMBER 11, 2026 03:05 UTC — PRIMETIME ENTRY REVALIDATION DEPLOYED
+
+PR24/24047bd implements the R120–R121 shell recommendation. The terminal
+/primetime HTML now returns no-cache. Its trailing-slash, index and index.html
+aliases redirect to that entry. Production bytes match Git, private header/
+meta noindex remains, and versioned scripts retain immutable caching. A
+conditional request returned the current full representation with no-cache.
+Both quality jobs and both Hosting-only release jobs passed. The source
+API keeps its independent no-store/authentication policy.
+
+Chrome in the existing profile revisited the entry, reloaded normally and
+returned through history after public Careers navigation. Each retained the
+current dashboard fingerprint. These are HTML-version observations, not new
+HHA source receipts. A new network response installs the cache policy; it
+cannot evict an older still-fresh response or replace an open document.
+At the next runtime release, observe an entry cached before that release.
+Keep that cross-release acceptance pending. Existing patient release, PT
+assignment/document version, filtered range and held-visit blockers remain.
+
+https://github.com/jnwokorie1957/pthhs/pull/24
+https://github.com/jnwokorie1957/pthhs/actions/runs/42950175223

@@ -3,6 +3,11 @@
 These files remain useful for planning, but they do not override current public
 facts, payer evidence, or claim-release controls.
 
+- [November 11 Primetime shell revalidation](2026-11-11-primetime-shell-revalidation.md)
+  — deployed no-cache for the canonical private HTML entry. Served bytes,
+  redirects, Chrome navigation, noindex and protected API policies pass.
+  Existing fresh browser responses and source freshness remain separate.
+
 - [November 10 canonical sitemap discovery](2026-11-10-canonical-sitemap-discovery.md)
   — Search Console now reports 36 discovered pages for the canonical sitemap,
   matching the live count. All 36 canonical URLs and private entry protections
