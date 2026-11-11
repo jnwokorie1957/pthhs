@@ -24,25 +24,19 @@
     for (const control of marked.get(target) || []) { control.classList.remove('required-missing'); control.removeAttribute('aria-invalid'); }
     const controls = new Set();
     for (const issue of issues) for (const id of issue.controlIds || [issue.controlId]) { const control = document.getElementById(id); if (control) { control.classList.add('required-missing'); control.setAttribute('aria-invalid','true'); controls.add(control); } }
-    marked.set(target,controls); target.replaceChildren(); target.hidden = !issues.length;
-    if (!issues.length) return;
-    target.classList.add('completion-summary'); target.append(text('h3', heading + ' (' + issues.length + ')'));
-    const list = document.createElement('ul');
-    for (const issue of issues) {
-      const item = document.createElement('li'), link = text('button',issue.label); link.type = 'button'; link.className = 'missing-field-link';
-      link.onclick = issue.activate || (() => document.getElementById(issue.controlId)?.focus()); item.append(link); list.append(item);
-    }
-    target.append(list);
+    marked.set(target,controls); target.replaceChildren(); target.hidden = true;
   }
   window.WorkforceReview = { freeNavigation: () => reviewNavigation, paintMissing, flush: saveNavigation };
   const fieldControl = id => id === 'jobDescriptionRead' ? 'job-description-read' : id === 'terms_page_17' ? 'application-terms_page_17' : 'application-' + id.replace('terms_page_', 'read_page_');
   function focusMissing(id) {
     const control = document.getElementById(id);
     if (id === 'application-terms_page_17' && !control) {
-      document.querySelector('[aria-controls="policy-document-17"]')?.focus();
+      const title = document.querySelector('[aria-controls="policy-document-17"]');
+      title?.scrollIntoView({block:'center',behavior:'smooth'}); title?.focus({preventScroll:true});
     } else if (control?.disabled || control?.closest('[hidden]')) {
-      control.closest('.packet-reading-card')?.querySelector('button')?.focus();
-    } else control?.focus();
+      const title = control.closest('.packet-reading-card')?.querySelector('button');
+      title?.scrollIntoView({block:'center',behavior:'smooth'}); title?.focus({preventScroll:true});
+    } else { control?.scrollIntoView({block:'center',behavior:'smooth'}); control?.focus({preventScroll:true}); }
   }
   function refreshCompleteness() {
     if (!packet || record?.state === 'submitted') { completionSummary.hidden = true; return; }
@@ -56,12 +50,6 @@
     }
     const current = missing.filter(f => f.section === sections[step] || step === sections.length);
     paintMissing(completionSummary,current,'Missing required fields in this section');
-    completionSummary.hidden = !missing.length;
-    if (missing.length && !current.length) completionSummary.append(text('p','This section is ready. Required information is still missing elsewhere in your application.'));
-    if (missing.length && current.length !== missing.length) {
-      const details = document.createElement('details'); details.append(text('summary','Show all missing required application fields (' + missing.length + ')'));
-      const list = document.createElement('ul'); for (const issue of missing) { const li = document.createElement('li'), button = text('button',issue.section + ': ' + issue.label); button.type = 'button'; button.className = 'missing-field-link'; button.onclick = issue.activate; li.append(button); list.append(li); } details.append(list); completionSummary.append(details);
-    }
   }
   async function saveNavigation() {
     try { if (sections[step] === 'Tax & employment forms') await window.WorkforceForms.flush(); await save(); }
@@ -124,7 +112,7 @@
   function validateStep() {
     if (reviewNavigation) return;
     if (sections[step] === 'Documents' && (uploading || requiredDocuments().length)) {
-      document.getElementById((requiredDocuments()[0] || 'identity') + '-choose').focus();
+      focusMissing((requiredDocuments()[0] || 'identity') + '-choose');
       throw Error('Upload your Photo ID and Social Security card before continuing.');
     }
     const missing = packet.fields.find(f => f.section === sections[step] && f.required && !answers[f.id]?.trim());

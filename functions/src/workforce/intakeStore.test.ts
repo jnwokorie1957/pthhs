@@ -2,6 +2,7 @@ import { readings } from "./readings.js";
 import test from "node:test";
 import assert from "node:assert/strict";
 import sharp from "sharp";
+import { EnvelopeDocumentCipher } from "./documentEncryption.js";
 import { IntakeStore } from "./intakeStore.js";
 import type { Intake } from "./intake.js";
 import type { Actor } from "./policy.js";
@@ -32,7 +33,7 @@ function fixture() {
     download: async () => { assert.equal(generation?.generation, "123"); return [files.get(path)]; }
   }) };
   return {
-    store: new IntakeStore(db as unknown as ConstructorParameters<typeof IntakeStore>[0], bucket as unknown as ConstructorParameters<typeof IntakeStore>[1]),
+    store: new IntakeStore(db as unknown as ConstructorParameters<typeof IntakeStore>[0], bucket as unknown as ConstructorParameters<typeof IntakeStore>[1], new EnvelopeDocumentCipher("synthetic-key", {wrap: async key => Buffer.from(key), unwrap: async key => Buffer.from(key)})),
     records, files, storageOptions, failStorage: () => { failStorage = true; }, failFinalize: () => { failFinalize = true; }
   };
 }
@@ -98,9 +99,9 @@ test("private upload stores only sanitized bytes, generation-bound retrieval and
   const doc = await f.store.upload("synthetic-a", "identity", await image);
   assert.equal(doc.state, "pending_review"); assert.ok(!JSON.stringify(doc).includes("workforce-private"));
   assert.equal((await f.store.listDocuments("synthetic-a")).items.length, 1);
-  const bytes = await f.store.download("synthetic-a", doc.id, "synthetic-a");
+  const bytes = await f.store.download("synthetic-a", doc.id, "synthetic-a", async () => {});
   assert.equal((await sharp(bytes).metadata()).format, "jpeg");
-  await assert.rejects(f.store.download("synthetic-b", doc.id, "synthetic-b"), /document_not_found/);
+  await assert.rejects(f.store.download("synthetic-b", doc.id, "synthetic-b", async () => {}), /document_not_found/);
   const options = f.storageOptions[0] as { preconditionOpts: { ifGenerationMatch: number }; metadata: { cacheControl: string; metadata: object } };
   assert.equal(options.preconditionOpts.ifGenerationMatch, 0); assert.equal(options.metadata.cacheControl, "private, no-store");
   assert.ok(!JSON.stringify(options).includes("originalFilename"));
@@ -112,16 +113,16 @@ test("upload/storage and metadata-finalization failures cannot appear as complet
     await assert.rejects(f.store.upload("synthetic-a", "social_security", await image), /document_upload_unconfirmed/);
     const doc = [...f.records].find(([key]) => key.startsWith("workforcePrivateDocuments/"))![1];
     assert.equal(doc.state, "upload_failed");
-    await assert.rejects(f.store.download("synthetic-a", doc.id as string, "synthetic-a"), /document_not_ready/);
+    await assert.rejects(f.store.download("synthetic-a", doc.id as string, "synthetic-a", async () => {}), /document_not_ready/);
   }
 });
 test("revoking HR document permission blocks a subsequent direct file download", async () => {
   const f = fixture(); await f.store.save("synthetic-a", 0, answers, "synthetic-office");
   const doc = await f.store.upload("synthetic-a", "identity", await image);
   f.records.set("workforceStaff/synthetic-hr", { active: true, role: "hr", offices: ["synthetic-office"], permissions: ["applications.review", "documents.review"] });
-  await f.store.download("synthetic-a", doc.id, "synthetic-hr");
+  await f.store.download("synthetic-a", doc.id, "synthetic-hr", async () => {});
   f.records.get("workforceStaff/synthetic-hr")!.permissions = ["applications.review"];
-  await assert.rejects(f.store.download("synthetic-a", doc.id, "synthetic-hr"), /workforce_forbidden/);
+  await assert.rejects(f.store.download("synthetic-a", doc.id, "synthetic-hr", async () => {}), /workforce_forbidden/);
 });
 test("missing application, attempt quotas, total folder cap and integrity failure stay closed", async () => {
   const f = fixture();
@@ -134,8 +135,8 @@ test("missing application, attempt quotas, total folder cap and integrity failur
   await assert.rejects(f.store.upload("synthetic-a", "identity", await image), /document_folder_limit_reached/);
   f.records.delete("workforceDocumentLimits/synthetic-a");
   const doc = await f.store.upload("synthetic-a", "identity", await image);
-  f.files.set(`workforce-private/synthetic-a/${doc.id}.jpg`, Buffer.from("tampered synthetic bytes"));
-  await assert.rejects(f.store.download("synthetic-a", doc.id, "synthetic-a"), /document_integrity_error/);
+  f.files.set(`workforce-private/synthetic-a/${doc.id}.jpg.enc`, Buffer.from("tampered synthetic bytes"));
+  await assert.rejects(f.store.download("synthetic-a", doc.id, "synthetic-a", async () => {}), /document_integrity_error/);
 });
 test("submitted intake and its signature have immutable version history", async () => {
   const f = fixture(); const first = await f.store.save("synthetic-a", 0, answers, "synthetic-office");
@@ -165,23 +166,23 @@ test("required personnel documents are enforced by the server and PDF quarantine
   const pdf = Buffer.from("%PDF-1.7\nSynthetic untrusted PDF\n%%EOF\n");
   const doc = await f.store.upload("synthetic-a", "social_security", pdf.toString("base64"));
   assert.equal(doc.state, "pending_security_review");
-  await assert.rejects(f.store.download("synthetic-a", doc.id, "synthetic-a"), /document_not_ready/);
+  await assert.rejects(f.store.download("synthetic-a", doc.id, "synthetic-a", async () => {}), /document_not_ready/);
   const record = f.records.get("workforcePrivateDocuments/" + doc.id)!;
   const generation = String(record.generation), digest = String(record.sha256);
   await assert.rejects(f.store.recordPdfScan(doc.id, generation + "1", digest, "clean"), /pdf_scan_version_mismatch/);
   await assert.rejects(f.store.recordPdfScan(doc.id, generation, "0".repeat(64), "clean"), /pdf_scan_version_mismatch/);
   assert.deepEqual(await f.store.recordPdfScan(doc.id, generation, digest, "clean"), {state:"pending_review"});
   assert.deepEqual(await f.store.recordPdfScan(doc.id, generation, digest, "clean"), {state:"pending_review"});
-  assert.deepEqual(await f.store.download("synthetic-a", doc.id, "synthetic-a"), pdf);
+  assert.deepEqual(await f.store.download("synthetic-a", doc.id, "synthetic-a", async () => {}), pdf);
   await assert.rejects(f.store.recordPdfScan(doc.id, generation, digest, "rejected"), /document_not_ready/);
   const rejected = await f.store.upload("synthetic-a", "insurance_card", pdf.toString("base64"));
   const rejectedRecord = f.records.get("workforcePrivateDocuments/" + rejected.id)!;
   assert.deepEqual(await f.store.recordPdfScan(rejected.id, String(rejectedRecord.generation), String(rejectedRecord.sha256), "rejected"), {state:"security_rejected"});
-  await assert.rejects(f.store.download("synthetic-a", rejected.id, "synthetic-a"), /document_not_ready/);
+  await assert.rejects(f.store.download("synthetic-a", rejected.id, "synthetic-a", async () => {}), /document_not_ready/);
   await f.store.saveForm("synthetic-a", "cch", {revision: 0, fields: {"Applicant Name Print": signature.name}, submit: true, signature: {...signature, formRead: true}});
   const submitted = await f.store.submit("synthetic-a", draft.revision, signature);
   assert.equal(submitted.state, "submitted"); // HR/security eligibility is still pending.
-  assert.ok(f.files.has(`workforce-private/synthetic-a/${doc.id}.pdf`));
+  assert.ok(f.files.has(`workforce-private/synthetic-a/${doc.id}.pdf.enc`));
 });
 test("address request quotas bound both individual and project-wide requests", async () => {
   const f = fixture(); await f.store.reserveAddressLookup("synthetic-a");
@@ -212,4 +213,22 @@ test("insurance is optional and a completed identity pair queues a private porta
  assert.ok(!notice.text.includes(answers.ssn));
  await f.store.upload("synthetic-a", "social_security", await image);
  assert.equal(messages().length, 2);
+});
+
+test("file storage contains ciphertext and every download needs a fresh access check", async () => {
+ const f = fixture(); await f.store.save("synthetic-a", 0, answers, "synthetic-office");
+ const doc = await f.store.upload("synthetic-a", "identity", await image);
+ const stored = f.files.get("workforce-private/synthetic-a/" + doc.id + ".jpg.enc")!;
+ assert.equal(stored.subarray(0, 3).toString("hex") === "ffd8ff", false);
+ await assert.rejects(f.store.download("synthetic-a", doc.id, "synthetic-a"), /document_verification_required/);
+ let checks = 0;
+ await assert.rejects(f.store.download("synthetic-a", doc.id, "synthetic-a", async () => {
+  if (++checks === 2) throw Error("access_revoked");
+ }), /access_revoked/);
+ assert.equal(checks, 2);
+ const legacy = f.records.get("workforcePrivateDocuments/" + doc.id)!;
+ const original = await f.store.download("synthetic-a", doc.id, "synthetic-a", async () => {});
+ delete legacy.encryption; delete legacy.storedSha256;
+ f.files.set("workforce-private/synthetic-a/" + doc.id + ".jpg", original);
+ assert.deepEqual(await f.store.download("synthetic-a", doc.id, "synthetic-a", async () => {}), original);
 });

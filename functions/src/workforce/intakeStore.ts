@@ -8,6 +8,8 @@ import { prepareDocument, documentKind, documentSummary, missingRequiredDocument
 import { formSchema, formRecord, requireSignedCch, type FormKind, type FormRecord } from "./eforms.js";
 import { EMPLOYER_NAME, EMPLOYER_ADDRESS, chicagoDate } from "./dates.js";
 import { directoryEntry } from "./directory.js";
+import { kmsDocumentCipher, type DocumentCipher } from "./documentEncryption.js";
+import type { DocumentAccessCheck } from "./documentAccess.js";
 
 export function privateDocumentPath(uid: string, id: string, extension: "jpg" | "pdf" = "jpg"): string {
   if (!validId(uid) || !validId(id) || !["jpg", "pdf"].includes(extension)) throw new WorkforceError(400, "invalid_document_id");
@@ -18,7 +20,7 @@ export function requireDocumentOwner(doc: PrivateDocument, uid: string): void {
   if (doc.state !== "pending_review" || !doc.generation || !doc.sha256) throw new WorkforceError(409, "document_not_ready");
 }
 export class IntakeStore {
-  constructor(private db = getFirestore(), private bucket = getStorage().bucket(FORM_BUCKET)) {}
+  constructor(private db = getFirestore(), private bucket = getStorage().bucket(FORM_BUCKET), private cipher?: DocumentCipher) {}
   async formContext(uid:string,ein:string) {
     const account=await this.db.collection("workforceAccounts").doc(uid).get();
     const start=account.data()?.firstDayOfEmployment;
@@ -178,8 +180,10 @@ export class IntakeStore {
     });
     const prepared = await prepareDocument(encoded), bytes = prepared.bytes, path = privateDocumentPath(uid, id, prepared.extension);
     const sha256 = createHash("sha256").update(bytes).digest("hex");
+    const encrypted = await (this.cipher ?? kmsDocumentCipher()).encrypt(bytes, path);
+    const storedSha256 = createHash("sha256").update(encrypted.bytes).digest("hex");
     const ref = this.db.collection("workforcePrivateDocuments").doc(id);
-    const record: PrivateDocument = { id, uid, kind, state: "upload_pending", createdAt: new Date().toISOString(), size: bytes.length, sha256, generation: null, extension: prepared.extension, contentType: prepared.contentType };
+    const record: PrivateDocument = { id, uid, kind, state: "upload_pending", createdAt: new Date().toISOString(), size: bytes.length, sha256, generation: null, extension: prepared.extension, contentType: prepared.contentType, encryption: encrypted.envelope, storedSha256 };
     await this.db.runTransaction(async tx => {
       // A folder belongs to an existing application, never an arbitrary target UID.
       const application = await tx.get(this.app(uid));
@@ -191,9 +195,9 @@ export class IntakeStore {
       this.audit(tx, uid, "document_upload_started", id, { kind });
     });
     try {
-      const file = this.bucket.file(path);
-      await file.save(bytes, { resumable: false, validation: "crc32c", preconditionOpts: { ifGenerationMatch: 0 },
-        metadata: { contentType: prepared.contentType, cacheControl: "private, no-store", contentDisposition: "attachment", metadata: { sha256 } } });
+      const file = this.bucket.file(path + ".enc");
+      await file.save(encrypted.bytes, { resumable: false, validation: "crc32c", preconditionOpts: { ifGenerationMatch: 0 },
+        metadata: { contentType: "application/octet-stream", cacheControl: "private, no-store", contentDisposition: "attachment", metadata: { sha256: storedSha256 } } });
       const [metadata] = await file.getMetadata();
       const generation = String(metadata.generation ?? "");
       if (!/^\d+$/.test(generation)) throw Error();
@@ -229,7 +233,9 @@ export class IntakeStore {
       throw new WorkforceError(503, "document_upload_unconfirmed");
     }
   }
-  async download(uid: string, id: string, actorId: string) {
+  async download(uid: string, id: string, actorId: string, release?: DocumentAccessCheck) {
+    if (!release) throw new WorkforceError(403, "document_verification_required");
+    await release();
     privateDocumentPath(uid, id);
     const record = await this.db.runTransaction(async tx => {
       if (actorId !== uid) {
@@ -247,8 +253,13 @@ export class IntakeStore {
       this.audit(tx, actorId, "document_download", id);
       return record;
     });
-    const [bytes] = await this.bucket.file(privateDocumentPath(uid, id, record.extension ?? "jpg"), { generation: record.generation! }).download({ validation: "crc32c" });
+    const path = privateDocumentPath(uid, id, record.extension ?? "jpg");
+    const [stored] = await this.bucket.file(path + (record.encryption ? ".enc" : ""), { generation: record.generation! }).download({ validation: "crc32c" });
+    await release();
+    if (record.encryption && createHash("sha256").update(stored).digest("hex") !== record.storedSha256) throw new WorkforceError(503, "document_integrity_error");
+    const bytes = record.encryption ? await (this.cipher ?? kmsDocumentCipher()).decrypt(stored, record.encryption, path) : stored;
     if (bytes.length !== record.size || createHash("sha256").update(bytes).digest("hex") !== record.sha256) throw new WorkforceError(503, "document_integrity_error");
+    await release();
     return bytes;
   }
 

@@ -6,6 +6,7 @@ import { getFirestore } from "firebase-admin/firestore";
 import { getStorage } from "firebase-admin/storage";
 import { MAX_DOCUMENT_BYTES } from "../lib/workforce/documents.js";
 import { IntakeStore, privateDocumentPath } from "../lib/workforce/intakeStore.js";
+import { kmsDocumentCipher } from "../lib/workforce/documentEncryption.js";
 
 const [documentId] = process.argv.slice(2);
 const scanner = process.env.WORKFORCE_CLAMSCAN;
@@ -44,12 +45,17 @@ async function main() {
     || !Number.isInteger(record.size) || record.size < 1 || record.size > MAX_DOCUMENT_BYTES) {
     throw Error("Document is unavailable for PDF screening.");
   }
-  const file = bucket.file(privateDocumentPath(record.uid, documentId, "pdf"), { generation: record.generation });
+  const path = privateDocumentPath(record.uid, documentId, "pdf");
+  const file = bucket.file(path + (record.encryption ? ".enc" : ""), { generation: record.generation });
   const [metadata] = await file.getMetadata();
   if (String(metadata.generation) !== record.generation || Number(metadata.size) !== record.size) {
     throw Error("Stored PDF version does not match the quarantine record.");
   }
-  const [bytes] = await file.download({ validation: "crc32c" });
+  const [stored] = await file.download({ validation: "crc32c" });
+  if (record.encryption && createHash("sha256").update(stored).digest("hex") !== record.storedSha256) {
+    throw Error("Encrypted PDF digest does not match the quarantine record.");
+  }
+  const bytes = record.encryption ? await kmsDocumentCipher().decrypt(stored, record.encryption, path) : stored;
   if (bytes.length !== record.size || createHash("sha256").update(bytes).digest("hex") !== record.sha256) {
     throw Error("Stored PDF digest does not match the quarantine record.");
   }

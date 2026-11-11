@@ -1,4 +1,6 @@
 import {getFirestore} from "firebase-admin/firestore";
+import {getAuth} from "firebase-admin/auth";
+import {DocumentAccess, sensitiveDocumentPath, type DocumentAccessCheck, type DocumentPrincipal} from "./documentAccess.js";
 import {cachedHhaNames} from "./hhaCachedNames.js";
 import { randomUUID } from "node:crypto";
 import { onRequest } from "firebase-functions/v2/https";
@@ -36,6 +38,9 @@ const retentionApproved = defineString("WORKFORCE_ID_RETENTION_APPROVED", { defa
 const intakeOffice = defineString("WORKFORCE_INTAKE_OFFICE", { default: "" });
 const placesApproved = defineString("WORKFORCE_GOOGLE_PLACES_APPROVED", { default: "false" });
 const employerEin = defineString("WORKFORCE_EMPLOYER_EIN", { default: "" });
+const documentEmailApproved = defineString("WORKFORCE_DOCUMENT_EMAIL_APPROVED", { default: "false" });
+// Explicit parameter declaration ensures deployed functions receive the KMS name.
+const documentKmsKey = defineString("WORKFORCE_DOCUMENT_KMS_KEY", { default: "" });
 const hhaDataApproved=defineString("PRIMETIME_OPERATIONAL_DATA_APPROVED",{default:"false"});
 const hhaPortalApproved=defineString("WORKFORCE_HHA_PORTAL_APPROVED",{default:"false"});
 const portalOrigin=defineString("WORKFORCE_PORTAL_ORIGIN",{default:"https://pthhs.net"});
@@ -55,6 +60,26 @@ async function hhaEnrollment(lane:"interactive"|"background"="interactive"){
   };
   return new HhaEnrollment((office,actor)=>new HhaProfileSource(workspace,actor,office),office,sendReset);
 }
+async function documentPrincipal(req: Parameters<typeof recentWorkforceIdentity>[0]): Promise<DocumentPrincipal> {
+  const uid = await recentWorkforceIdentity(req);
+  const auth = getAuth(), user = await auth.getUser(uid);
+  const token = await auth.verifyIdToken(req.get("authorization")!.slice(7).trim(), true);
+  if (user.disabled || !user.emailVerified || !user.email || token.uid !== uid || user.email !== token.email || typeof token.auth_time !== "number") {
+    throw new WorkforceError(401, "verified_identity_required");
+  }
+  return {uid, email: user.email, authTime: token.auth_time};
+}
+async function authorizeDocumentPath(principal: DocumentPrincipal, path: string) {
+  if (!sensitiveDocumentPath(path)) throw new WorkforceError(400, "invalid_document_request");
+  const target = path.startsWith("/staff/") ? path.split("/")[3]! : principal.uid;
+  const personnel = new IntakeStore();
+  if (path.startsWith("/staff/")) {
+    const staff = new WorkforceStore(), actor = await staff.actor(principal.uid);
+    if (await new StaffCredentials(staff).setupRequired(principal.uid)) throw new WorkforceError(403, "staff_password_setup_required");
+    if (await staff.trainingRequired(actor)) throw new WorkforceError(403, "staff_training_required");
+    await personnel.hrRead(principal.uid, target, true);
+  } else if (!await personnel.load(target)) throw new WorkforceError(404, "application_not_found");
+}
 export const workforceApi = process.env.PRIMETIME_API_ONLY_DEPLOY === "true" ? undefined : onRequest({ region: "us-central1", maxInstances: 5, concurrency: 2, timeoutSeconds: 60, memory: "512MiB",secrets:[hhaCredentials] }, async (req, res) => {
   res.set("Cache-Control", "no-store");
   res.set("X-Content-Type-Options", "nosniff");
@@ -64,6 +89,32 @@ export const workforceApi = process.env.PRIMETIME_API_ONLY_DEPLOY === "true" ? u
     const applicationsEnabled = staffEnabled.value() === "true" && collectionApproved.value() === "true" && packetApproved.value() === "true" && !!intakeOffice.value();
     const uploadsEnabled = applicationsEnabled && documentsApproved.value() === "true" && retentionApproved.value() === "true";
     const existingAccessEnabled=staffEnabled.value()==="true"&&hhaPortalApproved.value()==="true"&&hhaDataApproved.value()==="true";
+    let release: DocumentAccessCheck | undefined;
+    if (path.startsWith("/document-access/") || sensitiveDocumentPath(path)) {
+      if (path.startsWith("/staff/") && staffEnabled.value() !== "true") throw new WorkforceError(503, "workforce_release_pending");
+      if (!applicationsEnabled) throw new WorkforceError(503, "application_collection_pending");
+      if (!uploadsEnabled) throw new WorkforceError(503, "document_collection_pending");
+      const principal = await documentPrincipal(req), access = new DocumentAccess();
+      const check = async (target: string) => {
+        const current = await documentPrincipal(req);
+        if (current.uid !== principal.uid || current.email !== principal.email || current.authTime !== principal.authTime) throw new WorkforceError(403, "document_verification_required");
+        await authorizeDocumentPath(current, target);
+      };
+      if (path.startsWith("/document-access/")) {
+        if (documentEmailApproved.value() !== "true") throw new WorkforceError(503, "document_verification_unavailable");
+        if (req.method !== "POST" || !req.is("application/json") || req.rawBody.length > 1000 || !req.body || Array.isArray(req.body)) throw new WorkforceError(400, "invalid_document_request");
+        if (path === "/document-access/request" && Object.keys(req.body).every(k => k === "path") && sensitiveDocumentPath(req.body.path)) {
+          res.json(await access.request(principal, req.body.path, () => check(req.body.path))); return;
+        }
+        if (path === "/document-access/verify" && Object.keys(req.body).every(k => ["challengeId", "code"].includes(k))) {
+          res.json(await access.verify(principal, req.body.challengeId, req.body.code, check)); return;
+        }
+        throw new WorkforceError(400, "invalid_document_request");
+      }
+      if (req.method !== "GET") throw new WorkforceError(405, "method_not_allowed");
+      await access.consume(principal, path, req.get("x-document-access"), () => check(path));
+      release = () => check(path);
+    }
     if (path === "/configuration" && req.method === "GET") {
       let existingCaregiverEnrollmentReady=false;if(existingAccessEnabled){try{const settings=await hhaWorkspace().settings(),office=settings.settings.officeId;if(office){const ready=await getFirestore().collection("workforceHhaRosterReady").doc(office).get();existingCaregiverEnrollmentReady=ready.exists&&ready.data()?.office===office&&typeof ready.data()?.completedAt==="string";}}catch{/* Source preparation remains closed when readiness cannot be confirmed. */}}
       const enabledSignInProviders=signInProviders.value().split(",").map(p=>p.trim()).filter(p=>["google.com","apple.com","microsoft.com","yahoo.com"].includes(p));
@@ -113,7 +164,7 @@ export const workforceApi = process.env.PRIMETIME_API_ONLY_DEPLOY === "true" ? u
           if (!officialForm[2]) { res.json({ form: record, employer }); return; }
           if (!record) throw new WorkforceError(404, "form_not_found");
           res.set("Content-Type", "application/pdf"); res.set("Content-Disposition", `attachment; filename="private-${kind}.pdf"`);
-          res.send(await renderOfficialForm(record,employer)); return;
+          const bytes = await renderOfficialForm(record,employer); await release?.(); await release?.(); res.send(bytes); return;
         }
         if (req.method !== "POST" || officialForm[2] || !req.is("application/json") || req.rawBody.length > 64000) throw new WorkforceError(400,"invalid_request");
         res.json({ form: await store.saveForm(uid,kind,req.body) }); return;
@@ -130,7 +181,7 @@ export const workforceApi = process.env.PRIMETIME_API_ONLY_DEPLOY === "true" ? u
         if (![...readings.map(r => r.page), ...referencePages].includes(page)) throw new WorkforceError(404, "route_not_found");
         if (reading[2] && !readings.find(r=>r.page===page)?.hasContinuation) throw new WorkforceError(404,"route_not_found");
         const bytes = await readFile(new URL(`../../assets/workforce-packet/page-${String(page).padStart(2, "0")}${reading[2]?"-cont":""}.webp`, import.meta.url));
-        res.set("Content-Type", "image/webp"); res.send(bytes); return;
+        res.set("Content-Type", "image/webp"); await release?.(); res.send(bytes); return;
       }
       if (["/application/address/suggest", "/application/address/details"].includes(path)) {
         if (placesApproved.value() !== "true") throw new WorkforceError(503, "address_lookup_unavailable");
@@ -146,10 +197,10 @@ export const workforceApi = process.env.PRIMETIME_API_ONLY_DEPLOY === "true" ? u
       const download = path.match(/^\/application\/documents\/([a-zA-Z0-9_-]{1,128})$/);
       if (download && req.method === "GET") {
         if (!uploadsEnabled) throw new WorkforceError(503, "document_collection_pending");
-        const bytes = await store.download(uid, download[1]!, uid);
+        const bytes = await store.download(uid, download[1]!, uid, release);
         const pdf = bytes.subarray(0, 5).toString("ascii") === "%PDF-";
         res.set("Content-Type", pdf ? "application/pdf" : "image/jpeg"); res.set("Content-Disposition", `attachment; filename="private-document.${pdf ? "pdf" : "jpg"}"`); res.set("Content-Security-Policy", "sandbox");
-        res.send(bytes); return;
+        await release?.(); res.send(bytes); return;
       }
       if (req.method !== "POST") throw new WorkforceError(405, "method_not_allowed");
       const upload = path === "/application/documents";
@@ -158,7 +209,7 @@ export const workforceApi = process.env.PRIMETIME_API_ONLY_DEPLOY === "true" ? u
         || !req.body || typeof req.body !== "object" || Array.isArray(req.body)) throw new WorkforceError(400, "invalid_request");
       const allowed = upload ? ["kind", "base64"] : path === "/application/submit" ? ["revision", "signature"] : ["revision", "answers"];
       if (Object.keys(req.body).some(k => !allowed.includes(k))) throw new WorkforceError(400, "invalid_request");
-      if (upload) { res.json({ document: await store.upload(uid, req.body.kind, req.body.base64) }); return; }
+      if (upload) { if (!documentKmsKey.value()) throw new WorkforceError(503, "document_key_unavailable"); res.json({ document: await store.upload(uid, req.body.kind, req.body.base64) }); return; }
       if (!Number.isInteger(req.body.revision) || req.body.revision < 0) throw new WorkforceError(400, "invalid_request");
       if (path === "/application") { res.json({ application: await store.save(uid, req.body.revision, req.body.answers, intakeOffice.value()) }); return; }
       if (path === "/application/submit") { res.json({ application: await store.submit(uid, req.body.revision, req.body.signature) }); return; }
@@ -286,18 +337,18 @@ export const workforceApi = process.env.PRIMETIME_API_ONLY_DEPLOY === "true" ? u
           if(!matches.length&&["identity","social_security"].includes(kind))parts.push({title,status:"Not submitted"});
           for(const doc of matches){
             const part:PacketPart={title,status:doc.state==="pending_review"?"Uploaded - available for review":doc.state.replaceAll("_"," ")+" - not included"};
-            if(doc.state==="pending_review")part.bytes=await renderDocumentPrint(await personnel.download(target,doc.id,uid));parts.push(part);
+            if(doc.state==="pending_review")part.bytes=await renderDocumentPrint(await personnel.download(target,doc.id,uid,release));parts.push(part);
           }
         }
         const bytes=await renderPersonnelPacket(parts,[application.answers.firstName,application.answers.lastName].filter(Boolean).join(" ")),current=await personnel.hrRead(uid,target,true);
         if(current.revision!==application.revision)throw new WorkforceError(409,"revision_conflict");
-        res.set("Content-Type","application/pdf");res.set("Content-Disposition",'attachment; filename="private-caregiver-packet.pdf"');res.send(bytes);return;
+        res.set("Content-Type","application/pdf");res.set("Content-Disposition",'attachment; filename="private-caregiver-packet.pdf"');await release?.();res.send(bytes);return;
       }
       const applicationPrint=path.match(/^\/staff\/applications\/([a-zA-Z0-9_-]{1,128})\/pdf$/);
       if(applicationPrint){
         const application=await personnel.hrRead(uid,applicationPrint[1]!,true);
         res.set("Content-Type","application/pdf");res.set("Content-Disposition",'attachment; filename="private-employment-application.pdf"');
-        res.send(await renderApplication(application));return;
+        const bytes = await renderApplication(application); await release?.(); res.send(bytes);return;
       }
       const staffForm = path.match(/^\/staff\/applications\/([a-zA-Z0-9_-]{1,128})\/forms\/(i9|w4|new_hire|cch)(\/pdf)?$/);
       if (staffForm) {
@@ -305,7 +356,7 @@ export const workforceApi = process.env.PRIMETIME_API_ONLY_DEPLOY === "true" ? u
         const record = await personnel.loadForm(staffForm[1]!, staffForm[2] as FormKind, uid);
         if (!staffForm[3]) { res.json({form:record}); return; }
         if (!record) throw new WorkforceError(404,"form_not_found");
-        res.set("Content-Type","application/pdf");res.set("Content-Disposition",`attachment; filename="private-${staffForm[2]}.pdf"`);res.send(await renderOfficialForm(record,await personnel.formContext(staffForm[1]!,employerEin.value())));return;
+        res.set("Content-Type","application/pdf");res.set("Content-Disposition",`attachment; filename="private-${staffForm[2]}.pdf"`);const bytes = await renderOfficialForm(record,await personnel.formContext(staffForm[1]!,employerEin.value()));await release?.();res.send(bytes);return;
       }
       const detail = path.match(/^\/staff\/applications\/([a-zA-Z0-9_-]{1,128})(?:\/documents(?:\/([a-zA-Z0-9_-]{1,128})(\/print)?)?)?$/);
       if (!detail) throw new WorkforceError(404, "route_not_found");
@@ -314,11 +365,11 @@ export const workforceApi = process.env.PRIMETIME_API_ONLY_DEPLOY === "true" ? u
       if (!docs) { res.json({ application }); return; }
       if (!uploadsEnabled) throw new WorkforceError(503, "document_collection_pending");
       if (!detail[2]) { res.json(await personnel.listDocuments(target, uid)); return; }
-      const bytes = await personnel.download(target, detail[2], uid);
-      if(detail[3]){res.set("Content-Type","application/pdf");res.set("Content-Disposition",'attachment; filename="private-personnel-document.pdf"');res.send(await renderDocumentPrint(bytes));return;}
+      const bytes = await personnel.download(target, detail[2], uid, release);
+      if(detail[3]){res.set("Content-Type","application/pdf");res.set("Content-Disposition",'attachment; filename="private-personnel-document.pdf"');const printed = await renderDocumentPrint(bytes);await release?.();res.send(printed);return;}
       const pdf = bytes.subarray(0, 5).toString("ascii") === "%PDF-";
       res.set("Content-Type", pdf ? "application/pdf" : "image/jpeg"); res.set("Content-Disposition", `attachment; filename="private-document.${pdf ? "pdf" : "jpg"}"`); res.set("Content-Security-Policy", "sandbox");
-      res.send(bytes); return;
+      await release?.(); res.send(bytes); return;
     }
     if (path === "/staff/team" && req.method === "GET") { res.json(await store.reviewTeam(uid)); return; }
     if (path === "/staff/opportunities" && req.method === "GET") { res.json(await store.list(uid)); return; }
@@ -350,3 +401,16 @@ export const workforceApi = process.env.PRIMETIME_API_ONLY_DEPLOY === "true" ? u
     res.status(error instanceof WorkforceError ? error.status : 503).json({ error: error instanceof WorkforceError ? error.code : "workforce_unavailable" });
   }
 });
+
+// Dedicated Cloud Function for the document button and its verification flow.
+export const workforceDocumentDecrypt = process.env.PRIMETIME_API_ONLY_DEPLOY === "true" ? undefined : onRequest(
+  {region: "us-central1", maxInstances: 3, concurrency: 2, timeoutSeconds: 60, memory: "512MiB"},
+  (req, res) => {
+    res.set("Cache-Control", "no-store");
+    const path = req.path.replace(/^\/(?:caregiver|primetime)\/workforce-api/, "");
+    if (!sensitiveDocumentPath(path) && !["/document-access/request", "/document-access/verify"].includes(path)) {
+      res.status(404).json({error: "route_not_found"}); return;
+    }
+    return workforceApi!(req, res);
+  }
+);

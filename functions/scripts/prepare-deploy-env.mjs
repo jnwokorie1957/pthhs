@@ -61,9 +61,9 @@ export function deploymentEnvironment(index, config, wsdl, release = CLOSED_RELE
   return [`HHAEXCHANGE_BASE_URL=${endpoint}`, ...names.map(name => `${name}=${approvals[name] === true}`)].join('\n') + '\n';
 }
 
-const workforceFlags = ['WORKFORCE_STAFF_APPROVED','WORKFORCE_HHA_PORTAL_APPROVED','WORKFORCE_PUBLIC_OPPORTUNITIES_APPROVED','WORKFORCE_APPLICANT_COLLECTION_APPROVED','WORKFORCE_PACKET_REVIEW_APPROVED','WORKFORCE_ID_DOCUMENTS_APPROVED','WORKFORCE_ID_RETENTION_APPROVED','WORKFORCE_GOOGLE_PLACES_APPROVED'];
+const workforceFlags = ['WORKFORCE_STAFF_APPROVED','WORKFORCE_HHA_PORTAL_APPROVED','WORKFORCE_PUBLIC_OPPORTUNITIES_APPROVED','WORKFORCE_APPLICANT_COLLECTION_APPROVED','WORKFORCE_PACKET_REVIEW_APPROVED','WORKFORCE_ID_DOCUMENTS_APPROVED','WORKFORCE_ID_RETENTION_APPROVED','WORKFORCE_GOOGLE_PLACES_APPROVED','WORKFORCE_DOCUMENT_EMAIL_APPROVED'];
 export function workforceDeploymentEnvironment(release, source, operationalDataApproved) {
-  const keys=[...workforceFlags,'WORKFORCE_SIGN_IN_PROVIDERS','WORKFORCE_INTAKE_OFFICE','WORKFORCE_EMPLOYER_EIN','WORKFORCE_PORTAL_ORIGIN'];
+  const keys=[...workforceFlags,'WORKFORCE_SIGN_IN_PROVIDERS','WORKFORCE_INTAKE_OFFICE','WORKFORCE_EMPLOYER_EIN','WORKFORCE_PORTAL_ORIGIN','WORKFORCE_DOCUMENT_KMS_KEY'];
   if(!exactKeys(release,['version','reviewReference','environment'])||release.version!==1||!exactKeys(release.environment,keys)||typeof release.reviewReference!=='string'||!release.reviewReference.trim()||release.reviewReference.length>500||/[\x00-\x1f\x7f]/u.test(release.reviewReference))throw Error('Invalid workforce release review');
   const env=release.environment,declared=[...source.matchAll(/defineString\("(WORKFORCE_[A-Z_]+)"/g)].map(match=>match[1]);
   if(declared.length!==keys.length||keys.some(key=>!declared.includes(key))||Object.values(env).some(value=>typeof value!=='string'||/[\r\n]/u.test(value)))throw Error('Workforce parameter inventory changed');
@@ -74,6 +74,8 @@ export function workforceDeploymentEnvironment(release, source, operationalDataA
   if(new Set(providers).size!==providers.length||providers.some(id=>!['google.com','apple.com','microsoft.com','yahoo.com'].includes(id)))throw Error('Invalid workforce sign-in providers');
   if(enabled('WORKFORCE_HHA_PORTAL_APPROVED')&&(!enabled('WORKFORCE_STAFF_APPROVED')||!operationalDataApproved||!env.WORKFORCE_INTAKE_OFFICE))throw Error('HHA portal release requires approved source and office');
   if(enabled('WORKFORCE_ID_DOCUMENTS_APPROVED')&&(!enabled('WORKFORCE_STAFF_APPROVED')||!enabled('WORKFORCE_APPLICANT_COLLECTION_APPROVED')||!enabled('WORKFORCE_PACKET_REVIEW_APPROVED')||!enabled('WORKFORCE_ID_RETENTION_APPROVED')||!env.WORKFORCE_INTAKE_OFFICE))throw Error('Identity collection prerequisites are not approved');
+  if(env.WORKFORCE_DOCUMENT_KMS_KEY&&!/^projects\/primetimehomehealthservices\/locations\/us-central1\/keyRings\/[a-zA-Z0-9_-]+\/cryptoKeys\/[a-zA-Z0-9_-]+$/.test(env.WORKFORCE_DOCUMENT_KMS_KEY))throw Error('Invalid document KMS key');
+  if(enabled('WORKFORCE_ID_DOCUMENTS_APPROVED')&&(!env.WORKFORCE_DOCUMENT_KMS_KEY||!enabled('WORKFORCE_DOCUMENT_EMAIL_APPROVED')))throw Error('Document encryption and verified email delivery prerequisites are not approved');
   return keys.map(key=>key+'='+env[key]).join('\n')+'\n';
 }
 

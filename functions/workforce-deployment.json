@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "reviewReference": "Owner authorization 2026-11-06: publish Careers and authenticated portal access on PTHHS.net. Read-only HHA preparation approved; application, upload and public-opening collection remain closed.",
+  "reviewReference": "Owner requests 2026-11-10: encrypt caregiver uploads and require verified access before decrypting. KMS key and runtime access approved. Email verification delivery, application and upload launch gates remain closed.",
   "environment": {
     "WORKFORCE_STAFF_APPROVED": "true",
     "WORKFORCE_HHA_PORTAL_APPROVED": "true",
@@ -13,6 +13,8 @@
     "WORKFORCE_SIGN_IN_PROVIDERS": "google.com",
     "WORKFORCE_INTAKE_OFFICE": "503324",
     "WORKFORCE_EMPLOYER_EIN": "30-0076568",
-    "WORKFORCE_PORTAL_ORIGIN": "https://pthhs.net"
+    "WORKFORCE_PORTAL_ORIGIN": "https://pthhs.net",
+    "WORKFORCE_DOCUMENT_EMAIL_APPROVED": "false",
+    "WORKFORCE_DOCUMENT_KMS_KEY": "projects/primetimehomehealthservices/locations/us-central1/keyRings/workforce-documents/cryptoKeys/caregiver-uploads"
   }
 }

@@ -9,9 +9,9 @@
   const status = value => { document.getElementById('portal-form-status').textContent = value; };
   async function saveNavigation() { try { await save(); } catch(error) { if (!window.WorkforceReview?.freeNavigation()) throw error; status('Review preview: continuing without saving invalid entries. ' + error.message); } }
   function refreshCompleteness() {
-    const target=document.getElementById('official-form-completion');if(!target||!schema||!window.WorkforceReview)return;
+    const target=document.getElementById('official-form-completion');if(!target||!schema||!window.WorkforceReview)return [];
     const issues=[],exempt=kind==='w4'&&fields[schema.fields[15].id]===true;
-    const add=(label,controlId,page=1)=>issues.push({label,controlId,activate:async()=>{try{if(page!==pageNumber){await saveNavigation();pageNumber=page;await renderPage();}document.getElementById(controlId)?.focus();}catch(e){status(e.message);}}});
+    const add=(label,controlId,page=1)=>issues.push({label,controlId,activate:async()=>{try{if(page!==pageNumber){await saveNavigation();pageNumber=page;await renderPage();}const input=document.getElementById(controlId);input?.scrollIntoView({block:'center',behavior:'smooth'});input?.focus({preventScroll:true});}catch(e){status(e.message);}}});
     if(record?.state!=='submitted'){
       for(const [i,field]of schema.fields.entries()){
         if(!field.required||field.type==='checkbox'||(exempt&&kind==='w4'&&i>=5&&i<=14))continue;
@@ -23,6 +23,7 @@
       for(const [id,label]of [['official-signature-name',kind==='new_hire'?'Your confirmation name':kind==='cch'?'Applicant signature':'Employee signature'],['official-form-read','Review the complete form before submitting'],['official-electronic-consent','Confirm electronic signing before submitting']]){const control=document.getElementById(id);if(control&&(control.type==='checkbox'?!control.checked:!control.value.trim()))add(label,id,pageNumber);}
     }
     window.WorkforceReview.paintMissing(target,issues,'Missing required form fields / confirmations');
+    return issues;
   }
   for(const event of ['input','change'])panel.addEventListener(event,refreshCompleteness);
   function clear() { generation++; loadingTask?.destroy().catch(()=>{}); loadingTask = null; pdf = null; schema = null; employer = {}; applicationData = {}; fields = {}; record = null; dirty = false; panel.replaceChildren(); }
@@ -69,7 +70,7 @@
       else panel.append(text('h3',kind==='new_hire'?'Review & confirm employee information':'Review, sign & submit this form'),text('p',kind==='i9'?'Complete all employee Section 1 fields and review the official attestation. Sign only after accepting a job offer. The employer and preparer/translator sign their own sections.':kind==='new_hire'?'Review both pages and confirm your employee information for the office. The office completes employer hire/pay details and the actual Texas filing.':'Review all five pages, your withholding selections and the Step 5 declaration before signing. Your signature is the final entry. Employer fields are completed by the office.'));
       if(kind!=='cch')for(const [id,label]of [['official-form-read','I have reviewed the complete official form and its declaration.'],['official-electronic-consent','I choose to sign this form electronically and submit it to Primetime.']]){const row=document.createElement('label');row.className='application-check';const input=document.createElement('input');input.type='checkbox';input.id=id;row.append(input,text('span',label));panel.append(row);}
       if(!document.getElementById('official-signature-name')){const signature=document.createElement('label');signature.className='application-label';signature.append(text('span','Type your first and last name *'));const name=document.createElement('input');name.id='official-signature-name';name.maxLength=250;name.value=[applicationData.firstName,applicationData.lastName].filter(Boolean).join(' ');signature.append(name);panel.append(signature);}
-      const submit=text('button',kind==='cch'?'Acknowledge, sign & submit':(kind==='new_hire'?'Confirm & send employee information':('Sign & submit '+(kind==='i9'?'I-9 employee section':'W-4')))+' to the office');submit.type='button';submit.className='btn-primary';submit.onclick=async()=>{submit.disabled=true;try{await save(true);}catch(e){status(e.message);}finally{submit.disabled=false;}};panel.append(submit);
+      const submit=text('button',kind==='cch'?'Acknowledge, sign & submit':(kind==='new_hire'?'Confirm & send employee information':('Sign & submit '+(kind==='i9'?'I-9 employee section':'W-4')))+' to the office');submit.type='button';submit.className='btn-primary';submit.onclick=async()=>{const missing=refreshCompleteness();if(missing.length){await missing[0].activate();status('Complete the highlighted fields before submitting this form.');return;}submit.disabled=true;try{await save(true);}catch(e){status(e.message);}finally{submit.disabled=false;}};panel.append(submit);
     }
     refreshCompleteness();
   }
