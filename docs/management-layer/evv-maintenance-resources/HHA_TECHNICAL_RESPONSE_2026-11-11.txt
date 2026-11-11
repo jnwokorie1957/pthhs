@@ -1,0 +1,51 @@
+HHA TECHNICAL RESPONSE — NOVEMBER 11, 2026
+
+Primary evidence: a reply received at 17:17:02 UTC in the owner's connected
+business Outlook mailbox, from the HHAeXchange domain and on the existing
+November 6 technical-request thread. Reviewed during the November 11
+18:15 UTC automation. This is a nonsensitive paraphrase; the message, case
+reference and private support-portal details remain in the mailbox.
+
+SUPPORTED CAPABILITY FINDINGS
+
+HHA states that its API cannot associate previously captured caregiver
+calls with visits. ConfirmVisits, ConfirmVisitsV2 and ConfirmVisitsEVV do
+not supply this existing-call linking function. Do not substitute a
+confirmation request or a newly generated event for that unsupported action.
+
+API visit-edit reasons follow payer configuration. Visit UI choices may
+also reflect internal-contract configuration, explaining why names and IDs
+can differ. HHA presents an internal contract as a possible explanation,
+not a verified diagnosis of the example's successful-empty response.
+Exact-visit reason/action applicability and ID mapping remain unresolved.
+
+HHA describes the sandbox as mirroring production setup and directs testing
+with existing sandbox credentials. No endpoint, test tenant, credentials,
+entitlement or successful sandbox operation was independently verified here.
+
+HHA routes contractual questions about assisted browser operation, accounts,
+roles and unattended restrictions to the Customer Success Manager.
+The technical response grants no browser-operation authority.
+
+REMAINING EVIDENCE AND OWNER ACTION
+
+For the empty reason/action lookup, HHA requests the exact XML request and
+response. An owner-directed follow-up must use an approved private support
+channel and a reviewed minimum example with credentials removed. No actual
+patient/visit identifiers or raw responses belong in this repository.
+No follow-up, CSM message, source operation or sandbox request was sent.
+
+Ask the existing CSM to establish the applicable agreement and allowed
+operator/account model before broader browser assistance or unattended
+maintenance is considered. Existing held-visit approval remains separate.
+
+The response does not establish retained original-event identifiers/history,
+source timestamp coverage, missing EVV punch recovery, actual-hour units,
+rounding, confirmation preservation/readback, or a supported alternate read
+for the remaining empty fields. Keep those questions open.
+
+Primetime continues to save local office evidence only. Source submissions
+and clock changes remain disabled. The previously resolved October 24
+screenshot visit is not reopened; remaining missing-time findings keep
+their dated source receipts. The current Primetime session still requires
+administrator sign-in before another protected comparison.

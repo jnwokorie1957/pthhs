@@ -306,7 +306,7 @@
     const catalog = item?.reasonCatalog;
     if (catalog) {
       reasonSection.append(el('p',`Reason source fetched ${catalog.fetchedAt}. ${catalog.truncated ? 'Partial catalog returned.' : 'Source-returned choices.'}`));
-      if(!catalog.reasons.length)reasonSection.append(el('p','HHA returned no reason/action choices for this visit. Keep the review note; use HHA for the source action until the applicable catalog and confirmation contract are available.','maintenance-empty'));
+      if(!catalog.reasons.length)reasonSection.append(el('p',"HHA returned no reason/action choices for this visit. API and internal-contract UI catalogs can differ; the cause of this visit's empty result remains unverified. Keep the office note for catalog follow-up.",'maintenance-empty'));
       const reasonLabel = el('label','Visit edit reason'), reason = el('select'); reason.id='maintenanceReason';
       const placeholder=el('option','Select source reason'); placeholder.value=''; reason.append(placeholder);
       for (const choice of catalog.reasons) { const opt=el('option',`${choice.id} · ${choice.name || 'No description'} · ${choice.status || 'status not supplied'}`); opt.value=choice.id; reason.append(opt); }
@@ -317,7 +317,7 @@
       const reasonGrid=el('div','','maintenance-form-grid');reasonGrid.append(reasonLabel,actionLabel);reasonSection.append(reasonGrid);
     }
     form.append(reasonSection);
-    const submitHha=button('Submit to HHA — source action contract required',()=>{});submitHha.dataset.locked='true';form.append(el('p','HHA confirmation requires a supported source action and independent readback. This form saves an office review.','maintenance-help'),submitHha);
+    const submitHha=button('Submit to HHA — source action contract required',()=>{});submitHha.dataset.locked='true';form.append(el('p','HHA API linking of existing caregiver calls is unsupported. This form saves an office review; HHA confirmation remains disabled.','maintenance-help'),submitHha);
     const noteLabel = el('label', 'Review note, reason and next staff step'), note = el('textarea'); note.id = 'maintenanceNote'; note.required = true; note.maxLength = 2000;
     note.placeholder = 'Describe the evidence, what needs review, and the next step. This note does not submit an HHA reason code.'; noteLabel.append(note); form.append(noteLabel,
       el('p', 'Queues organize work without granting access. “Office review complete” closes the local case. Proposals leave clocks as recorded.', 'maintenance-help'));
