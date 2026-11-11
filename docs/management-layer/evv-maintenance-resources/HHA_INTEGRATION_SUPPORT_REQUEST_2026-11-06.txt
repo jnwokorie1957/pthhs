@@ -2,7 +2,9 @@ SUPPORT EMAIL - SENT
 Prepared November 6, 2026, America/Chicago.
 Sent November 6, 2026 from jnwokorie@pthhs.net through the connected Outlook
 account. Sender, exact subject and recipient were verified in Sent Items.
-This confirms submission; a vendor reply or support-case number is not yet known.
+This records the November 6 submission. A technical reply received November 11
+is summarized in HHA_TECHNICAL_RESPONSE_2026-11-11.txt. The sent body below is
+historical; current capability and next actions follow that response summary.
 To: EINTSupport@hhaexchange.com
 Subject: PTHHS - existing HHA EVV maintenance: visit reason lookup, confirmation API and assisted UI support
 

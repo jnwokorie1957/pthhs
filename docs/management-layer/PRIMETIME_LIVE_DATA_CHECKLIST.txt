@@ -5,6 +5,16 @@ area, map the actual source, connect available authorized data and verify it.
 This is the connection backlog, not a declaration of an active Codex goal.
 This document does not claim every tab is connected.
 
+CURRENT VENDOR CHECKPOINT — NOVEMBER 11, 2026
+HHA's 17:17 UTC technical reply states that existing caregiver calls cannot be
+linked to visits through its API. Confirmation methods do not supply that link.
+Payer-defined API reasons may differ from internal-contract UI choices; the
+exact empty-result cause is unverified. CSM guidance is needed for browser
+assistance. Original-event/history reads, missing punches and duration units
+remain unresolved. See the dated response/release entry at the end and
+evv-maintenance-resources/HHA_TECHNICAL_RESPONSE_2026-11-11.txt.
+The historical source receipts below do not establish current sign-in.
+
 NOVEMBER6 18:54UTC - SOURCE ACCESS RESTORED; CURRENT/HISTORICAL COMPARISON
 Protected Chrome Primetime attachment now succeeds without another sign-in,
 reload, permission/settings change or HHA teaching-session interaction. Live mode
@@ -2094,3 +2104,58 @@ requires its separate owner disposition before any visit action.
 https://github.com/jnwokorie1957/pthhs/pull/25
 https://github.com/jnwokorie1957/pthhs/actions/runs/42951677917
 https://github.com/jnwokorie1957/pthhs/actions/runs/42951856309
+
+
+NOVEMBER 11, 2026 — TECHNICAL REPLY AND SUPPORTED CAPABILITY BOUNDARY
+
+HHA's reply received at 17:17:02 UTC on the existing technical thread
+explicitly rules out linking existing caregiver calls through its API.
+ConfirmVisits, ConfirmVisitsV2 and ConfirmVisitsEVV do not supply that
+function. This closes the question of whether those methods can act as
+the existing-call linker. It does not close retained-event read/linkage,
+history, missing-punch or duration-unit questions.
+
+API edit reasons follow payer configuration, while visit UI choices may
+include internal-contract configuration. The vendor offers this as a
+possible explanation, not a diagnosis of the verified successful-empty
+lookup. It requests the exact XML example for further investigation.
+No alternate catalog, reason ID or contract was substituted.
+
+HHA routes assisted/unattended HHA browser agreement and account/role
+questions to the CSM. Next owner actions: obtain that guidance and choose
+the approved private channel/minimum credential-redacted XML example for
+the existing lookup case. No reply or CSM message was sent. The sandbox
+description was not tested; no endpoint, credentials or entitlements changed.
+The held Calendar visit still needs its separate owner disposition.
+
+The existing source mapping remains GetVisitInfoV3Result/VisitInfo/
+VisitStartTime, VisitEndTime, EVVStartTime, EVVEndTime, ActualHours and
+ActualHoursRounded as separate optional strings. ScheduleDuration/
+ScheduleDurationHours and ScheduleDuration/ScheduleDurationMinutes retain
+separate hour/minute components. No replacement or worked/payable/billable/
+verified inference was introduced. The source-empty and read-deferred
+historical/current-day comparisons above remain dated. The original
+October 24 screenshot is still resolved by its October 31 reread.
+P03/E04 remain open for the unanswered time/history/readback evidence.
+
+PR26/849ed21 adds the capability limit to the workbench and selected review.
+Its empty catalog notice keeps the exact cause unverified. The two existing
+regressions reproduced the old guidance; all 35 maintenance/search tests,
+deterministic assets, performance, audit and diff checks passed. Both quality
+jobs and both required Hosting-only jobs passed. Backend/analytics skipped.
+
+At 19:36 UTC, served HTML and maintenance.js?v=4d3c473eb1e5 match Git.
+Three targeted regressions pass against that exact script, retaining disabled
+submission and local-review semantics. Header/meta noindex, entry no-cache,
+immutable script and anonymous API JSON401/no-store pass. Native Chrome
+confirms the new source text/version, but still shows administrator sign-in.
+No authenticated workflow, HHA read, missing-time recovery, source write or
+new grant is claimed. Restore the existing Primetime sign-in for the next
+approved protected comparison.
+
+Primary email and private case details remain in the mailbox. Nonsensitive
+summary and next actions:
+evv-maintenance-resources/HHA_TECHNICAL_RESPONSE_2026-11-11.txt
+https://github.com/jnwokorie1957/pthhs/pull/26
+https://github.com/jnwokorie1957/pthhs/actions/runs/43077329129
+https://github.com/jnwokorie1957/pthhs/actions/runs/43088353472

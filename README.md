@@ -2,11 +2,20 @@
 
 ## Administrator visit-maintenance workspace
 
-Signed-in HHA comparison now identifies the source gap: the selected visit has
-28 reasons and five actions, but their IDs differ from the generic reference
-lists. Its exact UI visit passes API identity checks and still returns zero
+November 11 HHA support confirms that its API does not link existing caregiver
+calls to visits. Confirmation methods do not provide that function. The
+[technical response and next actions](docs/management-layer/evv-maintenance-resources/HHA_TECHNICAL_RESPONSE_2026-11-11.txt)
+separate this capability limit from unresolved reason lookup and source-time
+questions. CSM guidance is required for contractual browser-assistance questions.
+Primetime source submission remains disabled; current protected acceptance needs
+the existing administrator sign-in restored.
+
+The November 5 signed-in HHA comparison identified the source gap: the selected visit had
+28 reasons and five actions, but their IDs differed from the generic reference
+lists. Its exact UI visit passed API identity checks and returned zero
 visit-specific reasons. [Evidence and narrowed HHA questions](docs/management-layer/HHA_VISIT_REASON_CATALOG_COMPARISON_2026-11-05.md)
-keep source confirmation open; the previous login dependency is resolved.
+keep source confirmation open. That dated HHA UI access does not establish the
+current Primetime session or broader browser-operation authority.
 
 The compact November 5 update shows one selected person-search form and folds
 34 optional workflow sections. Three live HHA reference catalogs return 28 schedule/billing edit

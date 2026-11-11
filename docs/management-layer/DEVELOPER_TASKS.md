@@ -1,5 +1,15 @@
 # PTHHS Management Layer — Developer Checklist
 
+- [x] November 11 vendor capability guidance deployed (PR26/849ed21).
+  The workbench identifies unsupported API linking of existing caregiver calls.
+  Empty catalog guidance retains the unverified exact-visit cause. Both quality
+  and Hosting jobs, 35 local maintenance/search tests and three regressions
+  against served bytes pass. Source submission remains disabled.
+  [Technical response and next steps](evv-maintenance-resources/HHA_TECHNICAL_RESPONSE_2026-11-11.txt).
+- [ ] Include the new capability guidance in the next authenticated office
+  review. HHA browser assistance needs separate CSM/owner acceptance; API
+  confirmation methods must not be used as an existing-call linker.
+
 - [x] November 11 source retry guidance deployed (PR25/859380e).
   HTTP 429/503 retains and describes the selected source page; a deferred
   continuation still describes its new page. Both release jobs passed.

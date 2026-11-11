@@ -4,6 +4,12 @@ Collected November 5, 2026 for the owner's maintenance-first product direction.
 This pack supplies implementation references and working templates. It does not
 activate staff access, HHA writes, new source reads or an AI pilot.
 
+November 11: read the [technical response](HHA_TECHNICAL_RESPONSE_2026-11-11.txt)
+before the historical question packet. HHA says existing-call API linking is
+unsupported. Its reason lookup is payer-defined; internal-contract UI options
+may differ. CSM browser guidance and an owner-approved private XML example remain
+next actions. Time/history/units/readback questions are still unresolved.
+
 | Checklist | Resources now available | Work still required |
 |---|---|---|
 | M01 Maintenance workspace | HHA workflow/call guides, existing source readers, paged change-feed documentation, current SOAP comparison | Complete attempt coverage and authoritative event-to-visit linkage |

@@ -19,9 +19,20 @@
   the applicable API contract and permitted supervised AI browser operation;
   patient records and credentials are excluded. Sent November 6 from the owner's
   specified jnwokorie@pthhs.net account and verified in Outlook Sent Items. A
-  matching HHA-domain case acknowledgment received17:55:55Z is now verified from
-  headers/preview; the private case reference stays in the mailbox. Technical
-  contract/entitlement acceptance is still pending; do not resend.
+  matching HHA-domain case acknowledgment received17:55:55Z is verified from
+  headers/preview. A technical reply received November 11 at 17:17:02 UTC now
+  confirms unsupported API linking of existing calls and explains possible
+  API/UI catalog differences. The private case reference stays in the mailbox.
+  [Response and remaining evidence](evv-maintenance-resources/HHA_TECHNICAL_RESPONSE_2026-11-11.txt).
+  This does not establish the remaining action/readback or browser contract.
+- [ ] Obtain guidance from the existing Customer Success Manager on the agency's
+  agreement, allowed assisted-browser account/role model and unattended-use
+  restrictions. The technical team referred those questions to the CSM.
+  No communication or broader browser-operation approval is implied.
+- [ ] Decide the approved private channel and minimum redacted XML example for
+  the existing reason/action lookup case. HHA requests its exact request and
+  response. Remove credentials and review the payload before any authorized
+  follow-up; do not place identifiers or raw responses in public source.
 - [ ] Complete broader maintenance teaching and scoped-action acceptance using
   the [browser/API execution template](EVV_BROWSER_AGENT_WORKFLOW.txt). One
   specifically approved genuine call-out link and separate Visit Info save now
@@ -41,10 +52,12 @@
   contract. The exact same UI visit passes API identity checks but returns no
   eligible choices. The [prepared technical questions](evv-maintenance-resources/HHA_SUPPORT_QUESTIONS.txt)
   include the receipt/correlation. The concise email is sent; the full reference
-  packet was not attached. HHA acknowledged a case; the technical response and
-  supported source contract remain unestablished. Sign-in is resolved for the
-  current session; Primetime source submission remains disabled. The separately
-  approved HHA UI example does not establish its supported API action contract.
+  packet was not attached. HHA's November 11 reply identifies payer-defined API
+  reasons and possible internal-contract UI differences, but does not diagnose
+  the exact successful-empty result. Existing-call API linking is unsupported;
+  its confirmation methods do not supply that function. Current Primetime
+  acceptance requires restored administrator sign-in. Source submission stays
+  disabled, and the earlier case-specific HHA UI approval remains separate.
 
 - [x] An older cached visit can open a fresh HHA patient/day queue for office review.
   Production source reading and a neutral local-note save are verified, retaining

@@ -1,7 +1,13 @@
 HHA TECHNICAL QUESTIONS - REFERENCE PACKET
 The concise support email was sent November 6 from jnwokorie@pthhs.net to
 EINTSupport@hhaexchange.com and verified in Outlook Sent Items. This longer
-reference packet was not attached. Vendor reply/case number remain pending.
+reference packet was not attached. A technical reply received November 11
+establishes that existing-call API linking is unsupported; confirmation methods
+do not provide it. API/UI reason differences may reflect payer/internal-contract
+scope, but the exact lookup still needs investigation. CSM browser guidance and
+an owner-approved private XML example are the next steps. See
+HHA_TECHNICAL_RESPONSE_2026-11-11.txt. The original questions below remain dated;
+do not re-ask which current API method links existing calls as an open question.
 Purpose: supported visit maintenance inside Primetime using the agency's actual
 HHA-recorded caregiver calls. Original event times remain unchanged.
 The owner/operator should supply account/customer/office identifiers through an

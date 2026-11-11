@@ -2,11 +2,19 @@ PRIMETIME ROLE AND WORKFLOW RESEARCH
 Updated: November 11, 2026, America/Chicago
 Scope: PTHHS /primetime, repository jnwokorie1957/pthhs.
 
-CURRENT STATUS INDEX — NOVEMBER 11, 2026 17:40 UTC
-Source basis: 7097c987df8d6707d68ca267b1d4f3523ed60eab.
+CURRENT STATUS INDEX — NOVEMBER 11, 2026 19:36 UTC
+Source basis: 849ed2148e248865c9d78273f5ca5b664cb44156.
 Primary role references were rechecked at 14:14 UTC below. This index
-reconciles dated evidence; it adds no new tenant observation or acceptance.
+separates source/release evidence from tenant and role acceptance.
 Earlier next-task and draft summaries are historical checkpoints.
+
+Vendor response received November 11 at 17:17 UTC: existing caregiver calls
+cannot be linked through HHA's API, including its confirmation methods.
+API reasons follow payer configuration; internal-contract UI choices may
+differ. The exact empty lookup remains unverified. HHA refers contractual
+assisted/unattended browser questions to the CSM and requests an exact XML
+example for further lookup investigation. These are separate owner actions,
+not new grants or an invitation to substitute another write method.
 
 Administrator / office: visit maintenance, local office reports, exact
 patient/date case joins and separate source/case coverage receipts are
@@ -38,10 +46,11 @@ their own timestamps/provenance. Historical snapshot proposals do not
 authorize new web-scraped imports.
 
 Next dependencies: restore existing Primetime administrator sign-in for
-protected examples (last checked at 16:17 UTC); accept a naturally incomplete
-filtered range and an existing scoped staff account; obtain the existing
-vendor event/linkage/history/units/readback contracts and the owner's exact
-held-visit disposition. Family/PT release needs the relationships/forms
+protected examples (last checked during the 18:15 UTC pass); accept a naturally
+incomplete filtered range and an existing scoped staff account; obtain retained
+event/history/units/readback details, CSM browser guidance and an owner-approved
+private XML lookup example. The owner's exact held-visit disposition remains
+separate. Family/PT release needs the relationships/forms
 above. Do not broaden grants, send communications or continue a held source
 action to satisfy an acceptance test. Current precise actions remain in
 DEVELOPER_TASKS.md and OWNER_OPERATIONS_TASKS.md.
@@ -52,6 +61,7 @@ https://github.com/jnwokorie1957/pthhs/pull/22
 https://github.com/jnwokorie1957/pthhs/pull/23
 https://github.com/jnwokorie1957/pthhs/pull/24
 https://github.com/jnwokorie1957/pthhs/pull/25
+https://github.com/jnwokorie1957/pthhs/pull/26
 
 HISTORICAL SUMMARY — NOVEMBER 6, 2026
 Latest engineering evidence: November6 UTC administrator card/filter correction is deployed and accepted over a dated stale source cache; see MAINTENANCE_CARD_FILTERS_2026-11-06.md and the 05:14UTC implementation below. Concurrent compact/reference and fresh patient/day acceptance in a7f8421 supersedes older pending desktop-control statements, within its dated limits. Billing-clock acceptance and O03/local office review remain intact. Agency lists are not visit-specific actions. Scoped staff, clinical/family authority, original-event links, HHA submissions and pilot gates remain open.
@@ -4073,3 +4083,46 @@ https://knowledge.hhaexchange.com/texas/Content/Documentation/Patient/Pat-N-Cont
 https://knowledge.hhaexchange.com/enterprise/Content/Documentation/Clinical/Clinical-N-HHAX-Forms-Basic.htm
 https://knowledge.hhaexchange.com/enterprise/Content/Documentation/Billing/Bill-N-Review-Invoice-S.htm
 https://knowledge.hhaexchange.com/enterprise/Content/Documentation/Billing/Bill-N-Clinical-Documentation-P.htm
+
+NOVEMBER 11, 2026 — VENDOR CAPABILITY RESPONSE AND PR26
+
+A technical response received at 17:17:02 UTC on the existing support thread
+was reviewed during the 18:15 UTC automation. The HHA-domain reply states
+that its API cannot associate existing caregiver call records with visits.
+ConfirmVisits, ConfirmVisitsV2 and ConfirmVisitsEVV do not supply that action.
+API visit-edit reasons are payer-defined; UI choices may also reflect
+internal contracts. This may explain different IDs or an empty lookup, but
+does not prove the selected record's contract or the exact response cause.
+
+HHA refers contractual assisted/unattended browser and account/role questions
+to the CSM. It requests the exact XML example for additional lookup support.
+The owner must decide the approved private support channel and minimum
+credential-redacted evidence before a follow-up. No communication was sent.
+The sandbox description is vendor guidance, not verified tenant access or
+permission to reuse production credentials against an unverified endpoint.
+
+P0: keep selected-call reviews local; do not implement an existing-call API
+linker from the confirmation schema. Obtain CSM guidance separately from
+the held-visit disposition. Retained event/history scope, duration units and
+preservation/readback still need source evidence. P1: after administrator
+sign-in, accept the guidance in the protected maintenance workflow and
+continue only approved reads. Family/PT effective relationships, exact
+document version and signing/sharing authority remain separate P2 gates.
+
+PR26/849ed21 makes the maintenance boundary and review form disclose the
+unsupported link action. Empty catalog text keeps the visit-specific cause
+unverified. Source submission stays disabled. All 35 maintenance/search tests,
+deterministic assets, performance and audit checks passed; both quality jobs
+and both required Hosting-only jobs passed. At 19:36 UTC the production
+HTML/script match Git; three targeted regressions pass against served bytes.
+Native Chrome confirms the source copy and version, with sign-in still shown.
+Protected workflow acceptance remains pending. No clock, unit or original
+event linkage was recovered, and no HHA source operation was dispatched.
+
+Primary evidence remains in the business mailbox; private case references,
+message identifiers and tracking links are excluded from this research.
+Nonsensitive evidence summary:
+docs/management-layer/evv-maintenance-resources/HHA_TECHNICAL_RESPONSE_2026-11-11.txt
+https://github.com/jnwokorie1957/pthhs/pull/26
+https://github.com/jnwokorie1957/pthhs/actions/runs/43077329129
+https://github.com/jnwokorie1957/pthhs/actions/runs/43088353472
