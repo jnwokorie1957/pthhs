@@ -29,3 +29,26 @@ and static validation evidence. No runtime release was needed for the update.
 The 37-location promotion review still requires owner-confirmed coverage
 and useful local facts. Existing approved payer display and eligibility
 language continue to follow the business evidence registers.
+
+Follow-up November 11, 2026 at 14:23 UTC: eight bounded production delivery
+checks passed. Homepage, Careers, insurance, robots, both sitemap files and
+the private entry match Git. The three public HTML pages return 200 with
+their exact canonical, one H1 and no noindex. The sitemap still lists 36
+URLs and excludes private portals. Primetime retains header/meta noindex
+and no-cache; its anonymous session endpoint returns JSON 401/no-store.
+This is a spot check, not a new check of all 36 routes.
+
+The current read-only Search Console Sitemaps view retains all three
+successful rows: canonical last read November 8, 36 discovered; legacy
+index November 7, 36; older www sitemap November 5, 33. These overlapping
+discovery counts are unchanged from the November 10 receipt. No resubmission
+or indexing/outcome conclusion follows from this observation.
+
+Current Google guidance still supports consistent
+[canonical signals](https://developers.google.com/search/docs/crawling-indexing/consolidate-duplicate-urls),
+[sitemap URLs](https://developers.google.com/search/docs/crawling-indexing/sitemaps/build-sitemap)
+and [private indexing directives](https://developers.google.com/search/docs/crawling-indexing/robots-meta-tag).
+Public facts and the owner-approved payer evidence register are unchanged.
+The existing location/content and claim decisions remain owner prerequisites.
+No new runtime defect, feature acceptance or owner action was established;
+no site change, runtime suite or deployment was needed.
