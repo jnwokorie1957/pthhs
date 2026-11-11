@@ -1,6 +1,59 @@
 PRIMETIME ROLE AND WORKFLOW RESEARCH
-Updated: November 6, 2026, America/Chicago
+Updated: November 11, 2026, America/Chicago
 Scope: PTHHS /primetime, repository jnwokorie1957/pthhs.
+
+CURRENT STATUS INDEX — NOVEMBER 11, 2026 17:40 UTC
+Source basis: 7097c987df8d6707d68ca267b1d4f3523ed60eab.
+Primary role references were rechecked at 14:14 UTC below. This index
+reconciles dated evidence; it adds no new tenant observation or acceptance.
+Earlier next-task and draft summaries are historical checkpoints.
+
+Administrator / office: visit maintenance, local office reports, exact
+patient/date case joins and separate source/case coverage receipts are
+deployed within their dated acceptance. PR22 retains the accepted report
+scope. PR23 distinguishes an explicit empty clock from absent/unavailable
+evidence. PR24/25 establish entry revalidation and accurate retry guidance.
+These releases do not establish HHA confirmation, complete source coverage
+or multi-user office workflow acceptance.
+
+Staff / caregiver: public entry and staff routing have dated deployment
+evidence in docs/workforce/PUBLIC_PORTAL_RELEASE.md (PR17). Existing staff
+office/role acceptance remains pending. Workforce permissions do not
+authorize legacy administrator or clinical records. Historical PR11 draft
+notes below are not the current production-status summary.
+
+Patient / representative: schedules, requests and independently released
+documents remain proposed external-role workflows. Require a current,
+revocable patient relationship and exact shared document instance/version.
+PT / field clinical staff: My day, caseload and clinical documentation
+remain proposed until effective assignment, applicable encounter/form
+version and author/reviewer/signature authority are accepted.
+
+Shared links retain office, patient, visit, service date, source receipt
+and local case revision separately. Document/encounter relationships and
+permissions are additional requirements. Local review completion supplies
+no missing authorization, EVV, clinical-document or billing decision.
+API cache, on-demand source reads and historical manual captures retain
+their own timestamps/provenance. Historical snapshot proposals do not
+authorize new web-scraped imports.
+
+Next dependencies: restore existing Primetime administrator sign-in for
+protected examples (last checked at 16:17 UTC); accept a naturally incomplete
+filtered range and an existing scoped staff account; obtain the existing
+vendor event/linkage/history/units/readback contracts and the owner's exact
+held-visit disposition. Family/PT release needs the relationships/forms
+above. Do not broaden grants, send communications or continue a held source
+action to satisfy an acceptance test. Current precise actions remain in
+DEVELOPER_TASKS.md and OWNER_OPERATIONS_TASKS.md.
+
+Current release evidence:
+https://github.com/jnwokorie1957/pthhs/pull/17
+https://github.com/jnwokorie1957/pthhs/pull/22
+https://github.com/jnwokorie1957/pthhs/pull/23
+https://github.com/jnwokorie1957/pthhs/pull/24
+https://github.com/jnwokorie1957/pthhs/pull/25
+
+HISTORICAL SUMMARY — NOVEMBER 6, 2026
 Latest engineering evidence: November6 UTC administrator card/filter correction is deployed and accepted over a dated stale source cache; see MAINTENANCE_CARD_FILTERS_2026-11-06.md and the 05:14UTC implementation below. Concurrent compact/reference and fresh patient/day acceptance in a7f8421 supersedes older pending desktop-control statements, within its dated limits. Billing-clock acceptance and O03/local office review remain intact. Agency lists are not visit-specific actions. Scoped staff, clinical/family authority, original-event links, HHA submissions and pilot gates remain open.
 Latest focused research: November6,2026,17:27UTC. Pinned open draft PR11 at aebde94, plan version12: office-scoped accounts.support, focused management screens and separate synthetic/real-auth evidence are now mapped. Returned-list counts have explicit API caps but no visible overview coverage; this is the next bounded display/acceptance task. R97-R100 add current email-action, identity-linking, manager-dashboard and draft-source evidence. Google-enabled/chooser progress is reported by its owning plan, not completed login or production-role acceptance here. M03, patient/PT/family authority and HHA source-action contracts remain separate and open. Earlier manual-snapshot priorities below are historical and do not authorize new scraped imports.
 Latest bounded draft implementation: November6 14:34UTC entry-copy/backlog correction e770d79, then3b2490c integrates current main2c02bf5 and removes draft merge conflicts. All595local frontend/tooling checks and both normal42237075110 quality jobs pass. PR11 remains draft/unmerged; this is not production or live multi-user acceptance. Dated implementation evidence follows.
