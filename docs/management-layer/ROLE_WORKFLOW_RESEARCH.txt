@@ -3981,3 +3981,42 @@ time connection or recovered actual/EVV field is claimed.
 
 https://github.com/jnwokorie1957/pthhs/pull/25
 https://github.com/jnwokorie1957/pthhs/actions/runs/42951856309
+
+
+NOVEMBER 11, 2026 14:14 UTC — ROLE CONTRACT REVALIDATION
+
+Current source remains e281c9639271a2f2d03fa84a23310d7851de0e33. Public
+primary references R7, R9, R10, R114 and R118 were read again. They retain
+the existing distinctions: family schedule requests and concerns; effective
+clinical patient assignment and separate document editing rights; configured
+form/office/visit relationships and submission states; contract-specific
+clinical prebilling requirements; invoice review stages. None establishes
+this tenant's relationship grants, approved forms or billing policy.
+
+Source comparison: patientDocuments.ts rechecks patient/office membership
+and download metadata, but explicitly returns unvalidated source files.
+It does not establish an encounter, clinical form version, signature or
+family sharing authority. Workforce policy keeps explicit office/function
+permissions separate from the legacy administrator/clinical API. The
+office report retains its applied search and source/case coverage receipts.
+
+Retain the existing acceptance order: restore administrator sign-in for
+protected examples; verify current patient/representative or PT assignment
+and the exact document instance/version before retrieval; keep authorization,
+EVV, document review and billing follow-up independent. A completed local
+review or downloaded file supplies none of the missing source decisions.
+No new role grant, export feature or source action is proposed by this check.
+
+No new HHA tenant observation was made. The November 9 Calendar and
+November 10 Primetime observations remain dated; the latest sign-in check
+is November 11 05:25 UTC. Existing owner form/relationship/held-visit and
+vendor event-linkage/history/units/readback prerequisites remain open.
+No new defect or implementation acceptance was established; no runtime
+suite or release is warranted for this research update.
+
+Primary references checked November 11, 2026:
+https://knowledge.hhaexchange.com/texas/Content/Documentation/Patient/Pat-N-Schedule-P.htm
+https://knowledge.hhaexchange.com/texas/Content/Documentation/Patient/Pat-N-Control-Access-Patient-P.htm
+https://knowledge.hhaexchange.com/enterprise/Content/Documentation/Clinical/Clinical-N-HHAX-Forms-Basic.htm
+https://knowledge.hhaexchange.com/enterprise/Content/Documentation/Billing/Bill-N-Review-Invoice-S.htm
+https://knowledge.hhaexchange.com/enterprise/Content/Documentation/Billing/Bill-N-Clinical-Documentation-P.htm
