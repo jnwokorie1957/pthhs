@@ -653,6 +653,15 @@
         ]
       },
       {
+        "source": "/primetime",
+        "headers": [
+          {
+            "key": "Cache-Control",
+            "value": "no-cache"
+          }
+        ]
+      },
+      {
         "source": "**/*.@(jpg|jpeg|gif|png|svg|webp|avif|ico)",
         "headers": [
           {
