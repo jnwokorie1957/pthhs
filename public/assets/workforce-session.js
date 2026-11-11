@@ -48,6 +48,7 @@
     ,document_collection_pending: 'Private document uploads are awaiting security and retention verification.'
     ,document_key_unavailable: 'Secure document storage is temporarily unavailable. Please try again later.'
     ,document_verification_unavailable: 'Email verification is being configured. Document access is temporarily unavailable.'
+    ,document_verification_delivery_failed: 'We could not confirm that your code was sent. Close this window and request a new code.'
     ,document_verification_required: 'Verify your email again to open this document.'
     ,invalid_document_code: 'The code is incorrect, expired, or already used. Try again or request a new code.'
     ,document_verification_limit: 'Too many verification requests. Please wait ten minutes.'

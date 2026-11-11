@@ -33,6 +33,7 @@ export class DocumentAccess {
         expiresAt, attempts: 0, verified: false, consumed: false, deleteAfter: new Date(expiresAt + 3600000)
       });
       tx.create(this.db.collection("workforceIdentityMail").doc("verify-" + id), {
+        kind: "document_verification", challengeId: id, deliveryStatus: "queued",
         to: [principal.email], deleteAfter: new Date(expiresAt + 3600000),
         message: {subject: "Your Primetime document verification code", text: `Your verification code is ${code}. It expires in 5 minutes and can only be used for the document request you started. Do not share this code.`}
       });

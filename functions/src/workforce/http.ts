@@ -1,6 +1,8 @@
 import {getFirestore} from "firebase-admin/firestore";
 import {getAuth} from "firebase-admin/auth";
 import {DocumentAccess, sensitiveDocumentPath, type DocumentAccessCheck, type DocumentPrincipal} from "./documentAccess.js";
+import {DocumentVerificationMail, GraphVerificationTransport} from "./verificationMail.js";
+import {DocumentSample} from "./documentSample.js";
 import {cachedHhaNames} from "./hhaCachedNames.js";
 import { randomUUID } from "node:crypto";
 import { onRequest } from "firebase-functions/v2/https";
@@ -39,6 +41,9 @@ const intakeOffice = defineString("WORKFORCE_INTAKE_OFFICE", { default: "" });
 const placesApproved = defineString("WORKFORCE_GOOGLE_PLACES_APPROVED", { default: "false" });
 const employerEin = defineString("WORKFORCE_EMPLOYER_EIN", { default: "" });
 const documentEmailApproved = defineString("WORKFORCE_DOCUMENT_EMAIL_APPROVED", { default: "false" });
+const documentMailTenant = defineString("WORKFORCE_DOCUMENT_MAIL_TENANT", { default: "" });
+const documentMailClient = defineString("WORKFORCE_DOCUMENT_MAIL_CLIENT", { default: "" });
+const documentSampleUntil = defineString("WORKFORCE_DOCUMENT_SAMPLE_UNTIL", { default: "" });
 // Explicit parameter declaration ensures deployed functions receive the KMS name.
 const documentKmsKey = defineString("WORKFORCE_DOCUMENT_KMS_KEY", { default: "" });
 const hhaDataApproved=defineString("PRIMETIME_OPERATIONAL_DATA_APPROVED",{default:"false"});
@@ -104,7 +109,9 @@ export const workforceApi = process.env.PRIMETIME_API_ONLY_DEPLOY === "true" ? u
         if (documentEmailApproved.value() !== "true") throw new WorkforceError(503, "document_verification_unavailable");
         if (req.method !== "POST" || !req.is("application/json") || req.rawBody.length > 1000 || !req.body || Array.isArray(req.body)) throw new WorkforceError(400, "invalid_document_request");
         if (path === "/document-access/request" && Object.keys(req.body).every(k => k === "path") && sensitiveDocumentPath(req.body.path)) {
-          res.json(await access.request(principal, req.body.path, () => check(req.body.path))); return;
+          const challenge = await access.request(principal, req.body.path, () => check(req.body.path));
+          const delivery = await new DocumentVerificationMail(new GraphVerificationTransport(documentMailTenant.value(), documentMailClient.value())).send(challenge.challengeId, principal);
+          res.json({...challenge, ...delivery}); return;
         }
         if (path === "/document-access/verify" && Object.keys(req.body).every(k => ["challengeId", "code"].includes(k))) {
           res.json(await access.verify(principal, req.body.challengeId, req.body.code, check)); return;
@@ -408,6 +415,35 @@ export const workforceDocumentDecrypt = process.env.PRIMETIME_API_ONLY_DEPLOY ==
   (req, res) => {
     res.set("Cache-Control", "no-store");
     const path = req.path.replace(/^\/(?:caregiver|primetime)\/workforce-api/, "");
+    if (/^\/document-access\/sample\/(request|verify|pdf)$/.test(path)) {
+      return (async () => {
+        try {
+          const until = Date.parse(documentSampleUntil.value());
+          if (!Number.isFinite(until) || Date.now() >= until || documentEmailApproved.value() !== "true") throw new WorkforceError(404, "route_not_found");
+          const principal = await documentPrincipal(req);
+          const check = async () => {
+            const current = await documentPrincipal(req);
+            if (current.uid !== principal.uid || current.email !== principal.email || current.authTime !== principal.authTime
+              || current.email.toLowerCase() !== "jeremynwokorie@gmail.com") throw new WorkforceError(403, "workforce_forbidden");
+            const actor = await new WorkforceStore().actor(current.uid);
+            if (actor.grant.role !== "owner") throw new WorkforceError(403, "workforce_forbidden");
+            requirePermission(actor, "documents.review");
+          };
+          await check();
+          const sample = new DocumentSample(new DocumentVerificationMail(new GraphVerificationTransport(documentMailTenant.value(), documentMailClient.value())));
+          if (path.endsWith("/pdf") && req.method === "GET") {
+            const bytes = await sample.open(principal, req.get("x-document-access"), check);
+            res.type("application/pdf").set("Content-Disposition", 'inline; filename="Primetime-secure-document-sample.pdf"').send(bytes); return;
+          }
+          if (req.method !== "POST" || !req.is("application/json") || req.rawBody.length > 1000 || !req.body || Array.isArray(req.body)) throw new WorkforceError(400, "invalid_document_request");
+          if (path.endsWith("/request") && Object.keys(req.body).length === 0) { res.json(await sample.request(principal, check)); return; }
+          if (path.endsWith("/verify") && Object.keys(req.body).every(k => ["challengeId", "code"].includes(k))) {
+            res.json(await sample.verify(principal, req.body.challengeId, req.body.code, check)); return;
+          }
+          throw new WorkforceError(400, "invalid_document_request");
+        } catch (error) { res.status(error instanceof WorkforceError ? error.status : 503).json({error: error instanceof WorkforceError ? error.code : "workforce_unavailable"}); }
+      })();
+    }
     if (!sensitiveDocumentPath(path) && !["/document-access/request", "/document-access/verify"].includes(path)) {
       res.status(404).json({error: "route_not_found"}); return;
     }

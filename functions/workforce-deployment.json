@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "reviewReference": "Owner requests 2026-11-10: encrypt caregiver uploads and require verified access before decrypting. KMS key and runtime access approved. Email verification delivery, application and upload launch gates remain closed.",
+  "reviewReference": "Owner approved scoped Microsoft verification mail setup 2026-11-11. Real email delivery and KMS sample decryption passed; the owner-only fictional sample expires 2026-11-12 at 14:15 UTC. Application and upload launch gates remain closed.",
   "environment": {
     "WORKFORCE_STAFF_APPROVED": "true",
     "WORKFORCE_HHA_PORTAL_APPROVED": "true",
@@ -14,7 +14,10 @@
     "WORKFORCE_INTAKE_OFFICE": "503324",
     "WORKFORCE_EMPLOYER_EIN": "30-0076568",
     "WORKFORCE_PORTAL_ORIGIN": "https://pthhs.net",
-    "WORKFORCE_DOCUMENT_EMAIL_APPROVED": "false",
-    "WORKFORCE_DOCUMENT_KMS_KEY": "projects/primetimehomehealthservices/locations/us-central1/keyRings/workforce-documents/cryptoKeys/caregiver-uploads"
+    "WORKFORCE_DOCUMENT_EMAIL_APPROVED": "true",
+    "WORKFORCE_DOCUMENT_KMS_KEY": "projects/primetimehomehealthservices/locations/us-central1/keyRings/workforce-documents/cryptoKeys/caregiver-uploads",
+    "WORKFORCE_DOCUMENT_MAIL_TENANT": "79734f05-5da8-4995-97cb-c4e065fa327f",
+    "WORKFORCE_DOCUMENT_MAIL_CLIENT": "0275352c-c4fa-4c5b-8bae-8ef29ffed7b2",
+    "WORKFORCE_DOCUMENT_SAMPLE_UNTIL": "2026-11-12T14:15:00.000Z"
   }
 }

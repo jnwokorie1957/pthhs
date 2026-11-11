@@ -63,7 +63,7 @@ export function deploymentEnvironment(index, config, wsdl, release = CLOSED_RELE
 
 const workforceFlags = ['WORKFORCE_STAFF_APPROVED','WORKFORCE_HHA_PORTAL_APPROVED','WORKFORCE_PUBLIC_OPPORTUNITIES_APPROVED','WORKFORCE_APPLICANT_COLLECTION_APPROVED','WORKFORCE_PACKET_REVIEW_APPROVED','WORKFORCE_ID_DOCUMENTS_APPROVED','WORKFORCE_ID_RETENTION_APPROVED','WORKFORCE_GOOGLE_PLACES_APPROVED','WORKFORCE_DOCUMENT_EMAIL_APPROVED'];
 export function workforceDeploymentEnvironment(release, source, operationalDataApproved) {
-  const keys=[...workforceFlags,'WORKFORCE_SIGN_IN_PROVIDERS','WORKFORCE_INTAKE_OFFICE','WORKFORCE_EMPLOYER_EIN','WORKFORCE_PORTAL_ORIGIN','WORKFORCE_DOCUMENT_KMS_KEY'];
+  const keys=[...workforceFlags,'WORKFORCE_SIGN_IN_PROVIDERS','WORKFORCE_INTAKE_OFFICE','WORKFORCE_EMPLOYER_EIN','WORKFORCE_PORTAL_ORIGIN','WORKFORCE_DOCUMENT_KMS_KEY','WORKFORCE_DOCUMENT_MAIL_TENANT','WORKFORCE_DOCUMENT_MAIL_CLIENT','WORKFORCE_DOCUMENT_SAMPLE_UNTIL'];
   if(!exactKeys(release,['version','reviewReference','environment'])||release.version!==1||!exactKeys(release.environment,keys)||typeof release.reviewReference!=='string'||!release.reviewReference.trim()||release.reviewReference.length>500||/[\x00-\x1f\x7f]/u.test(release.reviewReference))throw Error('Invalid workforce release review');
   const env=release.environment,declared=[...source.matchAll(/defineString\("(WORKFORCE_[A-Z_]+)"/g)].map(match=>match[1]);
   if(declared.length!==keys.length||keys.some(key=>!declared.includes(key))||Object.values(env).some(value=>typeof value!=='string'||/[\r\n]/u.test(value)))throw Error('Workforce parameter inventory changed');
@@ -75,6 +75,10 @@ export function workforceDeploymentEnvironment(release, source, operationalDataA
   if(enabled('WORKFORCE_HHA_PORTAL_APPROVED')&&(!enabled('WORKFORCE_STAFF_APPROVED')||!operationalDataApproved||!env.WORKFORCE_INTAKE_OFFICE))throw Error('HHA portal release requires approved source and office');
   if(enabled('WORKFORCE_ID_DOCUMENTS_APPROVED')&&(!enabled('WORKFORCE_STAFF_APPROVED')||!enabled('WORKFORCE_APPLICANT_COLLECTION_APPROVED')||!enabled('WORKFORCE_PACKET_REVIEW_APPROVED')||!enabled('WORKFORCE_ID_RETENTION_APPROVED')||!env.WORKFORCE_INTAKE_OFFICE))throw Error('Identity collection prerequisites are not approved');
   if(env.WORKFORCE_DOCUMENT_KMS_KEY&&!/^projects\/primetimehomehealthservices\/locations\/us-central1\/keyRings\/[a-zA-Z0-9_-]+\/cryptoKeys\/[a-zA-Z0-9_-]+$/.test(env.WORKFORCE_DOCUMENT_KMS_KEY))throw Error('Invalid document KMS key');
+  const uuid=/^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/;
+  for(const key of ['WORKFORCE_DOCUMENT_MAIL_TENANT','WORKFORCE_DOCUMENT_MAIL_CLIENT'])if(env[key]&&!uuid.test(env[key]))throw Error('Invalid verification mail identity');
+  if(enabled('WORKFORCE_DOCUMENT_EMAIL_APPROVED')&&(!env.WORKFORCE_DOCUMENT_MAIL_TENANT||!env.WORKFORCE_DOCUMENT_MAIL_CLIENT))throw Error('Verification mail identity is not configured');
+  if(env.WORKFORCE_DOCUMENT_SAMPLE_UNTIL&&!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/.test(env.WORKFORCE_DOCUMENT_SAMPLE_UNTIL))throw Error('Invalid verification sample expiry');
   if(enabled('WORKFORCE_ID_DOCUMENTS_APPROVED')&&(!env.WORKFORCE_DOCUMENT_KMS_KEY||!enabled('WORKFORCE_DOCUMENT_EMAIL_APPROVED')))throw Error('Document encryption and verified email delivery prerequisites are not approved');
   return keys.map(key=>key+'='+env[key]).join('\n')+'\n';
 }
