@@ -214,7 +214,8 @@ for (const file of workforceFiles) workforceGzip += gzipSync(await fs.readFile(f
 // Complete account creation/recovery and the private job board add about 22 KB
 // raw / 7 KB gzip without a new runtime library. Keep separate from operations.
 // This release also includes the coverage election, DPS CCH signing and active roster.
-if (workforceBytes > 177_000 || workforceGzip > 55_000) errors.push(`workforce output exceeds 177 KB raw / 55 KB gzip budget: ${workforceBytes}/${workforceGzip}`);
+// The document verification dialog adds a small first-party controller, without a new browser library.
+if (workforceBytes > 183_000 || workforceGzip > 57_000) errors.push(`workforce output exceeds 183 KB raw / 57 KB gzip budget: ${workforceBytes}/${workforceGzip}`);
 const publicBytes = (await Promise.all(publicFiles.map((file) => fs.stat(file)))).reduce((sum, stat) => sum + stat.size, 0);
 const internalFiles = publicFiles.filter(file => isInternalAppFile(file, publicDir) && !isWorkforceFile(file)&&!isManagementFile(file));
 const internalBytes = (await Promise.all(internalFiles.map(file => fs.stat(file)))).reduce((sum, stat) => sum + stat.size, 0);
