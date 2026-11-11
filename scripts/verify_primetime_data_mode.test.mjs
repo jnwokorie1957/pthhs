@@ -1078,6 +1078,9 @@ test('deferred reads honor source delay, resume at the skipped detail and preser
   assert.match(app.element('dashboardEvvRetryStatus').textContent,/37 seconds/);
   clock.set('2026-10-10T12:00:37Z');clock.run();
   assert.equal(app.element('dashboardEvvRetry').disabled,false);
+  for (const id of ['dashboardVisitRetryStatus', 'dashboardOverviewRetryStatus', 'dashboardEvvRetryStatus']) {
+    assert.match(app.element(id).textContent, /resumes deferred reads on a new page/);
+  }
   await app.click('dashboardEvvRetry');await tick();await tick();
   assert.equal(app.calls.filter(c=>c.path.includes('/views/visits?')).length,initial+1);
   assert.match(nodeText(app.element('dashboardExceptions')),/900002/);assert.doesNotMatch(nodeText(app.element('dashboardExceptions')),/900001/);
@@ -1140,6 +1143,10 @@ for (const [status, title] of [[429, 'Read rate limited (HTTP 429)'], [503, 'Sou
     await app.click('dashboardVisitRetry');
     assert.equal(attempts, 1, 'the label must not add a request or bypass the delay');
     clock.set('2026-10-10T12:00:07Z'); clock.run();
+    for (const id of ['dashboardVisitRetryStatus', 'dashboardOverviewRetryStatus', 'dashboardEvvRetryStatus']) {
+      assert.match(app.element(id).textContent, /reads the selected source page again/);
+      assert.doesNotMatch(app.element(id).textContent, /new page|Previous source page/);
+    }
     await app.click('dashboardVisitRetry'); await tick(); await tick();
     assert.equal(attempts, 2);
     assert.equal(paths[1], paths[0], 'retry keeps the exact date, office and cursor');

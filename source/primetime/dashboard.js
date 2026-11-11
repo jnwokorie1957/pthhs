@@ -421,7 +421,9 @@
       get(id).textContent = seconds ? `Retry deferred details in ${seconds}s` : 'Retry deferred details';
     }
     const message = !live ? '' : seconds ? `HHA retry delay: ${seconds} seconds. Source reads paused.`
-      : retryRead ? 'Retry resumes deferred reads on a new page. Previous source page returns. Empty source fields stay unchanged.' : '';
+      : retryRead ? retryRead.samePage
+        ? 'Retry reads the selected source page again. Empty source fields stay unchanged.'
+        : 'Retry resumes deferred reads on a new page. Previous source page returns. Empty source fields stay unchanged.' : '';
     for (const id of ['dashboardVisitRetryStatus', 'dashboardOverviewRetryStatus', 'dashboardEvvRetryStatus']) if (get(id)) { get(id).textContent = message; get(id).hidden = !message; }
     if (!seconds && visitRetryTimer !== null) { clearInterval(visitRetryTimer); visitRetryTimer = null; }
   }
