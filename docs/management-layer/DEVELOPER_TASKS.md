@@ -7,8 +7,10 @@
   [Field and release evidence](PRIMETIME_LIVE_DATA_CHECKLIST.txt).
 - [ ] Review revalidation for the Primetime HTML shell. A fresh Chrome tab
   initially served the prior fingerprint after a Hosting release. Check
-  direct routes and private noindex while preserving fingerprinted asset
-  caching and protected API responses.
+  actual HTML aliases, a previously cached revisit/reload and history return.
+  Verify the served fingerprint and private noindex alongside the separate
+  API/source receipt. Preserve fingerprinted asset caching and protected API
+  responses. [Acceptance and primary references](ROLE_WORKFLOW_RESEARCH.txt).
 
 - [x] November 10 office report scope deployed (PR22/86fa979). The report
   and download carry the accepted range or cached-day receipt. The protected

@@ -3883,3 +3883,56 @@ the owner's disposition.
 https://github.com/jnwokorie1957/pthhs/pull/22
 https://github.com/jnwokorie1957/pthhs/actions/runs/42901193663
 https://github.com/jnwokorie1957/pthhs/actions/runs/42901839757
+
+
+NOVEMBER 11, 2026 02:53 UTC — RELEASE FRESHNESS AND ROLE RECEIPTS
+
+Reconciled PR23 at 11baba7a345d8d6706d7ba3722ac46d4953bd76f.
+The approved November 10 Primetime check displayed an explicitly empty
+actual endpoint after a normal reload loaded the new dashboard fingerprint.
+Before reload, the browser had reused the previous shell. The source
+preview separately disclosed a read limit and dated cache. The November 9
+held HHA Calendar review supplies an office stop example. These observations
+remain dated and require no new tenant read for this research pass.
+
+P1 refinement for the existing shell task. Use an explicit HTML revalidation
+policy on the Primetime entry and actual HTML aliases. Preserve the private
+indexing headers and independent protected API policy. Check the served
+asset references after release. Firebase documents browser/CDN age controls,
+and RFC 9111 defines validation before reuse for an unqualified no-cache
+response (R120–R121). A new server header takes effect when a client actually
+requests the resource. Acceptance must include a previously cached entry,
+a normal revisit and reload after release, and a history return. Record the
+observed version without treating a changed shell as a fresh source read.
+
+Patient/family schedule and document links need the current patient release
+and the exact document instance/version at each authorized retrieval.
+PT My day and documentation need effective assignment and the applicable
+encounter/form version before any permitted write or signature. A new page
+version cannot supply those permissions. Conversely, a current assignment
+does not update the displayed source receipt or document version.
+
+For the office, retain the accepted range/filter receipt, local case
+revision, HHA clock evidence and authorization/billing follow-up as separate
+links. Empty clocks now remain distinct from absent or unavailable detail.
+Test a saved report viewed after a source update, an expired assignment
+after history navigation and a document whose release changed while open.
+Use synthetic relationships for failures, plus existing approved examples
+for permitted reads. Preserve drafts only under their established scope.
+
+HHA's documented mobile offline mode synchronizes source changes on
+reconnection and can require agency reconciliation if a visit was altered
+while offline (R79, rechecked). That product behavior supplies no reason
+to classify a missing Primetime API clock as a device synchronization issue.
+The recorded vendor history, linkage, duration-unit and readback questions,
+family/clinician acceptance and the held visit disposition remain open.
+
+PRIMARY SOURCES CHECKED NOVEMBER 11, 2026
+[R120] Firebase Hosting, Manage cache behavior.
+https://firebase.google.com/docs/hosting/manage-cache
+[R121] IETF RFC 9111, HTTP Caching, sections 4.3 and 5.2.2.4.
+https://www.rfc-editor.org/rfc/rfc9111.html#section-5.2.2.4
+[R122] Current source and the bounded authenticated empty-clock evidence.
+https://github.com/jnwokorie1957/pthhs/blob/11baba7a345d8d6706d7ba3722ac46d4953bd76f/firebase.json
+https://github.com/jnwokorie1957/pthhs/blob/11baba7a345d8d6706d7ba3722ac46d4953bd76f/docs/management-layer/PRIMETIME_LIVE_DATA_CHECKLIST.txt
+https://github.com/jnwokorie1957/pthhs/actions/runs/42903608709
