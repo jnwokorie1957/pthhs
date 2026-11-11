@@ -3959,3 +3959,25 @@ assignment/document version, filtered range and held-visit blockers remain.
 
 https://github.com/jnwokorie1957/pthhs/pull/24
 https://github.com/jnwokorie1957/pthhs/actions/runs/42950175223
+
+
+NOVEMBER 11, 2026 03:20 UTC — RETRY GUIDANCE AND CACHED ENTRY ACCEPTANCE
+
+PR25/859380e distinguishes retrying a retained source page after HTTP
+429/503 from continuing at a deferred detail on a new page. The request
+scope, cooldown and independent clock/hour evidence stay unchanged.
+All 265 dashboard tests and four regressions against served bytes passed;
+both quality and Hosting-only release jobs passed.
+
+An entry opened before deployment retained c32c3381c519 until navigation.
+Chrome's normal revisit obtained c0919a19b461; reload and history return
+retained it. This supplies the pending bounded PR24 cross-release HTML
+acceptance. An open/history-restored document is not a fresh source read.
+The fresh tab showed sign-in and the held original tab could not attach.
+Restore the existing administrator session before protected source
+comparison. Existing family/PT relationships and versions, vendor
+contracts and the held-visit disposition remain unaccepted. No additional
+time connection or recovered actual/EVV field is claimed.
+
+https://github.com/jnwokorie1957/pthhs/pull/25
+https://github.com/jnwokorie1957/pthhs/actions/runs/42951856309

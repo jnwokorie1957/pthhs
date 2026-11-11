@@ -1,5 +1,15 @@
 # PTHHS Management Layer — Developer Checklist
 
+- [x] November 11 source retry guidance deployed (PR25/859380e).
+  HTTP 429/503 retains and describes the selected source page; a deferred
+  continuation still describes its new page. Both release jobs passed.
+  All 265 dashboard tests and four regressions against the exact served
+  script passed. [Source and access limits](PRIMETIME_LIVE_DATA_CHECKLIST.txt).
+- [ ] Restore the existing administrator sign-in at /primetime, then use the
+  approved scoped retry to inspect deferred details. The held original tab
+  could not attach and a fresh Chrome tab showed sign-in. No source
+  comparison or recovered clock/hour is claimed for this pass.
+
 - [x] November 10 explicit empty clock display deployed (PR23/f2c52fc).
   Visit Preview and evidence retain an empty HHA clock separately from an
   absent field or unavailable detail. Signed-in production showed an empty
@@ -10,10 +20,10 @@
   Production bytes, private noindex, immutable assets and protected API
   policies pass. Chrome revisit, normal reload and history return retain
   the current fingerprint. [Release and limits](../seo/2026-11-11-primetime-shell-revalidation.md).
-- [ ] At the next runtime release, observe a previously cached Primetime
-  entry crossing the release boundary. The new policy applies after a
-  network response; it cannot retroactively evict an older fresh response
-  or force an already open/history-restored page to fetch source data.
+- [x] November 11 cached entry crossed PR25's release boundary. Chrome kept
+  the prior open document, then obtained the new fingerprint on normal
+  navigation to Primetime; reload and history return retained it. The new
+  policy does not replace an open document or establish source freshness.
   [Acceptance and primary references](ROLE_WORKFLOW_RESEARCH.txt).
 
 - [x] November 10 office report scope deployed (PR22/86fa979). The report

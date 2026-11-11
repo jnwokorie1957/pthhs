@@ -2046,3 +2046,51 @@ https://cloud.hhaexchange.com/Integration/ENT/V1.8/ws.asmx?WSDL
 https://github.com/jnwokorie1957/pthhs/pull/23
 https://github.com/jnwokorie1957/pthhs/actions/runs/42903393278
 https://github.com/jnwokorie1957/pthhs/actions/runs/42903608709
+
+
+NOVEMBER 11, 2026 03:20 UTC — RETRY PAGE GUIDANCE AND ACCESS BOUNDARY
+
+PR25/859380e corrects the retry helper after an HTTP 429 or 503. That path
+retains the selected office/date/cursor and retries the same source page.
+The old helper instead promised a new page and previous-page navigation.
+A partial page whose retry resumes at a later deferred detail keeps its
+separate new-page guidance. Cooldown, source requests and field mapping
+are unchanged. The two existing HTTP regressions reproduced the defect.
+All 265 dashboard/data-mode tests passed. Both quality jobs and both
+Hosting-only release jobs passed. At 03:19 UTC production HTML and scripts
+matched Git; all four targeted regressions passed against the served script.
+Private noindex, entry no-cache and anonymous API no-store/401 passed.
+
+Chrome retained a pre-release c32c3381c519 document while it was open.
+Normal navigation back to Primetime after public Careers navigation loaded
+c0919a19b461 without clearing storage or a forced refresh. Normal reload
+and history return retained that version. This accepts the bounded PR24
+cross-release HTML case, not source receipt freshness or signed-in behavior.
+
+The held original Primetime tab did not attach. A fresh tab in the same
+Chrome profile showed sign-in. No authenticated HHA read, deferred-detail
+retry, import, source write or new grant occurred. No clock/hour was
+recovered. The October 23/24 and November 10 office-day comparisons remain
+the dated receipts above; no new completed/pending status is inferred.
+The original October 24 screenshot remains resolved by the October 31 read.
+
+GetVisitInfoV3Result/VisitInfo/VisitStartTime, VisitEndTime, EVVStartTime,
+EVVEndTime, ActualHours and ActualHoursRounded remain independent source
+strings. ScheduleDuration/ScheduleDurationHours and
+ScheduleDuration/ScheduleDurationMinutes remain separate hour/minute
+components. No schedule/pay/billed value or span substitutes for a missing
+actual/EVV clock or source duration.
+
+Next owner step: restore the existing administrator sign-in at
+https://pthhs.net/primetime. Then use the existing scoped retry after its
+displayed delay to inspect the remaining withheld detail. Do not request
+new source access or send another support message. A bounded mailbox search
+for the existing support topic since November 10 found no matching new
+message. This is not a mailbox-wide absence claim. HHA still needs to
+establish original-event linkage, retained history, duration units and
+preservation/readback; P03/E04 remain open. The held Calendar visit still
+requires its separate owner disposition before any visit action.
+
+https://github.com/jnwokorie1957/pthhs/pull/25
+https://github.com/jnwokorie1957/pthhs/actions/runs/42951677917
+https://github.com/jnwokorie1957/pthhs/actions/runs/42951856309

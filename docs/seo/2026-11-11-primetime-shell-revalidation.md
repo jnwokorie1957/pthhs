@@ -53,3 +53,10 @@ The [November 10 Search Console evidence](2026-11-10-canonical-sitemap-discovery
 still dates the 36-page discovery count. This release establishes neither
 new indexing results nor ranking, lead or field-performance outcomes.
 Owner-confirmed location facts and existing business/claim blockers remain.
+
+Follow-up at 03:20 UTC: the PR25 dashboard release supplied the next runtime
+boundary. A Chrome entry opened before deployment kept the old document
+while open, then normal navigation obtained c0919a19b461. Reload and history
+return retained the new version and meta noindex. This closes the bounded
+cached-entry acceptance above. The fresh tab was signed out, so this does
+not establish authenticated source behavior or change any source receipt.
