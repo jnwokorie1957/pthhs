@@ -18,6 +18,14 @@
   Web (text) property totals are recorded without outcome or causal claims.
   No runtime change or deployment was needed for this evidence update.
 
+- [ ] P2 role transition acceptance: verify visit/patient-office authority
+  independently from caregiver primary/secondary office and workforce account.
+  A visible schedule reference must not grant its patient record, clinical
+  document or action. Test family-patient switching with stale responses and
+  expired relationships separately. Use synthetic tests first; approved role
+  examples require current sign-in, scoped memberships and form contracts.
+  [November 12 role-navigation research and acceptance](ROLE_WORKFLOW_RESEARCH.txt).
+
 - [x] November 11 vendor capability guidance deployed (PR26/849ed21).
   The workbench identifies unsupported API linking of existing caregiver calls.
   Empty catalog guidance retains the unverified exact-visit cause. Both quality

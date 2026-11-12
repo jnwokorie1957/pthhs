@@ -3,7 +3,8 @@ Updated: November 12, 2026, America/Chicago
 Scope: PTHHS /primetime, repository jnwokorie1957/pthhs.
 
 CURRENT STATUS INDEX — NOVEMBER 12, 2026
-Source basis: 09c966c97eb2816487c8c49b5ce1c83f07312608.
+Source basis: main851f369e350024dbfb769db95bf02eb5dcee9a99, plus the
+separate approved caregiver release ed534254647fca1da3ecca042a281c4af82cbcc4.
 Core role references were checked November 11; mobile, clinical e-doc and
 family-dashboard references were rechecked November 12 below. This index
 separates source/release evidence from tenant and role acceptance.
@@ -25,11 +26,14 @@ evidence. PR24/25 establish entry revalidation and accurate retry guidance.
 These releases do not establish HHA confirmation, complete source coverage
 or multi-user office workflow acceptance.
 
-Staff / caregiver: public entry and staff routing have dated deployment
-evidence in docs/workforce/PUBLIC_PORTAL_RELEASE.md (PR17). Existing staff
-office/role acceptance remains pending. Workforce permissions do not
-authorize legacy administrator or clinical records. Historical PR11 draft
-notes below are not the current production-status summary.
+Staff / caregiver: PR17 staff routing retains its dated acceptance. The owner
+subsequently retired public Careers in favor of Caregiver Portal; November12
+production bytes and all three old-route redirects verify that separate release.
+Its source still needs reconciliation with main before another deployment.
+This is not new acceptance of a signed-in application, staff office/role or
+clinical workflow. Workforce permissions do not authorize legacy administrator
+or clinical records. Historical PR11 draft and Careers-entry notes below are
+not the current production-status summary.
 
 Patient / representative: schedules, requests and independently released
 documents remain proposed external-role workflows. Require a current,
@@ -47,7 +51,7 @@ their own timestamps/provenance. Historical snapshot proposals do not
 authorize new web-scraped imports.
 
 Next dependencies: restore existing Primetime administrator sign-in for
-protected examples (last checked November 12 at 17:17 UTC); accept a naturally
+protected examples (last checked November 12 at 20:06 UTC); accept a naturally
 incomplete filtered range and an existing scoped staff account; obtain retained
 event/history/units/readback details, CSM browser guidance and an owner-approved
 private XML lookup example. The owner's exact held-visit disposition remains
@@ -55,6 +59,11 @@ separate. Family/PT release needs the relationships/forms
 above. Do not broaden grants, send communications or continue a held source
 action to satisfy an acceptance test. Current precise actions remain in
 DEVELOPER_TASKS.md and OWNER_OPERATIONS_TASKS.md.
+
+Before a runtime release, reconcile the approved caregiver source with main
+using the existing workflow. See docs/seo/
+2026-11-12-careers-retirement-and-source-reconciliation.md. The role-navigation
+and visit-office acceptance cases at the end remain proposed.
 
 Current release evidence:
 https://github.com/jnwokorie1957/pthhs/pull/17
@@ -4167,3 +4176,93 @@ Primary sources rechecked November 12, 2026:
 [R8] https://knowledge.hhaexchange.com/enterprise/Content/Documentation/Admin/Admin-N-Patient-Visit-Family-Dashboard-P.htm
 Source comparison: functions/src/operations/patientVisit.ts,
 functions/src/operations/patientDocuments.ts and the dated PR26 evidence.
+
+
+NOVEMBER 12, 2026 — ROLE NAVIGATION AND VISIT-OFFICE AUTHORITY
+
+Observed implementation evidence: the owner retired public Careers in the
+November11 caregiver review. Independent November12 delivery checks verified
+35 canonical sitemap pages against ed534254647fca1da3ecca042a281c4af82cbcc4
+and all three old Careers routes redirecting to /caregiver. This supersedes
+older public Careers-entry proposals. It does not verify the current signed-in
+application, collection policy, forms, staff role or a clinical encounter.
+The current main tree lacks that complete caregiver release. Preserve the
+separate reviewed source and reconcile before deployment; never deploy stale
+main to test a role link. The developer/source checkpoint already records this
+release dependency. No additional owner decision is requested here.
+
+Primary-source comparison, checked November12:
+[R123] HHA's Caregiver Management Overview uses caregiver for both skilled and
+non-skilled service providers. Product inference: a caregiver profile or the
+Caregiver Portal label cannot establish PT discipline, credentials, current
+assignment or clinical-document authority. Keep those explicit prerequisites.
+[R124] The Texas Other System Pages guide describes office-dependent behavior:
+a caregiver appointment search may show visits in another assigned office,
+while access to that visit's functions follows patient-office permissions.
+Its bulk-update selection is confined to one office. This is vendor-product
+behavior, not evidence that Primetime may expose cross-office patient rows or
+perform bulk updates. No HHA UI or API action contract is added by the guide.
+The existing Family Portal navigation reference describes a patient selector
+for representatives associated with multiple patients. That selector is a
+useful navigation pattern; each selection still needs its own accepted current
+relationship and document-sharing rules in Primetime.
+
+Current source comparison: functions/src/workforce/policy.ts requires explicit
+function permissions and office grants; role labels alone confer no authority.
+functions/src/operations/patientVisit.ts verifies the selected visit/patient,
+current patient office and configured office, and rechecks settings before
+returning. Its caregiver profile check uses the supplied office membership;
+it does not turn a primary-office label into patient access. patientDocuments.ts
+checks current patient-office identity and exact document membership around a
+download, but remains an administrator source-file reader rather than an
+external-family share or signed clinical-document workflow.
+
+Proposed experience and shared links:
+- Patient/representative: show the permitted selected patient and a clear
+  patient switcher only after relationship acceptance. Keep that patient's
+  schedule, requests and explicitly shared document versions together.
+- PT/staff: keep the workforce profile/application separate from My day,
+  current caseload and clinical forms. A permitted visit carries its patient,
+  visit-office, caregiver/clinician, date and receipt; clinical actions also
+  require the effective assignment and applicable encounter/form version.
+- Office manager: retain the selected office and source coverage on queues.
+  A caregiver's broader schedule reference does not establish another patient's
+  detail/action rights. Authorization, original EVV evidence, documentation
+  review and billing follow-up continue as separate facts and permissions.
+
+Priority/dependencies: P0 preserve the approved release source and existing
+privacy/source-write controls. P2 implement the following only after scoped
+family/staff/PT relationships, minimum cross-office visibility and form/sharing
+contracts are accepted. Existing sign-in, CSM/private-XML and held-visit steps
+remain unchanged; no grant or operational disposition is inferred.
+
+Proposed acceptance criteria, not completed tests or tenant observations:
+1. A caregiver assigned to offices A and B, with an actor authorized only at A,
+   cannot open B's patient/document/action through a schedule link. Use denied
+   or explicitly accepted minimal row visibility; do not copy vendor visibility
+   into an unapproved Primetime policy. Keep the visit's office separate from
+   the caregiver's primary office in shared links and server checks.
+2. Switching family patient A to B invalidates A's rendered document/schedule
+   state and discards delayed A responses. A saved deep link, browser return or
+   identity-name match cannot bypass B's current relationship/share check.
+3. A workforce account with a caregiver source link cannot obtain PT caseload
+   or clinical-document rights without independent effective authorization.
+   Deny expired assignments and revoked shares again on every protected action.
+4. Any future cross-office/bulk workflow needs its own server-enforced scope
+   and action contract. Existing local review completion still supplies no
+   missing authorization, actual/EVV clock, clinical signature or billing state.
+
+Implementation evidence: existing scoped guards and the separately verified
+public-entry retirement only. No role chooser, family/PT workflow, cross-office
+list or bulk action was implemented. No tenant data, new HHA observation,
+communication, source write, grant, runtime suite or deployment in this pass.
+The fresh Primetime entry observed at20:06UTC still required administrator
+sign-in; that known blocker was not polled again for this research.
+
+Primary sources checked November12,2026:
+[R123] https://knowledge.hhaexchange.com/enterprise/Content/Documentation/Caregiver/CG-N-Caregiver-Management-Overview-P.htm
+[R124] https://knowledge.hhaexchange.com/texas/Content/Documentation/Caregiver/CG-N-Other-System-Pages-P.htm
+Rechecked family navigation:
+https://knowledge.hhaexchange.com/enterprise/Content/Documentation/Patient/Pat-N-Navigate-Family-Portal-P.htm
+Source/release reconciliation evidence:
+https://github.com/jnwokorie1957/pthhs/blob/851f369e350024dbfb769db95bf02eb5dcee9a99/docs/seo/2026-11-12-careers-retirement-and-source-reconciliation.md
