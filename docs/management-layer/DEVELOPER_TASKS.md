@@ -1,5 +1,23 @@
 # PTHHS Management Layer — Developer Checklist
 
+- [ ] Before another Hosting release, reconcile the separately approved
+  caregiver release `ed534254647fca1da3ecca042a281c4af82cbcc4` with main.
+  November 12 production matches its 35-URL inventory and retired Careers
+  redirects; main still contains the older 36-URL inventory/navigation.
+  The local `feature/caregiver-navigation-preview` branch is not available
+  under that name on origin. Preserve/publish its reviewed source history,
+  integrate through the normal GitHub workflow, verify generator stability,
+  and preserve both Primetime controls and current caregiver settings before
+  required release jobs and production acceptance. Do not deploy stale main.
+  [Source, tests and acceptance criteria](../seo/2026-11-12-careers-retirement-and-source-reconciliation.md).
+
+- [x] November 12 SEO evidence reconciled with the approved Careers removal.
+  All 35 live sitemap routes match the caregiver release; three old Careers
+  routes redirect to the portal. Search Console's canonical discovery count
+  is 35. Primetime noindex/cache and anonymous denial pass. Settled weekly
+  Web (text) property totals are recorded without outcome or causal claims.
+  No runtime change or deployment was needed for this evidence update.
+
 - [x] November 11 vendor capability guidance deployed (PR26/849ed21).
   The workbench identifies unsupported API linking of existing caregiver calls.
   Empty catalog guidance retains the unverified exact-visit cause. Both quality

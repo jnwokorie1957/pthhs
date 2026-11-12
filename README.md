@@ -1,5 +1,11 @@
 # PTHHS
 
+November 12 production-source checkpoint: the owner-approved Careers removal
+is live from the separate caregiver release, while main retains older public
+navigation and the 36-URL sitemap. Reconcile that source before another
+Hosting deployment. [Verified delivery and release acceptance](docs/seo/2026-11-12-careers-retirement-and-source-reconciliation.md)
+record the current 35-URL inventory and preserved Primetime protections.
+
 ## Administrator visit-maintenance workspace
 
 November 11 HHA support confirms that its API does not link existing caregiver

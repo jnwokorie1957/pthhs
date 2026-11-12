@@ -14,6 +14,12 @@
 
 ## Start here
 
+November 12 release-source note: the owner's November 11 decision to retire
+Careers is live and verified. Its current 35-URL sitemap is intentional.
+The developer must reconcile the separate caregiver release with main before
+another deployment; no new service, location or payer decision is implied.
+[Current evidence and developer acceptance](../seo/2026-11-12-careers-retirement-and-source-reconciliation.md).
+
 - [x] Authorized and sent the [support email](evv-maintenance-resources/HHA_INTEGRATION_SUPPORT_REQUEST_2026-11-06.txt)
   to EINTSupport@hhaexchange.com. It contains technical diagnostics and asks for
   the applicable API contract and permitted supervised AI browser operation;
