@@ -199,6 +199,7 @@ export class HhaSoapClient {
     private readonly baseUrl: string,
     private readonly credentials: HhaCredentials,
     private readonly budget?: HhaRequestBudget,
+    private readonly redirect?: RequestRedirect,
   ) {}
 
   private async persistBackoff(value: string | undefined): Promise<void> {
@@ -241,6 +242,7 @@ export class HhaSoapClient {
         SOAPAction: '"' + HHA_NAMESPACE + "/" + operation + '"',
       },
       body: this.buildEnvelope(operation, operationBodyXml),
+      ...(this.redirect ? { redirect: this.redirect } : {}),
       signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
     });
 

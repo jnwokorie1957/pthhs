@@ -37,6 +37,16 @@
       "pages": 2,
       "edition": "REV 05/23",
       "sha256": "246775a4914810a0cd709d33a22002276dfcde8f70cc5c994f3e6ea8f758139a"
+    },
+    {
+      "id": "dps-cch",
+      "label": "DPS Computerized Criminal History (CCH) Verification Form",
+      "file": "/assets/forms/dps-cch.pdf",
+      "source": "https://resources.finalsite.net/images/v1761148086/pothisdus/pothisdus/pothisdus/t65ar9mkjiqcuta13f71/DPSCCHVerificationForm.pdf",
+      "pages": 1,
+      "edition": "08/02/2024",
+      "sha256": "269ab4dc9afbe4748f28fe63a7d63da85b894a7e9a52a14cb00698a71329cc96",
+      "delivery": "Blank DPS template. Source annotation layers removed. Applicant Section 1 completed in the portal."
     }
   ]
 }

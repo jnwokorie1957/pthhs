@@ -52,6 +52,7 @@ export class HhaEnrollment {
   const user=await this.auth.getUser(uid);if(user.disabled||!user.emailVerified||!user.email)throw new WorkforceError(401,"verified_identity_required");
   const email=hhaEmail(user.email),stored=await this.match(email);if(!stored)return null;
   const fresh=await this.source(this.office,uid).profile(stored.id);if(hhaEmail(fresh.email)!==email)throw new WorkforceError(409,"hha_email_review_required");
+  if(fresh.fields.EmployeeType?.toLowerCase()==="applicant")return null;
   await this.db.runTransaction(async tx=>{
    const ref=this.db.collection("workforceHhaLinks").doc(uid),reverse=this.db.collection("workforceHhaAssignments").doc(fresh.id),portal=this.db.collection("workforcePortalAccounts").doc(uid);
    const [prior,assignment,account,staff]=await Promise.all([tx.get(ref),tx.get(reverse),tx.get(portal),tx.get(this.db.collection("workforceStaff").doc(uid))]);

@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 const root='./',schemas=JSON.parse(fs.readFileSync(root+'public/assets/forms/schema.json','utf8'));
 for(const kind of Object.keys(schemas)){
- if(kind==='new_hire')continue;
+ if(kind==='new_hire'||kind==='cch')continue;
  const schema=schemas[kind];schema.fields.forEach((f,i)=>f.required=kind==='w4'?[0,1,2,3,4,5,6,7,9,10,11].includes(i):['Last Name (Family Name)','First Name Given Name','Address Street Number and Name','City or Town','State','ZIP Code','Date of Birth mmddyyyy'].includes(f.id));
  schema.employerFields=kind==='w4'?[
   {key:'companyAddress',label:'Employer name and address — automatically entered',rect:{x:94.6,y:35.968,width:293.45,height:30},multiline:true},
@@ -17,7 +17,10 @@ const position=(className,rect,page)=>{css.push(`.${className}{left:${rect.x/pag
 for(const[k,s]of Object.entries(schemas)){
  s.fields.forEach((f,i)=>position(k+'-field-'+i,f.rect,s.pages[f.page-1]));
  for(const f of s.employerFields||[])position(k+'-employer-'+f.key,f.rect,s.pages[0]);
- if(k==='w4'){
+ if(k==='cch'){
+  position('cch-signature',s.signatureRect,s.pages[0]);
+  position('cch-signature-date',s.signatureDateRect,s.pages[0]);
+ }else if(k==='w4'){
   [{x:94.6,y:635.966,width:265,height:14},{x:361.6,y:635.966,width:44,height:14},{x:407.6,y:635.966,width:66.85,height:14}].forEach((r,i)=>position('w4-city-'+i,r,s.pages[0]));
   position('w4-signature',{x:100,y:93,width:345,height:19},s.pages[0]);position('w4-signature-date',{x:462,y:93,width:114,height:19},s.pages[0]);
  }else if(k==='i9'){position('i9-signature',{x:42.076,y:420.8,width:323.204,height:12.918},s.pages[0]);position('i9-signature-date',{x:372.444,y:420.804,width:101.676,height:12.917},s.pages[0]);}

@@ -79,8 +79,8 @@ test('sign-out followed by a new session fences old application and opportunity 
  assert.equal(s.el('manager-count-applications').textContent,'0');assert.equal(s.el('manager-count-published').textContent,'0');assert.equal(s.el('personnel-list').children[0].textContent,'No applications in the loaded records.');
 });
 
-test('account support alone does not read either management list',async()=>{
- const s=setup(()=>{throw Error('unexpected read');});s.emit('workforce-session',{grant:{role:'hr',offices:['office-a'],permissions:['accounts.support']}});await s.settle();assert.equal(s.requests.length,0);
+test('account support reads roster names without reading application or opportunity lists',async()=>{
+ const s=setup(path=>{if(path==='/staff/roster')return {items:[]};throw Error('unexpected read');});s.emit('workforce-session',{grant:{role:'hr',offices:['office-a'],permissions:['accounts.support']}});await s.settle();assert.deepEqual(s.requests,[]);s.nav('accounts');await s.settle();assert.deepEqual(s.requests,['/staff/roster']);
 });
 
 test('management markup provides named status filters and coverage adjacent to each list',()=>{

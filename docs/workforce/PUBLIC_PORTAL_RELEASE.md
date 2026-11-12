@@ -1,5 +1,7 @@
 # Public Careers and portal release
 
+Current status: see [November 11 office testing and January launch](OFFICE_TEST_LAUNCH.md). The account-only release below is historical; the owner subsequently authorized the time-limited application test.
+
 November 6, 2026. The owner explicitly authorized publishing the reviewed Careers page and authenticated portals on PTHHS.net, with all changes pushed to Git.
 
 ## Published paths and scope

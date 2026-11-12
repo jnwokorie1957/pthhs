@@ -25,7 +25,7 @@ node --test scripts/build-workforce-assets.test.mjs
 node --test scripts/verify_primetime_auth.test.mjs
 node --test scripts/verify_workforce.test.mjs
 node --test scripts/workforce-readings.test.mjs
-node --test scripts/workforce-account.test.mjs
+node --test scripts/workforce-account.test.mjs scripts/workforce-navigation.test.mjs
 node --test scripts/workforce-support.test.mjs
 node --test scripts/workforce-management.test.mjs
 node --test scripts/workforce-management-auth.test.mjs

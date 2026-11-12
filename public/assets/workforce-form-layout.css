@@ -99,4 +99,8 @@
 .new_hire-employer-phone{left:7.352941176470589%;top:41.12373737373737%;width:35.294117647058826%;height:1.6792929292929293%}
 .new_hire-employer-fax{left:52.28758169934641%;top:41.12373737373737%;width:35.45751633986928%;height:1.6792929292929293%}
 .new_hire-employer-firstDay{left:52.28758169934641%;top:52.2979797979798%;width:35.45751633986928%;height:1.6792929292929293%}
+.cch-field-0{left:29.248366013071898%;top:14.267676767676768%;width:58.66013071895425%;height:2.0202020202020203%}
+.cch-employer-name{left:21.895424836601308%;top:50.252525252525245%;width:65.68627450980392%;height:2.0202020202020203%}
+.cch-signature{left:27.287581699346404%;top:44.44444444444444%;width:42.64705882352941%;height:2.146464646464646%}
+.cch-signature-date{left:75.16339869281046%;top:44.44444444444444%;width:12.581699346405228%;height:2.146464646464646%}
 #portal-form-editor .pdf-field{display:block;margin:0;padding:0;line-height:1}#portal-form-editor .pdf-field input,#portal-form-editor .pdf-field select,#portal-form-editor .pdf-field textarea{box-sizing:border-box;width:100%;height:100%;min-height:0;line-height:1;margin:0;padding:1px 3px;border:1px solid #3973a8;border-radius:2px;font:clamp(9px,1.1vw,14px) Arial,sans-serif}#portal-form-editor .pdf-field input:is([type=checkbox],[type=radio]){width:100%;height:100%;min-height:0;padding:0;appearance:auto;display:block}#portal-form-editor .guided-entry .pdf-field{display:flex}#portal-form-editor .guided-entry .pdf-field input,#portal-form-editor .guided-entry .pdf-field select,#portal-form-editor .guided-entry .pdf-field textarea{min-height:42px;font-size:16px}#portal-form-editor .guided-entry .pdf-field input:is([type=checkbox],[type=radio]){width:22px;height:22px;min-height:22px}

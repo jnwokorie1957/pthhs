@@ -1224,7 +1224,7 @@
       },
       {
         "id": "middleName",
-        "label": "Employee middle name — enter N/A if none",
+        "label": "Middle name (optional)",
         "page": 1,
         "type": "text",
         "rect": {
@@ -1233,7 +1233,7 @@
           "width": 526,
           "height": 13.3
         },
-        "required": true,
+        "required": false,
         "sensitive": false,
         "maxLength": 100
       },
@@ -1462,6 +1462,58 @@
           "y": 364.5,
           "width": 217,
           "height": 13.3
+        }
+      }
+    ]
+  },
+  "cch": {
+    "kind": "cch",
+    "file": "dps-cch.pdf",
+    "edition": "08/02/2024",
+    "sourceSha256": "269ab4dc9afbe4748f28fe63a7d63da85b894a7e9a52a14cb00698a71329cc96",
+    "pages": [
+      {
+        "width": 612,
+        "height": 792
+      }
+    ],
+    "fields": [
+      {
+        "id": "Applicant Name Print",
+        "label": "Applicant name (print)",
+        "type": "text",
+        "page": 1,
+        "required": true,
+        "maxLength": 250,
+        "rect": {
+          "x": 179,
+          "y": 663,
+          "width": 359,
+          "height": 16
+        }
+      }
+    ],
+    "signatureRect": {
+      "x": 167,
+      "y": 423,
+      "width": 261,
+      "height": 17
+    },
+    "signatureDateRect": {
+      "x": 460,
+      "y": 423,
+      "width": 77,
+      "height": 17
+    },
+    "employerFields": [
+      {
+        "key": "name",
+        "label": "Agency name",
+        "rect": {
+          "x": 134,
+          "y": 378,
+          "width": 402,
+          "height": 16
         }
       }
     ]

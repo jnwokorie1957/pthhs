@@ -17,9 +17,12 @@ test("support lookup exposes only account status and sign-in methods",async()=>{
  const s=setup(),result=await s.service.lookup(s.actor,"caregiver@example.invalid");assert.equal(result.uid,"candidate");assert.deepEqual(result.providers,["password"]);assert.equal(result.state,"not_started");assert.ok(!JSON.stringify(result).match(/passwordHash|ssn|oobCode/));
 });
 test("support requires explicit permission, active grant and assigned office",async()=>{
- for(const change of [{permissions:[]},{active:false},{role:"office"},{offices:["other-office"]}]){
+ for(const change of [{permissions:[]},{active:false},{role:"supervisor"},{offices:["other-office"]}]){
   const s=setup();s.docs.set("workforceStaff/support",{...s.actor.grant,...change});await assert.rejects(s.service.lookup(s.actor,"caregiver@example.invalid"),/workforce_forbidden|invalid_staff_grant/);
  }
+ const office = setup();
+ office.docs.set("workforceStaff/support", {...office.actor.grant, role:"office"});
+ assert.equal((await office.service.lookup(office.actor,"caregiver@example.invalid")).uid,"candidate");
  const s=setup();await assert.rejects(s.service.lookup({...s.actor,grant:{...s.actor.grant,permissions:[]}},"caregiver@example.invalid"),/workforce_forbidden/);assert.equal(s.reads(),0);
 });
 test("non-portal users and staff accounts cannot be managed as caregivers",async()=>{
