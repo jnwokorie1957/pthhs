@@ -1,10 +1,11 @@
 PRIMETIME ROLE AND WORKFLOW RESEARCH
-Updated: November 11, 2026, America/Chicago
+Updated: November 12, 2026, America/Chicago
 Scope: PTHHS /primetime, repository jnwokorie1957/pthhs.
 
-CURRENT STATUS INDEX — NOVEMBER 11, 2026 19:36 UTC
-Source basis: 849ed2148e248865c9d78273f5ca5b664cb44156.
-Primary role references were rechecked at 14:14 UTC below. This index
+CURRENT STATUS INDEX — NOVEMBER 12, 2026
+Source basis: 09c966c97eb2816487c8c49b5ce1c83f07312608.
+Core role references were checked November 11; mobile, clinical e-doc and
+family-dashboard references were rechecked November 12 below. This index
 separates source/release evidence from tenant and role acceptance.
 Earlier next-task and draft summaries are historical checkpoints.
 
@@ -46,7 +47,7 @@ their own timestamps/provenance. Historical snapshot proposals do not
 authorize new web-scraped imports.
 
 Next dependencies: restore existing Primetime administrator sign-in for
-protected examples (last checked during the 18:15 UTC pass); accept a naturally
+protected examples (last checked November 12 at 17:17 UTC); accept a naturally
 incomplete filtered range and an existing scoped staff account; obtain retained
 event/history/units/readback details, CSM browser guidance and an owner-approved
 private XML lookup example. The owner's exact held-visit disposition remains
@@ -4126,3 +4127,43 @@ docs/management-layer/evv-maintenance-resources/HHA_TECHNICAL_RESPONSE_2026-11-1
 https://github.com/jnwokorie1957/pthhs/pull/26
 https://github.com/jnwokorie1957/pthhs/actions/runs/43077329129
 https://github.com/jnwokorie1957/pthhs/actions/runs/43088353472
+
+
+NOVEMBER 12, 2026 — HISTORICAL DISCOVERY AND CURRENT ROLE AUTHORITY
+
+Public R110 describes a mobile patient list containing recent serviced
+patients plus agency assignments, with different list/search lookbacks:
+30 days for prior service in the list and up to 365 days for search.
+These are that product's discovery windows. They establish neither a
+current PT assignment nor retained original-call API history. Keep proposed
+Assigned now and Prior visits separate; historical visibility grants no
+current clinical or document action.
+
+R73 places clinical e-docs on a specific skilled visit, configured by
+discipline and service code per contract. Rechecked R8 keeps family schedule
+requests and visit exceptions/history separate and describes vendor-side
+concern effects. Primetime must retain its local request/review receipt
+until an independently supported source result establishes a vendor state.
+Do not copy those vendor side effects into an assumed Primetime policy.
+
+Functional source remains unchanged since PR26. The patient/visit and document
+readers recheck exact identities and current office evidence; they do not
+establish external-family sharing, active clinician assignment or clinical
+form/signing authority. Source files and local office case completion remain
+distinct from clinical documentation and billing follow-up.
+
+P2 acceptance refinements: expire an assignment while its prior visit/document
+is open and deny subsequent reads/actions without independent current
+permission. Test an explicitly authorized history role separately from current
+caseload. Show a family concern receipt without inventing an HHA hold; require
+the applicable encounter/form version before document action. These are proposed
+synthetic tests and approved-example acceptance, not implemented external workflows.
+Existing sign-in, CSM/private-XML, relationship/form and held-visit prerequisites
+remain. No new tenant observation, grant or runtime acceptance.
+
+Primary sources rechecked November 12, 2026:
+[R110] https://knowledge.hhaexchange.com/caregiver/Content/Documentation/Mobile/Mobi-CG-UW-Patients-Page-P.htm
+[R73] https://knowledge.hhaexchange.com/enterprise/Content/Documentation/Patient/Pat-N-Clinical-E-Docs-P.htm
+[R8] https://knowledge.hhaexchange.com/enterprise/Content/Documentation/Admin/Admin-N-Patient-Visit-Family-Dashboard-P.htm
+Source comparison: functions/src/operations/patientVisit.ts,
+functions/src/operations/patientDocuments.ts and the dated PR26 evidence.
