@@ -8,7 +8,7 @@ for (const apiOnly of [true, false]) test(`Firebase discovery preserves API and 
   const result = spawnSync(process.execPath, ['-e', script], { cwd: new URL('..', import.meta.url), env: { ...process.env, PRIMETIME_API_ONLY_DEPLOY: String(apiOnly) }, encoding: 'utf8' });
   assert.equal(result.status, 0, result.stderr);
   const manifest = JSON.parse(result.stdout.trim());
-  assert.deepEqual(manifest.endpoints.sort(), apiOnly ? ['primetimeApi'] : ['primetimeApi', 'primetimeRevisionMonitor', 'workforceApi']);
+  assert.deepEqual(manifest.endpoints.sort(), apiOnly ? ['primetimeApi'] : ['primetimeApi', 'primetimeRevisionMonitor', 'workforceApi', 'workforceApplicationMail', 'workforceDocumentDecrypt', 'workforceHhaApplications']);
   assert.equal(manifest.apis.includes('cloudscheduler.googleapis.com'), !apiOnly);
 });
 

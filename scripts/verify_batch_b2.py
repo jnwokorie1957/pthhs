@@ -15,7 +15,6 @@ from batch_a_config import BLOG_SLUGS
 
 modern_routes = [
     "home-care-contact-us.html",
-    "home-care-careers.html",
     "home-care-blog.html",
     "home-care-client-reviews.html",
     "home-care-services.html",

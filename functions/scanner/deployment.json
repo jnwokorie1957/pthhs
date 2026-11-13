@@ -1,0 +1,23 @@
+{
+  "project": "primetimehomehealthservices",
+  "region": "us-central1",
+  "job": "workforce-pdf-scanner",
+  "image": "us-central1-docker.pkg.dev/primetimehomehealthservices/gcf-artifacts/workforce-pdf-scanner@sha256:3c7c55787656a2283c6343e5d95e3eb20142098db7ae5f0f1857e9956e7bb25b",
+  "schedule": "*/5 * * * *",
+  "timeZone": "America/Chicago",
+  "serviceAccount": "733708568001-compute@developer.gserviceaccount.com",
+  "memory": "2Gi",
+  "timeoutSeconds": 1800,
+  "maxRetries": 0,
+  "environment": {
+    "GOOGLE_CLOUD_PROJECT": "primetimehomehealthservices",
+    "WORKFORCE_SCAN_BUCKET": "primetimehomehealthservices.firebasestorage.app",
+    "WORKFORCE_DOCUMENT_KMS_KEY": "projects/primetimehomehealthservices/locations/us-central1/keyRings/workforce-documents/cryptoKeys/caregiver-uploads"
+  },
+  "notes": [
+    "Private scheduled job; no public HTTP endpoint or credential files.",
+    "Decrypts generation-pinned uploads only in memory and applies the existing recordPdfScan check.",
+    "Fresh official definitions required; errors leave PDFs quarantined.",
+    "Only antivirus definitions are cached; personnel data is never stored in that cache."
+  ]
+}

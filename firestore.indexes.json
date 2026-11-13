@@ -1,5 +1,10 @@
 {
-  "indexes": [{"collectionGroup":"workforceCaregiverDirectory","queryScope":"COLLECTION","fields":[{"fieldPath":"office","order":"ASCENDING"},{"fieldPath":"namePrefixes","arrayConfig":"CONTAINS"}]}],
+  "indexes": [
+    {"collectionGroup":"workforceCaregiverDirectory","queryScope":"COLLECTION","fields":[{"fieldPath":"office","order":"ASCENDING"},{"fieldPath":"namePrefixes","arrayConfig":"CONTAINS"}]},
+    {"collectionGroup":"workforceHhaProfiles","queryScope":"COLLECTION","fields":[{"fieldPath":"office","order":"ASCENDING"},{"fieldPath":"status","order":"ASCENDING"},{"fieldPath":"lastName","order":"ASCENDING"}]},
+    {"collectionGroup":"workforceHhaProfiles","queryScope":"COLLECTION","fields":[{"fieldPath":"office","order":"ASCENDING"},{"fieldPath":"status","order":"ASCENDING"},{"fieldPath":"lastName","order":"ASCENDING"},{"fieldPath":"firstName","order":"ASCENDING"}]},
+    {"collectionGroup":"workforceHhaProfiles","queryScope":"COLLECTION","fields":[{"fieldPath":"office","order":"ASCENDING"},{"fieldPath":"status","order":"ASCENDING"},{"fieldPath":"fetchedAt","order":"ASCENDING"}]}
+  ],
   "fieldOverrides": [
     {
       "collectionGroup": "websiteActiveSessions",

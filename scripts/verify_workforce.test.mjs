@@ -31,11 +31,12 @@ test('ZIP, area, schedule, hours and type filters compose', () => {
   for(const f of [{zip:'77001'},{location:'Other'},{hours:'21'},{schedule:'weekends'},{type:'employment'}]) assert.equal(contract.matches(o,f),false);
   assert.equal(contract.matches({...o,recruitingZip:''},{zip:'77000'}),false);
 });
-test('existing Careers URL, homeowner sign-in entry and staff entry remain reachable', () => {
+test('Careers redirects to the portal and the staff entry remains reachable', () => {
   assert.match(read('public/index.html'),/href="\/caregiver">Caregiver Portal/);
-  assert.match(read('public/home-care-careers.html'),/https:\/\/pthhs.net\/home-care-careers/);
-  assert.match(read('public/home-care-careers.html'),/Sign in to view openings/);
-  assert.match(read('public/home-care-careers.html'),/href="\/workforce">Staff Sign In/);
+  assert.match(read('public/home-care-careers.html'),/url=\/caregiver/);
+  const redirects=JSON.parse(read('firebase.json')).hosting.redirects;
+  for(const source of ['/home-care-careers','/home-care-careers.html'])assert.ok(redirects.some(r=>r.source===source&&r.destination==='/caregiver'&&r.type===301));
+  assert.doesNotMatch(read('public/index.html'),/href="\/home-care-careers"/);
   assert.doesNotMatch(read('public/home-care-careers.html'),/id="opportunity-filters"|id="opportunity-list"/);
   assert.match(read('source/primetime/index.html'),/href="\/workforce"/);
   assert.match(read('public/primetime/workforce.html'),/id="staff-editor"/);
@@ -70,13 +71,13 @@ test('new API uses existing project and preserves legacy routing and security bo
   assert.equal(csp('/workforce'), csp('/primetime{,/**}'));
   assert.equal(config.hosting.rewrites.find(rule=>rule.source==='/workforce').destination, '/primetime/workforce.html');
   assert.equal(config.hosting.redirects.find(rule=>rule.source==='/primetime/workforce').destination, '/workforce');
-  assert.match(read('public/home-care-careers.html'), /href="\/workforce">Staff Sign In/);assert.match(csp('**'),/frame-src 'none'/);
+  assert.match(read('source/primetime/index.html'), /href="\/workforce"/);assert.match(csp('**'),/frame-src 'none'/);
   for(const path of ['/caregiver/workforce-api/**','/primetime/workforce-api/**']) assert.equal(config.hosting.rewrites.find(r=>r.source===path).function.functionId,'workforceApi');
   assert.equal(config.hosting.rewrites.find(r=>r.source==='/primetime/api/**').function.functionId,'primetimeApi');
   assert.match(read('functions/src/index.ts'),/principal = await requirePrimetimeAdmin\(request\)/);
 });
 test('build pruning explicitly retains all workforce runtime assets', () => {
-  for (const asset of ['workforce-management-auth.js','workforce-hha.js','workforce-management.css','workforce-management.js','workforce.css','workforce.js','workforce-contract.js','workforce-session.js','workforce-staff.js','workforce-application.js','workforce-personnel.js','workforce-address.js','workforce-readings.js','workforce-forms.js','workforce-form-fields.js','workforce-form-layout.css']) {
+  for (const asset of ['workforce-document-access.js','workforce-training.js','workforce-navigation.js','workforce-navigation.css','workforce-record-navigation.js','workforce-management-auth.js','workforce-hha.js','workforce-management.css','workforce-management.js','workforce.css','workforce.js','workforce-contract.js','workforce-session.js','workforce-staff.js','workforce-application.js','workforce-personnel.js','workforce-address.js','workforce-readings.js','workforce-forms.js','workforce-form-fields.js','workforce-form-layout.css']) {
     assert.ok(read('scripts/accessibility_foundation.py').includes('assets/'+asset));
     assert.ok(read('scripts/verify_accessibility_foundation.py').includes('assets/'+asset));
   }

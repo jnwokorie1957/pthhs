@@ -9,6 +9,9 @@
   integrate through the normal GitHub workflow, verify generator stability,
   and preserve both Primetime controls and current caregiver settings before
   required release jobs and production acceptance. Do not deploy stale main.
+  November 13 isolated integration now preserves both sources and corrects
+  generator/pruner failures; normal PR quality and release acceptance remain
+  pending. [Prepared source and validation](../workforce/SOURCE_RECONCILIATION_2026-11-13.md).
   [Source, tests and acceptance criteria](../seo/2026-11-12-careers-retirement-and-source-reconciliation.md).
 
 - [x] November 12 SEO evidence reconciled with the approved Careers removal.

@@ -12,34 +12,41 @@
   let packet, record = null, answers = {}, sections = [], step = 0, generation = 0;
   let documentItems = [], addressEnabled = false, detachAddress = () => {};
   let version = 0, savedVersion = -1, saveQueue = Promise.resolve(), timer, documentsEnabled = false;
-  let uploading = false;
+  const uploadKinds = {identity: 'Photo ID', social_security: 'Social Security card', insurance_card: 'Health insurance card', direct_deposit: 'Direct deposit form'};
+  let uploading = false, navigating = false;
+  function scrollStep(){const top=panel.querySelector('.application-heading');top?.scrollIntoView({block:'start',behavior:'instant'});const heading=top?.querySelector('h2');if(heading){heading.tabIndex=-1;heading.focus({preventScroll:true});}}
+  async function move(task){if(navigating)return;navigating=true;const seq=generation;panel.setAttribute('aria-busy','true');try{await task(seq);}catch(error){if(seq===generation)showError(error);}finally{navigating=false;panel.removeAttribute('aria-busy');}}
   let reviewNavigation = false;
   const completionSummary = document.createElement('section'), reviewNote = document.createElement('p'), marked = new WeakMap();
   completionSummary.id = 'application-completion-summary'; completionSummary.className = 'completion-summary';
   completionSummary.setAttribute('aria-label', 'Missing required application fields');
   reviewNote.className = 'review-navigation-note'; reviewNote.hidden = true;
-  document.getElementById('application-steps').before(reviewNote, completionSummary);
+  document.querySelector('.application-content').prepend(reviewNote, completionSummary);
   function paintMissing(target, issues, heading = 'Required fields still needed') {
+    issues=issues.filter((issue,index)=>issues.findIndex(other=>other.controlId===issue.controlId)===index);
     for (const control of marked.get(target) || []) { control.classList.remove('required-missing'); control.removeAttribute('aria-invalid'); }
     const controls = new Set();
     for (const issue of issues) for (const id of issue.controlIds || [issue.controlId]) { const control = document.getElementById(id); if (control) { control.classList.add('required-missing'); control.setAttribute('aria-invalid','true'); controls.add(control); } }
     marked.set(target,controls); target.replaceChildren(); target.hidden = !issues.length;
-    if (!issues.length) return;
-    target.classList.add('completion-summary'); target.append(text('h3', heading + ' (' + issues.length + ')'));
-    const list = document.createElement('ul');
-    for (const issue of issues) {
-      const item = document.createElement('li'), link = text('button',issue.label); link.type = 'button'; link.className = 'missing-field-link';
-      link.onclick = issue.activate || (() => document.getElementById(issue.controlId)?.focus()); item.append(link); list.append(item);
-    }
-    target.append(list);
+    if(issues.length){const details=document.createElement('details');details.append(text('summary',heading+' ('+issues.length+')'));const list=document.createElement('ul');for(const issue of issues){const item=document.createElement('li'),button=text('button',issue.label);button.type='button';button.onclick=()=>issue.activate?issue.activate():focusMissing(issue.controlId);item.append(button);list.append(item);}details.append(list);target.append(details);}
   }
-  window.WorkforceReview = { freeNavigation: () => reviewNavigation, paintMissing, flush: saveNavigation };
-  function focusMissing(id) { const control=document.getElementById(id); if(control?.disabled) control.closest('.packet-reading-card')?.querySelector('button')?.focus(); else control?.focus(); }
+  window.WorkforceReview = { freeNavigation: () => reviewNavigation, paintMissing, flush: saveNavigation, formReturned: (label,signed) => {step=sections.indexOf("Tax & employment forms");render();message.textContent=label+(signed?" submitted. Continue your application below.":" saved. Continue your application below.");document.getElementById("portal-form-status").textContent=message.textContent;scrollStep();} };
+  const fieldControl = source => {const id=source.replace('page_21','page_20');return id === 'jobDescriptionRead' ? 'job-description-read' : id === 'terms_page_17' ? 'application-terms_page_17' : 'application-' + id.replace('terms_page_', 'read_page_');};
+  function focusMissing(id) {
+    const control = document.getElementById(id);
+    if (id === 'application-terms_page_17' && !control) {
+      const title = document.querySelector('[aria-controls="policy-document-17"]');
+      title?.scrollIntoView({block:'center',behavior:'smooth'}); title?.focus({preventScroll:true});
+    } else if (control?.disabled || control?.closest('[hidden]')) {
+      const title = control.closest('.packet-reading-card')?.querySelector('button');
+      title?.scrollIntoView({block:'center',behavior:'smooth'}); title?.focus({preventScroll:true});
+    } else { control?.scrollIntoView({block:'center',behavior:'smooth'}); control?.focus({preventScroll:true}); }
+  }
   function refreshCompleteness() {
     if (!packet || record?.state === 'submitted') { completionSummary.hidden = true; return; }
-    const missing = packet.fields.filter(f => f.required && !answers[f.id]?.trim() && (!f.id.startsWith('terms_page_') || answers[f.id.replace('terms_page_', 'read_page_')] === 'Read')).map(field => ({
-      label: field.label, section: field.section, controlId: field.id === 'jobDescriptionRead' ? 'job-description-read' : 'application-' + field.id.replace('terms_page_', 'read_page_'),
-      activate: async () => { try { const next = sections.indexOf(field.section); if (next > step) validateStep(); await saveNavigation(); step = next; render(); focusMissing(field.id === 'jobDescriptionRead' ? 'job-description-read' : 'application-' + field.id.replace('terms_page_', 'read_page_')); } catch(error) { showError(error); } }
+    const missing = packet.fields.filter(f => f.required && !answers[f.id]?.trim() && (f.id === 'terms_page_17' || !f.id.startsWith('terms_page_') || answers[f.id.replace('terms_page_', 'read_page_')] === 'Read')).map(field => ({
+      label: /read_page_(20|21)$/.test(field.id)?'Read the combined HHSC payment rates, approvals, claims & resources':field.label, section: field.section, controlId: fieldControl(field.id),
+      activate: async () => { try { const next = sections.indexOf(field.section); if (next > step) validateStep(); await saveNavigation(); step = next; render(); focusMissing(fieldControl(field.id)); } catch(error) { showError(error); } }
     }));
     for (const kind of requiredDocuments()) missing.push({ label: kind === 'identity' ? 'Photo ID upload' : 'Social Security card upload', section: 'Documents', controlId: kind + '-choose', activate: async () => { try { const next = sections.indexOf('Documents'); if (next > step) validateStep(); await saveNavigation(); step = next; render(); document.getElementById(kind + '-choose').focus(); } catch(error) { showError(error); } } });
     if (step === sections.length) for (const [id,label] of [['release-read','Read the past-employment release'],['electronic-consent','Choose electronic signing'],['application-signature-name','Your electronic signature']]) {
@@ -47,12 +54,6 @@
     }
     const current = missing.filter(f => f.section === sections[step] || step === sections.length);
     paintMissing(completionSummary,current,'Missing required fields in this section');
-    completionSummary.hidden = !missing.length;
-    if (missing.length && !current.length) completionSummary.append(text('p','This section is ready. Required information is still missing elsewhere in your application.'));
-    if (missing.length && current.length !== missing.length) {
-      const details = document.createElement('details'); details.append(text('summary','Show all missing required application fields (' + missing.length + ')'));
-      const list = document.createElement('ul'); for (const issue of missing) { const li = document.createElement('li'), button = text('button',issue.section + ': ' + issue.label); button.type = 'button'; button.className = 'missing-field-link'; button.onclick = issue.activate; li.append(button); list.append(li); } details.append(list); completionSummary.append(details);
-    }
   }
   async function saveNavigation() {
     try { if (sections[step] === 'Tax & employment forms') await window.WorkforceForms.flush(); await save(); }
@@ -72,7 +73,7 @@
   }
   const text = (tag, value) => { const node = document.createElement(tag); node.textContent = value; return node; };
   function clearImage(kind) {
-    for (const key of kind ? [kind] : ['identity', 'social_security']) {
+    for (const key of kind ? [kind] : Object.keys(uploadKinds)) {
 
       for (const suffix of ['file']) document.getElementById(key + '-' + suffix).value = '';
       document.getElementById(key + '-selection').textContent = 'No file selected';
@@ -87,11 +88,13 @@
       if (sequence !== generation) return;
       documentItems = data.items; renderDocumentChecklist();
       document.getElementById('private-document-list').replaceChildren();
-      for (const kind of ['identity', 'social_security']) {
-        const doc = [...data.items].sort((a,b)=>b.createdAt.localeCompare(a.createdAt)).find(item => item.kind === kind && ['pending_review', 'pending_security_review'].includes(item.state));
+      for (const kind of Object.keys(uploadKinds)) {
+        const matches = data.items.filter(item => item.kind === kind).sort((a,b) => b.createdAt.localeCompare(a.createdAt));
+        const doc = matches.find(item => ['pending_review', 'pending_security_review'].includes(item.state));
         const view = document.getElementById(kind + '-view'); view.hidden = !doc || doc.state !== 'pending_review';
         if (doc) document.getElementById(kind + '-selection').textContent = doc.state === 'pending_security_review' ? 'Uploaded — security review pending' : 'Uploaded';
-        view.onclick = async () => { try { const sequence = generation, blob = await workforceApi('/application/documents/' + encodeURIComponent(doc.id), undefined, true); if (sequence === generation) window.WorkforceCamera.view(blob, kind === 'identity' ? 'Photo ID' : 'Social Security card'); } catch (error) { documentMessage.textContent = error.message; } };
+        else if (matches[0]?.state === 'security_rejected') document.getElementById(kind + '-selection').textContent = 'This PDF did not pass security review. Upload a replacement.';
+        view.onclick = async () => { try { const sequence = generation, blob = await workforceApi('/application/documents/' + encodeURIComponent(doc.id), undefined, true); if (sequence === generation) window.WorkforceCamera.view(blob, uploadKinds[kind]); } catch (error) { documentMessage.textContent = error.message; } };
       }
     } catch (error) { if (sequence === generation) documentMessage.textContent = error.message; }
   }
@@ -109,17 +112,23 @@
     });
     return saveQueue;
   }
-  function showError(error) { message.textContent = error.message; }
+  function showError(error) { message.textContent = error.code==='minimum_age_required'?'You must be at least 18 years old to submit a caregiver application. Check your date of birth.':error.message; message.scrollIntoView?.({block:'nearest',behavior:'instant'}); }
+  function validateAge(){if(!WorkforceContract.isAdult(answers.birthDate||'')){focusMissing('application-birthDate');throw Error('You must be at least 18 years old to submit a caregiver application. Check your date of birth. You can save a draft.');}}
   function validateStep() {
     if (reviewNavigation) return;
     if (sections[step] === 'Documents' && (uploading || requiredDocuments().length)) {
-      document.getElementById((requiredDocuments()[0] || 'identity') + '-choose').focus();
+      focusMissing((requiredDocuments()[0] || 'identity') + '-choose');
       throw Error('Upload your Photo ID and Social Security card before continuing.');
     }
+    if(sections[step]==='Contact information')validateAge();
+    if(sections[step]==='Availability & eligibility'&&answers.conviction==='Yes'&&!answers.convictionDetails?.trim()){focusMissing('application-convictionDetails');throw Error('Complete the conviction explanation before continuing.');}
+    const invalid=[...fields.querySelectorAll('input,select,textarea')].find(input=>!input.checkValidity());
+    if(invalid){focusMissing(invalid.id);throw Error(invalid.validationMessage||'Check the highlighted field before continuing.');}
     const missing = packet.fields.find(f => f.section === sections[step] && f.required && !answers[f.id]?.trim());
     if (!missing) return;
-    const control = document.getElementById(missing.id === 'jobDescriptionRead' ? 'job-description-read' : 'application-' + missing.id.replace('terms_page_', 'read_page_'));
-    control?.focus(); control?.setAttribute('aria-invalid', 'true');
+    const id = fieldControl(missing.id);
+    focusMissing(id);
+    document.getElementById(id)?.setAttribute('aria-invalid', 'true');
     throw Error('Complete ' + missing.label + ' before continuing. You can still save this draft.');
   }
   function renderRoleDescription() {
@@ -138,6 +147,7 @@
     document.getElementById('job-description-questions').readOnly = record?.state === 'submitted';
   }
   function renderReview() {
+    const signature=document.getElementById('application-signature-name');signature.value=[answers.firstName,answers.lastName].filter(Boolean).join(' ');signature.readOnly=true;signature.style.fontFamily='PortalSignature, cursive';
     document.getElementById('packet-notice').textContent = packet.notice;
     document.getElementById('reference-release-text').textContent = packet.referenceRelease.text;
     const review = document.getElementById('application-review'); review.replaceChildren();
@@ -151,16 +161,24 @@
       details.append(dl); review.append(details);
     }
   }
-  function render() {
-    queueMicrotask(refreshCompleteness);
+  function render(pushHistory=false) {
+    queueMicrotask(refreshCompleteness); if(pushHistory)queueMicrotask(scrollStep);
     detachAddress(); window.WorkforceCamera.clear(); window.WorkforceReadings.clear();
     const submitted = record?.state === 'submitted';
     document.getElementById('application-status-badge').textContent = submitted ? 'Submitted for review' : 'Draft';
     const nav = document.getElementById('application-steps'); nav.replaceChildren();
+    const groupFor = label => label.includes('role') ? '1 · Role & requirements' : ['Contact information','Emergency contact'].includes(label) ? '2 · About you' : label.includes('Availability') ? '3 · Availability & qualifications' : ['Education','Work experience','References'].includes(label) ? '4 · Experience & references' : label==='Review & submit' ? '6 · Review & submit' : '5 · Acknowledgments & documents';
+    let previousGroup='';
+    const currentLabel=sections[step]||'Review & submit';
+    document.getElementById('application-progress').textContent=groupFor(currentLabel)+' — '+currentLabel+' ▾';
+    window.WorkforceNavigation?.step(currentLabel,pushHistory);
     [...sections, 'Review & submit'].forEach((label, i) => {
-      const button = text('button', (i + 1) + '. ' + label); button.type = 'button';
+      const group=groupFor(label);if(group!==previousGroup){nav.append(text('div',group));nav.lastChild.className='application-group';previousGroup=group;}
+      const button = text('button', label); button.type = 'button';
+      const required=packet.fields.filter(f=>f.section===label&&f.required);
+      const state=text('span',submitted?'Submitted':i===step?'In progress':label==='Documents'?(requiredDocuments().length?'Uploads needed':'Received'):label==='Tax & employment forms'?'Open forms':label==='Review & submit'?'Review when ready':!required.length?'Optional':required.every(f=>answers[f.id]?.trim())?'Complete':'Not complete');state.className='application-step-state';button.dataset.section=label;button.append(state);
       if (step === i) button.setAttribute('aria-current', 'step');
-      button.onclick = async () => { try { if (i > step) validateStep(); await saveNavigation(); step = i; render(); } catch (error) { showError(error); } };
+      button.onclick = () => move(async seq => { if (i > step) validateStep(); await saveNavigation(); if(seq!==generation)return;window.WorkforceForms.clear();step = i; render(true); nav.classList.remove('is-expanded');document.getElementById('application-progress').setAttribute('aria-expanded','false'); });
       nav.append(button);
     });
     fields.replaceChildren();
@@ -192,7 +210,7 @@
       label.append(text('span', field.label + (field.required ? ' *' : '')));
       const input = document.createElement(field.type === 'textarea' ? 'textarea' : field.type === 'choice' ? 'select' : 'input');
       input.name = field.id; input.id = 'application-' + field.id.replace('terms_page_', 'read_page_');
-      input.setAttribute('aria-required', String(field.required));
+      input.setAttribute('aria-required', String(field.required));input.required=Boolean(field.required);if(field.id==='birthDate'){input.max=WorkforceContract.adultCutoff();label.append(text('small','Applicants must be at least 18 years old.'));}
       if (field.type === 'choice') {
         const placeholder = text('option', 'Select an answer'); placeholder.value = ''; input.append(placeholder);
         for (const option of field.options) { const node = text('option', field.id === 'weeklyHours' ? option + ' hours' : option); node.value = option; input.append(node); }
@@ -249,7 +267,7 @@
     const sequence = ++generation; panel.hidden = false; document.getElementById('portal-release-notice').hidden = true; message.textContent = 'Loading your application…';
     documentsEnabled = event.detail.documentsEnabled === true; documentForm.hidden = !documentsEnabled;
     addressEnabled = event.detail.addressLookupEnabled === true;
-    documentMessage.textContent = documentsEnabled ? 'Documents are private and are not emailed or published.' : 'ID and Social Security card collection is closed until security and retention controls are verified.';
+    documentMessage.textContent = documentsEnabled ? 'Uploads are stored encrypted. After submission and security review, completed documents are sent to the authorized office recipient.' : 'ID and Social Security card collection is closed until security and retention controls are verified.';
     try {
       const [schemaResponse, saved] = await Promise.all([fetch('/caregiver/workforce-api/application/packet', { cache: 'no-store' }), workforceApi('/application')]);
       if (!schemaResponse.ok) throw Error('The application packet is unavailable.');
@@ -267,20 +285,23 @@
       const selected = WorkforceContract.selectedId(location.search);
       document.getElementById('selected-opportunity').textContent = event.detail.selectedOpportunity ? 'Applying for personal care attendant · ' + event.detail.selectedOpportunity.location + ' · ' + event.detail.selectedOpportunity.weeklyHours + ' hours/week. Your interest is recorded; complete your application below.' : selected ? 'Selected position reference: ' + selected : '';
       message.textContent = record ? 'Your saved application is ready.' : 'Read the PAS attendant role, then complete Contact information. Progress saves securely after you make changes.';
+      const desired=event.detail.navigation?.section||window.WorkforceNavigation?.resume();if(desired==='Review & submit')step=sections.length;else if(sections.includes(desired))step=sections.indexOf(desired);
       render(); await loadDocuments();
+      if(['i9','w4','new_hire','cch'].includes(event.detail.navigation?.form))await window.WorkforceForms.open(event.detail.navigation.form,{...answers});
     } catch (error) { if (sequence === generation) { showError(error); fields.replaceChildren(); form.hidden = true; signaturePanel.hidden = true; } }
   });
-  document.getElementById('application-save').onclick = () => save().catch(showError);
+  document.getElementById('application-progress').onclick=()=>{const nav=document.getElementById('application-steps');const open=nav.classList.toggle('is-expanded');document.getElementById('application-progress').setAttribute('aria-expanded',String(open));};
+  document.getElementById('application-save').onclick = async () => {try{await saveNavigation();await window.WorkforceNavigation.navigate('home');}catch(error){showError(error);}};
   for (const [id, direction] of [['application-back', -1], ['application-next', 1]]) document.getElementById(id).onclick = async () => {
-    try { if (direction > 0) validateStep(); await saveNavigation(); step = Math.max(0, Math.min(sections.length, step + direction)); render(); } catch (error) { showError(error); }
+    await move(async seq=>{if(direction>0)validateStep();await saveNavigation();if(seq!==generation)return;window.WorkforceForms.clear();step=Math.max(0,Math.min(sections.length,step+direction));render(true);});
   };
   form.addEventListener('submit', e => { e.preventDefault(); save().catch(showError); });
   document.getElementById('application-submit').onclick = async () => {
-    const sequence = generation, button = document.getElementById('application-submit'); button.disabled = true;
+    const sequence = generation, button = document.getElementById('application-submit'); if(button.disabled)return;button.disabled = true;
     try {
       const missing = packet.fields.find(f => f.required && !answers[f.id]?.trim());
-      if (missing) { step = sections.indexOf(missing.section); render(); document.getElementById(missing.id === 'jobDescriptionRead' ? 'job-description-read' : 'application-' + missing.id.replace('terms_page_', 'read_page_'))?.focus(); throw Error('Complete ' + missing.label + ' before submitting.'); }
-      await save();
+      if (missing) { step = sections.indexOf(missing.section); render(); focusMissing(fieldControl(missing.id)); throw Error('Complete ' + missing.label + ' before submitting.'); }
+      validateAge();await save();
       await loadDocuments();
       // The server checks required receipts and trusted office exceptions together.
       // A local checklist must not override an approved alternative arrangement.
@@ -288,9 +309,17 @@
         name: document.getElementById('application-signature-name').value,
         electronicConsent: document.getElementById('electronic-consent').checked, documentRead: document.getElementById('release-read').checked
       } });
-      if (sequence === generation) { record = result.application; render(); }
-    } catch (error) { if (sequence === generation) showError(error); }
-    finally { button.disabled = false; }
+      if (sequence === generation) { record = result.application; render();scrollStep(); }
+    } catch (error) {
+      if (sequence === generation) {
+        if (error.code === 'cch_signature_required') {
+          step = sections.indexOf('Tax & employment forms');
+          render();
+          document.getElementById('complete-cch').focus();
+        }
+        showError(error);
+      }
+    } finally { button.disabled = false; }
   };
   async function choose(kind, file) {
     if (uploading || !documentsEnabled || !file) return;
@@ -307,16 +336,16 @@
     } catch (error) { if (sequence === generation) status.textContent = 'Upload failed. Choose the file or take the photo again. ' + error.message; }
     finally { uploading = false; for (const button of documentForm.querySelectorAll('button')) button.disabled = false; }
   }
-  for (const kind of ['identity', 'social_security']) {
+  for (const kind of Object.keys(uploadKinds)) {
     document.getElementById(kind + '-choose').onclick = () => document.getElementById(kind + '-file').click();
     document.getElementById(kind + '-file').addEventListener('change', event => { const file = event.target.files?.[0]; event.target.value = ''; choose(kind, file); });
     document.getElementById(kind + '-take-photo').onclick = async () => {
-      const sequence = generation, file = await window.WorkforceCamera.capture(kind === 'identity' ? 'Take a Photo ID picture' : 'Take a Social Security card picture');
+      const sequence = generation, file = await window.WorkforceCamera.capture('Photograph your ' + uploadKinds[kind]);
       if (sequence === generation && sections[step] === 'Documents') await choose(kind, file);
     };
     document.getElementById(kind + '-upload-form').addEventListener('submit', event => event.preventDefault());
   }
-  for (const kind of ['i9', 'w4', 'new_hire']) document.getElementById('complete-' + kind).onclick = async () => { try { await saveNavigation(); await window.WorkforceForms.open(kind, {...answers}); } catch (error) { showError(error); } };
+  for (const kind of ['i9', 'w4', 'new_hire', 'cch']) document.getElementById('complete-' + kind).onclick = async () => { try { await saveNavigation(); await window.WorkforceForms.open(kind, {...answers}); } catch (error) { showError(error); } };
   document.getElementById('job-description-read').addEventListener('change', event => {
     answers.jobDescriptionRead = event.target.checked ? 'Yes' : ''; version++; clearTimeout(timer); timer = setTimeout(() => save().catch(showError), 1500);
   });

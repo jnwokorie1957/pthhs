@@ -6,7 +6,7 @@
   const staff = ['/workforce', '/workforce/'].includes(location.pathname) || location.pathname.startsWith('/primetime/');
   const prefix = staff ? '/primetime/workforce-api' : '/caregiver/workforce-api';
   let auth, generation = 0, staffAuth;
-  const errors = {
+  const errors = {caregiver_preview_closed:"The caregiver preview has ended. The portal launches January 1, 2027. Please call 713-977-7721 for help.",
     opportunity_unavailable: 'This position is no longer available. Please browse the current openings.',
     invalid_opportunity: 'Check the recruiting area, hours, ZIP and at least one broad assistance need.',
     caregiver_document_download_failed_application_http_400_vendor_negative_310_reason_file_unavailable: 'HHA has this document record, but no file is attached.',
@@ -23,6 +23,15 @@
     workforce_forbidden: 'Your current permissions do not allow this action in this office.',
     staff_access_required: 'Individual staff access has not been granted to this account.',
     staff_invite_unavailable: 'No active invitation matches this work email. Ask the owner to send a new invitation.',
+    staff_invite_link_required: 'Open the original invitation from your work email to set up your account.',
+    staff_training_required: 'Complete staff training to open the workspace.',
+    staff_training_incomplete: 'Training progress is still being recorded. Try continuing in a moment.',
+    staff_password_setup_required: 'Set your staff password before continuing.',
+    staff_username_taken: 'That username is already in use. Choose another or leave it blank.',
+    invalid_staff_username: 'Use 3 to 32 letters, numbers, periods, hyphens, or underscores. Start with a letter or number.',
+    weak_staff_password: 'Use at least 8 characters with uppercase, lowercase, a number, and a special character.',
+    staff_auth_rate_limit: 'Too many requests. Please wait before trying again.',
+    staff_auth_unavailable: 'Staff email is temporarily unavailable. Please try again.',
     staff_already_registered: 'This account already has staff access on file. Use Manage existing access to change it.',
     invalid_staff_email: 'Enter a valid work email address.',
     staff_access_revoked: 'Staff access has been revoked.',
@@ -37,18 +46,29 @@
     workforce_release_pending: 'This workforce service is awaiting release verification.'
     ,application_collection_pending: 'Online applications are awaiting release verification.'
     ,document_collection_pending: 'Private document uploads are awaiting security and retention verification.'
+    ,document_key_unavailable: 'Secure document storage is temporarily unavailable. Please try again later.'
+    ,document_verification_unavailable: 'Email verification is being configured. Document access is temporarily unavailable.'
+    ,document_verification_delivery_failed: 'We could not confirm that your code was sent. Close this window and request a new code.'
+    ,hha_transfer_in_progress: 'The HHA transfer is being checked. Please try again shortly.'
+    ,hha_transfer_review_required: 'This earlier submission needs office review before it can be transferred.'
+    ,document_verification_required: 'Verify your email again to open this document.'
+    ,invalid_document_code: 'The code is incorrect, expired, or already used. Try again or request a new code.'
+    ,document_verification_limit: 'Too many verification requests. Please wait ten minutes.'
     ,recent_sign_in_required: 'Please sign in again before accessing sensitive records. Saved progress is kept securely.'
     ,existing_caregiver_on_file: 'Your existing caregiver profile is on file. A new application or identity upload is not required.'
     ,employee_reactivation_review: 'You already have an employment account. Contact the office for file updates or reactivation; another full application is not required.'
     ,application_incomplete: 'Complete the required application fields before submitting.'
     ,invalid_answers: 'Check the dates, email, Social Security number format and field lengths.'
-    ,signature_required: 'Read the release, choose electronic signing and type your name as entered on the application.'
+    ,signature_required: 'Review the declaration and confirm electronic signing. Your signing name must match your application.'
+    ,minimum_age_required: 'You must be at least 18 years old to submit a caregiver application. Check your date of birth.'
+    ,invalid_signature: 'Draw your signature again or choose your name in cursive, then confirm electronic signing.'
     ,document_image_required: 'Choose a JPEG or PNG photograph.'
     ,unreadable_document_image: 'This image could not be processed. Choose a clear JPEG or PNG photograph.'
     ,invalid_document_size: 'Choose a JPEG or PNG no larger than 8 MB.'
     ,document_upload_unconfirmed: 'The upload could not be confirmed. Check its status before trying again.'
     ,upload_limit_reached: 'The upload attempt limit has been reached. Please try again later.'
     ,save_application_first: 'Save your application before uploading documents.'
+    ,cch_signature_required: 'Sign and submit the DPS CCH Verification Form under Tax & employment forms.'
     ,required_documents_missing: 'Upload the required ID and Social Security card, or contact the office about an approved alternative arrangement.'
     ,invalid_pdf: 'Choose a complete PDF file, or upload a clear JPEG or PNG.'
     ,address_lookup_unavailable: 'Address suggestions are unavailable. You can still type your complete address.'
@@ -65,13 +85,17 @@
     document.getElementById('staff-workspace')?.setAttribute('hidden', '');
     document.getElementById('caregiver-summary')?.setAttribute('hidden', '');
   };
-  async function api(path, body, download = false) {
-    const guest=path==='/existing-caregiver/access';
+  async function api(path, body, download = false, documentAccess = '') {
+    if (download && window.WorkforceDocumentAccess?.sensitive(path) && !documentAccess) {
+      const proof = await window.WorkforceDocumentAccess.authorize(api, path);
+      return api(path, body, download, proof);
+    }
+    const guest=['/existing-caregiver/access','/staff-auth/password-setup','/staff-auth/resolve-username'].includes(path);
     if (!auth?.currentUser&&!guest) throw Error('Sign in required.');
     const token = guest ? '' : await auth.currentUser.getIdToken();
     const r = await fetch(prefix + path, {
       method: body ? 'POST' : 'GET', cache: 'no-store',
-      headers: { ...(token ? {Authorization: 'Bearer '+token} : {}), ...(body ? { 'Content-Type': 'application/json' } : {}) },
+      headers: { ...(documentAccess ? {'X-Document-Access': documentAccess} : {}), ...(token ? {Authorization: 'Bearer '+token} : {}), ...(body ? { 'Content-Type': 'application/json' } : {}) },
       ...(body ? { body: JSON.stringify(body) } : {})
     });
     if (r.ok && download) return r.blob();
@@ -80,18 +104,30 @@
     return result;
   }
   window.workforceApi = api;
-  async function session(user) {
+  async function session(user, choosePassword = false, activationCode = '') {
     const sequence = ++generation;
     hide(); signout.hidden = !user;
     document.dispatchEvent(new CustomEvent('workforce-session-cleared'));
-    if (!user) { form.hidden = false; message('Sign in with your email and password, or use an email link.'); return; }
+    if (!user) { form.hidden = false; message('Sign in with your username or work email and password.'); return; }
     form.hidden = true; message('Verifying account access…');
     try {
       const actor = await api(staff ? '/session' : '/application/session').catch(error => {
         if (!staff || sequence !== generation || error.code !== 'staff_access_required') throw error;
-        return api('/staff/invitations/accept', {});
+        return api('/staff/invitations/accept', activationCode ? {activationCode} : {});
       });
       if (sequence !== generation) return;
+      if (staff && (choosePassword || actor.passwordSetupRequired)) {
+        message('');
+        staffAuth.setup(user.email);
+        return;
+      }
+      if (staff && actor.trainingRequired) {
+        message('');
+        window.WorkforceTraining.require(() => {
+          if (sequence === generation) session(user);
+        });
+        return;
+      }
       message('Signed in. Permissions are verified for this session.');
       if (staff) document.dispatchEvent(new CustomEvent('workforce-session', { detail: actor }));
       else document.dispatchEvent(new CustomEvent('workforce-caregiver-session', { detail: actor }));
@@ -110,8 +146,12 @@
       auth = firebase.auth();
       await auth.setPersistence(firebase.auth.Auth.Persistence.SESSION);
       if (auth.isSignInWithEmailLink(location.href)) {
-        staffAuth.link(location.href);
-        history.replaceState(null, '', staff ? '/workforce' : WorkforceContract.returnPath(location.search));
+        const params = new URLSearchParams(location.search);
+        let continuation;
+        try { continuation = new URL(params.get('continueUrl')); } catch { /* Direct action URL. */ }
+        const state = continuation?.origin === location.origin && continuation.pathname === '/workforce'
+          ? continuation.searchParams : params;
+        staffAuth.link(location.href, state.get('staffSetup') === '1', state.get('staffInvite') || '');
       }
       auth.onAuthStateChanged(user => {
         if (staffAuth.pending()) { form.hidden = false; message('Confirm the email that received this link.'); }
@@ -121,10 +161,13 @@
   }
   if (!staff) { window.WorkforceAccount.start({createAuth:()=>{auth=firebase.auth();return auth;},api}); return; }
   window.WorkforceSendPasswordReset=email=>auth.sendPasswordResetEmail(email,{url:location.origin+'/caregiver'});
-  window.WorkforceSendStaffInvitation = email => auth.sendSignInLinkToEmail(email, {
-    url: location.origin + '/workforce', handleCodeInApp: true
-  });
-  staffAuth=window.WorkforceManagementAuth({form,auth:()=>auth,session,message});
+  window.WorkforceSendStaffInvitation = ({email, activationCode}) => {
+    const url = new URL('/workforce', location.origin);
+    url.searchParams.set('staffSetup', '1');
+    url.searchParams.set('staffInvite', activationCode);
+    return auth.sendSignInLinkToEmail(email, {url:url.href,handleCodeInApp:true});
+  };
+  staffAuth=window.WorkforceManagementAuth({form,auth:()=>auth,session,message,api});
   signout.addEventListener('click', async () => {
     ++generation; hide(); document.dispatchEvent(new CustomEvent('workforce-session-cleared'));
     try { await auth.signOut(); } catch { message('Sign-out could not be confirmed. Close this browser session.'); }

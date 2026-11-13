@@ -179,8 +179,8 @@ for url in sitemap_urls:
         errors.append(f"sitemap route is not indexable: {route}")
     if route in redirects:
         errors.append(f"sitemap route redirects: {route}")
-if len(sitemap_urls) != 28 + len(ARTICLE_ROUTES):
-    errors.append(f"expected {28 + len(ARTICLE_ROUTES)} reviewed sitemap URLs, found {len(sitemap_urls)}")
+if len(sitemap_urls) != 27 + len(ARTICLE_ROUTES):
+    errors.append(f"expected {27 + len(ARTICLE_ROUTES)} reviewed sitemap URLs, found {len(sitemap_urls)}")
 
 try:
     sitemap_index = ElementTree.parse(PUBLIC / "sitemap_index.xml").getroot()
@@ -196,7 +196,7 @@ except (ElementTree.ParseError, OSError) as error:
     errors.append(f"invalid sitemap_index.xml: {error}")
 
 for source, row in redirects.items():
-    if any(token in source for token in ("*", ":")) or source.endswith(".html"):
+    if any(token in source for token in ("*", ":")) or source.endswith((".html", "/")):
         continue
     html_source = f"{source}.html"
     twin = redirects.get(html_source)

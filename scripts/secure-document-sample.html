@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Secure document preview · Primetime</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#f2f6f5;color:#183538;font:16px/1.6 system-ui,sans-serif}main{max-width:850px;margin:5vh auto;padding:28px}.brand{font-weight:750;color:#17675c;letter-spacing:.04em}section{background:white;border:1px solid #d9e6e1;border-radius:24px;padding:36px;margin-top:22px;box-shadow:0 12px 40px #153e3110}h1{font-size:34px;line-height:1.2;margin:10px 0 16px}p{color:#516866}button{font:inherit;border:0;border-radius:10px;padding:12px 22px;cursor:pointer;background:#126c60;color:white;font-weight:650}button:disabled{opacity:.5;cursor:wait}.btn-secondary{background:#e9efed;color:#234944}dialog{border:1px solid #cedcd6;border-radius:20px;padding:28px;width:min(470px,94vw);box-shadow:0 20px 100px #0004}dialog::backdrop{background:#143c3580}label{display:block;font-weight:600;margin-bottom:18px}input{display:block;border:1px solid #9fbab1;border-radius:8px;font:24px system-ui;letter-spacing:.3em;padding:10px;width:100%;margin-top:8px}form button{margin:0 10px 0 0}iframe{width:100%;height:620px;border:1px solid #ccdcd4;border-radius:10px;margin-top:24px}[hidden]{display:none!important}.badge{display:inline-block;padding:4px 12px;background:#e7f5ee;color:#21674d;border-radius:30px;font-size:13px;font-weight:700}
+</style>
+<main><div class="brand">PRIME TIME HOME HEALTH SERVICES</div><section><span class="badge">Private preview · fictional document</span><h1>Open a secure document</h1><p>Sign in, request your code, then enter it to open the sample PDF.</p><button id="signin">Sign in with Google</button><p id="account" hidden></p><button id="open" hidden>View secure document</button><p id="status" role="status"></p><iframe id="pdf" title="Verified sample document" hidden></iframe></section></main>
+<script src="/firebase-app-compat.js"></script><script src="/firebase-auth-compat.js"></script><script src="/document-access.js"></script>
+<script>
+(async()=>{
+ const auth=firebase.initializeApp(await(await fetch('/config')).json()).auth(), sign=document.querySelector('#signin'),open=document.querySelector('#open'),status=document.querySelector('#status'),account=document.querySelector('#account');
+ auth.onAuthStateChanged(user=>{sign.hidden=!!user;open.hidden=!user;account.hidden=!user;account.textContent=user?'Signed in as '+user.email:'';});
+ sign.onclick=async()=>{try{status.textContent='';await auth.signInWithPopup(new firebase.auth.GoogleAuthProvider().setCustomParameters({login_hint:'jeremynwokorie@gmail.com'}));}catch{status.textContent='Sign-in could not finish. Please try again.';}};
+ const api=async(path,body,proof)=>{
+  const operation=path.endsWith('/verify')?'verify':path.endsWith('/request')?'request':'pdf';
+  const response=await fetch('/api/'+operation,{method:body?'POST':'GET',headers:{Authorization:'Bearer '+await auth.currentUser.getIdToken(true),...(body?{'Content-Type':'application/json'}:{}),...(proof?{'X-Document-Access':proof}:{})},...(body?{body:JSON.stringify(operation==='request'?{}:body)}:{}),cache:'no-store'});
+  if(!response.ok){const value=await response.json();const friendly={invalid_document_code:'That code is incorrect or expired. Try again.',document_verification_delivery_failed:'The email could not be confirmed. Close this window and request a new code.',recent_sign_in_required:'Please sign in again before opening the document.',document_verification_limit:'Please wait ten minutes before requesting another code.'};throw Error(friendly[value.error]||'Document access is unavailable ('+value.error+').');}return operation==='pdf'?response.blob():response.json();
+ };
+ let url;
+ open.onclick=async()=>{open.disabled=true;status.textContent='';try{const proof=await WorkforceDocumentAccess.authorize(api,'/application/documents/verification-sample');const blob=await api('/sample/pdf',null,proof);if(url)URL.revokeObjectURL(url);url=URL.createObjectURL(blob);const frame=document.querySelector('#pdf');frame.src=url;frame.hidden=false;status.textContent='Email code verified. Your sample document is open.';}catch(error){status.textContent=error.message;}finally{open.disabled=false;}};
+})();
+</script></html>

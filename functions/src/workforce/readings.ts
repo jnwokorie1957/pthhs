@@ -11,7 +11,7 @@ export const readings = [
  {page:14,title:"Bloodborne pathogens information",note:"Reading this fact sheet does not certify completion of training."},
  {page:15,title:"Hepatitis B vaccination or decline",note:"Medical decisions and vaccination/declination records are completed privately with the office; reading does not elect or decline vaccination."},
  {page:16,title:"Workers compensation notice"},
- {page:17,title:"Health insurance coverage election",note:"Reading does not elect or waive coverage. The office will collect your separate election."},
+ {page:17,title:"Health insurance coverage election",election:["Accept","Decline"],note:"Choose one option and confirm your election below."},
  {page:18,title:"Direct deposit notification",note:"Use the approved payroll process for banking information. Do not email banking details as described in the historical page."},
  {page:19,title:"Orientation checklist",note:"The office and the employee complete actual training and orientation attestations together."},
  {page:20,title:"HHSC attendant payment rates",note:"Agency rate reference dated September 8, 2025; this is not an individual wage offer."},

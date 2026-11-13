@@ -10,6 +10,29 @@ import seo_foundation as seo
 
 
 class SeoMetadataTest(unittest.TestCase):
+    def test_retired_careers_is_not_regenerated_as_marketing_or_promoted_in_sitemap(self):
+        from site_scope import is_marketing_html, is_internal_app_path
+        path = seo.PUBLIC / "home-care-careers.html"
+        self.assertFalse(is_marketing_html(path, seo.PUBLIC))
+        self.assertFalse(is_internal_app_path(path, seo.PUBLIC))
+        self.assertNotIn("/home-care-careers", seo.SITEMAP_ROUTES)
+
+    def test_redirect_expansion_preserves_retired_aliases_without_dotted_child(self):
+        aliases = ["/home-care-careers", "/home-care-careers.html", "/home-care-careers/"]
+        config = {"hosting": {"redirects": [
+            {"source": source, "destination": "/caregiver", "type": 301}
+            for source in aliases
+        ]}}
+        file = self.root / "firebase.json"
+        file.write_text(json.dumps(config))
+        seo.expand_redirects()
+        rows = json.loads(file.read_text())["hosting"]["redirects"]
+        for source in aliases:
+            self.assertEqual([row for row in rows if row["source"] == source],
+                             [{"source": source, "destination": "/caregiver", "type": 301}])
+        self.assertNotIn("/home-care-careers/.html", [row["source"] for row in rows])
+        self.assertTrue(any(row["source"] == "/houston-home-care.html" for row in rows))
+
     def setUp(self):
         self.temp = tempfile.TemporaryDirectory()
         self.addCleanup(self.temp.cleanup)

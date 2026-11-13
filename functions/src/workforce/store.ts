@@ -5,6 +5,8 @@ import { parseGrant, requirePermission, validId, WorkforceError, type Actor, typ
 import { saveOpportunity, transition, publicOpportunity, type Opportunity, type Action } from "./opportunities.js";
 
 const INVITATION_LIFETIME_MS = 86_400_000;
+const TRAINING_VERSION = "workspace-walkthrough-v1";
+const TRAINING_DURATION_MS = 49_000;
 
 interface StaffInvitation {
   grant: Grant;
@@ -12,14 +14,22 @@ interface StaffInvitation {
   issuedAt?: number;
   expiresAt: number;
   state: "pending" | "accepted" | "cancelled";
+  requiresPasswordSetup?: boolean;
+  activationHash?: string;
 }
+const hashCode = (value: string) => createHash("sha256").update(value).digest("hex");
 
-function workEmail(value: unknown): string {
+export function workEmail(value: unknown): string {
   const email = typeof value === "string" ? value.trim().toLowerCase() : "";
   if (email.length > 254 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
     throw new WorkforceError(400, "invalid_staff_email");
   }
   return email;
+}
+function invitationOpen(invite: StaffInvitation | undefined, now: number): invite is StaffInvitation {
+  if (invite?.state !== "pending") return false;
+  const issuedAt = invite.issuedAt ?? invite.expiresAt - 7 * INVITATION_LIFETIME_MS;
+  return Math.min(invite.expiresAt, issuedAt + INVITATION_LIFETIME_MS) > now;
 }
 
 export class WorkforceStore {
@@ -48,6 +58,7 @@ export class WorkforceStore {
     });
     if (user?.uid === uid || user?.disabled) throw new WorkforceError(409, "invalid_staff_target");
     const ref = this.invitation(email);
+    const activationCode = randomUUID();
     await this.db.runTransaction(async tx => {
       await this.inviteManager(tx, uid, grant.offices);
       const prior = (await tx.get(ref)).data() as StaffInvitation | undefined;
@@ -57,16 +68,17 @@ export class WorkforceStore {
         throw new WorkforceError(409, "staff_already_registered");
       }
       const invite: StaffInvitation = {
-        grant, issuedBy: uid, state: "pending", issuedAt: now, expiresAt: now + INVITATION_LIFETIME_MS
+        grant, issuedBy: uid, state: "pending", issuedAt: now, expiresAt: now + INVITATION_LIFETIME_MS,
+        requiresPasswordSetup: true, activationHash: hashCode(activationCode)
       };
       tx.set(ref, invite);
       tx.create(this.db.collection("workforceAudit").doc(randomUUID()), {
         actor: uid, target: ref.id, action: "staff_invited", offices: grant.offices, at: new Date(now).toISOString()
       });
     });
-    return { email };
+    return { email, activationCode };
   }
-  async acceptStaffInvite(uid: string, now = Date.now()): Promise<Actor> {
+  async acceptStaffInvite(uid: string, now = Date.now(), activationCode?: string): Promise<Actor> {
     const user = await this.auth().getUser(uid);
     if (!user.email || !user.emailVerified || user.disabled) throw new WorkforceError(401, "verified_identity_required");
     const ref = this.invitation(workEmail(user.email));
@@ -81,11 +93,11 @@ export class WorkforceStore {
         return { uid, grant };
       }
       const invite = (await tx.get(ref)).data() as StaffInvitation | undefined;
-      if (invite?.state !== "pending") throw new WorkforceError(403, "staff_invite_unavailable");
-      // Older records stored only the expiry, seven days from issue.
-      const issuedAt = invite.issuedAt ?? invite.expiresAt - 7 * INVITATION_LIFETIME_MS;
-      if (Math.min(invite.expiresAt, issuedAt + INVITATION_LIFETIME_MS) <= now) {
+      if (!invitationOpen(invite, now)) {
         throw new WorkforceError(403, "staff_invite_unavailable");
+      }
+      if (invite.activationHash && (!activationCode || hashCode(activationCode) !== invite.activationHash)) {
+        throw new WorkforceError(403, "staff_invite_link_required");
       }
       const grant = parseGrant(invite.grant);
       if (!grant.active || grant.role === "owner" || invite.issuedBy === uid) {
@@ -93,6 +105,9 @@ export class WorkforceStore {
       }
       await this.inviteManager(tx, invite.issuedBy, grant.offices);
       tx.create(staff, grant);
+      if (invite.requiresPasswordSetup) {
+        tx.create(this.db.collection("workforceStaffCredentials").doc(uid), { setupRequired: true });
+      }
       tx.set(ref, { ...invite, state: "accepted" });
       tx.create(this.db.collection("workforceAudit").doc(randomUUID()), {
         actor: uid, target: ref.id, action: "staff_invite_accepted", at: new Date(now).toISOString()
@@ -100,12 +115,54 @@ export class WorkforceStore {
       return { uid, grant };
     });
   }
+  async canRequestPasswordSetup(email: string): Promise<boolean> {
+    const user = await this.auth().getUserByEmail(email).catch(error => {
+      if (error.code === "auth/user-not-found") return null;
+      throw error;
+    });
+    if (!user || user.disabled) return false;
+    const staff = await this.db.collection("workforceStaff").doc(user.uid).get();
+    return staff.exists && parseGrant(staff.data()).active;
+  }
   async actor(uid: string): Promise<Actor> {
     const doc = await this.db.collection("workforceStaff").doc(uid).get();
     if (!doc.exists) throw new WorkforceError(403, "staff_access_required");
     const grant = parseGrant(doc.data());
     if (!grant.active) throw new WorkforceError(403, "staff_access_revoked");
     return { uid, grant };
+  }
+  private training(uid: string) {
+    return this.db.collection("workforceStaffTraining").doc(uid);
+  }
+  async trainingRequired(actor: Actor): Promise<boolean> {
+    if (actor.grant.role === "owner") return false;
+    const progress = (await this.training(actor.uid).get()).data();
+    return progress?.version !== TRAINING_VERSION || typeof progress.completedAt !== "number";
+  }
+  async recordTraining(uid: string, action: "start" | "complete", now = Date.now()) {
+    const ref = this.training(uid);
+    return this.db.runTransaction(async tx => {
+      const staff = await tx.get(this.db.collection("workforceStaff").doc(uid));
+      if (!staff.exists) throw new WorkforceError(403, "staff_access_required");
+      const grant = parseGrant(staff.data());
+      if (!grant.active) throw new WorkforceError(403, "staff_access_revoked");
+      if (grant.role === "owner") return { complete: true };
+      const progress = (await tx.get(ref)).data();
+      if (progress?.version === TRAINING_VERSION) {
+        if (typeof progress.completedAt === "number") return { complete: true };
+        if (action === "start" && typeof progress.startedAt === "number") return { complete: false };
+      }
+      if (action === "start") {
+        tx.set(ref, { version: TRAINING_VERSION, startedAt: now });
+        return { complete: false };
+      }
+      if (progress?.version !== TRAINING_VERSION || typeof progress.startedAt !== "number"
+        || now - progress.startedAt < TRAINING_DURATION_MS) {
+        throw new WorkforceError(409, "staff_training_incomplete");
+      }
+      tx.set(ref, { version: TRAINING_VERSION, startedAt: progress.startedAt, completedAt: now });
+      return { complete: true };
+    });
   }
   async list(uid: string) {
     const actor = await this.actor(uid);
@@ -181,5 +238,31 @@ export class WorkforceStore {
       });
       return { updated: true };
     });
+  }
+  async reviewTeam(uid: string) {
+    const actor = await this.actor(uid);
+    requirePermission(actor, "staff.review");
+    const limitPerOffice = 50;
+    const snapshots = await Promise.all(actor.grant.offices.map(office => this.db.collection("workforceStaff")
+      .where("offices", "array-contains", office).limit(limitPerOffice).get()));
+    const grants = new Map(snapshots.flatMap(snapshot => snapshot.docs.map(doc => [doc.id, parseGrant(doc.data())] as const)));
+    const ids = [...grants.keys()];
+    const users = [];
+    for (let offset = 0; offset < ids.length; offset += 100) {
+      const batch = await this.auth().getUsers(ids.slice(offset, offset + 100).map(uid => ({ uid })));
+      users.push(...batch.users);
+    }
+    // Recheck access after the lookups and restrict the response to the original office scope.
+    const current = await this.actor(uid);
+    requirePermission(current, "staff.review");
+    for (const office of actor.grant.offices) requirePermission(current, "staff.review", office);
+    return {
+      limitPerOffice,
+      items: users.filter(user => user.email).map(user => {
+        const grant = grants.get(user.uid)!;
+        return { email: user.email, active: grant.active && !user.disabled, role: grant.role, permissions: grant.permissions,
+          offices: grant.offices.filter(office => actor.grant.offices.includes(office)) };
+      }).sort((a, b) => a.email!.localeCompare(b.email!)),
+    };
   }
 }

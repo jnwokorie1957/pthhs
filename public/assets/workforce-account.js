@@ -38,15 +38,16 @@
       message('Opening your caregiver account…');
       try{
         await user.getIdToken(true);const detail=await api('/application/session');if(sequence!==generation)return;
-        actor=detail;byId("dashboard-hha").hidden=!detail.existingCaregiver;byId('dashboard-application').hidden=detail.applicationsEnabled===false||detail.existingCaregiver===true;document.title='My portal | Primetime Caregiver Portal';byId('dashboard-password').textContent=user.providerData?.length&&!user.providerData.some(p=>p.providerId==='password')?'Sign-in help':'Reset password';gateway.hidden=true;dashboard.hidden=false;message('');await window.WorkforceBoard.open(detail,api,openApplication);if(detail.existingCaregiver){byId("job-board").hidden=true;await window.WorkforceHha?.open(api);}
-        if(new URLSearchParams(location.search).get('intent')==='apply')openApplication();
+        actor=detail;byId("dashboard-hha").hidden=!detail.existingCaregiver;byId('dashboard-application').hidden=detail.applicationsEnabled===false||detail.existingCaregiver===true;document.title='My portal | Primetime Caregiver Portal';byId('dashboard-password').textContent=user.providerData?.length&&!user.providerData.some(p=>p.providerId==='password')?'Sign-in help':'Reset password';gateway.hidden=true;dashboard.hidden=false;message('');window.WorkforceNavigation.mount({actor:detail,api,application:openApplication,jobs:()=>window.WorkforceBoard.open(detail,api,openApplication)});
+
       }catch(error){if(sequence===generation){message(error.message);form.hidden=true;byId('account-retry').hidden=false;}}
     }
-    function openApplication(position){
+    function openApplication(position, navigation={}){
       if(!actor||actor.applicationsEnabled===false||actor.existingCaregiver===true)return;clearHha();
       byId('job-board').hidden=true;byId('caregiver-summary').hidden=false;
-      const url=new URL(location.href);url.search='';if(position)url.searchParams.set('opportunity',position.id);history.replaceState(null,'',url.pathname+url.search);
-      document.dispatchEvent(new CustomEvent('workforce-caregiver-session',{detail:{...actor,selectedOpportunity:position||null}}));
+      if(position){const url=new URL(location.href);url.searchParams.set('opportunity',position.id);history.replaceState(null,'',url.pathname+url.search+url.hash);}
+      window.WorkforceNavigation.applicationOpened();
+      document.dispatchEvent(new CustomEvent('workforce-caregiver-session',{detail:{...actor,selectedOpportunity:position||null,navigation}}));
       byId('caregiver-summary').scrollIntoView({block:'start'});
     }
     const failure=error=>error.code==='auth/too-many-requests'?'Too many attempts. Please wait before trying again.':error.code==='auth/network-request-failed'?'Unable to connect. Check your connection and try again.':error.code==='auth/operation-not-allowed'?'Account access is not open yet. Please contact the office.':mode==='create'?'Unable to create the account. Check your entries, or try signing in or resetting your password.':'Unable to sign in. Check your email and password, or use Forgot password.';
@@ -75,18 +76,22 @@
     byId('account-signin').onclick=()=>{screen('signin');message('');};byId('account-create').onclick=()=>{screen('create');message('');};
     byId('account-existing').onclick=()=>{screen('existing');message('');};
     byId('account-forgot').onclick=()=>{screen('reset');message('');};
-    byId('account-back').onclick=async()=>{message('');if(actor){gateway.hidden=true;dashboard.hidden=false;byId('workforce-signout').hidden=false;await window.WorkforceBoard.open(actor,api,openApplication);}else screen('signin');};
+    byId('account-back').onclick=async()=>{message('');if(actor){gateway.hidden=true;dashboard.hidden=false;byId('workforce-signout').hidden=false;window.WorkforceNavigation.mount({actor,api,application:openApplication,jobs:()=>window.WorkforceBoard.open(actor,api,openApplication)});}else screen('signin');};
     byId('password-show').onclick=()=>{const show=byId('workforce-password').type==='password';byId('workforce-password').type=show?'text':'password';byId('password-show').textContent=show?'Hide password':'Show password';byId('password-show').setAttribute('aria-pressed',String(show));};
     byId('verification-resend').onclick=async event=>{const button=event.currentTarget;button.disabled=true;try{await auth.currentUser.sendEmailVerification({url:location.origin+'/caregiver'});message('Verification email sent. Check your inbox and spam folder.');}catch{message('Unable to send the email. Please wait and try again.');}finally{setTimeout(()=>button.disabled=false,30000);}};
     byId('verification-check').onclick=async event=>{const button=event.currentTarget;button.disabled=true;try{await auth.currentUser.reload();await session(auth.currentUser);}catch{message('Unable to verify your account. Please try again.');}finally{button.disabled=false;}};
     byId('account-retry').onclick=()=>session(auth.currentUser);
+    byId('portal-signout').onclick=()=>byId('workforce-signout').click();
     byId('workforce-signout').onclick=async()=>{++generation;clear();passwords();byId('workforce-email').value='';try{await auth.signOut();}catch{message('Sign-out could not be confirmed. Close this browser window.');}};
     byId('dashboard-application').onclick=async()=>{try{await window.WorkforceReview?.flush();openApplication();}catch(error){message(error.message);}};
     byId('dashboard-hha').onclick=async()=>{byId('job-board').hidden=true;byId('caregiver-summary').hidden=true;await window.WorkforceHha?.open(api);};
-    byId('dashboard-jobs').onclick=async()=>{try{await window.WorkforceReview?.flush();document.dispatchEvent(new CustomEvent('workforce-session-cleared'));history.replaceState(null,'',location.pathname);if(actor)await window.WorkforceBoard.open(actor,api,openApplication);}catch(error){message(error.message);}};
+    byId('dashboard-jobs').onclick=async()=>{try{await window.WorkforceReview?.flush();document.dispatchEvent(new CustomEvent('workforce-session-cleared'));history.replaceState(null,'',location.pathname);if(actor)window.WorkforceNavigation.mount({actor,api,application:openApplication,jobs:()=>window.WorkforceBoard.open(actor,api,openApplication)});}catch(error){message(error.message);}};
     byId('dashboard-password').onclick=async()=>{if(!auth?.currentUser)return;try{await window.WorkforceReview?.flush();if(!auth.currentUser)return;screen('reset');byId('workforce-email').value=auth.currentUser.email;message('');const methods=auth.currentUser.providerData;if(methods?.length&&!methods.some(p=>p.providerId==='password')){form.hidden=true;byId('account-title').textContent='Sign-in help';byId('account-description').textContent='Your password is managed by '+methods.map(p=>({'google.com':'Google','apple.com':'Apple','microsoft.com':'Microsoft','yahoo.com':'Yahoo'})[p.providerId]||p.providerId).join(', ')+'. Use that provider’s account recovery, then return here to sign in.';}}catch{message('Unable to open password reset. Please try again.');}};
     try{
       const response=await fetch('/caregiver/workforce-api/configuration',{cache:'no-store'});if(!response.ok)throw Error();const config=await response.json();
+      const closePreview=()=>{++generation;clear();accountsEnabled=false;gateway.hidden=false;form.hidden=true;byId('account-tabs').hidden=true;byId('account-title').textContent='Caregiver portal opens January 1, 2027';byId('account-description').textContent='The temporary preview has ended. Please call 713-977-7721 for help before launch.';};
+      if(config.portalClosed){closePreview();return;}
+      const remaining=Date.parse(config.portalPreviewEndsAt)-Date.now();if(remaining>0&&remaining<=43200000)setTimeout(closePreview,remaining);
       accountsEnabled=config.accountsEnabled===true;providerOnly=config.providerOnly===true;existingEnabled=config.existingAccessEnabled===true;existingReady=config.existingCaregiverEnrollmentReady!==false;screen(initialMode());
       const providers=Array.isArray(config.enabledSignInProviders)?config.enabledSignInProviders:[];
       for(const [id,label] of [['google.com','Google'],['apple.com','Apple'],['microsoft.com','Microsoft'],['yahoo.com','Yahoo']]){

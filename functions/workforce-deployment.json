@@ -1,18 +1,30 @@
 {
   "version": 1,
-  "reviewReference": "Owner authorization 2026-11-06: publish Careers and authenticated portal access on PTHHS.net. Read-only HHA preparation approved; application, upload and public-opening collection remain closed.",
+  "reviewReference": "Owner confirmed November 12, 2026: new portal profiles must always be HHA Applicants, using PCA; office staff alone promote to Employee. Require applicant gender, ethnicity and HHA emergency relationship. HHA entitlement confirmed in case 00579829; active Application type 132116 verified read-only. Preserve the January 1, 2027 launch and prelaunch practice isolation, encryption, quarantine and office scope.",
   "environment": {
     "WORKFORCE_STAFF_APPROVED": "true",
     "WORKFORCE_HHA_PORTAL_APPROVED": "true",
     "WORKFORCE_PUBLIC_OPPORTUNITIES_APPROVED": "false",
-    "WORKFORCE_APPLICANT_COLLECTION_APPROVED": "false",
-    "WORKFORCE_PACKET_REVIEW_APPROVED": "false",
-    "WORKFORCE_ID_DOCUMENTS_APPROVED": "false",
-    "WORKFORCE_ID_RETENTION_APPROVED": "false",
+    "WORKFORCE_APPLICANT_COLLECTION_APPROVED": "true",
+    "WORKFORCE_PACKET_REVIEW_APPROVED": "true",
+    "WORKFORCE_ID_DOCUMENTS_APPROVED": "true",
+    "WORKFORCE_ID_RETENTION_APPROVED": "true",
     "WORKFORCE_GOOGLE_PLACES_APPROVED": "false",
     "WORKFORCE_SIGN_IN_PROVIDERS": "google.com",
     "WORKFORCE_INTAKE_OFFICE": "503324",
     "WORKFORCE_EMPLOYER_EIN": "30-0076568",
-    "WORKFORCE_PORTAL_ORIGIN": "https://pthhs.net"
+    "WORKFORCE_PORTAL_ORIGIN": "https://pthhs.net",
+    "WORKFORCE_DOCUMENT_EMAIL_APPROVED": "true",
+    "WORKFORCE_DOCUMENT_KMS_KEY": "projects/primetimehomehealthservices/locations/us-central1/keyRings/workforce-documents/cryptoKeys/caregiver-uploads",
+    "WORKFORCE_DOCUMENT_MAIL_TENANT": "79734f05-5da8-4995-97cb-c4e065fa327f",
+    "WORKFORCE_DOCUMENT_MAIL_CLIENT": "0275352c-c4fa-4c5b-8bae-8ef29ffed7b2",
+    "WORKFORCE_DOCUMENT_SAMPLE_UNTIL": "2026-11-12T14:15:00.000Z",
+    "WORKFORCE_APPLICATION_EMAIL_APPROVED": "true",
+    "WORKFORCE_PORTAL_PREVIEW_UNTIL": "2026-11-12T04:16:08.574Z",
+    "WORKFORCE_PORTAL_LAUNCH_AT": "2027-01-01T06:00:00.000Z",
+    "WORKFORCE_HHA_APPLICANT_TRANSFER_APPROVED": "true",
+    "WORKFORCE_HHA_APPLICATION_DOCUMENT_TYPE": "132116",
+    "WORKFORCE_HHA_DOCUMENT_LOOKUP_ID": "36828448",
+    "WORKFORCE_HHA_APPLICANT_NOT_BEFORE": "2027-01-01T06:00:00.000Z"
   }
 }

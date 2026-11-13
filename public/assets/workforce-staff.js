@@ -123,8 +123,8 @@
       }});
       if (sequence !== generation) return;
       try {
-        await window.WorkforceSendStaffInvitation(invite.email);
-        if (sequence === generation) inviteStatus.textContent = 'Sign-in email requested for ' + invite.email + '. Access starts when they sign in.';
+        await window.WorkforceSendStaffInvitation(invite);
+        if (sequence === generation) inviteStatus.textContent = 'Invitation email requested for ' + invite.email + '. The link expires after 24 hours.';
       } catch {
         if (sequence === generation) inviteStatus.textContent = 'Invitation saved. The email could not be sent. Select Send invitation to retry.';
       }
