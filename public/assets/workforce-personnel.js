@@ -157,10 +157,15 @@
     if (!after) { results.replaceChildren(); accountDetail.replaceChildren(); }
     if (!after) moreCaregivers.hidden = true;
     moreCaregivers.disabled = true;
+    if (!query) {
+      results.replaceChildren(); accountDetail.replaceChildren();
+      nextCaregiverPage = null; moreCaregivers.hidden = true; moreCaregivers.disabled = false;
+      accountMessage.textContent = 'Type a first or last name to find a caregiver.';
+      return;
+    }
     accountMessage.textContent = 'Finding caregivers…';
     try {
-      const response = query ? await workforceApi('/staff/accounts/lookup', {name:query})
-        : await workforceApi('/staff/roster' + (after ? '?after=' + encodeURIComponent(after) : ''));
+      const response = await workforceApi('/staff/accounts/lookup', {name:query});
       if (session !== generation || sequence !== accountSelection) return;
       nextCaregiverPage = query ? null : response.next;
       moreCaregivers.hidden = !nextCaregiverPage;

@@ -9,11 +9,24 @@ function setup(request){
 
  node('caregiver-account-name').value='Synthetic';
  const descendants=n=>[n,...n.children.flatMap(descendants)];
- return {node,sent,revoked,flush:async()=>{const pending=[...timers.values()];timers.clear();for(const fn of pending)await fn();},find:(id,text)=>descendants(node(id)).find(n=>n.textContent===text),emit:(type,detail)=>listeners.get(type)?.forEach(fn=>fn({detail:type==='workforce-session'?{...detail,grant:{...detail.grant,offices:['test-office']}}:detail})),search:()=>node('caregiver-account-search').onsubmit({preventDefault(){},currentTarget:node('caregiver-account-search')})};
+ return {node,sent,revoked,browse:()=>context.window.WorkforcePersonnel.browse(),flush:async()=>{const pending=[...timers.values()];timers.clear();for(const fn of pending)await fn();},find:(id,text)=>descendants(node(id)).find(n=>n.textContent===text),emit:(type,detail)=>listeners.get(type)?.forEach(fn=>fn({detail:type==='workforce-session'?{...detail,grant:{...detail.grant,offices:['test-office']}}:detail})),search:()=>node('caregiver-account-search').onsubmit({preventDefault(){},currentTarget:node('caregiver-account-search')})};
 }
 const account={uid:'synthetic',email:'caregiver@example.invalid',providers:['password'],emailVerified:true,disabled:false,state:'draft',office:'test-office'};
 const match={uid:'synthetic',firstName:'Synthetic',lastName:'Applicant',state:'draft'};
 const actor={grant:{role:'owner',permissions:['accounts.support']}};
+test('opening caregiver lookup and submitting whitespace never loads the roster',async()=>{
+ const requests=[],s=setup(async path=>{requests.push(path);return {items:[]};});
+ s.node('caregiver-account-name').value='';s.emit('workforce-session',actor);s.browse();
+ s.node('caregiver-account-name').value='   ';await s.search();
+ assert.deepEqual(requests,[]);assert.equal(s.node('caregiver-account-results').children.length,0);
+ assert.equal(s.node('caregiver-roster-more').hidden,true);assert.match(s.node('caregiver-account-message').textContent,/Type a first or last name/);
+});
+test('clearing a name prevents an older lookup from restoring results',async()=>{
+ let finish;const s=setup(()=>new Promise(resolve=>finish=resolve));const pending=s.search();
+ s.node('caregiver-account-name').value='';s.node('caregiver-account-name').oninput({});await s.flush();
+ finish({items:[match]});await pending;assert.equal(s.node('caregiver-account-results').children.length,0);
+ assert.equal(s.node('caregiver-account-detail').children.length,0);
+});
 const application={state:'submitted',updatedAt:'2026-11-06',answers:{firstName:'Synthetic',lastName:'Applicant',phone:'(713) 555-0100',ssn:'000-00-1234',birthDate:'2000-01-01'},signature:null};
 async function open(s){s.emit('workforce-session',actor);s.node('caregiver-account-name').value='Synthetic';await s.search();await s.find('caregiver-account-results','Applicant, Synthetic · Draft').onclick();}
 
@@ -61,7 +74,7 @@ test('typing starts a bounded name lookup and each new letter clears older match
  const requests=[],s=setup(async(path,body)=>{if(!body){requests.push(path);return {items:[],activeCount:0,next:null};}requests.push(body.name);return {items:body.name==='H'?[{...match,firstName:'Hannah'},{...match,uid:'second',firstName:'Henry'}]:[{...match,firstName:'Hannah'}]};});
  s.node('caregiver-account-name').value='H';s.node('caregiver-account-name').oninput({});assert.equal(requests.length,0);await s.flush();assert.equal(s.node('caregiver-account-results').children.length,2);
  s.node('caregiver-account-name').value='Han';s.node('caregiver-account-name').oninput({});assert.equal(s.node('caregiver-account-results').children.length,0);await s.flush();assert.equal(s.node('caregiver-account-results').children.length,1);assert.deepEqual(requests,['H','Han']);
- s.node('caregiver-account-name').value='';s.node('caregiver-account-name').oninput({});await s.flush();assert.deepEqual(requests,['H','Han','/staff/roster']);assert.equal(s.node('caregiver-account-results').children.length,0);
+ s.node('caregiver-account-name').value='';s.node('caregiver-account-name').oninput({});await s.flush();assert.deepEqual(requests,['H','Han']);assert.equal(s.node('caregiver-account-results').children.length,0);
 });
 
 test('sign-out cancels a scheduled typeahead request',async()=>{
