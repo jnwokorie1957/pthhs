@@ -4,8 +4,9 @@ Prepared November 13, 2026 UTC from main
 `3afd2a2f13ed07011aecc1d4087410629b65205c` and the independently approved
 caregiver source `ed534254647fca1da3ecca042a281c4af82cbcc4`, then the
 concurrent committed source `1fe5efb316dda14be1ae18b30a49ee1d4ccfe6ae`.
-The combined source is prepared for the normal GitHub quality workflow.
-Merge and production acceptance remain pending at this checkpoint.
+Released as PR27 / `e3869fb1cc8ebdaa36868dcd83ee8f382429cd6d` through the
+normal GitHub quality and manual Hosting-only workflows. Production delivery
+was verified November 13 at 02:33 UTC. Protected role acceptance remains separate.
 
 The caregiver source preserves the already approved navigation, form flow,
 signatures, age validation, staff training and timed intake implementation.
@@ -65,7 +66,8 @@ field performance measurements or evidence of completed form acceptance.
 - All 683 site/tooling/analytics tests pass, including retirement and the
   name-first account-search regression. Empty account searches make no source
   request; a typed name uses the scoped account lookup without loading other
-  staff lists. The final normal CI result remains pending.
+  staff lists. Both normal GitHub quality jobs also pass with fresh installs
+  and dependency audits.
 - Two retirement/sitemap guards and the trailing-slash expansion regression
   reproduce the integration failures before correction and pass afterward.
 - Ten metadata tests, four sitemap-date tests and 26 article tests pass.
@@ -84,10 +86,10 @@ field performance measurements or evidence of completed form acceptance.
 
 ## Release boundary
 
-Use the existing GitHub quality checks before merge. A subsequent approved
-manual Hosting-only workflow must pass both release jobs and production
-delivery checks. Do not redeploy Functions, alter source approvals, intake or
-mail settings, or run a real application merely to reconcile website source.
+Both quality jobs and both required Hosting-only release jobs passed.
+Functions and website-analytics deployments were skipped. Do not redeploy
+Functions, alter source approvals, intake or mail settings, or run a real
+application merely to reconcile website source.
 Compare current live assets and public configuration before release to detect
 any newer concurrent caregiver work. Verify the combined public/private static
 files, retired aliases, noindex/cache policies and anonymous API denials after
@@ -98,3 +100,28 @@ Family/PT assignments, form versions/sharing, final applicable 2027 forms and
 production retention decisions remain separate. This work does not establish
 HHA call-link support, missing-time recovery, clinical/financial decisions,
 multi-user acceptance or any new authority to send communications.
+
+## Production acceptance
+
+The final pre-release comparison checked 30 existing public/private static
+assets against current committed sources. All matched, and the tested merge
+tree matched the reviewed PR tree. After both release jobs succeeded, all 35
+canonical sitemap URLs returned direct 200 with exact Git bytes, one matching
+canonical, one H1 and indexable delivery. All 30 key assets matched the release.
+Three old Careers aliases returned 301 to Caregiver Portal. Its public
+configuration remained unchanged, with no-store/noindex. Primetime retained
+meta/header noindex and no-cache; its anonymous session returned JSON
+401/no-store/noindex. Native Chrome showed the released public portal link.
+
+These checks establish bounded delivery and preserved configuration. They do
+not establish authenticated staff/family/PT workflow acceptance or new HHA
+time/transfer evidence. No source record, application, communication or grant
+was created by this pass. No unfinished staff-source files were imported.
+
+- [Merged PR27](https://github.com/jnwokorie1957/pthhs/pull/27)
+- [Both quality jobs](https://github.com/jnwokorie1957/pthhs/actions/runs/43351077153)
+- [Hosting-only release jobs](https://github.com/jnwokorie1957/pthhs/actions/runs/43352460216)
+
+Local nonsensitive receipts: `primetime-reconcile-production-baseline-20261113.json`,
+`primetime-source-reconciliation-livecheck-20261113.json` and
+`primetime-reconcile-production-20261113.jpg`.

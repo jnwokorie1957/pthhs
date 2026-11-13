@@ -5,6 +5,19 @@ area, map the actual source, connect available authorized data and verify it.
 This is the connection backlog, not a declaration of an active Codex goal.
 This document does not claim every tab is connected.
 
+CURRENT RELEASE CHECKPOINT — NOVEMBER 13, 2026 UTC
+PR27/e3869fb reconciles approved caregiver source with current Primetime and
+corrects generator/pruner failures while preserving visit-time mappings and
+source-write locks. Both quality and required Hosting-only jobs passed;
+Functions/analytics skipped. At 02:33 UTC, 35 canonical pages and 30 key assets match
+Git; private indexing/cache/anonymous-denial policies and caregiver public
+configuration pass. This is software delivery, not a new source-time read or
+authenticated role acceptance. Application-transfer source supplies no support
+for linking existing calls to visits. P03/E04, history/units/readback and current
+sign-in prerequisites remain. Original October 24 stays resolved by October 31.
+See the release evidence entry at the end and
+docs/workforce/SOURCE_RECONCILIATION_2026-11-13.md.
+
 CURRENT VENDOR CHECKPOINT — NOVEMBER 11, 2026
 HHA's 17:17 UTC technical reply states that existing caregiver calls cannot be
 linked to visits through its API. Confirmation methods do not supply that link.
@@ -2159,3 +2172,35 @@ evv-maintenance-resources/HHA_TECHNICAL_RESPONSE_2026-11-11.txt
 https://github.com/jnwokorie1957/pthhs/pull/26
 https://github.com/jnwokorie1957/pthhs/actions/runs/43077329129
 https://github.com/jnwokorie1957/pthhs/actions/runs/43088353472
+
+
+NOVEMBER 13, 2026 02:33 UTC — SOURCE RECONCILIATION DELIVERY
+
+PR27/e3869fb preserves current Primetime and committed caregiver source through
+1fe5efb, including four newer files found before release. Marketing generators
+retain retired noindex fallbacks and current portal assets. 961 backend and 683
+site/tooling/analytics tests plus deterministic assets, accessibility/performance,
+source-time zones, audit and diff checks pass. Both normal quality jobs and both
+required Hosting-only release jobs pass; Functions/analytics skipped.
+
+Production: 35 canonical pages and 30 key assets match Git; three Careers redirects,
+unchanged caregiver configuration, Primetime meta/header noindex/no-cache and
+anonymous JSON 401/no-store pass. This verifies software delivery only. No new
+HHA read, current/historical comparison, missing-time recovery or status decision
+was made. The last native Primetime entry at 01:18 UTC required sign-in.
+
+GetVisitInfoV3Result/VisitInfo/VisitStartTime, VisitEndTime, EVVStartTime,
+EVVEndTime, ActualHours and ActualHoursRounded remain independent optional
+strings. ScheduleDuration/ScheduleDurationHours and ScheduleDurationMinutes
+remain separate integer hour/minute components. No mapping, replacement,
+duration-unit interpretation or worked/payable/billable/verified inference was
+introduced. The separate application-transfer source does not supply an
+existing-call API linker or settle retained-event/history/readback questions.
+P03/E04 remain open. Original October 24 remains resolved by its October 31 reread.
+Existing administrator sign-in, CSM/private-XML and held-visit actions remain.
+
+https://github.com/jnwokorie1957/pthhs/pull/27
+https://github.com/jnwokorie1957/pthhs/actions/runs/43351077153
+https://github.com/jnwokorie1957/pthhs/actions/runs/43352460216
+Detailed software/source acceptance:
+docs/workforce/SOURCE_RECONCILIATION_2026-11-13.md

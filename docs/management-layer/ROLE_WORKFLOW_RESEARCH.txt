@@ -1,10 +1,10 @@
 PRIMETIME ROLE AND WORKFLOW RESEARCH
-Updated: November 12, 2026, America/Chicago
+Updated: November 13, 2026 UTC / November 12, America/Chicago
 Scope: PTHHS /primetime, repository jnwokorie1957/pthhs.
 
-CURRENT STATUS INDEX — NOVEMBER 12, 2026
-Source basis: main851f369e350024dbfb769db95bf02eb5dcee9a99, plus the
-separate approved caregiver release ed534254647fca1da3ecca042a281c4af82cbcc4.
+CURRENT STATUS INDEX — NOVEMBER 13, 2026 UTC
+Runtime source basis: e3869fb1cc8ebdaa36868dcd83ee8f382429cd6d (PR27),
+reconciling the approved caregiver sources through 1fe5efb with current Primetime.
 Core role references were checked November 11; mobile, clinical e-doc and
 family-dashboard references were rechecked November 12 below. This index
 separates source/release evidence from tenant and role acceptance.
@@ -26,14 +26,14 @@ evidence. PR24/25 establish entry revalidation and accurate retry guidance.
 These releases do not establish HHA confirmation, complete source coverage
 or multi-user office workflow acceptance.
 
-Staff / caregiver: PR17 staff routing retains its dated acceptance. The owner
-subsequently retired public Careers in favor of Caregiver Portal; November12
-production bytes and all three old-route redirects verify that separate release.
-Its source still needs reconciliation with main before another deployment.
-This is not new acceptance of a signed-in application, staff office/role or
-clinical workflow. Workforce permissions do not authorize legacy administrator
-or clinical records. Historical PR11 draft and Careers-entry notes below are
-not the current production-status summary.
+Staff / caregiver: PR17 staff routing retains its dated acceptance. PR27 now
+reconciles the approved Caregiver Portal source, current name-first lookup and
+application-transfer status display with main. Both quality and required
+Hosting-only jobs pass, and production delivery/configuration is verified.
+Functions were not redeployed. No real staff/application or HHA transfer was
+exercised in this pass. Workforce permissions still do not authorize legacy
+administrator or clinical records. Historical PR11 draft and Careers-entry
+notes below are not the current production-status summary.
 
 Patient / representative: schedules, requests and independently released
 documents remain proposed external-role workflows. Require a current,
@@ -51,7 +51,7 @@ their own timestamps/provenance. Historical snapshot proposals do not
 authorize new web-scraped imports.
 
 Next dependencies: restore existing Primetime administrator sign-in for
-protected examples (last checked November 12 at 20:06 UTC); accept a naturally
+protected examples (last checked November 13 at 01:18 UTC); accept a naturally
 incomplete filtered range and an existing scoped staff account; obtain retained
 event/history/units/readback details, CSM browser guidance and an owner-approved
 private XML lookup example. The owner's exact held-visit disposition remains
@@ -60,10 +60,10 @@ above. Do not broaden grants, send communications or continue a held source
 action to satisfy an acceptance test. Current precise actions remain in
 DEVELOPER_TASKS.md and OWNER_OPERATIONS_TASKS.md.
 
-Before a runtime release, reconcile the approved caregiver source with main
-using the existing workflow. See docs/seo/
-2026-11-12-careers-retirement-and-source-reconciliation.md. The role-navigation
-and visit-office acceptance cases at the end remain proposed.
+Build subsequent staff changes on reconciled main, preserve the owning
+checkout's unfinished work and recheck current source before deployment.
+See docs/workforce/SOURCE_RECONCILIATION_2026-11-13.md. The role-navigation
+and visit-office acceptance cases below remain proposed.
 
 Current release evidence:
 https://github.com/jnwokorie1957/pthhs/pull/17
@@ -4266,3 +4266,43 @@ Rechecked family navigation:
 https://knowledge.hhaexchange.com/enterprise/Content/Documentation/Patient/Pat-N-Navigate-Family-Portal-P.htm
 Source/release reconciliation evidence:
 https://github.com/jnwokorie1957/pthhs/blob/851f369e350024dbfb769db95bf02eb5dcee9a99/docs/seo/2026-11-12-careers-retirement-and-source-reconciliation.md
+
+
+NOVEMBER 13, 2026 02:33 UTC — RECONCILED SOURCE AND PRESERVED ROLE ENTRIES
+
+PR27/e3869fb reconciles the approved caregiver releases and current Primetime
+source. The final pre-release check found four newer caregiver files, matched
+them to committed 1fe5efb and preserved them with published 4d94b04 history.
+Uncommitted staff-authorization work stays in its owning checkout, untouched.
+Main now contains the approved source rather than the stale Careers inventory.
+
+The build preserves retired noindex fallbacks and three Careers redirects,
+keeps current caregiver controllers from pruning, and avoids a dotted child
+alias for trailing-slash redirects. Regressions reproduce the old failures.
+The reviewed asset allowances cover the existing navigation, signature and
+transfer-status payload. No new role chooser or family/PT workflow was added.
+
+All 961 backend and 683 site/tooling/analytics tests pass; metadata 10, sitemap 4,
+articles 26 and three source-time zones pass. Normal quality run 43351077153 passed
+both jobs. Hosting-only run 43352460216 passed release_scope and build_and_deploy;
+backend/analytics deployment skipped. The pipeline leaves protected entries
+and tracked output unchanged. All 34 legacy Primetime source/public files outside
+the workforce entry are preserved. Current caregiver HTML/controllers match
+the committed source, including name-first account lookup and existing transfer
+status. No real application, HHA transfer or message was dispatched in this pass.
+
+At 02:33 UTC, 35 canonical pages and 30 key assets match the released Git bytes;
+three old Careers aliases returned 301 to /caregiver. Caregiver public configuration is
+unchanged. Primetime noindex/no-cache and anonymous JSON 401/no-store remain.
+Native Chrome shows Caregiver Portal on the public homepage. These are delivery
+checks, not accepted staff membership, patient sharing, clinical form signing,
+completed HHA transfer or source-time recovery. Existing relationship/form,
+CSM/private-XML, held-visit and sign-in prerequisites remain separate. The last
+native Primetime sign-in observation is 01:18 UTC; anonymous denial alone does
+not establish a signed-in user's state. Proposed role-transition tests remain open.
+
+https://github.com/jnwokorie1957/pthhs/pull/27
+https://github.com/jnwokorie1957/pthhs/actions/runs/43351077153
+https://github.com/jnwokorie1957/pthhs/actions/runs/43352460216
+Implementation and bounded acceptance:
+docs/workforce/SOURCE_RECONCILIATION_2026-11-13.md
