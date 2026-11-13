@@ -4,8 +4,9 @@ import {HhaApplicationSync} from "./hhaApplicationSync.js";
 import {syntheticHhaApplication} from "./hhaApplicantSample.js";
 import {initialHhaTransfer,applicantInput,type HhaApplicationConfig,type HhaApplicationJob} from "./hhaApplicationPolicy.js";
 import {EnvelopeDocumentCipher} from "./documentEncryption.js";
-import type {ApplicantGateway,ApplicantProfile,ApplicantDocument} from "./hhaApplicationGateway.js";
+import {SoapApplicantGateway,type ApplicantGateway,type ApplicantProfile,type ApplicantDocument} from "./hhaApplicationGateway.js";
 import {HhaNotSubmittedError} from "../integrations/hhaexchange/dispatch.js";
+import {parseHhaSoapResponse} from "../integrations/hhaexchange/parser.js";
 
 function fixture(mode=""){
   const now=Date.parse("2027-01-02T18:00:00.000Z"),uid="synthetic-a";
@@ -108,4 +109,56 @@ for(const mismatch of ["document_owner","document_type","document_bytes"])test(`
 test("tampering with the stored encrypted PDF stops recovery before any further HHA writes",async()=>{
   const f=fixture("create_lost");await f.service.process(f.uid);const file=[...f.objects.values()][0]!;file.bytes[0]=file.bytes[0]!^1;
   await f.service.process(f.uid);assert.equal(f.result().state,"review_required");assert.equal(f.counts().createCalls,1);assert.equal(f.counts().attachCalls,0);
+});
+
+for(const httpStatus of [401,403])for(const stage of ["queued","creating","created","attaching","acknowledged"])test(`HTTP ${httpStatus} read denial holds ${stage} without repeating source access or losing uncertain-write evidence`,async()=>{
+  const f=fixture(stage==="creating"?"create_lost":stage==="attaching"?"attach_lost":"");
+  if(["creating","attaching"].includes(stage))await f.service.process(f.uid);
+  let deniedReads=0,attemptEvidence:any;
+  const source=new SoapApplicantGateway({call:async()=>{
+    deniedReads++;
+    const h=f.result();attemptEvidence={createAttempted:h.createAttempted,attachAttempted:h.attachAttempted,caregiverId:h.caregiverId,documentId:h.documentId};
+    return {ok:false,httpStatus,retryable:false,error:{kind:"application",message:"synthetic private source detail"}} as any;
+  }});
+  if(stage==="created")f.gateway.profile=id=>source.profile(id);
+  else if(stage==="acknowledged"){
+    const documents=f.gateway.documents;let reads=0;
+    f.gateway.documents=id=>++reads===1?documents(id):source.documents(id);
+  }else f.gateway.validate=async()=>{await source.searchMarker(f.job.hha.employeeId);};
+  await f.service.process(f.uid);
+  assert.equal(deniedReads,1);assert.equal(f.result().state,"review_required");assert.equal(f.result().reason,"hha_source_access_denied");assert.equal(f.result().leaseUntil,0);
+  const h=f.result();assert.deepEqual({createAttempted:h.createAttempted,attachAttempted:h.attachAttempted,caregiverId:h.caregiverId,documentId:h.documentId},attemptEvidence);
+  const writes=f.counts();await f.service.run();await f.service.process(f.uid);
+  assert.equal(deniedReads,1);assert.deepEqual(f.counts(),writes);assert(!f.records.has("workforceHhaApplicantLinks/"+f.uid));
+  assert(!JSON.stringify([...f.records]).includes("synthetic private source detail"));
+});
+
+function searchSource(result:(body:string)=>string){
+  return new SoapApplicantGateway({call:async(operation,body)=>{
+    assert.equal(operation,"SearchCaregivers");
+    const xml=`<Envelope><Body><SearchCaregiversResponse><SearchCaregiversResult>${result(body||"")}</SearchCaregiversResult></SearchCaregiversResponse></Body></Envelope>`;
+    const parsed=parseHhaSoapResponse(operation,200,true,xml);assert.equal(parsed.ok,true);return parsed as any;
+  }});
+}
+test("a contract-shaped existing SSN match stops all applicant creation and attachment",async()=>{
+  const f=fixture(),source=searchSource(body=>body.includes("<SSN>")?"<Caregivers><CaregiverID>202</CaregiverID></Caregivers>":"<Caregivers/>");
+  f.gateway.searchMarker=marker=>source.searchMarker(marker);f.gateway.searchSsn=ssn=>source.searchSsn(ssn);
+  await f.service.process(f.uid);assert.equal(f.result().state,"review_required");assert.equal(f.result().reason,"existing_caregiver_review_required");
+  assert.deepEqual(f.counts(),{createCalls:0,attachCalls:0});
+});
+test("a direct-ID marker read reconciles a lost create reply without a duplicate create",async()=>{
+  const f=fixture("create_lost");await f.service.process(f.uid);assert.equal(f.result().state,"creating");
+  const source=searchSource(()=>"<Caregivers><CaregiverID>101</CaregiverID></Caregivers>");f.gateway.searchMarker=marker=>source.searchMarker(marker);
+  await f.service.process(f.uid);assert.equal(f.result().state,"verified");assert.deepEqual(f.counts(),{createCalls:1,attachCalls:1});
+});
+test("multiple direct-ID marker matches stop before any write",async()=>{
+  const f=fixture(),source=searchSource(()=>"<Caregivers><CaregiverID>101</CaregiverID><CaregiverID>202</CaregiverID></Caregivers>");
+  f.gateway.searchMarker=marker=>source.searchMarker(marker);await f.service.process(f.uid);
+  assert.equal(f.result().state,"review_required");assert.equal(f.result().reason,"applicant_match_ambiguous");assert.deepEqual(f.counts(),{createCalls:0,attachCalls:0});
+});
+test("unknown nonempty marker inventory holds uncertain creation without losing its attempt marker",async()=>{
+  const f=fixture("create_lost");await f.service.process(f.uid);let reads=0;
+  const source=searchSource(()=>{reads++;return "<Caregivers><Unknown>101</Unknown></Caregivers>";});f.gateway.searchMarker=marker=>source.searchMarker(marker);
+  await f.service.process(f.uid);assert.equal(f.result().state,"review_required");assert.equal(f.result().reason,"applicant_search_inventory_unverified");assert.equal(f.result().createAttempted,true);
+  await f.service.run();await f.service.process(f.uid);assert.equal(reads,1);assert.deepEqual(f.counts(),{createCalls:1,attachCalls:0});
 });
