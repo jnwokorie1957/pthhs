@@ -1,7 +1,7 @@
 // Workforce roles never imply access to the legacy clinical/admin API.
 export const roles = ["owner", "office_manager", "hr", "office", "supervisor"] as const;
 export type Role = typeof roles[number];
-export const permissions = ["opportunities.read", "opportunities.edit", "opportunities.review", "opportunities.publish", "staff.manage", "staff.review", "applications.review", "documents.review", "accounts.support"] as const;
+export const permissions = ["opportunities.read", "opportunities.edit", "opportunities.review", "opportunities.publish", "staff.manage", "staff.review", "applications.review", "documents.review", "accounts.support", "applicants.review", "authorizations.manage", "hr.expirations", "field_visits.manage"] as const;
 export type Permission = typeof permissions[number];
 export interface Grant { active: boolean; role: Role; offices: string[]; permissions: Permission[] }
 export interface Actor { uid: string; grant: Grant }
@@ -9,6 +9,8 @@ export class WorkforceError extends Error {
   constructor(public status: number, public code: string) { super(code); }
 }
 function roleAllows(role: Role, permission: Permission): boolean {
+  if (permission === "hr.expirations") return role === "owner" || role === "office_manager" || role === "hr";
+  if (permission === 'applicants.review' || permission === 'authorizations.manage') return role !== 'supervisor';
   if (permission === "staff.manage") return role === "owner";
   if (permission === "staff.review") return role === "office_manager";
   if (permission === "documents.review") return role === "owner" || role === "office_manager" || role === "hr";

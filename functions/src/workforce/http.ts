@@ -1,9 +1,13 @@
+import {FieldVisits,visitTemplates} from './fieldVisits.js';
+import {CaregiverOffice,GraphLicenseReminder,sendLicenseReminders} from './caregiverOffice.js';
+import {CaregiverSync} from './caregiverSync.js';
 import {onSchedule} from "firebase-functions/v2/scheduler";
 import {ApplicationMail,GraphApplicationTransport} from "./applicationMail.js";
 import {HhaApplicationSync} from "./hhaApplicationSync.js";
 import {SoapApplicantGateway} from "./hhaApplicationGateway.js";
 import type {HhaApplicationConfig} from "./hhaApplicationPolicy.js";
 import {caregiverWindow} from "./portalWindow.js";
+import {StaffOperations, hiringApplication} from './staffOperations.js';
 import {caregiverEarlyAccess} from "./caregiverEarlyAccess.js";
 import {getFirestore} from "firebase-admin/firestore";
 import {getAuth} from "firebase-admin/auth";
@@ -287,6 +291,42 @@ export const workforceApi = process.env.PRIMETIME_API_ONLY_DEPLOY === "true" ? u
         throw new WorkforceError(403, "staff_training_required");
       }
     }
+    if(path==='/staff/field-visits'||path.startsWith('/staff/field-visits/')){
+      await recentWorkforceIdentity(req);const visits=new FieldVisits();
+      if(path==='/staff/field-visits/templates'&&req.method==='GET'){requirePermission(await store.actor(uid),'field_visits.manage');res.json({templates:visitTemplates});return;}
+      if(path==='/staff/field-visits/names'&&req.method==='POST'&&req.is('application/json')&&req.rawBody.length<=1000){res.json(await visits.names(uid,req.body.office,req.body.kind,req.body.name,hhaWorkspace()));return;}
+      if(path==='/staff/field-visits'&&req.method==='GET'&&typeof req.query.office==='string'){res.json(await visits.list(uid,req.query.office,typeof req.query.after==='string'?req.query.after:undefined));return;}
+      const record=path.match(/^\/staff\/field-visits\/([a-zA-Z0-9_-]{1,128})(?:\/(pdf|sign))?$/);
+      if(record){const id=record[1]!;if(req.method==='GET'){if(record[2]==='pdf'){res.set('Content-Type','application/pdf');res.set('Content-Disposition','attachment; filename="field-visit.pdf"');res.set('Content-Security-Policy','sandbox');res.send(await visits.pdf(uid,id));return;}if(!record[2]){res.json(await visits.get(uid,id));return;}}
+       if(req.method==='POST'&&req.is('application/json')&&req.rawBody.length<=16_000_000&&req.body&&!Array.isArray(req.body)){res.json(record[2]==='sign'?await visits.sign(uid,id,req.body.revision,req.body.signature):await visits.save(uid,id,req.body.revision,req.body.data));return;}
+      }throw new WorkforceError(400,'invalid_request');
+    }
+    const caregiverOfficePath=path.match(/^\/staff\/caregivers\/(portal|hhaexchange)\/([a-zA-Z0-9_-]{1,128})\/(license|schedule)$/);
+    if(caregiverOfficePath||path==='/staff/id-expirations'||path==='/staff/caregiver-sync'){
+      await recentWorkforceIdentity(req);const service=new CaregiverOffice();
+      if(path==='/staff/caregiver-sync'&&req.method==='GET'){const actor=await store.actor(uid),settings=await hhaWorkspace().settings(),office=settings.settings.officeId;if(!office)throw new WorkforceError(503,'hha_profile_unavailable');requirePermission(actor,'accounts.support',office);const data=(await getFirestore().collection('workforceCaregiverSync').doc(office).get()).data();res.json({state:data?.state||'scheduled',lastCompletedAt:data?.lastCompletedAt||null,lastAttemptAt:data?.lastAttemptAt||null,remaining:data?.pending?.length||0});return;}
+      if(path==='/staff/id-expirations'&&req.method==='GET'&&typeof req.query.office==='string'){res.json(await service.alerts(uid,req.query.office));return;}
+      if(caregiverOfficePath){const [,source,id,kind]=caregiverOfficePath;
+        if(req.method==='GET'){res.json(kind==='license'?await service.license(uid,source!,id!):await service.schedule(uid,source!,id!,hhaWorkspace(),typeof req.query.after==='string'?req.query.after:undefined));return;}
+        if(kind==='license'&&req.method==='POST'&&req.is('application/json')&&req.rawBody.length<=500){res.json(await service.license(uid,source!,id!,req.body));return;}
+      }throw new WorkforceError(400,'invalid_request');
+    }
+    if (path === '/staff/applicants' || path.startsWith('/staff/authorizations')) {
+      await recentWorkforceIdentity(req);
+      const service = new StaffOperations();
+      if(req.method==='GET'&&path==='/staff/authorizations/summary'){res.json(await service.expirationSummary(uid,typeof req.query.office==='string'?req.query.office:undefined));return;}
+      if(req.method === 'GET' && (path === '/staff/applicants' || path === '/staff/authorizations')) {
+        if(typeof req.query.office !== 'string' || req.query.after !== undefined && typeof req.query.after !== 'string') throw new WorkforceError(400,'invalid_request');
+        res.json(path === '/staff/applicants' ? await service.applicants(uid,req.query.office,req.query.after as string|undefined) : await service.list(uid,req.query.office,req.query.after as string|undefined)); return;
+      }
+      const file = path.match(/^\/staff\/authorizations\/([a-zA-Z0-9_-]{1,128})\/document$/);
+      if(file && req.method === 'GET') {const bytes=await service.document(uid,file[1]!);res.set('Content-Type','application/pdf');res.set('Content-Disposition','attachment; filename="authorization.pdf"');res.set('Content-Security-Policy','sandbox');res.send(bytes);return;}
+      if(req.method !== 'POST' || !req.is('application/json') || req.rawBody.length > 24_000_000 || !req.body || Array.isArray(req.body))throw new WorkforceError(400,'invalid_request');
+      if(path === '/staff/authorizations') {res.json(await service.upload(uid,req.body));return;}
+      const renewal=path.match(/^\/staff\/authorizations\/([a-zA-Z0-9_-]{1,128})\/renewal$/);
+      if(renewal){res.json(await service.renewal(uid,renewal[1]!,req.body));return;}
+      throw new WorkforceError(404,'route_not_found');
+    }
     if (path === "/staff/roster" && req.method === "GET") {
       if (!existingAccessEnabled) throw new WorkforceError(503,"existing_access_pending");
       await recentWorkforceIdentity(req);
@@ -400,7 +440,8 @@ export const workforceApi = process.env.PRIMETIME_API_ONLY_DEPLOY === "true" ? u
       const application = await personnel.hrRead(uid, target, docs);
       if (!docs) {
         const transfer=(await getFirestore().collection("workforceOnboardingJobs").doc(target).get()).data()?.hha;
-        res.json({application,hhaTransfer:transfer?{state:transfer.state,caregiverId:transfer.caregiverId||null,documentId:transfer.documentId||null,verifiedAt:transfer.verifiedAt||null,reason:transfer.reason||null,notBefore:hhaApplicantNotBefore.value()}:null});return;
+        const mayReadPrivate=(await store.actor(uid)).grant.permissions.includes('documents.review');
+        res.json({application:mayReadPrivate?application:hiringApplication(application),hhaTransfer:transfer?{state:transfer.state,caregiverId:transfer.caregiverId||null,documentId:transfer.documentId||null,verifiedAt:transfer.verifiedAt||null,reason:transfer.reason||null,notBefore:hhaApplicantNotBefore.value()}:null});return;
       }
       if (!uploadsEnabled) throw new WorkforceError(503, "document_collection_pending");
       if (!detail[2]) { res.json(await personnel.listDocuments(target, uid)); return; }
@@ -500,4 +541,13 @@ export const workforceHhaApplications = process.env.PRIMETIME_API_ONLY_DEPLOY ==
   const repository=new FirestoreWorkspaceRepository();
   const client=new HhaSoapClient(hhaBaseUrl.value(),getHhaCredentials(),{beforeRequest:()=>repository.reserveRead("background"),defer:seconds=>repository.deferReads(seconds)});
   await new HhaApplicationSync(new SoapApplicantGateway(client),configuration).run();
+});
+
+export const workforceCaregiverSync=process.env.PRIMETIME_API_ONLY_DEPLOY==='true'?undefined:onSchedule({region:'us-central1',schedule:'*/15 9-16 * * 1-5',timeZone:'America/Chicago',timeoutSeconds:540,memory:'512MiB',maxInstances:1,concurrency:1,retryCount:0,secrets:[hhaCredentials]},async()=>{
+ if(staffEnabled.value()!=='true'||hhaPortalApproved.value()!=='true'||hhaDataApproved.value()!=='true')return;
+ await new CaregiverSync(hhaWorkspace('background')).run();
+});
+export const workforceLicenseReminders=process.env.PRIMETIME_API_ONLY_DEPLOY==='true'?undefined:onSchedule({region:'us-central1',schedule:'30 8 * * *',timeZone:'America/Chicago',timeoutSeconds:120,memory:'256MiB',maxInstances:1,retryCount:0},async()=>{
+ if(staffEnabled.value()!=='true'||documentEmailApproved.value()!=='true')return;
+ await sendLicenseReminders(new GraphLicenseReminder(documentMailTenant.value(),documentMailClient.value()));
 });

@@ -27,8 +27,9 @@
     window.WorkforceManagement?.show('opportunities');document.getElementById('staff-editor-panel').open=true;document.getElementById('staff-editor-title').textContent=o?'Edit opportunity':'New opportunity';
     form.reset(); form.elements.id.value = o?.id || ''; form.elements.revision.value = o?.revision || 0;
     for (const key of ['office', 'internalReference', 'internalNotes']) if (o) form.elements[key].value = o[key];
-    for (const key of ['location', 'recruitingZip', 'weeklyHours', 'schedule', 'type']) if (o) form.elements[key].value = o.public[key];
-    for (const box of form.querySelectorAll('[name=assistance]')) box.checked = !!o?.public.assistance.includes(box.value);
+    for (const key of ['location', 'recruitingZip', 'weeklyHours', 'schedule', 'type', 'serviceType', 'pets']) if (o) form.elements[key].value = o.public[key] || '';
+    for (const box of form.querySelectorAll('[name=assistance]')) {box.checked = !!o?.public.assistance.includes(box.value);if(box.closest('[data-legacy-task]'))box.parentElement.hidden=!box.checked;}
+    for(const box of form.querySelectorAll('[name=shifts]'))box.checked=!!o?.public.shifts?.includes(box.value);
   }
   function render() {
     list.replaceChildren();
@@ -46,7 +47,7 @@
       heading.append(title,badge);
       const details = document.createElement('p');details.textContent=[o.public.recruitingZip?'ZIP '+o.public.recruitingZip:'Broad recruiting area',o.public.weeklyHours+' hours / week',({weekdays:'Weekdays',weekends:'Weekends',flexible:'Flexible schedule'})[o.public.schedule],o.public.assistance.map(need=>need.replaceAll('_',' ')).join(', ')].join(' · ');
       const meta=document.createElement('p');meta.className='manager-record-meta';meta.textContent='Office: '+o.office+' · Revision '+o.revision+(o.internalReference?' · Ref. '+o.internalReference:'');
-      card.append(heading,details,meta);
+      const care=document.createElement('p');care.textContent=WorkforceOpportunityFields.details(o.public);const tasks=document.createElement('p');tasks.textContent='Tasks: '+o.public.assistance.map(k=>WorkforceOpportunityFields.tasks[k]||k).join(', ');card.append(heading,details,care,tasks,meta);
       if (can('edit') && o.state !== 'archived') {
         const button = document.createElement('button'); button.textContent = 'Edit'; button.onclick = () => edit(o); card.append(button);
       }
@@ -94,7 +95,8 @@
     e.preventDefault(); const sequence = generation, f = new FormData(form);
     const data = { office: f.get('office'), internalReference: f.get('internalReference'), internalNotes: f.get('internalNotes'),
       public: { location: f.get('location'), recruitingZip: f.get('recruitingZip'), weeklyHours: Number(f.get('weeklyHours')),
-        schedule: f.get('schedule'), type: f.get('type'), assistance: f.getAll('assistance') } };
+        schedule: f.get('schedule'), type: f.get('type'), assistance: f.getAll('assistance'),serviceType:f.get('serviceType'),pets:f.get('pets'),shifts:f.getAll('shifts') } };
+    if(!data.public.assistance.length||!data.public.shifts.length){document.getElementById('staff-editor-message').textContent='Choose at least one care task and one shift.';return;}
     try {
       const saved = await workforceApi('/staff/opportunities', { ...(f.get('id') ? { id: f.get('id') } : {}), revision: Number(f.get('revision')), data });
       if (sequence === generation) { edit(saved); message('Draft saved. Privacy review is required before publication.'); await refresh(); }
