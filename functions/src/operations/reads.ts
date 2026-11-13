@@ -1031,6 +1031,11 @@ export async function operationalRead(client: Pick<HhaSoapClient, "call">, input
       && ["read_budget_exhausted_retry_next_minute", "vendor_backoff_active"].includes(error.cause.code)) throw error.cause;
     throw error;
   }
+  // A present but blank/comment-only SOAP result is not evidence of an empty
+  // caregiver record list. Keep it unavailable even if transport parsing passed.
+  if (projectionScope === 'workforce_caregiver_records' && response.ok && !response.resultXml?.replace(/<!--[\s\S]*?-->/g, '').trim()) {
+    throw new WorkflowError('caregiver_record_response_unverified', 502);
+  }
   if (!response.ok || !response.resultXml) {
     let wait: number | undefined;
     const value = response.retryAfter?.trim();
