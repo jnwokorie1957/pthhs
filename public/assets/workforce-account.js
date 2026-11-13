@@ -39,7 +39,7 @@
       byId('account-password').hidden=providerOnly||!['email','signin'].includes(next);byId('account-password').textContent=next==='signin'?'Use an email link instead':'Use a password instead';
       byId('account-phone').hidden=providerOnly||!['email','signin','phonecode'].includes(next);byId('account-phone').textContent=next==='phonecode'?'Request a new code':'Use a linked phone number';
       const phoneMode=['phone','linkphone','phonecode'].includes(next);
-      byId('phone-row').hidden=!['phone','linkphone'].includes(next);byId('account-phone-number').required=['phone','linkphone'].includes(next);byId('account-phone-number').readOnly=next==='linkphone';if(next==='linkphone')byId('account-phone-number').value=ownerPhone;
+      byId('phone-row').hidden=!['phone','linkphone'].includes(next);byId('account-phone-number').required=['phone','linkphone'].includes(next);byId('account-phone-number').readOnly=false;if(['phone','linkphone'].includes(next))byId('account-phone-number').value='';
       byId('phone-code-row').hidden=next!=='phonecode';byId('account-phone-code').required=next==='phonecode';byId('account-phone-code').value='';byId('account-recaptcha').hidden=!['phone','linkphone'].includes(next);
       if(phoneMode)phoneLinking=next==='linkphone'||next==='phonecode'&&phoneLinking;
       isolate();byId('account-tabs').hidden=earlySignIn||!['email','signin','create'].includes(next);byId('account-back').hidden=['email','signin','create'].includes(next);byId('account-back').textContent=actor?'Back to my portal':'Back to sign in';byId('account-forgot').hidden=next!=='signin';byId('account-help').hidden=providerOnly||['reset','existing','newpassword'].includes(next);byId('account-existing').hidden=!['email','signin'].includes(next)||!existingEnabled;byId('account-providers').hidden=!['email','signin','create'].includes(next);
@@ -102,8 +102,8 @@
           if(!emailLink)throw Error('missing_link');const result=await auth.signInWithEmailLink(email,emailLink);emailLink='';mode='email';await session(result.user);return;
         }
         if(mode==='phone'||mode==='linkphone'){
-          const number=byId('account-phone-number').value.trim().replace(/[ ()-]/g,'');if(!/^\+[1-9]\d{7,14}$/.test(number)){message('Include the country code, for example +1 followed by your mobile number.');return;}
-          if(phoneLinking&&(!actor||!auth.currentUser||number!==ownerPhone))throw Error('phone_setup_unavailable');
+          let number=byId('account-phone-number').value.trim().replace(/[ ().-]/g,'');if(/^\d{10}$/.test(number))number='+1'+number;else if(/^1\d{10}$/.test(number))number='+'+number;if(!/^\+[1-9]\d{7,14}$/.test(number)){message('Include the country code, for example +1 followed by your mobile number.');return;}
+          if(phoneLinking&&(!actor||!auth.currentUser))throw Error('phone_setup_unavailable');if(phoneLinking&&number!==ownerPhone){message('Enter the mobile number approved for your early-access account. Contact the office if it needs to be changed.');return;}
           const confirmation=phoneLinking?await auth.currentUser.linkWithPhoneNumber(number,recaptcha):await auth.signInWithPhoneNumber(number,recaptcha);
           screen('phonecode');phoneConfirmation=confirmation;message('Code sent. Check your text messages.');return;
         }
