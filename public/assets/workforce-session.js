@@ -6,7 +6,7 @@
   const staff = ['/workforce', '/workforce/'].includes(location.pathname) || location.pathname.startsWith('/primetime/');
   const prefix = staff ? '/primetime/workforce-api' : '/caregiver/workforce-api';
   let auth, generation = 0, staffAuth;
-  const errors = {caregiver_preview_closed:"The caregiver preview has ended. The portal launches January 1, 2027. Please call 713-977-7721 for help.",
+  const errors = {field_visit_incomplete:'Complete the required visit answers before signing.',field_visit_signature_fields_required:'Add a document signature location for every required signer, then save the draft.',invalid_signature_fields:'Check the signature page and box positions.',signature_fields_overlap:'Signature locations cannot overlap.',correction_reason_required:'Enter a correction reason of up to 2,000 characters.',amendment_source_changed:'The original visit changed or the correction belongs to a different client. Reopen the current record.',caregiver_preview_closed:"The caregiver preview has ended. The portal launches January 1, 2027. Please call 713-977-7721 for help.",
     opportunity_unavailable: 'This position is no longer available. Please browse the current openings.',
     invalid_opportunity: 'Check the recruiting area, hours, ZIP and at least one broad assistance need.',
     caregiver_document_download_failed_application_http_400_vendor_negative_310_reason_file_unavailable: 'HHA has this document record, but no file is attached.',

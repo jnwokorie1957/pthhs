@@ -1,4 +1,4 @@
-import {FieldVisits,visitTemplates} from './fieldVisits.js';
+import {FieldVisits,visitTemplateDefinitions} from './fieldVisits.js';
 import {CaregiverOffice,GraphLicenseReminder,sendLicenseReminders} from './caregiverOffice.js';
 import {CaregiverSync} from './caregiverSync.js';
 import {onSchedule} from "firebase-functions/v2/scheduler";
@@ -301,12 +301,12 @@ export const workforceApi = process.env.PRIMETIME_API_ONLY_DEPLOY === "true" ? u
     }
     if(path==='/staff/field-visits'||path.startsWith('/staff/field-visits/')){
       await recentWorkforceIdentity(req);const visits=new FieldVisits();
-      if(path==='/staff/field-visits/templates'&&req.method==='GET'){requirePermission(await store.actor(uid),'field_visits.manage');res.json({templates:visitTemplates});return;}
+      if(path==='/staff/field-visits/templates'&&req.method==='GET'){requirePermission(await store.actor(uid),'field_visits.manage');res.json({templates:visitTemplateDefinitions});return;}
       if(path==='/staff/field-visits/names'&&req.method==='POST'&&req.is('application/json')&&req.rawBody.length<=1000){res.json(await visits.names(uid,req.body.office,req.body.kind,req.body.name,hhaWorkspace()));return;}
       if(path==='/staff/field-visits'&&req.method==='GET'&&typeof req.query.office==='string'){res.json(await visits.list(uid,req.query.office,typeof req.query.after==='string'?req.query.after:undefined));return;}
-      const record=path.match(/^\/staff\/field-visits\/([a-zA-Z0-9_-]{1,128})(?:\/(pdf|sign))?$/);
+      const record=path.match(/^\/staff\/field-visits\/([a-zA-Z0-9_-]{1,128})(?:\/(pdf|sign|amend))?$/);
       if(record){const id=record[1]!;if(req.method==='GET'){if(record[2]==='pdf'){res.set('Content-Type','application/pdf');res.set('Content-Disposition','attachment; filename="field-visit.pdf"');res.set('Content-Security-Policy','sandbox');res.send(await visits.pdf(uid,id));return;}if(!record[2]){res.json(await visits.get(uid,id));return;}}
-       if(req.method==='POST'&&req.is('application/json')&&req.rawBody.length<=16_000_000&&req.body&&!Array.isArray(req.body)){res.json(record[2]==='sign'?await visits.sign(uid,id,req.body.revision,req.body.signature):await visits.save(uid,id,req.body.revision,req.body.data));return;}
+       if(req.method==='POST'&&req.is('application/json')&&req.rawBody.length<=16_000_000&&req.body&&!Array.isArray(req.body)){if(record[2]==='amend'){res.json(await visits.amend(uid,id,req.body));return;}res.json(record[2]==='sign'?await visits.sign(uid,id,req.body.revision,req.body.signature):await visits.save(uid,id,req.body.revision,req.body.data));return;}
       }throw new WorkforceError(400,'invalid_request');
     }
     const caregiverOfficePath=path.match(/^\/staff\/caregivers\/(portal|hhaexchange)\/([a-zA-Z0-9_-]{1,128})\/(license|schedule)$/);
@@ -562,7 +562,7 @@ export const workforceCaregiverSync=process.env.PRIMETIME_API_ONLY_DEPLOY==='tru
  if(staffEnabled.value()!=='true'||hhaPortalApproved.value()!=='true'||hhaDataApproved.value()!=='true')return;
  await new CaregiverSync(hhaWorkspace('background')).run();
 });
-export const workforceLicenseReminders=process.env.PRIMETIME_API_ONLY_DEPLOY==='true'?undefined:onSchedule({region:'us-central1',schedule:'30 8 * * *',timeZone:'America/Chicago',timeoutSeconds:120,memory:'256MiB',maxInstances:1,retryCount:0},async()=>{
+export const workforceLicenseReminders=process.env.PRIMETIME_API_ONLY_DEPLOY==='true'?undefined:onSchedule({region:'us-central1',schedule:'*/15 8-17 * * *',timeZone:'America/Chicago',timeoutSeconds:120,memory:'256MiB',maxInstances:1,retryCount:0},async()=>{
  if(staffEnabled.value()!=='true'||documentEmailApproved.value()!=='true')return;
  await sendLicenseReminders(new GraphLicenseReminder(documentMailTenant.value(),documentMailClient.value()));
 });
