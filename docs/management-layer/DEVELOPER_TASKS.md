@@ -1,5 +1,15 @@
 # PTHHS Management Layer — Developer Checklist
 
+- [ ] P2 applicant-to-employee acceptance: keep the HHA application/PDF
+  transfer receipt separate from the source employment type/status, the
+  verified portal identity link and staff/clinical permissions. Existing
+  synthetic tests cover applicant transfer without employee promotion.
+  Test stale receipts after an independently authorized source conversion
+  and source/account changes; require a fresh scoped check before any later
+  employee workflow. Do not convert a profile, send a reset/message or grant
+  patient/PT access for this research acceptance.
+  [November 13 onboarding and role boundaries](ROLE_WORKFLOW_RESEARCH.txt).
+
 - [x] November 13 UTC source reconciliation deployed (PR27/e3869fb).
   Preserves current Primetime and committed caregiver sources through 1fe5efb,
   including the four newer files detected during pre-release checks. Marketing

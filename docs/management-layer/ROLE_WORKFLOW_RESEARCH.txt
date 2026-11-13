@@ -6,8 +6,9 @@ CURRENT STATUS INDEX — NOVEMBER 13, 2026 UTC
 Runtime source basis: e3869fb1cc8ebdaa36868dcd83ee8f382429cd6d (PR27),
 reconciling the approved caregiver sources through 1fe5efb with current Primetime.
 Core role references were checked November 11; mobile, clinical e-doc and
-family-dashboard references were rechecked November 12 below. This index
-separates source/release evidence from tenant and role acceptance.
+family-dashboard references were rechecked November 12. Applicant/employee
+handoff references and committed transfer guards were checked November 13 below.
+This index separates source/release evidence from tenant and role acceptance.
 Earlier next-task and draft summaries are historical checkpoints.
 
 Vendor response received November 11 at 17:17 UTC: existing caregiver calls
@@ -51,7 +52,7 @@ their own timestamps/provenance. Historical snapshot proposals do not
 authorize new web-scraped imports.
 
 Next dependencies: restore existing Primetime administrator sign-in for
-protected examples (last checked November 13 at 01:18 UTC); accept a naturally
+protected examples (last checked November 13 at 02:52 UTC); accept a naturally
 incomplete filtered range and an existing scoped staff account; obtain retained
 event/history/units/readback details, CSM browser guidance and an owner-approved
 private XML lookup example. The owner's exact held-visit disposition remains
@@ -4306,3 +4307,103 @@ https://github.com/jnwokorie1957/pthhs/actions/runs/43351077153
 https://github.com/jnwokorie1957/pthhs/actions/runs/43352460216
 Implementation and bounded acceptance:
 docs/workforce/SOURCE_RECONCILIATION_2026-11-13.md
+
+
+NOVEMBER 13, 2026 — APPLICANT TRANSFER, EMPLOYMENT AND ROLE HANDOFF
+
+Evidence basis: reconciled runtime e3869fb / documentation f5433c4. This pass
+compares committed source with public vendor guidance; no signed-in HHA
+applicant, source transfer or employment decision was exercised. The immediately
+preceding 02:52 UTC Primetime check still required administrator sign-in.
+Earlier schedules/documents, PT assignment and office maintenance observations
+retain their dates and acceptance limits.
+
+Primary-source findings, checked November 13 UTC:
+[R125] Application Workflow describes agency-configured onboarding stages.
+Its default stages distinguish application submission, HR assignment and
+conversion. Product inference: a submitted application is not conversion.
+[R126] DAO Permissions describes vendor activation, separate form/workflow
+permissions and HR-representative access. It does not establish that this
+tenant has DAO enabled or that Primetime's SOAP applicant transfer implements
+DAO workflow parity. No activation or permission change was requested.
+[R127] Create a New Caregiver distinguishes its UI Caregiver Type from
+employment status: the guide says applicants cannot be scheduled, and describes
+Employee as necessary for assigning cases. [R128] Caregiver Status separately
+describes scheduling constraints for active versus inactive status categories.
+These are vendor-product rules, not a Primetime eligibility decision or a new
+mapping between every UI label and the SOAP EmployeeType field.
+[R129] Texas Applicants List Actions describes workflow-dependent status
+changes, conversion and tracked notes. This is a product reference, not observed
+agency setup or authority to convert, assign HR representatives or send messages.
+The existing patient-assignment reference [R130] separately requires role
+permission and patient assignment for its Mobile App patient-information flow.
+No onboarding receipt supplies those patient/clinical permissions.
+
+Observed committed implementation:
+- hhaApplicationGateway.ts sends EmployeeType=Applicant and verifies the
+  returned applicant type, exact source identity, office and application
+  identity. hhaApplicationSync.ts verifies the exact signed application
+  revision and PDF attachment/readback. Its verified phase records an
+  applicant link; it does not write the existing-employee link or promote the
+  local employment status.
+- hhaApplicationSync.test.ts already asserts that a verified transfer retains
+  applicant status and does not create an employee link. Those are synthetic
+  implementation checks within PR27's dated 961-test result, not a real
+  applicant/agency conversion or a new test run.
+- workforce-personnel.js labels the result as an application attachment
+  verification and separately identifies its Applicant target. A source ID
+  under that heading is not evidence of hiring, active employment or PT work.
+- hhaEnrollment.ts separately checks verified account email, the fresh source
+  profile, configured office and conflicting identity links. It refuses an
+  explicitly returned Applicant when creating an existing-caregiver link.
+  hhaDirectory.ts excludes explicitly marked applicants from its name-search
+  profile path. These are source/account guards; they are not clinical
+  assignment, scheduling eligibility or proof of every missing-field case.
+- policy.ts still requires explicit active role permissions and office scope.
+  A workforce link does not grant the legacy administrator/clinical API.
+
+Proposed experience and shared record links:
+Patient/family schedules and released documents remain behind their own
+relationship/share checks. Show no applicant information there. A future
+PT My day/caseload must require the effective clinician assignment, permitted
+patient/visit and document instance/version; applicant conversion or an
+employee profile alone cannot establish them. For office managers, present
+application revision/transfer receipt, source employment type/status/fetched
+time and local account/office grant as distinct facts. Preserve their exact
+private identifiers for permitted joins without using a name, email or a
+generic verified badge as the sole connection. Authorization, original EVV,
+clinical documentation and billing follow-up remain separate work queues.
+
+Priority/dependencies and proposed acceptance:
+P1 preserve current applicant/employee separation and precise receipt wording.
+P2 synthetic and later approved-example acceptance should cover:
+1. A verified applicant/PDF transfer retains its application dashboard and
+   receives no employee, patient, PT or maintenance permission.
+2. After a separately authorized source conversion, an old verified transfer
+   receipt alone cannot complete an employee/account handoff. Recheck exact
+   source identity, current type/status, office and verified account linkage.
+   Unknown or changed facts need scoped review; invent no conversion action.
+3. A stale page, changed account email, disabled account, office mismatch or
+   revoked grant cannot reuse an earlier link for another protected action.
+   Keep source employment status distinct from an operator's account grant.
+4. DAO feature absence or a different configured workflow is not reported as
+   a failed SOAP PDF transfer or as completed DAO onboarding.
+5. Keep proposed patient/PT and office role tests independent from transfer
+   success. No source status change, reset email, document upload, application
+   submission or real employment action may be used merely to pass these tests.
+
+Implementation evidence remains the existing source and dated release tests.
+No new role UI, grant, source/action connection, clinical workflow or runtime
+release is completed by this research. The existing owner dependencies remain:
+administrator sign-in for protected acceptance; accepted staff/patient/PT
+relationships and form/sharing rules; CSM/private-XML and held-visit guidance.
+Developer acceptance is added to DEVELOPER_TASKS.md; no new owner decision or
+communication is requested.
+
+Primary sources, checked November 13, 2026:
+[R125] https://knowledge.hhaexchange.com/enterprise/Content/Documentation/Admin/Admin-N-Application-Workflow-P.htm
+[R126] https://knowledge.hhaexchange.com/enterprise/Content/Documentation/Admin/Admin-N-DAO-Permissions-P.htm
+[R127] https://knowledge.hhaexchange.com/enterprise/Content/Documentation/Caregiver/CG-N-Create-New-Caregiver-S.htm
+[R128] https://knowledge.hhaexchange.com/enterprise/Content/Documentation/Caregiver/CG-N-Caregiver-Status-S.htm
+[R129] https://knowledge.hhaexchange.com/texas/Content/Documentation/Caregiver/CG-N-Applicants-List-Actions-P.htm
+[R130] https://knowledge.hhaexchange.com/enterprise/Content/Documentation/Patient/Pat-N-Assign-Caregivers-Patient-P.htm
