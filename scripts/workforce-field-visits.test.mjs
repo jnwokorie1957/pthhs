@@ -26,17 +26,18 @@ class Element {
  querySelectorAll(selector){return walk(this).slice(1).filter(e=>selector.split(',').some(s=>s.startsWith('#')?e.id===s.slice(1):s==='input:checked'?e.tagName==='INPUT'&&e.checked:s.startsWith('[value=')?e.value===s.slice(7,-1):e.tagName===s.toUpperCase()));}
  querySelector(s){return this.querySelectorAll(s)[0]||null;}
  reportValidity(){return true;}
+ get elements(){return {namedItem:name=>walk(this).find(e=>e.name===name)};}
  scrollIntoView(){}
 }
-const templates={orientation:{title:'Synthetic orientation',description:'Synthetic test record',fields:{}},upload:{title:'Synthetic upload',description:'Synthetic test attachment',fields:{}}};
+const templates={orientation:{title:'Synthetic orientation',description:'Synthetic test record',fields:{purpose:'Visit purpose'},requiredFields:['purpose']},upload:{title:'Synthetic upload',description:'Synthetic test attachment',fields:{}}};
 const record=(id,client='Synthetic A',kind='orientation')=>({id,state:'draft',revision:1,contentSha256:'synthetic',data:{office:'office-a',clientName:client,memberId:'SYNTHETIC-'+id,caregiverName:'Synthetic caregiver',visitDate:'2026-11-13',kind,fields:{},pages:[],requiredSigners:['staff'],signatures:[]}});
 function setup(handler=async()=>undefined){
- const root=new Element(),events=new Map(),calls=[],previews=[];
+ const root=new Element(),events=new Map(),calls=[],previews=[],mappings=[];
  root.id='field-visits-root';
  const api=async(path,body,blob)=>{calls.push({path,body,blob});const result=await handler(path,body,blob);if(result!==undefined)return result;if(path.endsWith('/templates'))return {templates};if(path.includes('?office='))return {items:[{id:'record-a',state:'draft',clientName:'Synthetic A',kind:'orientation',visitDate:'2026-11-13'}],next:null};if(body)return record('saved',body.data.clientName,body.data.kind);return record('record-a');};
  const document={getElementById:id=>id===root.id?root:null,createElement:tag=>new Element(tag),addEventListener:(name,fn)=>events.set(name,fn)};
  const window={};
- const context=vm.createContext({window,document,workforceApi:api,location:{hash:''},URL:{revokeObjectURL(){}},AbortController,Intl,Date,crypto:{randomUUID:()=> 'new-record'},FormData:class{constructor(form){this.form=form;}*[Symbol.iterator](){for(const e of walk(this.form))if(e.name&&!e.disabled&&e.type!=='checkbox')yield[e.name,e.value];}},WorkforceSignature:{mount:()=>({get:()=>({kind:'synthetic'})})},WorkforcePrivatePdf:{show:async(...args)=>{previews.push(args);return true;}},importExtractor:async()=>({extractAuthorization:async(file,progress,signal)=>{file.progress=progress;file.signal=signal;return file.pending;}})});
+ const context=vm.createContext({window,document,workforceApi:api,location:{hash:''},URL:{revokeObjectURL(){}},AbortController,Intl,Date,crypto:{randomUUID:()=> 'new-record'},FormData:class{constructor(form){this.form=form;}*[Symbol.iterator](){for(const e of walk(this.form))if(e.name&&!e.disabled&&e.type!=='checkbox')yield[e.name,e.value];}},WorkforceSignatureFields:{mount:(target,options)=>mappings.push(options)},WorkforceSignature:{mount:()=>({get:()=>({kind:'synthetic'})})},WorkforcePrivatePdf:{show:async(...args)=>{previews.push(args);return true;}},importExtractor:async()=>({extractAuthorization:async(file,progress,signal)=>{file.progress=progress;file.signal=signal;return file.pending;}})});
  vm.runInContext(runtime,context);
  const button=text=>{const b=walk(root).find(e=>e.tagName==='BUTTON'&&e.textContent===text);assert.ok(b,'Missing button: '+text);return b;};
  const field=name=>{const f=walk(root).find(e=>e.name===name);assert.ok(f,'Missing field: '+name);return f;};
@@ -46,8 +47,27 @@ function setup(handler=async()=>undefined){
  const start=async()=>{events.get('workforce-session')({detail:{grant:{offices:['office-a','office-b'],permissions:['field_visits.manage']}}});await window.WorkforceFieldVisits.show('fieldvisits');await tick();await tick();};
  const newRecord=()=>button('+ Start field visit').onclick();
  const submit=async()=>{form().onsubmit({preventDefault(){}});await tick();await tick();};
- return {root,calls,previews,start,newRecord,button,field,office,submit,status,events};
+ return {root,calls,previews,mappings,start,newRecord,button,field,office,submit,status,events};
 }
+
+test('required answers prevent a signing request while incomplete drafts remain saveable',async()=>{
+ const s=setup();await s.start();await s.button('Open visit').onclick();await s.button('Sign and secure this document').onclick();
+ assert.match(s.status(),/Complete the required visit answers.*Visit purpose/);assert.ok(!s.calls.some(c=>c.path.endsWith('/sign')));await s.submit();assert.ok(s.calls.some(c=>c.body?.data));
+});
+
+test('uploaded signature mappings are saved with their own draft',async()=>{
+ const s=setup();await s.start();s.newRecord();s.field('kind').value='upload';s.field('kind').onchange();
+ const file=walk(s.root).find(e=>e.type==='file');file.files=[{pending:Promise.resolve({pages:['mapped-page']})}];await file.onchange();
+ assert.equal(s.mappings.length,1);s.mappings[0].onChange([{role:'staff',page:0,x:.1,y:.6,width:.5,height:.08}]);await s.submit();
+ assert.equal(s.calls.filter(c=>c.body?.data).at(-1).body.data.signatureFields[0].role,'staff');
+});
+
+test('a delayed corrected-copy response cannot replace a different editor',async()=>{
+ const pending=deferred(),original={...record('record-a'),state:'signed'};
+ const s=setup(path=>path.endsWith('/amend')?pending.promise:path.endsWith('/record-a')?original:undefined);await s.start();await s.button('Open visit').onclick();
+ s.field('correctionReason').value='Synthetic correction';const correction=s.button('Create corrected draft').onclick();s.newRecord();s.field('clientName').value='Synthetic B';pending.resolve(record('corrected'));await correction;
+ assert.equal(s.field('clientName').value,'Synthetic B');assert.doesNotMatch(s.status(),/Corrected draft created/);
+});
 test('a delayed save cannot replace another editor or announce its success there',async()=>{
  const pending=deferred(),s=setup((path,body)=>body?.data?pending.promise:undefined);await s.start();s.newRecord();s.field('clientName').value='Synthetic A';await s.submit();
  s.newRecord();s.field('clientName').value='Synthetic B';pending.resolve(record('saved-a'));await tick();await tick();
