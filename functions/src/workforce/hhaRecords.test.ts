@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {HhaRecords,HHA_RECORDS} from './hhaRecords.js';
 import {operationalRead} from '../operations/reads.js';
+import {parseHhaSoapResponse} from '../integrations/hhaexchange/parser.js';
 import type {HhaProfile} from './hhaSource.js';
 
 function setup(kind:keyof typeof HHA_RECORDS='training',self=true){
@@ -38,5 +39,25 @@ test('portal source projections accept verified contract rows and reject unknown
   const client=(resultXml:string)=>({call:async()=>({ok:true,status:'Success',resultXml})});
   assert.equal((await operationalRead(client(xml) as never,{operation,id:'101'},'workforce_caregiver_records')).records[0]!.CaregiverID,'101');
   for(const bad of ['<Unexpected/>','<Other>'+xml+'</Other>',xml+xml])await assert.rejects(operationalRead(client(bad) as never,{operation,id:'101'},'workforce_caregiver_records'),/caregiver_record_response_unverified/);
+ }
+});
+test('blank SOAP results cannot become successful empty caregiver views',async()=>{
+ for(const {operation} of Object.values(HHA_RECORDS))for(const body of ['', ' \r\n\t', '<!-- omitted records -->']){
+  const xml=`<Envelope><Body><${operation}Response><${operation}Result>${body}</${operation}Result></${operation}Response></Body></Envelope>`;
+  const parsed=parseHhaSoapResponse(operation,200,true,xml);
+  assert.equal(parsed.ok,true,'Transport parsing alone does not establish an empty source list');
+  await assert.rejects(operationalRead({call:async()=>parsed} as never,{operation,id:'101'},'workforce_caregiver_records'),/caregiver_record_response_unverified/);
+ }
+});
+test('explicit source containers and success receipts still support genuine empty views',async()=>{
+ for(const [operation,body] of [
+  ['GetCaregiverPermanentWeekAvailability','<PermanentWeekAvailability/>'],
+  ['GetCaregiverSpecialAvailability','<SpecialAvailability/>'],
+  ['GetCaregiverInServices','<CaregiverInServices/>'],
+  ['GetCaregiverPreferences','<CaregiverPreferencesInfo xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:nil="true"/>'],
+  ['GetCaregiverRates','<CaregiverRates/>'],
+ ] as const)for(const resultXml of [body,'<Result Status="Success"/>']){
+  const client={call:async()=>({ok:true,status:'Success',resultXml})};
+  assert.deepEqual((await operationalRead(client as never,{operation,id:'101'},'workforce_caregiver_records')).records,[]);
  }
 });

@@ -27,7 +27,7 @@ node --test scripts/verify_workforce.test.mjs
 node --test scripts/workforce-readings.test.mjs
 node --test scripts/workforce-account.test.mjs scripts/workforce-navigation.test.mjs
 node --test scripts/workforce-application-ux.test.mjs scripts/retire-careers.test.mjs
-node --test scripts/workforce-support.test.mjs scripts/workforce-authorizations.test.mjs
+node --test scripts/workforce-support.test.mjs scripts/workforce-authorizations.test.mjs scripts/workforce-field-visits.test.mjs
 node --test scripts/workforce-management.test.mjs
 node --test scripts/workforce-management-auth.test.mjs
 node --test scripts/workforce-careers-release.test.mjs

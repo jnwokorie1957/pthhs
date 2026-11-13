@@ -1,10 +1,11 @@
 PRIMETIME ROLE AND WORKFLOW RESEARCH
-Updated: November 13, 2026 UTC / November 12, America/Chicago
+Updated: November 13, 2026, America/Chicago
 Scope: PTHHS /primetime, repository jnwokorie1957/pthhs.
 
 CURRENT STATUS INDEX — NOVEMBER 13, 2026 UTC
-Runtime source basis: e3869fb1cc8ebdaa36868dcd83ee8f382429cd6d (PR27),
-reconciling the approved caregiver sources through 1fe5efb with current Primetime.
+Runtime source basis: 8c18cc063c08e01af890a43702d4f64e462543c4, including
+PR35 field-visit editor protection and concurrent PR36 source-response guards.
+PR27's reconciliation and earlier role evidence retain their dated scope.
 Core role references were checked November 11; mobile, clinical e-doc and
 family-dashboard references were rechecked November 12. Applicant/employee
 handoff references and committed transfer guards were checked November 13 below.
@@ -27,14 +28,15 @@ evidence. PR24/25 establish entry revalidation and accurate retry guidance.
 These releases do not establish HHA confirmation, complete source coverage
 or multi-user office workflow acceptance.
 
-Staff / caregiver: PR17 staff routing retains its dated acceptance. PR27 now
-reconciles the approved Caregiver Portal source, current name-first lookup and
-application-transfer status display with main. Both quality and required
-Hosting-only jobs pass, and production delivery/configuration is verified.
-Functions were not redeployed. No real staff/application or HHA transfer was
-exercised in this pass. Workforce permissions still do not authorize legacy
-administrator or clinical records. Historical PR11 draft and Careers-entry
-notes below are not the current production-status summary.
+Staff / caregiver: PR17 routing and PR27 reconciliation retain their dated
+acceptance. Later staff-portal source is now integrated. PR35 protects the
+current field-visit editor from delayed work belonging to another selection;
+the combined normal release and served-controller regressions pass. PR27 was
+Hosting-only; the later combined release also deployed backend and analytics.
+The post-release workforce entry still requires sign-in. No real field visit,
+application, signature or HHA transfer was exercised by this implementation pass.
+Workforce permissions do not authorize the legacy administrator/clinical API.
+Historical PR11 draft and Careers-entry notes are not current status.
 
 Patient / representative: schedules, requests and independently released
 documents remain proposed external-role workflows. Require a current,
@@ -52,8 +54,8 @@ their own timestamps/provenance. Historical snapshot proposals do not
 authorize new web-scraped imports.
 
 Next dependencies: restore existing Primetime administrator sign-in for
-protected examples (last checked November 13 at 02:52 UTC); accept a naturally
-incomplete filtered range and an existing scoped staff account; obtain retained
+protected examples (dated separate entry checked November 13 at 13:19 UTC);
+accept a naturally incomplete filtered range and an existing scoped staff account; obtain retained
 event/history/units/readback details, CSM browser guidance and an owner-approved
 private XML lookup example. The owner's exact held-visit disposition remains
 separate. Family/PT release needs the relationships/forms
@@ -4407,3 +4409,42 @@ Primary sources, checked November 13, 2026:
 [R128] https://knowledge.hhaexchange.com/enterprise/Content/Documentation/Caregiver/CG-N-Caregiver-Status-S.htm
 [R129] https://knowledge.hhaexchange.com/texas/Content/Documentation/Caregiver/CG-N-Applicants-List-Actions-P.htm
 [R130] https://knowledge.hhaexchange.com/enterprise/Content/Documentation/Patient/Pat-N-Assign-Caregivers-Patient-P.htm
+
+
+NOVEMBER 13, 2026 16:58 UTC — FIELD-VISIT RECORD CONTEXT DEPLOYED
+
+PR35 implements the researched stale-response protection in the existing staff
+Field Visits editor. The former session-only check allowed an upload from A to
+supply another draft's pages, a delayed save/open to replace a new editor, or a
+PDF response to open after Close. The fix binds results/errors and cleanup to
+the editor and office, aborts obsolete extraction, separates upload-kind reads,
+and rejects old A-to-B-to-A office lists. It preserves the original record in
+posted draft payloads; accepted requests can still finish for that record.
+
+Ten synthetic regressions cover the transitions and normal saving. Against
+the original controller nine fail and one passes; all ten pass after correction.
+All 710 site/tooling/analytics tests pass after preserving concurrent portal
+work. Native Chrome in a labelled local fixture retained Synthetic B after
+Synthetic A's held save returned. The fixture has no HHA or real records.
+
+PR35/864d2ec passed both quality jobs in 43466873581. Concurrent PR36 then
+included it in runtime 8c18cc0; normal release 43467413367 passed scope, Hosting,
+backend and analytics. No duplicate manual release was dispatched. At 16:58 UTC,
+32 static artifacts match Git, public caregiver configuration is unchanged,
+and private noindex/cache/anonymous boundaries pass. All ten regressions pass
+against the exact served field-visit controller, hash 2b232611500c. Native
+workforce entry loads that controller but still needs existing staff sign-in.
+
+This establishes the bounded editor guard and delivery. Authenticated staff
+acceptance remains open, with the delayed transitions added to the developer
+checklist. No real record, signature, upload, source action, communication or
+grant was created. Patient/family schedules and document shares, PT caseload/
+clinical forms, HHA original calls/time units and source writes retain their
+independent prerequisites. Current record/office/form/revision links remain
+separate from clinical, employment and financial decisions.
+
+https://github.com/jnwokorie1957/pthhs/pull/35
+https://github.com/jnwokorie1957/pthhs/actions/runs/43466873581
+https://github.com/jnwokorie1957/pthhs/actions/runs/43467413367
+Detailed implementation, remaining acceptance and receipt names:
+docs/workforce/FIELD_VISIT_CONTEXT_2026-11-13.md
