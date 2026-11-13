@@ -37,6 +37,7 @@
       const body=node('div','');target.append(body);window.WorkforceHha.render(body,data,context.api,'/application/hha-files/',()=>seq===generation);
       // Keep one source of truth; show the requested slice of the existing renderer.
       let inFiles=false;for(const child of [...body.children]){if(child.tagName==='H3'&&child.textContent==='Files from HHAeXchange')inFiles=true;child.hidden=filesOnly?!inFiles:inFiles;}
+      if(!filesOnly)window.WorkforceHhaRecords?.mount(target,{api:context.api,current:()=>seq===generation});
       if(data.profile.fetchedAt)target.append(node('p','Last synchronized: '+new Date(data.profile.fetchedAt).toLocaleString(),'small-note'));return;
     }
     const result=await context.api('/application');if(seq!==generation)return;

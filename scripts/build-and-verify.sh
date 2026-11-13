@@ -31,7 +31,7 @@ node --test scripts/workforce-support.test.mjs scripts/workforce-authorizations.
 node --test scripts/workforce-management.test.mjs
 node --test scripts/workforce-management-auth.test.mjs
 node --test scripts/workforce-careers-release.test.mjs
-node --test scripts/workforce-hha.test.mjs
+node --test scripts/workforce-hha.test.mjs scripts/workforce-hha-records.test.mjs
 node --test scripts/workforce-coverage.test.mjs
 
 node --test scripts/workforce-auth-preview.test.mjs
