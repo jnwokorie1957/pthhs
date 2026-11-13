@@ -5,7 +5,18 @@ area, map the actual source, connect available authorized data and verify it.
 This is the connection backlog, not a declaration of an active Codex goal.
 This document does not claim every tab is connected.
 
-CURRENT RUNTIME CHECKPOINT — NOVEMBER 13, 2026 16:58 UTC
+CURRENT RUNTIME DELIVERY CHECKPOINT — NOVEMBER 13, 2026 21:41 UTC
+Concurrent PR37 runtime 1d06a7b is deployed. All four normal release 43512396712
+jobs passed; the dated 21:41:32 UTC receipt verifies 33 delivery artifacts,
+unchanged caregiver configuration and private indexing/cache/anonymous denial.
+PR35 editor context and PR36 source-response protections are preserved.
+The 23:29 live follow-up confirms eleven visit-time mapping/display/retry
+files are unchanged from ac620ba. This is source preservation, not a new API read.
+A separate approved-profile Primetime entry at 23:30 UTC still requires
+administrator sign-in; no current/historical comparison or recovered time is claimed.
+Original October 24 remains resolved; existing P03/E04/vendor/held-visit steps remain.
+
+PREVIOUS RUNTIME CHECKPOINT — NOVEMBER 13, 2026 16:58 UTC
 Runtime 8c18cc0 includes PR35 field-visit editor protection and concurrent PR36.
 Normal release 43467413367 passed scope, Hosting, backend and analytics.
 32 artifacts match Git; field UI regressions and private boundary/configuration
@@ -13,7 +24,7 @@ checks pass. No new source-time read, comparison or recovery was performed.
 Original October 24 remains resolved by October 31; P03/E04 and existing
 administrator sign-in/vendor/held-visit steps remain open.
 
-PREVIOUS RUNTIME CHECKPOINT — NOVEMBER 13, 2026 13:19 UTC
+EARLIER RUNTIME CHECKPOINT — NOVEMBER 13, 2026 13:19 UTC
 Main 07b51b9 includes the concurrent staff-portal releases. Normal release
 43368191436 succeeded for release_scope, Hosting, backend and analytics.
 This pass verifies the Primetime entry and seven versioned scripts against
@@ -2294,3 +2305,34 @@ No grant, real field visit, signature, upload, communication or source action.
 https://github.com/jnwokorie1957/pthhs/pull/35
 https://github.com/jnwokorie1957/pthhs/actions/runs/43467413367
 Field UI acceptance and limits: docs/workforce/FIELD_VISIT_CONTEXT_2026-11-13.md
+
+
+NOVEMBER 13, 2026 23:29 UTC — CONCURRENT RUNTIME AND TIME-SOURCE PRESERVATION
+
+Refreshed upstream 399bec7; the owning checkouts remain untouched. The cumulative
+live index now includes the already verified 21:41 PR37/1d06a7b runtime. Its normal
+release 43512396712 passed scope, Hosting, backend and analytics. The saved
+33-artifact acceptance remains dated; no second runtime check, full suite or
+deployment was repeated. Field-visit correction/signature/reminder changes do
+not supply original EVV clocks or actual-hour interpretation.
+
+Independent Git comparison against ac620ba confirms unchanged operations/reads.ts
+and the source plus generated public data-source, dashboard, live-views, maintenance and
+maintenance-search scripts: eleven files. GetVisitInfoV3Result/VisitInfo direct
+VisitStartTime, VisitEndTime, EVVStartTime, EVVEndTime, ActualHours and
+ActualHoursRounded remain separate optional strings. The established schedule
+duration hour/minute component mapping and actual-hour unit gate are unchanged.
+
+No attached Primetime tab was available; a fresh same-profile entry still shows
+administrator sign-in at 23:30 UTC. No link sent, protected source read/retry,
+current or historical classification, recovered clock/hour, new grant or source
+action. October 23/24 and November 10 receipts remain dated. The original October
+24 screenshot stays resolved by its October 31 reread. Pending read details must
+not be relabelled source-empty while access is closed.
+
+Next existing step: restore the approved administrator session, then use only
+the existing scoped retry after its displayed delay. Vendor original-event/
+history/linkage/units/readback, CSM/private-XML and held-visit disposition stay
+separate. The 21:34 vendor-reminder observation supplies no new technical contract
+and was not polled again. No new owner question, communication or source fix is
+claimed by this evidence reconciliation.
