@@ -1,5 +1,19 @@
 # PTHHS Management Layer — Developer Checklist
 
+- [x] PR35 field-visit editor context protection deployed November 13 UTC.
+  Editor/office changes invalidate earlier results and errors; upload-kind
+  changes discard earlier extraction. Old cleanup cannot unlock a newer action.
+  Nine of ten regressions
+  failed before correction; all ten and all 710 site/tooling/analytics tests pass.
+  Both quality jobs and all combined release jobs passed; 32 delivery artifacts,
+  unchanged configuration and all ten regressions against served bytes pass.
+  [Implementation and bounded acceptance](../workforce/FIELD_VISIT_CONTEXT_2026-11-13.md).
+- [ ] Include delayed record/office transitions in the next approved staff
+  field-visit acceptance using an existing scoped account. The post-release
+  staff entry still needs sign-in. Do not create a real visit, signature, upload,
+  message or grant merely to satisfy this check. Family/PT and source-time
+  acceptance remain separate.
+
 - [ ] P2 applicant-to-employee acceptance: keep the HHA application/PDF
   transfer receipt separate from the source employment type/status, the
   verified portal identity link and staff/clinical permissions. Existing

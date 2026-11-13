@@ -5,7 +5,15 @@ area, map the actual source, connect available authorized data and verify it.
 This is the connection backlog, not a declaration of an active Codex goal.
 This document does not claim every tab is connected.
 
-CURRENT RUNTIME CHECKPOINT — NOVEMBER 13, 2026 13:19 UTC
+CURRENT RUNTIME CHECKPOINT — NOVEMBER 13, 2026 16:58 UTC
+Runtime 8c18cc0 includes PR35 field-visit editor protection and concurrent PR36.
+Normal release 43467413367 passed scope, Hosting, backend and analytics.
+32 artifacts match Git; field UI regressions and private boundary/configuration
+checks pass. No new source-time read, comparison or recovery was performed.
+Original October 24 remains resolved by October 31; P03/E04 and existing
+administrator sign-in/vendor/held-visit steps remain open.
+
+PREVIOUS RUNTIME CHECKPOINT — NOVEMBER 13, 2026 13:19 UTC
 Main 07b51b9 includes the concurrent staff-portal releases. Normal release
 43368191436 succeeded for release_scope, Hosting, backend and analytics.
 This pass verifies the Primetime entry and seven versioned scripts against
@@ -2260,3 +2268,29 @@ separately. No vendor follow-up, communication or operational decision.
 https://github.com/jnwokorie1957/pthhs/actions/runs/43368191436
 Local nonsensitive delivery receipt:
 outputs/primetime-current-release-boundary-20261113.json
+
+
+NOVEMBER 13, 2026 16:58 UTC — FIELD-VISIT UI DELIVERY; TIME EVIDENCE SEPARATE
+
+Runtime 8c18cc0 includes PR35's record/office editor guard and the independently
+merged PR36 caregiver-source response guard. All normal release 43467413367
+jobs passed. 32 static artifacts, preserved private entry/cache/anonymous policies
+and unchanged caregiver public configuration pass; 10 regressions pass against
+the served field-visit script. These are software delivery checks only.
+
+This pass performed no protected HHA read, visit-time comparison, retry or
+missing-punch recovery. The newer workforce caregiver-record projection/blank
+response checks supply no alternate original-EVV history or duration-unit
+contract. Existing GetVisitInfoV3Result/VisitInfo optional clocks/hours and
+separate ScheduleDuration hour/minute components are unchanged by PR35.
+No schedule/pay/billed replacement or worked/payable/billable/verified inference.
+
+The October 23/24 and November 10 source receipts remain dated. Original October 24
+remains resolved by October 31. P03/E04, approved administrator sign-in, scoped
+retry delay, CSM/private-XML and held-visit disposition remain separate. The
+post-release workforce entry also still requires its existing staff sign-in.
+No grant, real field visit, signature, upload, communication or source action.
+
+https://github.com/jnwokorie1957/pthhs/pull/35
+https://github.com/jnwokorie1957/pthhs/actions/runs/43467413367
+Field UI acceptance and limits: docs/workforce/FIELD_VISIT_CONTEXT_2026-11-13.md

@@ -2,7 +2,8 @@
 
 Prepared November 13, 2026 from reconciled main `418b88a`, rebased onto
 concurrent `3834444`.
-Release and production acceptance are pending at this checkpoint.
+Released as PR35 / `864d2ec`, included in runtime `8c18cc0`. Delivery was
+verified November 13 at 16:58 UTC. Authenticated staff acceptance remains open.
 
 The existing staff Field Visits editor used a session-level check for delayed
 work. Opening a new draft, closing the editor or changing office did not change
@@ -42,10 +43,18 @@ authenticated tenant acceptance, a clinical form test or production data.
 
 ## Release and remaining acceptance
 
-Use the normal GitHub quality workflow, then the existing Hosting-only release.
-Both required release jobs must pass before checking the served controller and
-its entry hash. Re-run the regressions against the exact served bytes and
-preserve the private noindex/cache/anonymous-access boundary.
+Both [PR35 quality jobs](https://github.com/jnwokorie1957/pthhs/actions/runs/43466873581)
+passed. A subsequent normal push for concurrent PR36 included the merged fix.
+Its [combined release](https://github.com/jnwokorie1957/pthhs/actions/runs/43467413367)
+passed release_scope, build_and_deploy, deploy_backend and website analytics.
+No duplicate manual release was dispatched. PR35 itself changes no backend.
+
+After all jobs succeeded, 32 public/private static artifacts matched the
+released Git source. The controller hash is `2b232611500c`; all ten regressions
+pass against its exact served bytes. Public caregiver configuration is unchanged;
+private entry noindex/cache and anonymous JSON 401/no-store checks pass.
+Native Chrome loads the new workforce controller but still requires staff
+sign-in. No authenticated field-visit action was exercised.
 
 Existing staff/office permission and sign-in prerequisites remain. Patient,
 family and PT relationships/forms, HHA original events, time units and source
@@ -57,3 +66,7 @@ Local nonsensitive receipts: `field-visits-before-20261113.log`,
 `field-visit-context-synthetic-20261113.png`.
 Related proposed record-switch acceptance:
 [Role workflow research](../management-layer/ROLE_WORKFLOW_RESEARCH.txt).
+
+Production receipts: `field-visit-release-baseline-20261113.json` and
+`field-visit-release-production-20261113.json`.
+[Merged PR35](https://github.com/jnwokorie1957/pthhs/pull/35).
