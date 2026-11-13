@@ -1,5 +1,18 @@
 # PTHHS Management Layer — Developer Checklist
 
+- [ ] P2 clinical/source document-link acceptance, researched November 13:
+  current local Field Visits retains editable member/admission and date fields,
+  not an exact HHA patient/visit/clinical-document join. Before a future bridge,
+  define namespace, office, source patient/visit/document instance, form/version,
+  assignment and receipt independently from the local record/revision/hash.
+  Synthetic cases must retain ambiguous same-day visits, stale/revoked links,
+  local signed versus source unknown/review states and separately released
+  correction versions. Existing field-visit signing must not clear EVV,
+  authorization, family-request or prebilling follow-up. Actual clinical linking
+  requires approved role, sharing, form and source-read contracts.
+  [November 13 document lifecycle and proposed acceptance](ROLE_WORKFLOW_RESEARCH.txt).
+
+
 - [x] November 13 21:41 UTC concurrent PR37 delivery and editor regression
   review: all four release jobs passed; 33 production entries/assets match
   1d06a7b, configuration is unchanged and private response policies pass.

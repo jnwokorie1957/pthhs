@@ -11,6 +11,8 @@ PR27's reconciliation and earlier role evidence retain their dated scope.
 Core role references were checked November 11; mobile, clinical e-doc and
 family-dashboard references were rechecked November 12. Applicant/employee
 handoff references and committed transfer guards were checked November 13 below.
+Clinical document lifecycle, exact visit linkage and separate family/office action
+permissions were researched November 13 at 21:46 UTC; proposed acceptance follows.
 This index separates source/release evidence from tenant and role acceptance.
 Earlier next-task and draft summaries are historical checkpoints.
 
@@ -4499,3 +4501,132 @@ https://github.com/jnwokorie1957/pthhs/actions/runs/43512251339
 https://github.com/jnwokorie1957/pthhs/actions/runs/43512396712
 Implementation scope: docs/workforce/MEDIUM_FOLLOW_UP_2026-11-13.md
 Nonsensitive local receipt: field-visit-release-pr37-review-2137-20261113.json.
+
+
+NOVEMBER 13, 2026 21:46 UTC — DOCUMENT LIFECYCLE AND EXACT VISIT LINKS
+
+Evidence basis: deployed PR37 runtime 1d06a7b and documentation 3d72afe.
+This is public primary-source research compared with committed code. The latest
+separate Primetime entry still required administrator sign-in at 21:35 UTC.
+No new authorized HHA UI observation, private record read, source write or
+patient/PT/staff role acceptance was performed. Earlier Calendar, document,
+family and office observations retain their own dates. The immediately preceding
+21:41 delivery and 13 served-controller regressions are not rerun here.
+
+Primary findings, checked November 13:
+[R131] Clinical e-doc completion and review are separate states: required answers
+may be complete while another caregiver or office review remains pending.
+Available status actions depend on agency permissions; status history identifies
+contributors. Proposed local workflow must retain the exact source status and
+its fetched receipt rather than translate every completed document to approved.
+[R132] Existing e-doc access is located under a particular skilled visit. View,
+edit and delete are distinct actions; the guide describes deletion as irreversible.
+This does not authorize any of those source actions or establish an amendment API.
+[R133] The June 2026 Enterprise release notes separately describe MD-order
+signatures tied to the individual account and a timestamp, with explicit intent,
+locking and signature history. This is an MD-order product contract, not proof
+that a local witnessed appearance identifies a remote clinician or that every
+clinical e-doc uses the same workflow. The same notes describe form attachment
+rules based on actual visit type and matching primary-bill-to contract. No agency
+activation, automatic attachment or SOAP equivalent is established here.
+[R134] The Texas Family Dashboard guide distinguishes viewing its dashboard,
+approving schedule-change requests and resolving visit exceptions. These are
+separate action permissions; the Texas product guide does not prove this tenant's
+configuration. Rechecked [R63] continues to distinguish requests, concerns/holds
+and their histories. A local corrected document cannot resolve a source concern.
+Rechecked [R73] ties clinical forms to caregiver discipline, service code/contract
+and a specific skilled visit. Rechecked [R118] makes clinical-document sufficiency
+for prebilling depend on the contract's accepted documentation and required e-doc
+status. These establish product dependencies, not a billing-ready decision.
+
+Observed source connection gap — exact shared record linkage:
+functions/src/workforce/fieldVisits.ts: VisitData stores office, clientName,
+memberId, caregiverName, visitDate, kind, fields, requiredSigners, pages,
+signatures and optional signatureFields/amendment. The names method verifies a
+patient's source ID and office when returning name matches, but the editor saves
+the selected name and displayed member/admission reference. It does not persist
+match.id as a separately identified source PatientID. The editable member reference
+can be an AdmissionID or fallback PatientID. VisitData has no exact HHA visit,
+clinical-document instance, discipline, service code or contract relationship.
+An editable member reference plus date is not an exact join when multiple visits
+occur that day. This is an absent clinical/source bridge, not an observed wrong-record write.
+Current Field Visits is a local agency-document workflow; no source attachment
+or source-clinical synchronization is claimed by its existing save/sign endpoints.
+
+PR37 preserves the original ID/content hash on corrected copies and immutable
+version history, and requires fresh signatures. It records local draft/signing/signed
+states and the staff-witnessed signing session. Workforce policy explicitly requires an active
+field_visits.manage grant and office scope. These facts do not establish an
+assigned PT, a source clinical reviewer, a patient share or a source visit link.
+The 21:41 production/regression receipt verifies software delivery only.
+
+Proposed experiences and shared links:
+Patient/representative: retain the permitted schedule and separately released
+document view. A correction needs its own permitted document instance/version
+and sharing decision; the original release must not silently switch to a new file.
+Keep a concern/request receipt separate from document-signing state. Public
+service navigation may lead to sign-in without exposing a document/member link.
+PT/field clinical staff: My day/caseload should open an explicitly assigned visit
+and applicable discipline/contract/form version. Show draft, source completion,
+review and signature facts separately, including unknown or not-loaded evidence.
+A local orientation/assessment upload must not appear as the required skilled
+encounter note merely because patient/date or a signer name matches.
+Office manager: link from the exact permitted visit into separate documentation,
+authorization, EVV, family-request and prebilling follow-up queues. A useful
+visual summary shows loaded-range coverage and individual source/review counts;
+a signed local copy must not clear another queue or produce a universal ready
+badge. Keep the public, workforce and Operations entry/permissions separate.
+
+Priorities, dependencies and acceptance:
+P1 before any clinical/source bridge: define exact source namespace, office,
+PatientID, VisitID, document instance/version, source receipt and the applicable
+assignment/discipline/contract/form relationship. Preserve local record ID,
+revision, original-content hash and provenance independently. Fresh permission
+and identity checks must precede any link; require approved read/source contracts
+and effective role/relationship rules before source reads or role activation.
+Synthetic acceptance and design can proceed independently.
+P2 synthetic acceptance specification for that future bridge:
+1. Two visits for the same patient/date remain ambiguous until an exact permitted
+   visit is selected; name/admission/date never auto-attaches a document.
+2. Changed office, stale lookup or revoked relationship discards the previous link
+   and response. A local record ID is never used as an HHA VisitID.
+3. Signed local document with unknown source e-doc status retains unknown source
+   documentation, existing EVV/authorization holds and pending family sharing.
+4. Source Completed and Office Review remain distinct from Reviewer Approved;
+   view permission alone supplies no review/approve/delete action.
+5. A corrected local copy preserves its original; an existing share still points
+   to its released version until separately authorized. No actual client file,
+   signature, source deletion or message is needed to exercise synthetic cases.
+6. MD-order individual-account signing is not satisfied by an unrelated staff
+   witness, saved appearance or applicant/employee account link.
+
+Next developer work: retain these negative joins/statuses in the clinical-link
+acceptance backlog; no existing deployed clinical feature is marked complete.
+Next existing owner actions: establish effective patient/representative and PT
+assignment scope, clinical form/version/reviewer/signature and sharing rules,
+then use existing approved accounts for bounded examples after sign-in. Do not
+create a role, enable a source method or make a clinical/financial decision for
+this research. CSM/private-XML, held-visit disposition and original-event/time
+contracts stay separate; original October 24 remains resolved by October 31.
+No runtime change, new grant, communication or release is required by this note.
+
+PRIMARY SOURCES CHECKED NOVEMBER 13, 2026
+[R131] HHAeXchange Enterprise, Additional Clinical E-Doc Information.
+https://knowledge.hhaexchange.com/enterprise/Content/Documentation/Patient/Pat-N-Additional-Clinical-E-Doc-P.htm
+[R132] HHAeXchange Enterprise, Access Existing E-Documentation.
+https://knowledge.hhaexchange.com/enterprise/Content/Documentation/Patient/Pat-N-Access-Existing-E-Documents-S.htm
+[R133] HHAeXchange Enterprise Version 26.06.01, June 2026 release notes;
+MD orders and form-attachment sections only; no tenant activation inferred.
+https://knowledge.hhaexchange.com/enterprise/Content/Release-Notes/New-UI/RN-N-Release-Notes-26.06.01.htm
+[R134] HHAeXchange Texas, Family Dashboard Permissions.
+https://knowledge.hhaexchange.com/texas/Content/Documentation/Admin/Admin-N-Permissions-Family-Dashboard-P.htm
+[R63, rechecked] Patient Visit Family Dashboard.
+https://knowledge.hhaexchange.com/enterprise/Content/Documentation/Admin/Admin-N-Patient-Visit-Family-Dashboard-P.htm
+[R73, rechecked] Clinical E-Docs.
+https://knowledge.hhaexchange.com/enterprise/Content/Documentation/Patient/Pat-N-Clinical-E-Docs-P.htm
+[R118, rechecked] Clinical Documentation prebilling exception.
+https://knowledge.hhaexchange.com/enterprise/Content/Documentation/Billing/Bill-N-Clinical-Documentation-P.htm
+Pinned implementation, not a new tenant observation:
+https://github.com/jnwokorie1957/pthhs/blob/1d06a7bbfbcc00eea517d350cbc8ad883b7c51ea/functions/src/workforce/fieldVisits.ts
+https://github.com/jnwokorie1957/pthhs/blob/1d06a7bbfbcc00eea517d350cbc8ad883b7c51ea/public/assets/workforce-field-visits.js
+https://github.com/jnwokorie1957/pthhs/blob/1d06a7bbfbcc00eea517d350cbc8ad883b7c51ea/functions/src/workforce/policy.ts
