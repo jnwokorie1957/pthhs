@@ -33,7 +33,7 @@
         document.addEventListener('workforce-session-cleared', cancelled);
         api('/document-access/request', {path}).then(challenge => {
           if (active !== dialog) return;
-          message.textContent = 'Check ' + challenge.maskedEmail + ' for your code. It expires in five minutes.';
+          message.textContent = 'Check the inbox, Spam or Junk folder for ' + challenge.maskedEmail + ' for your code. It expires in five minutes.';
           input.disabled = false; verify.disabled = false; input.focus();
           form.onsubmit = async event => {
             event.preventDefault(); if (verify.disabled || !form.reportValidity()) return;

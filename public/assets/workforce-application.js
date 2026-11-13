@@ -195,7 +195,7 @@
     if (submitted) {
       if (roleStep) renderRoleDescription();
       fields.append(text('p', 'Your application has been sent to the office. Employment, screening and onboarding approval are separate.'));
-      message.textContent = 'Submitted ' + new Date(record.submittedAt).toLocaleString() + '. Contact the office if a correction is needed.';
+      message.textContent = 'Submitted ' + new Date(record.submittedAt).toLocaleString() + '. Contact the office if a correction is needed. Check your email inbox, Spam or Junk folder for any portal access or follow-up emails from Primetime.';
       return;
     }
     if (step === sections.length) { renderReview(); return; }

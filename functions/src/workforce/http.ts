@@ -4,6 +4,7 @@ import {HhaApplicationSync} from "./hhaApplicationSync.js";
 import {SoapApplicantGateway} from "./hhaApplicationGateway.js";
 import type {HhaApplicationConfig} from "./hhaApplicationPolicy.js";
 import {caregiverWindow} from "./portalWindow.js";
+import {caregiverEarlyAccess} from "./caregiverEarlyAccess.js";
 import {getFirestore} from "firebase-admin/firestore";
 import {getAuth} from "firebase-admin/auth";
 import {DocumentAccess, sensitiveDocumentPath, type DocumentAccessCheck, type DocumentPrincipal} from "./documentAccess.js";
@@ -88,7 +89,7 @@ async function documentPrincipal(req: Parameters<typeof recentWorkforceIdentity>
   return {uid, email: user.email, authTime: token.auth_time};
 }
 async function authorizeDocumentPath(principal: DocumentPrincipal, path: string) {
-  if (!path.startsWith("/staff/") && !caregiverWindow(portalPreviewUntil.value(),portalLaunchAt.value()).open) throw new WorkforceError(503,"caregiver_preview_closed");
+  if (!path.startsWith("/staff/") && !caregiverWindow(portalPreviewUntil.value(),portalLaunchAt.value()).open && !await caregiverEarlyAccess(principal.uid)) throw new WorkforceError(503,"caregiver_preview_closed");
   if (!sensitiveDocumentPath(path)) throw new WorkforceError(400, "invalid_document_request");
   const target = path.startsWith("/staff/") ? path.split("/")[3]! : principal.uid;
   const personnel = new IntakeStore();
@@ -107,7 +108,12 @@ export const workforceApi = process.env.PRIMETIME_API_ONLY_DEPLOY === "true" ? u
   try {
     const window = caregiverWindow(portalPreviewUntil.value(), portalLaunchAt.value());
     const caregiverPath = path.startsWith("/application") || path.startsWith("/existing-caregiver/") || path === "/opportunities" || path.startsWith("/opportunities/");
-    if (caregiverPath && !window.open) throw new WorkforceError(503,"caregiver_preview_closed");
+    let earlyAccess:Awaited<ReturnType<typeof caregiverEarlyAccess>>=null;
+    if(!window.open&&(caregiverPath||path==="/configuration")&&req.get?.("authorization")) {
+      try {earlyAccess=await caregiverEarlyAccess(await workforceIdentity(req));} catch {/* Unverified callers stay closed. */}
+    }
+    const portalOpen=window.open||!!earlyAccess;
+    if (caregiverPath && !portalOpen) throw new WorkforceError(503,"caregiver_preview_closed");
     const applicationsEnabled = staffEnabled.value() === "true" && collectionApproved.value() === "true" && packetApproved.value() === "true" && !!intakeOffice.value();
     const uploadsEnabled = applicationsEnabled && documentsApproved.value() === "true" && retentionApproved.value() === "true";
     const existingAccessEnabled=staffEnabled.value()==="true"&&hhaPortalApproved.value()==="true"&&hhaDataApproved.value()==="true";
@@ -142,7 +148,7 @@ export const workforceApi = process.env.PRIMETIME_API_ONLY_DEPLOY === "true" ? u
     if (path === "/configuration" && req.method === "GET") {
       let existingCaregiverEnrollmentReady=false;if(existingAccessEnabled){try{const settings=await hhaWorkspace().settings(),office=settings.settings.officeId;if(office){const ready=await getFirestore().collection("workforceHhaRosterReady").doc(office).get();existingCaregiverEnrollmentReady=ready.exists&&ready.data()?.office===office&&typeof ready.data()?.completedAt==="string";}}catch{/* Source preparation remains closed when readiness cannot be confirmed. */}}
       const enabledSignInProviders=signInProviders.value().split(",").map(p=>p.trim()).filter(p=>["google.com","apple.com","microsoft.com","yahoo.com"].includes(p));
-      res.json({ staffEnabled: staffEnabled.value() === "true", accountsEnabled: window.open&&(applicationsEnabled||existingAccessEnabled), applicationsEnabled: window.open&&applicationsEnabled, documentsEnabled: window.open&&uploadsEnabled, addressLookupEnabled: placesApproved.value() === "true", enabledSignInProviders: window.open?enabledSignInProviders:[],existingAccessEnabled: window.open&&existingAccessEnabled,existingCaregiverEnrollmentReady: window.open&&existingCaregiverEnrollmentReady,...(window.configured?{portalPreviewEndsAt:portalPreviewUntil.value(),portalLaunchAt:portalLaunchAt.value(),portalClosed:!window.open}:{}) }); return;
+      res.json({ staffEnabled: staffEnabled.value() === "true", accountsEnabled: portalOpen&&(applicationsEnabled||existingAccessEnabled), applicationsEnabled: portalOpen&&applicationsEnabled, documentsEnabled: portalOpen&&uploadsEnabled, addressLookupEnabled: placesApproved.value() === "true", enabledSignInProviders: portalOpen?enabledSignInProviders:[],existingAccessEnabled: portalOpen&&existingAccessEnabled,existingCaregiverEnrollmentReady: portalOpen&&existingCaregiverEnrollmentReady,...(window.configured?{portalPreviewEndsAt:portalPreviewUntil.value(),portalLaunchAt:portalLaunchAt.value(),portalClosed:!portalOpen,earlyAccessSignInEnabled:!window.open,earlyAccessSignInProviders:!window.open?enabledSignInProviders:[],...(earlyAccess?{personalEarlyAccess:true,earlyAccessPhone:earlyAccess.phoneNumber}:{})}:{}) }); return;
     }
     if(path==="/existing-caregiver/access"&&req.method==="POST"){
       if(!existingAccessEnabled)throw new WorkforceError(503,"existing_access_pending");
