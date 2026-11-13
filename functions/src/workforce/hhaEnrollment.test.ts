@@ -20,6 +20,12 @@ test("prepared HHA email recovery provisions no password, returns no identity an
  const s=setup();await s.service.stage(s.actor,"101");const unknown=await s.service.requestAccess("missing@example.invalid","network");const known=await s.service.requestAccess("LEGACY@example.invalid","network");assert.deepEqual(known,unknown);assert.deepEqual(known,{requested:true});assert.deepEqual(s.emails,["legacy@example.invalid"]);assert.equal(s.created[0]!.emailVerified,false);assert.ok(!("password"in s.created[0]!));assert.ok(!s.records.has("workforceHhaLinks/legacy-user"));
  await assert.rejects(s.service.link("legacy-user"),/verified_identity_required/);
 });
+test("HHA Applicants retain the application dashboard until the office manually changes them to Employee",async()=>{
+ const s=setup();s.profiles.get("101")!.fields.EmployeeType="Applicant";await s.service.stage(s.actor,"101");
+ s.users.set("applicant",{uid:"applicant",email:"legacy@example.invalid",emailVerified:true,disabled:false});
+ assert.equal(await s.service.link("applicant"),null);assert.ok(!s.records.has("workforceHhaLinks/applicant"));
+ s.profiles.get("101")!.fields.EmployeeType="Employee";assert.equal((await s.service.link("applicant"))!.id,"101");
+});
 test("verified source-email ownership links one HHA identity and exposes its profile without inventing an application",async()=>{
  const s=setup();await s.service.stage(s.actor,"101");await s.service.requestAccess("legacy@example.invalid","network");s.users.get("legacy-user")!.emailVerified=true;
  assert.equal((await s.service.link("legacy-user"))!.id,"101");const data=await s.service.profile("legacy-user");assert.equal(data.profile.firstName,"Hannah");assert.equal(data.application,"not_on_file");assert.equal(data.files?.items[0]!.id,"501");assert.equal((await s.service.file("legacy-user","501")).filename,"Demo.pdf");

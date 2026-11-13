@@ -39,7 +39,7 @@ test('leaving the page stops a live camera; document views revoke their local UR
 test('live document navigation blocks missing receipts and in-flight uploads; owner review stays free',()=>{
  const source=read('public/assets/workforce-application.js'),fn=source.slice(source.indexOf('  function validateStep()'),source.indexOf('  function renderRoleDescription()'));
  for(const [reviewNavigation,uploading,kinds,blocked]of [[false,false,['identity'],true],[false,true,[],true],[false,false,[],false],[true,false,['identity','social_security'],false]]){
-  const ctx=vm.createContext({reviewNavigation,uploading,sections:['Documents'],step:0,packet:{fields:[]},answers:{},requiredDocuments:()=>kinds,document:{getElementById:()=>({focus(){}})}});vm.runInContext(fn,ctx);
+  const ctx=vm.createContext({focusMissing(){},fields:{querySelectorAll:()=>[]},reviewNavigation,uploading,sections:['Documents'],step:0,packet:{fields:[]},answers:{},requiredDocuments:()=>kinds,document:{getElementById:()=>({focus(){}})}});vm.runInContext(fn,ctx);
   if(blocked)assert.throws(()=>ctx.validateStep(),/before continuing/);else assert.doesNotThrow(()=>ctx.validateStep());
  }
 });

@@ -13,6 +13,21 @@
     ],
     "redirects": [
       {
+        "source": "/home-care-careers",
+        "destination": "/caregiver",
+        "type": 301
+      },
+      {
+        "source": "/home-care-careers.html",
+        "destination": "/caregiver",
+        "type": 301
+      },
+      {
+        "source": "/home-care-careers/",
+        "destination": "/caregiver",
+        "type": 301
+      },
+      {
         "source": "/primetime/workforce",
         "destination": "/workforce",
         "type": 301
@@ -745,6 +760,13 @@
       }
     ],
     "rewrites": [
+      {
+        "regex": "^/(caregiver|primetime)/workforce-api/(document-access/(request|verify)|application/(documents/[^/]+|forms/(i9|w4|new_hire|cch)/pdf)|staff/applications/[^/]+/(pdf|packet/pdf|forms/(i9|w4|new_hire|cch)/pdf|documents/[^/]+(/print)?))$",
+        "function": {
+          "functionId": "workforceDocumentDecrypt",
+          "region": "us-central1"
+        }
+      },
       {
         "source": "/primetime/workforce-api/**",
         "function": {

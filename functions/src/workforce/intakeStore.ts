@@ -1,3 +1,5 @@
+import {applicationMailJob} from "./applicationMailPolicy.js";
+import {initialHhaTransfer} from "./hhaApplicationPolicy.js";
 import { createHash, randomUUID } from "node:crypto";
 import { getFirestore, type Transaction } from "firebase-admin/firestore";
 import { getStorage } from "firebase-admin/storage";
@@ -5,9 +7,11 @@ import { FORM_BUCKET } from "../forms/library.js";
 import { parseGrant, requirePermission, validId, WorkforceError, type Actor } from "./policy.js";
 import { saveIntake, submitIntake, type Intake } from "./intake.js";
 import { prepareDocument, documentKind, documentSummary, missingRequiredDocuments, type DocumentKind, type PrivateDocument } from "./documents.js";
-import { formSchema, formRecord, type FormKind, type FormRecord } from "./eforms.js";
+import { formSchema, formRecord, requireSignedCch, type FormKind, type FormRecord } from "./eforms.js";
 import { EMPLOYER_NAME, EMPLOYER_ADDRESS, chicagoDate } from "./dates.js";
 import { directoryEntry } from "./directory.js";
+import { kmsDocumentCipher, type DocumentCipher } from "./documentEncryption.js";
+import type { DocumentAccessCheck } from "./documentAccess.js";
 
 export function privateDocumentPath(uid: string, id: string, extension: "jpg" | "pdf" = "jpg"): string {
   if (!validId(uid) || !validId(id) || !["jpg", "pdf"].includes(extension)) throw new WorkforceError(400, "invalid_document_id");
@@ -18,13 +22,14 @@ export function requireDocumentOwner(doc: PrivateDocument, uid: string): void {
   if (doc.state !== "pending_review" || !doc.generation || !doc.sha256) throw new WorkforceError(409, "document_not_ready");
 }
 export class IntakeStore {
-  constructor(private db = getFirestore(), private bucket = getStorage().bucket(FORM_BUCKET)) {}
+  constructor(private db = getFirestore(), private bucket = getStorage().bucket(FORM_BUCKET), private cipher?: DocumentCipher) {}
   async formContext(uid:string,ein:string) {
     const account=await this.db.collection("workforceAccounts").doc(uid).get();
     const start=account.data()?.firstDayOfEmployment;
     const date=typeof start==="string"&&/^\d{4}-\d{2}-\d{2}$/.test(start)?start.split("-"):null;
     const [year,month,day]=chicagoDate(new Date()).split("-");
     return {name:EMPLOYER_NAME,address:EMPLOYER_ADDRESS,companyAddress:EMPLOYER_NAME+"\n"+EMPLOYER_ADDRESS,
+      offerAccepted:typeof account.data()?.jobOfferAcceptedAt==='string'&&Number.isFinite(Date.parse(account.data()!.jobOfferAcceptedAt)),
       ein:/^\d{2}-?\d{7}$/.test(ein)?ein:"",firstDay:date?`${date[1]}/${date[2]}/${date[0]}`:"",street:"11602 Burdine St # A",city:"Houston",state:"TX",zip:"77035",phone:"7139777721",fax:"7139777728",signingDate:`${month}/${day}/${year}`};
   }
   async loadForm(uid: string, kind: FormKind, actorId = uid) {
@@ -52,6 +57,11 @@ export class IntakeStore {
       const next = formRecord(uid, app.office, schema, old.exists ? old.data() as FormRecord : null, input, name,
         typeof account.data()?.jobOfferAcceptedAt === "string" && Number.isFinite(Date.parse(account.data()!.jobOfferAcceptedAt)), new Date().toISOString());
       tx.set(ref, next); tx.create(ref.collection("versions").doc(String(next.revision)), next);
+      if(next.state === "submitted" && app.state === "submitted") {
+        const eventKey=`form-${kind}-${next.revision}`;
+        tx.create(this.db.collection("workforceApplicationMail").doc(`${uid}_${app.revision}_${eventKey}`),
+          {...applicationMailJob(app,[],[next]),eventKey,createdAt:next.updatedAt});
+      }
       this.audit(tx, uid, next.state === "submitted" ? "official_form_submitted" : "official_form_saved", uid, {kind,revision:next.revision});
       return next;
     });
@@ -116,13 +126,18 @@ export class IntakeStore {
       const approvedException = review?.approved === true && review.office === application.office && typeof review.approvedBy === "string"
         && typeof review.approvedAt === "string" && Array.isArray(review.kinds) ? { approved: true, kinds: review.kinds as DocumentKind[] } : undefined;
       if (missingRequiredDocuments(documents.docs.map(d => d.data() as PrivateDocument), approvedException).length) throw new WorkforceError(409, "required_documents_missing");
-      const next = submitIntake(uid, doc.data() as Intake, revision, signature, new Date().toISOString());
+      const next = submitIntake(uid, application, revision, signature, new Date().toISOString());
+      const cch = await tx.get(this.db.collection("workforceFormDrafts").doc(`${uid}_cch`));
+      requireSignedCch(cch.data() as FormRecord | undefined, uid, application.office, next.signature!.name);
+      const mailForms = await Promise.all((["i9","w4","new_hire","cch"] as FormKind[]).map(kind=>tx.get(this.db.collection("workforceFormDrafts").doc(`${uid}_${kind}`))));
+      const mailJob = applicationMailJob(next, documents.docs.map(doc=>doc.data() as PrivateDocument),mailForms.filter(doc=>doc.exists).map(doc=>doc.data() as FormRecord));
+      tx.create(this.db.collection("workforceApplicationMail").doc(`${uid}_${next.revision}`),mailJob);
       tx.set(ref, next); tx.create(ref.collection("versions").doc(String(next.revision)), next);
       tx.set(this.db.collection("workforceCaregiverDirectory").doc(uid), directoryEntry(next));
       // Use the immutable application as the transfer source. Keep answers and files out of the queue.
       tx.create(this.db.collection("workforceOnboardingJobs").doc(uid), {
-        applicationUid: uid, applicationRevision: next.revision, office: next.office, submittedAt: next.updatedAt,
-        hha: { target: "applicant", state: "awaiting_connection" },
+        applicationUid: uid, applicationRevision: next.revision, office: next.office, submittedAt: next.submittedAt,
+        hha: initialHhaTransfer(uid, next.office),
         adp: { target: "approved_hire", state: "awaiting_connection" }
       });
       this.audit(tx, uid, "application_submitted", uid, { revision: next.revision });
@@ -157,12 +172,31 @@ export class IntakeStore {
     }
     return { items, limitPerOffice: 50 };
   }
+  async recheckHhaTransfer(actorId:string,uid:string){
+    return this.db.runTransaction(async tx=>{
+      const grant=await tx.get(this.db.collection("workforceStaff").doc(actorId)),application=await tx.get(this.app(uid)),ref=this.db.collection("workforceOnboardingJobs").doc(uid),snapshot=await tx.get(ref);
+      if(!grant.exists||!application.exists||!snapshot.exists)throw new WorkforceError(404,"application_not_found");
+      const actor:Actor={uid:actorId,grant:parseGrant(grant.data())},app=application.data()!,job=snapshot.data()!,hha=job.hha;
+      requirePermission(actor,"applications.review",app.office);requirePermission(actor,"documents.review",app.office);
+      if(app.state!=="submitted"||job.office!==app.office||job.applicationUid!==uid||job.applicationRevision!==app.revision||hha?.schema!==1||hha.target!=="applicant")throw new WorkforceError(409,"hha_transfer_review_required");
+      if(hha.state==="verified"||hha.state==="preview_only")return {state:hha.state};
+      if(Number(hha.leaseUntil||0)>Date.now())throw new WorkforceError(409,"hha_transfer_in_progress");
+      // A recheck preserves dispatch evidence. It cannot repeat uncertain writes.
+      const state=hha.attachAttempted?"attaching":hha.caregiverId?"created":hha.createAttempted?"creating":"queued";
+      tx.update(ref,{hha:{...hha,state,reason:"",leaseUntil:0}});this.audit(tx,actorId,"hha_applicant_recheck_requested",uid,{revision:app.revision});return {state};
+    });
+  }
   async listDocuments(uid: string, actorId = uid) {
     // uid always comes from verified identity or a separate HR scope check.
     if (actorId !== uid) await this.hrRead(actorId, uid, true);
     await this.db.collection("workforcePersonnelAudit").add({ actor: actorId, action: "document_folder_list", target: uid, at: new Date().toISOString() });
     const docs = await this.db.collection("workforcePrivateDocuments").where("uid", "==", uid).limit(100).get();
-    return { items: docs.docs.map(d => documentSummary(d.data() as PrivateDocument)), limit: 100 };
+    const submissionEmail = actorId===uid ? null : await this.db.runTransaction(async tx=>{
+      const app=await tx.get(this.app(uid));if(app.data()?.state!=="submitted")return null;
+      const job=await tx.get(this.db.collection("workforceApplicationMail").doc(uid+"_"+app.data()!.revision));
+      return job.exists?{status:job.data()!.status,reason:job.data()!.reason||null,summaryStatus:job.data()!.summaryStatus||null}:null;
+    });
+    return { items: docs.docs.map(d => documentSummary(d.data() as PrivateDocument)), limit: 100, submissionEmail };
   }
   async upload(uid: string, kindInput: unknown, encoded: unknown) {
     const kind = documentKind(kindInput), id = randomUUID();
@@ -176,8 +210,10 @@ export class IntakeStore {
     });
     const prepared = await prepareDocument(encoded), bytes = prepared.bytes, path = privateDocumentPath(uid, id, prepared.extension);
     const sha256 = createHash("sha256").update(bytes).digest("hex");
+    const encrypted = await (this.cipher ?? kmsDocumentCipher()).encrypt(bytes, path);
+    const storedSha256 = createHash("sha256").update(encrypted.bytes).digest("hex");
     const ref = this.db.collection("workforcePrivateDocuments").doc(id);
-    const record: PrivateDocument = { id, uid, kind, state: "upload_pending", createdAt: new Date().toISOString(), size: bytes.length, sha256, generation: null, extension: prepared.extension, contentType: prepared.contentType };
+    const record: PrivateDocument = { id, uid, kind, state: "upload_pending", createdAt: new Date().toISOString(), size: bytes.length, sha256, generation: null, extension: prepared.extension, contentType: prepared.contentType, encryption: encrypted.envelope, storedSha256 };
     await this.db.runTransaction(async tx => {
       // A folder belongs to an existing application, never an arbitrary target UID.
       const application = await tx.get(this.app(uid));
@@ -185,20 +221,43 @@ export class IntakeStore {
       const limit = this.db.collection("workforceDocumentLimits").doc(uid), count = await tx.get(limit);
       if (Number(count.data()?.count ?? 0) >= 100) throw new WorkforceError(429, "document_folder_limit_reached");
       tx.set(limit, { count: Number(count.data()?.count ?? 0) + 1 });
-      tx.create(ref, { ...record, retentionClass: "employment_identity", legalHold: false });
+      tx.create(ref, { ...record, retentionClass: kind === "direct_deposit" ? "employment_payroll" : kind === "insurance_card" ? "employment_insurance" : "employment_identity", legalHold: false });
       this.audit(tx, uid, "document_upload_started", id, { kind });
     });
     try {
-      const file = this.bucket.file(path);
-      await file.save(bytes, { resumable: false, validation: "crc32c", preconditionOpts: { ifGenerationMatch: 0 },
-        metadata: { contentType: prepared.contentType, cacheControl: "private, no-store", contentDisposition: "attachment", metadata: { sha256 } } });
+      const file = this.bucket.file(path + ".enc");
+      await file.save(encrypted.bytes, { resumable: false, validation: "crc32c", preconditionOpts: { ifGenerationMatch: 0 },
+        metadata: { contentType: "application/octet-stream", cacheControl: "private, no-store", contentDisposition: "attachment", metadata: { sha256: storedSha256 } } });
       const [metadata] = await file.getMetadata();
       const generation = String(metadata.generation ?? "");
       if (!/^\d+$/.test(generation)) throw Error();
       const completed: PrivateDocument = { ...record, generation, state: prepared.state };
       await this.db.runTransaction(async tx => {
-        const pending = await tx.get(ref);
+        const pending = await tx.get(ref), application = await tx.get(this.app(uid));
         if (pending.data()?.state !== "upload_pending") throw new WorkforceError(409, "document_not_ready");
+        if (kind === "identity" || kind === "social_security") {
+          const documents = await tx.get(this.db.collection("workforcePrivateDocuments").where("uid", "==", uid).limit(100));
+          const receipts = documents.docs.map(doc => doc.data() as PrivateDocument);
+          if (!missingRequiredDocuments([...receipts, completed]).length) {
+            // The mail worker can retry delivery by this stable upload ID.
+            // The recipient must sign in with the applicable staff grants.
+            tx.create(this.db.collection("workforceIdentityMail").doc(id), {
+              to: ["irab@pthhs.net"],
+              cc: ["jnwokorie@pthhs.net"],
+              message: {
+                subject: "Caregiver identification documents received",
+                text: "A caregiver uploaded their photo ID and Social Security card. Sign in to review the files and their status: "
+                  + "https://pthhs.net/primetime/workforce#application=" + encodeURIComponent(uid)
+              }
+            });
+          }
+        }
+        const app=application.data() as Intake;
+        if(app.state === "submitted") {
+          const eventKey=`document-${id}`;
+          tx.create(this.db.collection("workforceApplicationMail").doc(`${uid}_${app.revision}_${eventKey}`),
+            {...applicationMailJob(app,[completed],[]),eventKey,createdAt:completed.createdAt});
+        }
         tx.update(ref, { generation, state: prepared.state });
         this.audit(tx, uid, "document_uploaded", id, { kind, size: bytes.length });
       });
@@ -210,7 +269,9 @@ export class IntakeStore {
       throw new WorkforceError(503, "document_upload_unconfirmed");
     }
   }
-  async download(uid: string, id: string, actorId: string) {
+  async download(uid: string, id: string, actorId: string, release?: DocumentAccessCheck) {
+    if (!release) throw new WorkforceError(403, "document_verification_required");
+    await release();
     privateDocumentPath(uid, id);
     const record = await this.db.runTransaction(async tx => {
       if (actorId !== uid) {
@@ -228,8 +289,34 @@ export class IntakeStore {
       this.audit(tx, actorId, "document_download", id);
       return record;
     });
-    const [bytes] = await this.bucket.file(privateDocumentPath(uid, id, record.extension ?? "jpg"), { generation: record.generation! }).download({ validation: "crc32c" });
+    const path = privateDocumentPath(uid, id, record.extension ?? "jpg");
+    const [stored] = await this.bucket.file(path + (record.encryption ? ".enc" : ""), { generation: record.generation! }).download({ validation: "crc32c" });
+    await release();
+    if (record.encryption && createHash("sha256").update(stored).digest("hex") !== record.storedSha256) throw new WorkforceError(503, "document_integrity_error");
+    const bytes = record.encryption ? await (this.cipher ?? kmsDocumentCipher()).decrypt(stored, record.encryption, path) : stored;
     if (bytes.length !== record.size || createHash("sha256").update(bytes).digest("hex") !== record.sha256) throw new WorkforceError(503, "document_integrity_error");
+    await release();
     return bytes;
+  }
+
+  // Server-side only. The scanner reads the exact object generation and checks
+  // its digest before reporting a verdict. A new upload always gets a new ID.
+  async recordPdfScan(id: string, generation: string, sha256: string, verdict: "clean" | "rejected") {
+    if (!validId(id) || !/^\d+$/.test(generation) || !/^[0-9a-f]{64}$/.test(sha256)
+      || (verdict !== "clean" && verdict !== "rejected")) throw new WorkforceError(400, "invalid_pdf_scan");
+    const ref = this.db.collection("workforcePrivateDocuments").doc(id);
+    const state = verdict === "clean" ? "pending_review" : "security_rejected";
+    return this.db.runTransaction(async tx => {
+      const snapshot = await tx.get(ref);
+      const document = snapshot.data() as PrivateDocument | undefined;
+      if (!document || document.extension !== "pdf" || document.generation !== generation || document.sha256 !== sha256) {
+        throw new WorkforceError(409, "pdf_scan_version_mismatch");
+      }
+      if (document.state === state) return { state };
+      if (document.state !== "pending_security_review") throw new WorkforceError(409, "document_not_ready");
+      tx.update(ref, { state });
+      this.audit(tx, "pdf-scanner", "document_security_scan", id, { verdict });
+      return { state };
+    });
   }
 }

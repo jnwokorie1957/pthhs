@@ -1121,10 +1121,12 @@ export async function operationalRead(client: Pick<HhaSoapClient, "call">, input
         projected.Tasks = JSON.stringify(extractElementBodies(xml, "SubDutyList").map(task => Object.fromEntries(["DutyTaskId", "DutyCode", "DutyName", "DutyCategory", "UseForSpeakOutDuty", "Status"].map(name => [name, field(task, name)]))));
       }
       if (input.operation === "GetCaregiverDemographics") {
+        projected.EmployeeType = directScalar(xml, "EmployeeType");
         projected.ID = directScalar(xml, "ID");
         projected.OfficeIDs = caregiverOfficeIds(xml);
         projected.EmploymentDisciplines = caregiverEmploymentDisciplines(xml);
         if(projectionScope === "workforce_caregiver_profile"){
+          projected.EmployeeID = directScalar(xml, "EmployeeID");
           for(const path of ["MiddleName","BirthDate","EmployeeType","HireDate","FirstWorkDate","LastWorkDate","Team/Name","Branch/Name","Location/Name","Address/Street1","Address/Street2","Address/City","Address/State","Address/Zip5","Address/Zip4","Address/HomePhone","Address/Phone2","Address/Phone3","NotificationPreferences/Email","NotificationPreferences/MobileOrSMS","Language1","Language2","Language3","Language4","ProfessionalLicensenumber","NPINumber"]){projected[path]=directPathScalar(xml,path);}
         }
       }

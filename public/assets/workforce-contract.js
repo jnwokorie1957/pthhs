@@ -1,5 +1,7 @@
 /* Shared selection/filtering contract; no identity or sensitive data. */
 ((root) => {
+  const adultCutoff = (at=new Date()) => { const parts=new Intl.DateTimeFormat('en-CA',{timeZone:'America/Chicago',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(at);const v=t=>parts.find(p=>p.type===t).value;return String(Number(v('year'))-18)+'-'+v('month')+'-'+v('day'); };
+  const isAdult = (value,at=new Date()) => /^\d{4}-\d{2}-\d{2}$/.test(value||'') && Number.isFinite(Date.parse(value)) && new Date(value).toISOString().slice(0,10)===value && value<=adultCutoff(at);
   const validId = id => typeof id === 'string' && /^[a-zA-Z0-9_-]{1,128}$/.test(id);
   const selectedId = search => {
     const id = new URLSearchParams(search).get('opportunity');
@@ -35,5 +37,5 @@
       (bounded && [...counts.values()].some(count => count >= limit) ? ' An office reached the read limit; more records may exist.' : '') +
       ' Counts cover loaded records only; office totals are not available.';
   };
-  root.WorkforceContract = Object.freeze({ validId, selectedId, returnPath, matches, reviewNavigationAllowed, formatPhone, formatPhoneInput, listCoverage });
+  root.WorkforceContract = Object.freeze({ adultCutoff, isAdult, validId, selectedId, returnPath, matches, reviewNavigationAllowed, formatPhone, formatPhoneInput, listCoverage });
 })(globalThis);

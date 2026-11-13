@@ -25,7 +25,8 @@ node --test scripts/build-workforce-assets.test.mjs
 node --test scripts/verify_primetime_auth.test.mjs
 node --test scripts/verify_workforce.test.mjs
 node --test scripts/workforce-readings.test.mjs
-node --test scripts/workforce-account.test.mjs
+node --test scripts/workforce-account.test.mjs scripts/workforce-navigation.test.mjs
+node --test scripts/workforce-application-ux.test.mjs scripts/retire-careers.test.mjs
 node --test scripts/workforce-support.test.mjs
 node --test scripts/workforce-management.test.mjs
 node --test scripts/workforce-management-auth.test.mjs
@@ -56,9 +57,9 @@ node --test scripts/marketing-budget.test.mjs
 node --test analytics-functions/report.test.js analytics-functions/query.test.js analytics-functions/live-views.test.js
 python3 scripts/verify_hha_preservation_evidence.py
 
-# The internal operations app is deployed from public/ but owns a separate UI
-# contract. Marketing generators must never rewrite or prune it.
-find public/primetime -type f -print0 | sort -z | xargs -0 sha256sum > "$INTERNAL_SNAPSHOT"
+# Internal entries and the retired Careers redirect own separate UI contracts.
+# Marketing generators must never rewrite or prune them.
+find public/primetime public/caregiver.html public/home-care-careers.html -type f -print0 | sort -z | xargs -0 sha256sum > "$INTERNAL_SNAPSHOT"
 
 python3 scripts/batch_b2_route_migration.py --guide-only
 python3 scripts/build_articles.py
@@ -88,7 +89,7 @@ node scripts/verify_frontend_controls.mjs
 python3 scripts/repository_audit.py
 
 diff -u "$INTERNAL_SNAPSHOT" <(
-  find public/primetime -type f -print0 | sort -z | xargs -0 sha256sum
+  find public/primetime public/caregiver.html public/home-care-careers.html -type f -print0 | sort -z | xargs -0 sha256sum
 )
 
 # A deployment must not contain uncommitted changes generated at release time.

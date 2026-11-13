@@ -25,28 +25,63 @@ const source=new HhaProfileSource(workspace,actor,settings.officeId),run=db.coll
 await db.runTransaction(async tx=>{const prior=await tx.get(run);if(prior.data()?.leaseUntil>Date.now())throw Error('sync_already_running');tx.set(run,{office:settings.officeId,lease,leaseUntil:Date.now()+120000,startedAt:new Date().toISOString(),state:'running',actor},{merge:true});});
 async function checkpoint(patch){await db.runTransaction(async tx=>{const current=await tx.get(run);if(current.data()?.lease!==lease)throw Error("sync_lease_lost");tx.update(run,patch);});}
 const wait=ms=>new Promise(resolve=>setTimeout(resolve,Math.min(ms,60000)));
-const retryable=error=>{const e=error.cause||error;return /budget|backoff|429/.test(e.code||e.message||'');};
-async function read(fn){for(;;){await checkpoint({leaseUntil:Date.now()+120000});try{return await fn();}catch(error){if(!retryable(error))throw error;await checkpoint({leaseUntil:Date.now()+120000});console.log(JSON.stringify({state:'waiting_for_shared_source_budget'}));await wait(Math.max(1000,Math.min(60000,Number(error.cause?.retryAfterSeconds||error.retryAfterSeconds||15)*1000)));}}}
-let count=0,filesChecked=0,skipped=0,newRecords=0;
+async function read(fn) {
+ let failures = 0;
+ for (;;) {
+  await checkpoint({leaseUntil:Date.now()+120000});
+  try { return await fn(); }
+  catch (error) {
+   const sourceError = error.cause || error;
+   if (/budget|backoff|429/.test(sourceError.code || sourceError.message || '')) {
+    console.log(JSON.stringify({state:'waiting_for_shared_source_budget'}));
+    await wait(Math.max(1000, Math.min(60000, Number(sourceError.retryAfterSeconds || error.retryAfterSeconds || 15) * 1000)));
+   } else if (sourceError.code === 'hha_read_failed' && failures < 2) {
+    failures++;
+    console.log(JSON.stringify({state:'retrying_hha_read',retry:failures}));
+    await wait(failures === 1 ? 5000 : 15000);
+   } else {
+    throw error;
+   }
+  }
+ }
+}
+let count=0,filesChecked=0,skipped=0,newRecords=0,failedProfiles=0;
 try{
  const found=await read(()=>source.discover());console.log(JSON.stringify({state:'discovered',total:found.ids.length,office:settings.officeId}));
- const previous=await run.get(),completed=new Set(previous.data()?.completedIds||[]),existingRows=await db.collection('workforceHhaProfiles').where('office','==',settings.officeId).select('id').limit(5001).get(),existingIds=new Set(existingRows.docs.map(doc=>doc.id));newRecords=completed.size?Number(previous.data()?.newRecords||0):0;
+ const previous=await run.get(),completed=new Set(previous.data()?.completedIds||[]),existingRows=await db.collection('workforceHhaProfiles').where('office','==',settings.officeId).select('id').limit(5001).get(),existingIds=new Set(existingRows.docs.map(doc=>doc.id));
  // Resume only the interrupted cycle; a finished daily cycle starts fresh.
  if(previous.data()?.lastCompletedAt>=previous.data()?.startedAt)completed.clear();
+ if (completed.size) {
+  newRecords = Number(previous.data()?.newRecords || 0);
+  skipped = Number(previous.data()?.skipped || 0);
+  filesChecked = Number(previous.data()?.filesChecked || 0);
+ }
  for(const id of found.ids){
   if(completed.has(id)){count++;continue;}
   if((await run.get()).data()?.lease!==lease)throw Error('sync_lease_lost');
   await checkpoint({leaseUntil:Date.now()+120000});
-  let profile;try{profile=await read(()=>source.profile(id));}catch(error){if(error.code==='hha_office_mismatch'){skipped++;completed.add(id);continue;}throw error;}
-  let emailKey='';try{emailKey=createHash('sha256').update(hhaEmail(profile.email)).digest('hex');}catch{}
-  await db.collection('workforceHhaProfiles').doc(id).set({...profile,emailKey});if(!existingIds.has(id)){newRecords++;existingIds.add(id);}
-  if(withFiles){const files=await read(()=>source.documents(id));await db.collection('workforceHhaFileIndexes').doc(id).set({caregiverId:id,office:profile.office,...files});filesChecked++;}
+  let profile;
+  try { profile = await read(() => source.profile(id)); }
+  catch (error) {
+   if (error.code === 'hha_office_mismatch') skipped++;
+   else if (error.code === 'hha_read_failed') {
+    failedProfiles++;
+    if (failedProfiles >= 3) throw error;
+    continue;
+   } else throw error;
+  }
+  if (profile) {
+   let emailKey='';try{emailKey=createHash('sha256').update(hhaEmail(profile.email)).digest('hex');}catch{}
+   await db.collection('workforceHhaProfiles').doc(id).set({...profile,emailKey});if(!existingIds.has(id)){newRecords++;existingIds.add(id);}
+   if(withFiles){const files=await read(()=>source.documents(id));await db.collection('workforceHhaFileIndexes').doc(id).set({caregiverId:id,office:profile.office,...files});filesChecked++;}
+  }
   completed.add(id);count++;
   await checkpoint({processed:count,total:found.ids.length,filesChecked,skipped,newRecords,completedIds:[...completed],updatedAt:new Date().toISOString(),leaseUntil:Date.now()+120000});
   if(count%10===0)console.log(JSON.stringify({state:'importing',processed:count,total:found.ids.length,filesChecked,skipped,newRecords}));
  }
+ if (failedProfiles) throw Error('hha_profiles_incomplete');
  await db.runTransaction(async tx=>{const current=await tx.get(run);if(current.data()?.lease!==lease)throw Error('sync_lease_lost');const completedAt=new Date().toISOString();tx.set(db.collection('workforceHhaRosterReady').doc(settings.officeId),{office:settings.officeId,completedAt,total:found.ids.length,sourceRevision:found.revision});tx.update(run,{state:'complete',lastCompletedAt:completedAt,leaseUntil:0,completedIds:[],newRecords});});
  await db.collection('workforcePersonnelAudit').add({actor,action:'hha_roster_sync_completed',office:settings.officeId,at:new Date().toISOString(),processed:count,filesChecked,skipped,newRecords});
  console.log(JSON.stringify({state:'complete',processed:count,total:found.ids.length,filesChecked,skipped,newRecords}));
-}catch(error){const code=error.code||error.message||'source_unavailable';await db.runTransaction(async tx=>{const prior=await tx.get(run);if(prior.data()?.lease===lease)tx.update(run,{state:'failed',error:String(code).slice(0,100),leaseUntil:0,updatedAt:new Date().toISOString()});});console.error(JSON.stringify({state:'failed',processed:count,code}));process.exitCode=1;}
+}catch(error){const code=error.code||error.message||'source_unavailable';await db.runTransaction(async tx=>{const prior=await tx.get(run);if(prior.data()?.lease===lease)tx.update(run,{state:'failed',failedProfiles,error:String(code).slice(0,100),leaseUntil:0,updatedAt:new Date().toISOString()});});console.error(JSON.stringify({state:'failed',processed:count,newRecords,failedProfiles,code}));process.exitCode=1;}
 await db.terminate();

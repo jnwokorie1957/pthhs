@@ -42,10 +42,6 @@ const coreMeta = {
     title: 'Contact Primetime Home Health | Houston, TX',
     description: 'Contact Primetime Home Health Services in Houston to ask about personal assistance, service availability, Medicaid plans, eligibility and next steps.'
   },
-  '/home-care-careers': {
-    title: 'Home Care Careers in Houston, TX | Primetime',
-    description: 'Explore caregiver and home care career opportunities with Primetime Home Health Services in Houston and surrounding communities.'
-  },
   '/home-care-client-reviews': {
     title: 'Client Feedback | Primetime Home Health Houston',
     description: 'Learn how Primetime handles service feedback, testimonial permission, attribution and privacy for non-medical personal assistance services.'

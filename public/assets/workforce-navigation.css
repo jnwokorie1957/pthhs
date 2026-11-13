@@ -1,0 +1,41 @@
+/* Shared navigation hierarchy, preserving native hidden and permission gates. */
+[hidden]{display:none!important}
+.caregiver-portal #workforce-signout{display:none!important}
+.caregiver-portal #session-status:empty{display:none}
+.portal-header{border-bottom:1px solid #dce6e5;background:#fff}
+.caregiver-dashboard{display:flex;flex-wrap:wrap;gap:1rem;align-items:center;padding:1.1rem 0!important}
+.portal-main-nav{display:flex;flex-wrap:wrap;gap:.3rem;flex:1}
+.portal-main-nav a{padding:.65rem .8rem;border-radius:7px;text-decoration:none;color:#35545c;font-weight:600}
+.portal-main-nav a[aria-current=page]{background:#e5f1ed;color:#11584c}
+.portal-account-menu{position:relative;margin-left:auto}
+.portal-account-menu summary{cursor:pointer;padding:.65rem}
+.portal-account-menu[open]>div{position:absolute;right:0;top:100%;z-index:15;width:230px;padding:1rem;background:white;box-shadow:0 8px 32px #163f4026;border:1px solid #dce6e5;border-radius:10px;display:grid;gap:.8rem}
+.portal-page{padding:1.8rem 0}.portal-page h1{font-size:2rem;color:#173f41}.portal-lead{color:#52676b;max-width:65ch}
+.portal-task{padding:1.4rem;margin:1rem 0;border:1px solid #dce6e5;border-radius:12px;background:#fff}.portal-task h2{font-size:1.2rem;margin:0 0 .5rem}.portal-task p{max-width:70ch}.portal-task a{display:inline-block;margin-top:.5rem}
+.portal-task-stage{font-size:.8rem;text-transform:uppercase;letter-spacing:.06em;color:#52706a;margin:1.8rem 0 .5rem}
+.application-layout{display:grid;grid-template-columns:235px minmax(0,1fr);gap:2rem;align-items:start}.application-content{min-width:0}
+#application-steps{display:flex!important;flex-direction:column!important;overflow:visible!important;gap:.35rem;position:sticky;top:1rem;max-width:none!important}
+#application-steps button{white-space:normal;text-align:left;width:100%;font-size:.9rem;padding:.7rem .8rem;border:0;border-radius:7px;background:#f2f6f5;color:#2e4e54}
+#application-steps button[aria-current=step]{background:#155d52;color:white}
+.application-group{font-size:.76rem;text-transform:uppercase;letter-spacing:.06em;color:#536b70;margin:1rem 0 .25rem;font-weight:700}
+.application-step-state{display:block;font-size:.75rem;opacity:.85;margin-top:.15rem}.application-mobile-progress{display:none}
+#application-navigation{position:sticky;bottom:0;background:#fff;padding:1rem 0;border-top:1px solid #e0e8e6;z-index:4}
+.portal-form-focus #application-steps,.portal-form-focus #application-navigation,.portal-form-focus #application-completion-summary,.portal-form-focus #application-review-note,.portal-form-focus #packet-checklist{display:none!important}
+.portal-form-focus .application-layout{grid-template-columns:minmax(0,1fr)}
+.portal-form-focus #official-forms>.workforce-actions{display:none}
+.form-return-bar{display:flex;justify-content:space-between;align-items:center;gap:1rem;margin:1rem 0;padding:1rem;background:#edf5f1;border-radius:9px}
+.record-tabs{display:flex;flex-wrap:wrap;gap:.4rem;margin:1rem 0;border-bottom:1px solid #dce6e5;padding-bottom:.8rem}.record-tabs button{border:0;padding:.65rem .9rem;background:#edf3f1;color:#214e46;border-radius:7px}.record-tabs button[aria-selected=true]{background:#17665a;color:#fff}
+.record-back{margin:1rem 0}.manager-nav-group{margin:1.2rem .8rem .3rem;font-size:.72rem;text-transform:uppercase;letter-spacing:.08em;opacity:.7}.manager-record-focus #personnel-list,.manager-record-focus #personnel-filter,.manager-record-focus #personnel-refresh{display:none}
+.portal-entry-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1.5rem}.portal-entry-grid .card{height:100%}
+@media(max-width:760px){.application-layout{display:block}#application-steps{position:static;margin-bottom:1rem}#application-steps:not(.is-expanded)>*{display:none}.application-mobile-progress{display:flex;justify-content:space-between;align-items:center;width:100%;padding:.8rem;border:1px solid #d4e1dd;border-radius:8px;background:#edf4f1;color:#214e46}.portal-main-nav{flex-basis:100%;order:3;gap:.15rem}.portal-main-nav a{font-size:.85rem;padding:.6rem}.portal-entry-grid{grid-template-columns:1fr}.form-return-bar{align-items:flex-start;flex-direction:column}.record-tabs{gap:.25rem}.record-tabs button{font-size:.85rem}.portal-page h1{font-size:1.65rem}}
+
+#selected-opportunity:empty{display:none}
+
+@media(max-width:850px){.manager-sidebar #manager-nav{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));overflow:visible}.manager-sidebar #manager-nav button{width:100%;white-space:normal;text-align:left}.manager-sidebar .manager-nav-group{grid-column:1/-1;margin:.5rem .75rem .1rem}}
+@font-face{font-family:PortalSignature;src:url('/assets/forms/Allura-Regular.ttf') format('truetype');font-display:swap}
+.signature-cursive,#official-signature-name{font-family:PortalSignature,'Segoe Script',cursive!important;font-weight:400!important;color:#152739!important;opacity:1!important}.signature-cursive{font-size:2rem!important}#official-signature-name{font-size:clamp(11px,1.4vw,18px)!important}.guided-entry #official-signature-name{font-size:1.7rem!important}
+.signature-pad{display:block;width:min(100%,650px);height:auto;border:1px solid #9caeb0;border-radius:8px;background:#fff;touch-action:none}
+.signature-choice{padding:1rem;border:1px solid #d7e2df;border-radius:10px;margin:1rem 0}.signature-choice [aria-pressed=true]{outline:2px solid #17665a}.signature-cursive{margin:.5rem 0}
+.form-feedback{position:sticky;top:0;z-index:6;background:#f2f7f4;padding:.75rem;border-radius:6px}.form-feedback:empty{display:none}.form-feedback.error{color:#9d2424;background:#fff0ed}
+.completion-summary:not([hidden]){border-left:4px solid #b53b36;padding:.7rem 1rem;margin-bottom:1rem;background:#fff5f3}.completion-summary button{display:block;text-align:left;background:none;border:0;color:#8c2929;text-decoration:underline;padding:.3rem 0}
+.application-content,#portal-form-editor{scroll-margin-top:1rem}.application-message-error{color:#9d2424}

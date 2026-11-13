@@ -28,4 +28,21 @@
 @media(max-width:650px){.manager-app .caregiver-profile-fields{grid-template-columns:repeat(2,minmax(0,1fr))}.manager-app .caregiver-file-row{grid-template-columns:minmax(0,1fr)}.manager-app .caregiver-file-row button{grid-column:1;grid-row:auto;margin-top:12px}.manager-app .caregiver-profile-heading h2{font-size:22px}}
 .manager-app .caregiver-print-actions{display:flex;gap:10px;flex-wrap:wrap}.manager-app .caregiver-print-actions button:first-child{background:#17685f;color:#fff!important;border-color:#17685f}
 
-.manager-signin-methods{display:flex;gap:4px;padding:4px;background:#eff4f3;border-radius:10px;margin:20px 0}.manager-signin-methods button{flex:1;border:0;border-radius:7px;background:transparent;padding:10px;color:#526666;cursor:pointer}.manager-signin-methods button[aria-pressed=true]{background:white;color:#165e55;box-shadow:0 1px 5px #163e4018}.manager-auth-actions{display:flex;justify-content:space-between;gap:12px;margin:-8px 0 22px}.manager-login-card form .manager-auth-text{display:inline-flex;width:auto;padding:0;border:0;background:none;color:#17685f;font-size:12px;cursor:pointer;text-decoration:underline}
+.manager-auth-actions{display:flex;justify-content:space-between;gap:12px;margin:-8px 0 22px}.manager-login-card form .manager-auth-text{display:inline-flex;width:auto;padding:0;border:0;background:none;color:#17685f;font-size:12px;cursor:pointer;text-decoration:underline}
+
+#staff-training {
+  width: min(860px, calc(100% - 32px));
+  max-height: calc(100% - 32px);
+  margin: auto;
+  padding: clamp(18px, 4vw, 32px);
+  overflow: auto;
+  color: #16383c;
+}
+#staff-training::backdrop { background: rgb(8 25 31 / 82%); }
+#staff-training h2 { margin: 0 0 8px; }
+#staff-training-intro { margin-bottom: 16px; }
+#staff-training-video { display: block; width: 100%; aspect-ratio: 1440 / 928; background: #0b202d; border-radius: 8px; }
+.manager-training-actions { display: flex; flex-wrap: wrap; gap: 10px; }
+.manager-training-actions button:disabled { opacity: .55; cursor: not-allowed; }
+#staff-first-time, #staff-password-rules { color: #4b6269; font-size: 12px; margin: 0 0 14px; }
+#staff-back-to-signin { margin-top: 10px; }

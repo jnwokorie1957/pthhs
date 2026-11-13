@@ -14,7 +14,7 @@ NAV_ITEMS = (
     ("Insurance & Eligibility", "/home-care-insurance"),
     ("Resources", "/home-care-resources"),
     ("Articles", "/articles"),
-    ("Careers", "/home-care-careers"),
+    ("Caregiver Portal", "/caregiver"),
     ("Get Started", "/home-care-contact-us"),
 )
 

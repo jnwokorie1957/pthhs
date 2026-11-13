@@ -15,9 +15,14 @@ function fixture() {
         return { id, path: key, collection: (child: string) => collection(key + "/" + child),
           get: async () => ({ exists: documents.has(key), data: () => structuredClone(documents.get(key)) }) };
       },
-      where: (field: string, _: string, value: unknown) => ({ limit: () => ({ get: async () => {
+      where: (field: string, operator: string, value: unknown) => ({ limit: (limit: number) => ({ get: async () => {
         queries.push({ path, field, value });
-        return { docs: [...documents].filter(([key, data]) => key.startsWith(path + "/") && key.split("/").length === 2 && (data as Record<string, unknown>)[field] === value).map(([, data]) => ({ data: () => structuredClone(data) })) };
+        const docs = [...documents].filter(([key, data]) => {
+          if (!key.startsWith(path + "/") || key.split("/").length !== 2) return false;
+          const fieldValue = (data as Record<string, unknown>)[field];
+          return operator === "array-contains" ? Array.isArray(fieldValue) && fieldValue.includes(value) : fieldValue === value;
+        });
+        return { docs: docs.slice(0, limit).map(([key, data]) => ({ id: key.split("/")[1], data: () => structuredClone(data) })) };
       } }) })
     };
   }
@@ -38,6 +43,7 @@ function fixture() {
   documents.set("workforceStaff/editor", grant);
   const auth = {
     async getUser(uid: string) { return users.get(uid); },
+    async getUsers(ids: { uid: string }[]) { return { users: ids.flatMap(({ uid }) => users.get(uid) ?? []) }; },
     async getUserByEmail(email: string) {
       const user = [...users.values()].find(value => value.email === email);
       if (!user) throw Object.assign(Error(), {code: "auth/user-not-found"});
@@ -46,7 +52,37 @@ function fixture() {
   };
   return { store: new WorkforceStore(db as unknown as ConstructorParameters<typeof WorkforceStore>[0], () => auth as unknown as Auth), documents, users, queries, grant };
 }
+test("office managers can review team accounts only in their assigned offices", async () => {
+  const { store, documents, users, grant } = fixture();
+  documents.set("workforceStaff/manager", {...grant, role:"office_manager", permissions:["staff.review"]});
+  for (const [uid, offices] of [["shared", ["synthetic-office", "other-office"]], ["outside", ["other-office"]]] as const) {
+    documents.set("workforceStaff/" + uid, {...grant, offices});
+    users.set(uid, {uid, email:uid + "@example.invalid", emailVerified:true, disabled:false});
+  }
+  await assert.rejects(store.reviewTeam("editor"), /workforce_forbidden/);
+  await assert.rejects(store.inviteStaff("manager", "new@example.invalid", grant), /workforce_forbidden/);
+  const { items } = await store.reviewTeam("manager");
+  assert.deepEqual(items.map(({email, offices}) => ({email, offices})), [
+    {email:"shared@example.invalid", offices:["synthetic-office"]}
+  ]);
+});
 const data = { office: "synthetic-office", internalReference: "synthetic-reference", internalNotes: "Synthetic only", public: { location: "Synthetic area", recruitingZip: "", weeklyHours: 12, schedule: "flexible", assistance: ["respite"], type: "assignment" } };
+test("staff training persists per account and cannot be completed before the video duration", async () => {
+  const { store, documents, grant } = fixture();
+  const now = Date.parse("2026-11-10T17:00:00Z");
+  const actor = await store.actor("editor");
+  assert.equal(await store.trainingRequired(actor), true);
+  await assert.rejects(store.recordTraining("editor", "complete", now), /staff_training_incomplete/);
+  await store.recordTraining("editor", "start", now);
+  await store.recordTraining("editor", "start", now + 1000);
+  await assert.rejects(store.recordTraining("editor", "complete", now + 48_999), /staff_training_incomplete/);
+  assert.deepEqual(await store.recordTraining("editor", "complete", now + 49_000), {complete: true});
+  assert.equal(await store.trainingRequired(await store.actor("editor")), false);
+  assert.equal(await store.trainingRequired({uid: "other-editor", grant}), true);
+  assert.equal(await store.trainingRequired({uid: "owner", grant: {...grant, role: "owner"}}), false);
+  documents.set("workforceStaff/editor", {...grant, active: false});
+  await assert.rejects(store.recordTraining("editor", "complete", now + 50_000), /staff_access_revoked/);
+});
 test("opportunity updates commit an audit event and immutable version with the record", async () => {
   const f = fixture();
   const first = await f.store.mutate("editor", "synthetic-id", 0, data);
@@ -100,14 +136,20 @@ test("owner can invite a work email before the Firebase account exists, and only
   const hr = {...grant, role: "hr", permissions: ["applications.review"]};
   await assert.rejects(store.inviteStaff("editor", email, hr, now), /workforce_forbidden/);
   await assert.rejects(store.inviteStaff("owner", email, {...hr, offices:["other-office"]}, now), /workforce_forbidden/);
-  assert.deepEqual(await store.inviteStaff("owner", " TeamMate@example.invalid ", hr, now), {email});
+  const invite = await store.inviteStaff("owner", " TeamMate@example.invalid ", hr, now);
+  assert.equal(invite.email, email);
+  assert.match(invite.activationCode, /^[a-f0-9-]{36}$/);
   assert.equal(documents.has("workforceStaff/new-staff"), false);
   users.set("new-staff", {uid:"new-staff", email, emailVerified:false, disabled:false});
   await assert.rejects(store.acceptStaffInvite("new-staff", now), /verified_identity_required/);
   users.set("uninvited", {uid:"uninvited", email:"different@example.invalid", emailVerified:true, disabled:false});
   await assert.rejects(store.acceptStaffInvite("uninvited", now), /staff_invite_unavailable/);
   users.get("new-staff")!.emailVerified = true;
-  assert.deepEqual(await store.acceptStaffInvite("new-staff", now), {uid:"new-staff", grant:hr});
+  assert.equal(await store.canRequestPasswordSetup(email), false);
+  await assert.rejects(store.acceptStaffInvite("new-staff", now), /staff_invite_link_required/);
+  assert.deepEqual(await store.acceptStaffInvite("new-staff", now, invite.activationCode), {uid:"new-staff", grant:hr});
+  assert.deepEqual(documents.get("workforceStaffCredentials/new-staff"), {setupRequired:true});
+  assert.equal(await store.canRequestPasswordSetup(email), true);
   assert.deepEqual(await store.acceptStaffInvite("new-staff", now), {uid:"new-staff", grant:hr});
   await assert.rejects(store.inviteStaff("owner", email, grant, now), /staff_already_registered/);
   assert.equal([...documents.values()].filter(value => (value as {action?:string}).action === "staff_invite_accepted").length, 1);
@@ -120,7 +162,7 @@ test("pending invitations stop after 24 hours or loss of the issuer's office sco
   const email = "teammate@example.invalid";
   const now = Date.parse("2026-11-09T12:00:00Z");
   users.set("new-staff", {uid:"new-staff", email, emailVerified:true, disabled:false});
-  await store.inviteStaff("owner", email, grant, now);
+  const invite = await store.inviteStaff("owner", email, grant, now);
   const day = 86_400_000;
   await assert.rejects(store.acceptStaffInvite("new-staff", now + day), /staff_invite_unavailable/);
   const key = [...documents.keys()].find(path => path.startsWith("workforceStaffInvitations/"))!;
@@ -128,6 +170,6 @@ test("pending invitations stop after 24 hours or loss of the issuer's office sco
   documents.set(key, { ...oldInvite, expiresAt: now + 7 * day });
   await assert.rejects(store.acceptStaffInvite("new-staff", now + day), /staff_invite_unavailable/);
   documents.set("workforceStaff/owner", {...owner, offices:["other-office"]});
-  await assert.rejects(store.acceptStaffInvite("new-staff", now), /workforce_forbidden/);
+  await assert.rejects(store.acceptStaffInvite("new-staff", now, invite.activationCode), /workforce_forbidden/);
   assert.equal(documents.has("workforceStaff/new-staff"), false);
 });

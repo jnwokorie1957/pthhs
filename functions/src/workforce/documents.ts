@@ -1,12 +1,15 @@
 import sharp from "sharp";
 import { WorkforceError } from "./policy.js";
-export const DOCUMENT_KINDS = ["identity", "social_security", "employment_authorization", "i9", "w4"] as const;
+import type { DocumentEnvelope } from "./documentEncryption.js";
+export const DOCUMENT_KINDS = ["identity", "social_security", "insurance_card", "direct_deposit", "employment_authorization", "i9", "w4"] as const;
 export type DocumentKind = typeof DOCUMENT_KINDS[number];
 export const MAX_DOCUMENT_BYTES = 8 * 1024 * 1024;
 export interface PrivateDocument {
-  id: string; uid: string; kind: DocumentKind; state: "upload_pending" | "pending_review" | "pending_security_review" | "upload_failed";
+  id: string; uid: string; kind: DocumentKind; state: "upload_pending" | "pending_review" | "pending_security_review" | "security_rejected" | "upload_failed";
   createdAt: string; size: number; sha256: string | null; generation: string | null;
   extension?: "jpg" | "pdf"; contentType?: "image/jpeg" | "application/pdf";
+  encryption?: DocumentEnvelope;
+  storedSha256?: string;
 }
 export const requiredDocumentKinds: readonly DocumentKind[] = ["identity", "social_security"];
 export function missingRequiredDocuments(documents: Pick<PrivateDocument, "kind" | "state">[], exception?: { approved: boolean; kinds: DocumentKind[] }) {
@@ -14,9 +17,9 @@ export function missingRequiredDocuments(documents: Pick<PrivateDocument, "kind"
     && !(exception?.approved === true && exception.kinds.includes(kind)));
 }
 export function documentKind(value: unknown): DocumentKind {
-  // Historical categories remain readable; new uploads are identity documents.
+  // Historical categories remain readable. Insurance cards are optional.
   // Tax/employment forms use their dedicated structured completion endpoints.
-  if (!requiredDocumentKinds.includes(value as DocumentKind)) throw new WorkforceError(400, "invalid_document_kind");
+  if (value !== "insurance_card" && value !== "direct_deposit" && !requiredDocumentKinds.includes(value as DocumentKind)) throw new WorkforceError(400, "invalid_document_kind");
   return value as DocumentKind;
 }
 // Decode and re-encode raster images. Never store originals, embedded metadata,

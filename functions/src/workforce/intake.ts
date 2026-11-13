@@ -4,6 +4,7 @@ import { intakePacket, PACKET_SHA256, PACKET_VERSION } from "./packet.js";
 import { WorkforceError } from "./policy.js";
 import { readings } from "./readings.js";
 import { chicagoDate } from "./dates.js";
+import {isAdult} from './age.js';
 
 export interface Intake extends Application {
   office: string; sourceSha256: string; updatedAt: string;
@@ -29,12 +30,17 @@ export function intakeAnswers(input: unknown): Record<string, string> {
 export function saveIntake(uid: string, previous: Intake | null, revision: number, answers: unknown, office: string, activeEmployee: boolean, now: string): Intake {
   const clean = intakeAnswers(answers);
   if (!previous && !clean.applicationDate) clean.applicationDate = chicagoDate(now);
-  const next = saveApplication(uid, previous, revision, { ...intakePacket, approved: true }, clean, activeEmployee ? "active" : "applicant");
+  // Adding the owner-requested HHA fields can upgrade an unsigned draft.
+  // Submitted versions and their signatures remain immutable.
+  const prior = previous?.state === "draft" && previous.packetVersion === "pthhs-intake-2026-11-09-v7" && previous.sourceSha256 === PACKET_SHA256
+    ? {...previous, packetVersion: PACKET_VERSION} : previous;
+  const next = saveApplication(uid, prior, revision, { ...intakePacket, approved: true }, clean, activeEmployee ? "active" : "applicant");
   return { ...next, office: previous?.office ?? office, sourceSha256: PACKET_SHA256, updatedAt: now, signature: null };
 }
 export function submitIntake(uid: string, previous: Intake, revision: number, signature: unknown, now: string): Intake {
   if (revision !== previous.revision) throw new WorkforceError(409, "revision_conflict");
   if (previous.packetVersion !== PACKET_VERSION || previous.sourceSha256 !== PACKET_SHA256) throw new WorkforceError(409, "packet_migration_review_required");
+  if(!isAdult(previous.answers.birthDate||'',now))throw new WorkforceError(400,'minimum_age_required');
   const input = signature as { name?: unknown; electronicConsent?: unknown; documentRead?: unknown };
   if (!input || typeof input.name !== "string" || input.name.length > 250 || input.electronicConsent !== true || input.documentRead !== true
     || input.name.trim().replace(/\s+/g, " ").toLowerCase() !== [previous.answers.firstName, previous.answers.lastName].filter(Boolean).join(" ").trim().replace(/\s+/g, " ").toLowerCase()) throw new WorkforceError(400, "signature_required");

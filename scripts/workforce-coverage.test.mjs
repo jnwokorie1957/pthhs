@@ -15,7 +15,7 @@ function setup(request) {
  const submitted=make({managerGo:'applications',managerFilter:'submitted'}),review=make({managerGo:'opportunities',managerFilter:'review'});links.push(submitted,review);
  const emit=(type,detail)=>{for(const fn of listeners.get(type)||[])fn({type,detail});};
  const document={getElementById:el,createElement:()=>make(),createTextNode:text=>({textContent:text}),querySelectorAll:selector=>selector==='[data-manager-panel]'?panels:selector==='[data-manager-go]'?links:[],addEventListener(type,fn){if(!listeners.has(type))listeners.set(type,[]);listeners.get(type).push(fn);},dispatchEvent(event){emit(event.type,event.detail);}};
- const api=async path=>{requests.push(path);return request(path);};
+ const api=async (path,body)=>{requests.push(path);return request(path,body);};
  const window={workforceApi:api,open:()=>null};
  const context=vm.createContext({document,window,workforceApi:api,URLSearchParams,URL:{revokeObjectURL(){}},setTimeout,clearTimeout,Event:class {constructor(type){this.type=type;}},CustomEvent:class {constructor(type,options){this.type=type;this.detail=options.detail;}}});
  for(const file of ['contract','management','staff','personnel'])vm.runInContext(fs.readFileSync(new URL('../public/assets/workforce-'+file+'.js',import.meta.url),'utf8'),context);
@@ -79,8 +79,11 @@ test('sign-out followed by a new session fences old application and opportunity 
  assert.equal(s.el('manager-count-applications').textContent,'0');assert.equal(s.el('manager-count-published').textContent,'0');assert.equal(s.el('personnel-list').children[0].textContent,'No applications in the loaded records.');
 });
 
-test('account support alone does not read either management list',async()=>{
- const s=setup(()=>{throw Error('unexpected read');});s.emit('workforce-session',{grant:{role:'hr',offices:['office-a'],permissions:['accounts.support']}});await s.settle();assert.equal(s.requests.length,0);
+test('account support waits for a name without reading application or opportunity lists',async()=>{
+ const s=setup((path,body)=>{if(path==='/staff/accounts/lookup'){assert.equal(body.name,'Synthetic');return {items:[]};}throw Error('unexpected read');});s.emit('workforce-session',{grant:{role:'hr',offices:['office-a'],permissions:['accounts.support']}});await s.settle();assert.deepEqual(s.requests,[]);s.nav('accounts');await s.settle();assert.deepEqual(s.requests,[]);
+ const submit=()=>s.el('caregiver-account-search').onsubmit({preventDefault(){},currentTarget:{reportValidity:()=>true}});
+ s.el('caregiver-account-name').value='Synthetic';await submit();await s.settle();assert.deepEqual(s.requests,['/staff/accounts/lookup']);
+ s.el('caregiver-account-name').value='';await submit();await s.settle();assert.deepEqual(s.requests,['/staff/accounts/lookup']);
 });
 
 test('management markup provides named status filters and coverage adjacent to each list',()=>{
