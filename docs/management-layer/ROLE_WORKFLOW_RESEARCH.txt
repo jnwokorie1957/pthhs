@@ -3,8 +3,10 @@ Updated: November 13, 2026, America/Chicago
 Scope: PTHHS /primetime, repository jnwokorie1957/pthhs.
 
 CURRENT STATUS INDEX — NOVEMBER 13, 2026 UTC
-Runtime source basis: 8c18cc063c08e01af890a43702d4f64e462543c4, including
-PR35 field-visit editor protection and concurrent PR36 source-response guards.
+Runtime source basis: 1d06a7bbfbcc00eea517d350cbc8ad883b7c51ea, including
+concurrent PR37 staff follow-up, PR35 editor and PR36 source-response guards.
+At 21:41 UTC, 33 delivery artifacts and 13 served-controller regressions pass;
+authenticated role acceptance remains separate.
 PR27's reconciliation and earlier role evidence retain their dated scope.
 Core role references were checked November 11; mobile, clinical e-doc and
 family-dashboard references were rechecked November 12. Applicant/employee
@@ -54,7 +56,7 @@ their own timestamps/provenance. Historical snapshot proposals do not
 authorize new web-scraped imports.
 
 Next dependencies: restore existing Primetime administrator sign-in for
-protected examples (dated separate entry checked November 13 at 13:19 UTC);
+protected examples (dated separate entry checked November 13 at 21:35 UTC);
 accept a naturally incomplete filtered range and an existing scoped staff account; obtain retained
 event/history/units/readback details, CSM browser guidance and an owner-approved
 private XML lookup example. The owner's exact held-visit disposition remains
@@ -4448,3 +4450,52 @@ https://github.com/jnwokorie1957/pthhs/actions/runs/43466873581
 https://github.com/jnwokorie1957/pthhs/actions/runs/43467413367
 Detailed implementation, remaining acceptance and receipt names:
 docs/workforce/FIELD_VISIT_CONTEXT_2026-11-13.md
+
+
+NOVEMBER 13, 2026 21:41 UTC — CONCURRENT STAFF FOLLOW-UP RELEASE REVIEW
+
+This heartbeat preserved PR37, merged independently at 21:37 UTC as 1d06a7b.
+Its existing staff workflow adds explicit uploaded-page signature locations,
+linked corrected drafts preserving immutable originals, required substantive
+answers before signing and bounded reminder recovery. These are committed
+software behaviors; the implementation record preserves remote signer,
+admissions-packet, uncertain-mail and source-action dependencies. This review
+did not create or sign a real visit, upload a document, send a reminder,
+change source data, enable a read, or add a role/account permission.
+
+Release 43512396712 passed all four jobs: release_scope, build_and_deploy,
+deploy_backend and deploy_website_analytics. The owning PR's quality run
+43512251339 passed. At 21:41:32 UTC, this independent production check found
+all 33 checked entries/assets exactly matched 1d06a7b. The public caregiver
+configuration hash matches the pre-release baseline; private noindex,
+Primetime HTML no-cache and anonymous API 401/no-store/noindex remain intact.
+Field-visit controller hash: 28a75ea6db70. The existing 13 synthetic controller
+regressions pass against both current source and exact served bytes, including
+corrected-copy selection, upload mapping, incomplete-answer signing prevention
+and the earlier delayed record/office/upload protections. Only the extractor
+module import is stubbed. This is bounded regression and delivery evidence,
+not authenticated role, clinical form, reminder delivery or HHA acceptance.
+Deterministic workforce asset references are current; the checkout remains clean
+before this documentation update. No duplicate release was dispatched.
+
+Shared links now include the original field-visit record and content hash for
+a corrected copy; fresh signatures are required. An uploaded-page signature
+location identifies where an appearance is placed, not the identity or authority
+of a patient, caregiver, representative or clinician. Existing family schedule/
+released-document relationships, PT caseload/encounter/form/reviewer scope and
+multi-user office grants remain their own proposed acceptance. A local corrected
+copy supplies no source EVV correction, billing decision or missing clock/hour.
+
+Next acceptance: use the existing approved staff account and an already
+permitted workflow for delayed editor/office transitions and the corrected-copy
+link; preserve original versions and audit history. Do not create a real record,
+source action, signature, upload, email or grant merely to pass this check.
+Administrator source comparison still needs sign-in (separate Primetime entry
+observed at 21:35 UTC). The CSM/private-XML, held-visit and source-time evidence
+dependencies remain unchanged. The original October 24 screenshot stays resolved.
+
+https://github.com/jnwokorie1957/pthhs/pull/37
+https://github.com/jnwokorie1957/pthhs/actions/runs/43512251339
+https://github.com/jnwokorie1957/pthhs/actions/runs/43512396712
+Implementation scope: docs/workforce/MEDIUM_FOLLOW_UP_2026-11-13.md
+Nonsensitive local receipt: field-visit-release-pr37-review-2137-20261113.json.

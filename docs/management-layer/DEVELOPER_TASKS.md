@@ -1,5 +1,21 @@
 # PTHHS Management Layer — Developer Checklist
 
+- [x] November 13 21:41 UTC concurrent PR37 delivery and editor regression
+  review: all four release jobs passed; 33 production entries/assets match
+  1d06a7b, configuration is unchanged and private response policies pass.
+  All 13 synthetic field-visit tests pass against source and served controller,
+  preserving PR35 context fences alongside corrected drafts/signature locations.
+  This heartbeat preserved the owning implementation; no real signature, upload,
+  source action, reminder or grant was exercised for acceptance.
+  [Staff follow-up scope](../workforce/MEDIUM_FOLLOW_UP_2026-11-13.md) and
+  [current role evidence](ROLE_WORKFLOW_RESEARCH.txt).
+- [ ] Keep PR37 authenticated staff acceptance separate: exercise only an
+  already approved field-visit workflow, including the linked immutable original
+  and delayed editor/office transitions. Existing signer/representative,
+  family/PT assignment and source-action decisions stay open. Do not create a
+  real record, signature, upload, message or grant merely for this check.
+
+
 - [x] PR35 field-visit editor context protection deployed November 13 UTC.
   Editor/office changes invalidate earlier results and errors; upload-kind
   changes discard earlier extraction. Old cleanup cannot unlock a newer action.
