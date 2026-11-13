@@ -314,6 +314,7 @@ export const workforceApi = process.env.PRIMETIME_API_ONLY_DEPLOY === "true" ? u
     if (path === '/staff/applicants' || path.startsWith('/staff/authorizations')) {
       await recentWorkforceIdentity(req);
       const service = new StaffOperations();
+      if(req.method==='GET'&&path==='/staff/authorizations/summary'){res.json(await service.expirationSummary(uid,typeof req.query.office==='string'?req.query.office:undefined));return;}
       if(req.method === 'GET' && (path === '/staff/applicants' || path === '/staff/authorizations')) {
         if(typeof req.query.office !== 'string' || req.query.after !== undefined && typeof req.query.after !== 'string') throw new WorkforceError(400,'invalid_request');
         res.json(path === '/staff/applicants' ? await service.applicants(uid,req.query.office,req.query.after as string|undefined) : await service.list(uid,req.query.office,req.query.after as string|undefined)); return;

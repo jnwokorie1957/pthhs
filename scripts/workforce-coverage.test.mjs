@@ -18,7 +18,7 @@ function setup(request) {
  const api=async (path,body)=>{requests.push(path);return request(path,body);};
  const window={workforceApi:api,open:()=>null};
  const context=vm.createContext({document,window,workforceApi:api,URLSearchParams,URL:{revokeObjectURL(){}},setTimeout,clearTimeout,Event:class {constructor(type){this.type=type;}},CustomEvent:class {constructor(type,options){this.type=type;this.detail=options.detail;}}});
- for(const file of ['contract','management','staff','personnel'])vm.runInContext(fs.readFileSync(new URL('../public/assets/workforce-'+file+'.js',import.meta.url),'utf8'),context);
+ for(const file of ['contract','opportunity-fields','management','staff','personnel']){vm.runInContext(fs.readFileSync(new URL('../public/assets/workforce-'+file+'.js',import.meta.url),'utf8'),context);if(file==='opportunity-fields')context.WorkforceOpportunityFields=window.WorkforceOpportunityFields;}
  return {el,emit,requests,submitted,review,nav:view=>links[views.indexOf(view)].click(),refreshApplications:()=>window.WorkforcePersonnel.refresh(),refreshOpportunities:()=>window.WorkforceRecruiting.refresh(),settle:()=>new Promise(resolve=>setImmediate(resolve))};
 }
 const actor={grant:{role:'owner',offices:['office-a','office-b'],permissions:['opportunities.read','applications.review']}};

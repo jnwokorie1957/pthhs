@@ -5,7 +5,7 @@ import {PDFDocument} from 'pdf-lib';
 import sharp from 'sharp';
 import {FORM_BUCKET} from '../forms/library.js';
 import {parseGrant, requirePermission, validId, WorkforceError, type Actor, type Permission} from './policy.js';
-import {kmsDocumentCipher, type DocumentEnvelope} from './documentEncryption.js';
+import {kmsDocumentCipher, type DocumentCipher, type DocumentEnvelope} from './documentEncryption.js';
 import {chicagoDate} from './dates.js';
 import type {Intake} from './intake.js';
 
@@ -23,7 +23,7 @@ export function employmentStatus(profile: Record<string,any>|undefined, office:s
  return profile.status==='Active'&&['employee','caregiver'].includes(type)?'employee':'needs_verification';
 }
 const dateValid=(s:unknown):s is string=>typeof s==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(s)&&Number.isFinite(Date.parse(s))&&new Date(s).toISOString().slice(0,10)===s;
-export function expiryBucket(end:string,today=chicagoDate(new Date())) {
+export function expiryBucket(end:string,today=chicagoDate(new Date())):{days:number;bucket:'expired'|'within15'|'within30'|'current'} {
  if(!dateValid(end)||!dateValid(today))throw new WorkforceError(400,'invalid_authorization_date');
  const days=Math.round((Date.parse(end)-Date.parse(today))/86400000);
  return {days,bucket:days<0?'expired':days<=15?'within15':days<=30?'within30':'current'};
@@ -41,7 +41,7 @@ export const renewalStates=['not_started','requested','payer_followup','renewed'
 type AuthRecord=Record<string,any>;
 const summary=(id:string,data:AuthRecord)=>({id,...Object.fromEntries(['office','clientName','memberId','payer','authorizationNumber','services','units','notes','startDate','endDate','renewalStatus','followupDate','renewalNote','revision','updatedAt','createdAt','reviewedBy','replaces'].map(k=>[k,data[k]??null])),...expiryBucket(data.endDate)});
 export class StaffOperations {
- constructor(private db=getFirestore(),private bucket=getStorage().bucket(FORM_BUCKET)){}
+ constructor(private db=getFirestore(),private bucket=getStorage().bucket(FORM_BUCKET),private cipherFactory:()=>DocumentCipher=kmsDocumentCipher){}
  private async actor(tx:Transaction,uid:string,permission:Permission,office?:string){
   const snap=await tx.get(this.db.collection('workforceStaff').doc(uid));
   if(!snap.exists)throw new WorkforceError(403,'workforce_forbidden');
@@ -75,6 +75,21 @@ export class StaffOperations {
    this.audit(tx,uid,'authorizations_read',office,office);return {items,next:rows.docs.length>100?rows.docs[99]!.id:null,today:chicagoDate(new Date()),office};
   });
  }
+ async expirationSummary(uid:string,office?:string){
+  if(office!==undefined&&!validId(office))throw new WorkforceError(400,'invalid_request');
+  return this.db.runTransaction(async tx=>{
+   const actor=await this.actor(tx,uid,'authorizations.manage',office),offices=office?[office]:actor.grant.offices;
+   const counts={expired:0,within15:0,within30:0,current:0},today=chicagoDate(new Date());let total=0;
+   for(const selected of offices){
+    let cursor:string|undefined;
+    do{let query=this.db.collection('workforceAuthorizations').where('office','==',selected).orderBy('__name__').select('state','endDate','renewalStatus').limit(1000);if(cursor)query=query.startAfter(cursor);
+     const page=await tx.get(query);for(const doc of page.docs){const row=doc.data();if(row.state!=='ready')continue;total++;if(!['renewed','closed'].includes(row.renewalStatus))counts[expiryBucket(row.endDate,today).bucket]++;}
+     cursor=page.docs.length===1000?page.docs.at(-1)!.id:undefined;
+    }while(cursor);
+   }
+   this.audit(tx,uid,'authorization_expiration_summary_read',office||'assigned-offices',office||'assigned-offices');return {counts,total,today,offices};
+  });
+ }
  async upload(uid:string,input:any){
   const details=authorizationDetails(input?.details),office=details.office!;
   if(!Array.isArray(input.pages)||!input.pages.length||input.pages.length>12)throw new WorkforceError(400,'authorization_page_limit');
@@ -83,13 +98,7 @@ export class StaffOperations {
   if(!source.length||source.length>8*1024*1024||source.toString('base64')!==input.source)throw new WorkforceError(400,'invalid_document_size');
   const id=createHash('sha256').update(office+'\n').update(source).digest('hex');
   const replaces=input.replaces||null;if(replaces!==null&&!validId(replaces))throw new WorkforceError(400,'invalid_request');
-  await this.db.runTransaction(async tx=>{
-   await this.actor(tx,uid,'authorizations.manage',office);
-   if((await tx.get(this.db.collection('workforceAuthorizations').doc(id))).exists)throw new WorkforceError(409,'authorization_already_uploaded');
-   const limit=this.db.collection('workforceAuthorizationUploadLimits').doc(uid),previous=(await tx.get(limit)).data(),now=Date.now();
-   const count=previous&&previous.since>now-3600000?Number(previous.count||0):0;if(count>=30)throw new WorkforceError(429,'upload_limit_reached');
-   tx.set(limit,{since:count?previous!.since:now,count:count+1});
-  });
+  await this.db.runTransaction(tx=>this.actor(tx,uid,'authorizations.manage',office));
   // Store the original encrypted; only an image-only copy is served to reviewers.
   const pdf=await PDFDocument.create();
   for(const encoded of input.pages){
@@ -97,9 +106,19 @@ export class StaffOperations {
    const jpg=await sharp(bytes,{limitInputPixels:12_000_000}).rotate().flatten({background:'#fff'}).jpeg({quality:85}).toBuffer();
    const image=await pdf.embedJpg(jpg),page=pdf.addPage([image.width,image.height]);page.drawImage(image,{x:0,y:0,width:image.width,height:image.height});
   }
-  const preview=Buffer.from(await pdf.save()),cipher=kmsDocumentCipher(),base='workforce-authorizations/'+office+'/'+id;
+  const preview=Buffer.from(await pdf.save()),cipher=this.cipherFactory(),attempt=randomUUID(),base='workforce-authorizations/'+office+'/'+id+'/'+attempt;
   const ref=this.db.collection('workforceAuthorizations').doc(id),hash=(b:Buffer)=>createHash('sha256').update(b).digest('hex');
-  await ref.create({...details,state:'uploading',createdAt:new Date().toISOString(),createdBy:uid});
+  await this.db.runTransaction(async tx=>{
+   await this.actor(tx,uid,'authorizations.manage',office);
+   const prior=(await tx.get(ref)).data(),now=Date.now();
+   if(prior?.state==='ready')throw new WorkforceError(409,'authorization_already_uploaded');
+   if(prior?.state==='uploading'&&Number(prior.leaseUntil||Date.parse(prior.createdAt)+600000)>now)throw new WorkforceError(409,'authorization_upload_in_progress');
+   if(prior&&!['uploading','upload_failed'].includes(prior.state))throw new WorkforceError(409,'authorization_already_uploaded');
+   const limit=this.db.collection('workforceAuthorizationUploadLimits').doc(uid),previous=(await tx.get(limit)).data();
+   const count=previous&&previous.since>now-3600000?Number(previous.count||0):0;if(count>=30)throw new WorkforceError(429,'upload_limit_reached');
+   tx.set(limit,{since:count?previous!.since:now,count:count+1});
+   tx.set(ref,{...details,state:'uploading',attempt,leaseUntil:now+600000,createdAt:prior?.createdAt||new Date(now).toISOString(),createdBy:prior?.createdBy||uid});
+  });
   try{
    const objects:Record<string,any>={};
    for(const [kind,bytes]of [['source',source],['preview',preview]] as const){
@@ -110,12 +129,13 @@ export class StaffOperations {
    }
    await this.db.runTransaction(async tx=>{
     await this.actor(tx,uid,'authorizations.manage',office);
+    const upload=(await tx.get(ref)).data();if(upload?.attempt!==attempt||upload.state!=='uploading')throw new WorkforceError(409,'authorization_upload_superseded');
     let prior:AuthRecord|undefined;if(replaces){prior=(await tx.get(this.db.collection('workforceAuthorizations').doc(replaces))).data();if(!prior||prior.office!==office||prior.memberId!==details.memberId||prior.payer!==details.payer)throw new WorkforceError(409,'renewal_client_or_payer_mismatch');}
-    const now=new Date().toISOString();tx.update(ref,{...objects,state:'ready',revision:1,reviewedBy:uid,updatedAt:now,renewalStatus:'not_started',followupDate:'',renewalNote:'',replaces});
+    const now=new Date().toISOString();tx.update(ref,{...objects,state:'ready',leaseUntil:0,revision:1,reviewedBy:uid,updatedAt:now,renewalStatus:'not_started',followupDate:'',renewalNote:'',replaces});
     if(replaces)tx.update(this.db.collection('workforceAuthorizations').doc(replaces),{renewalStatus:'renewed',renewedBy:id,revision:Number(prior!.revision)+1,updatedAt:now});
     this.audit(tx,uid,'authorization_uploaded',id,office);
    });return {id};
-  }catch(error){await ref.update({state:'upload_failed'});throw error;}
+  }catch(error){await this.db.runTransaction(async tx=>{const current=(await tx.get(ref)).data();if(current?.attempt===attempt&&current.state==='uploading')tx.update(ref,{state:'upload_failed',leaseUntil:0});});throw error;}
  }
  async renewal(uid:string,id:string,input:any){
   if(!validId(id)||!renewalStates.includes(input?.status)||!Number.isSafeInteger(input?.revision)||typeof input?.note!=='string'||input.note.length>2000||(input.followupDate!==''&&!dateValid(input.followupDate)))throw new WorkforceError(400,'invalid_renewal');
@@ -131,6 +151,6 @@ export class StaffOperations {
   const access=()=>this.db.runTransaction(async tx=>{const row=await tx.get(this.db.collection('workforceAuthorizations').doc(id)),data=row.data();if(!data||data.state!=='ready')throw new WorkforceError(404,'authorization_not_found');await this.actor(tx,uid,'authorizations.manage',data.office);this.audit(tx,uid,'authorization_document_read',id,data.office);return data.preview;});
   const saved=await access(),[stored]=await this.bucket.file(saved.path,{generation:saved.generation}).download();
   if(createHash('sha256').update(stored).digest('hex')!==saved.storedSha256)throw new WorkforceError(503,'document_integrity_error');
-  const bytes=await kmsDocumentCipher().decrypt(stored,saved.envelope as DocumentEnvelope,saved.path);if(createHash('sha256').update(bytes).digest('hex')!==saved.sha256)throw new WorkforceError(503,'document_integrity_error');await access();return bytes;
+  const bytes=await this.cipherFactory().decrypt(stored,saved.envelope as DocumentEnvelope,saved.path);if(createHash('sha256').update(bytes).digest('hex')!==saved.sha256)throw new WorkforceError(503,'document_integrity_error');await access();return bytes;
  }
 }

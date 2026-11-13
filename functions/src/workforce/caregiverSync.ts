@@ -30,11 +30,12 @@ export class CaregiverSync {
     cycleAt=started.toISOString();
     const changes=await this.workspace.query({operation:'GetCaregiverChangesV2',modifiedAfter:caregiverChangesSince(prior.lastCompletedAt,started)},'system:caregiver-sync','workforce_roster_import');
     if(changes.operation!=='GetCaregiverChangesV2'||changes.source!=='hhaexchange'||changes.truncated)throw Error('caregiver_changes_incomplete');
-    pending=changes.records.filter(row=>row.OfficeID===office).map(row=>String(row.CaregiverID));
+    const cached=await this.db.collection('workforceHhaProfiles').where('office','==',office).select('id').get(),existing=new Set(cached.docs.map(doc=>doc.id));
+    pending=changes.records.filter(row=>row.OfficeID===office||existing.has(String(row.CaregiverID))).map(row=>String(row.CaregiverID));
     if(pending.some(id=>!/^\d{1,10}$/.test(id)))throw Error('caregiver_changes_invalid');
     if(prior.discoveryDate!==chicagoDate(started)){
-     const discovered=await source.discover(),cached=await this.db.collection('workforceHhaProfiles').where('office','==',office).select('id').get(),existing=new Set(cached.docs.map(doc=>doc.id));
-     pending.push(...discovered.ids.filter(id=>!existing.has(id)));
+     const discovered=await source.discover(),present=new Set(discovered.ids);
+     pending.push(...discovered.ids.filter(id=>!existing.has(id)),...[...existing].filter(id=>!present.has(id)));
      await ref.update({discoveryDate:chicagoDate(started),discoveredCount:discovered.ids.length});
     }
     pending=[...new Set(pending)];await ref.update({pending,cycleAt});
@@ -49,7 +50,7 @@ export class CaregiverSync {
      await ref.update({pending,processed,lastProfileAt:this.now().toISOString()});
     }catch(error){
      const code=(error as {code?:string}).code;
-     if(code==='hha_office_mismatch'){const cached=this.db.collection('workforceHhaProfiles').doc(id);if((await cached.get()).exists)await cached.update({status:'Office assignment changed',email:'',emailKey:'',fields:{}});pending.shift();await ref.update({pending});continue;}
+     if(code==='hha_office_mismatch'){const cached=this.db.collection('workforceHhaProfiles').doc(id);await this.db.runTransaction(async tx=>{const row=(await tx.get(cached)).data();if(row?.office===office)tx.update(cached,{status:'Office assignment changed',email:'',emailKey:'',fields:{}});});pending.shift();await ref.update({pending});continue;}
      if(['background_read_budget_reserved','read_budget_exhausted_retry_next_minute','vendor_backoff_active'].includes(code||'')){
       const delay=Math.max(1,Math.min(60,Number((error as {retryAfterSeconds?:number}).retryAfterSeconds)||30));await new Promise(resolve=>setTimeout(resolve,delay*1000));continue;
      }

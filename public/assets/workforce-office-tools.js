@@ -1,6 +1,6 @@
 (() => {
  const el=id=>document.getElementById(id);if(!el('office-authorizations'))return;
- let actor=null,session=0,currentView='',authRows=[],appRows=[],authNext=null,appNext=null,authOffice='',appOffice='',reading=null,upload=null,replaces=null,loadingAuth=false,loadingApps=false;
+ let actor=null,session=0,currentView='',authRows=[],appRows=[],authNext=null,appNext=null,authOffice='',appOffice='',reading=null,upload=null,replaces=null,loadingAuth=false,loadingApps=false,authSummary=null,homeSummary=null;
  const urls=new Set(),api=(path,body,blob)=>window.workforceApi(path,body,blob);
  const node=(tag,text,cls)=>{const n=document.createElement(tag);if(text!==undefined)n.textContent=text;if(cls)n.className=cls;return n;};
  const button=(text,run,cls='manager-secondary')=>{const b=node('button',text,cls);b.type='button';b.onclick=run;return b;};
@@ -14,10 +14,10 @@
  const active=row=>!['renewed','closed'].includes(row.renewalStatus);
  function renderAuthorizations(){
   const filter=el('authorization-filter').value,q=el('authorization-search').value.trim().toLowerCase();
-  for(const key of ['expired','within15','within30','current'])el('authorization-count-'+key).textContent=authRows.filter(r=>active(r)&&r.bucket===key).length;
-  const due=authRows.filter(r=>active(r)&&['expired','within15'].includes(r.bucket)).length;
-  el('office-home-alert').hidden=!due;el('office-home-alert-text').textContent=due+' authorization'+(due===1?' needs':'s need')+' follow-up: expired or expiring within 15 days.';
-  el('authorization-alert').hidden=!due;el('authorization-alert').textContent=due+' loaded authorization'+(due===1?' needs':'s need')+' renewal follow-up now.';
+  for(const key of ['expired','within15','within30','current'])el('authorization-count-'+key).textContent=authSummary?authSummary.counts[key]:'—';
+  const due=authSummary?authSummary.counts.expired+authSummary.counts.within15:0,homeDue=homeSummary?homeSummary.counts.expired+homeSummary.counts.within15:0;
+  el('office-home-alert').hidden=!homeDue;el('office-home-alert-text').textContent=homeDue+' authorization'+(homeDue===1?' needs':'s need')+' follow-up: expired or expiring within 15 days.';
+  el('authorization-alert').hidden=!due;el('authorization-alert').textContent=due+' authorization'+(due===1?' needs':'s need')+' renewal follow-up now.';
   const rows=authRows.filter(r=>(filter==='all'||filter==='renewed'?filter==='all'||r.renewalStatus==='renewed':active(r)&&r.bucket===filter)&&(!q||[r.clientName,r.memberId,r.payer,r.authorizationNumber].some(v=>String(v).toLowerCase().includes(q)))).sort((a,b)=>a.endDate.localeCompare(b.endDate));
   const target=el('authorization-list');target.replaceChildren();
   if(!rows.length){const empty=node('div',undefined,'office-empty');empty.append(node('h3',authRows.length?'No matching authorizations':'No authorizations uploaded yet'),node('p',authRows.length?'Change the filter or search.':'Upload a current authorization, review its details, and save it to start tracking renewals.'));target.append(empty);}
@@ -34,14 +34,21 @@
    const stateLabel=node('label','Renewal status'),select=node('select');for(const state of ['not_started','requested','payer_followup','closed']){const option=node('option',({not_started:'Not started',requested:'Renewal requested',payer_followup:'Following up with payer',closed:'Closed — no renewal needed'})[state]);option.value=state;select.append(option);}select.value=row.renewalStatus;stateLabel.append(select);
    const dateLabel=node('label','Next follow-up date'),dateInput=node('input');dateInput.type='date';dateInput.value=row.followupDate||'';dateLabel.append(dateInput);
    const noteLabel=node('label','Follow-up note'),note=node('textarea');note.maxLength=2000;note.value=row.renewalNote||'';noteLabel.append(note);
-   const save=node('button','Save follow-up','manager-primary');save.type='submit';form.append(stateLabel,dateLabel,noteLabel,save);form.onsubmit=async event=>{event.preventDefault();const token=session;save.disabled=true;try{const updated=await api('/staff/authorizations/'+row.id+'/renewal',{status:select.value,note:note.value,followupDate:dateInput.value,revision:row.revision});if(token!==session)return;authRows=authRows.map(r=>r.id===row.id?updated:r);renderAuthorizations();message('authorization-status','Follow-up saved.');}catch(e){if(token===session)message('authorization-status',e);}finally{if(token===session)save.disabled=false;}};
+   const save=node('button','Save follow-up','manager-primary');save.type='submit';form.append(stateLabel,dateLabel,noteLabel,save);form.onsubmit=async event=>{event.preventDefault();const token=session;save.disabled=true;try{const updated=await api('/staff/authorizations/'+row.id+'/renewal',{status:select.value,note:note.value,followupDate:dateInput.value,revision:row.revision});if(token!==session)return;authRows=authRows.map(r=>r.id===row.id?updated:r);await loadAuthorizations();message('authorization-status','Follow-up saved.');}catch(e){if(token===session)message('authorization-status',e);}finally{if(token===session)save.disabled=false;}};
    card.append(actions,form);target.append(card);
   }
-  el('authorization-more').hidden=!authNext;el('authorization-coverage').textContent='Showing '+authRows.length+' uploaded records for this office.'+(authNext?' Load more to include the remaining records in the counts and alerts.':' All uploaded records loaded.')+' Email reminders are not enabled.';
+  el('authorization-more').hidden=!authNext;el('authorization-coverage').textContent='Showing '+authRows.length+' uploaded records for this office.'+(authNext?' Load more to view remaining records.':' All uploaded records loaded.')+(authSummary?' Expiration counts cover all '+authSummary.total+' uploaded records in this office.':' Complete expiration counts are unavailable.')+' Email reminders are not enabled.';
  }
  async function loadAuthorizations(more=false){
   if(!can('authorizations.manage')||loadingAuth)return;loadingAuth=true;const token=session,office=el('authorization-office').value;message('authorization-status','Loading authorizations…');
-  try{const data=await api('/staff/authorizations?office='+encodeURIComponent(office)+(more&&authNext?'&after='+encodeURIComponent(authNext):''));if(token!==session||office!==el('authorization-office').value)return;authRows=more?[...authRows,...data.items]:data.items;authNext=data.next;authOffice=office;renderAuthorizations();message('authorization-status','');}catch(e){if(token===session)message('authorization-status',e);}finally{if(token===session)loadingAuth=false;}
+  try{
+   const wanted=more?0:Math.max(100,authRows.length),selected=encodeURIComponent(office);
+   let data=await api('/staff/authorizations?office='+selected+(more&&authNext?'&after='+encodeURIComponent(authNext):'')),items=data.items;
+   while(!more&&data.next&&items.length<wanted){data=await api('/staff/authorizations?office='+selected+'&after='+encodeURIComponent(data.next));items.push(...data.items);}
+   const [counts,allCounts]=await Promise.all([api('/staff/authorizations/summary?office='+selected),api('/staff/authorizations/summary')]);
+   if(token!==session||office!==el('authorization-office').value)return;
+   authRows=more?[...authRows,...items]:items;authNext=data.next;authOffice=office;authSummary=counts;homeSummary=allCounts;renderAuthorizations();message('authorization-status','');
+  }catch(e){if(token===session)message('authorization-status','Could not refresh complete expiration tracking. '+e.message);}finally{if(token===session)loadingAuth=false;}
  }
  const appLabels={applicant:'Applicant',employee:'Current HHA employee',needs_verification:'HHA status needs verification'};
  const fieldLabels={email:'Email',phone:'Phone',alternatePhone:'Alternate phone',city:'City',state:'State',zip:'ZIP code',availableDate:'Available to start',workTime:'Work preference',weeklyHours:'Preferred weekly hours',jobDescriptionQuestions:'Questions about the role',college_major:'Area of study',college_degree:'Degree',technical_school:'Technical training',job1_from:'Previous employment from',job1_to:'Previous employment to',job1_employer:'Previous employer',job1_position:'Position',job1_department:'Department',job1_duties:'Experience and duties'};
@@ -70,8 +77,8 @@
  el('authorization-filter').onchange=renderAuthorizations;el('authorization-search').oninput=renderAuthorizations;el('authorization-refresh').onclick=()=>loadAuthorizations();el('authorization-more').onclick=()=>loadAuthorizations(true);
  el('applicant-filter').onchange=renderApplicants;el('applicant-search').oninput=renderApplicants;el('applicant-refresh').onclick=()=>loadApplicants();el('applicant-more').onclick=()=>loadApplicants(true);
  for(const b of document.querySelectorAll('[data-authorization-filter]'))b.onclick=()=>{el('authorization-filter').value=b.dataset.authorizationFilter;renderAuthorizations();};
- el('authorization-office').onchange=()=>{clearUpload();authRows=[];authNext=null;authOffice='';renderAuthorizations();loadAuthorizations();};el('applicant-office').onchange=()=>{appRows=[];appNext=null;appOffice='';renderApplicants();loadApplicants();};
+ el('authorization-office').onchange=()=>{clearUpload();authRows=[];authNext=null;authOffice='';authSummary=null;renderAuthorizations();loadAuthorizations();};el('applicant-office').onchange=()=>{appRows=[];appNext=null;appOffice='';renderApplicants();loadApplicants();};
  document.addEventListener('workforce-session',event=>{session++;actor=event.detail;officeOptions('authorization-office');officeOptions('applicant-office');window.WorkforceOfficeTools.show(currentView);if(currentView!=='authorizations'&&can('authorizations.manage'))loadAuthorizations();});
- document.addEventListener('workforce-session-cleared',()=>{session++;actor=null;loadingApps=loadingAuth=false;authRows=[];appRows=[];authNext=appNext=null;authOffice=appOffice='';clearUpload();el('office-home-alert').hidden=true;for(const id of ['authorization-list','applicant-list'])el(id).replaceChildren();for(const url of urls)URL.revokeObjectURL(url);urls.clear();});
+ document.addEventListener('workforce-session-cleared',()=>{session++;actor=null;authSummary=homeSummary=null;loadingApps=loadingAuth=false;authRows=[];appRows=[];authNext=appNext=null;authOffice=appOffice='';clearUpload();el('office-home-alert').hidden=true;for(const id of ['authorization-list','applicant-list'])el(id).replaceChildren();for(const url of urls)URL.revokeObjectURL(url);urls.clear();});
  setInterval(()=>{if(document.visibilityState==='visible'&&can('authorizations.manage')&&!upload)loadAuthorizations();},300000);
 })();
