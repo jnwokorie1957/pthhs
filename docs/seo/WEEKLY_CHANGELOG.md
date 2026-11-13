@@ -1,5 +1,15 @@
 # SEO weekly changelog
 
+## Week of November 9, 2026
+
+November 13 UTC: PR27 reconciles the approved caregiver source with main and
+fixes generator/pruner regressions. Both quality and required Hosting-only jobs
+passed; production verified 35 canonical pages, 30 assets and three retired
+Careers redirects at 02:33 UTC, with private controls preserved. A four-artifact
+public discovery check at 03:00 UTC matches Git. Search Console and business
+evidence retain their dated limits; no search outcome or new claim is inferred.
+This SEO follow-up updates evidence only. See [delivery and limits](2026-11-13-source-reconciliation-delivery.md).
+
 ## Week of November 2, 2026
 
 November6 16:19UTC trigger: all141public routes and20exact artifacts pass;

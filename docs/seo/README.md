@@ -3,6 +3,15 @@
 These files remain useful for planning, but they do not override current public
 facts, payer evidence, or claim-release controls.
 
+- [November 13 source reconciliation and SEO delivery](2026-11-13-source-reconciliation-delivery.md)
+  — PR27 is deployed; the current 35-URL inventory and retired Careers redirects
+  are intentional. Both required Hosting jobs and production acceptance passed.
+  November 12 Search Console observations remain dated; discovery is not indexing.
+
+- [November 12 Careers retirement and search evidence](2026-11-12-careers-retirement-and-source-reconciliation.md)
+  — owner-approved public inventory and explicit settled comparison. Its former
+  source-reconciliation dependency is completed by the November 13 release above.
+
 - [November 11 Primetime shell revalidation](2026-11-11-primetime-shell-revalidation.md)
   — deployed no-cache for the canonical private HTML entry. Served bytes,
   redirects, Chrome navigation, noindex and protected API policies pass.
