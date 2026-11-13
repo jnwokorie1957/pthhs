@@ -119,3 +119,14 @@ test('existing access remains hidden until its separate release configuration is
 test('existing HHA caregivers do not enter the new-applicant application or identity-upload pathway',async()=>{const s=setup({api:async()=>({applicationsEnabled:true,existingCaregiver:true})});await s.start();await s.session(verified);assert.equal(s.node('dashboard-application').hidden,true);await s.node('dashboard-application').onclick();assert.equal(s.node('caregiver-summary').hidden,true);});
 
 test('initial HHA preparation explains the wait instead of claiming that an access email was sent',async()=>{const requests=[],s=setup({existingAccessEnabled:true,existingCaregiverEnrollmentReady:false,search:'?intent=existing',api:async path=>requests.push(path)});await s.start();assert.match(s.node('account-description').textContent,/profiles are being prepared/);assert.equal(s.node('workforce-login-button').disabled,true);await s.submit();assert.equal(requests.length,0);s.node('account-back').onclick();assert.equal(s.node('workforce-login-button').disabled,false);});
+
+test('phone linking keeps the current account and offers a fresh code after expiry',async()=>{
+ const s=setup({configOverride:()=>({accountsEnabled:true,personalEarlyAccess:true,earlyAccessPhone:'+15555550123'})});await s.start();
+ const owner={...verified,uid:'owner',linkWithPhoneNumber:async(number)=>{assert.equal(number,'+15555550123');return {confirm:async()=>{throw {code:'auth/code-expired'};}};}};
+ await s.session(owner);await s.node('dashboard-phone').onclick();assert.equal(s.node('account-phone-number').readOnly,true);await s.submit();
+ s.node('account-phone-code').value='123456';await s.submit();assert.match(s.node('session-status').textContent,/expired/);assert.equal(s.node('account-phone').textContent,'Request a new code');
+ s.node('account-phone').onclick();assert.equal(s.node('account-title').textContent,'Set up phone sign-in');assert.equal(s.node('account-phone-number').value,'+15555550123');assert.equal(s.auth.currentUser.uid,'owner');
+});
+test('SMS delivery failure explains the region block and allows a new security check',async()=>{
+ const s=setup();await s.start();s.node('account-phone').onclick();s.node('account-phone-number').value='+15555550123';s.auth.signInWithPhoneNumber=async()=>{throw {code:'auth/operation-not-allowed'};};await s.submit();assert.match(s.node('session-status').textContent,/number or region/);assert.equal(s.node('account-phone-number').value,'+15555550123');assert.equal(s.node('workforce-login-button').disabled,false);
+});

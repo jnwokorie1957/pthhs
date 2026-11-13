@@ -39,3 +39,18 @@
 .form-feedback{position:sticky;top:0;z-index:6;background:#f2f7f4;padding:.75rem;border-radius:6px}.form-feedback:empty{display:none}.form-feedback.error{color:#9d2424;background:#fff0ed}
 .completion-summary:not([hidden]){border-left:4px solid #b53b36;padding:.7rem 1rem;margin-bottom:1rem;background:#fff5f3}.completion-summary button{display:block;text-align:left;background:none;border:0;color:#8c2929;text-decoration:underline;padding:.3rem 0}
 .application-content,#portal-form-editor{scroll-margin-top:1rem}.application-message-error{color:#9d2424}
+
+/* Fit the workspace into narrow panels and browser zoom without clipping links. */
+.caregiver-portal .caregiver-dashboard{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:.75rem 1rem;align-items:center;min-width:0}
+.caregiver-portal .caregiver-dashboard-brand{min-width:0;font-size:1.15rem;overflow-wrap:anywhere}
+.caregiver-portal .portal-account-menu{grid-column:2;grid-row:1;margin:0}
+.caregiver-portal .caregiver-dashboard .portal-main-nav{grid-column:1/-1;grid-row:2;display:flex;flex-direction:row;flex-wrap:wrap;gap:.35rem;min-width:0;width:100%}
+.caregiver-portal .portal-main-nav a{display:block;white-space:normal;overflow-wrap:anywhere;padding:.65rem .85rem;line-height:1.4}
+.caregiver-portal .portal-account-menu[open]>div{width:min(260px,calc(100vw - 3rem));box-sizing:border-box;gap:.5rem}
+.caregiver-portal .portal-account-menu button,.caregiver-portal .portal-account-menu a{text-align:left;line-height:1.5;white-space:normal}
+.caregiver-portal .portal-page{min-width:0;padding:1.25rem 0}
+.caregiver-portal .portal-page h1{font-size:clamp(1.65rem,3vw,2.2rem);line-height:1.2;overflow-wrap:anywhere;margin:0 0 1rem}
+.caregiver-portal .portal-task{min-width:0;padding:clamp(1rem,2.5vw,1.5rem);overflow-wrap:anywhere}
+.caregiver-portal .portal-task a{box-sizing:border-box;max-width:100%;white-space:normal;line-height:1.4;text-align:center}
+.caregiver-portal .portal-session-note{font-size:.8rem;line-height:1.5;color:#52676b;margin:.5rem 0 0;border-top:1px solid #dce6e5;padding-top:.75rem}
+@media(max-width:650px){.caregiver-portal .caregiver-dashboard .portal-main-nav{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.25rem}.caregiver-portal .portal-main-nav a{font-size:.9rem;padding:.6rem}.caregiver-portal .portal-task a{display:block;width:100%}}
