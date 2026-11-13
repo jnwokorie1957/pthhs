@@ -42,3 +42,17 @@
 
 @font-face{font-family:WorkforceSignature;src:url('/assets/forms/Allura-Regular.ttf') format('truetype');font-display:swap}
 .signature-reusable{margin:1rem 0;min-width:0}.signature-field{display:flex;flex-direction:column;align-items:center;justify-content:center;width:100%;min-height:92px;padding:16px;border:1px dashed #84a79d;border-radius:12px;background:#f4f9f7;color:#183d42;cursor:pointer}.signature-field:hover,.signature-field:focus-visible{border-color:#17685f;background:#eaf4ef;outline:2px solid #17685f;outline-offset:2px}.signature-field small{display:block;font:12px 'Segoe UI',Arial,sans-serif;color:#536c6c}.signature-picker{padding:16px;margin-top:12px;border:1px solid #d7e2df;border-radius:12px;background:white}.signature-picker[hidden]{display:none!important}.signature-picker .signature-choice{margin:0 0 16px}.signature-reusable .signature-cursive{font-family:WorkforceSignature,cursive!important;font-size:36px;line-height:1.5;overflow-wrap:anywhere;margin:0;padding:8px}.signature-applied-drawing{display:block;width:min(100%,420px);height:auto}.signature-remember{display:flex!important;flex-direction:row!important;align-items:center;gap:10px;margin:12px 0}.signature-remember input{width:auto!important;flex:none}.signature-picker>button{margin:8px 8px 0 0}.signature-tap-target{cursor:pointer!important;border:1px dashed #17685f!important;background:#edf6f1!important}.signature-tap-target:focus{outline:2px solid #17685f}
+/* Fit the workspace into narrow panels and browser zoom without clipping links. */
+.caregiver-portal .caregiver-dashboard{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:.75rem 1rem;align-items:center;min-width:0}
+.caregiver-portal .caregiver-dashboard-brand{min-width:0;font-size:1.15rem;overflow-wrap:anywhere}
+.caregiver-portal .portal-account-menu{grid-column:2;grid-row:1;margin:0}
+.caregiver-portal .caregiver-dashboard .portal-main-nav{grid-column:1/-1;grid-row:2;display:flex;flex-direction:row;flex-wrap:wrap;gap:.35rem;min-width:0;width:100%}
+.caregiver-portal .portal-main-nav a{display:block;white-space:normal;overflow-wrap:anywhere;padding:.65rem .85rem;line-height:1.4}
+.caregiver-portal .portal-account-menu[open]>div{width:min(260px,calc(100vw - 3rem));box-sizing:border-box;gap:.5rem}
+.caregiver-portal .portal-account-menu button,.caregiver-portal .portal-account-menu a{text-align:left;line-height:1.5;white-space:normal}
+.caregiver-portal .portal-page{min-width:0;padding:1.25rem 0}
+.caregiver-portal .portal-page h1{font-size:clamp(1.65rem,3vw,2.2rem);line-height:1.2;overflow-wrap:anywhere;margin:0 0 1rem}
+.caregiver-portal .portal-task{min-width:0;padding:clamp(1rem,2.5vw,1.5rem);overflow-wrap:anywhere}
+.caregiver-portal .portal-task a{box-sizing:border-box;max-width:100%;white-space:normal;line-height:1.4;text-align:center}
+.caregiver-portal .portal-session-note{font-size:.8rem;line-height:1.5;color:#52676b;margin:.5rem 0 0;border-top:1px solid #dce6e5;padding-top:.75rem}
+@media(max-width:650px){.caregiver-portal .caregiver-dashboard .portal-main-nav{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.25rem}.caregiver-portal .portal-main-nav a{font-size:.9rem;padding:.6rem}.caregiver-portal .portal-task a{display:block;width:100%}}

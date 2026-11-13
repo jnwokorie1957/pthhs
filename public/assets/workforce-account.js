@@ -6,6 +6,19 @@
     let emailLink='',earlySignIn=false,earlyAvailable=false,ownerPhone='',phoneConfirmation=null,phoneLinking=false,recaptcha=null;
     let auth,mode='email',busy=false,generation=0,actor=null,resetCode='',providerOnly=false,existingEnabled=false,existingReady=true,accountsEnabled=false;
     const message=value=>status.textContent=value;
+    const phoneFailure=error=>({
+      'auth/credential-already-in-use':'This phone is already linked to another account. Contact the office to resolve it.',
+      'auth/requires-recent-login':'For your security, sign in again with an email link or Google, then retry phone setup.',
+      'auth/invalid-verification-code':'That code is incorrect. Enter the six digits from your latest text message.',
+      'auth/code-expired':'This code has expired. Select Request a new code.',
+      'auth/session-expired':'This verification session expired. Select Request a new code.',
+      'auth/too-many-requests':'Too many attempts. Please wait before requesting another code. You can still use an email link.',
+      'auth/quota-exceeded':'Text message delivery is temporarily at its limit. Use an email link and contact the office.',
+      'auth/operation-not-allowed':'Text message delivery is unavailable for this number or region. Use an email link and contact the office.',
+      'auth/captcha-check-failed':'The security check expired or failed. Complete the new check and try again.',
+      'auth/invalid-app-credential':'The security check could not be verified. Complete the new check and try again.',
+      'auth/network-request-failed':'The connection was interrupted. Check your connection and try again.'
+    }[error.code]||'Phone verification could not finish. Try again, or use an email link.');
     const clearHha=()=>window.WorkforceHha?.clear();
     const passwords=()=>{for(const id of ['workforce-password','workforce-password-confirm'])byId(id).value='';};
     const initialMode=()=>new URLSearchParams(location.search).get('intent')==='register'?'create':new URLSearchParams(location.search).get('intent')==='reset'?'reset':new URLSearchParams(location.search).get('intent')==='existing'?'existing':'email';
@@ -24,9 +37,9 @@
       if(recaptcha){recaptcha.clear();recaptcha=null;}
       byId('account-early').hidden=true;for(const button of byId('account-providers').children)button.disabled=!canSignIn();
       byId('account-password').hidden=providerOnly||!['email','signin'].includes(next);byId('account-password').textContent=next==='signin'?'Use an email link instead':'Use a password instead';
-      byId('account-phone').hidden=providerOnly||!['email','signin'].includes(next);
+      byId('account-phone').hidden=providerOnly||!['email','signin','phonecode'].includes(next);byId('account-phone').textContent=next==='phonecode'?'Request a new code':'Use a linked phone number';
       const phoneMode=['phone','linkphone','phonecode'].includes(next);
-      byId('phone-row').hidden=!['phone','linkphone'].includes(next);byId('account-phone-number').required=['phone','linkphone'].includes(next);byId('account-phone-number').readOnly=next==='linkphone';if(next==='linkphone')byId('account-phone-number').value=ownerPhone;
+      byId('phone-row').hidden=!['phone','linkphone'].includes(next);byId('account-phone-number').required=['phone','linkphone'].includes(next);byId('account-phone-number').readOnly=false;if(['phone','linkphone'].includes(next))byId('account-phone-number').value='';
       byId('phone-code-row').hidden=next!=='phonecode';byId('account-phone-code').required=next==='phonecode';byId('account-phone-code').value='';byId('account-recaptcha').hidden=!['phone','linkphone'].includes(next);
       if(phoneMode)phoneLinking=next==='linkphone'||next==='phonecode'&&phoneLinking;
       isolate();byId('account-tabs').hidden=earlySignIn||!['email','signin','create'].includes(next);byId('account-back').hidden=['email','signin','create'].includes(next);byId('account-back').textContent=actor?'Back to my portal':'Back to sign in';byId('account-forgot').hidden=next!=='signin';byId('account-help').hidden=providerOnly||['reset','existing','newpassword'].includes(next);byId('account-existing').hidden=!['email','signin'].includes(next)||!existingEnabled;byId('account-providers').hidden=!['email','signin','create'].includes(next);
@@ -89,8 +102,8 @@
           if(!emailLink)throw Error('missing_link');const result=await auth.signInWithEmailLink(email,emailLink);emailLink='';mode='email';await session(result.user);return;
         }
         if(mode==='phone'||mode==='linkphone'){
-          const number=byId('account-phone-number').value.trim().replace(/[ ()-]/g,'');if(!/^\+[1-9]\d{7,14}$/.test(number)){message('Include the country code, for example +1 followed by your mobile number.');return;}
-          if(phoneLinking&&(!actor||!auth.currentUser||number!==ownerPhone))throw Error('phone_setup_unavailable');
+          let number=byId('account-phone-number').value.trim().replace(/[ ().-]/g,'');if(/^\d{10}$/.test(number))number='+1'+number;else if(/^1\d{10}$/.test(number))number='+'+number;if(!/^\+[1-9]\d{7,14}$/.test(number)){message('Include the country code, for example +1 followed by your mobile number.');return;}
+          if(phoneLinking&&(!actor||!auth.currentUser))throw Error('phone_setup_unavailable');if(phoneLinking&&number!==ownerPhone){message('Enter the mobile number approved for your early-access account. Contact the office if it needs to be changed.');return;}
           const confirmation=phoneLinking?await auth.currentUser.linkWithPhoneNumber(number,recaptcha):await auth.signInWithPhoneNumber(number,recaptcha);
           screen('phonecode');phoneConfirmation=confirmation;message('Code sent. Check your text messages.');return;
         }
@@ -111,12 +124,12 @@
           const result=await auth.createUserWithEmailAndPassword(email,password);passwords();await result.user.updateProfile({displayName:[byId("account-first-name").value.trim(),byId("account-last-name").value.trim()].join(" ")});
           try{await result.user.sendEmailVerification({url:location.origin+'/caregiver'});}catch{message('Your account was created, but the verification email could not be sent. Select Resend verification email to try again.');}
         }else{await auth.signInWithEmailAndPassword(email,password);passwords();}
-      }catch(error){message(['phone','linkphone','phonecode'].includes(mode)?(error.code==='auth/credential-already-in-use'?'This phone is already linked to another account. Contact the office to resolve it.':error.code==='auth/requires-recent-login'?'Sign in again with an email link or Google, then retry phone setup.':'Phone verification failed. Check the number or code and try again, or use an email link.'):mode==='emaillink'?'Unable to use this link. Check that the email matches, or return to sign in to request a new link.':mode==='email'||mode==='existing'?'Unable to send a sign-in link. Check your email address and try again in a moment.':mode==='newpassword'?'Unable to update the password. The link may have expired. Request a new reset link.':failure(error));passwords();}
+      }catch(error){if(['phone','linkphone'].includes(mode)){const number=byId('account-phone-number').value;screen(mode);byId('account-phone-number').value=number;}message(['phone','linkphone','phonecode'].includes(mode)?phoneFailure(error):mode==='emaillink'?'Unable to use this link. Check that the email matches, or return to sign in to request a new link.':mode==='email'||mode==='existing'?'Unable to send a sign-in link. Check your email address and try again in a moment.':mode==='newpassword'?'Unable to update the password. The link may have expired. Request a new reset link.':failure(error));passwords();}
       finally{busy=false;byId('workforce-login-button').disabled=!canSignIn();}
     });
     byId('account-early').onclick=()=>{if(!earlyAvailable)return;earlySignIn=true;screen('email');message('Sign in with your approved account. Other accounts remain closed until January 1, 2027.');};
     byId('account-password').onclick=()=>{screen(mode==='signin'?'email':'signin');message('');};
-    byId('account-phone').onclick=()=>{screen('phone');message('');};
+    byId('account-phone').onclick=()=>{screen(mode==='phonecode'&&phoneLinking?'linkphone':'phone');message('');};
     byId('dashboard-phone').onclick=async()=>{if(!ownerPhone||!actor)return;await window.WorkforceReview?.flush();screen('linkphone');message('');};
     byId('account-signin').onclick=()=>{screen('email');message('');};byId('account-create').onclick=()=>{if(!accountsEnabled)return;screen('create');message('');};
     byId('account-existing').onclick=()=>{screen('existing');message('');};
