@@ -1,15 +1,28 @@
 # PTHHS Management Layer — Developer Checklist
 
-- [ ] Before another Hosting release, reconcile the separately approved
-  caregiver release `ed534254647fca1da3ecca042a281c4af82cbcc4` with main.
-  November 12 production matches its 35-URL inventory and retired Careers
-  redirects; main still contains the older 36-URL inventory/navigation.
-  The local `feature/caregiver-navigation-preview` branch is not available
-  under that name on origin. Preserve/publish its reviewed source history,
-  integrate through the normal GitHub workflow, verify generator stability,
-  and preserve both Primetime controls and current caregiver settings before
-  required release jobs and production acceptance. Do not deploy stale main.
-  [Source, tests and acceptance criteria](../seo/2026-11-12-careers-retirement-and-source-reconciliation.md).
+- [ ] P2 applicant-to-employee acceptance: keep the HHA application/PDF
+  transfer receipt separate from the source employment type/status, the
+  verified portal identity link and staff/clinical permissions. Existing
+  synthetic tests cover applicant transfer without employee promotion.
+  Test stale receipts after an independently authorized source conversion
+  and source/account changes; require a fresh scoped check before any later
+  employee workflow. Do not convert a profile, send a reset/message or grant
+  patient/PT access for this research acceptance.
+  [November 13 onboarding and role boundaries](ROLE_WORKFLOW_RESEARCH.txt).
+
+- [x] November 13 UTC source reconciliation deployed (PR27/e3869fb).
+  Preserves current Primetime and committed caregiver sources through 1fe5efb,
+  including the four newer files detected during pre-release checks. Marketing
+  generators preserve retired noindex fallbacks and the 35-URL inventory; the
+  pruner retains current portal scripts. Both quality and required Hosting-only
+  jobs pass; 35 public pages, 30 key assets, three Careers redirects, unchanged
+  caregiver configuration and Primetime privacy/auth/cache controls pass in
+  production. Functions/analytics deployment skipped. Unfinished staff work
+  remains untouched. [Source and production evidence](../workforce/SOURCE_RECONCILIATION_2026-11-13.md).
+- [ ] Build later staff-authorization changes on reconciled main and repeat
+  the exact production-source comparison before release. Keep the owning
+  checkout's unfinished work and current backend/settings separate from a
+  website-only deployment; no new role or HHA action acceptance is implied.
 
 - [x] November 12 SEO evidence reconciled with the approved Careers removal.
   All 35 live sitemap routes match the caregiver release; three old Careers
@@ -17,6 +30,14 @@
   is 35. Primetime noindex/cache and anonymous denial pass. Settled weekly
   Web (text) property totals are recorded without outcome or causal claims.
   No runtime change or deployment was needed for this evidence update.
+
+- [ ] P2 role transition acceptance: verify visit/patient-office authority
+  independently from caregiver primary/secondary office and workforce account.
+  A visible schedule reference must not grant its patient record, clinical
+  document or action. Test family-patient switching with stale responses and
+  expired relationships separately. Use synthetic tests first; approved role
+  examples require current sign-in, scoped memberships and form contracts.
+  [November 12 role-navigation research and acceptance](ROLE_WORKFLOW_RESEARCH.txt).
 
 - [x] November 11 vendor capability guidance deployed (PR26/849ed21).
   The workbench identifies unsupported API linking of existing caregiver calls.

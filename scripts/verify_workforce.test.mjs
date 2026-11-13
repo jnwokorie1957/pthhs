@@ -66,7 +66,7 @@ test('client database and document access stay denied; application/document coll
 test('new API uses existing project and preserves legacy routing and security boundary', () => {
   const config = JSON.parse(read('firebase.json'));
   const csp=source=>config.hosting.headers.find(rule=>rule.source===source).headers.find(header=>header.key==='Content-Security-Policy').value;
-  assert.match(csp('/caregiver'),/frame-src 'self' https:\/\/primetimehomehealthservices\.firebaseapp\.com;/);
+  assert.match(csp('/caregiver'),/frame-src 'self' https:\/\/primetimehomehealthservices\.firebaseapp\.com https:\/\/www\.google\.com\/recaptcha\/ https:\/\/recaptcha\.google\.com\/recaptcha\/;/);
   assert.match(csp('/caregiver'),/frame-ancestors 'none'/);
   assert.equal(csp('/workforce'), csp('/primetime{,/**}'));
   assert.equal(config.hosting.rewrites.find(rule=>rule.source==='/workforce').destination, '/primetime/workforce.html');
@@ -77,7 +77,7 @@ test('new API uses existing project and preserves legacy routing and security bo
   assert.match(read('functions/src/index.ts'),/principal = await requirePrimetimeAdmin\(request\)/);
 });
 test('build pruning explicitly retains all workforce runtime assets', () => {
-  for (const asset of ['workforce-navigation.js','workforce-navigation.css','workforce-record-navigation.js','workforce-management-auth.js','workforce-hha.js','workforce-management.css','workforce-management.js','workforce.css','workforce.js','workforce-contract.js','workforce-session.js','workforce-staff.js','workforce-application.js','workforce-personnel.js','workforce-address.js','workforce-readings.js','workforce-forms.js','workforce-form-fields.js','workforce-form-layout.css']) {
+  for (const asset of ['workforce-authorization-extract.js','workforce-caregiver-office.js','workforce-field-visits.js','workforce-office-tools.css','workforce-office-tools.js','workforce-opportunity-fields.js','workforce-private-pdf.js','workforce-document-access.js','workforce-training.js','workforce-navigation.js','workforce-navigation.css','workforce-record-navigation.js','workforce-management-auth.js','workforce-hha.js','workforce-management.css','workforce-management.js','workforce.css','workforce.js','workforce-contract.js','workforce-session.js','workforce-staff.js','workforce-application.js','workforce-personnel.js','workforce-address.js','workforce-readings.js','workforce-forms.js','workforce-form-fields.js','workforce-form-layout.css']) {
     assert.ok(read('scripts/accessibility_foundation.py').includes('assets/'+asset));
     assert.ok(read('scripts/verify_accessibility_foundation.py').includes('assets/'+asset));
   }

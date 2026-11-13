@@ -9,6 +9,7 @@ from pathlib import Path
 # Files below these public/ prefixes are deployed by Firebase Hosting, but they
 # are not marketing pages and must not be rewritten by public-site generators.
 INTERNAL_APP_PREFIXES = ("primetime/",)
+RETIRED_REDIRECT_HTML = ("home-care-careers.html",)
 
 
 def relative_public_path(path: Path, public_dir: Path) -> str:
@@ -27,7 +28,9 @@ def is_internal_app_path(path: Path, public_dir: Path) -> bool:
 def is_marketing_html(path: Path, public_dir: Path) -> bool:
     """Return True for HTML owned by the marketing-site build pipeline."""
 
-    return path.suffix.lower() == ".html" and not is_internal_app_path(path, public_dir)
+    return (path.suffix.lower() == ".html"
+            and relative_public_path(path, public_dir) not in RETIRED_REDIRECT_HTML
+            and not is_internal_app_path(path, public_dir))
 
 
 def marketing_html_files(public_dir: Path) -> list[Path]:

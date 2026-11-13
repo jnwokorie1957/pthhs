@@ -1,10 +1,11 @@
 # PTHHS
 
-November 12 production-source checkpoint: the owner-approved Careers removal
-is live from the separate caregiver release, while main retains older public
-navigation and the 36-URL sitemap. Reconcile that source before another
-Hosting deployment. [Verified delivery and release acceptance](docs/seo/2026-11-12-careers-retirement-and-source-reconciliation.md)
-record the current 35-URL inventory and preserved Primetime protections.
+November 13 UTC production-source checkpoint: PR27 reconciles the approved
+caregiver releases with current Primetime source. The Hosting-only release
+preserves Caregiver Portal, the 35-URL sitemap, retired-route noindex fallbacks
+and private application controls. Both quality and required release jobs pass;
+35 public pages and 30 key assets match Git. Functions and deployed settings
+were not changed. [Source and production evidence](docs/workforce/SOURCE_RECONCILIATION_2026-11-13.md).
 
 ## Administrator visit-maintenance workspace
 

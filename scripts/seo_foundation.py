@@ -41,7 +41,6 @@ SITEMAP_ROUTES = (
     "/locations/katy",
     "/locations/sugar-land",
     "/home-care-client-reviews",
-    "/home-care-careers",
     "/home-care-contact-us",
     "/home-care-resources",
     "/home-care-blog",
@@ -422,7 +421,7 @@ def expand_redirects() -> int:
     additions = []
     for row in permanent:
         source = row["source"]
-        if any(token in source for token in ("*", ":")) or source.endswith(".html"):
+        if any(token in source for token in ("*", ":")) or source.endswith((".html", "/")):
             continue
         html_source = f"{source}.html"
         # A static rewrite destination is a served file, not a legacy alias.

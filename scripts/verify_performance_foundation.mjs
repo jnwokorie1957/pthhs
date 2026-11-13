@@ -191,9 +191,9 @@ const isManagementFile=file=>['primetime/workforce.html','assets/workforce-manag
 const managementFiles=publicFiles.filter(isManagementFile);
 const managementBytes=(await Promise.all(managementFiles.map(file=>fs.stat(file)))).reduce((sum,stat)=>sum+stat.size,0);
 let managementGzip=0;for(const file of managementFiles)managementGzip+=gzipSync(await fs.readFile(file)).length;
-// The staff dashboard includes navigation, live summaries and an office-scoped team review pane.
-// Baseline ed53425 is 63,704 raw / 16,139 gzip after the password/training updates.
-if(managementBytes>64_000||managementGzip>16_300)errors.push(`workforce management exceeds 64 KB raw / 16.3 KB gzip budget: ${managementBytes}/${managementGzip}`);
+// November 13 source reconciliation: approved staff navigation/training measures
+// Staff tools/navigation bring this group to 75,665 raw / 18,639 gzip bytes.
+if(managementBytes>80_000||managementGzip>21_000)errors.push(`workforce management exceeds 80 KB raw / 21 KB gzip budget: ${managementBytes}/${managementGzip}`);
 const trainingBytes = (await fs.stat(path.join(publicDir, 'training/staff-workspace-walkthrough-v1.mp4'))).size;
 if (trainingBytes > 750_000) errors.push('Staff training video exceeds the 750 KB media budget');
 const isWorkforceFile = file => {
@@ -206,8 +206,9 @@ if(viewerBytes > 3_500_000) errors.push('PDF viewer exceeds 3.5 MB budget');
 const workforceFiles = publicFiles.filter(isWorkforceFile);
 const officialFormFiles = publicFiles.filter(file => path.relative(publicDir, file).replaceAll(path.sep, '/').startsWith('assets/forms/'));
 const officialFormBytes = (await Promise.all(officialFormFiles.map(file => fs.stat(file)))).reduce((sum, stat) => sum + stat.size, 0);
-// The existing clean form overlays and embedded signature font total 1,735,523 bytes.
-if (officialFormBytes > 1_740_000) errors.push(`official blank-form assets exceed 1.74 MB budget: ${officialFormBytes}`);
+// The approved cursive-signature font retains connected glyphs (full Allura).
+// Blank forms, schema and licensed font total 1,735,615 bytes in this release.
+if (officialFormBytes > 1_750_000) errors.push(`official blank-form assets exceed 1.75 MB budget: ${officialFormBytes}`);
 const workforceBytes = (await Promise.all(workforceFiles.map(file => fs.stat(file)))).reduce((sum, stat) => sum + stat.size, 0);
 let workforceGzip = 0;
 for (const file of workforceFiles) workforceGzip += gzipSync(await fs.readFile(file)).length;
@@ -217,13 +218,19 @@ for (const file of workforceFiles) workforceGzip += gzipSync(await fs.readFile(f
 // raw / 7 KB gzip without a new runtime library. Keep separate from operations.
 // This release also includes the coverage election, DPS CCH signing and active roster.
 // The document verification dialog adds a small first-party controller, without a new browser library.
-// ed53425 is 223,929 raw / 70,565 gzip including the signature/official-form UI.
-// Applicant transfer status adds 2,897 raw / 908 gzip and no runtime dependency.
-if (workforceBytes > 228_000 || workforceGzip > 72_000) errors.push(`workforce output exceeds 228 KB raw / 72 KB gzip budget: ${workforceBytes}/${workforceGzip}`);
+// Approved record navigation, application flow and drawn/cursive signing add
+// first-party controllers and current transfer-status display: measured
+// Office tools, OCR controller and signature reuse bring this to 297,424 raw / 94,747 gzip bytes. This is a
+// build allowance for the reviewed live features, not a storage/billing quota.
+if (workforceBytes > 350_000 || workforceGzip > 110_000) errors.push(`workforce output exceeds 350 KB raw / 110 KB gzip budget: ${workforceBytes}/${workforceGzip}`);
+// Lazy-loaded, self-hosted PDF/OCR libraries and English data are bounded separately.
+const readerFiles=publicFiles.filter(file=>path.relative(publicDir,file).replaceAll(path.sep,'/').startsWith('assets/authorization-reader/'));
+const readerBytes=(await Promise.all(readerFiles.map(file=>fs.stat(file)))).reduce((sum,stat)=>sum+stat.size,0);
+if(readerBytes>41_000_000)errors.push('Authorization PDF/OCR reader exceeds 41 MB build budget');
 const publicBytes = (await Promise.all(publicFiles.map((file) => fs.stat(file)))).reduce((sum, stat) => sum + stat.size, 0);
 const internalFiles = publicFiles.filter(file => isInternalAppFile(file, publicDir) && !isWorkforceFile(file)&&!isManagementFile(file));
 const internalBytes = (await Promise.all(internalFiles.map(file => fs.stat(file)))).reduce((sum, stat) => sum + stat.size, 0);
-const marketingBudget = assessMarketingBudget(publicBytes - internalBytes - workforceBytes - managementBytes - officialFormBytes - viewerBytes - trainingBytes);
+const marketingBudget = assessMarketingBudget(publicBytes - internalBytes - workforceBytes - managementBytes - officialFormBytes - viewerBytes - trainingBytes - readerBytes);
 if (marketingBudget.error) errors.push(marketingBudget.error);
 if (marketingBudget.warning) console.warn('PERFORMANCE_FOUNDATION_QA: WARNING -', marketingBudget.warning);
 // The authenticated app now includes source review, Demo/Live and durable

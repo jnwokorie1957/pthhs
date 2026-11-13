@@ -91,9 +91,6 @@ const expectedAssets = [
   "/assets/section-pages.css",
   "/assets/site-enhancements.js",
   "/assets/analytics.js",
-  "/assets/workforce.css",
-  "/assets/workforce-contract.js",
-  "/assets/workforce.js",
 ];
 for (const asset of expectedAssets) {
   if (!referencedAssets.has(asset)) fail(`Expected versioned runtime asset is not referenced: ${asset}`);

@@ -1,6 +1,22 @@
 (() => {
   // Keep the one-time action link in memory before navigation can replace it.
   const initialSignInHref = location.href || '';
+  // Firebase's shared email-action handler may receive links for another portal.
+  // Route the unused code first, before Operations consumes it or opens its UI.
+  try {
+    const action = new URL(initialSignInHref);
+    const continuation = new URL(action.searchParams.get('continueUrl') || '');
+    if (action.searchParams.get('mode') === 'signIn' && action.searchParams.get('oobCode')
+      && continuation.origin === action.origin && /^\/caregiver\/?$/.test(continuation.pathname)) {
+      const target = new URL('/caregiver', action.origin);
+      for (const key of ['mode', 'oobCode', 'apiKey', 'lang']) {
+        const value = action.searchParams.get(key);
+        if (value) target.searchParams.set(key, value);
+      }
+      location.replace(target.href);
+      return;
+    }
+  } catch { /* Missing or untrusted continuation stays in Operations. */ }
   const titles = {
     workbench: 'Advanced tools', maintenance: 'Visit maintenance', revisions: 'Visit review', patients: 'Patient workbench',
     analytics: 'Website analytics', overview: 'Operations overview', evv: 'EVV exceptions', visits: 'Visits',

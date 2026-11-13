@@ -1,5 +1,10 @@
 # Careers retirement, search evidence and release source
 
+November 13 update: the release-source dependency below is complete in PR27.
+Both required Hosting-only jobs and production acceptance passed, preserving
+the approved 35-URL inventory and private controls. The November 12 observations
+below retain their dates. [Current delivery evidence](2026-11-13-source-reconciliation-delivery.md).
+
 Checked November 12, 2026. The owner approved removing Careers in the
 caregiver navigation review on November 11. The separate caregiver release
 implements that decision. Do not restore Careers to explain a lower sitemap

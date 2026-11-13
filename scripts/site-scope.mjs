@@ -4,6 +4,7 @@ import path from 'node:path';
 // Deployed internal applications have their own UI/runtime contracts. Marketing
 // generators must leave these paths byte-for-byte untouched.
 export const internalAppPrefixes = ['primetime/'];
+export const retiredRedirectHtml = ['home-care-careers.html'];
 
 export function relativePublicPath(file, publicDir) {
   return path.relative(publicDir, file).replaceAll(path.sep, '/');
@@ -15,7 +16,9 @@ export function isInternalAppFile(file, publicDir) {
 }
 
 export function isMarketingHtml(file, publicDir) {
-  return file.toLowerCase().endsWith('.html') && !isInternalAppFile(file, publicDir);
+  return file.toLowerCase().endsWith('.html')
+    && !retiredRedirectHtml.includes(relativePublicPath(file, publicDir))
+    && !isInternalAppFile(file, publicDir);
 }
 
 export async function walkFiles(dir) {
