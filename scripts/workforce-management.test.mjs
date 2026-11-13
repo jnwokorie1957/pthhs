@@ -7,9 +7,9 @@ function setup(request=async()=>({items:[]})){
  const names=['overview','accounts','applications','opportunities','access'],panels=names.map(managerPanel=>make({managerPanel})),links=names.map(managerGo=>make({managerGo,managerView:managerGo}));
  const features=[make({managerFeature:'opportunities'})];
  const doc={getElementById:el,querySelectorAll:selector=>selector==='[data-manager-panel]'?panels:selector==='[data-manager-feature]'?features:links,addEventListener:(name,fn)=>{if(!events.has(name))events.set(name,[]);events.get(name).push(fn);}};
- const context=vm.createContext({document:doc,window:{workforceApi:request,WorkforceRecruiting:{refresh:async()=>{}}},Event:class{constructor(type){this.type=type;}},Promise});vm.runInContext(fs.readFileSync(new URL('../public/assets/workforce-contract.js',import.meta.url),'utf8'),context);vm.runInContext(source,context);
+ const scrolls=[];const context=vm.createContext({document:doc,window:{scrollTo:options=>scrolls.push(options),workforceApi:request,WorkforceRecruiting:{refresh:async()=>{}}},Event:class{constructor(type){this.type=type;}},Promise});vm.runInContext(fs.readFileSync(new URL('../public/assets/workforce-contract.js',import.meta.url),'utf8'),context);vm.runInContext(source,context);
  const emit=(name,detail)=>events.get(name)?.forEach(fn=>fn({detail}));
- return {el,panels,links,features,show:context.window.WorkforceManagement.show,emit,settle:()=>new Promise(resolve=>setImmediate(resolve))};
+ return {el,panels,links,features,scrolls,show:context.window.WorkforceManagement.show,emit,settle:()=>new Promise(resolve=>setImmediate(resolve))};
 }
 const owner={grant:{role:'owner',offices:['office-a'],permissions:['opportunities.read','opportunities.edit','applications.review','accounts.support','staff.manage']}};
 test('staff workspace shows one task at a time without a second inbox read on navigation',async()=>{
@@ -45,3 +45,5 @@ test('sign-out clears all management summaries and ignores later list events',as
  const s=setup();s.emit('workforce-session',owner);s.emit('workforce-session-cleared');s.emit('workforce-applications-updated',{items:[{state:'submitted'}],limitPerOffice:50});await s.settle();
  assert.equal(s.el('manager-nav').hidden,true);assert.equal(s.el('manager-count-applications').textContent,'—');assert.ok(s.panels.every(panel=>panel.hidden));assert.equal(s.show('accounts'),false);
 });
+
+test('opening a staff section starts at its heading without resetting restored navigation',async()=>{const s=setup();s.emit('workforce-session',owner);await s.settle();const before=s.scrolls.length;s.show('accounts');assert.equal(s.scrolls.length,before+1);assert.equal(s.scrolls.at(-1).top,0);s.show('applications',false);assert.equal(s.scrolls.length,before+1);});

@@ -17,6 +17,7 @@ export class HhaProfileSource {
  }
  async profile(id:string):Promise<HhaProfile>{
   identifier(id);const prior=await this.settings(),source=await this.workspace.query({operation:"GetCaregiverDemographics",id},this.actorId,"workforce_caregiver_profile");
+  if(source.operation==="GetCaregiverDemographics"&&source.source==="hhaexchange"&&!source.truncated&&source.records.length===0)throw new WorkforceError(404,"hha_profile_not_found");
   if(source.operation!=="GetCaregiverDemographics"||source.source!=="hhaexchange"||source.truncated||source.records.length!==1)throw new WorkforceError(503,"hha_profile_unavailable");
   const row=source.records[0]!;let offices:unknown;try{offices=JSON.parse(row.OfficeIDs||"");}catch{}
   if(row.ID!==id||!Array.isArray(offices)||!offices.includes(this.office)||!offices.every(value=>typeof value==="string"&&/^[1-9]\d{0,9}$/.test(value)))throw new WorkforceError(403,"hha_office_mismatch");
