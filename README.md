@@ -193,14 +193,14 @@ Analytics view ─ independent website-analytics service ─ read-only GA4 repor
 
 | Path | Purpose |
 | --- | --- |
-| [`public/`](public/) | Firebase Hosting output, public pages, caregiver entry, and protected application shells |
+| [`public/`](https://github.com/jnwokorie1957/pthhs/tree/main/public) | Firebase Hosting output, public pages, caregiver entry, and protected application shells |
 | [`source/primetime/`](source/primetime/) | Authoritative operations UI source; generated assets are checked for drift |
-| [`functions/src/`](functions/src/) | TypeScript APIs, authentication, source views, workflows and workforce services |
-| [`functions/src/integrations/hhaexchange/`](functions/src/integrations/hhaexchange/) | SOAP transport, parsing, configuration and vendor-contract gates |
-| [`functions/src/workforce/`](functions/src/workforce/) | Accounts, office/role rules, applications, forms, encryption, source projections and staff tools |
-| [`functions/scanner/`](functions/scanner/) | Private document scanning deployment and worker |
-| [`analytics-functions/`](analytics-functions/) | Independent website reporting codebase and contract tests |
-| [`content/articles/`](content/articles/) | Source articles and manifest |
+| [`functions/src/`](https://github.com/jnwokorie1957/pthhs/tree/main/functions/src) | TypeScript APIs, authentication, source views, workflows and workforce services |
+| [`functions/src/integrations/hhaexchange/`](https://github.com/jnwokorie1957/pthhs/tree/main/functions/src/integrations/hhaexchange) | SOAP transport, parsing, configuration and vendor-contract gates |
+| [`functions/src/workforce/`](https://github.com/jnwokorie1957/pthhs/tree/main/functions/src/workforce) | Accounts, office/role rules, applications, forms, encryption, source projections and staff tools |
+| [`functions/scanner/`](https://github.com/jnwokorie1957/pthhs/tree/main/functions/scanner) | Private document scanning deployment and worker |
+| [`analytics-functions/`](https://github.com/jnwokorie1957/pthhs/tree/main/analytics-functions) | Independent website reporting codebase and contract tests |
+| [`content/articles/`](https://github.com/jnwokorie1957/pthhs/tree/main/content/articles) | Source articles and manifest |
 | [`scripts/`](scripts/) | Deterministic generators, runtime-asset inventories, tests and release verifiers |
 | [`hharefs/`](hharefs/) | Captured vendor operation index and WSDL; current vendor-guide conflicts remain explicit |
 | [`docs/`](docs/README.md) | Acceptance, setup, research, release, SEO and historical records |
