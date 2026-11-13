@@ -50,10 +50,10 @@ test('office transfers in the change feed and missing roster members are refresh
   const common={operation:input.operation,source:'hhaexchange',truncated:false,fetchedAt:now.toISOString()};
   if(input.operation==='GetCaregiverChangesV2')return {...common,records:[{CaregiverID:'1',OfficeID:'200'},{CaregiverID:'999',OfficeID:'300'}]};
   if(input.operation==='SearchCaregivers')return {...common,records:[{CaregiverID:'2'}]};
-  if(input.operation==='GetCaregiverDemographics'){seen.push(input.id);return {...common,records:[{ID:input.id,OfficeIDs:JSON.stringify([input.id==='2'?'100':'200']),FirstName:'Test',LastName:'Caregiver','Status/Name':'Active'}]};}
+  if(input.operation==='GetCaregiverDemographics'){seen.push(input.id);if(input.id==='3')return {...common,records:[]};return {...common,records:[{ID:input.id,OfficeIDs:JSON.stringify([input.id==='2'?'100':'200']),FirstName:'Test',LastName:'Caregiver','Status/Name':'Active'}]};}
   throw Error('unexpected_source_request');
  }};
  await new CaregiverSync(workspace as any,memory(rows),()=>now).run();
- assert.deepEqual(seen.sort(),['1','2','3']);for(const id of ['1','3']){assert.equal(rows['workforceHhaProfiles/'+id].status,'Office assignment changed');assert.equal(rows['workforceHhaProfiles/'+id].email,'');assert.deepEqual(rows['workforceHhaProfiles/'+id].fields,{});}
+ assert.deepEqual(seen.sort(),['1','2','3']);for(const id of ['1','3']){assert.equal(rows['workforceHhaProfiles/'+id].status,id==='3'?'No current HHA profile':'Office assignment changed');assert.equal(rows['workforceHhaProfiles/'+id].email,'');assert.deepEqual(rows['workforceHhaProfiles/'+id].fields,{});}
  assert.equal(rows['workforceHhaProfiles/2'].status,'Active');assert.equal(rows['workforceCaregiverSync/100'].state,'complete');
 });

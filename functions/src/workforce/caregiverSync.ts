@@ -50,7 +50,7 @@ export class CaregiverSync {
      await ref.update({pending,processed,lastProfileAt:this.now().toISOString()});
     }catch(error){
      const code=(error as {code?:string}).code;
-     if(code==='hha_office_mismatch'){const cached=this.db.collection('workforceHhaProfiles').doc(id);await this.db.runTransaction(async tx=>{const row=(await tx.get(cached)).data();if(row?.office===office)tx.update(cached,{status:'Office assignment changed',email:'',emailKey:'',fields:{}});});pending.shift();await ref.update({pending});continue;}
+     if(code==='hha_office_mismatch'||code==='hha_profile_not_found'){const cached=this.db.collection('workforceHhaProfiles').doc(id);await this.db.runTransaction(async tx=>{const row=(await tx.get(cached)).data();if(row?.office===office)tx.update(cached,{status:code==='hha_profile_not_found'?'No current HHA profile':'Office assignment changed',email:'',emailKey:'',fields:{}});});pending.shift();await ref.update({pending});continue;}
      if(['background_read_budget_reserved','read_budget_exhausted_retry_next_minute','vendor_backoff_active'].includes(code||'')){
       const delay=Math.max(1,Math.min(60,Number((error as {retryAfterSeconds?:number}).retryAfterSeconds)||30));await new Promise(resolve=>setTimeout(resolve,delay*1000));continue;
      }
