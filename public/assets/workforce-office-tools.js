@@ -48,7 +48,7 @@
    const [counts,allCounts]=await Promise.all([api('/staff/authorizations/summary?office='+selected),api('/staff/authorizations/summary')]);
    if(token!==session||office!==el('authorization-office').value)return;
    authRows=more?[...authRows,...items]:items;authNext=data.next;authOffice=office;authSummary=counts;homeSummary=allCounts;renderAuthorizations();message('authorization-status','');
-  }catch(e){if(token===session)message('authorization-status','Could not refresh complete expiration tracking. '+e.message);}finally{if(token===session)loadingAuth=false;}
+  }catch(e){if(token===session){authSummary=homeSummary=null;renderAuthorizations();message('authorization-status','Could not refresh complete expiration tracking. '+e.message);el('office-home-alert').hidden=false;el('office-home-alert-text').textContent='Authorization expiration alerts are unavailable. '+e.message;}}finally{if(token===session)loadingAuth=false;}
  }
  const appLabels={applicant:'Applicant',employee:'Current HHA employee',needs_verification:'HHA status needs verification'};
  const fieldLabels={email:'Email',phone:'Phone',alternatePhone:'Alternate phone',city:'City',state:'State',zip:'ZIP code',availableDate:'Available to start',workTime:'Work preference',weeklyHours:'Preferred weekly hours',jobDescriptionQuestions:'Questions about the role',college_major:'Area of study',college_degree:'Degree',technical_school:'Technical training',job1_from:'Previous employment from',job1_to:'Previous employment to',job1_employer:'Previous employer',job1_position:'Position',job1_department:'Department',job1_duties:'Experience and duties'};

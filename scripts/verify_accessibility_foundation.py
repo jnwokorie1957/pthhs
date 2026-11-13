@@ -289,6 +289,8 @@ expected_runtime_assets = {
     "assets/workforce-readings.js",
     "assets/workforce-account.js",
     "assets/workforce-hha.js",
+    "assets/workforce-hha-records.js",
+    "assets/workforce-hha-records.css",
     "assets/workforce-board.js",
     "assets/workforce-camera.js",
     "assets/workforce-forms.js", "assets/workforce-signature.js",

@@ -5,7 +5,18 @@ area, map the actual source, connect available authorized data and verify it.
 This is the connection backlog, not a declaration of an active Codex goal.
 This document does not claim every tab is connected.
 
-CURRENT RELEASE CHECKPOINT — NOVEMBER 13, 2026 UTC
+CURRENT RUNTIME CHECKPOINT — NOVEMBER 13, 2026 13:19 UTC
+Main 07b51b9 includes the concurrent staff-portal releases. Normal release
+43368191436 succeeded for release_scope, Hosting, backend and analytics.
+This pass verifies the Primetime entry and seven versioned scripts against
+that Git source, plus noindex/no-cache and anonymous JSON 401/no-store.
+The time-display/detail/retry sources retain their PR27 bytes; the operations
+projection change concerns the bounded caregiver-change roster, not visit clocks.
+A separate same-profile Primetime entry still requires administrator sign-in.
+No authenticated comparison or recovered time is claimed. Original October 24
+remains resolved by October 31; P03/E04 and existing owner/vendor steps stay open.
+
+PRIOR SOURCE RECONCILIATION CHECKPOINT — NOVEMBER 13, 2026 UTC
 PR27/e3869fb reconciles approved caregiver source with current Primetime and
 corrects generator/pruner failures while preserving visit-time mappings and
 source-write locks. Both quality and required Hosting-only jobs passed;
@@ -2204,3 +2215,48 @@ https://github.com/jnwokorie1957/pthhs/actions/runs/43351077153
 https://github.com/jnwokorie1957/pthhs/actions/runs/43352460216
 Detailed software/source acceptance:
 docs/workforce/SOURCE_RECONCILIATION_2026-11-13.md
+
+
+NOVEMBER 13, 2026 13:19 UTC — CONCURRENT RELEASE AND TIME-SOURCE PRESERVATION
+
+Refreshed main from 3894c5c to 07b51b97e2f3158d2833cc6eed80b39314433d00,
+preserving both owning checkouts and their work. The concurrent staff release
+43368191436 completed successfully: release_scope, build_and_deploy,
+deploy_backend and deploy_website_analytics. This is an observed release,
+not a deployment initiated by this live-data pass. PR27's earlier skipped
+backend/analytics description remains specific to its own release.
+
+After the current release, /primetime HTML and seven versioned scripts
+match Git. Meta/header noindex, entry no-cache and anonymous API
+JSON 401/no-store/noindex pass. The operations application script changes
+caregiver email-action routing; the data-source, dashboard, review,
+live-view, maintenance and search scripts retain their PR27 bytes.
+The backend operations projection change retains bounded caregiver-change
+roster results; it adds no VisitInfo time field or alternate original-EVV read.
+No unchanged runtime suite or second release was run by this pass.
+
+One existing Primetime tab belongs to another active browser session and
+was left untouched. A separate same-profile entry shows administrator
+sign-in. No link was sent, protected HHA read or retry performed, credential
+used, grant broadened or source record changed. The October 23/24 and
+November 10 source receipts remain dated; no current-day completed/pending,
+genuine-empty/deferred classification or recovered clock/hour is asserted.
+
+The exact documented direct optional-string mapping remains
+GetVisitInfoV3Result/VisitInfo/VisitStartTime, VisitEndTime, EVVStartTime,
+EVVEndTime, ActualHours and ActualHoursRounded. ScheduleDuration/
+ScheduleDurationHours and ScheduleDuration/ScheduleDurationMinutes remain
+separate integer hour/minute components, not actual duration substitutes.
+No schedule, suggested, payroll or billed value replaces actual/EVV evidence,
+and no clock span supplies worked/payable/billable/verified status.
+
+Original October 24 stays resolved by its October 31 reread. P03/E04 retained
+event/history/linkage, missing-punch and actual-hour-unit/readback evidence
+remain open. Existing next owner actions are unchanged: restore approved
+administrator sign-in; use only the existing scoped retry after its displayed
+delay; establish CSM/private-XML guidance and the held-visit disposition
+separately. No vendor follow-up, communication or operational decision.
+
+https://github.com/jnwokorie1957/pthhs/actions/runs/43368191436
+Local nonsensitive delivery receipt:
+outputs/primetime-current-release-boundary-20261113.json
