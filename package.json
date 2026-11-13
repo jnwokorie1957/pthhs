@@ -13,9 +13,11 @@
     "check:repository": "python3 scripts/repository_audit.py"
   },
   "devDependencies": {
+    "@tesseract.js-data/eng": "1.0.0",
     "pdf-lib": "1.17.1",
     "pdfjs-dist": "6.5.438",
     "sharp": "0.35.5",
-    "terser": "5.51.2"
+    "terser": "5.51.2",
+    "tesseract.js": "7.0.0"
   }
 }

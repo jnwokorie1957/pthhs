@@ -97,7 +97,7 @@
     try { await applicationProfile(uid, detail, current, status); if (current()) {status.textContent = '';window.WorkforceRecordTabs?.decorate(detail,{view:'applications',id:uid,selected:selectedTab,writeHistory});} }
     catch (error) { if (current()) status.textContent = error.message; }
   }
-  async function openAccount(match, selectedTab="overview", writeHistory=true) {
+  async function openAccount(match, selectedTab="employment", writeHistory=true) {
     if(!can("accounts.support"))return;
     const sequence = ++accountSelection, session = generation, current = () => sequence === accountSelection && session === generation;
     accountDetail.replaceChildren(); accountMessage.textContent = 'Opening profile…';
@@ -107,6 +107,7 @@
         window.WorkforceHha.render(accountDetail,data,workforceApi,'/staff/roster/'+encodeURIComponent(match.hhaId)+'/files/',current);
         if(data.accessEnabled){const access=node('button','Send portal access link','btn-secondary');access.type='button';access.onclick=async()=>{access.disabled=true;try{await workforceApi('/staff/roster/'+encodeURIComponent(match.hhaId)+'/access',{});if(current())accountMessage.textContent='If the source email uniquely matches, a portal password link has been requested.';}catch(error){if(current())accountMessage.textContent=error.message;}finally{if(current())access.disabled=false;}};accountDetail.append(access);}
         accountMessage.textContent=data.savedProfile ? 'HHA unavailable. Details saved ' + date(data.profile.fetchedAt) + ' CT.' : '';
+        await window.WorkforceCaregiverOffice?.augment(accountDetail,{source:'hhaexchange',id:match.hhaId,current});if(!current())return;
         window.WorkforceRecordTabs?.decorate(accountDetail,{view:'accounts',id:match.hhaId,source:'hhaexchange',selected:selectedTab,writeHistory});
         return;
       }
@@ -121,6 +122,7 @@
       if(account.state==='not_started'){accountDetail.append(node('p','Application not started.'));}
       else if (can('applications.review')) await applicationProfile(match.uid, accountDetail, current, accountMessage, false);
       else accountDetail.append(node('p', 'Application review access required.'));
+      if(current())await window.WorkforceCaregiverOffice?.augment(accountDetail,{source:'portal',id:match.uid,current});
       if (current()) {accountMessage.textContent = '';window.WorkforceRecordTabs?.decorate(accountDetail,{view:'accounts',id:match.uid,selected:selectedTab,writeHistory});}
     } catch (error) { if (current()) accountMessage.textContent = error.message; }
   }
@@ -190,7 +192,7 @@
     finally { if (session === generation) moreCaregivers.disabled = false; }
   }
   moreCaregivers.onclick = () => search(nextCaregiverPage);
-  window.WorkforcePersonnel = {cancelRecordRequests:()=>{applicationSelection++;accountSelection++;},closeRecord:view=>{applicationSelection++;accountSelection++;(view==='applications'?detail:accountDetail).replaceChildren();},openRoute:async(view,params)=>{const id=params.get('record');if(!/^[a-zA-Z0-9_-]{1,128}$/.test(id||''))return;if(view==='applications'&&can('applications.review'))return openApplication(id,params.get('tab')||'application',false);if(view==='accounts'&&can('accounts.support'))return openAccount(params.get('source')==='hhaexchange'?{source:'hhaexchange',hhaId:id}:{source:'portal',uid:id},params.get('tab')||'overview',false);},refresh:refreshApplications, browse:() => { if (can('accounts.support') && !results.childElementCount) search(); }};
+  window.WorkforcePersonnel = {cancelRecordRequests:()=>{applicationSelection++;accountSelection++;},closeRecord:view=>{applicationSelection++;accountSelection++;(view==='applications'?detail:accountDetail).replaceChildren();},openRoute:async(view,params)=>{const id=params.get('record');if(!/^[a-zA-Z0-9_-]{1,128}$/.test(id||''))return;if(view==='applications'&&can('applications.review'))return openApplication(id,params.get('tab')||'application',false);if(view==='accounts'&&can('accounts.support'))return openAccount(params.get('source')==='hhaexchange'?{source:'hhaexchange',hhaId:id}:{source:'portal',uid:id},params.get('tab')||'employment',false);},refresh:refreshApplications, browse:() => { if (can('accounts.support') && !results.childElementCount) search(); }};
   document.addEventListener('workforce-session-cleared', () => { moreCaregivers.hidden = true; nextCaregiverPage = null; });
   el('caregiver-account-search').onsubmit = event => { event.preventDefault(); if(event.currentTarget.reportValidity())return search(); };
   el('caregiver-account-name').oninput = event => { clearTimeout(searchTimer); accountSelection++; results.replaceChildren(); accountDetail.replaceChildren(); moreCaregivers.hidden=true; accountMessage.textContent=''; if(!event.isComposing)searchTimer=setTimeout(search,300); };
