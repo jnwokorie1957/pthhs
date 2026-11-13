@@ -1,1274 +1,276 @@
-# PTHHS
-
-November 13 UTC production-source checkpoint: PR27 reconciles the approved
-caregiver releases with current Primetime source. The Hosting-only release
-preserves Caregiver Portal, the 35-URL sitemap, retired-route noindex fallbacks
-and private application controls. Both quality and required release jobs pass;
-35 public pages and 30 key assets match Git. Functions and deployed settings
-were not changed. [Source and production evidence](docs/workforce/SOURCE_RECONCILIATION_2026-11-13.md).
-
-## Administrator visit-maintenance workspace
-
-November 11 HHA support confirms that its API does not link existing caregiver
-calls to visits. Confirmation methods do not provide that function. The
-[technical response and next actions](docs/management-layer/evv-maintenance-resources/HHA_TECHNICAL_RESPONSE_2026-11-11.txt)
-separate this capability limit from unresolved reason lookup and source-time
-questions. CSM guidance is required for contractual browser-assistance questions.
-Primetime source submission remains disabled; current protected acceptance needs
-the existing administrator sign-in restored.
-
-The November 5 signed-in HHA comparison identified the source gap: the selected visit had
-28 reasons and five actions, but their IDs differed from the generic reference
-lists. Its exact UI visit passed API identity checks and returned zero
-visit-specific reasons. [Evidence and narrowed HHA questions](docs/management-layer/HHA_VISIT_REASON_CATALOG_COMPARISON_2026-11-05.md)
-keep source confirmation open. That dated HHA UI access does not establish the
-current Primetime session or broader browser-operation authority.
-
-The compact November 5 update shows one selected person-search form and folds
-34 optional workflow sections. Three live HHA reference catalogs return 28 schedule/billing edit
-reasons, 22 missed reasons and 17 missed actions. They remain separate from the
-empty tested visit-specific catalog and cannot authorize confirmation. Existing
-administrator read preferences now total 21; source writes remain gated.
-See [compact layout, live catalogs and acceptance](docs/management-layer/COMPACT_WORKSPACE_AND_REASON_CATALOGS_2026-11-05.md).
-
-Cached visits now offer a fresh patient/day HHA read. Production returned the exact
-source row and accepted a neutral private office-review note with its source receipt
-and audit history, retaining existing case status. This does not confirm a visit in HHA.
-
-November 5 range-search update: inclusive From/To dates (up to 366 days), separate
-patient/member and caregiver names/codes, live office contracts, bill-to payer
-filtering and actionable visit rows are deployed. The owner approved and saved
-five scoped read methods, preserving the previous thirteen. Production checked
-14/14 visits for one fourteen-day patient query and independently verified matching
-and nonmatching payer filters. The tested reason read returns no choices; real-code
-staging and HHA confirmation remain open. See [current acceptance](docs/management-layer/MAINTENANCE_RANGE_SEARCH_2026-11-05.md).
-
-The working `/primetime#maintenance` implementation brings the office/day visit
-queue, original times, saved office cases, genuine scoped caregiver call events,
-proposals, follow-up queues and private text reports together. Production save,
-call receipt, report download and full-reload checks pass; 755 backend / 545
-frontend/tooling tests and all four release jobs pass. Office reviews are local; HHA
-confirmation/clock writes and individual staff accounts remain gated. See
-[implementation, limits and acceptance](docs/management-layer/VISIT_MAINTENANCE_WORKSPACE_2026-11-05.md).
-
-## Standing product priority: visit maintenance first
-
-The owner wants Primetime to reduce daily visit-maintenance work: shared office
-overview, actual caregiver calls/attempts, reason codes, supported confirmation
-and correction actions, and clear staff reports explaining resolved and
-unresolved cases. Individual staff, supervisor and office-manager views should
-share these records with scoped permissions. A later pilot of approximately 25
-clients should lead from recommendations to approved, limited automation using
-actual caregiver events. The owned scheduling platform follows reliable daily
-maintenance. These are requirements, not enabled write access or a started pilot.
-See the [accepted direction, delivery order and source dependencies](docs/management-layer/EVV_MAINTENANCE_PRODUCT_DIRECTION.txt).
-
-The [maintenance resource pack](docs/management-layer/evv-maintenance-resources/README.md)
-now maps all six implementation tasks to checked vendor/state/Firebase references,
-existing source modules, a twelve-operation SOAP comparison, prepared vendor
-questions and a pilot/report kit. Seven reference PDFs and the live public WSDL
-were retrieved privately. Resource collection does not enable confirmation,
-staff accounts or a pilot; those implementation and source acceptance tasks remain.
-
-## November 5 live office-day Overview acceptance
-
-Overview uses a protected, persistent HHA API collector for every returned visit
-in the selected office and day. Production November 5 returned639 unique visits:
-all 639 details and receipts were readable, with zero unavailable details. All six
-field charts, pair/assignment/gap totals, EVV rows and time-bar geometry reconcile.
-Completed results survive reload, date changes and independent Preview paging;
-the next background scan retains the complete result and its source fetch range.
-All 657 backend / 537 frontend-contract checks and all four normal release jobs pass.
-O03's returned-ID coverage is accepted. Source-limited full scans take batches
-(about 36 minutes in this observation), not one minute for every visit. Broader
-vendor census, clinical/EVV interpretation and keyboard/assistive-technology
-acceptance remain separate. See [production evidence and limits](docs/management-layer/OFFICE_DAY_SERVER_CACHE_2026-11-05.md).
-
-## November 5 attachment Save-context guard release
-
-Guard 384c2a72 refuses stale read contexts before and after Save confirmation and
-cleans up temporary object URLs. Its release passed; the dated release record
-reports 536 aggregate tests and 13 exact served files. Upstream attachment
-retrieval, actual device saving and native/keyboard/assistive-technology acceptance
-remain open. See [evidence and limits](docs/management-layer/PATIENT_DOCUMENT_READINESS_2026-11-02.md).
-
-## November 3 caregiver availability readiness
-
-Weekly and special availability reads now require fresh caregiver-office proof
-before and after retrieval, exact row identities and unchanged release/settings.
-Strict projection preserves empty/unknown/zero source fields without inferring
-eligible staff, worked time or EVV punches. All 641 backend and 383 browser/tooling
-checks pass within the original asset budgets. The two reads remain disabled;
-normal release, native readiness, specific owner approval and actual source
-acceptance are pending. See
-[scope](docs/management-layer/CAREGIVER_AVAILABILITY_READINESS_2026-11-03.md).
-
-## November 3 independent source acceptance
-
-Visit review's private office follow-up and supervisory/orientation collections
-both load successfully in production and return empty current pages. Their exact
-anonymous routes retain HTTP 401/no-store/noindex protections; no record was written.
-See [local read acceptance](docs/management-layer/LOCAL_RECORDS_ACCEPTANCE_2026-11-03.md).
-
-Independent signed-in Google Analytics reports now match PTHHS and Ride Primetime
-session totals, engagement rates at displayed precision, all returned channel
-session counts, page-view/active-user totals and returned page rows for October 5
-through November 1. Both sites' daily views/sessions and absent contact-event rows
-also match. Comparisons use the exact property, complete-day period and configured
-hostname set. No private traffic values are published. Broader analytics quality,
-freshness/failure variants, session-duration and realtime source comparison remain
-open; see [comparison evidence](docs/management-layer/ANALYTICS_INDEPENDENT_COMPARISON_2026-11-03.md).
-
-## November 2 patient-document source readiness
-
-Patient file reads now require fresh patient-office and document membership proof.
-The parser preserves unknown sizes without rejecting valid bounded attachments;
-changed metadata and invalid sizes still refuse output. Metadata selects the exact
-file for an explicit read, with device saving separate. Full615backend/383browser-
-tooling+public analytics guard checks pass within original asset budgets. Initial
-normal release and native readiness pass. The owner approved onlythe2file reads;
-exact13total and other preferences are preserved. The first actual metadata read
-was refused because the strict parser omitted standard BaseResponse Result.
-FullSOAP regressions reproduce it; the correction passes all621backend tests.
-The correction passed all3normaljobs and native metadata retrieval now succeeds
-for eleven bounded patient contexts (eight empty/three nonempty, four metadata
-entries). Three distinct source-identified document downloads fail upstream, with
-no attachment released. Runtime d4ae367 passes all three normal release jobs and
-624 backend tests; twelve production assets and eleven anonymous private-route
-checks pass. The latest actual refusal is HTTP400/application/vendor-310, with
-an unclassified closed reason hint; its meaning remains unproven. Private lookup
-inputs are cleared and the office-today automatic API feed is restored. The owner
-confirms a working file is open in Chrome, but its tab is not exposed by the
-connected profile; exact-file comparison awaits that connection. No file is accepted.
-Clinical form/version/signature/sharing and wider source coverage remain open. See
-[scope](docs/management-layer/PATIENT_DOCUMENT_READINESS_2026-11-02.md).
-
-## November 2 care-plan source readiness
-
-The administrator care-plan reader now requires fresh patient-office proof and
-exact plan/patient identity. Direct source paths fix task/category-name confusion;
-unknown, empty and partial task definitions remain distinct. All597backend/
-381browser-tooling+public analytics guard/46analytics-backend checks pass; original
-asset budgets are preserved. All three normal jobs and native input/gate readiness
-pass. The two additional read grants and actual source retrieval are pending. T04/document/clinical-role work
-remains open. See [scope](docs/management-layer/PATIENT_CARE_PLAN_READINESS_2026-11-02.md).
-
-## November 2 saved API read receipts
-
-HHA Integration now has a protected per-method receipt view: latest outcome,
-last success and single-response row/truncation evidence for current preferences.
-Refreshing it reads Primetime storage without querying HHA. The reference badge
-is labelled separately; empty success and missing current receipts are distinct.
-All583backend/379browser-tooling/46analytics checks pass within original budgets.
-All three normal release jobs and public boundaries pass. Native receipts include
-three ordinary feed sources and one successful empty billed search; reload
-persistence, Demo clearing/Live restoration and desktop layout pass. Today’s
-automatic feed is restored. Missing source values, unobserved methods and complete-
-office coverage remain open. See
-[scope](docs/management-layer/READ_SOURCE_HEALTH_2026-11-02.md).
-
-## November 2 return to fetched patient authorizations
-
-Administrators can return from an exact authorization detail to the original
-fetched list and receipt without another source request. Patient, office, session
-and Demo fences preserve the source context. All normal release jobs and bounded
-signed-in checks pass; Live office-today Overview/feed was restored. This closes
-the navigation improvement, not missing-time, billing or authorization-unit gaps.
-See [verification](docs/management-layer/PATIENT_AUTHORIZATION_RETURN_2026-11-02.md).
-
-
-## November 2 patient-scoped billed discovery readiness
-
-SearchBilledVisits now requires the selected patient/day/office instead of ignoring
-the patient selector. Fresh patient-office proof and strict direct response fields
-precede disclosure. Four fail-before regressions and575backend/373browser-tooling
-tests pass. All three normal release jobs and public boundaries pass; fresh
-signed-in input metadata now exposes the patient selector. The owner approved
-SearchBilledVisits; saved/reloaded eleven reads retain the old ten and zero write
-grants. A real scoped October24 search completed with zero records. This accepts
-the honest empty-result connection; usable billing detail and returned-row/source
-coverage evidence remain open. No missing EVV time is claimed.
-See [bounded scope](docs/management-layer/BILLED_DISCOVERY_2026-11-02.md).
-
-## November 2 EVV source types in Preview and Review
-
-Both views now show the raw in/out type fields already supplied by the approved
-HHA reader. Empty clock times and hours remain unchanged; types do not establish
-event status. All tests and normal release jobs passed. Exact October 23/24 and
-current-day comparisons, Demo clearing, chart counts and automatic feed advance
-pass. This completes the bounded P12 display connection; missing-time/history
-and billing source gaps remain open. See
-[verification](docs/management-layer/EVV_TYPE_DISPLAY_2026-11-02.md).
-
-## November 2 EVV source metadata and read admission
-
-The existing V3 inspector now exposes both raw EVV type fields. Production checks
-matched an affected visit with an empty out-type/end and a contrasting visit with
-both types/endpoints supplied. No missing clock or hour was manufactured.
-See [bounded acceptance](docs/management-layer/EVV_SOURCE_TYPES_2026-11-02.md).
-The [read-admission correction](docs/management-layer/SOURCE_READ_BUDGET_HANDLING_2026-11-02.md)
-preserves trusted retry cursors and avoids converting a local quota into a vendor
-hold. All570backend/371browser-tooling checks, three normal release jobs, deployed
-assets/private boundaries and ordinary native patient/EVV reads pass. Current-day
-automatic source feed is restored. Existing limits, vendor holds, write gates and
-asset budgets are unchanged; missing source endpoints and broader coverage stay open.
-
-## November 2 patient authorization workbench
-
-Open patient authorizations now opens the existing approved source reader inside
-Patient workbench, with exact patient/office/contract selection and separate
-discovery/detail receipts. Patient changes and Demo clear old facts; unrelated
-settings messages preserve the read status. Six new checks, 370 frontend/tooling,
-563 backend and 46 analytics tests pass. Final fcbe699 passed all normal jobs;
-native production checks match 13 discovery rows and all 14 detail fields to baseline
-and verify context clearing/restoration. Live Overview is restored. T05 is
-accepted within these bounds; raw units and external-role contracts remain open.
-See [scope and evidence](docs/management-layer/PATIENT_AUTHORIZATION_PANE_2026-11-02.md).
-
-## November 2 billing compatibility activation
-
-The owner explicitly approved the read-only legacy billing method. Saved and
-reloaded controls retain the original nine reads plus GetVisitBillInfo, with
-zero source-write grants. One same-visit production trial reached the legacy
-method after an empty V2 response: HTTP200/success, but no billing record. B02
-remains open for usable source detail. The automatic current-day feed advanced
-from16:07:07.853 to16:12:09.588UTC without a manual source read between.
-See [scope and evidence](docs/management-layer/LEGACY_BILLING_READ_READINESS_2026-11-02.md).
-
-## November 2 exact visit time-field projection
-
-The approved V3 read now preserves explicit empty time/hour fields and zero
-values at their exact source paths, while withholding nested or ambiguous
-evidence. Three new checks plus559backend/258relevant browser checks pass.
-Runtime afc4f4a passed all normal jobs and native source/Preview/Review checks:
-supplied values are unchanged; empty HHA hours display explicitly. No missing
-clock-out or worked duration was recovered. October23/24 and current-day
-comparisons pass; the current live feed/chart counts and advancing receipts
-match. P03/E04 and full source interpretation remain open. See
-[scope](docs/management-layer/VISIT_TIME_FIELD_PROJECTION_2026-11-02.md).
-
-## November 2 role and workflow research
-
-Current primary guidance and accepted authorization/staff source connections now
-support a more specific next administrator feature: a patient/office authorization
-pane using the existing approved reads, exact discovered identities and independent
-receipts. Raw units and periods, staff discipline, effective assignment and clinical
-form instances remain separate evidence. The research records role permissions,
-shared links and acceptance cases without reopening accepted T03/S04 activation or
-claiming external-role completion. Actual review was 13:21–13:28 UTC; earlier native
-checks remain dated. See [research](docs/management-layer/ROLE_WORKFLOW_RESEARCH.txt).
-No runtime or access setting changed.
-
-## November 2 staff employment disciplines
-
-Staffing now retains the employment disciplines already returned by its approved
-caregiver read, with current office proof and separate receipts. Missing, empty
-and supplied lists remain distinct; the field does not establish therapist
-qualification, assignment eligibility or availability. Four regressions fail
-before and pass after; 553 backend/361 frontend-tooling/46 analytics checks and
-full release checks pass. Runtime 8a340f2 passed all three normal jobs, public
-asset/authentication checks and native same-caregiver value/receipt/Clear checks.
-The live Overview is restored. A follow-up labels unproved lists unavailable
-rather than implying a source omission; its regression and all 362 frontend
-checks pass. Corrected b583d35 passed all release jobs, public boundaries and
-native protected profile recheck. Broader staff availability and role contracts
-remain open.
-See [scope](docs/management-layer/STAFF_EMPLOYMENT_DISCIPLINES_2026-11-02.md).
-
-## Authorization detail source connection
-
-After explicit owner approval, only GetPatientAuthorizationInfo was added to the
-existing eight reads. Fresh discovery and an exact selection returned a 14-field
-detail record with matching patient, authorization and contract identities.
-Source unit values remain raw; no remaining-hour or eligibility inference is made.
-Patient input clearing removes fields/receipt, and fresh selection restores them.
-Identity guards,549backend checks and all normal release jobs pass. See
-[scope](docs/management-layer/AUTHORIZATION_READ_READINESS_2026-11-02.md).
-
-## November 2 original/split source references
-
-The approved GetVisitInfoV3 read now preserves OriginalVisitID and SplitVisitID
-in Advanced tools. These raw references were previously omitted. They are not
-automatically followed or used to fill missing times; cross-record linkage and
-office/date/identity proof remain separate. Two regressions fail before and pass
-after; 551 combined backend tests pass. Runtime f2166df passed all three normal
-release jobs, public checks and native exact-record checks on three dates.
-Those references supplied no distinct alternate record or recovered punch;
-broader time/history gaps remain open.
-See [scope](docs/management-layer/VISIT_SOURCE_REFERENCES_2026-11-02.md).
-
-## November 2 UTC actual-hour source separation
-
-HHA ActualHours now displays only the supplied field. Calculated written-clock
-spans remain beside the recorded clock pair in Preview and Visit review. The
-November 1 historical comparison matched the exact original October 24 HHA visit:
-recorded endpoints were supplied, while original EVV-out text and duration
-displays remained unavailable. Three regressions fail before and pass after;
-359 frontend checks and asset budgets pass. The strict Hosting byte check was
-preserved; insignificant indentation removal restores the existing budget.
-Corrected 372b2cf passed all three normal release jobs. Production assets,
-authentication, noindex and native Preview/Review checks passed, including
-October 23/current-day separation. The inspected original EVV end remains
-unavailable; broader source coverage is open.
-See [scope](docs/management-layer/ACTUAL_HOURS_SOURCE_SEPARATION_2026-11-02.md).
-
-## November 1 visit billed amount connection
-
-Billing & AR now retains and displays the BilledAmount already supplied by the
-verified GetVisitInfoV3 page. The separate detailed-billing read remains distinct;
-its empty response does not erase this available visit field. No totals, currency,
-payments or AR are inferred. Two regressions fail before/pass after;
-356frontend/tooling and46analytics tests plus full release checks pass. All three
-normal deployment jobs pass; production shows eight supplied amounts on the
-October24 page and the exact checked value matches its API source. Clear removes
-the amount and detailed-result state. A historical source comparison also
-confirms recorded visit ends and EVV ends remain separate; no EVV end was
-recovered. See [scope](docs/management-layer/VISIT_BILLED_AMOUNT_2026-11-01.md).
-
-## November 1 rejected-call source diagnosis
-
-The existing call-subject refusal now records only fixed identity-state categories
-after rechecking current office access. This distinguishes unavailable/invalid
-source proof, a different subject and a noncanonical matching integer without
-returning rejected records or accepting an identity fallback. Deployed9b61103
-found invalid patient proof and a matching caregiver. The separately deployed
-AdmissionID comparison found that reference unavailable in the first rejected
-call record.543backend tests and both normal releases pass; no clock was recovered.
-The later whole-response check below resolves this response's row coverage;
-retained history and source linkage remain open. See
-[scope](docs/management-layer/CALL_SUBJECT_DIAGNOSTICS_2026-11-01.md).
-
-Whole-response diagnostic counts now distinguish per-row target clocks, date-only
-and missing-time values from unproved identity/date rows. Counts are bounded and
-do not expose or accept any rejected record.545backend tests and all three normal
-release jobs pass. Production returned one subject-unproved row, no target rows
-and sourceTruncated false. No partial reader is justified by this response.
-
-The authorized original HHA Calendar now confirms the exact API visit, patient
-and office. A fresh GetVisitInfoV3 read matches its labeled Bill Time In and EVV
-Clock In; the original Bill Time Out is empty and both API end fields are
-unavailable. This current-day comparison recovers no end time and proves no
-historical absence. Existing saved sign-in worked; no additional access grant
-or manual import was needed. Details and remaining checks are in the same scope.
-
-## November 1 office-alert source connection
-
-Messages now checks the existing protected Primetime status/outbox reader instead
-of displaying a permanent disconnected placeholder. History gates, empty pages,
-provider acceptance, delivery and office acknowledgement remain separate. Opening
-this tab does not read HHA visits, enable messaging or send anything. Three new
-regressions fail before/pass after; all three release jobs pass. Native production
-shows the actual closed history/delivery gates, supports refresh and separates
-Demo. Populated history and provider delivery remain unverified; see
-[scope](docs/management-layer/MESSAGES_SOURCE_CONNECTION_2026-11-01.md).
-
-## November 1 call-review context
-
-Call review now shows its selected visit context and exact patient/caregiver/
-office/day filters separately from unlinked source events. Independent call-read
-and office-check receipts remain distinct; ambiguous receipt timestamps fail
-validation. Three regressions fail before/pass after;351frontend checks pass.
-All three release jobs passed; native empty-result context/receipt/Clear checks
-passed. One other source context failed subject verification and stays an E04
-follow-up. See
-[scope](docs/management-layer/CALL_REVIEW_CONTEXT_2026-11-01.md).
-
-
-## November 1 visit source recovery
-
-Network/timeouts and selected gateway failures in the three approved visit reads
-now preserve the existing explicit, scoped recovery path. Empty fields, access
-refusals and source faults stay distinct; no additional source attempt or access
-is enabled. Local539backend/347frontend checks and all three normal release jobs pass.
-Native current/historical reads, a real source delay and automatic receipts were
-checked; chart counts match the source table. Network variants remain synthetic. See [scope](docs/management-layer/VISIT_SOURCE_RECOVERY_2026-11-01.md).
-
-
-November1 deployed realtime diagnostics identified a strict metric-header
-rejection on Ride while historical data succeeded. A bounded correction now
-recognizes only Google's typed empty-report envelope and displays No source rows
-instead of a connection failure; it never creates a zero count.46source tests
-pass. Release153c75e passed all three normal jobs and native source checks:
-PTHHS returned a realtime value; Ride's actual response matched the strict empty
-predicate while historical rows stayed available. This closes bounded GA04 in the
-[connection checklist](docs/management-layer/PRIMETIME_LIVE_DATA_CHECKLIST.txt).
-
-November1 native PTHHS historical reports now contain source rows. Its plotted
-values match the daily table, and the rendered views/sessions match daily sums;
-independent Google UI/source comparison remains open. Its earlier realtime
-failure was diagnosed and the guarded correction verified above. The older open
-analytics client was reloaded to the deployed report contract. See the
-[connection checklist](docs/management-layer/PRIMETIME_LIVE_DATA_CHECKLIST.txt).
-
-October31,22:37UTC role research keeps raw call attempts, visit association,
-confirmation evidence and clinical document review separate. Three new primary
-sources and rechecked clinical guidance refine proposed patient/staff/PT/office
-links and acceptance. Current connections and source/role dependencies remain
-accurately bounded; no runtime or grant changed. See the dated
-[research](docs/management-layer/ROLE_WORKFLOW_RESEARCH.txt).
-
-October 31 visit read receipts now distinguish search, individual detail and
-patient-office checks in the existing record disclosures. No extra source read
-or operational interpretation is added. All 535 backend/343 frontend-tooling
-tests, both normal release jobs and production cache/historical receipt checks
-passed. Source Clear removed the receipt display. See
-[scope](docs/management-layer/VISIT_READ_RECEIPTS_2026-10-31.md).
-
-October31 analytics source-contract implementation keeps empty reports separate
-from zero, preserves quality/coverage, requests explicit reporting-calendar dates
-and filters realtime to each configured web stream. Three regressions fail before
-and pass after;40adapter/query and347frontend/tooling tests pass after preserving
-the concurrent visit-receipt change and its535backend tests. The existing
-independent codebase passed its new normal push gate, alongside Hosting and HHA.
-Native reads now verify both sites' empty historical reports and selected-stream
-realtime counts, with their actual source timezones. No Google grant was
-submitted; the prepared grant is superseded. Populated historical calculations
-and quality variants remain open. See
-[scope](docs/management-layer/ANALYTICS_SOURCE_CONTRACT_2026-10-31.md).
-
-October31,20:36UTC read-only console checks established the analytics runtime
-identity, confirmed its project's Data API is enabled, and found the actual
-Google403 insufficient-property-permissions error. That earlier failure is
-superseded by successful native reads after the release above; its cause of
-resolution is unknown. No permission was changed by this agent. Broader source
-acceptance remains open. See
-[access evidence](docs/analytics-setup-2026-10-31.md#runtime-access-diagnosis) and
-GA01/GA03 in the
-[connection checklist](docs/management-layer/PRIMETIME_LIVE_DATA_CHECKLIST.txt).
-
-October 31 rounded actual-hour mapping now preserves HHA ActualHoursRounded
-separately in Review and Preview/feed. It never fills actual or EVV clocks or
-changes financial/clinical interpretation. All 534 backend/333 frontend-tooling
-tests pass. Both normal release jobs and native same-identity Review/Preview
-checks passed; a real cooldown retry recovered two deferred historical details.
-Genuine original EVV omissions remain open. See
-[scope](docs/management-layer/ROUNDED_SOURCE_HOURS_2026-10-31.md).
-
-October 31 analytics validation clears older metrics after failed reads, keeps
-invalid values separate from zero, plots returned dates and respects Demo and
-receipt freshness. Eight regressions cover the new behavior;202data-mode and
-341frontend/tooling tests plus Windows checks and both normal release jobs pass
-on the combined tree. Native unavailable-report and direct Demo/Live states are
-verified; actual Google reporting access and populated-report acceptance remain
-open. See
-[scope](docs/management-layer/ANALYTICS_REPORT_VALIDATION_2026-10-31.md).
-
-October 31 deferred-source recovery: Overview, Visit Preview and EVV can resume
-details deferred by source/time limits without skipping them via Next page.
-Source delays are honored, including a second quota response on the retry.
-Missing returned clock fields remain separate. 533 backend/332 frontend-tooling
-tests, Windows checks and both normal release jobs passed. Native October24
-returned two disjoint10-detail pages; October23 returned 10readable details after
-clearing prior-day rows. Exact delay recovery remains regression-tested rather
-than induced in production. See O02 and the new analytics-source audit in the
-[live-data checklist](docs/management-layer/PRIMETIME_LIVE_DATA_CHECKLIST.txt).
-
-October 31 EVV source call events: administrators can inspect a bounded HHA
-response for the selected visit's patient, caregiver, office and day. The human
-approved the read and three historical requests returned successful empty
-results. Missing original EVV ends remain open; event times never replace them.
-Normal release, 530 backend/324 frontend-tooling tests and responsive checks
-passed. See E03/E04 in the
-[live-data checklist](docs/management-layer/PRIMETIME_LIVE_DATA_CHECKLIST.txt).
-
-October 31, 16:18 UTC role research separates recurring plans, current source
-schedules, proposed requests and recorded/EVV hours. Two new primary sources
-refine source-history and role-link acceptance without inferring rounding,
-confirmation or billing decisions. Current Forms release/native evidence is
-retained; source/B02/P1-B/P2 contracts stay open. See the dated
-[research](docs/management-layer/ROLE_WORKFLOW_RESEARCH.txt); runtime is unchanged.
-
-October 31 Forms file-list validation: the entire returned page must match the
-selected folder and stored-file metadata contract before rows or Download
-controls appear. Invalid pages leave a clear reload message and no partial list.
-Both regressions failed before the correction; all 15 Forms and 319 frontend/
-tooling tests pass. See [scope](docs/management-layer/FORMS_LIST_VALIDATION_2026-10-31.md).
-
-October 30 local / October 31 UTC role research separates selected-patient,
-mobile-information and clinical-document grants from scheduled assignment. Two
-new primary references and rechecked family/document guidance support proposed
-caseload, document-history and origin-specific action links. Existing source and
-role contracts remain open. See [research](docs/management-layer/ROLE_WORKFLOW_RESEARCH.txt).
-
-October 30 local / October 31 UTC Visit review distinguishes unread source details
-from missing fields in a returned record. Cards and detail times/hours say
-“Source detail unavailable” when no source record returned; returned raw fields,
-zero hours and pending interpretation remain distinct. The regression reproduced
-the old wording; all 317 frontend/tooling tests pass. See
-[scope](docs/management-layer/REVIEW_UNAVAILABLE_DETAILS_2026-10-31.md).
-
-October 30 local / October 31 UTC role research separates authorization
-quantities and periods, duty-list POCs, clinician forms and billing prerequisites
-across proposed patient, staff/PT and office views. Three new primary references
-and a rechecked provider POC guide inform exact plan-origin, unit/period and
-role/action acceptance. Existing source/B02/P1-B/P2 contracts remain open. See
-[research](docs/management-layer/ROLE_WORKFLOW_RESEARCH.txt); no runtime change.
-
-October 29 Visit Preview now labels unreadable time/hour cells “Detail unavailable,”
-keeping them distinct from fields omitted by a readable source record. Supplied
-zero hours and genuine missing values remain intact. The expanded regression and
-all 315 frontend/tooling tests pass. See [scope](docs/management-layer/PREVIEW_UNAVAILABLE_FIELDS_2026-10-29.md).
-
-October 29, 18:55 UTC role research reconciles bounded Review/Preview comparisons,
-partial-page denominators and automatic refresh with proposed patient, staff/PT
-and office links. Four primary references rechecked; independent receipts and
-source/B02/P1-B/P2 contracts remain explicit. See
-[research](docs/management-layer/ROLE_WORKFLOW_RESEARCH.txt).
-
-October 29, 15:28 UTC role research connects the released empty-source explanation
-to proposed patient schedule/shared-file/invoice sections, staff/PT caseload and
-documentation, and office follow-up. Empty results, absent fields, independent
-receipts and role grants stay distinct. Seven primary sources rechecked; usable
-billing facts and existing source/P1-B/P2 contracts remain open. See the dated
-[research](docs/management-layer/ROLE_WORKFLOW_RESEARCH.txt); no runtime change.
-
-October 29 related-source empty results: Billing and caregiver panels now explain
-when their read returned no record, while keeping facts and prior actions clear.
-An empty billing read does not mean zero charges or payment. All 315 frontend/
-tooling and 525 backend tests pass; broader source/billing acceptance remains
-open. Next: protected same-record billing diagnostics and existing source/role
-contracts. See [scope](docs/management-layer/EMPTY_RELATED_READS_2026-10-29.md).
-
-October 28, 17:07 UTC role research reconciles the accepted bounded caregiver
-profile and Forms folder-loading correction with proposed patient requests,
-staff/PT caseload documents and office rosters/exports. Navigation alone does not
-cancel an accepted server operation; accessible-patient and loaded-visit coverage stay
-separate. Billing and existing P1-B/P2 contracts remain open. See the dated
-[research](docs/management-layer/ROLE_WORKFLOW_RESEARCH.txt); runtime is unchanged.
-
-October 28 Forms folder loading: a queued folder change now releases its former
-busy state so Load files can work in the new folder. Late list/download/upload
-work cannot overwrite or unlock the replacement. All 13 Forms and 314 frontend/
-tooling tests pass; the Forms suite is now included in the normal release gate.
-Exact queued-event coverage is synthetic. Next: protected billing diagnostics
-and existing source/role/form contracts. See [verification](docs/management-layer/FORMS_FOLDER_LOADING_2026-10-28.md).
-
-October 28 live-source verification passed bounded chart/field, Next/Previous,
-current patient/caregiver identity and automatic receipt-advance checks in a
-normally restored session. Billing remained unverified; staff availability and
-full-office/role acceptance stay open. No source permission or runtime change.
-See [scope](docs/management-layer/LIVE_SOURCE_ACCEPTANCE_2026-10-28.md).
-
-October 28 family first-call checklist published with the approved AI CTO credit,
-Organization publisher, two published article cards and 30-URL sitemap. Independent
-review, 16 article tests and aggregate checks passed. Release `add4b6e` succeeded;
-ordinary public article/index/guide/sitemap bytes matched at 13:13:42 UTC.
-See [release evidence](docs/seo/2026-10-28-family-checklist.md). The 16:27 UTC
-follow-up accepted bounded desktop/mobile keyboard navigation and article reading;
-assistive-technology conformance and search outcomes remain unverified. Fresh
-135-route/30-URL delivery checks passed, and current planning counts are aligned.
-Next SEO work remains matched-window query intent/outcomes and actual location
-availability evidence. See [follow-up](docs/seo/2026-10-28-seo-review.md#october-28-1627-utc-follow-up).
-
-October 28 UTC SEO review passed fresh public delivery and private response
-checks. Normal Chrome Search Console access works; sitemap/field observations
-remain dated and limited. Planning now preserves the 29-URL published inventory
-and the approved Articles experience. Runtime and business claims are unchanged.
-See [review](docs/seo/2026-10-28-seo-review.md).
-
-October 28 UTC role research reconciles the Forms download correction with
-proposed patient, staff/PT and office document actions. Dated primary sources
-separate browser cleanup, server authorization and already-delivered copies;
-existing external-role, sharing and clinical contracts remain open. See
-[research](docs/management-layer/ROLE_WORKFLOW_RESEARCH.txt).
-
-October 28 UTC Forms download controls now belong to the exact loaded library
-page and session. Folder, Demo, sign-out, reload and cursor-page replacements
-make former controls inert before a request or download can begin. All 12 Forms
-and 313 frontend/tooling tests pass; exact lifetime transitions are synthetic
-acceptance. See [verification](docs/management-layer/FORMS_DOWNLOAD_ACTIONS_2026-10-28.md).
-
-October 27 Articles browser review: desktop keyboard and 390-pixel menu/article/
-guide navigation passed in Chrome, with no observed horizontal overflow. A
-duplicated publisher period was corrected; approved prose, dates and citations
-are unchanged. Existing article and release validators pass. Screen-reader and
-search-outcome acceptance remain separate. See [review](docs/seo/2026-10-27-articles-browser-review.md).
-
-October 27 20:02 UTC role research records current-receipt navigation checks,
-separate caregiver-document and family-invoice rights, and proposed bounded
-document review/export lifetimes. Current source code and synthetic acceptance
-remain distinct from external-role and clinical/financial completion. See
-[research](docs/management-layer/ROLE_WORKFLOW_RESEARCH.txt).
-
-October 27 patient profile navigation: related-record controls now belong to
-their exact profile request. Refreshing or selecting another patient immediately
-invalidates old controls, including after a failed replacement. The regression
-reproduced the gap; all 310 frontend/tooling tests pass. No extra source reads.
-See [verification](docs/management-layer/PATIENT_PROFILE_ACTIONS_2026-10-27.md).
-
-October 27 Articles navigation released: the published-only `/articles` index and
-shared desktop/mobile Articles link preserve the guide, services and legacy
-quarantine. Commit c4345b3 passed independent review and aggregate checks; release
-40549793411 succeeded. Ordinary public pages matched commit bytes at 17:22 UTC.
-Native browser/assistive-technology acceptance remains unverified. See [release review](docs/seo/2026-10-27-article-navigation.md).
-
-October 27 original article published: the approved company perspective on
-learning from software/AI mistakes preserves non-medical PAS scope and separates
-synthetic testing from operational acceptance. The shared-shell article, guide
-card, 28-route sitemap and source dates are synchronized; legacy posts remain
-quarantined. Commit 44801c8 passed independent review and the aggregate gate;
-release 40539889629 succeeded and ordinary public article/guide/sitemap bytes
-matched at 16:21 UTC. Native browser acceptance remains unverified. See [article review](docs/seo/2026-10-27-original-article.md).
-
-October 27 billing record navigation: related-source controls use the caregiver
-identity in the newly verified response, never the older visit-page identity.
-Missing or invalid current IDs withhold the caregiver link. Superseded receipt
-controls cannot navigate during or after a replacement read. Synthetic regression
-coverage is separate from authenticated acceptance; read settings are unchanged.
-Independent review and all 181 data-mode tests passed.
-Commit af9e1c2 passed all 287 frontend/tooling tests and the aggregate release gate.
-Automatic release [40534074546](https://github.com/jnwokorie1957/pthhs/actions/runs/40534074546)
-completed Hosting and backend jobs successfully on October 27 at 15:46 UTC.
-Query-free production dashboard.js and index.html matched the exact commit bytes
-at 15:47:52 UTC. Authenticated source acceptance remains pending; no source reads
-were enabled or performed for this change.
-
-October 26 resource navigation: six official-resource links now name their
-destinations visibly, retaining URLs, descriptions and new-tab notices. The
-generator and navigation regressions preserve this contract. Independent review
-and navigation checks, including seven negative fixtures, passed. This improves
-link clarity; no ranking gain or native assistive-technology acceptance is claimed.
-Commit 63a67b3 passed 280 frontend/tooling tests and the aggregate release gate.
-Both [normal release jobs](https://github.com/jnwokorie1957/pthhs/actions/runs/40348822055)
-passed October 26 by 15:24 UTC; served Resources bytes matched the Git blob,
-and public dashboard/index hashes remained unchanged.
-
-October 25 explicit Pause regression coverage: synthetic EVV/Staffing evidence
-stays held after focus moves outside source controls, including pending feed
-success/failure and a detached timer. Resume shows the new receipt and bounded
-page scope; age pause remains independent and context clearing remains active.
-No runtime change. Native navigation, screen-reader orientation/announcements
-and authenticated acceptance remain pending.
-
-October 25 EVV search focus released: automatic feed checks now use the existing
-focus pause while the EVV search field is active, including responses already in
-flight. Synthetic regressions reproduce row replacement before the correction
-and preserve evidence until explicit Resume afterward. Independent review and
-299 frontend/tooling tests and the aggregate release gate passed. Commit b3cd4ad
-passed both [release jobs](https://github.com/jnwokorie1957/pthhs/actions/runs/40203346604);
-served dashboard/index bytes matched at 14:41 UTC. Authenticated EVV typing
-acceptance remains pending; source reads and authorization rules are unchanged.
-
-October 24 21:11 UTC role research reconciles accepted administrator patient,
-EVV/Staffing and Forms connections with proposed family, staff/PT and office
-workflows. Per-source states, timestamps and action permissions remain separate;
-external-role and full-coverage dependencies stay open. See
-[research](docs/management-layer/ROLE_WORKFLOW_RESEARCH.txt).
-
-October 24 source availability display: EVV and Staffing now distinguish failed
-visit-detail reads from fields absent in successfully returned details. The
-mixed-page regression and all 292 frontend/tooling tests pass; both panels reuse
-the existing visit page. See [verification](docs/management-layer/SOURCE_DETAIL_AVAILABILITY_2026-10-24.md).
-
-October 23 SEO and developer-task review: all 132 public routes and seventeen
-served artifacts passed; sitemaps remain successful and field samples remain
-insufficient. Rechecked the historical optional dependency advisory: the current
-lockfiles contain no `uuid`, and npm's Bulk Advisory endpoint returned no
-advisories for their submitted package versions. No dependency or runtime change
-was needed. See [scope and evidence](docs/seo/2026-10-23-seo-review.md).
-
-October 22 13:18 UTC role research connects proposed patient/staff requests and
-office maintenance evidence while keeping clinical, aggregation and billing
-outcomes separate. Typed source associations do not grant code-selection or
-correction authority. See
-[research](docs/management-layer/ROLE_WORKFLOW_RESEARCH.txt).
-
-October 22 reason/action evidence candidate: an additive typed projection retains
-nested action descriptions and repeated reason associations while preserving the
-legacy read fields. The vendor contract gate remains blocked; no live read or
-correction is enabled. See [verification](docs/management-layer/REASON_ACTION_EVIDENCE_2026-10-22.md).
-
-
-October 22 02:22 UTC role research reconciles accepted administrator Forms
-storage with proposed patient, therapist and office document connections. File
-identity, per-encounter records, workflow receipts and sharing remain distinct;
-external-role prerequisites stay open. See
-[research](docs/management-layer/ROLE_WORKFLOW_RESEARCH.txt).
-
-October 22 Forms session initialization accepted: restored-session controls and
-native protected listing passed, alongside nine focused synthetic tests and
-successful normal release jobs. Exact loading-order and context races remain
-synthetic acceptance. See
-[verification](docs/management-layer/FORMS_INITIALIZATION_2026-10-22.md).
-
-October 22 UTC / October 21 local SEO review: public routes/artifacts and private
-indexing/authentication boundaries passed; both sitemaps retain Success and 27
-discovered pages. Field samples remain insufficient. Reconciled the obsolete
-sitemap owner action; public/runtime assets unchanged. See
-[review](docs/seo/2026-10-22-seo-review.md).
-
-October 21 office-today navigation: the administrator can see whether the date
-follows office today or stays selected, and explicitly return to the current
-office-day feed without reloading. Source-only clearing and pending-response
-guards preserve unrelated panels. All 282 frontend/tooling tests, both normal
-release jobs and native date/return/paused-feed/chart checks passed. See
-[verification](docs/management-layer/OFFICE_TODAY_NAVIGATION_2026-10-21.md).
-
-October 21 private Forms library: upload and download screens are connected to
-Firebase Storage for administrators. Both normal release jobs passed; template
-and submission downloads matched uploaded bytes, duplicate retries reused the
-saved file, invalid content was rejected and anonymous access remained blocked.
-See [acceptance](docs/management-layer/FORM_STORAGE_SCREENS_2026-10-21.md).
-
-October 21 23:21 UTC role research: proposed patient, therapist and office screens
-retain exact calendar/record/draft context across automatic updates. Date/focus
-behavior is separate from sharing, assignments and document actions. Current
-administrator continuation is implemented; external-role prerequisites remain.
-See [research](docs/management-layer/ROLE_WORKFLOW_RESEARCH.txt).
-
-October 21 feed continuation: pending responses recheck source focus,
-and the untouched default date follows the office calendar across midnight.
-Explicit date selections remain fixed. Both normal jobs and all 156 affected
-tests passed. Production verified today's source/chart display, keyboard-focus
-pause and explicit resume; midnight and pending-response races remain synthetic.
-See [verification](docs/management-layer/FEED_CONTINUATION_2026-10-21.md).
-Complete source coverage and HHA confirmation gates remain unchanged.
-
-
-October 21 02:32 UTC / October 20 local role research: proposed patient/family,
-therapist and office screens keep source times/hours, accepted interpretation
-and action authority separate. Exact record/context links and unknown values
-remain explicit. The new HHA portal is signed in; original-tenant/same-visit
-scope and external-role prerequisites remain unverified. See
-[research](docs/management-layer/ROLE_WORKFLOW_RESEARCH.txt).
-Concurrent scheduled API-feed/private Storage implementation is preserved;
-its normal jobs passed, with scheduled receipt acceptance tracked separately.
-
-October 20 local visit-display fix: Visit Review shows returned HHA times and
-schedule/actual duration fields independently of diagnosis acceptance. Visit
-Preview retains source hours too. Zero/missing values stay distinct; no clinical
-or billing decision is inferred. Complete time pairs can supply a separately
-labelled clock span when source hours are absent. All 485 backend and 256 frontend/tooling tests
-passed. See [implementation and verification scope](docs/management-layer/VISIT_SOURCE_VALUES_FIX_2026-10-20.md).
-
-October 20 local automatic API-feed implementation: the existing server minute
-worker refreshes the approved current-office/day source page into a private,
-three-minute-limited cache. The dashboard follows it automatically with pause,
-paging and stale-context controls. Backend tests (493), root tooling/frontend
-tests (262) and Windows release checks passed. Both normal jobs passed, and
-production verified server fetches while display updates were paused, a later
-automatic dashboard update, matching charts and scoped paging. The feed is left
-enabled. Private form Storage is provisioned with
-deny-all client rules and anonymous 403 checks. See
-[implementation and limits](docs/management-layer/API_LIVE_FEED_AND_FORM_STORAGE_2026-10-20.md).
-
-October 21 UTC / October 20 local SEO acceptance: seven contextual service links
-on Southwest Houston and Sugar Land are deployed and independently reviewed.
-All seven production Enter destinations, two Tab transitions, public artifact/
-route checks and private boundaries passed. Existing wording/authorization
-qualifiers are unchanged; ranking/traffic effects remain unmeasured. See
-[verification](docs/seo/2026-10-21-contextual-links.md).
-
-**October 20 discovery-parser implementation:** malformed or ambiguous visit-ID
-collections fail explicitly; compatible scalar XML forms remain supported. All
-484 backend tests, 238 frontend tests and the local release gate passed. Both
-normal jobs passed, and October 21 UTC / October 20 local production accepted a
-normal discovery exceeding the former 200-ID projection cap. First/next/return
-detail pages and chart calculations passed; offsets beyond 200 and malformed
-responses remain synthetic checks. No source write or full scan occurred. See
-[discovery acceptance](docs/management-layer/VISIT_DISCOVERY_ACCEPTANCE_2026-10-20.md).
-
-The dashboard retains received SearchVisitsV2 IDs within its SOAP byte bound and
-pages at most ten details under existing time and office checks. Vendor
-completeness and operational totals remain unknown.
-
-## 🚨 START HERE — MANAGEMENT LAYER BUILD
-
-The HHAeXchange / internal-management work is tracked as two live checklists. **Read this checkpoint first, then open the checklist for the person currently working.**
-
-### 👨‍💻 Developer checklist
-
-➡️ **[`docs/management-layer/DEVELOPER_TASKS.md`](docs/management-layer/DEVELOPER_TASKS.md)**
-
-Technical work: `/primetime` backend, HHA SOAP integration, normalized data, sync, EVV engine, messaging, billing/authorization intelligence, staffing logic, deployment, and security.
-
-### 🏥 Owner / Operations checklist
-
-➡️ **[`docs/management-layer/OWNER_OPERATIONS_TASKS.md`](docs/management-layer/OWNER_OPERATIONS_TASKS.md)**
-
-Operational/management decisions: EVV rules, visibility/escalation, correction approval, billing readiness, authorization logic, staffing constraints, compliance, and acceptance testing.
-
----
-
-# 🚦 CURRENT MANAGEMENT-LAYER CHECKPOINT
-
-**October 20 source-status labels:** access checks and terminal unavailable,
-refresh-required and missing-date outcomes now replace prior loading/success
-labels. All 238 frontend tests and the local release gate passed. Authenticated
-access-check, missing-date, retry/paging and pending-clear checks passed in the
-October 21 00:38 UTC heartbeat. Failure/revocation cases remain synthetic;
-source/operational gates are unchanged.
-See [verification](docs/management-layer/SOURCE_STATUS_LABELS_ACCEPTANCE_2026-10-20.md).
-
-**October 20 checklist reconciliation:** stale setup/dependency wording in the
-developer sequence now points to existing October 14 DEV-006/007/009 and storage
-acceptance, with the October 15 release reconciliation. This documentation-only
-correction adds no new runtime acceptance; visit/schedule imports and representative
-source/operational validation remain open. See the
-[developer checklist](docs/management-layer/DEVELOPER_TASKS.md#immediate-developer-sequence).
-
-**October 20 automatic age display control:** a session-only checkbox pauses
-local fetch-age updates across live pages and current-visit evidence. Paused
-values are labeled; resume recalculates from original receipts. Context clearing,
-source values and explicit-read behavior remain unchanged. All 233 frontend
-tests, the local release gate and synthetic keyboard/layout checks passed.
-Both normal jobs and authenticated production pause/hold/resume/minute-tick,
-current-visit, paging/chart and clear checks passed in the 17:16 UTC heartbeat.
-Broader source/operational/role acceptance remains open. See
-[verification](docs/management-layer/AUTOMATIC_AGE_CONTROL_ACCEPTANCE_2026-10-20.md).
-
-**October 20 17:30 UTC role research:** compared shared reading controls and
-action feedback with W3C pause/status guidance. Proposed patient, therapist and
-office screens retain separate display, request/document and source states.
-Existing role/source prerequisites remain open; no runtime or permission changed.
-See [research](docs/management-layer/ROLE_WORKFLOW_RESEARCH.txt).
-
-**October 20 04:22 UTC dashboard heartbeat; accepted October 20:** P1-O adds
-explicit Clear source page controls to both live views. Clearing removes preview
-rows/charts/receipts/age and cursor history, fences pending responses, preserves
-stored imports and waits for an explicit reread. All 227 frontend tests, both
-normal jobs and production clear/pending/idle/first-page/chart checks passed.
-HHA still needs sign-in; no new import occurred. See
-[acceptance](docs/management-layer/SOURCE_PAGE_CLEAR_ACCEPTANCE_2026-10-20.md).
-
-**October 20 02:49 UTC SEO/owner pass, October 19 local:** fresh public SEO checks
-passed and both Search Console sitemaps remain successful; no public copy or
-sitemap date change was supported. Completed P1-N patient care-plan/document
-discovery links under existing administrator gates. All 221 frontend tests, both
-normal jobs and production exact-patient/form/focus/receipt checks passed. Reads
-remain owner-gated; no document/plan fetch or import occurred. See
-[SEO review](docs/seo/2026-10-20-seo-review.md) and
-[P1-N acceptance](docs/management-layer/PATIENT_DISCOVERY_LINKS_ACCEPTANCE_2026-10-20.md).
-
-**October 20 02:08 UTC role research, October 19 local:** compared current source
-links/read projections with patient POC, attachment-origin and clinical-form
-references. P1-N now prepares exact-patient care-plan/document discovery
-under existing administrator gates, with no automatic read or role grant. Broader
-patient/therapist/office document sharing, version and workflow prerequisites stay
-open. HHA still needs normal sign-in. See
-[research](docs/management-layer/ROLE_WORKFLOW_RESEARCH.txt).
-
-**October 20 01:52 UTC implementation heartbeat, October 19 local:** P1-M extends
-approximate device-clock fetch age to live Overview and Visit Preview with one
-page-owned timer, unchanged raw receipts and immediate context cleanup. All 217
-frontend tests, both normal jobs and production minute-tick/paging/refresh/chart
-checks passed. HHA still needs normal sign-in; no new capture/import occurred. See
-[acceptance](docs/management-layer/LIVE_PAGE_FETCH_AGE_ACCEPTANCE_2026-10-20.md).
-
-**October 19 23:17 UTC dashboard heartbeat; accepted October 20 UTC:** P1-L adds
-approximate device-clock age to explicit current-visit reads, retaining raw fetch
-timestamps and cancelling local timers with read/context changes. All 209 frontend
-tests, both normal jobs and production minute-tick/source-retention/reset checks
-passed. Fresh live paging and all six chart calculations matched source fields.
-HHA still requires normal sign-in; no new import occurred. P1-M live-page age
-treatment is now accepted above. See
-[acceptance](docs/management-layer/CURRENT_FETCH_AGE_ACCEPTANCE_2026-10-19.md).
-
-**October 19 SEO follow-up, 20:46 UTC trigger:** normal Search Console browser
-access identified the legacy sitemap's historical 404/HTML errors. One refresh
-of the verified repaired index is now read by Google as Sitemap index / Success,
-dated October 19. All 132 public routes, static release checks and live artifact/
-private-boundary checks passed. Discovery is separate from indexing/outcomes;
-location and measurement prerequisites remain open. No public application code
-changed. See [review](docs/seo/2026-10-19-seo-review.md).
-
-**October 19 20:40 UTC role research:** six new primary references distinguish
-recurring plans/generated visits, placeholder staffing, missing confirmations/
-missed/deleted visits, order/certification versions and aggregator stages. Compared
-current read projections and retained UI; HHA still needs normal sign-in. Added
-proposed role screens, exact record links, permissions and acceptance cases in
-[research](docs/management-layer/ROLE_WORKFLOW_RESEARCH.txt). No application or
-external role changed. P1-L current-visit fetch-age display is accepted above;
-source/configuration validation and P1-B/external-role prerequisites remain open.
-
-**October 19 20:24 UTC dashboard pass:** P1-K adds a native keyboard disclosure
-for every returned current-source field and its count, with caregiver navigation
-before the disclosure. All 203 frontend tests, both normal jobs and production
-keyboard/retention/reset checks passed. Fresh live first/next/previous pages and
-all six chart calculations matched source fields; partial/on-demand/unvalidated
-labels remain. HHA needs normal sign-in; no new capture/import occurred. P1-L
-current-visit fetch-age display is now implemented above. See
-[acceptance](docs/management-layer/CURRENT_SOURCE_DISCLOSURE_ACCEPTANCE_2026-10-19.md).
-
-**October 19 20:09 UTC implementation pass:** P1-J groups current Schedule,
-Actual and EVV source fields with explicit unknown/empty values, source timezone
-and the complete raw-field list. All 199 frontend tests, both normal jobs and
-production pair/raw-field, refresh/reset, caregiver-link and 1280/615px checks
-passed. Saved 41/36-tile charts/provenance remain separate. No source rule,
-permission or external-role release changed. P1-K raw-field disclosure is
-now implemented above. See
-[acceptance](docs/management-layer/CURRENT_VISIT_SOURCE_GROUPS_ACCEPTANCE_2026-10-19.md).
-
-**October 19 13:07 UTC implementation pass:** P1-I now opens the existing
-caregiver read from an exact ID in separately verified current-visit evidence.
-Same-visit refresh and stale-context guards retain saved charts/provenance.
-All 193 frontend tests, both normal jobs and production keyboard/identity/reset
-acceptance passed. The explicit caregiver fetch correctly retained its owner
-entitlement denial; no permission or external-role release changed. P1-J source
-field grouping is now implemented in the acceptance above. See
-[acceptance](docs/management-layer/CURRENT_VISIT_CAREGIVER_ACCEPTANCE_2026-10-19.md).
-
-**October 19 01:20 UTC role research (October 18 local):** added multi-office,
-historical-assignment, mixed-discipline and staff-document permission boundaries
-from six primary sources. Current caregiver projections do not identify the
-primary office. P1-I now has exact-current-ID selection, same-visit refresh and
-stale-control acceptance criteria; it remains an administrator navigation task.
-Family grants, therapist encounter authority and office-isolated roles remain
-proposed. See [cumulative research](docs/management-layer/ROLE_WORKFLOW_RESEARCH.txt).
-
-**October 18 local / October 19 00:30 UTC dashboard pass:** P1-H connects full
-saved-chart days to exact-date filtering with native keyboard controls, selected
-state and toggle/reset behavior. Full 41/36-tile charts/provenance remain intact.
-All 185 frontend tests, both normal jobs and production acceptance passed.
-Fresh live first/next/previous pages and all six chart counts also matched source
-fields; manual and current evidence remain separate. P1-I exact caregiver-read
-selection is now implemented in the acceptance above. See
-[acceptance](docs/management-layer/SAVED_CHART_DAY_FILTER_ACCEPTANCE_2026-10-18.md).
-
-**October 18 SEO and owner-task pass, 22:30 UTC:** the home-care guide now
-offers useful routes to existing approved information. Resources -> guide ->
-care explainer fixes two core-page reachability gaps; 37 remaining location
-findings retain owner review. Both normal jobs, the 132-route crawl, artifact
-and browser checks passed. Private explicit-window Search Console/query-page
-evidence is refreshed; no growth is established. Article retirement, approved
-payer displays, 27 sitemap URLs and private protections are retained. See
-[SEO acceptance](docs/seo/2026-10-18-seo-review.md).
-
-**October 18 saved-calendar pagination, 22:15 UTC:** P1-G now pages loaded
-matching tiles ten at a time with visible-range/matched/loaded counts. Page and
-filter changes clear current evidence and fence detached controls; full-capture
-charts/provenance stay unchanged. All 178 frontend tests, both normal release
-jobs and production acceptance passed, including 41/36-row traversal, filtered
-paging, resets and an exact current read from the last page. P1-H chart-day
-selection into the existing date filter is proposed next. Operational and
-external-role dependencies remain open. See
-[acceptance](docs/management-layer/SAVED_CALENDAR_PAGES_ACCEPTANCE_2026-10-18.md).
-
-**October 18 role research, 22:07 UTC:** added proposed document-origin/action
-permissions, therapist template-versus-encounter states, native visit allocation
-and separate timesheet approval/hold evidence, overnight visit context and
-conditional family invoice access. Five new primary references and a rechecked
-Forms guide support screen contracts and acceptance cases. Tenant activation
-and field mappings remain unverified; HHA requires normal sign-in. P1-G loaded
-saved-row pagination is accepted above. See
-[research](docs/management-layer/ROLE_WORKFLOW_RESEARCH.txt).
-
-**October 18 loaded-calendar filtering, 21:55 UTC:** P1-F adds date/exact-ID and
-case-insensitive source-text filters with matched/loaded counts and reset.
-Full-capture charts and provenance stay unchanged; filter changes fence current
-evidence and detached controls. All 170 frontend tests, normal release and
-production checks passed, including 41/36 saved totals, expected/empty matches,
-reset and an exact filtered current read. No new imports or grants were added.
-P1-G local loaded-row pagination is implemented above; operational dependencies
-remain open. See [acceptance](docs/management-layer/SAVED_CALENDAR_FILTERS_ACCEPTANCE_2026-10-18.md).
-
-**October 18 saved/current visit acceptance (October 16 heartbeat):** saved
-calendar visits now open explicit current HHA evidence with current visit,
-patient and office verification through existing gates. The immutable captures
-and 41/36 chart totals are retained. All 163 frontend and 471 backend tests pass;
-both release jobs, fresh production lookups, source paging and all six chart
-comparisons passed. P1-E is complete in the administrator read-only scope.
-P1-F loaded saved-calendar filtering is implemented above; operational interpretation,
-membership/clinical and normal HHA sign-in dependencies remain open. See
-[acceptance](docs/management-layer/SAVED_VISIT_LINKS_ACCEPTANCE_2026-10-18.md).
-
-**October 16 role research (October 15 queued trigger):** separated family
-view/manage permissions and request receipts from source application, native
-clinical completion/review/signing states, and configurable billing hold stages.
-New cross-role acceptance criteria are documented with current primary sources;
-these are proposals, not new permissions or clinical/billing decisions. P1-E
-saved-calendar links are implemented in the acceptance above. See
-[role research](docs/management-layer/ROLE_WORKFLOW_RESEARCH.txt).
-
-**October 15 connected authorization evidence, 19:16 UTC:** live Overview and
-Visit Preview now select patient authorization discovery through a protected
-current-office/patient check. Discovery retains exact IDs, dates, fetched time
-and truncation; detail selection preserves the existing owner gate. All 157
-frontend and 464 backend tests pass. Production returned 12 discovery rows,
-verified exact detail selection and the disabled detail gate. Live source
-paging and all six field-presence charts passed fresh row/count comparisons.
-Raw detail/contract-change edge cases remain synthetic until approved detail
-access. No unit conversion, utilization or eligibility decision was added. See
-[authorization acceptance](docs/management-layer/PATIENT_AUTHORIZATION_LINKS_ACCEPTANCE_2026-10-15.md).
-P1-E saved-calendar visit links are implemented above with current
-patient/office verification and preserved manual provenance.
-
-**October 15 connected patient history, 19:01 UTC:** live Overview and Visit
-Preview rows now open the exact patient's protected saved-calendar history.
-Source-context changes clear prior history; late responses and detached controls
-cannot repaint another patient. All 151 frontend tests pass. Production verified
-both entry points and retained saved versions, with October/September chart
-totals matching 41/36 source visit tiles. Manual labels and capture/import
-timestamps remain separate from live reads. See
-[history acceptance](docs/management-layer/PATIENT_HISTORY_LINKS_ACCEPTANCE_2026-10-15.md).
-The subsequent authorization-navigation implementation is recorded above;
-unit/period/usage interpretation and approved detail-source acceptance remain open.
-
-**October 15 role research, 17:29 UTC:** added concrete authorization-source
-limits, family multi-patient selection and staff network/document-state
-acceptance contracts. Current source joins already leave authorization limits
-unvalidated; discovery IDs and raw units cannot support a remaining-hours chart
-without verified period, unit and usage semantics. P1-C saved-history navigation
-and P1-D authorization navigation are implemented above. Unit/period/usage
-interpretation, external roles and clinical workflows remain open. See the dated
-[research delta](docs/management-layer/ROLE_WORKFLOW_RESEARCH.txt).
-
-**October 16 SEO review:** crawled all 132 public marketing routes and repaired
-the missing shared-footer links to the existing privacy/terms pages. Metadata,
-canonical, claim, accessibility and asset checks passed; both normal release
-jobs and production acceptance passed. Updated the SEO playbooks using current
-Google guidance and actual GSC coverage, retaining incomplete outcome/location
-tasks. Returned page-report pagination is now exhausted in private evidence;
-outcome validation remains open. See [review](docs/seo/2026-10-16-seo-review.md).
-
-**October 15 SEO follow-up:** restored the submitted legacy sitemap index from
-404 to valid XML pointing at the existing 27-URL canonical sitemap. Production
-and release checks passed; public page artifacts and private Primetime
-noindex/authentication protection remain intact. Read-only Search Console
-baseline access and evidence-backed lastmod controls are reconciled in the plan.
-The originally pending warning review and one-time Google reprocessing completed
-October 19; October 20 13:25 UTC checks retain successful XML and Search Console
-processing. The old checklist entry is reconciled. Comparable search outcomes and
-sufficient field Core Web Vitals evidence remain open; do not resubmit unchanged
-successful sitemaps. See [original repair](docs/seo/2026-10-15-sitemap-review.md)
-and [current evidence](docs/seo/2026-10-20-seo-review.md).
-
-**October 15 investigation triage:** loaded-record status, assignment and
-follow-up filters now retain truthful active/overdue/unassigned counts,
-pagination, source read timestamps and stale-response protection. The workflow
-opens at the review filters. All 145 frontend tests pass; production verified the
-empty protected queue and normal navigation. Populated-record cases are tested
-with synthetic fixtures; legitimate-record operations acceptance remains open.
-Live chart values matched source rows, and Next/Previous returned the expected
-bounded pages. See
-[triage acceptance](docs/management-layer/INVESTIGATION_TRIAGE_ACCEPTANCE_2026-10-15.md).
-The subsequent patient-history implementation is recorded above; manual
-snapshots remain distinct from current source reads.
-
-**October 15 role research refresh:** the current investigation queue already
-has assignment text, follow-up timestamps, status and append-only history.
-The resulting loaded-record triage improvement is implemented above.
-Verified supervisor membership and office-isolated queue exposure require a
-separate scope/identity migration; existing unscoped records must not be silently
-assigned to the selected office. Patient document sharing and therapist caseload,
-forms and signature acceptance criteria are now explicit in the cumulative
-[role research](docs/management-layer/ROLE_WORKFLOW_RESEARCH.txt).
-
-**October 15 connected source records:** live visit windows and Visit Preview
-rows now select existing patient, caregiver and visit reads using explicit source
-IDs and the current office. Prior query fields/results are cleared; selection
-does not fetch data or enable permissions. All 136 frontend tests pass. Production
-acceptance verified matching patient and visit reads and the retained caregiver
-owner gate. See
-[record-link acceptance](docs/management-layer/SOURCE_RECORD_LINKS_ACCEPTANCE_2026-10-15.md).
-Loaded-record triage uses the existing queue fields; verified office/assignee and
-external-role prerequisites remain open.
-
-**October 15 source-page navigation:** Overview and Visit Preview now support
-previous-page navigation through the same bounded HHA source pages. Navigation
-history is cleared on date, office/policy, mode and session changes and on failed
-requests. Charts continue to describe one source page, without implying an office
-total or a persisted import. All 132 frontend tests pass. Normal-session
-production acceptance verified source rows 1–10, then 11–20, then the identical
-first ten rows after navigating back. See
-[paging acceptance](docs/management-layer/SOURCE_PAGING_ACCEPTANCE_2026-10-15.md).
-
-**October 14 patient source workbench:** a protected calendar-snapshot import and
-patient workbench preserve dated HHA UI evidence, authorization rows and visit
-tiles, with patient-office verification, immutable versions and content-based
-deduplication. The workbench links to existing live patient and authorization
-reads; manual snapshots remain separate from live overview charts. October 15
-production acceptance verified 77 readable visit tiles across two monthly
-snapshots, persistence after reload and duplicate protection. The live
-authorization workflow also returned source records. See
-[import acceptance](docs/management-layer/MANUAL_SOURCE_IMPORT_ACCEPTANCE_2026-10-15.md)
-and [role/workflow research](docs/management-layer/ROLE_WORKFLOW_RESEARCH.txt).
-
-**October 14 live read-only overview:** DEV-006/007/009 passed in the normal approved session. The owner requested actual HHA visit data; this release enables operational reads only and connects scoped source pages to overview charts. All HHA mutation, monitoring-source and SMS approvals remain closed. See [live HHA acceptance](docs/management-layer/LIVE_HHA_ACCEPTANCE_2026-10-14.md).
-
-**October 14 sign-in extension:** phone-code sign-in for the owner-authorized US
-number `+18324030094` accompanies the existing email link. Firebase must verify the
-phone and the server rechecks the current enabled account. Existing sessions move
-to browser-local persistence without token revocation; temporary API failures
-offer a connection retry instead of automatic sign-out. See
-[sign-in setup and acceptance](docs/management-layer/FIRST_ADMIN_HANDOFF.md).
-Phone-code acceptance requires the owner's normal SMS verification after release.
-
-**October 14 live-mode incident resolved:** the four startup 503s shared a missing
-Firestore dependency. The default Native database now exists in `us-central1`
-(created `2026-10-14T23:54:54.991783Z`). The existing approved administrator session
-now loads owner controls and import history and reports **Reference API reachable**
-with demo mode off. Backend deployment now checks the database prerequisite and
-retains operator-published server-only rules. Operational reads were subsequently enabled by the read-only release; source acceptance and the other 28 gates remain closed. See
-[Firestore setup and acceptance](docs/management-layer/FIRESTORE_SETUP.md).
-
-**October 10 sign-in update:** the owner approved `jeremynwokorie@gmail.com` for administration and selected password-free email links. The server checks verified mailbox ownership and the current enabled account alongside existing admin claims. See [sign-in setup and acceptance](docs/management-layer/FIRST_ADMIN_HANDOFF.md). Normal email-link sign-in, protected backend/storage and the reference HHA call passed acceptance on October 14; SMS-code sign-in and operational source validation remain separate checks.
-
-**Last updated:** 2026-10-15
-
-See the [September 30 implementation review](docs/management-layer/IMPLEMENTATION_REVIEW_2026-09-30.md) and [222-operation API coverage matrix](docs/management-layer/HHA_CAPABILITY_MATRIX.md). Local code adds 144 protected workspace reads (141 release-eligible, three vendor-blocked), 23 typed/prepared mutation workflows (22 default-disabled gated dispatch paths plus one independently blocked partial linked-schedule workflow), persistent owner preferences/investigations/change-review/audit workflows, truthful integration health and replay/evidence protections. The default capability values remain fail-closed, while the reviewed release enables operational reads only. Full 222-operation execution is not complete.
-
-## Developer status
-
-- [x] `DEV-001` — `/primetime` is the required management/admin namespace.
-- [x] `DEV-002` — Firebase Functions backend/HHA adapter scaffold created under `functions/`.
-- [x] `DEV-003` — runtime HHA configuration contract created: `HHAEXCHANGE_CREDENTIALS` secret + `HHAEXCHANGE_BASE_URL` config.
-- [x] `DEV-004` — initial vendor-neutral management schema created in `functions/src/domain/models.ts`.
-- [x] `DEV-005A` — live Firebase project confirmed as **`primetimehomehealthservices`**.
-- [x] `/primetime` admin shell is on `main` with accepted administrator authentication, backend storage and bounded live source views. Source validation remains pending.
-- [x] Repository-wide maintenance pass completed without changing tracked files under `public/`.
-- [x] Marketing generators and verifiers now preserve the separate `/primetime` application byte-for-byte.
-- [x] Deterministic root/Functions dependencies, pull-request QA, and whole-repository integrity checks are in place.
-- [x] `DEV-005B` — developer confirmed `HHAEXCHANGE_CREDENTIALS` is set in Secret Manager for `primetimehomehealthservices`.
-- [x] **`DEV-006` — Accepted October 14:** the approved owner completed normal email-link sign-in and the protected server session opened the workspace. SMS-code acceptance is tracked separately.
-- [x] `DEV-007` — Accepted October 14: the normal administrator session loaded protected owner controls and integration health, saved/reloaded a preference, and exercised persistent request budgeting.
-- [x] `DEV-008` — SOAP parsing/error normalization, retries, correlation IDs, metadata-only telemetry, and sanitized tests are implemented and pass CI.
-- [x] `DEV-009` — Accepted October 14: protected `GetCollectionStatus` succeeded and the UI reported Reference API reachable. This does not establish visit-source acceptance.
-
-The September 23 review removed automatic first-user admin promotion. Deployment verifies invalid tokens are rejected; if no approved admin exists, the authenticated and HHA checks report **PENDING**, not complete. Live mode now displays bounded on-demand source pages; Demo remains an explicit synthetic option. Source-page reads do not persist a visit import, advance import history or establish office totals.
-
-### Firebase project status
-
-The live management/site Firebase project is confirmed as **`primetimehomehealthservices`**. The deployment workflow and `.firebaserc` both target this project.
-
-Current runtime status:
-- GitHub CI service account: `firebase-adminsdk-fbsvc@primetimehomehealthservices.iam.gserviceaccount.com`.
-- October 14 [workflow 38639779585](https://github.com/jnwokorie1957/pthhs/actions/runs/38639779585) completed Hosting and Functions deployment successfully; the September 30 Cloud Build blocker is historical.
-- The approved administrator's normal signed-in browser session loads the live owner controls and HHA reference check.
-- The default Native Firestore database is provisioned in `us-central1`. Operational reads are enabled by the reviewed release; each read still requires configured office scope and owner enablement. Live-record validation remains pending.
-
-### Secret-storage decision
-
-HHA runtime credentials do **not** belong in the repository and should not use GitHub Actions Secrets as their runtime source of truth. For the current Firebase/Google Cloud stack, store them in **Google Cloud Secret Manager / Firebase Functions secrets**. GitHub Actions secrets remain appropriate for CI/deployment credentials.
-
-Expected runtime secret name:
-
-`HHAEXCHANGE_CREDENTIALS`
-
-Expected JSON shape:
-
-```json
-{
-  "appName": "...",
-  "appSecret": "...",
-  "appKey": "..."
-}
+# Primetime Home Health Services (PTHHS)
+
+The public website and agency-owned software for Primetime Home Health Services:
+service information, a protected operations workspace, caregiver onboarding, and
+office staff tools connected to HHAeXchange.
+
+Built through an ongoing collaboration with the agency owner. The repository now
+contains the website, application interfaces, integration services, document
+workflows, release tooling, and the evidence used to distinguish implementation
+from accepted production behavior.
+
+**Status reviewed November 13, 2026** against commit
+[`3834444`](https://github.com/jnwokorie1957/pthhs/commit/3834444a8a763bce661b056a7893dedb6113027e).
+This README is the current entry point. Detailed acceptance records own their
+individual workflow status; dated observations are not a guarantee of a current
+session, complete vendor coverage, or a new release approval.
+
+| Experience | Entry | What it covers |
+| --- | --- | --- |
+| Public website | [pthhs.net](https://pthhs.net) | Services, local-area information, payer/referral context, family resources, and the Caregiver Portal entry |
+| Primetime operations | [/primetime](https://pthhs.net/primetime) | Approved HHA reads, office-day overview, visit maintenance, investigations, reports, forms, and website analytics |
+| Caregiver portal | [/caregiver](https://pthhs.net/caregiver) | Account access, existing-caregiver setup, applications, signatures, forms, private documents, and scoped HHA work-record views |
+| Staff workspace | [/workforce](https://pthhs.net/workforce) | Caregiver support, applications and hiring, personnel documents, authorizations, expiration tracking, field visits, and team access |
+
+Protected routes require their own server-verified identity, permissions, and
+office scope. A workforce role does not grant access to the separate Primetime
+clinical/admin API. The legacy staff entry under `/primetime/workforce` redirects
+to `/workforce`.
+
+## What has been built
+
+### Public website and search foundation
+
+- Migrated and modernized the former WordPress/Proweaver website on Firebase
+  Hosting, with shared navigation, repaired assets, and legacy-route handling.
+- Added service and attendant-care information, local pages, payer/referral
+  context, original family articles, and practical checklists.
+- Established canonical URLs, structured metadata/navigation, structured data,
+  sitemap and sitemap-index validation, and evidence-based `lastmod` controls.
+- Retired the former Careers routes with permanent redirects to Caregiver Portal.
+- Added approved terminology, public-fact and payer-evidence registers, claim
+  release checks, image checks, accessibility checks, and explicit asset budgets.
+
+The November 13 release record verifies **35 canonical sitemap pages and 30 key
+assets** against Git. Search delivery, discovery, indexing, ranking, traffic, and
+qualified inquiries remain separate measurements. See the
+[current SEO evidence](docs/seo/README.md) and
+[November 13 delivery record](docs/seo/2026-11-13-source-reconciliation-delivery.md).
+
+### Live operations and visit maintenance
+
+- Approved office-scoped HHA reads power an office-day overview, visit lists and
+  charts, patient/caregiver search, source detail views, and read receipts.
+- A persistent, resumable office-day collector reads returned visit IDs in
+  bounded batches and retains the last completed result while a later scan runs.
+- Visit Maintenance combines original source fields, scoped caregiver call
+  events, reference catalogs, local cases, proposals, notes, history, follow-up
+  queues, and protected text reports.
+- Range search supports inclusive dates, patient and caregiver names/codes, and
+  payer filters. A selected cached visit can request fresh patient/day evidence.
+- Saved calendar snapshots, patient workbench/history links, investigations, and
+  forms-library tools preserve the distinction between dated imports, live
+  reads, and local office records.
+
+The November 5 office/day acceptance returned **639 unique visit IDs**, all with
+readable details and receipts; overview charts and totals reconciled for that
+scan. It took about 36 minutes under the observed source limits. This is a dated,
+returned-ID coverage result, not a current agency census or a promise of instant
+refresh. See [office-day acceptance](docs/management-layer/OFFICE_DAY_SERVER_CACHE_2026-11-05.md).
+
+**Local review is separate from HHA confirmation or correction.** Scheduled,
+recorded visit, EVV, rounded-hours, billing, and payroll evidence are not
+interchangeable. An absent source field is different from an unavailable read.
+HHA support confirmed that its API does not link existing caregiver calls to
+visits. Source submission remains disabled; unresolved confirmation, reason-code,
+time-preservation, and independent-readback requirements remain in the
+[maintenance resource pack](docs/management-layer/evv-maintenance-resources/README.md).
+
+### Caregiver accounts, applications, and forms
+
+- Dedicated signup, verification, password/email-link access and recovery flows;
+  provider choices are exposed only when configured.
+- Versioned, resumable applications with contact/emergency information,
+  education/work history, availability, policy acknowledgments, signatures, and
+  linked required-field guidance.
+- File upload and camera flows, private document folders, security-review states,
+  official-form editors, individual PDFs, and complete printable packets.
+- W-4, I-9, Texas New Hire, and criminal-history materials with employee versus
+  employer field boundaries. Preparing a form does not establish government or
+  payroll filing, legal acceptance, or employment eligibility.
+- Existing-caregiver access based on a unique verified mailbox and fresh,
+  office-scoped HHA identity. Existing caregivers keep their separate source
+  profile and office-held physical identity records; they are not silently
+  converted into new applicants.
+- Resumable roster synchronization and name-first lookup with stale-selection
+  clearing, source labels, shared request budgets, and explicit unavailable states.
+- Five newly connected HHA work-record views: weekly availability, special
+  availability, in-service training, work languages, and self-only pay rates.
+  Staff can access the first four through their caregiver workspace; account
+  support does not imply staff payroll access.
+
+The new work-record views require existing source-method enablement and fresh
+identity/office checks; authenticated production acceptance remains open. See the
+[222-method portal inventory](docs/workforce/HHA_PORTAL_CONNECTIONS.md),
+[account access](docs/workforce/ACCOUNT_ACCESS.md), and
+[caregiver profiles](docs/workforce/CAREGIVER_PROFILES.md).
+
+### Staff, hiring, authorizations, and field work
+
+The staff workspace includes explicit office-scoped roles and permissions,
+caregiver account support, application and document review, hiring views, team
+access, and opportunity workflows. Recent additions include:
+
+- Reviewed authorization documents, service/payer/date context, renewal states,
+  follow-up dates, replacement-document history, and expiration summaries.
+- Hiring projections that distinguish HHA Applicants, employees, and records
+  needing source verification without exposing a complete personnel folder.
+- HR expiration tools, field-visit workflows, and caregiver synchronization.
+- Responsive section navigation, focused forms, training controls, session-expiry
+  guidance, and recovery from interrupted uploads or source reads.
+
+Implementation and deployment evidence do not complete every role, device, or
+multi-user acceptance case. The workforce [plan](docs/workforce/PLAN.md) contains
+historical milestones; newer focused records and current code supersede older
+closed-gate or unimplemented statements where specifically documented.
+
+### Secure document lifecycle
+
+Caregiver uploads are encrypted in server memory with a per-file AES-GCM key;
+Cloud KMS wraps the key before private Cloud Storage receives ciphertext. Owner,
+document ID, object generation, and digest bind access and verification. The
+server handles plaintext during validation and authorized delivery.
+
+Private downloads and printing recheck the current verified account, recent
+authentication, office and explicit permission. A mailbox code yields a
+short-lived, single-use proof bound to the exact file or packet route. Reusable
+browser signatures are encrypted within the reviewed workflow.
+
+A private scheduled ClamAV scanner decrypts the exact PDF generation in memory,
+checks its digest and records a bound verdict. Errors and unaccepted PDFs remain
+quarantined. Application and follow-up mail workers use immutable snapshots,
+bounded attachment parts, leases and persisted progress; uncertain delivery is
+held for review. Provider acceptance is distinct from recipient inbox delivery.
+
+See [encryption and access](docs/workforce/DOCUMENT_ENCRYPTION.md) and
+[office-test evidence](docs/workforce/OFFICE_TEST_LAUNCH.md). These controls do not
+by themselves certify regulatory compliance or approve a retention schedule.
+
+### Website analytics
+
+An independently deployed analytics service supplies the authenticated PTHHS and
+Ride Primetime dashboard: complete-day comparisons, views/sessions, leading pages
+and channels, contact clicks, and live visitor context. Reports have explicit
+property, stream, hostname, date-range and freshness context. Documented
+comparisons with signed-in Google Analytics validate a bounded reporting period.
+
+Public collection excludes private routes and sensitive form content and strips
+query strings/fragments from page locations. Contact clicks measure intent,
+not completed calls, bookings or qualified leads. See
+[analytics setup](docs/analytics-setup-2026-10-31.md) and
+[independent comparison](docs/management-layer/ANALYTICS_INDEPENDENT_COMPARISON_2026-11-03.md).
+
+## Current release boundaries
+
+| Area | Current evidence and remaining work |
+| --- | --- |
+| Public site | Delivered; November 13 source reconciliation and bounded production-byte checks are recorded. Rankings, conversion gains and field performance need their own evidence. |
+| Primetime reads and local review | Approved live reads and specific office/day, maintenance and saved-record cases have production acceptance. Current authenticated access and broader source/role acceptance are separate. |
+| Caregiver launch | A time-limited office application/upload test is recorded. General access is scheduled to reopen **January 1, 2027, 12:00 a.m. America/Chicago**; the API enforces the window. Final applicable forms, retention and normal-user acceptance remain launch work. |
+| Staff and new HHA record views | Current source includes these workflows. Each role, office, source-method approval and production acceptance must be checked independently. |
+| HHA applicant transfer | A dedicated, gated worker is implemented for eligible post-opening signed submissions. It creates **Applicant**, verifies profile and exact PDF readback, and retains uncertain attempts for reconciliation. No real production transfer acceptance is claimed; office staff promote to Employee manually. |
+| HHA operations writes, automated EVV correction and SMS | Separate default-closed release gates, vendor contracts, source evidence and owner approvals still apply. Caregiver onboarding does not open these capabilities. |
+| Family/therapist access, wider scheduling/payroll replacement and AI-assisted review | Future or independently gated work; not a completed replacement of every vendor workflow. |
+
+The 222-method inventory is a capability map, not 222 accepted live workflows.
+The general Operations `CreateCaregiver` workflow remains separate from the
+narrowly scoped workforce applicant-transfer implementation. Consult
+[application transfer](docs/workforce/HHA_APPLICATION_SYNC.md) for that worker's
+January opening, duplicate checks, signed-snapshot, source-contract and readback
+requirements. See [office test and launch](docs/workforce/OFFICE_TEST_LAUNCH.md)
+for the caregiver window, scanning, packet delivery and remaining launch review.
+
+## Architecture and repository map
+
+```text
+Public browser ── Firebase Hosting ── public pages and public-only analytics
+Approved admin ─ /primetime ──────── primetimeApi ── HHA adapter / Firestore
+Caregiver/staff ─ dedicated portals ─ workforceApi ─ office-scoped records
+                                            └── encrypted Cloud Storage / KMS
+Private workers ─ roster, PDF scan, packet mail, gated applicant reconciliation
+Analytics view ─ independent website-analytics service ─ read-only GA4 reports
 ```
 
-Create it with:
+| Path | Purpose |
+| --- | --- |
+| [`public/`](public/) | Firebase Hosting output, public pages, caregiver entry, and protected application shells |
+| [`source/primetime/`](source/primetime/) | Authoritative operations UI source; generated assets are checked for drift |
+| [`functions/src/`](functions/src/) | TypeScript APIs, authentication, source views, workflows and workforce services |
+| [`functions/src/integrations/hhaexchange/`](functions/src/integrations/hhaexchange/) | SOAP transport, parsing, configuration and vendor-contract gates |
+| [`functions/src/workforce/`](functions/src/workforce/) | Accounts, office/role rules, applications, forms, encryption, source projections and staff tools |
+| [`functions/scanner/`](functions/scanner/) | Private document scanning deployment and worker |
+| [`analytics-functions/`](analytics-functions/) | Independent website reporting codebase and contract tests |
+| [`content/articles/`](content/articles/) | Source articles and manifest |
+| [`scripts/`](scripts/) | Deterministic generators, runtime-asset inventories, tests and release verifiers |
+| [`hharefs/`](hharefs/) | Captured vendor operation index and WSDL; current vendor-guide conflicts remain explicit |
+| [`docs/`](docs/README.md) | Acceptance, setup, research, release, SEO and historical records |
+| Root `PTHHS_*` registers | Approved public facts, terminology, payer/route/navigation/security evidence and release inputs |
+
+The live Firebase project is `primetimehomehealthservices`. Runtime HHA
+credentials belong in Secret Manager/Firebase Functions secrets under
+`HHAEXCHANGE_CREDENTIALS`; deployment credentials stay in the reviewed CI/runtime
+environment. Never commit credentials, real personnel/identity files, patient
+records, production SOAP payloads, reset links or tokens.
+
+## Development and verification
+
+Use the committed lockfiles. The root tooling requires Node 20 or newer; the
+backend and independent analytics CI use Node 22. The complete website wrapper
+requires Bash and Python 3; Linux GitHub Actions is the release reference.
 
 ```bash
-firebase functions:secrets:set HHAEXCHANGE_CREDENTIALS --project primetimehomehealthservices
-```
-
-Never commit the real value.
-
-## Owner / Operations status
-
-The developer explicitly confirmed on **2026-09-22** that the Owner / Operations Lead completed all owner policy and decision items in the owner checklist.
-
-- [x] `OPS-001` — current daily EVV/visit-review workflow documented.
-- [x] `OPS-002` — common EVV exceptions and current resolution flow documented.
-- [x] `OPS-003` — clock exception thresholds and grace-period policy completed.
-- [x] `OPS-004` — alert audience/visibility policy completed.
-- [x] `OPS-005` — correction-approval policy completed.
-
-Owner policy work is no longer the current blocker. Live imported-record validation and feature acceptance remain runtime gates because those require implemented developer artifacts.
-
-### Owner interview findings now treated as confirmed
-
-- Common EVV problems: missing clock-in, missing clock-out, both missing, and actual times differing from the schedule.
-- Staff currently work from the calendar or HHAExchange Visit Maintenance, then review Visit Info / Link Visit, connect the available call, confirm with the member or caregiver, select a reason code, and route the case to a supervisor decision.
-- Routine corrected visits are approved or declined by an office supervisor.
-- Long visits may be downward-adjusted to scheduled hours after review when appropriate.
-- Pay periods are **1st–15th** and **16th–end of month**.
-- Repeated missing EVV activity beyond normal leniency is a supervisor red flag that can indicate hospitalization, death, caregiver abandonment/non-work, or another operational disruption.
-- Investigation/outreach is currently informal and needs formal notes/history plus a supervisor morning summary of abnormal unresolved events.
-- Staffing is currently driven mainly by a phone tree and handwritten notes.
-- Patient choice is the top staffing ranking factor; hours/overtime fit is second; geography and transportation materially affect assignments.
-
-The detailed record is in [`OWNER_OPERATIONS_TASKS.md`](docs/management-layer/OWNER_OPERATIONS_TASKS.md).
-
----
-
-# 🧹 REPOSITORY STATUS
-
-The September 12 repository-wide review is complete. Historical reports and
-source captures are preserved under [`docs/archive/`](docs/archive/); current
-strategy lives under [`docs/seo/`](docs/seo/); active release inputs remain at
-the root. See the [documentation map](docs/README.md), [review log](docs/repository/REVIEW_LOG.md), and [file inventory](docs/repository/FILE_INVENTORY.md).
-
-Run the complete local release gate with:
-
-```bash
+# Website tooling and full static/repository release gate
 npm ci
 npm run check
-```
 
-Run the backend type check separately with:
-
-```bash
+# Operations/workforce backend
 npm ci --prefix functions
 npm run check --prefix functions
 npm test --prefix functions
+
+# Independent website analytics contracts
+pnpm --dir analytics-functions install --frozen-lockfile --ignore-scripts
+pnpm --dir analytics-functions test
 ```
 
-The build must leave tracked `public/` files unchanged. This prevents a
-documentation-only commit from silently publishing different website data.
+The root check covers generated assets, frontend/backend-boundary contracts,
+metadata, sitemaps, accessibility, size allowances and repository integrity. It
+must preserve protected application files and leave tracked generated output
+unchanged. The November 13 reconciliation records 961 backend and 683
+site/tooling/analytics checks at that checkpoint; test counts evolve and are not
+equivalent to live workflow acceptance.
 
----
+Pull-request quality verifies static/repository checks and backend types/tests
+with fresh dependencies. **A normal main push can deploy Hosting, Functions and
+analytics.** Documentation commits should use `[skip ci]` when no runtime release
+is intended. The existing explicit manual workflow offers Hosting-only release;
+do not redeploy Functions merely to publish public content or reconcile static
+source. Preserve reviewed non-secret workforce parameters and the independent
+source-action approvals. See [Hosting release procedure](docs/releases/HOSTING_RELEASE.md),
+[recovery boundaries](docs/management-layer/RELEASE_RECOVERY.md), and
+[source reconciliation](docs/workforce/SOURCE_RECONCILIATION_2026-11-13.md).
 
-# 🤖 INSTRUCTIONS FOR ANY AI SCANNING THIS REPO
+## Where to continue
 
-When continuing management-layer work:
+- [Documentation map](docs/README.md): current guides versus historical evidence.
+- [Developer checklist](docs/management-layer/DEVELOPER_TASKS.md) and
+  [owner/operations checklist](docs/management-layer/OWNER_OPERATIONS_TASKS.md):
+  retain completed decisions; do not restart them without contrary evidence.
+- [Live-data and activation checklist](docs/management-layer/PRIMETIME_LIVE_DATA_CHECKLIST.txt):
+  source, identity, provider and acceptance prerequisites.
+- [Maintenance resources](docs/management-layer/evv-maintenance-resources/README.md):
+  current product priority, supported source actions and unresolved vendor questions.
+- [Workforce plan](docs/workforce/PLAN.md), [launch review](docs/workforce/OFFICE_TEST_LAUNCH.md),
+  and [HHA portal inventory](docs/workforce/HHA_PORTAL_CONNECTIONS.md):
+  implementation, newer overrides and remaining role/source acceptance.
+- [SEO evidence index](docs/seo/README.md): current public delivery and search work.
+- [Archived README checkpoint](docs/repository/README_CHECKPOINT_2026-11-13.md):
+  the complete prior chronological README, preserved with its original decisions
+  and dated status. It is historical evidence, not the current starting state.
 
-1. **Read this checkpoint first.**
-2. Read the relevant role checklist in `docs/management-layer/`.
-3. Treat `[x]` items as completed. Do not re-ask for them or restart them unless repository evidence contradicts the status.
-4. Find the first pending task whose dependencies are complete.
-5. Prompt the responsible person with **specific next actions**, not a broad “what do you want to do next?” question.
-6. If a task is blocked by the other role, identify the exact `DEV-*` or `OPS-*` dependency and prompt that role instead.
-7. When a task is actually verified complete, mark it `[x]` in its checklist and update this checkpoint in the same change.
-8. Never mark a task complete merely because it was discussed; require explicit user confirmation or repo/runtime evidence.
-9. Preserve the `/primetime` namespace: management UI lives under `/primetime`; management API endpoints are intended under `/primetime/api/*`.
-10. Route placement is **not** security. Do not expose credential-bearing or PHI-bearing API endpoints until server-side admin authentication/authorization is verified.
-11. Start HHA integration read-only. Do not enable HHA write-back or automatic EVV corrections until the owner has approved the relevant operational rules.
-12. Never commit HHA secrets, PHI, real production SOAP payloads, or employee location evidence.
-
-### Automatic next-step behavior
-
-After completing a checklist task, the scanning AI should immediately state:
-
-- what was completed,
-- what evidence confirms it,
-- the next task ID,
-- exactly what the responsible person needs to do next,
-- any dependency that prevents proceeding.
-
----
-
-## HHAeXchange source-of-truth references
-
-The `hharefs/` folder contains captured HHAeXchange ENT v1.8 technical references.
-
-### [`hharefs/endpoints.html`](hharefs/endpoints.html) — capability map
-
-Saved ENT v1.8 operation index. Use it to answer **“does this API surface expose an operation for this capability?”**
-
-It includes operations relevant to visits/EVV, visit confirmation, schedules, caregiver availability, patient authorizations, billing/payroll visit data, collections/AR, caregiver compliance, documents, POC-related functions, and other HHA workflows.
-
-### [`hharefs/hha-wdsl.xml`](hharefs/hha-wdsl.xml) — exact SOAP contract
-
-Saved ENT v1.8 WSDL. It is the implementation-level source for operation signatures, request/response structures, field types, authentication, and result/error structures.
-
-Confirmed authentication uses `AppParams` with `AppName`, `AppSecret`, and `AppKey`.
-
-> **Rule of thumb:** use `endpoints.html` to learn *what exists*; use `hha-wdsl.xml` to learn *exactly how it works*.
-
----
-
-## Management-layer architecture rule
-
-PTHHS owns the workflow, rules, audit trail, alerts, and management experience. HHAeXchange initially acts as an external data source/sink behind an adapter. The internal schema must remain vendor-neutral so HHA components can later be replaced without rebuilding the `/primetime` management product.
-
-Owner read controls include search, selected-only filtering and selection counts; filtering never changes permissions. See [release recovery boundaries](docs/management-layer/RELEASE_RECOVERY.md) for rollback and verification guidance. Production activation and vendor-contract prerequisites remain separate from publication.
+When continuing work, read the relevant current record, preserve existing
+`/primetime` APIs and independent workforce permissions, identify the next task
+whose dependencies are complete, and update its acceptance evidence with the
+change. A deployment or passing fixture must not be recorded as real source,
+role, form, or device acceptance. Keep vendor-neutral agency workflows behind the
+adapter, and retain unknown outcomes until they can be reconciled.
