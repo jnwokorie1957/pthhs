@@ -672,6 +672,21 @@ function carePlanRecords(xml: string, detail: boolean): Record<string, string | 
     return record;
   });
 }
+function caregiverWorkRecords(xml: string, input: ReadInput): Record<string, string | null>[] {
+  const invalid = (): never => { throw new WorkflowError('caregiver_record_response_unverified', 502); };
+  const shapes: Record<string, [string,string]> = {GetCaregiverRates:['CaregiverRates','CaregiverRateInfo'],GetCaregiverInServices:['CaregiverInServices','CaregiverInServicesInfo'],GetCaregiverPreferences:['CaregiverPreferencesInfo','CaregiverPreferencesInfo']};
+  const shape=shapes[input.operation];if(!shape)invalid();
+  if(XMLValidator.validate('<PortalRead>'+xml+'</PortalRead>')!==true)invalid();
+  const blank=(text:string)=>!text.replace(/<!--[\s\S]*?-->/g,'').trim();
+  const only=(body:string,children:string[])=>{let offset=0;for(const child of children){const start=body.indexOf(child,offset);if(start<offset||!blank(body.slice(offset,start)))invalid();offset=start+child.length;}if(!blank(body.slice(offset)))invalid();};
+  const [container,tag]=shape!,roots=directChildElements(xml,container),status=sourceResultElements(xml,invalid,only);
+  if(roots.length>1)invalid();only(xml,[...roots,...status].sort((a,b)=>xml.indexOf(a)-xml.indexOf(b)));
+  if(!roots.length)return [];
+  const root=roots[0]!,body=extractElementBody(root,container)??'';
+  if(/\s(?:[A-Za-z_][\w.-]*:)?nil\s*=\s*(["'])\s*(?:true|1)\s*\1/i.test(root.match(/^<[^>]+>/)?.[0]??'')){if(!blank(body))invalid();return [];}
+  const rows=container===tag?[root]:directChildElements(body,tag);if(container!==tag)only(body,rows);
+  return rows.map(row=>{const content=extractElementBody(row,tag)??'',record=Object.fromEntries(projections[input.operation as keyof typeof projections].fields.map(key=>[key,directPathScalar(content,key)]));if(record.CaregiverID!==input.id)throw new WorkflowError('caregiver_record_owner_unverified',403);return record;});
+}
 function caregiverAvailabilityRecords(xml: string, input: ReadInput): Record<string, string | null>[] {
   const invalid = (): never => { throw new WorkflowError("caregiver_availability_response_shape_unverified", 502); };
   if (XMLValidator.validate("<AvailabilityRead>" + xml + "</AvailabilityRead>") !== true) invalid();
@@ -1004,7 +1019,7 @@ export function boundedAttachment(record: Record<string, string | null>, identit
   const filename = safeAttachmentFilename(record.FileName);
   return { filename, byteLength: bytes.length, base64: encoded, contentType: "application/octet-stream" as const };
 }
-export async function operationalRead(client: Pick<HhaSoapClient, "call">, input: ReadInput, projectionScope?: "document_metadata" | "clinical_review" | "medical_review" | "write_recovery" | "visit_discovery" | "visit_reason_review" | "maintenance_people_search" | "workforce_caregiver_search" | "workforce_caregiver_profile" | "workforce_roster_import"): Promise<OperationalRead> {
+export async function operationalRead(client: Pick<HhaSoapClient, "call">, input: ReadInput, projectionScope?: "document_metadata" | "clinical_review" | "medical_review" | "write_recovery" | "visit_discovery" | "visit_reason_review" | "maintenance_people_search" | "workforce_caregiver_search" | "workforce_caregiver_profile" | "workforce_roster_import" | "workforce_caregiver_records"): Promise<OperationalRead> {
   const body = readRequest(input, projectionScope === "workforce_caregiver_search" || projectionScope === "workforce_roster_import" ? projectionScope : undefined);
   // One attempt per owner-requested read; shared server quota controls requests.
   let response: Awaited<ReturnType<HhaSoapClient["call"]>>;
@@ -1015,6 +1030,11 @@ export async function operationalRead(client: Pick<HhaSoapClient, "call">, input
     if (error instanceof HhaNotSubmittedError && error.cause instanceof WorkflowError && error.cause.status === 429
       && ["read_budget_exhausted_retry_next_minute", "vendor_backoff_active"].includes(error.cause.code)) throw error.cause;
     throw error;
+  }
+  // A present but blank/comment-only SOAP result is not evidence of an empty
+  // caregiver record list. Keep it unavailable even if transport parsing passed.
+  if (projectionScope === 'workforce_caregiver_records' && response.ok && !response.resultXml?.replace(/<!--[\s\S]*?-->/g, '').trim()) {
+    throw new WorkflowError('caregiver_record_response_unverified', 502);
   }
   if (!response.ok || !response.resultXml) {
     let wait: number | undefined;
@@ -1059,6 +1079,8 @@ export async function operationalRead(client: Pick<HhaSoapClient, "call">, input
     records = caregiverAvailabilityRecords(response.resultXml, input);
   } else if (input.operation === "SearchPatientDocument" || input.operation === "DownloadPatientDocument") {
     records = patientDocumentRecords(response.resultXml, input, projectionScope === "document_metadata" || projectionScope === "write_recovery");
+  } else if (projectionScope === 'workforce_caregiver_records' && ['GetCaregiverRates','GetCaregiverInServices','GetCaregiverPreferences'].includes(input.operation)) {
+    records = caregiverWorkRecords(response.resultXml,input);
   } else if (input.operation === "SearchVisitsV2" || input.operation === "SearchPatients" || input.operation === "SearchCaregivers") {
     const [container, field] = input.operation === "SearchVisitsV2" ? ["Visits", "VisitID"] : input.operation === "SearchPatients" ? ["Patients", "PatientID"] : ["Caregivers", "CaregiverID"];
     const values = extractElementBody(response.resultXml, container!) ?? "";

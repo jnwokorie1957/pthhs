@@ -30,6 +30,7 @@ import {operationalRead} from "../operations/reads.js";
 import {HhaSoapClient} from "../integrations/hhaexchange/client.js";
 import {hhaCredentials,hhaBaseUrl,getHhaCredentials} from "../integrations/hhaexchange/config.js";
 import { WorkforceError,requirePermission } from "./policy.js";
+import {HhaRecords} from './hhaRecords.js';
 import type { Action } from "./opportunities.js";
 import { IntakeStore } from "./intakeStore.js";
 import { intakePacket, packetInventory } from "./packet.js";
@@ -177,6 +178,13 @@ export const workforceApi = process.env.PRIMETIME_API_ONLY_DEPLOY === "true" ? u
       if (!applicationsEnabled&&!existingAccessEnabled) throw new WorkforceError(503, "application_collection_pending");
       const uid=await workforceIdentity(req),existing=existingAccessEnabled?await(await hhaEnrollment()).link(uid):null;await new AccountSupport().register(uid,existing?.office||intakeOffice.value());
       res.json({ uid, kind: "caregiver", applicationsEnabled, documentsEnabled: uploadsEnabled, addressLookupEnabled: placesApproved.value() === "true",existingCaregiver:!!existing }); return;
+    }
+    const ownHhaRecord=path.match(/^\/application\/hha-records\/([a-z-]{1,40})$/);
+    if(ownHhaRecord){
+      if(!existingAccessEnabled)throw new WorkforceError(503,'existing_access_pending');
+      if(req.method!=='GET'||Object.keys(req.query??{}).length)throw new WorkforceError(400,'invalid_request');
+      const uid=await recentWorkforceIdentity(req),service=await hhaEnrollment();
+      res.json(await new HhaRecords(hhaWorkspace(),()=>service.owned(uid),uid,true).read(ownHhaRecord[1]!));return;
     }
     if(path==="/application/hha-profile"||/^\/application\/hha-files\/[1-9]\d{0,9}$/.test(path)){
       if(!existingAccessEnabled)throw new WorkforceError(503,"existing_access_pending");const uid=await recentWorkforceIdentity(req);
@@ -336,6 +344,13 @@ export const workforceApi = process.env.PRIMETIME_API_ONLY_DEPLOY === "true" ? u
       if(!existingAccessEnabled)throw new WorkforceError(503,"existing_access_pending");await recentWorkforceIdentity(req);
       if(!req.is("application/json")||req.rawBody.length>300||!req.body||Object.keys(req.body).some(key=>key!=="jobId")||req.body.jobId!==undefined&&typeof req.body.jobId!=="string")throw new WorkforceError(400,"invalid_request");
       res.json(await(await hhaEnrollment("background")).sync(await store.actor(uid),req.body.jobId));return;
+    }
+    const staffHhaRecord=path.match(/^\/staff\/roster\/([1-9]\d{0,9})\/records\/([a-z-]{1,40})$/);
+    if(staffHhaRecord){
+      if(!existingAccessEnabled)throw new WorkforceError(503,'existing_access_pending');
+      if(req.method!=='GET'||Object.keys(req.query??{}).length)throw new WorkforceError(400,'invalid_request');
+      await recentWorkforceIdentity(req);const service=await hhaEnrollment();
+      res.json(await new HhaRecords(hhaWorkspace(),async()=>service.inspect(await store.actor(uid),staffHhaRecord[1]!),uid,false).read(staffHhaRecord[2]!));return;
     }
     const rosterDetail=path.match(/^\/staff\/roster\/([1-9]\d{0,9})\/(detail|access|files\/([1-9]\d{0,9}))$/);
     if(rosterDetail){

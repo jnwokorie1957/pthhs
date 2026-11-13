@@ -269,9 +269,8 @@
     addressEnabled = event.detail.addressLookupEnabled === true;
     documentMessage.textContent = documentsEnabled ? 'Uploads are stored encrypted. After submission and security review, completed documents are sent to the authorized office recipient.' : 'ID and Social Security card collection is closed until security and retention controls are verified.';
     try {
-      const [schemaResponse, saved] = await Promise.all([fetch('/caregiver/workforce-api/application/packet', { cache: 'no-store' }), workforceApi('/application')]);
-      if (!schemaResponse.ok) throw Error('The application packet is unavailable.');
-      const schema = await schemaResponse.json(); if (sequence !== generation) return;
+      const [schema, saved] = await Promise.all([workforceApi('/application/packet'), workforceApi('/application')]);
+      if (sequence !== generation) return;
       packet = schema.packet; record = saved.application; answers = { ...(record?.answers || {}) };
       if (!record && !answers.applicationDate) {
         const parts = new Intl.DateTimeFormat('en-US',{timeZone:'America/Chicago',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date());
