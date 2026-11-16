@@ -1,5 +1,17 @@
 # PTHHS Management Layer — Developer Checklist
 
+- [ ] P2 admission-form identity namespace and pack acceptance, researched
+  November 16 UTC: preserve typed HHA PatientID/office and source receipts
+  separately from mutable AdmissionID, contract alternate ID and an independently
+  approved Medicaid field. Current generic memberId uses AdmissionID or PatientID;
+  the mapper already warns Agency client ID (not Medicaid ID). Keep that warning.
+  Synthetic cases: absent/changed AdmissionID, same-looking different namespaces,
+  edited local identity, wrong office/contract, source/form version changes and
+  partial/duplicate/failed pack outcomes. Existing template hash/mapping/signers
+  are content integrity, not clinical approval or complete patient admission.
+  Do not migrate real records or add source/role authority for this research.
+  [Exact current mapping and proposed acceptance](ROLE_WORKFLOW_RESEARCH.txt).
+
 - [x] PR40 field-visit client/caregiver query context deployed November 16 UTC.
   Changing search text invalidates old matches, results and errors and permits
   a replacement explicit lookup; unrelated pending draft saves remain locked.

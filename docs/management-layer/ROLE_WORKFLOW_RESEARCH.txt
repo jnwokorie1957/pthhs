@@ -4697,3 +4697,123 @@ Local nonsensitive receipts: field-visit-lookup-production-20261115.json,
 field-visit-lookup-regression-receipt-20261115.json,
 field-visit-lookup-served-tests-20261115.log and
 field-visit-lookup-synthetic-20261115.png.
+
+ADMISSION FORM FIELD NAMESPACES AND ROLE HANDOFF — NOVEMBER 16, 2026
+01:21 UTC research heartbeat; November 15 America/Chicago.
+Source reviewed: 31ff9b0cf44b36432f353d1868b2263755069296, preserving
+concurrent PR38/PR39 and deployed PR40. This adds acceptance detail to the
+October 22 field-provenance and November 13 exact clinical-link research.
+
+EVIDENCE CLASSES
+Observed in source: the following exact mappings, permissions and local models.
+Previously observed production UI: approved workforce access, Field Visits and
+blank Forms at 01:15-01:17 UTC; retain that dated receipt without repeating it.
+Current browser inventory exposes no attached HHA UI tab. No private HHA record,
+form, setting or API response was read. Public vendor guides are product
+documentation, not observed tenant configuration or an approved SOAP mapping.
+No runtime, role or operational acceptance is added by this research.
+
+OBSERVED PR38/PR39 CONNECTIONS AND LIMITS
+1. ClientDirectory.record in functions/src/workforce/clients.ts checks one
+   untruncated GetPatientDemographics result against PatientID and current office.
+   It returns id=PatientID, memberId=AdmissionID||PatientID, plus a fetch receipt.
+   FieldVisits.names independently applies the same memberId fallback after
+   office/patient checks. This fallback supplies a generic display/form value;
+   it does not establish Medicaid, contract alternate ID or an immutable join.
+2. WorkforceFieldVisits.prepareClient seeds editable clientName/memberId in the
+   client office. Selecting a name likewise fills those fields; VisitData does
+   not retain a separately typed source patient ID, identifier namespace or
+   patient-field receipt. This refines the existing exact-source-bridge backlog.
+3. DocumentTextField.source is limited to clientName, memberId, caregiverName,
+   visitDate or manual. documentFieldValue reads the saved local data/answers;
+   it formats visitDate as MM/DD/YYYY. It does not query an EVV, authorization,
+   POC, address, Medicaid or contract field. The mapper already labels memberId
+   Agency client ID (not Medicaid ID). Preserve that warning; no duplicate
+   warning feature or automatic Medicaid mapping is proposed.
+4. AdmissionLibrary requires office-scoped field_visits.manage to read.
+   Upload additionally requires documents.review and owner/office_manager/hr
+   role. Templates are private encrypted generation/checksum-bound objects.
+   Their content identity covers pages, textFields, signatureFields and required
+   signers; a client copy's templateId is office plus that content hash.
+   FieldVisits.save rejects changed fixed-template content/signers. This is
+   content integrity, not an approved clinical/business form version or policy.
+5. The prepared-pack importer previews locally and requires blank-page review.
+   It saves each form separately, preserves completed forms after a later
+   failure, and treats an existing office template as already present. The
+   result is a reusable library, not an atomic patient admission or completed
+   patient packet. A pack success must not clear patient-document follow-up.
+6. Current roles remain owner/office_manager/hr/office/supervisor with explicit
+   permissions and offices. They are not new patient, representative or PT
+   self-service roles. A template reader grant is not clinical assignment,
+   a patient-document share or permission to edit an HHA document.
+
+PRIMARY-SOURCE COMPARISON, CHECKED NOVEMBER 16 UTC
+[R40, rechecked] The Patient Forms guide describes editable prefills and
+prior-visit copying. Its Individual Number row calls the value a Medicaid ID
+but points to Admission ID, while Case No. uses a contract alternate ID.
+That wording is ambiguous for a new integration; it cannot prove namespaces
+are interchangeable. Keep plan/scheduled fields separate from recorded EVV
+fields; do not adopt its form totals as worked/payable/billable verification.
+https://knowledge.hhaexchange.com/texas/Content/Documentation/Patient/Pat-N-Forms-Feature-P.htm
+[R135] Patient Profile describes Admission ID as a system reference that users
+with permission can change. Therefore this research infers that a mutable
+admission label alone is insufficient for a durable clinical/source join.
+https://knowledge.hhaexchange.com/enterprise/Content/Documentation/Patient/Pat-N-Create-Patient-Profile-S.htm
+[R39, rechecked] Patient Document Management distinguishes documents created
+there from attachments originating on other patient pages; their available
+actions differ. Retain origin and action authority on a future shared link.
+https://knowledge.hhaexchange.com/enterprise/Content/Documentation/Patient/Pat-N-Patient-Document-Management-S.htm
+These product references do not prove enabled agency forms or allowed actions.
+
+PROPOSED ROLE EXPERIENCE AND SHARED LINKS
+Patient/representative: permitted schedule and explicitly shared document copies,
+with identity/form version/origin/correction information understandable to the
+recipient. A reusable template or pack result is not a patient document.
+Staff/PT: effective caseload/encounter links retain exact patient, visit and
+approved form version. Distinguish saved local answers, current source fields,
+copied history, required signer and reviewer states. Never import a plan time or
+copy a prior visit as an actual punch, clinical duration or completion.
+Office manager: keep template review and pack progress separate from each
+patient-copy draft/signing/review/share queue; schedule, authorization, EVV and
+billing exceptions retain their own exact record links and acceptance.
+Admin/public: secure entry routes only. Current staff navigation may connect
+Clients to a local form; no public patient roster or template content, patient/PT
+grant or source clinical document is established by that link.
+
+PRIORITIES, DEPENDENCIES AND ACCEPTANCE — PROPOSED, NOT IMPLEMENTED
+P2 developer: extend the existing clinical/source-link design with typed
+PatientID and office separately from displayed AdmissionID, contract alternate
+ID and any separately approved Medicaid identifier; retain source field/receipt,
+effective context, edits and form business version. Do not reinterpret existing
+memberId values or migrate/change real records based on this research.
+Synthetic acceptance must cover missing AdmissionID with PatientID fallback,
+later AdmissionID change, identical-looking values from different namespaces,
+wrong office/contract, edited local memberId, and older copied patient data.
+A form-specific Medicaid/contract field stays manual or unavailable until its
+exact approved source mapping exists; generic memberId never fills it silently.
+Template hash tests should retain wrong-office/modified-map/signer rejection,
+while a new business version must leave already signed copies independent.
+Pack acceptance must retain completed/duplicate/failed/not-yet-attempted forms
+separately after partial failure and must not mark a patient admitted/complete.
+No new runtime test was run: existing mapped-field/template tests were inspected;
+the preceding deployed PR40/quality/release evidence retains its date.
+
+Next owner input: select an approved blank form and business version, then
+approve its field-by-field intended identifier/time source, required signer and
+reviewer, and which patient/representative/staff/PT roles may view or act. Supply
+examples only through an approved private workflow; no source values in Git.
+Where the public field-table description and path disagree, obtain an exact
+supported vendor mapping before automation. This is a genuine mapping gate;
+no new source read, expanded access or communication is authorized by this note.
+Existing patient/PT assignments, form/sharing, retained EVV event/history/units,
+CSM/private-XML and held-visit prerequisites remain. Original October 24 is
+resolved by October 31. This research creates no source or financial decision.
+
+PINNED IMPLEMENTATION EVIDENCE
+https://github.com/jnwokorie1957/pthhs/blob/31ff9b0cf44b36432f353d1868b2263755069296/functions/src/workforce/clients.ts
+https://github.com/jnwokorie1957/pthhs/blob/31ff9b0cf44b36432f353d1868b2263755069296/functions/src/workforce/fieldVisits.ts
+https://github.com/jnwokorie1957/pthhs/blob/31ff9b0cf44b36432f353d1868b2263755069296/functions/src/workforce/documentTextFields.ts
+https://github.com/jnwokorie1957/pthhs/blob/31ff9b0cf44b36432f353d1868b2263755069296/functions/src/workforce/admissionLibrary.ts
+https://github.com/jnwokorie1957/pthhs/blob/31ff9b0cf44b36432f353d1868b2263755069296/public/assets/workforce-document-fields.js
+https://github.com/jnwokorie1957/pthhs/blob/31ff9b0cf44b36432f353d1868b2263755069296/public/assets/workforce-admission-pack.js
+https://github.com/jnwokorie1957/pthhs/blob/31ff9b0cf44b36432f353d1868b2263755069296/functions/src/workforce/directoryActivity.test.ts
