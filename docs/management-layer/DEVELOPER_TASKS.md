@@ -1,5 +1,42 @@
 # PTHHS Management Layer — Developer Checklist
 
+- [x] November 16 UTC SEO publication-date delivery (PR41): registered the
+  verified November 15 laundry article and two listing changes in the sitemap
+  date registry. All 33 other entries and the 36-URL inventory are preserved.
+  Four date/28 article tests, Batch B4, normal quality and required Hosting-only
+  jobs pass. Seven exact production artifacts, all three dates and private
+  noindex/cache/anonymous denial verified at 01:44 UTC. Search Console's
+  November 14 successful read/35 discovered remains dated; no indexing claim,
+  resubmission or new service/payer/location assertion.
+  [Source, tests and production evidence](../seo/2026-11-16-laundry-sitemap-dates.md).
+
+- [ ] P2 admission-form identity namespace and pack acceptance, researched
+  November 16 UTC: preserve typed HHA PatientID/office and source receipts
+  separately from mutable AdmissionID, contract alternate ID and an independently
+  approved Medicaid field. Current generic memberId uses AdmissionID or PatientID;
+  the mapper already warns Agency client ID (not Medicaid ID). Keep that warning.
+  Synthetic cases: absent/changed AdmissionID, same-looking different namespaces,
+  edited local identity, wrong office/contract, source/form version changes and
+  partial/duplicate/failed pack outcomes. Existing template hash/mapping/signers
+  are content integrity, not clinical approval or complete patient admission.
+  Do not migrate real records or add source/role authority for this research.
+  [Exact current mapping and proposed acceptance](ROLE_WORKFLOW_RESEARCH.txt).
+
+- [x] PR40 field-visit client/caregiver query context deployed November 16 UTC.
+  Changing search text invalidates old matches, results and errors and permits
+  a replacement explicit lookup; unrelated pending draft saves remain locked.
+  All 21 controller tests, 710 broader tests, 37 production delivery artifacts
+  and 21 exact served-byte regressions pass. Both quality and both required
+  Hosting-only release jobs succeeded. Concurrent PR38/PR39 and article retained.
+  Existing workforce budget and source/signing/sending/access controls retained.
+  [Lookup implementation and bounded acceptance](../workforce/FIELD_VISIT_LOOKUP_CONTEXT_2026-11-15.md).
+- [ ] Complete ordinary staff real-record lookup acceptance only within a
+  separately authorized workflow. Production staff access and blank Forms
+  rendering are observed November 16; synthetic delayed-response selection
+  passes. No real source lookup, save, upload, signature, communication or new
+  grant was made for this check. Patient/PT/clinical source linking and existing
+  owner/vendor decisions remain separate.
+
 - [ ] P2 clinical/source document-link acceptance, researched November 13:
   current local Field Visits retains editable member/admission and date fields,
   not an exact HHA patient/visit/clinical-document join. Before a future bridge,
