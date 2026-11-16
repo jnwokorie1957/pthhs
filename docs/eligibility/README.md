@@ -42,6 +42,8 @@ flowchart TD
 
 The Safe Harbor framework pins official test/production hosts, refuses redirects, uses a bounded request, times out after 25 seconds, bounds responses to 2 MB and validates envelope correlation. No raw request, response, token or vendor error is logged. Its transport tests use injected fetch; they are not evidence of TMHP compatibility. CORE 4.0 certificate handling, SOAP transport and native SFTP batch submission are not implemented.
 
+Existing management, training and readings controllers now use the same deterministic source/minification pipeline as the other Workforce assets. This preserves the established page/asset transfer budgets without changing those limits. The full frontend suite was rerun after this packaging change.
+
 The normalized `Result` includes `status`, `asOf`, `checkedAt`, `source`, optional coverage dates, optional MCO enrollment array, and a controlled failure code. A codec must prove member matching and scope evidence to the correct program/date/benefit before normalization. CHIP, HTW, other insurance and an AAA rejection must not become a Medicaid status. Multiple periods are not flattened into invented dates. The current source discriminator is `tmhp`; a clearinghouse adapter must deliberately extend that contract and source provenance.
 
 ## Private storage and matching
