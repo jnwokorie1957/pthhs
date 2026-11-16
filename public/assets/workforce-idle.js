@@ -1,0 +1,13 @@
+(()=>{
+ const limit=30*60*1000,warningAt=28*60*1000;let uid=null,last=0,timer=null,dialog=null,expired=false,lastBroadcast=0;
+ const channel=typeof BroadcastChannel==='function'?new BroadcastChannel('pthhs-staff-activity-v1'):null;
+ function dismiss(){if(dialog){if(dialog.open)dialog.close();dialog.remove();dialog=null;}}
+ function activity(broadcast=true){if(!uid||expired)return;if(Date.now()-last>=limit){expire();return;}last=Date.now();dismiss();if(broadcast&&last-lastBroadcast>5000){lastBroadcast=last;channel?.postMessage({uid,at:last});}}
+ function expire(){if(!uid||expired)return;expired=true;dismiss();document.getElementById('workforce-signout')?.click();setTimeout(()=>{if(!window.firebase?.auth?.().currentUser){const status=document.getElementById('session-status');if(status)status.textContent='Signed out after 30 minutes without activity. Sign in again to continue.';}},500);}
+ function check(){if(!uid||expired)return;const elapsed=Date.now()-last;if(elapsed>=limit){expire();return;}if(elapsed<warningAt||dialog)return;dialog=document.createElement('dialog');dialog.className='staff-idle-warning';dialog.setAttribute('aria-labelledby','staff-idle-title');const title=document.createElement('h2');title.id='staff-idle-title';title.textContent='Still working?';const text=document.createElement('p');text.textContent='You will be signed out after 30 minutes without activity. Choose Keep working to continue.';const keep=document.createElement('button');keep.type='button';keep.className='manager-primary';keep.textContent='Keep working';keep.onclick=()=>activity();const out=document.createElement('button');out.type='button';out.className='btn-secondary';out.textContent='Sign out now';out.onclick=expire;dialog.append(title,text,keep,out);dialog.oncancel=event=>{event.preventDefault();activity();};document.body.append(dialog);dialog.showModal();}
+ for(const event of ['pointerdown','pointermove','keydown','wheel','touchstart'])document.addEventListener(event,e=>{if(e.isTrusted&&!dialog?.contains?.(e.target))activity();},{passive:true});
+ document.addEventListener('visibilitychange',check);
+ if(channel)channel.onmessage=event=>{const data=event.data;if(uid&&data?.uid===uid&&Number.isFinite(data.at)&&data.at>last&&data.at<=Date.now()+1000){last=data.at;dismiss();}};
+ document.addEventListener('workforce-session',event=>{if(uid===event.detail?.uid)return;uid=event.detail?.uid||null;expired=false;last=Date.now();if(timer)clearInterval(timer);if(uid)timer=setInterval(check,15000);});
+ document.addEventListener('workforce-session-cleared',()=>{uid=null;expired=false;last=0;if(timer)clearInterval(timer);timer=null;dismiss();});
+})();

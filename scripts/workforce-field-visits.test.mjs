@@ -46,7 +46,7 @@ function setup(handler=async()=>undefined){
  const status=()=>walk(root).find(e=>e.attrs.role==='status')?.textContent||'';
  const office=()=>walk(root).find(e=>e.tagName==='SELECT'&&!e.name);
  const start=async()=>{events.get('workforce-session')({detail:{grant:{offices:['office-a','office-b'],permissions:['field_visits.manage']}}});await window.WorkforceFieldVisits.show('fieldvisits');await tick();await tick();};
- const newRecord=()=>button('Forms').onclick();
+ const newRecord=()=>button('Manual form').onclick();
  const submit=async()=>{form().onsubmit({preventDefault(){}});await tick();await tick();};
  return {root,calls,previews,mappings,admissions,prepareClient:window.WorkforceFieldVisits.prepareClient,start,newRecord,button,field,office,submit,status,events};
 }
