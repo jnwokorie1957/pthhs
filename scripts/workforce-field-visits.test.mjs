@@ -4,7 +4,8 @@ import fs from 'node:fs';
 import vm from 'node:vm';
 
 const source=fs.readFileSync(process.env.FIELD_VISITS_SCRIPT || new URL('../public/assets/workforce-field-visits.js',import.meta.url),'utf8');
-const importExpression="import('/assets/workforce-authorization-extract.js')";
+const importExpression=source.match(/import\(["']\/assets\/workforce-authorization-extract\.js["']\)/)?.[0];
+assert.ok(importExpression);
 assert.equal(source.split(importExpression).length,2);
 // Stub the extractor module boundary; exercise the remaining served controller unchanged.
 const runtime=source.replace(importExpression,'importExtractor()');
