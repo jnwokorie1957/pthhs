@@ -56,8 +56,8 @@
     "evidence": "Added contextual home-care guide navigation: docs/seo/2026-10-18-seo-review.md"
   },
   "/home-care-blog": {
-    "lastmod": "2026-11-02",
-    "evidence": "Reviewed family handoff original and article discovery: docs/seo/2026-11-02-long-distance-family-handoff.md"
+    "lastmod": "2026-11-15",
+    "evidence": "Reviewed laundry guide publication and listing links in bc5e8caf73419443c7a86f4b8c600482e5e39d06; docs/seo/2026-11-16-laundry-sitemap-dates.md"
   },
   "/": {
     "lastmod": "2026-10-12",
@@ -72,8 +72,8 @@
     "evidence": "Approved alert-design insert: docs/seo/2026-10-28-alert-guidance.md"
   },
   "/articles": {
-    "lastmod": "2026-11-02",
-    "evidence": "Reviewed family handoff original and article discovery: docs/seo/2026-11-02-long-distance-family-handoff.md"
+    "lastmod": "2026-11-15",
+    "evidence": "Reviewed laundry guide publication and listing links in bc5e8caf73419443c7a86f4b8c600482e5e39d06; docs/seo/2026-11-16-laundry-sitemap-dates.md"
   },
   "/articles/home-care-first-call-checklist-houston": {
     "lastmod": "2026-10-28",
@@ -86,5 +86,9 @@
   "/articles/helping-houston-relative-from-another-city": {
     "lastmod": "2026-11-02",
     "evidence": "Reviewed family handoff original and article discovery: docs/seo/2026-11-02-long-distance-family-handoff.md"
+  },
+  "/articles/helping-with-laundry-without-losing-track-of-clothes": {
+    "lastmod": "2026-11-15",
+    "evidence": "Reviewed laundry guide publication and listing links in bc5e8caf73419443c7a86f4b8c600482e5e39d06; docs/seo/2026-11-16-laundry-sitemap-dates.md"
   }
 }

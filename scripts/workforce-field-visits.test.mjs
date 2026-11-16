@@ -132,3 +132,50 @@ test('returning to an office rejects its older list even when the office name ma
  pending.resolve({items:[{id:'old-a',clientName:'Synthetic old list',state:'draft',kind:'orientation',visitDate:'2026-11-13'}],next:null});await tick();await tick();
  assert.match(s.root.textContent,/Synthetic current list/);assert.doesNotMatch(s.root.textContent,/Synthetic old list/);
 });
+
+
+for(const which of ['client','caregiver'])test('changing the '+which+' query discards its pending name matches',async()=>{
+ const pending=deferred(),s=setup(path=>path.endsWith('/names')?pending.promise:undefined);await s.start();s.newRecord();
+ const query=s.field('lookup-'+which);query.value='Old query';const request=s.button('Find '+which).onclick();
+ query.value='New query';query.oninput?.();pending.resolve({items:[{id:'synthetic-old',name:'Obsolete lookup',memberId:'SYNTHETIC-OLD'}]});await request;
+ assert.doesNotMatch(s.root.textContent,/Obsolete lookup/);
+});
+
+test('typing clears returned name matches and prevents their old selection callbacks',async()=>{
+ const s=setup(path=>path.endsWith('/names')?{items:[{id:'synthetic-old',name:'Obsolete lookup',memberId:'SYNTHETIC-OLD'}]}:undefined);await s.start();s.newRecord();
+ const query=s.field('lookup-client');query.value='Old query';await s.button('Find client').onclick();const old=s.button('Obsolete lookup · SYNTHETIC-OLD');
+ query.value='New query';query.oninput?.();assert.doesNotMatch(s.root.textContent,/Obsolete lookup/);old.onclick();
+ assert.notEqual(s.field('clientName').value,'Obsolete lookup');assert.notEqual(s.field('memberId').value,'SYNTHETIC-OLD');
+});
+
+test('a replacement name lookup proceeds while an older result cannot unlock its pending action',async()=>{
+ const first=deferred(),second=deferred(),s=setup((path,body)=>path.endsWith('/names')?(body.name==='Old query'?first.promise:second.promise):undefined);await s.start();s.newRecord();
+ const query=s.field('lookup-client');query.value='Old query';const a=s.button('Find client').onclick();query.value='New query';query.oninput?.();const b=s.button('Find client').onclick();
+ try{
+  assert.equal(s.calls.filter(c=>c.path.endsWith('/names')).length,2);
+  first.resolve({items:[{id:'synthetic-old',name:'Obsolete lookup',memberId:'SYNTHETIC-OLD'}]});await a;await s.submit();
+  assert.ok(!s.calls.some(c=>c.body?.data));assert.doesNotMatch(s.root.textContent,/Obsolete lookup/);
+  second.resolve({items:[{id:'synthetic-current',name:'Latest lookup',memberId:'SYNTHETIC-CURRENT'}]});await b;
+  s.button('Latest lookup · SYNTHETIC-CURRENT').onclick();assert.equal(s.field('clientName').value,'Latest lookup');assert.equal(s.field('memberId').value,'SYNTHETIC-CURRENT');
+ }finally{first.resolve({items:[]});second.resolve({items:[]});await Promise.all([a,b]);}
+});
+
+test('returning to the same name query still rejects its earlier result',async()=>{
+ const pending=deferred(),s=setup(path=>path.endsWith('/names')?pending.promise:undefined);await s.start();s.newRecord();
+ const query=s.field('lookup-client');query.value='Old query';const request=s.button('Find client').onclick();
+ query.value='Different query';query.oninput?.();query.value='Old query';query.oninput?.();
+ pending.resolve({items:[{id:'synthetic-old',name:'Obsolete lookup',memberId:'SYNTHETIC-OLD'}]});await request;assert.doesNotMatch(s.root.textContent,/Obsolete lookup/);
+});
+
+test('an obsolete name lookup failure cannot replace the current editor notice',async()=>{
+ const pending=deferred(),s=setup(path=>path.endsWith('/names')?pending.promise:undefined);await s.start();s.newRecord();
+ const query=s.field('lookup-client');query.value='Old query';const request=s.button('Find client').onclick();query.value='New query';query.oninput?.();
+ pending.reject(Error('Obsolete name lookup failure'));await request;assert.doesNotMatch(s.status(),/Obsolete name lookup failure/);
+});
+
+
+test('typing a name query does not release an unrelated pending draft save',async()=>{
+ const saving=deferred(),s=setup((path,body)=>body?.data?saving.promise:undefined);await s.start();s.newRecord();await s.submit();
+ const query=s.field('lookup-client');query.value='Current query';query.oninput?.();await s.submit();
+ assert.equal(s.calls.filter(c=>c.body?.data).length,1);saving.resolve(record('saved-current'));await tick();await tick();
+});
