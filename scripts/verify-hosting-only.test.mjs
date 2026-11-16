@@ -39,12 +39,17 @@ test('workflow retains push behavior and excludes backend on every manual releas
     assert(match, `Missing job condition: ${job}`);
     return match[1];
   };
-  const evaluate = (job, event, ref, target, mode = event === 'push' ? 'full' : (ref === 'refs/heads/main' && target === 'hosting' ? 'hosting' : '')) => vm.runInNewContext(condition(job), {
-    github: {event_name: event, ref}, inputs: {deployment_target: target}, always:()=>true,cancelled:()=>false,needs: {release_scope: {outputs: {mode}},deploy_backend:{result:'success'}},
+  const evaluate = (job, event, ref, target, mode = event === 'push' ? 'full' : (ref === 'refs/heads/main' && target === 'hosting' ? 'hosting' : ''), backend='success') => vm.runInNewContext(condition(job), {
+    github: {event_name: event, ref}, inputs: {deployment_target: target}, always:()=>true,cancelled:()=>false,needs: {release_scope: {outputs: {mode}},deploy_backend:{result:backend}},
   });
   assert.equal(evaluate('build_and_deploy', 'push', 'refs/heads/main'), true);
   assert.equal(evaluate('deploy_backend', 'push', 'refs/heads/main'), true);
   assert.equal(evaluate('deploy_website_analytics', 'push', 'refs/heads/main'), true);
+  for(const backend of ['failure','cancelled','skipped'])assert.equal(evaluate('build_and_deploy','push','refs/heads/main',undefined,'full',backend),false);
+  for(const job of ['build_and_deploy','deploy_backend','deploy_website_analytics']){
+    assert.equal(evaluate(job,'schedule','refs/heads/main',undefined,'full'),true);
+    assert.equal(evaluate(job,'push','refs/heads/main',undefined,''),false);
+  }
   for (const target of ['hosting', 'backend', 'all', undefined]) {
     for (const ref of ['refs/heads/main', 'refs/heads/other']) {
       assert.equal(evaluate('deploy_backend', 'workflow_dispatch', ref, target), false);
