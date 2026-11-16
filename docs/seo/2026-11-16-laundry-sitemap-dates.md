@@ -36,8 +36,9 @@ This initial-HTML graph is not a new assistive-technology or rendered reading te
 Four date-validation tests, all 28 article tests and Batch B4 pass. The latter
 checks 93 unique metadata/schema pages, 36 sitemap URLs, 122 permanent redirects
 and 4,498 canonical anchors. Targeted sitemap generation is idempotent; all
-33 unrelated entries and the publication set stay unchanged. Full normal PR
-quality and the existing Hosting-only release remain pending.
+33 unrelated entries and the publication set stay unchanged. Both normal PR
+quality jobs passed (43787583496), followed by both required Hosting-only scope
+and build/deploy jobs (43787784914). Backend and analytics jobs were skipped.
 
 ## Search Console and owner limits
 
@@ -53,8 +54,9 @@ Current [Article guidance](https://developers.google.com/search/docs/appearance/
 was checked for author/type/date accuracy, and
 [robots guidance](https://developers.google.com/search/docs/crawling-indexing/robots-meta-tag)
 for private page/header protections. The preceding 01:14:45 UTC release's
-private noindex/cache/anonymous-denial receipt remains dated. After this
-release, verify exact public XML and those private boundaries again.
+private noindex/cache/anonymous-denial receipt remains dated. At 01:44:04 UTC,
+this release independently verifies private header/meta noindex and no-cache,
+plus anonymous session 401/no-store/noindex.
 
 Approved public facts, nonmedical PAS scope, payer display evidence and the
 claim-release gate were reviewed. This metadata change adds no service, duty,
@@ -64,4 +66,16 @@ No owner decision or checkbox is completed. Additional location content and
 authorized directory/citation corrections retain their existing human inputs.
 
 Local nonsensitive baseline: `primetime-seo-laundry-baseline-20261116.json`.
-Release and production evidence will be added after the required jobs succeed.
+At 01:44:04 UTC, all seven public artifacts match release
+f376ca48256ba24801461f1646d751ceb5b0b9b3. The delivered XML has November 15
+for all three entries and retains the 36-URL inventory. Article metadata,
+Organization credit, source/navigation bytes and private boundaries pass.
+No article HTML, private entry, backend or configuration changed in this release.
+
+[PR41](https://github.com/jnwokorie1957/pthhs/pull/41),
+[quality](https://github.com/jnwokorie1957/pthhs/actions/runs/43787583496) and
+[Hosting-only release](https://github.com/jnwokorie1957/pthhs/actions/runs/43787784914).
+Production receipt: `primetime-seo-laundry-production-20261116.json`.
+Native release proof: `primetime-seo-release-20261116.png`.
+Normal PR/deployment controls were used; this subsequent evidence-only update
+does not need another runtime deployment.

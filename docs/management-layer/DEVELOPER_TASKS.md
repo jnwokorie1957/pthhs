@@ -1,5 +1,15 @@
 # PTHHS Management Layer — Developer Checklist
 
+- [x] November 16 UTC SEO publication-date delivery (PR41): registered the
+  verified November 15 laundry article and two listing changes in the sitemap
+  date registry. All 33 other entries and the 36-URL inventory are preserved.
+  Four date/28 article tests, Batch B4, normal quality and required Hosting-only
+  jobs pass. Seven exact production artifacts, all three dates and private
+  noindex/cache/anonymous denial verified at 01:44 UTC. Search Console's
+  November 14 successful read/35 discovered remains dated; no indexing claim,
+  resubmission or new service/payer/location assertion.
+  [Source, tests and production evidence](../seo/2026-11-16-laundry-sitemap-dates.md).
+
 - [ ] P2 admission-form identity namespace and pack acceptance, researched
   November 16 UTC: preserve typed HHA PatientID/office and source receipts
   separately from mutable AdmissionID, contract alternate ID and an independently

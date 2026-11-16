@@ -8,7 +8,8 @@ sitemap date registry now supplies their actual November 15 change dates;
 33 other entries and the 36-URL inventory stay unchanged. Search Console's
 successful canonical read is dated November 14 / 35 discovered, before the
 new article. No indexing or outcome inference, resubmission or new business
-claim. Normal quality/Hosting verification pending.
+claim. Both quality and required Hosting-only release jobs pass. At 01:44 UTC,
+seven public artifacts, the three delivered dates and private boundaries pass.
 See [bounded change and evidence](2026-11-16-laundry-sitemap-dates.md).
 
 ## Week of November 9, 2026

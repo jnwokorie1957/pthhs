@@ -7,8 +7,9 @@ facts, payer evidence, or claim-release controls.
 - [November 16 laundry guide sitemap dates](2026-11-16-laundry-sitemap-dates.md)
   — verified November 15 publication/listing dates for three entries; current
   inventory is 36. Google's November 14 successful read still reports 35
-  discovered pages and predates the new article. Quality/release verification
-  is pending; earlier report dates and owner claim/location gates remain.
+  discovered pages and predates the new article. Both quality/required Hosting
+  jobs and seven-artifact/private-boundary production checks pass; earlier
+  report dates and owner claim/location gates remain.
 
 - [November 13 scoped indexing examples and delivery](2026-11-13-indexing-examples-review.md)
   — at that check canonical sitemap discovery was 35. Its Page indexing report is dated
