@@ -37,7 +37,7 @@ export async function renderApplication(application: Intake): Promise<Buffer> {
     entries.forEach(([label],i)=>{const x=36+i*width;text(label,x+6,y,8,true);wrapped[i]!.forEach((value,j)=>text(value,x+6,y-16-j*13,10));page.drawLine({start:{x,y:y-height+7},end:{x:x+width-5,y:y-height+7},thickness:.5,color:rule});});y-=height;
   }
   const a=application.answers, value=(id:string)=>a[id]||"", fullName=[a.firstName,a.lastName].filter(Boolean).join(" ");
-  next("Employment Application");paragraph("Equal Opportunity Employer");paragraph(intakePacket.notice);
+  next("Employment Application");if(application.opportunity)paragraph("Position: "+application.opportunity.location+" · "+application.opportunity.weeklyHours+" hours/week · "+application.opportunity.id);paragraph("Equal Opportunity Employer");paragraph(intakePacket.notice);
   section("Contact information");
   row([["First name",value("firstName")],["Last name",value("lastName")],["Application date",value("applicationDate")]]);
   row([["Social Security number (last four)",a.ssn?"***-**-"+a.ssn.replace(/\D/g,"").slice(-4):""],["Date of birth",value("birthDate")]]);

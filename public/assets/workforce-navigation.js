@@ -17,6 +17,13 @@
   function hide() { for(const id of ['portal-home','portal-profile','portal-documents','job-board','caregiver-summary','caregiver-hha-profile']) { const n=el(id);if(n)n.hidden=true; } }
   function heading(target,title,description) {target.replaceChildren();const h=node('h1',title);h.tabIndex=-1;target.append(h,node('p',description,'portal-lead'));return h;}
   function card(target,title,description,action) {const c=node('section','','portal-task');c.append(node('h2',title),node('p',description));if(action)c.append(action);target.append(c);}
+  async function applicationList(target,seq){
+    heading(target,'My applications','Each application is separate. Submitted applications can be viewed and cannot be changed.');
+    const result=await context.api('/applications');if(seq!==generation)return;
+    for(const a of result.items){const title=a.opportunity?'Personal care attendant · '+a.opportunity.location:'General caregiver application';card(target,title,(a.state==='submitted'?'Submitted · view only':'Draft · continue editing')+(a.opportunity?' · '+a.opportunity.weeklyHours+' hours/week':''),link(a.state==='submitted'?'View application':'Continue application','application',{applicationId:a.applicationId||'primary'},true));}
+    if(!result.items.length)target.append(link('Start a general application','application',{applicationId:'primary'},true));
+    target.append(link('Apply for another position','opportunities'));
+  }
   async function home(target, seq) {
     heading(target,'Welcome to My Primetime',context.actor.existingCaregiver?'Your records and next steps, in one place.':'Your application and next steps, in one place.');
     if(context.actor.existingCaregiver) {
@@ -26,7 +33,8 @@
     if(context.actor.applicationsEnabled===false) {card(target,'Applications are not open yet','Contact the office for help with the current application process.');target.append(link('Browse opportunities','opportunities'));return;}
     const result=await context.api('/application');if(seq!==generation)return;
     const app=result.application, submitted=app?.state==='submitted';
-    card(target,submitted?'Application received':app?'Continue your application':'Apply to join Primetime',submitted?'The office will review your application and contact you. Contact the office if a correction is needed.': 'Complete each section, save your progress, and return whenever you are ready.',link(submitted?'View submitted application':app?'Continue application':'Start application','application',{},true));
+    card(target,submitted?'Application received':app?'Continue your application':'Apply to join Primetime',submitted?'The office will review your application and contact you. Contact the office if a correction is needed.': 'Complete each section, save your progress, and return whenever you are ready.',link(submitted?'View my applications':app?'Continue application':'Start application','application',submitted?{}:{applicationId:'primary'},true));
+    if(submitted)target.append(link('Apply for another position','opportunities'));
     if(submitted)card(target,'What happens next','Screening, onboarding approval and employer verification are separate. Complete only the tasks requested by the office.',link('View forms and documents','documents'));
     else card(target,'Required documents & acknowledgment','Review your uploads and complete the DPS CCH acknowledgment before submitting.',link('View checklist','documents'));
   }
@@ -49,16 +57,16 @@
   }
   async function documents(target,seq) {
     if(context.actor.existingCaregiver)return profile(target,seq,true);
-    heading(target,'Documents & forms','Keep application requirements separate from later employment tasks.');
+    heading(target,'Documents & forms','View signed forms or finish forms you have not submitted. Signed forms are locked.');
     if(context.actor.applicationsEnabled===false){target.append(node('p','Document collection is not open. Please contact the office.'));return;}
     const results=await Promise.allSettled([context.api('/application/documents'),...['cch','i9','w4','new_hire'].map(k=>context.api('/application/forms/'+k))]);if(seq!==generation)return;
-    const docs=results[0].status==='fulfilled'?results[0].value.items:[];
-    card(target,'Application documents',results[0].status==='rejected'?'Documents could not be loaded. Try opening the upload checklist.':docs.length+' uploaded file(s). Uploaded files remain subject to security and office review.',link('Review uploads','application',{section:'Documents'}));
-    card(target,'Direct deposit form','Optional. Upload your completed form for payroll; it will be included with your submitted application after security review.',link('Upload direct deposit form','application',{section:'Documents'}));
+    const received=results[0].status==='fulfilled'?(results[0].value.receivedKinds||results[0].value.items.map(d=>d.kind)):[];
+    card(target,'Private uploads','Identity, insurance and banking uploads are available to authorized office staff only. You cannot open these files from the caregiver portal.');
+    if(!received.includes('direct_deposit'))card(target,'Direct deposit form','You can securely send a missing direct deposit form to payroll.',link('Upload missing documents','application',{section:'Documents'}));
     const labels={cch:'DPS CCH acknowledgment',i9:'Form I-9',w4:'Form W-4',new_hire:'Texas new-hire information'};
-    ['cch','i9','w4','new_hire'].forEach((kind,i)=>{if(kind==='cch'||kind==='i9')target.append(node('h2',kind==='cch'?'Before submitting your application':'Employment onboarding','portal-task-stage'));const result=results[i+1],record=result.status==='fulfilled'?result.value.form:null;
+    ['cch','i9','w4','new_hire'].forEach((kind,i)=>{const result=results[i+1],record=result.status==='fulfilled'?result.value.form:null;
       const status=result.status==='rejected'?'Status unavailable':record?.state==='submitted'?'Submitted':record?'Draft saved':'Not started';
-      card(target,labels[kind],status+' · '+(kind==='cch'?'Required before application submission.':kind==='i9'?'Sign after accepting an offer; employer verification is separate.':'Complete during onboarding as directed by the office.'),link(record?.state==='submitted'?'View form':'Open form','application',{section:'Tax & employment forms',form:kind}));
+      card(target,labels[kind],status+' · '+(kind==='cch'?'Required before application submission.':kind==='i9'?'Sign after accepting an offer; employer verification is separate.':'Complete during onboarding as directed by the office.'),link(record?.state==='submitted'?'View signed form':'Finish form','application',{section:'Tax & employment forms',form:kind}));
     });
   }
   async function navigate(view,params={},fromHistory=false) {
@@ -72,7 +80,7 @@
     for(const a of document.querySelectorAll('[data-portal-route]'))a.setAttribute('aria-current',a.dataset.portalRoute===route?'page':'false');
     el('portal-account-menu').open=false;el('session-status').textContent='';
     try {
-      if(route==='application'){context.application(undefined,params);return;}
+      if(route==='application'){if(!params.applicationId&&!params.section&&!params.form){const target=el('portal-home');target.hidden=false;await applicationList(target,seq);return;}context.application(undefined,params);return;}
       if(route==='opportunities'){if(!fromHistory){const url=new URL(location.href);url.searchParams.delete('opportunity');history.replaceState(null,'',url.pathname+url.search+url.hash);}await context.jobs();return;}
       const target=el('portal-'+route);target.hidden=false;heading(target,titles[route],'Loading…');
       await (route==='home'?home(target,seq):route==='profile'?profile(target,seq):documents(target,seq));
@@ -80,11 +88,11 @@
     }catch(error){if(seq===generation)el('session-status').textContent='Unable to load this section. '+error.message;}
   }
   window.WorkforceNavigation={set,navigate,mount(next){context=next;el('portal-home-link').hidden=false;el('portal-application-link').hidden=next.actor.existingCaregiver||next.actor.applicationsEnabled===false;const current=read();if(!location.hash&&new URLSearchParams(location.search).has('opportunity'))current.view='opportunities';if(!location.hash)set(current.view,{},true);if(new URLSearchParams(location.search).get('intent')==='apply'&&['#home','#application'].includes(location.hash)){current.view='application';const url=new URL(location.href);url.searchParams.delete('intent');history.replaceState(null,'',url.pathname+url.search+url.hash);}navigate(current.view,Object.fromEntries(current.params),true);},
-    step(label,push=false){if(!context||route!=='application')return;const current=read();const params=Object.fromEntries(current.params);params.section=label;delete params.form;set('application',params,!push);try{sessionStorage.setItem('primetime-step-'+context.actor.uid,label);}catch{};},
+    step(label,push=false){if(!context||route!=='application')return;const current=read();const params=Object.fromEntries(current.params);params.section=label;delete params.form;set('application',params,!push);try{sessionStorage.setItem('primetime-step-'+context.actor.uid+'-'+(read().params.get('applicationId')||'primary'),label);}catch{};},
     resume(){try{return context?sessionStorage.getItem('primetime-step-'+context.actor.uid):null;}catch{return null;}},
     form(kind){const params=Object.fromEntries(read().params);params.form=kind;set('application',params);document.body.classList.add('portal-form-focus');},
     formClosed(){document.body.classList.remove('portal-form-focus');},
-    applicationOpened(){if(route!=='application')set('application');route='application';hide();el('caregiver-summary').hidden=false;for(const a of document.querySelectorAll('[data-portal-route]'))a.setAttribute('aria-current',a.dataset.portalRoute===route?'page':'false');}
+    applicationOpened(){document.title='My application | Primetime';if(route!=='application')set('application');route='application';hide();el('caregiver-summary').hidden=false;for(const a of document.querySelectorAll('[data-portal-route]'))a.setAttribute('aria-current',a.dataset.portalRoute===route?'page':'false');}
   };
   for(const a of document.querySelectorAll('[data-portal-route]'))a.onclick=e=>{e.preventDefault();navigate(a.dataset.portalRoute);};
   window.addEventListener('popstate',()=>{const current=read();navigate(current.view,Object.fromEntries(current.params),true);});

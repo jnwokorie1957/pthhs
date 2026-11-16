@@ -97,6 +97,7 @@ async function documentPrincipal(req: Parameters<typeof recentWorkforceIdentity>
   return {uid, email: user.email, authTime: token.auth_time};
 }
 async function authorizeDocumentPath(principal: DocumentPrincipal, path: string) {
+  if(/^\/application\/documents\//.test(path))throw new WorkforceError(403,'caregiver_upload_download_forbidden');
   if (!path.startsWith("/staff/") && !caregiverWindow(portalPreviewUntil.value(),portalLaunchAt.value()).open && !await caregiverEarlyAccess(principal.uid)) throw new WorkforceError(503,"caregiver_preview_closed");
   if (!sensitiveDocumentPath(path)) throw new WorkforceError(400, "invalid_document_request");
   const target = path.startsWith("/staff/") ? path.split("/")[3]! : principal.uid;
@@ -174,6 +175,25 @@ export const workforceApi = process.env.PRIMETIME_API_ONLY_DEPLOY === "true" ? u
       if (!req.is("application/json") || req.rawBody.length>100 || !req.body || Array.isArray(req.body) || Object.keys(req.body).length) throw new WorkforceError(400,"invalid_request");
       res.json(await new WorkforceStore().interest(uid,interest[1]!)); return;
     }
+    if(path==='/applications'&&req.method==='GET'){
+      if(!applicationsEnabled)throw new WorkforceError(503,'application_collection_pending');
+      res.json(await new IntakeStore().applications(await recentWorkforceIdentity(req)));return;
+    }
+    if(path==='/applications/start'&&req.method==='POST'){
+      if(!applicationsEnabled||publicEnabled.value()!=='true')throw new WorkforceError(503,'application_collection_pending');
+      const uid=await recentWorkforceIdentity(req);
+      if(!req.is('application/json')||req.rawBody.length>300||!req.body||Array.isArray(req.body)||Object.keys(req.body).some(k=>k!=='opportunityId'))throw new WorkforceError(400,'invalid_request');
+      res.json(await new IntakeStore().startPosition(uid,req.body.opportunityId,intakeOffice.value()));return;
+    }
+    const positionApplication=path.match(/^\/applications\/([a-zA-Z0-9_-]{1,128})(\/submit)?$/);
+    if(positionApplication){
+      if(!applicationsEnabled)throw new WorkforceError(503,'application_collection_pending');
+      const uid=await recentWorkforceIdentity(req),store=new IntakeStore(),id=positionApplication[1]!;
+      if(req.method==='GET'&&!positionApplication[2]){res.json({application:await store.loadPosition(uid,id)});return;}
+      const keys=positionApplication[2]?['revision','signature']:['revision','answers'];
+      if(req.method!=='POST'||!req.is('application/json')||req.rawBody.length>64000||!req.body||Array.isArray(req.body)||Object.keys(req.body).some(k=>!keys.includes(k))||!Number.isSafeInteger(req.body.revision)||req.body.revision<0)throw new WorkforceError(400,'invalid_request');
+      res.json({application:positionApplication[2]?await store.submitPosition(uid,id,req.body.revision,req.body.signature):await store.savePosition(uid,id,req.body.revision,req.body.answers)});return;
+    }
     // The schema has no completed records or original packet scans. Actual
     // collection requires separately reviewed server-side release parameters.
     if (path === "/application/packet" && req.method === "GET") { res.json({ packet: intakePacket, inventory: packetInventory }); return; }
@@ -191,9 +211,9 @@ export const workforceApi = process.env.PRIMETIME_API_ONLY_DEPLOY === "true" ? u
     }
     if(path==="/application/hha-profile"||/^\/application\/hha-files\/[1-9]\d{0,9}$/.test(path)){
       if(!existingAccessEnabled)throw new WorkforceError(503,"existing_access_pending");const uid=await recentWorkforceIdentity(req);
-      if(path==="/application/hha-profile"&&req.method==="GET"){if(!existingAccessEnabled)throw new WorkforceError(503,"existing_access_pending");res.json(await(await hhaEnrollment()).profile(uid));return;}
+      if(path==="/application/hha-profile"&&req.method==="GET"){if(!existingAccessEnabled)throw new WorkforceError(503,"existing_access_pending");const profile=await(await hhaEnrollment()).profile(uid);res.json({...profile,files:{items:[],truncated:false},filesUnavailable:false});return;}
       const hhaFile=path.match(/^\/application\/hha-files\/([1-9]\d{0,9})$/);
-      if(hhaFile&&req.method==="GET"){if(!existingAccessEnabled)throw new WorkforceError(503,"existing_access_pending");const file=await(await hhaEnrollment()).file(uid,hhaFile[1]!);res.set("Content-Type",file.bytes.subarray(0,5).toString("ascii")==="%PDF-"?"application/pdf":"application/octet-stream");res.set("Content-Disposition","attachment; filename*=UTF-8''"+encodeURIComponent(file.filename));res.set("Content-Security-Policy","sandbox");res.send(file.bytes);return;}
+      if(hhaFile&&req.method==="GET")throw new WorkforceError(403,'caregiver_upload_download_forbidden');
       throw new WorkforceError(405,"method_not_allowed");
     }
     if (path === "/application" || path.startsWith("/application/")) {
@@ -204,9 +224,9 @@ export const workforceApi = process.env.PRIMETIME_API_ONLY_DEPLOY === "true" ? u
         if (!uploadsEnabled) throw new WorkforceError(503, "document_collection_pending");
         const kind = officialForm[1] as FormKind;
         if (req.method === "GET") {
-          const record = await store.loadForm(uid, kind);
+          const record=await store.loadForm(uid,kind);
           const employer=await store.formContext(uid,employerEin.value());
-          if (!officialForm[2]) { res.json({ form: record, employer }); return; }
+          if (!officialForm[2]) { res.json({ form:record, employer }); return; }
           if (!record) throw new WorkforceError(404, "form_not_found");
           res.set("Content-Type", "application/pdf"); res.set("Content-Disposition", `attachment; filename="private-${kind}.pdf"`);
           const bytes = await renderOfficialForm(record,employer); await release?.(); await release?.(); res.send(bytes); return;
@@ -240,13 +260,7 @@ export const workforceApi = process.env.PRIMETIME_API_ONLY_DEPLOY === "true" ? u
         res.json(await store.listDocuments(uid)); return;
       }
       const download = path.match(/^\/application\/documents\/([a-zA-Z0-9_-]{1,128})$/);
-      if (download && req.method === "GET") {
-        if (!uploadsEnabled) throw new WorkforceError(503, "document_collection_pending");
-        const bytes = await store.download(uid, download[1]!, uid, release);
-        const pdf = bytes.subarray(0, 5).toString("ascii") === "%PDF-";
-        res.set("Content-Type", pdf ? "application/pdf" : "image/jpeg"); res.set("Content-Disposition", `attachment; filename="private-document.${pdf ? "pdf" : "jpg"}"`); res.set("Content-Security-Policy", "sandbox");
-        await release?.(); res.send(bytes); return;
-      }
+      if (download && req.method === 'GET')throw new WorkforceError(403,'caregiver_upload_download_forbidden');
       if (req.method !== "POST") throw new WorkforceError(405, "method_not_allowed");
       const upload = path === "/application/documents";
       if (upload && !uploadsEnabled) throw new WorkforceError(503, "document_collection_pending");
@@ -406,6 +420,14 @@ export const workforceApi = process.env.PRIMETIME_API_ONLY_DEPLOY === "true" ? u
         res.json({items,hasMore:!!roster?.hasMore||portal.hasMore,hhaUnavailable:!roster||hhaCached,hhaCached});
       }
       else{if(Object.keys(req.body).length)throw new WorkforceError(400,"invalid_request");res.json(await support.reset(actor,path.split("/")[3]!));}return;
+    }
+    const positions=path.match(/^\/staff\/applications\/([a-zA-Z0-9_-]{1,128})\/positions(?:\/([a-zA-Z0-9_-]{1,128})(\/pdf)?)?$/);
+    if(positions&&req.method==='GET'){
+      const personnel=new IntakeStore();await personnel.hrRead(uid,positions[1]!,!!positions[3]);
+      if(!positions[2]){res.json(await personnel.applications(positions[1]!));return;}
+      const application=await personnel.loadPosition(positions[1]!,positions[2]!);const actor=await new WorkforceStore().actor(uid);requirePermission(actor,'applications.review',application.office);
+      if(!positions[3]){res.json({application});return;}requirePermission(actor,'documents.review',application.office);
+      const bytes=await renderApplication(application);await release?.();res.set('Content-Type','application/pdf');res.send(bytes);return;
     }
     const hhaRecheck=path.match(/^\/staff\/applications\/([a-zA-Z0-9_-]{1,128})\/hha-transfer\/recheck$/);
     if(hhaRecheck&&req.method==="POST"){

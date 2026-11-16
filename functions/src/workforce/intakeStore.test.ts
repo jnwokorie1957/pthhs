@@ -7,16 +7,16 @@ import { IntakeStore } from "./intakeStore.js";
 import type { Intake } from "./intake.js";
 import type { Actor } from "./policy.js";
 
-interface Ref { path: string; collection: (name: string) => unknown; update: (data: object) => Promise<void> }
+interface Ref { id?:string; get?:()=>Promise<unknown>; path: string; collection: (name: string) => unknown; update: (data: object) => Promise<void> }
 function fixture() {
   const records = new Map<string, Record<string, unknown>>(), files = new Map<string, Buffer>();
   let failStorage = false, failFinalize = false;
   const storageOptions: unknown[] = [];
   function collection(path: string) {
-    const doc = (id: string): Ref => ({ path: path + "/" + id, collection: name => collection(path + "/" + id + "/" + name),
+    const doc = (id: string): Ref => ({ id,get:async()=>({ref:doc(id),exists:records.has(path+"/"+id),data:()=>structuredClone(records.get(path+"/"+id))}), path: path + "/" + id, collection: name => collection(path + "/" + id + "/" + name),
       update: async data => { records.set(path + "/" + id, { ...records.get(path + "/" + id), ...data }); } });
-    return { doc, add: async (data: Record<string, unknown>) => { records.set(path + "/event-" + records.size, data); },
-      where: (key: string, _: string, value: unknown) => ({ limit: () => ({ get: async () => ({ docs: [...records].filter(([p, record]) => p.startsWith(path + "/") && p.split("/").length === 2 && record[key] === value).map(([, record]) => ({ data: () => structuredClone(record) })) }) }) }) };
+    return { doc,limit:()=>({get:async()=>({docs:[...records].filter(([p])=>p.startsWith(path+"/")&&p.split("/").length===path.split("/").length+1).map(([p,record])=>({id:p.split("/").at(-1),data:()=>structuredClone(record)}))})}), add: async (data: Record<string, unknown>) => { records.set(path + "/event-" + records.size, data); },
+      where: (key: string, _: string, value: unknown) => ({ limit: () => ({ get: async () => ({ docs: [...records].filter(([p, record]) => p.startsWith(path + "/") && p.split("/").length === path.split("/").length+1 && record[key] === value).map(([, record]) => ({ data: () => structuredClone(record) })) }) }) }) };
   }
   const db = { collection, runTransaction: async (fn: (transaction: unknown) => Promise<unknown>) => {
     const writes: [string, Record<string, unknown>][] = [];
@@ -260,4 +260,41 @@ test('late direct-deposit uploads queue a separate encrypted, quarantined docume
  const doc=await f.store.upload('synthetic-a','direct_deposit',Buffer.from('%PDF-1.7\nOffice test only\n%%EOF\n').toString('base64'));
  const job=f.records.get(`workforceApplicationMail/synthetic-a_1_document-${doc.id}`)!;
  assert.equal(doc.state,'pending_security_review');assert.deepEqual(job.forms,[]);assert.equal((job.documents as any[])[0].id,doc.id);assert.equal((job.documents as any[]).length,1);assert.ok(f.records.get('workforcePrivateDocuments/'+doc.id)!.encryption);
+});
+
+function seedPosition(f:ReturnType<typeof fixture>,id:string,office='synthetic-office',state='published'){
+ f.records.set('workforceOpportunities/'+id,{id,office,state,revision:1,review:{revision:1},public:{location:id,recruitingZip:'77000',weeklyHours:20,schedule:'weekdays',assistance:['personal_care'],type:'assignment'},internalNotes:'Private staff note',internalReference:'Private reference'});
+}
+async function submittedSeed(f:ReturnType<typeof fixture>){
+ const a=await f.store.load('synthetic-a')||await f.store.save('synthetic-a',0,answers,'synthetic-office');
+ const signed={...a,state:'submitted',submittedAt:new Date().toISOString(),signature:{name:'Synthetic Applicant',uid:'synthetic-a',signedAt:new Date().toISOString()}};
+ f.records.set('workforceApplications/synthetic-a',signed);
+ f.records.set('workforceFormDrafts/synthetic-a_cch',{uid:'synthetic-a',office:'synthetic-office',kind:'cch',revision:1,state:'submitted',sourceSha256:'pinned-source',signature:{name:'Synthetic Applicant',uid:'synthetic-a'}});
+ return structuredClone(signed);
+}
+test('different positions have separate drafts and signatures while the submitted application stays unchanged',async()=>{
+ const f=fixture(),original=await submittedSeed(f);seedPosition(f,'houston');seedPosition(f,'katy');
+ const first=await f.store.startPosition('synthetic-a','houston','synthetic-office'),second=await f.store.startPosition('synthetic-a','katy','synthetic-office');
+ assert.equal(first.applicationId,'houston');assert.equal(second.applicationId,'katy');assert.equal(first.application.signature,null);assert.equal(first.application.answers.firstName,'Synthetic');assert.equal(first.application.answers.terms_page_17,undefined);assert.equal(first.application.answers.jobDescriptionRead,undefined);assert.ok(!JSON.stringify(first).includes('Private staff note'));
+ const saved=await f.store.savePosition('synthetic-a','houston',first.application.revision,answers);assert.equal(saved.opportunity?.id,'houston');assert.equal((await f.store.loadPosition('synthetic-a','katy')).revision,1);
+ const signed=await f.store.submitPosition('synthetic-a','houston',saved.revision,{name:'Synthetic Applicant',electronicConsent:true,documentRead:true});assert.equal(signed.state,'submitted');assert.ok(signed.signature?.opportunitySha256);
+ assert.deepEqual(f.records.get('workforceApplications/synthetic-a'),original);assert.ok(f.records.has('workforceApplicationMail/synthetic-a_position_houston_3'));assert.equal(f.records.has('workforceOnboardingJobs/synthetic-a'),false);
+ await assert.rejects(f.store.savePosition('synthetic-a','houston',signed.revision,answers),/application_already_submitted/);await assert.rejects(f.store.submitPosition('synthetic-a','houston',signed.revision,{name:'Synthetic Applicant',electronicConsent:true,documentRead:true}),/application_already_submitted/);
+ assert.equal((await f.store.startPosition('synthetic-a','houston','synthetic-office')).application.state,'submitted');assert.equal((await f.store.applications('synthetic-a')).items.length,3);
+ await assert.rejects(f.store.loadPosition('another-user','houston'),/application_not_found/);
+});
+test('position starts reject closed, cross-office and existing-employment accounts and cannot retarget a draft',async()=>{
+ const f=fixture();seedPosition(f,'houston');seedPosition(f,'katy');seedPosition(f,'other','other-office');seedPosition(f,'closed','synthetic-office','closed');
+ const first=await f.store.startPosition('synthetic-a','houston','synthetic-office');assert.equal(first.application.opportunity?.id,'houston');
+ await assert.rejects(f.store.startPosition('synthetic-a','katy','synthetic-office'),/finish_current_application/);await assert.rejects(f.store.startPosition('synthetic-a','other','synthetic-office'),/office_application_review_required/);await assert.rejects(f.store.startPosition('synthetic-a','closed','synthetic-office'),/opportunity_unavailable/);
+ f.records.set('workforceAccounts/synthetic-a',{employmentStatus:'active'});await assert.rejects(f.store.startPosition('synthetic-a','houston','synthetic-office'),/employee_reactivation_review/);
+});
+test('submitted caregivers receive upload receipts without file identifiers and cannot replace received files',async()=>{
+ const f=fixture();await f.store.save('synthetic-a',0,answers,'synthetic-office');await f.store.upload('synthetic-a','identity',await image);await submittedSeed(f);
+ const listing=await f.store.listDocuments('synthetic-a');assert.deepEqual(listing.items,[]);assert.ok('receivedKinds'in listing&&listing.receivedKinds.includes('identity'));assert.ok(!JSON.stringify(listing).includes('sha256'));await assert.rejects(f.store.upload('synthetic-a','identity',await image),/document_already_submitted/);
+});
+
+test('additional application limit is enforced before creating another record',async()=>{
+ const f=fixture();await submittedSeed(f);seedPosition(f,'new-position');for(let i=0;i<100;i++)f.records.set('workforceApplications/synthetic-a/positions/position-'+i,{uid:'synthetic-a'});
+ await assert.rejects(f.store.startPosition('synthetic-a','new-position','synthetic-office'),/application_limit_reached/);assert.equal(f.records.has('workforceApplications/synthetic-a/positions/new-position'),false);
 });

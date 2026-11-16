@@ -67,6 +67,9 @@
       for (const [title, values] of grouped) fields(section(disclosure, title), values);
     } catch (error) { packetPromise = null; if (current()) disclosure.append(node('p', 'Could not load responses. Reopen the profile.')); }
     if (!current()) return;
+    const additional=section(target,'Applications for other positions');
+    try{const result=await workforceApi('/staff/applications/'+encodeURIComponent(uid)+'/positions');if(!current())return;const items=result.items.filter(a=>a.applicationId);if(!items.length)additional.append(node('p','No additional position applications.'));for(const a of items){const row=node('div',undefined,'caregiver-file-row');row.append(node('h4',a.opportunity?.location||'Position application'),node('p',human(a.state)+' · '+date(a.submittedAt||a.updatedAt)));additional.append(row);if(can('documents.review'))pdfButton(row,'View / print position application','/staff/applications/'+encodeURIComponent(uid)+'/positions/'+encodeURIComponent(a.applicationId)+'/pdf',current,message);}}
+    catch{if(current())additional.append(node('p','Additional applications could not be loaded. Reopen the profile.'));}
     if (!can('documents.review')) { target.append(node('p', 'Private document access required.')); return; }
     const formsArea = section(target, 'Employment forms'), documentsArea = section(target, 'Private documents');
     const base = '/staff/applications/' + encodeURIComponent(uid);

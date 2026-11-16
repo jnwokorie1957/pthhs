@@ -33,17 +33,17 @@ export function attachmentName(firstName:string,lastName:string,title:string){
  const clean=(value:string)=>value.normalize('NFC').replace(/[^\p{L}\p{M}\p{N} '-]/gu,'').trim().replace(/\s+/g,' ').slice(0,70);
  return (clean(lastName)||'Caregiver')+', '+(clean(firstName)||'Applicant')+' - '+(clean(title)||'Document')+'.pdf';
 }
-export interface SubmissionNotice {name:string;email:string;phone:string;insurance:'Accept'|'Decline'}
+export interface SubmissionNotice {name:string;email:string;phone:string;insurance:'Accept'|'Decline';position?:string}
 export function submissionNotice(application:Intake):SubmissionNotice {
  const a=application.answers,election=a.terms_page_17;
  if(election!=='Accept'&&election!=='Decline')throw Error('insurance_election_required');
- return {name:[a.firstName,a.lastName].filter(Boolean).join(' '),email:a.email||'',phone:a.phone||'',insurance:election};
+ return {name:[a.firstName,a.lastName].filter(Boolean).join(' '),email:a.email||'',phone:a.phone||'',insurance:election,...(application.opportunity?{position:application.opportunity.location+' · '+application.opportunity.weeklyHours+' hours/week'}:{})};
 }
 export function applicationMailPayload(uid:string,revision:number,files:SubmissionAttachment[],notice:SubmissionNotice,part?:MailPart){
  if(!validId(uid)||!Number.isSafeInteger(revision)||revision<1||!files.length||files.length>25||files.reduce((n,f)=>n+f.bytes.length,0)>MAX_MAIL_PACKET_BYTES||new Set(files.map(f=>f.name)).size!==files.length||files.some(f=>! /^[\p{L}\p{M}\p{N}, '_-]{1,225}\.pdf$/u.test(f.name)||f.bytes.length<5||f.bytes.subarray(0,5).toString()!=='%PDF-'))throw Error('mail_packet_review_required');
  const subject=part?.followup?'Caregiver additional completed forms':'Caregiver application submitted — documents attached';
  const result={message:{subject:subject+(part&&part.total>1?` — email ${part.part} of ${part.total}`:''),
-  body:{contentType:'Text',content:'Applicant: '+notice.name+'\nEmail: '+notice.email+'\nPhone: '+notice.phone+'\nHealth insurance coverage election: '+notice.insurance.toUpperCase()+'\n'+(notice.insurance==='Accept'?'Follow up about enrolling in the company health plan.':'The applicant declined the offered company coverage. Follow up if clarification is needed; this does not establish that they have other insurance.')+'\n\nA caregiver submitted an application. Each document is attached as a separate, named PDF for filing: the application, submitted forms, and cleared uploads available at submission. Unfinished forms are not included.\n\nAttachments:\n'+files.map(f=>'- '+f.name).join('\n')+'\n\nReview the record and delivery status in the secure staff portal: https://pthhs.net/workforce#applications?record='+encodeURIComponent(uid)+'&source=portal&tab=documents'},
+  body:{contentType:'Text',content:'Applicant: '+notice.name+'\nEmail: '+notice.email+'\nPhone: '+notice.phone+(notice.position?'\nPosition: '+notice.position:'')+'\nHealth insurance coverage election: '+notice.insurance.toUpperCase()+'\n'+(notice.insurance==='Accept'?'Follow up about enrolling in the company health plan.':'The applicant declined the offered company coverage. Follow up if clarification is needed; this does not establish that they have other insurance.')+'\n\nA caregiver submitted an application. Each document is attached as a separate, named PDF for filing: the application, submitted forms, and cleared uploads available at submission. Unfinished forms are not included.\n\nAttachments:\n'+files.map(f=>'- '+f.name).join('\n')+'\n\nReview the record and delivery status in the secure staff portal: https://pthhs.net/workforce#applications?record='+encodeURIComponent(uid)+'&source=portal&tab=documents'},
   toRecipients:[{emailAddress:{address:PAYROLL_RECIPIENT}}],
   attachments:files.map(f=>({'@odata.type':'#microsoft.graph.fileAttachment',name:f.name,contentType:'application/pdf',contentBytes:f.bytes.toString('base64')}))},saveToSentItems:false};
  if(part?.followup)result.message.body.content=result.message.body.content.replace('A caregiver submitted an application. Each document is attached as a separate, named PDF for filing: the application, submitted forms, and cleared uploads available at submission. Unfinished forms are not included.','The caregiver completed additional forms after submitting the application. Only these newly completed forms are attached; previously emailed documents are not repeated.');
@@ -79,19 +79,20 @@ export class GraphApplicationTransport extends GraphVerificationTransport implem
 export class ApplicationMail {
  constructor(private transport:ApplicationTransport,private allowed:()=>boolean,private ein:string,
   private db=getFirestore(),private store=new IntakeStore(),private auth=getAuth()){}
+ private application(job:ApplicationMailJob){if(job.positionId&&!validId(job.positionId))throw Error('mail_snapshot_invalid');const ref=this.db.collection('workforceApplications').doc(job.uid);return job.positionId?ref.collection('positions').doc(job.positionId):ref;}
  private async check(id:string,job:ApplicationMailJob,lease:string){
   if(!this.allowed())throw Error('mail_release_closed');
-  const [current,app,user]=await Promise.all([this.db.collection('workforceApplicationMail').doc(id).get(),this.db.collection('workforceApplications').doc(job.uid).get(),this.auth.getUser(job.uid)]);
+  const [current,app,user]=await Promise.all([this.db.collection('workforceApplicationMail').doc(id).get(),this.application(job).get(),this.auth.getUser(job.uid)]);
   const value=current.data();
-  if(!value||value.lease!==lease||value.status!=='building'||value.leaseUntil<=Date.now()||value.to!==PAYROLL_RECIPIENT||value.uid!==job.uid||value.revision!==job.revision
+  if(!value||value.lease!==lease||value.status!=='building'||value.leaseUntil<=Date.now()||value.to!==PAYROLL_RECIPIENT||value.uid!==job.uid||value.revision!==job.revision||value.positionId!==job.positionId
    ||app.data()?.revision!==job.revision||app.data()?.state!=='submitted'||app.data()?.office!==job.office||user.disabled||!user.emailVerified)throw Error('mail_authorization_changed');
  }
  async packet(id:string,job:ApplicationMailJob,lease:string){
   const check=()=>this.check(id,job,lease);await check();
   if(job.documents.length>7||job.documents.reduce((n,d)=>n+d.size,0)>7*8*1024*1024)throw Error('mail_packet_review_required');
-  const snapshot=await this.db.collection('workforceApplications').doc(job.uid).collection('versions').doc(String(job.revision)).get();
+  const snapshot=await this.application(job).collection('versions').doc(String(job.revision)).get();
   const application=snapshot.data() as Intake|undefined;
-  if(!application||application.uid!==job.uid||application.office!==job.office||application.revision!==job.revision||application.state!=='submitted')throw Error('mail_snapshot_invalid');
+  if(!application||application.uid!==job.uid||application.office!==job.office||application.revision!==job.revision||application.state!=='submitted'||job.positionId&&application.opportunity?.id!==job.positionId)throw Error('mail_snapshot_invalid');
   const notice=submissionNotice(application);
   const filename=(title:string)=>attachmentName(application.answers.firstName||'',application.answers.lastName||'',title);
   const files:SubmissionAttachment[]=job.eventKey?[]:[{name:filename('Employment application'),bytes:await renderApplication(application)}];
@@ -120,7 +121,7 @@ export class ApplicationMail {
   const ref=this.db.collection('workforceApplicationMail').doc(id);
   if(['accepted','dispatching','unconfirmed'].includes((await ref.get()).data()?.summaryStatus))return;
   await this.check(id,job,lease);
-  const app=(await this.db.collection('workforceApplications').doc(job.uid).collection('versions').doc(String(job.revision)).get()).data() as Intake;
+  const app=(await this.application(job).collection('versions').doc(String(job.revision)).get()).data() as Intake;
   if(!app||app.uid!==job.uid||app.office!==job.office||app.revision!==job.revision||app.state!=='submitted')throw Error('mail_snapshot_invalid');
   const notice=submissionNotice(app),dispatch=await this.transport.prepareSummary();await this.check(id,job,lease);
   const claimed=await this.db.runTransaction(async tx=>{const data=(await tx.get(ref)).data();if(!this.allowed()||data?.lease!==lease||data.status!=='building'||['accepted','dispatching','unconfirmed'].includes(data.summaryStatus))return false;tx.update(ref,{summaryStatus:'dispatching'});return true;});

@@ -12,6 +12,8 @@ import { EMPLOYER_NAME, EMPLOYER_ADDRESS, chicagoDate } from "./dates.js";
 import { directoryEntry } from "./directory.js";
 import { kmsDocumentCipher, type DocumentCipher } from "./documentEncryption.js";
 import type { DocumentAccessCheck } from "./documentAccess.js";
+import {publicOpportunity,type Opportunity} from './opportunities.js';
+import {intakePacket} from './packet.js';
 
 export function privateDocumentPath(uid: string, id: string, extension: "jpg" | "pdf" = "jpg"): string {
   if (!validId(uid) || !validId(id) || !["jpg", "pdf"].includes(extension)) throw new WorkforceError(400, "invalid_document_id");
@@ -23,6 +25,53 @@ export function requireDocumentOwner(doc: PrivateDocument, uid: string): void {
 }
 export class IntakeStore {
   constructor(private db = getFirestore(), private bucket = getStorage().bucket(FORM_BUCKET), private cipher?: DocumentCipher) {}
+  private position(uid:string,id:string){if(!validId(id))throw new WorkforceError(400,'invalid_application_id');return this.app(uid).collection('positions').doc(id);}
+  async applications(uid:string){
+    const primary=await this.load(uid),positions=await this.app(uid).collection('positions').limit(100).get();
+    return {items:[...(primary?[{applicationId:'',state:primary.state,revision:primary.revision,updatedAt:primary.updatedAt,submittedAt:primary.submittedAt,opportunity:primary.opportunity||null}]:[]),...positions.docs.map(d=>{const a=d.data() as Intake;return {applicationId:d.id,state:a.state,revision:a.revision,updatedAt:a.updatedAt,submittedAt:a.submittedAt,opportunity:a.opportunity||null};})]};
+  }
+  async startPosition(uid:string,id:string,office:string){
+    if(!validId(id))throw new WorkforceError(400,'invalid_application_id');if(!validId(office))throw new WorkforceError(503,'intake_office_unconfigured');
+    return this.db.runTransaction(async tx=>{
+      const account=await this.employeeGuard(tx,uid),primaryRef=this.app(uid),primary=await tx.get(primaryRef);
+      const listing=await tx.get(this.db.collection('workforceOpportunities').doc(id)),job=listing.data() as Opportunity|undefined;
+      if(!job||!publicOpportunity(job))throw new WorkforceError(409,'opportunity_unavailable');
+      if(job.office!==office)throw new WorkforceError(409,'office_application_review_required');
+      const previous=primary.exists?primary.data() as Intake:null;
+      const opportunity={id,location:job.public.location,weeklyHours:job.public.weeklyHours,office:job.office},now=new Date().toISOString();
+      if(previous?.state!=='submitted'){
+        if(previous?.opportunity&&previous.opportunity.id!==id)throw new WorkforceError(409,'finish_current_application');
+        if(previous?.opportunity?.id===id)return {applicationId:'',application:previous};
+        const next={...saveIntake(uid,previous,previous?.revision||0,previous?.answers||{},office,false,now),opportunity};
+        if(!account.exists)tx.create(account.ref,{uid,employmentStatus:'applicant',office,createdAt:now});
+        tx.set(primaryRef,next);tx.create(primaryRef.collection('versions').doc(String(next.revision)),next);this.audit(tx,uid,'application_position_selected',uid,{opportunityId:id});return {applicationId:'',application:next};
+      }
+      if(previous.opportunity?.id===id)return {applicationId:'',application:previous};
+      const ref=this.position(uid,id),old=await tx.get(ref);if(old.exists)return {applicationId:id,application:old.data() as Intake};
+      const existingPositions=await tx.get(primaryRef.collection('positions').limit(100));if(existingPositions.docs.length>=100)throw new WorkforceError(429,'application_limit_reached');
+      // Reuse only basic information. Every new application needs its own policy
+      // responses and signature; signed personnel forms remain separate records.
+      const answers=Object.fromEntries(Object.entries(previous.answers).filter(([key])=>intakePacket.fields.some(f=>f.id===key)&&!key.startsWith('read_page_')&&!key.startsWith('terms_page_')&&!['jobDescriptionRead','jobDescriptionQuestions','applicationDate'].includes(key)));
+      const next={...saveIntake(uid,null,0,answers,office,false,now),id,opportunity};
+      tx.create(ref,next);tx.create(ref.collection('versions').doc(String(next.revision)),next);this.audit(tx,uid,'position_application_started',uid,{opportunityId:id});return {applicationId:id,application:next};
+    });
+  }
+  async loadPosition(uid:string,id:string){const doc=await this.position(uid,id).get();if(!doc.exists)throw new WorkforceError(404,'application_not_found');const app=doc.data() as Intake;if(app.uid!==uid)throw new WorkforceError(403,'application_forbidden');return app;}
+  async savePosition(uid:string,id:string,revision:number,answers:unknown){return this.db.runTransaction(async tx=>{
+    await this.employeeGuard(tx,uid);const ref=this.position(uid,id),old=await tx.get(ref);if(!old.exists)throw new WorkforceError(404,'application_not_found');const previous=old.data() as Intake;
+    const next=saveIntake(uid,previous,revision,answers,previous.office,false,new Date().toISOString());tx.set(ref,next);tx.create(ref.collection('versions').doc(String(next.revision)),next);this.audit(tx,uid,'position_application_saved',uid,{opportunityId:id,revision:next.revision});return next;
+  });}
+  async submitPosition(uid:string,id:string,revision:number,signature:unknown){return this.db.runTransaction(async tx=>{
+    await this.employeeGuard(tx,uid);const ref=this.position(uid,id),old=await tx.get(ref),primary=await tx.get(this.app(uid));if(!old.exists||primary.data()?.state!=='submitted')throw new WorkforceError(409,'application_not_found');
+    const currentJob=await tx.get(this.db.collection('workforceOpportunities').doc(id)),listing=currentJob.data() as Opportunity|undefined;if(!listing||!publicOpportunity(listing)||listing.office!==(old.data() as Intake).office)throw new WorkforceError(409,'opportunity_unavailable');
+    const app=old.data() as Intake,next=submitIntake(uid,app,revision,signature,new Date().toISOString());
+    const docs=await tx.get(this.db.collection('workforcePrivateDocuments').where('uid','==',uid).limit(100));
+    const forms=await Promise.all((['cch','i9','w4','new_hire'] as FormKind[]).map(kind=>tx.get(this.db.collection('workforceFormDrafts').doc(`${uid}_${kind}`))));
+    requireSignedCch(forms[0]?.data() as FormRecord|undefined,uid,app.office,next.signature!.name);
+    const job=applicationMailJob(next,docs.docs.map(d=>d.data() as PrivateDocument),forms.filter(d=>d.exists).map(d=>d.data() as FormRecord));
+    tx.create(this.db.collection('workforceApplicationMail').doc(`${uid}_position_${id}_${next.revision}`),{...job,positionId:id});
+    tx.set(ref,next);tx.create(ref.collection('versions').doc(String(next.revision)),next);this.audit(tx,uid,'position_application_submitted',uid,{opportunityId:id,revision:next.revision});return next;
+  });}
   async formContext(uid:string,ein:string) {
     const account=await this.db.collection("workforceAccounts").doc(uid).get();
     const start=account.data()?.firstDayOfEmployment;
@@ -189,6 +238,7 @@ export class IntakeStore {
   async listDocuments(uid: string, actorId = uid) {
     // uid always comes from verified identity or a separate HR scope check.
     if (actorId !== uid) await this.hrRead(actorId, uid, true);
+
     await this.db.collection("workforcePersonnelAudit").add({ actor: actorId, action: "document_folder_list", target: uid, at: new Date().toISOString() });
     const docs = await this.db.collection("workforcePrivateDocuments").where("uid", "==", uid).limit(100).get();
     const submissionEmail = actorId===uid ? null : await this.db.runTransaction(async tx=>{
@@ -196,13 +246,15 @@ export class IntakeStore {
       const job=await tx.get(this.db.collection("workforceApplicationMail").doc(uid+"_"+app.data()!.revision));
       return job.exists?{status:job.data()!.status,reason:job.data()!.reason||null,summaryStatus:job.data()!.summaryStatus||null}:null;
     });
+    if(actorId===uid&&(await this.load(uid))?.state==='submitted')return {items:[],receivedKinds:[...new Set(docs.docs.map(d=>d.data()).filter(d=>['pending_review','pending_security_review'].includes(d.state)).map(d=>d.kind))],limit:100,submissionEmail:null};
     return { items: docs.docs.map(d => documentSummary(d.data() as PrivateDocument)), limit: 100, submissionEmail };
   }
   async upload(uid: string, kindInput: unknown, encoded: unknown) {
     const kind = documentKind(kindInput), id = randomUUID();
     // Limit attempts before image decoding, including malformed attempts.
     await this.db.runTransaction(async tx => {
-      const ref = this.db.collection("workforceUploadLimits").doc(uid), doc = await tx.get(ref);
+      const ref = this.db.collection("workforceUploadLimits").doc(uid), doc = await tx.get(ref),app=await tx.get(this.app(uid));
+      if(app.data()?.state==='submitted'){const existing=await tx.get(this.db.collection('workforcePrivateDocuments').where('uid','==',uid).limit(100));if(existing.docs.some(d=>d.data().kind===kind&&d.data().state!=='security_rejected'))throw new WorkforceError(409,'document_already_submitted');}
       const now = Date.now(), old = doc.data(), sameHour = typeof old?.startedAt === "number" && now - old.startedAt < 3_600_000;
       const attempts = sameHour ? Number(old?.attempts ?? 0) : 0;
       if (attempts >= 20) throw new WorkforceError(429, "upload_limit_reached");
@@ -218,6 +270,7 @@ export class IntakeStore {
       // A folder belongs to an existing application, never an arbitrary target UID.
       const application = await tx.get(this.app(uid));
       if (!application.exists) throw new WorkforceError(409, "save_application_first");
+      if(application.data()?.state==='submitted'){const existing=await tx.get(this.db.collection('workforcePrivateDocuments').where('uid','==',uid).limit(100));if(existing.docs.some(d=>d.data().kind===kind&&d.data().state!=='security_rejected'))throw new WorkforceError(409,'document_already_submitted');}
       const limit = this.db.collection("workforceDocumentLimits").doc(uid), count = await tx.get(limit);
       if (Number(count.data()?.count ?? 0) >= 100) throw new WorkforceError(429, "document_folder_limit_reached");
       tx.set(limit, { count: Number(count.data()?.count ?? 0) + 1 });

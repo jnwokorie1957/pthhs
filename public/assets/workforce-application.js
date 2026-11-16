@@ -9,6 +9,8 @@
   const documentForm = document.getElementById('private-document-form');
   const documentsPanel = document.getElementById('private-documents'), officialForms = document.getElementById('official-forms');
   const rolePanel = document.getElementById('job-description-step'), policyPanel = document.getElementById('policy-reading-step');
+  let applicationId='';
+  const applicationApi=(path,body)=>workforceApi(applicationId?'/applications/'+encodeURIComponent(applicationId)+(path.endsWith('/submit')?'/submit':''):path,body);
   let packet, record = null, answers = {}, sections = [], step = 0, generation = 0;
   let documentItems = [], addressEnabled = false, detachAddress = () => {};
   let version = 0, savedVersion = -1, saveQueue = Promise.resolve(), timer, documentsEnabled = false;
@@ -86,15 +88,15 @@
     try {
       const data = await workforceApi('/application/documents');
       if (sequence !== generation) return;
-      documentItems = data.items; renderDocumentChecklist();
+      documentItems = [...data.items,...(data.receivedKinds||[]).map(kind=>({kind,state:'pending_review'}))]; renderDocumentChecklist();const documentStepState=document.querySelector('#application-steps button[data-section="Documents"] .application-step-state');if(documentStepState)documentStepState.textContent=requiredDocuments().length?'Uploads needed':'Received';
       document.getElementById('private-document-list').replaceChildren();
       for (const kind of Object.keys(uploadKinds)) {
-        const matches = data.items.filter(item => item.kind === kind).sort((a,b) => b.createdAt.localeCompare(a.createdAt));
+        const matches = documentItems.filter(item => item.kind === kind).sort((a,b) => b.createdAt.localeCompare(a.createdAt));
         const doc = matches.find(item => ['pending_review', 'pending_security_review'].includes(item.state));
-        const view = document.getElementById(kind + '-view'); view.hidden = !doc || doc.state !== 'pending_review';
+        const view = document.getElementById(kind + '-view'); view.hidden = true;document.getElementById(kind+'-choose').hidden=!!doc;const uploadForm=document.getElementById(kind+'-choose').closest('form');if(uploadForm)uploadForm.hidden=!!doc;
         if (doc) document.getElementById(kind + '-selection').textContent = doc.state === 'pending_security_review' ? 'Uploaded — security review pending' : 'Uploaded';
         else if (matches[0]?.state === 'security_rejected') document.getElementById(kind + '-selection').textContent = 'This PDF did not pass security review. Upload a replacement.';
-        view.onclick = async () => { try { const sequence = generation, blob = await workforceApi('/application/documents/' + encodeURIComponent(doc.id), undefined, true); if (sequence === generation) window.WorkforceCamera.view(blob, uploadKinds[kind]); } catch (error) { documentMessage.textContent = error.message; } };
+        view.onclick=null;
       }
     } catch (error) { if (sequence === generation) documentMessage.textContent = error.message; }
   }
@@ -104,7 +106,7 @@
       if (sequence !== generation || !packet || record?.state === 'submitted' || savedVersion === version) return;
       const currentVersion = version, snapshot = { ...answers };
       message.textContent = 'Saving securely…';
-      const response = await workforceApi('/application', { revision: record?.revision ?? 0, answers: snapshot });
+      const response = await applicationApi('/application', { revision: record?.revision ?? 0, answers: snapshot });
       if (sequence !== generation) return;
       record = response.application; savedVersion = currentVersion;
       message.textContent = 'Saved securely. You can return using the same account.';
@@ -161,7 +163,22 @@
       details.append(dl); review.append(details);
     }
   }
+  function submittedView(){
+    fields.replaceChildren();form.hidden=false;signaturePanel.hidden=true;rolePanel.hidden=true;policyPanel.hidden=true;documentsPanel.hidden=true;officialForms.hidden=true;
+    const nav=document.getElementById('application-steps');nav.replaceChildren();nav.hidden=true;document.getElementById('application-navigation').hidden=true;document.getElementById('packet-checklist').hidden=true;
+    document.getElementById('application-status-badge').textContent='Submitted · view only';
+    message.textContent='Submitted '+new Date(record.submittedAt).toLocaleString()+'. This application is locked. Contact the office to request a correction.';
+    document.querySelector('#caregiver-summary .application-heading h2').textContent='Application details';document.querySelector('#caregiver-summary > p').textContent='Review your submitted responses below.';
+    fields.append(text('h3',record.opportunity?'Application for '+record.opportunity.location:'Submitted application'));
+    if(record.opportunity)fields.append(text('p',record.opportunity.weeklyHours+' hours/week · Position '+record.opportunity.id));
+    const groups=new Map();for(const [id,value]of Object.entries(answers)){const meta=packet.fields.find(f=>f.id===id),group=meta?.section||'Other recorded responses';if(!groups.has(group))groups.set(group,[]);groups.get(group).push({label:meta?.label||id,value:['ssn','birthDate'].includes(id)?(value?'Provided securely':'Not entered'):value||'Not entered'});}
+    for(const [label,entries]of groups){const details=document.createElement('details'),dl=document.createElement('dl');details.append(text('summary',label));for(const entry of entries)dl.append(text('dt',entry.label),text('dd',entry.value));details.append(dl);fields.append(details);}
+    if(record.signature)fields.append(text('p','Signed by '+record.signature.name+' · '+new Date(record.signature.signedAt).toLocaleString()));
+    const forms=text('button','View signed forms / finish remaining forms');forms.type='button';forms.onclick=()=>window.WorkforceNavigation.navigate('documents');fields.append(forms);
+    fields.append(text('p','Uploaded identity, insurance and banking files are available to authorized office staff only.'));
+  }
   function render(pushHistory=false) {
+    if(record?.state==='submitted'){submittedView();if(sections[step]==='Documents'){form.hidden=true;documentsPanel.hidden=false;}return;}document.querySelector('#caregiver-summary .application-heading h2').textContent='Join the Primetime team';document.querySelector('#caregiver-summary > p').textContent='Complete your application in short steps. Save it securely and return when you are ready.';document.getElementById('application-steps').hidden=false;document.getElementById('packet-checklist').hidden=false;
     queueMicrotask(refreshCompleteness); if(pushHistory)queueMicrotask(scrollStep);
     detachAddress(); window.WorkforceCamera.clear(); window.WorkforceReadings.clear();
     const submitted = record?.state === 'submitted';
@@ -264,29 +281,30 @@
   document.addEventListener('workforce-caregiver-session', async event => {
     reviewNavigation = WorkforceContract.reviewNavigationAllowed(location.hostname,event.detail.previewNavigation);
     reviewNote.hidden = !reviewNavigation; reviewNote.textContent = 'Review preview: browse every section freely. Missing fields are highlighted; live applicants must complete required information.';
+    applicationId=event.detail.navigation?.applicationId&&event.detail.navigation.applicationId!=='primary'?event.detail.navigation.applicationId:'';
     const sequence = ++generation; panel.hidden = false; document.getElementById('portal-release-notice').hidden = true; message.textContent = 'Loading your application…';
     documentsEnabled = event.detail.documentsEnabled === true; documentForm.hidden = !documentsEnabled;
     addressEnabled = event.detail.addressLookupEnabled === true;
     documentMessage.textContent = documentsEnabled ? 'Uploads are stored encrypted. After submission and security review, completed documents are sent to the authorized office recipient.' : 'ID and Social Security card collection is closed until security and retention controls are verified.';
     try {
-      const [schema, saved] = await Promise.all([workforceApi('/application/packet'), workforceApi('/application')]);
+      const [schema, saved] = await Promise.all([workforceApi('/application/packet'), applicationApi('/application')]);
       if (sequence !== generation) return;
       packet = schema.packet; record = saved.application; answers = { ...(record?.answers || {}) };
       if (!record && !answers.applicationDate) {
         const parts = new Intl.DateTimeFormat('en-US',{timeZone:'America/Chicago',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date());
         const value = type => parts.find(p=>p.type===type).value; answers.applicationDate = value('year') + '-' + value('month') + '-' + value('day');
       }
-      if (record && record.packetVersion !== packet.version) throw Error('The office must review the application version before you continue.');
+      if (record && record.state!=='submitted' && record.packetVersion !== packet.version) throw Error('The office must review the application version before you continue.');
       version = 0; savedVersion = record ? 0 : -1; step = 0; sections = [...new Set(packet.fields.map(f => f.section)), 'Documents', 'Tax & employment forms'];
       const inventory = document.getElementById('packet-inventory'); inventory.replaceChildren();
       const stageLabels = { application: 'Application', hr: 'The office completes this', onboarding: 'The office will guide you during onboarding', payroll: 'Secure payroll onboarding', employment: 'After employment begins' };
       for (const item of schema.inventory) inventory.append(text('li', item.title + ' — ' + stageLabels[item.stage]));
       const selected = WorkforceContract.selectedId(location.search);
-      document.getElementById('selected-opportunity').textContent = event.detail.selectedOpportunity ? 'Applying for personal care attendant · ' + event.detail.selectedOpportunity.location + ' · ' + event.detail.selectedOpportunity.weeklyHours + ' hours/week. Your interest is recorded; complete your application below.' : selected ? 'Selected position reference: ' + selected : '';
+      document.getElementById('selected-opportunity').textContent = record?.opportunity ? 'Application for personal care attendant · '+record.opportunity.location+' · '+record.opportunity.weeklyHours+' hours/week.' : event.detail.selectedOpportunity ? 'Applying for personal care attendant · ' + event.detail.selectedOpportunity.location + ' · ' + event.detail.selectedOpportunity.weeklyHours + ' hours/week. Your interest is recorded; complete your application below.' : selected ? 'Selected position reference: ' + selected : '';
       message.textContent = record ? 'Your saved application is ready.' : 'Read the PAS attendant role, then complete Contact information. Progress saves securely after you make changes.';
       const desired=event.detail.navigation?.section||window.WorkforceNavigation?.resume();if(desired==='Review & submit')step=sections.length;else if(sections.includes(desired))step=sections.indexOf(desired);
       render(); await loadDocuments();
-      if(['i9','w4','new_hire','cch'].includes(event.detail.navigation?.form))await window.WorkforceForms.open(event.detail.navigation.form,{...answers});
+      if(['i9','w4','new_hire','cch'].includes(event.detail.navigation?.form)){form.hidden=true;officialForms.hidden=false;await window.WorkforceForms.open(event.detail.navigation.form,{...answers});}
     } catch (error) { if (sequence === generation) { showError(error); fields.replaceChildren(); form.hidden = true; signaturePanel.hidden = true; } }
   });
   document.getElementById('application-progress').onclick=()=>{const nav=document.getElementById('application-steps');const open=nav.classList.toggle('is-expanded');document.getElementById('application-progress').setAttribute('aria-expanded',String(open));};
@@ -304,7 +322,7 @@
       await loadDocuments();
       // The server checks required receipts and trusted office exceptions together.
       // A local checklist must not override an approved alternative arrangement.
-      const result = await workforceApi('/application/submit', { revision: record.revision, signature: {
+      const result = await applicationApi('/application/submit', { revision: record.revision, signature: {
         name: document.getElementById('application-signature-name').value,
         electronicConsent: document.getElementById('electronic-consent').checked, documentRead: document.getElementById('release-read').checked
       } });

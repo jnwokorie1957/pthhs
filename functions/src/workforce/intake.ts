@@ -7,8 +7,9 @@ import { chicagoDate } from "./dates.js";
 import {isAdult} from './age.js';
 
 export interface Intake extends Application {
+  opportunity?: {id:string;location:string;weeklyHours:number;office:string};
   office: string; sourceSha256: string; updatedAt: string;
-  signature: { name: string; signedAt: string; uid: string; document: string; documentRevision: string; sourceSha256: string; answersSha256: string; electronicConsent: true } | null;
+  signature: { name: string; signedAt: string; uid: string; document: string; documentRevision: string; sourceSha256: string; answersSha256: string; opportunitySha256?:string; electronicConsent: true } | null;
   roleAcknowledgment?: { uid: string; name: string; readAt: string; revision: string; contentSha256: string; sourcePages: number[]; questionsForHR: boolean };
   policyAcknowledgments?: { page: number; sourcePages: number[]; read: true; response: string|null; edition: string; contentSha256: string; sourceSha256: string; uid: string; signedAt: string }[];
 }
@@ -35,7 +36,7 @@ export function saveIntake(uid: string, previous: Intake | null, revision: numbe
   const prior = previous?.state === "draft" && previous.packetVersion === "pthhs-intake-2026-11-09-v7" && previous.sourceSha256 === PACKET_SHA256
     ? {...previous, packetVersion: PACKET_VERSION} : previous;
   const next = saveApplication(uid, prior, revision, { ...intakePacket, approved: true }, clean, activeEmployee ? "active" : "applicant");
-  return { ...next, office: previous?.office ?? office, sourceSha256: PACKET_SHA256, updatedAt: now, signature: null };
+  return { ...next, ...(previous?.opportunity?{opportunity:previous.opportunity}:{}), office: previous?.office ?? office, sourceSha256: PACKET_SHA256, updatedAt: now, signature: null };
 }
 export function submitIntake(uid: string, previous: Intake, revision: number, signature: unknown, now: string): Intake {
   if (revision !== previous.revision) throw new WorkforceError(409, "revision_conflict");
@@ -55,6 +56,6 @@ export function submitIntake(uid: string, previous: Intake, revision: number, si
   }, signature: {
     name: input.name.trim(), signedAt: now, uid, document: intakePacket.referenceRelease.id,
     documentRevision: intakePacket.referenceRelease.revision, sourceSha256: PACKET_SHA256,
-    answersSha256: createHash("sha256").update(JSON.stringify(sorted)).digest("hex"), electronicConsent: true
+    answersSha256: createHash("sha256").update(JSON.stringify(sorted)).digest("hex"), ...(previous.opportunity?{opportunitySha256:createHash("sha256").update(JSON.stringify(previous.opportunity)).digest("hex")}:{}), electronicConsent: true
   } };
 }

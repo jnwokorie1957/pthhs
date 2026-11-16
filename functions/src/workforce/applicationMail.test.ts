@@ -111,3 +111,12 @@ test('quarantined jobs cannot starve later submissions across scheduler runs',as
 test('a later quarantined upload waits without repeating the original submission summary',async()=>{
  const f=fixture(),eventKey='document-00000000-0000-4000-8000-000000000001',id='synthetic_1_'+eventKey;f.records.set('workforceApplicationMail/'+id,{...f.records.get('workforceApplicationMail/synthetic_1'),eventKey});f.worker.packet=async()=>{throw Error('mail_security_review_pending');};await f.worker.send(id);assert.equal(f.sends,0);assert.equal(f.summaries,0);assert.equal(f.records.get('workforceApplicationMail/'+id).status,'queued');
 });
+
+test('position-application email uses its own immutable snapshot and preserves insurance election',async()=>{
+ const f=fixture(),job=f.records.get('workforceApplicationMail/synthetic_1');Object.assign(job,{positionId:'houston',status:'building',lease:'lease',leaseUntil:Date.now()+600000});
+ const snapshot={...f.records.get('workforceApplications/synthetic/versions/1'),updatedAt:'2026-11-15T17:00:00Z',packetVersion:'sample',opportunity:{id:'houston',location:'Houston',weeklyHours:20,office:'office'}};
+ f.records.set('workforceApplications/synthetic/positions/houston',snapshot);f.records.set('workforceApplications/synthetic/positions/houston/versions/1',snapshot);
+ f.records.get('workforceApplications/synthetic').revision=99;
+ const result=await ApplicationMail.prototype.packet.call(f.worker,'synthetic_1',job,'lease');assert.equal(result.files.length,1);assert.equal(result.notice.position,'Houston · 20 hours/week');assert.match(applicationMailPayload('synthetic',1,result.files,result.notice).message.body.content,/Position: Houston/);
+ job.positionId='other-position';await assert.rejects(ApplicationMail.prototype.packet.call(f.worker,'synthetic_1',job,'lease'),/mail_authorization_changed/);
+});

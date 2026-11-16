@@ -79,11 +79,12 @@
 
       }catch(error){if(sequence===generation){message(error.message);form.hidden=true;byId('account-retry').hidden=false;}}
     }
-    function openApplication(position, navigation={}){
+    async function openApplication(position, navigation={}){
       if(!actor||actor.applicationsEnabled===false||actor.existingCaregiver===true)return;clearHha();
+      try{if(position){const result=await api('/applications/start',{opportunityId:position.id});navigation={...navigation,applicationId:result.applicationId||'primary'};}else if(!Object.keys(navigation).length)navigation={applicationId:'primary'};}catch(error){message(error.message);return;}
       byId('job-board').hidden=true;byId('caregiver-summary').hidden=false;
       if(position){const url=new URL(location.href);url.searchParams.set('opportunity',position.id);history.replaceState(null,'',url.pathname+url.search+url.hash);}
-      window.WorkforceNavigation.applicationOpened();
+      window.WorkforceNavigation.applicationOpened();window.WorkforceNavigation.set('application',navigation,true);
       document.dispatchEvent(new CustomEvent('workforce-caregiver-session',{detail:{...actor,selectedOpportunity:position||null,navigation}}));
       byId('caregiver-summary').scrollIntoView({block:'start'});
     }

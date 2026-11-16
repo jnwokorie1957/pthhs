@@ -72,6 +72,6 @@ test("the mail rate limit and protected route allowlist cover direct documents a
   const f = fixture();
   for (let i = 0; i < 3; i++) await f.service.request(f.principal, f.path, f.allow);
   await assert.rejects(f.service.request(f.principal, f.path, f.allow), /document_verification_limit/);
-  for (const route of ["/application/documents/test", "/application/forms/w4/pdf", "/staff/applications/synthetic-a/packet/pdf", f.path]) assert(sensitiveDocumentPath(route));
+  for (const route of ["/application/documents/test", "/application/forms/w4/pdf", "/staff/applications/synthetic-a/packet/pdf", "/staff/applications/synthetic-a/positions/houston/pdf", f.path]) assert(sensitiveDocumentPath(route));
   for (const route of ["//evil.example", "/application/documents", "/staff/roster/101/files/1", "/application/documents/test?access=1"]) assert(!sensitiveDocumentPath(route));
 });

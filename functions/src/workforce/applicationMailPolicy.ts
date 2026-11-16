@@ -7,7 +7,7 @@ export interface ApplicationMailJob {
  documents:{id:string;generation:string;sha256:string;size:number;kind:string}[];
  forms:{kind:FormKind;revision:number;sourceSha256:string}[];
  lease?:string; leaseUntil?:number; retryAt?:number;
- eventKey?:string; nextPart?:number; batchManifest?:string;
+ positionId?:string; eventKey?:string; nextPart?:number; batchManifest?:string;
 }
 export function applicationMailJob(app:Intake, documents:PrivateDocument[], forms:FormRecord[]):ApplicationMailJob {
  if(app.state!=='submitted'||!app.signature)throw Error('submitted_application_required');

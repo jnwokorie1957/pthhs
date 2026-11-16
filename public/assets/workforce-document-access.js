@@ -1,7 +1,7 @@
 (() => {
   let active = null;
   const sensitive = path => /^\/application\/(documents\/[a-zA-Z0-9_-]+|forms\/(i9|w4|new_hire|cch)\/pdf)$/.test(path)
-    || /^\/staff\/applications\/[a-zA-Z0-9_-]+\/(pdf|packet\/pdf|forms\/(i9|w4|new_hire|cch)\/pdf|documents\/[a-zA-Z0-9_-]+(\/print)?)$/.test(path);
+    || /^\/staff\/applications\/[a-zA-Z0-9_-]+\/(positions\/[a-zA-Z0-9_-]+\/pdf|pdf|packet\/pdf|forms\/(i9|w4|new_hire|cch)\/pdf|documents\/[a-zA-Z0-9_-]+(\/print)?)$/.test(path);
   const node = (tag, text) => { const element = document.createElement(tag); element.textContent = text; return element; };
 
   window.WorkforceDocumentAccess = {

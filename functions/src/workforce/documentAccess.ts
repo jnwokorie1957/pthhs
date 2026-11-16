@@ -13,7 +13,7 @@ const matches = (left: unknown, right: string) => typeof left === "string" && /^
 export function sensitiveDocumentPath(path: unknown): path is string {
   return typeof path === "string" && (
     /^\/application\/(documents\/[a-zA-Z0-9_-]{1,128}|forms\/(i9|w4|new_hire|cch)\/pdf)$/.test(path)
-    || /^\/staff\/applications\/[a-zA-Z0-9_-]{1,128}\/(pdf|packet\/pdf|forms\/(i9|w4|new_hire|cch)\/pdf|documents\/[a-zA-Z0-9_-]{1,128}(\/print)?)$/.test(path));
+    || /^\/staff\/applications\/[a-zA-Z0-9_-]{1,128}\/(positions\/[a-zA-Z0-9_-]{1,128}\/pdf|pdf|packet\/pdf|forms\/(i9|w4|new_hire|cch)\/pdf|documents\/[a-zA-Z0-9_-]{1,128}(\/print)?)$/.test(path));
 }
 
 export class DocumentAccess {
