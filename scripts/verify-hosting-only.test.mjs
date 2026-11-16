@@ -40,7 +40,7 @@ test('workflow retains push behavior and excludes backend on every manual releas
     return match[1];
   };
   const evaluate = (job, event, ref, target, mode = event === 'push' ? 'full' : (ref === 'refs/heads/main' && target === 'hosting' ? 'hosting' : '')) => vm.runInNewContext(condition(job), {
-    github: {event_name: event, ref}, inputs: {deployment_target: target}, needs: {release_scope: {outputs: {mode}}},
+    github: {event_name: event, ref}, inputs: {deployment_target: target}, always:()=>true,cancelled:()=>false,needs: {release_scope: {outputs: {mode}},deploy_backend:{result:'success'}},
   });
   assert.equal(evaluate('build_and_deploy', 'push', 'refs/heads/main'), true);
   assert.equal(evaluate('deploy_backend', 'push', 'refs/heads/main'), true);

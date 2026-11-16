@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {PDFDocument} from 'pdf-lib';
+import {PDFDocument,PDFName} from 'pdf-lib';
 import sharp from 'sharp';
 import {dispatchLicenseReminder,ReminderSendError,reminderWindow} from './licenseReminderOutbox.js';
 import {FieldVisits,visitData,appendVisitSignature,visitContentHash,missingVisitFields,renderVisit} from './fieldVisits.js';
@@ -55,5 +55,5 @@ test('uploaded form signature placements render a static PDF with no editable fi
  const page=await sharp({create:{width:600,height:800,channels:3,background:'#fff'}}).jpeg().toBuffer();
  let data=visitData({...complete(),kind:'upload',fields:{title:'Practice uploaded form'},pages:[page.toString('base64')],signatureFields:[{role:'member',page:0,x:.1,y:.4,width:.5,height:.08},{role:'staff',page:0,x:.1,y:.6,width:.5,height:.08}]});
  for(const role of ['member','staff'])data=appendVisitSignature(data,signature(data,role),'staff');
- const pdf=await PDFDocument.load(await renderVisit(data,'PLACEMENT-TEST'));assert.equal(pdf.getForm().getFields().length,0);assert.ok(pdf.getPageCount()>=3);
+ const pdf=await PDFDocument.load(await renderVisit(data,'PLACEMENT-TEST'));assert.equal(pdf.getForm().getFields().length,0);assert.equal(pdf.getPageCount(),2);assert.ok(pdf.getPage(0).node.Resources()?.get(PDFName.of('XObject')));
 });

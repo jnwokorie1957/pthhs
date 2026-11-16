@@ -24,12 +24,14 @@
     document.dispatchEvent(new CustomEvent('workforce-opportunities-updated', {detail:data}));
   }
   function edit(o) {
+    if(!can('edit'))return;document.getElementById('staff-editor-message').textContent='';
     window.WorkforceManagement?.show('opportunities');document.getElementById('staff-editor-panel').open=true;document.getElementById('staff-editor-title').textContent=o?'Edit opportunity':'New opportunity';
     form.reset(); form.elements.id.value = o?.id || ''; form.elements.revision.value = o?.revision || 0;
     for (const key of ['office', 'internalReference', 'internalNotes']) if (o) form.elements[key].value = o[key];
-    for (const key of ['location', 'recruitingZip', 'weeklyHours', 'schedule', 'type', 'serviceType', 'pets']) if (o) form.elements[key].value = o.public[key] || '';
+    for (const key of ['location', 'recruitingZip', 'weeklyHours', 'schedule', 'type', 'duration', 'serviceType', 'pets']) if (o) form.elements[key].value = o.public[key] || '';
     for (const box of form.querySelectorAll('[name=assistance]')) {box.checked = !!o?.public.assistance.includes(box.value);if(box.closest('[data-legacy-task]'))box.parentElement.hidden=!box.checked;}
     for(const box of form.querySelectorAll('[name=shifts]'))box.checked=!!o?.public.shifts?.includes(box.value);
+    window.WorkforceOverlay?.open('staff-editor-panel',{title:o?'Edit opportunity':'New opportunity'});
   }
   function render() {
     list.replaceChildren();
@@ -45,7 +47,7 @@
       const title = document.createElement('h3');title.textContent=o.public.location;
       const badge=document.createElement('span');badge.className='manager-status manager-status-'+o.state;badge.textContent={review:'In review',draft:'Draft',published:'Published',approved:'Approved',closed:'Closed',archived:'Archived'}[o.state]||o.state;
       heading.append(title,badge);
-      const details = document.createElement('p');details.textContent=[o.public.recruitingZip?'ZIP '+o.public.recruitingZip:'Broad recruiting area',o.public.weeklyHours+' hours / week',({weekdays:'Weekdays',weekends:'Weekends',flexible:'Flexible schedule'})[o.public.schedule],o.public.assistance.map(need=>need.replaceAll('_',' ')).join(', ')].join(' · ');
+      const details = document.createElement('p');details.textContent=[o.public.recruitingZip?'ZIP '+o.public.recruitingZip:'Broad recruiting area',o.public.weeklyHours+' hours / week',({weekdays:'Weekdays',weekends:'Weekends',flexible:'Flexible schedule'})[o.public.schedule]].join(' · ');
       const meta=document.createElement('p');meta.className='manager-record-meta';meta.textContent='Office: '+o.office+' · Revision '+o.revision+(o.internalReference?' · Ref. '+o.internalReference:'');
       const care=document.createElement('p');care.textContent=WorkforceOpportunityFields.details(o.public);const tasks=document.createElement('p');tasks.textContent='Tasks: '+o.public.assistance.map(k=>WorkforceOpportunityFields.tasks[k]||k).join(', ');card.append(heading,details,care,tasks,meta);const provenance=document.createElement('p');provenance.className='manager-record-meta';const who=id=>listData.people?.[id]||id||'Not recorded on this older record',when=value=>value?new Intl.DateTimeFormat('en-US',{dateStyle:'medium',timeStyle:'long',timeZone:'America/Chicago'}).format(new Date(value)):'Date unavailable';provenance.textContent='Created by '+who(o.createdBy)+(o.createdAt?' · '+when(o.createdAt):'')+' | Last changed by '+who(o.updatedBy)+' · '+when(o.updatedAt)+(o.publishedBy?' | Last published by '+who(o.publishedBy)+' · '+when(o.publishedAt):'');card.append(provenance);const history=document.createElement('button');history.type='button';history.textContent='View change history';history.onclick=()=>{window.WorkforceManagement.show('activity');window.WorkforceDirectoryHistory?.filterOpportunity(o.id);};card.append(history);
       if (can('edit') && o.state !== 'archived') {
@@ -95,12 +97,12 @@
     e.preventDefault(); const sequence = generation, f = new FormData(form);
     const data = { office: f.get('office'), internalReference: f.get('internalReference'), internalNotes: f.get('internalNotes'),
       public: { location: f.get('location'), recruitingZip: f.get('recruitingZip'), weeklyHours: Number(f.get('weeklyHours')),
-        schedule: f.get('schedule'), type: f.get('type'), assistance: f.getAll('assistance'),serviceType:f.get('serviceType'),pets:f.get('pets'),shifts:f.getAll('shifts') } };
+        schedule: f.get('schedule'), type: f.get('type'), assistance: f.getAll('assistance'),serviceType:f.get('serviceType'),pets:f.get('pets'),duration:f.get('duration'),shifts:f.getAll('shifts') } };
     if(!data.public.assistance.length||!data.public.shifts.length){document.getElementById('staff-editor-message').textContent='Choose at least one care task and one shift.';return;}
     try {
       const saved = await workforceApi('/staff/opportunities', { ...(f.get('id') ? { id: f.get('id') } : {}), revision: Number(f.get('revision')), data });
-      if (sequence === generation) { edit(saved); message('Draft saved. Privacy review is required before publication.'); await refresh(); }
-    } catch (error) { if (sequence === generation) message(error.message); }
+      if (sequence === generation) { edit(saved); document.getElementById('staff-editor-message').textContent='Draft saved. Privacy review is required before publication.'; await refresh(); }
+    } catch (error) { if (sequence === generation) document.getElementById('staff-editor-message').textContent=error.message; }
   });
   window.WorkforceRecruiting={refresh};document.getElementById('staff-search').addEventListener('input',render);document.getElementById('staff-filter').addEventListener('change',render);
   document.getElementById('staff-refresh').onclick = refresh;

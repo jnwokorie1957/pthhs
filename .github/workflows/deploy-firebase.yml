@@ -3,6 +3,8 @@ name: Deploy to Firebase Hosting
 on:
   push:
     branches: [ main ]
+  schedule:
+    - cron: '0 5,6 * * *'
   workflow_dispatch:
     inputs:
       deployment_target:
@@ -13,8 +15,15 @@ on:
         options:
           - hosting
 
+concurrency:
+  group: pthhs-production-release
+  cancel-in-progress: false
+
 jobs:
   release_scope:
+    permissions:
+      contents: read
+      actions: read
     runs-on: ubuntu-latest
     outputs:
       mode: ${{ steps.scope.outputs.mode }}
@@ -28,15 +37,23 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '20'
+      - name: Verify production release window
+        id: window
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          node --test scripts/deployment-window.test.mjs
+          node scripts/deployment-window.mjs
       - name: Verify release scope
+        if: steps.window.outputs.allow == 'true'
         id: scope
         run: |
           node --test scripts/release-scope.test.mjs scripts/verify-hosting-only.test.mjs
           node scripts/release-scope.mjs
 
   build_and_deploy:
-    if: needs.release_scope.outputs.mode == 'hosting' || needs.release_scope.outputs.mode == 'full'
-    needs: release_scope
+    if: always() && !cancelled() && (needs.release_scope.outputs.mode == 'hosting' || (needs.release_scope.outputs.mode == 'full' && needs.deploy_backend.result == 'success'))
+    needs: [release_scope, deploy_backend]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repo
@@ -74,16 +91,18 @@ jobs:
           done
           exit 1
 
-  # A Functions IAM failure must not prevent an independently verified static
-  # website restoration from reaching Firebase Hosting.
+  # Hosting-only manual restorations remain independent of Functions. Full
+  # releases publish their compatible backend before the matching frontend.
   deploy_backend:
     # Manual releases are always website-only, regardless of supplied inputs.
-    if: github.event_name == 'push' && needs.release_scope.outputs.mode == 'full'
+    if: (github.event_name == 'push' || github.event_name == 'schedule') && needs.release_scope.outputs.mode == 'full'
     needs: release_scope
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.release_scope.outputs.release_sha }}
       - name: Setup Node.js for Primetime backend
         uses: actions/setup-node@v4
         with:
@@ -134,12 +153,14 @@ jobs:
   # The website report source is an existing independent Functions codebase.
   # Keep Hosting-only manual releases and the HHA backend deployment separate.
   deploy_website_analytics:
-    if: github.event_name == 'push' && needs.release_scope.outputs.mode == 'full'
+    if: (github.event_name == 'push' || github.event_name == 'schedule') && needs.release_scope.outputs.mode == 'full'
     needs: [release_scope, build_and_deploy]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.release_scope.outputs.release_sha }}
       - name: Setup Node.js for website analytics
         uses: actions/setup-node@v4
         with:

@@ -27,7 +27,7 @@ node --test scripts/verify_workforce.test.mjs
 node --test scripts/workforce-readings.test.mjs
 node --test scripts/workforce-account.test.mjs scripts/workforce-navigation.test.mjs
 node --test scripts/workforce-application-ux.test.mjs scripts/retire-careers.test.mjs
-node --test scripts/workforce-support.test.mjs scripts/workforce-authorizations.test.mjs scripts/workforce-field-visits.test.mjs scripts/workforce-admission-pack.test.mjs
+node --test scripts/workforce-support.test.mjs scripts/workforce-authorizations.test.mjs scripts/workforce-field-visits.test.mjs scripts/workforce-admission-pack.test.mjs scripts/workforce-form-workflow.test.mjs scripts/workforce-overlay.test.mjs scripts/workforce-idle.test.mjs
 node --test scripts/workforce-management.test.mjs
 node --test scripts/workforce-management-auth.test.mjs
 node --test scripts/workforce-careers-release.test.mjs
@@ -52,7 +52,7 @@ for source_time_tz in UTC America/Chicago Pacific/Auckland; do
 done
 node --test scripts/verify_primetime_revisions.test.mjs
 node --test scripts/verify-hosting-only.test.mjs
-node --test scripts/release-scope.test.mjs
+node --test scripts/release-scope.test.mjs scripts/deployment-window.test.mjs
 node --test scripts/marketing-budget.test.mjs
 node --test analytics-functions/report.test.js analytics-functions/query.test.js analytics-functions/live-views.test.js
 python3 scripts/verify_hha_preservation_evidence.py
