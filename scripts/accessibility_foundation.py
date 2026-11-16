@@ -67,6 +67,8 @@ RUNTIME_ASSETS = {
     "assets/workforce-hha.js",
     "assets/workforce-matching.js",
     "assets/workforce-matching.css",
+    "assets/workforce-eligibility.js",
+    "assets/workforce-eligibility.css",
     "assets/workforce-hha-records.js",
     "assets/workforce-hha-records.css",
     "assets/workforce-board.js",
