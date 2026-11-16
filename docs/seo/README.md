@@ -3,8 +3,22 @@
 These files remain useful for planning, but they do not override current public
 facts, payer evidence, or claim-release controls.
 
+
+- [November 16 laundry guide sitemap dates](2026-11-16-laundry-sitemap-dates.md)
+  — verified November 15 publication/listing dates for three entries; current
+  inventory is 36. Google's November 14 successful read still reports 35
+  discovered pages and predates the new article. Both quality/required Hosting
+  jobs and seven-artifact/private-boundary production checks pass; earlier
+  report dates and owner claim/location gates remain.
+
+- [November 13 scoped indexing examples and delivery](2026-11-13-indexing-examples-review.md)
+  — at that check canonical sitemap discovery was 35. Its Page indexing report is dated
+  November 8 (29 indexed/five discovered-not-indexed); all five examples pass
+  current delivery/metadata and initial-HTML navigation checks. Report dates
+  and the current sitemap inventory remain separate; no runtime fix is inferred.
+
 - [November 13 source reconciliation and SEO delivery](2026-11-13-source-reconciliation-delivery.md)
-  — PR27 is deployed; the current 35-URL inventory and retired Careers redirects
+  — PR27 was deployed with a 35-URL inventory; retired Careers redirects
   are intentional. Both required Hosting jobs and production acceptance passed.
   November 12 Search Console observations remain dated; discovery is not indexing.
 

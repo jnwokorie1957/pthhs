@@ -1,3 +1,4 @@
+import {dispatchLicenseReminder,ReminderSendError,reminderWindow} from './licenseReminderOutbox.js';
 import {createHash,randomUUID} from 'node:crypto';
 import {getFirestore,type Transaction} from 'firebase-admin/firestore';
 import {parseGrant,requirePermission,validId,WorkforceError} from './policy.js';
@@ -48,7 +49,8 @@ export class CaregiverOffice {
    requirePermission({uid,grant:parseGrant(grant)},'hr.expirations',office);
    const rows=await tx.get(this.db.collection('workforceCaregiverLicenses').where('office','==',office));
    const items=rows.docs.map(doc=>doc.data()).filter(row=>row.date&&expiryBucket(row.date).days<=30).map(row=>({source:row.source,id:row.id,name:row.name,date:row.date,...expiryBucket(row.date)})).sort((a,b)=>a.date.localeCompare(b.date));
-   return {items,today:chicagoDate(new Date()),emailRecipient:ID_REMINDER_RECIPIENT};
+   const today=chicagoDate(new Date()),mail=(await tx.get(this.db.collection('workforceLicenseReminderMail').doc(today))).data();
+   return {items,today,emailRecipient:ID_REMINDER_RECIPIENT,mailStatus:mail?.status||'not_needed',mailAttemptAt:mail?.at||null};
   });
  }
  async schedule(uid:string,source:string,id:string,workspace:Pick<OperationsWorkspace,'settings'|'query'>,after?:string){
@@ -79,14 +81,12 @@ export function licenseReminderPayload(count:number){
  return {message:{subject:'Caregiver ID expiration reminder',body:{contentType:'Text',content:`${count} caregiver ID expiration date${count===1?' is':'s are'} expired or due within 30 days. Review the HR alerts in the secure staff portal and update the date after reviewing a renewed ID.\n\nhttps://pthhs.net/workforce#overview\n\nNo identity documents or ID numbers are included in this email.`},toRecipients:[{emailAddress:{address:ID_REMINDER_RECIPIENT}}]},saveToSentItems:false};
 }
 export class GraphLicenseReminder extends GraphVerificationTransport {
- async prepareReminder(){const token=await this.prepareToken();return async(count:number)=>{const result=await this.request('https://graph.microsoft.com/v1.0/users/jnwokorie%40pthhs.net/sendMail',{method:'POST',redirect:'error',signal:AbortSignal.timeout(20000),headers:{Authorization:'Bearer '+token,'Content-Type':'application/json'},body:JSON.stringify(licenseReminderPayload(count))});if(result.status!==202)throw Error('mail_dispatch_unconfirmed');};}
+ async prepareReminder(){const token=await this.prepareToken();return async(count:number)=>{const result=await this.request('https://graph.microsoft.com/v1.0/users/jnwokorie%40pthhs.net/sendMail',{method:'POST',redirect:'error',signal:AbortSignal.timeout(20000),headers:{Authorization:'Bearer '+token,'Content-Type':'application/json'},body:JSON.stringify(licenseReminderPayload(count))});if(result.status!==202){const retry=result.status===429||result.status===401,permanent=result.status>=400&&result.status<500&&!retry;throw new ReminderSendError(retry||permanent,permanent,Number(result.headers.get('retry-after'))||900);}};}
 }
 export async function sendLicenseReminders(transport:Pick<GraphLicenseReminder,'prepareReminder'>,db=getFirestore()){
  const today=chicagoDate(new Date()),rows=await db.collection('workforceCaregiverLicenses').get();
  const due=rows.docs.filter(doc=>{const date=doc.data().date;return date&&expiryBucket(date,today).days<=30;});
  if(!due.length)return;
- const dispatch=await transport.prepareReminder(),ref=db.collection('workforceLicenseReminderMail').doc(today);
- const claimed=await db.runTransaction(async tx=>{if((await tx.get(ref)).exists)return false;tx.create(ref,{status:'dispatching',to:ID_REMINDER_RECIPIENT,count:due.length,date:today,at:new Date().toISOString(),evidenceHash:createHash('sha256').update(due.map(doc=>doc.id+':'+doc.data().revision).sort().join('|')).digest('hex')});return true;});
- if(!claimed)return;
- try{await dispatch(due.length);await ref.update({status:'accepted'});}catch{await ref.update({status:'unconfirmed'});throw Error('license_reminder_delivery_unconfirmed');}
+ if(!reminderWindow())return;
+ await dispatchLicenseReminder(transport,due.length,createHash('sha256').update(due.map(doc=>doc.id+':'+doc.data().revision).sort().join('|')).digest('hex'),ID_REMINDER_RECIPIENT,db);
 }

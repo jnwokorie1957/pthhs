@@ -1,6 +1,27 @@
 # SEO weekly changelog
 
+## Week of November 16, 2026 (UTC)
+
+November 16 UTC / November 15 local: the reviewed laundry article and both
+listing pages are delivered with correct article metadata/navigation. The
+sitemap date registry now supplies their actual November 15 change dates;
+33 other entries and the 36-URL inventory stay unchanged. Search Console's
+successful canonical read is dated November 14 / 35 discovered, before the
+new article. No indexing or outcome inference, resubmission or new business
+claim. Both quality and required Hosting-only release jobs pass. At 01:44 UTC,
+seven public artifacts, the three delivered dates and private boundaries pass.
+See [bounded change and evidence](2026-11-16-laundry-sitemap-dates.md).
+
 ## Week of November 9, 2026
+
+November 13, 22:05 UTC: canonical sitemap Success/35 discovered remains dated
+November 12. The sitemap-filtered Page indexing report is last updated November 8:
+29 indexed and five discovered-not-indexed, with 1-5 of 5 example rows. All five
+examples plus four entry/discovery artifacts match production Git; five source
+navigation paths and metadata pass. Corrected the measured-keyword plan's old
+32-URL current-inventory instruction to 35. No indexing trend, runtime defect,
+claim change, submission or repeat release. See [scope and remaining checks](2026-11-13-indexing-examples-review.md).
+
 
 November 13 UTC: PR27 reconciles the approved caregiver source with main and
 fixes generator/pruner regressions. Both quality and required Hosting-only jobs

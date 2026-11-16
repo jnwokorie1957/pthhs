@@ -87,6 +87,7 @@ export function classifyEvent(eventName, ref, event, sha, repo) {
     assert.equal(event.inputs?.deployment_target,'hosting');
     return 'hosting';
   }
+  if(eventName==='schedule'){repo.commit(sha);return 'full';}
   assert.equal(eventName,'push');
   assert.equal(event.after,sha, 'Push head differs from checked-out release');
   assert.equal(event.forced,false, 'Forced pushes are not releases');

@@ -13,6 +13,8 @@
   }
   if(!valid())return;
   if(source==='hhaexchange')window.WorkforceHhaRecords?.mount(target,{api:workforceApi,base:'/staff/roster/'+encodeURIComponent(id)+'/records/',self:false,current:valid});
+  if(source==='hhaexchange')await window.WorkforceMatching?.qualification(target,id,{current:valid});
+  if(!valid())return;
   const schedule=node('section');schedule.dataset.recordGroup='schedule';schedule.append(node('h3','Current schedule'),node('p','Today and the next six days. Times are shown as recorded in HHA.'));const message=node('p','Loading schedule…');message.setAttribute('role','status');const list=node('div'),more=node('button','Load more shifts'),retry=node('button','Refresh schedule');more.type=retry.type='button';more.className=retry.className='btn-secondary';more.hidden=true;schedule.append(message,list,more,retry);target.append(schedule);let next=null,busy=false;
   async function load(append=false){if(busy||!valid())return;busy=true;more.disabled=retry.disabled=true;if(!append)list.replaceChildren();message.textContent='Loading schedule…';try{const result=await workforceApi(base+'/schedule'+(append&&next?'?after='+encodeURIComponent(next):''));if(!valid())return;
    for(const row of result.items){const item=node('article');item.className='office-record';item.append(node('strong',(row.date||'Date not supplied').slice(0,10)),node('p',(row.start||'Start not supplied')+' – '+(row.end||'End not supplied')),node('p','Member ID: '+(row.memberId||'Not supplied')));list.append(item);}
@@ -23,6 +25,7 @@
  async function loadAlerts(){
   const root=document.getElementById('caregiver-id-alerts');if(!root)return;root.hidden=!can('hr.expirations');if(root.hidden)return;const token=generation;root.replaceChildren(node('h2','ID expiration alerts'),node('p','Loading HR alerts…'));
   try{const results=await Promise.all(actor.grant.offices.map(office=>workforceApi('/staff/id-expirations?office='+encodeURIComponent(office))));if(token!==generation)return;const items=results.flatMap(r=>r.items);root.replaceChildren(node('h2','ID expiration alerts'),node('p',items.length?items.length+' IDs are expired or expire within 30 days.':'No recorded ID expiration dates are due within 30 days.'),node('p','HR can enter or update dates in each caregiver’s Employment tab. Reminder emails: IRAB@PTHHS.net.'));
+   const mailLabels={preparing:'Preparing email',dispatching:'Sending email',accepted:'Email accepted by Microsoft for delivery',retry_wait:'Email retry scheduled',failed:'Email was not sent — contact the office administrator',unconfirmed:'Email delivery is uncertain — check the HR inbox before any resend'};const mail=results.find(result=>mailLabels[result.mailStatus]);if(mail)root.append(node('p','Today’s HR reminder: '+mailLabels[mail.mailStatus]));
    for(const item of items){const button=node('button',item.name+' · '+date(item.date)+(item.days<0?' · Expired':' · '+item.days+' days remaining'));button.type='button';button.className='btn-secondary';button.onclick=()=>{window.WorkforceStaffNavigation.set('accounts',{record:item.id,source:item.source,tab:'employment'});window.WorkforceStaffNavigation.restore();};root.append(button);}
   }catch(error){if(token===generation)root.replaceChildren(node('h2','ID expiration alerts'),node('p','Could not load ID expiration alerts. '+error.message));}
  }

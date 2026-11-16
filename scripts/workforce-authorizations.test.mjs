@@ -21,3 +21,11 @@ test('expiry cards use full server totals and refreshing preserves previously lo
  unavailable=true;await el('authorization-refresh').onclick();assert.equal(el('authorization-count-within15').textContent,'—');assert.equal(el('office-home-alert').hidden,false);assert.match(el('office-home-alert-text').textContent,/unavailable.*sign in again/);
  assert.ok(requests.includes('/staff/authorizations/summary'));assert.ok(requests.includes('/staff/authorizations/summary?office=100'));
 });
+
+test('applicant search matches only first and last names, never other answers',async()=>{
+ const elements=new Map(),events=new Map();const node=()=>({value:'',textContent:'',children:[],hidden:false,elements:{},append(...children){this.children.push(...children);},prepend(){},replaceChildren(...children){this.children=children;if(children[0]?.value)this.value=children[0].value;},addEventListener(){},setAttribute(){},reset(){},focus(){}}),el=id=>{if(!elements.has(id))elements.set(id,node());return elements.get(id);};el('applicant-filter').value='all';
+ const window={workforceApi:async()=>({items:[{employmentStatus:'applicant',answers:{firstName:'Jane',lastName:'Smith',city:'Test city',zip:'77000',phone:'5550123'}},{employmentStatus:'applicant',answers:{firstName:'Other',lastName:'Person',email:'jane@example.invalid',job1_employer:'Jane Clinic',city:'Test city'}}],next:null})};
+ const document={getElementById:el,createElement:node,querySelectorAll:()=>[],addEventListener:(key,fn)=>events.set(key,fn),visibilityState:'visible'},context=vm.createContext({window,document,URL:{revokeObjectURL(){}},setInterval(){},AbortController});vm.runInContext(fs.readFileSync(new URL('../public/assets/workforce-office-tools.js',import.meta.url),'utf8'),context);events.get('workforce-session')({detail:{grant:{offices:['100'],permissions:['applicants.review']}}});window.WorkforceOfficeTools.show('applicants');await new Promise(resolve=>setImmediate(resolve));
+ for(const query of ['77000','5550123','example.invalid','Test city','Clinic']){el('applicant-search').value=query;el('applicant-search').oninput();assert.match(el('applicant-coverage').textContent,/Showing 0 of 2/);}
+ for(const query of ['JANE','Smith','Jane Smith']){el('applicant-search').value=query;el('applicant-search').oninput();assert.match(el('applicant-coverage').textContent,/Showing 1 of 2/);}
+});

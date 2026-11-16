@@ -18,7 +18,7 @@ export async function extractAuthorization(file,progress,signal){
  try{
   if(new TextDecoder().decode(bytes.subarray(0,5))==='%PDF-'){
    const lib=await import(base+'/pdf.mjs');lib.GlobalWorkerOptions.workerSrc=base+'/pdf.worker.mjs';
-   loading=lib.getDocument({data:bytes.slice(),isEvalSupported:false,useWasm:false,disableFontFace:true});pdf=await loading.promise;
+   loading=lib.getDocument({data:bytes.slice(),isEvalSupported:false,wasmUrl:base+'/',useWasm:false,disableFontFace:true});pdf=await loading.promise;
    if(pdf.numPages>12)throw Error('Upload up to 12 pages per authorization.');
    for(let n=1;n<=pdf.numPages;n++){
     check();progress('Reading page '+n+' of '+pdf.numPages+'…');const page=await pdf.getPage(n),original=page.getViewport({scale:1}),viewport=page.getViewport({scale:Math.min(2,2000/Math.max(original.width,original.height))});
