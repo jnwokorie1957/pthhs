@@ -168,6 +168,6 @@ test('the normal workflow verifies Scheduler only after successful Functions dep
   assert.match(step, /GOOGLE_APPLICATION_CREDENTIALS: \$\{\{ runner\.temp \}\}\/firebase-service-account\.json/);
   assert.match(step, /node functions\/scripts\/verify-revision-monitor-deployment\.mjs/); assert.doesNotMatch(step, /continue-on-error|--force|jobs run|POST/);
   assert.ok(workflow.indexOf('- name: Deploy Primetime Functions') < workflow.indexOf('- name: Verify deployed revision monitor infrastructure'));
-  assert.match(workflow, /deploy_backend:[\s\S]*?if: github\.event_name == 'push'/);
+  assert.match(workflow, /deploy_backend:[\s\S]*?if: \(github.event_name == 'push' \|\| github.event_name == 'schedule'\) && needs.release_scope.outputs.mode == 'full'/);
   assert.match(readFileSync(new URL('./run-tests.mjs', import.meta.url), 'utf8'), /scripts\/verify-revision-monitor-deployment\.test\.mjs/);
 });

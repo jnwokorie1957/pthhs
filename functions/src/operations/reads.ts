@@ -1019,7 +1019,7 @@ export function boundedAttachment(record: Record<string, string | null>, identit
   const filename = safeAttachmentFilename(record.FileName);
   return { filename, byteLength: bytes.length, base64: encoded, contentType: "application/octet-stream" as const };
 }
-export async function operationalRead(client: Pick<HhaSoapClient, "call">, input: ReadInput, projectionScope?: "document_metadata" | "clinical_review" | "medical_review" | "write_recovery" | "visit_discovery" | "visit_reason_review" | "maintenance_people_search" | "workforce_caregiver_search" | "workforce_caregiver_profile" | "workforce_roster_import" | "workforce_caregiver_records"): Promise<OperationalRead> {
+export async function operationalRead(client: Pick<HhaSoapClient, "call">, input: ReadInput, projectionScope?: "document_metadata" | "clinical_review" | "medical_review" | "write_recovery" | "visit_discovery" | "visit_reason_review" | "maintenance_people_search" | "workforce_caregiver_search" | "workforce_caregiver_profile" | "workforce_roster_import" | "workforce_caregiver_records" | "workforce_matching_hours"): Promise<OperationalRead> {
   const body = readRequest(input, projectionScope === "workforce_caregiver_search" || projectionScope === "workforce_roster_import" ? projectionScope : undefined);
   // One attempt per owner-requested read; shared server quota controls requests.
   let response: Awaited<ReturnType<HhaSoapClient["call"]>>;
@@ -1033,7 +1033,7 @@ export async function operationalRead(client: Pick<HhaSoapClient, "call">, input
   }
   // A present but blank/comment-only SOAP result is not evidence of an empty
   // caregiver record list. Keep it unavailable even if transport parsing passed.
-  if (projectionScope === 'workforce_caregiver_records' && response.ok && !response.resultXml?.replace(/<!--[\s\S]*?-->/g, '').trim()) {
+  if (['workforce_caregiver_records','workforce_matching_hours'].includes(projectionScope||'') && response.ok && !response.resultXml?.replace(/<!--[\s\S]*?-->/g, '').trim()) {
     throw new WorkflowError('caregiver_record_response_unverified', 502);
   }
   if (!response.ok || !response.resultXml) {
@@ -1081,10 +1081,15 @@ export async function operationalRead(client: Pick<HhaSoapClient, "call">, input
     records = patientDocumentRecords(response.resultXml, input, projectionScope === "document_metadata" || projectionScope === "write_recovery");
   } else if (projectionScope === 'workforce_caregiver_records' && ['GetCaregiverRates','GetCaregiverInServices','GetCaregiverPreferences'].includes(input.operation)) {
     records = caregiverWorkRecords(response.resultXml,input);
+  } else if (projectionScope === 'workforce_matching_hours' && input.operation === 'GetVisitInfoV3') {
+    const roots=directChildElements(response.resultXml,'VisitInfo');
+    if(roots.length!==1)throw new WorkflowError('matching_visit_shape_unverified',502);
+    const xml=extractElementBody(roots[0]!,'VisitInfo')!;
+    records=[Object.fromEntries(['ID','Caregiver/ID','ScheduleStartTime','ScheduleEndTime','VisitStartTime','VisitEndTime'].map(name=>[name,directPathScalar(xml,name)]))];
   } else if (input.operation === "SearchVisitsV2" || input.operation === "SearchPatients" || input.operation === "SearchCaregivers") {
     const [container, field] = input.operation === "SearchVisitsV2" ? ["Visits", "VisitID"] : input.operation === "SearchPatients" ? ["Patients", "PatientID"] : ["Caregivers", "CaregiverID"];
     const values = extractElementBody(response.resultXml, container!) ?? "";
-    records = input.operation === "SearchVisitsV2" && projectionScope === "visit_discovery"
+    records = input.operation === "SearchVisitsV2" && (projectionScope === "visit_discovery" || projectionScope === "workforce_matching_hours")
       ? dashboardVisitIds(response.resultXml)
       : extractElementBodies(values, field!).map(value => ({ [field!]: identifier(value.trim()) }));
   } else {
@@ -1180,6 +1185,6 @@ export async function operationalRead(client: Pick<HhaSoapClient, "call">, input
   }
   // Only the bounded dashboard ID discovery retains every received identifier.
   // Other operational previews preserve their existing projection limit.
-  const retainVisitIds = input.operation === "GetCaregiverChangesV2" && projectionScope === "workforce_roster_import" && records.length <= 5000 || input.operation === "SearchVisitsV2" && projectionScope === "visit_discovery" || ["SearchCaregivers","SearchPatients"].includes(input.operation) && projectionScope === "workforce_roster_import" && records.length <= 5000 || input.operation === "SearchCaregiverDocument" && projectionScope === "workforce_caregiver_profile" && records.length <= 1000;
+  const retainVisitIds = input.operation === "GetCaregiverChangesV2" && projectionScope === "workforce_roster_import" && records.length <= 5000 || input.operation === "SearchVisitsV2" && (projectionScope === "visit_discovery" || projectionScope === "workforce_matching_hours") || ["SearchCaregivers","SearchPatients"].includes(input.operation) && projectionScope === "workforce_roster_import" && records.length <= 5000 || input.operation === "SearchCaregiverDocument" && projectionScope === "workforce_caregiver_profile" && records.length <= 1000;
   return { operation: input.operation, fetchedAt: new Date().toISOString(), source: "hhaexchange", validation: "source_unvalidated", timezone: "source_values_unconverted", records: retainVisitIds ? records : records.slice(0, 200), ...(attachment ? { attachment } : {}), ...(input.operation === "GetVisitBillInfoV2" && records.length === 0 ? { billingShape: billingResponseShape(response.resultXml, response.status) } : {}), ...(visitEditReasons ? { visitEditReasons } : {}), truncated: typedReasonsTruncated || (!retainVisitIds && records.length > 200), ...([...EST_CHANGE_READS, ...UTC_CHANGE_READS].includes(input.operation) ? { changePreview: { timeBasis: UTC_CHANGE_READS.includes(input.operation) ? "UTC" as const : "vendor_EST_wall_time_unconverted" as const, modifiedAfter: UTC_CHANGE_READS.includes(input.operation) ? input.modifiedAfterUtc! : input.modifiedAfter!, page: input.operation === "GetVisitChangesV4" ? input.page || "1" : null, completeness: "not_inferred" as const, checkpointAdvanced: false as const } } : {}) };
 }

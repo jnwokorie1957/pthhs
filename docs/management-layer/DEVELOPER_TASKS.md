@@ -1,5 +1,30 @@
 # PTHHS Management Layer — Developer Checklist
 
+- [x] PR45 recorded-clock interpretation guard deployed November 16 UTC.
+  A past recorded visit span no longer establishes complete paid hours for
+  matching. Completed in-week spans hold; unfinished clocks retain pending.
+  Three regressions failed before; nine focused/1,035 backend/five frontend
+  tests pass. Both quality and all four compatible full-release jobs succeed.
+  Seven exact production artifacts and four served-controller tests pass;
+  administrator source comparison remains blocked by its separate sign-in.
+  [Scope, exact mapping and remaining acceptance](../workforce/MATCHING_RECORDED_TIME_GUARD_2026-11-15.md).
+- [ ] P03/E04 and matching paid-hours source acceptance: obtain the supported
+  field/units/adjustments, caregiver/office/week linkage and validation/readback
+  before implementing that interpretation. No ActualHours, payroll/billed
+  string, clock pair or non-visit-hours attestation bypass. Restore approved
+  Primetime sign-in for the dated October 23/24/current-day comparison. Matching
+  activation, financial policy and source/sending authority stay separate.
+
+- [x] November 16 UTC SEO publication-date delivery (PR41): registered the
+  verified November 15 laundry article and two listing changes in the sitemap
+  date registry. All 33 other entries and the 36-URL inventory are preserved.
+  Four date/28 article tests, Batch B4, normal quality and required Hosting-only
+  jobs pass. Seven exact production artifacts, all three dates and private
+  noindex/cache/anonymous denial verified at 01:44 UTC. Search Console's
+  November 14 successful read/35 discovered remains dated; no indexing claim,
+  resubmission or new service/payer/location assertion.
+  [Source, tests and production evidence](../seo/2026-11-16-laundry-sitemap-dates.md).
+
 - [ ] P2 admission-form identity namespace and pack acceptance, researched
   November 16 UTC: preserve typed HHA PatientID/office and source receipts
   separately from mutable AdmissionID, contract alternate ID and an independently

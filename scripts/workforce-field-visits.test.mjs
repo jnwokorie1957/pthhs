@@ -4,7 +4,8 @@ import fs from 'node:fs';
 import vm from 'node:vm';
 
 const source=fs.readFileSync(process.env.FIELD_VISITS_SCRIPT || new URL('../public/assets/workforce-field-visits.js',import.meta.url),'utf8');
-const importExpression="import('/assets/workforce-authorization-extract.js')";
+const importExpression=source.match(/import\(["']\/assets\/workforce-authorization-extract\.js["']\)/)?.[0];
+assert.ok(importExpression);
 assert.equal(source.split(importExpression).length,2);
 // Stub the extractor module boundary; exercise the remaining served controller unchanged.
 const runtime=source.replace(importExpression,'importExtractor()');
@@ -45,10 +46,14 @@ function setup(handler=async()=>undefined){
  const status=()=>walk(root).find(e=>e.attrs.role==='status')?.textContent||'';
  const office=()=>walk(root).find(e=>e.tagName==='SELECT'&&!e.name);
  const start=async()=>{events.get('workforce-session')({detail:{grant:{offices:['office-a','office-b'],permissions:['field_visits.manage']}}});await window.WorkforceFieldVisits.show('fieldvisits');await tick();await tick();};
- const newRecord=()=>button('Forms').onclick();
+ const newRecord=()=>button('Manual form').onclick();
  const submit=async()=>{form().onsubmit({preventDefault(){}});await tick();await tick();};
  return {root,calls,previews,mappings,admissions,prepareClient:window.WorkforceFieldVisits.prepareClient,start,newRecord,button,field,office,submit,status,events};
 }
+
+test('a rejected initial form read displays the sign-in message and can retry without reloading',async()=>{
+ let rejected=true;const s=setup(path=>{if(path.endsWith('/templates')&&rejected)throw Error('Please sign in again before accessing sensitive records.');});await s.start();assert.match(s.root.textContent,/Forms are unavailable/);assert.match(s.status(),/Please sign in again/);rejected=false;await s.button('Retry').onclick();await tick();await tick();assert.ok(s.button('Manual form'));assert.doesNotMatch(s.root.textContent,/Forms are unavailable/);
+});
 
 test('choosing a client prepares their own office and identity, then a fixed admission copy preserves mapped answers',async()=>{
  const s=setup();await s.start();await s.prepareClient({office:'office-b',name:'Fictional chosen member',memberId:'TEST-MEMBER'});assert.equal(s.office().value,'office-b');assert.equal(s.field('clientName').value,'Fictional chosen member');assert.equal(s.field('memberId').value,'TEST-MEMBER');
