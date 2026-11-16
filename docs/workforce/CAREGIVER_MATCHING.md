@@ -1,0 +1,38 @@
+# Caregiver opening matching
+
+The requested workflow selects up to ten eligible, opted-in caregivers for a published opening, ordered by shortest verified driving distance (UID breaks equal-distance ties). All required tasks must be both staff-verified and selected by the caregiver. Matching also checks service type, pets, every dated availability window, schedule conflicts, and total paid hours. It does not assign a caregiver or modify HHA records.
+
+The maximum is **10 driving miles**, using verified US street Place IDs and a Google Routes DRIVE result. ZIP centroids cannot establish a ten-mile driving claim. A Sunday–Saturday **America/Chicago** workweek has a ceiling of 40 elapsed paid hours, or the caregiver's lower preference. Overnight shifts split at Sunday midnight; ambiguous or missing local DST times require review. Staff enter every shift for up to 28 days; each configured week's shifts must equal the published weekly hours. Alerts concern those configured dates, not an unbounded recurring assignment.
+
+## Portal workflow
+
+- Caregiver **My profile → Matching preferences**: choose portal alerts, separately consent to texts, select a private origin street address, desired tasks/service types, pets, maximum hours and exact availability. Text consent is bound to the current Firebase phone-provider number. A changed number requires renewed consent. **Turn off all opening alerts** works even if HHA is unavailable or the portal release window closes; the authenticated endpoint is `/matching/opt-out`.
+- Staff **Caregivers → Matching eligibility**: verify job-related task qualifications with an expiry date. Review each Sunday's workweek and record all paid time outside HHA visits, including training, office work, travel and paid-time adjustments, or explicitly confirm none. These reviews expire in 24 hours. Existing `accounts.support` and `opportunities.read` grants are required; edits additionally require `opportunities.edit`, all scoped to the current office.
+- Staff **Opportunities → published opening → Match caregivers**: select a private client street address and the dated shift plan. Explicitly choose automatic alerts. Activation and every dispatch require the current publisher's `opportunities.publish` permission as well as the other matching permissions. An opening edit/closure, plan change, grant revocation or opt-out stops obsolete dispatches.
+- Caregiver **Home → Openings matched to you** contains only current, privacy-reviewed opening details and the distance/check timestamp. Texts use the same broad public location/ZIP and portal link. Private client addresses, identities, patient IDs, clinical information and pay rates are excluded. Office confirmation and fresh checks precede any assignment.
+
+## Hours and source evidence
+
+The adapter requires owner-enabled `GetCaregiverDemographics`, `SearchVisitsV2`, and `GetVisitInfoV3`, a verified fixed office and Central time zone. It fetches all discovered visits for each full affected Sunday week, with boundary days for overnight work. Past or in-progress visits need complete actual start/end times; future visits use scheduled times. Blank, truncated, duplicate, foreign-owner or incomplete records hold matching. More than 40 discovered visits or a source time-budget overrun also holds the candidate. Multiple-office caregivers remain held until all-office hours can be established; no office's hours are silently omitted.
+
+The `workforce_matching_hours` projection contains only visit ID, direct caregiver ID, scheduled and actual start/end. It excludes patient identity and financial fields. A fresh source check (15 minutes maximum) and fresh staff non-visit-hours review are both required. Source reads share the existing HHA quota. Qualification, consent, office, grant and review revisions are rechecked before dispatch.
+
+## Processing and delivery
+
+`workforceOpportunityMatching` runs each minute during 08:00–18:59 Central time behind the existing staff, public-opening, HHA and new routing gates. A lease prevents simultaneous workers. A fair cursor visits one opening per tick; at most five route calculations or one full caregiver hours check are performed for that opening. Candidate pools exceeding 500 office preferences require review. Individual unavailable routes do not block other candidates. Incomplete jobs resume at their cursor; eligible openings with fewer than ten alerts are rechecked after an hour or a pool revision.
+
+Portal notices are created transactionally, with a global ten-recipient budget per opening revision and a unique opening/revision/caregiver key. Plan edits and worker retries do not reset that budget. SMS claims are transactional and require current consent, verified phone, published opening and plan. `accepted` means provider acceptance, not delivery. Unknown, unconfirmed or interrupted `submitting` attempts are never automatically resent. Setup-blocked texts can be reconsidered only after fresh eligibility checks; source recheck failures require office review.
+
+Server-only collections are covered by the existing deny-by-default client rules. Queries use built-in single-field indexes. No new role grants, vendor mutations, owner read settings or billing permissions are added.
+
+## Activation and acceptance still pending
+
+Both `WORKFORCE_MATCHING_MAPS_APPROVED` and `WORKFORCE_MATCHING_SMS_APPROVED` remain **false** in the reviewed deployment configuration. No live caregiver texts have been sent by this implementation. Before enabling routing, verify the approved Google Places/Routes APIs, credentials/IAM, quotas and billing, published openings, the existing HHA reads and full-hour completeness against the real vendor. Do not change owner-disabled reads without established authorization. Routing also requires the existing public opportunities gate, which is currently closed.
+
+Before enabling texts, verify the fixed `primetime-sms-credentials` configuration and runtime access, sender registration, provider STOP/opt-out enforcement, an opted-in verified test number and signed-in production acceptance. SMS approval is independent of visit-reminder approval. Provider, owner and sign-in blockers must be recorded precisely; mock tests and anonymous endpoint denial do not establish live acceptance. Do not enable routing or texts merely because this code deployed successfully.
+
+## Development and verification
+
+Readable controllers that need compact output live in `source/workforce/`. Run `node scripts/build-workforce-runtime.mjs`, then `node scripts/build-workforce-assets.mjs` after changes. The runtime builder changes local identifiers/whitespace only, with compression and property renaming disabled. CI checks deterministic output. Matching assets are retained by both accessibility cleanup/release inventories; existing transfer budgets remain unchanged.
+
+Tests cover driving thresholds, Sunday/DST splitting, the inclusive 40-hour ceiling, lower caregiver limits, missing/stale evidence, current permissions and office scope, qualification expiry, non-visit-hours reviews, direct source identity, explicit projections, phone changes, opt-out, concurrent duplicate claims, the global ten-recipient limit, worker fairness, uncertain text delivery and late UI responses. Production signed-in routing and text delivery remain separate acceptance steps.
