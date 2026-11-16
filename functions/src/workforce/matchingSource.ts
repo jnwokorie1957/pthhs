@@ -26,7 +26,13 @@ export async function matchingCommitments(workspace:Workspace,actor:string,offic
  const commitments:Window[]=[];const started=Date.now();
  for(const id of ids){if(Date.now()-started>45000)throw new WorkforceError(503,'matching_source_budget_deferred');const data=await workspace.query({operation:'GetVisitInfoV3',id:id!},actor,'workforce_matching_hours');const row=data.records[0];if(data.source!=='hhaexchange'||data.operation!=='GetVisitInfoV3'||data.truncated||data.records.length!==1||!row||row.ID!==id||row['Caregiver/ID']!==caregiverId)throw new WorkforceError(423,'matching_complete_schedule_required');
   const planned=interval({start:sourceTime(row.ScheduleStartTime),end:sourceTime(row.ScheduleEndTime)});
-  if(Date.parse(planned.start)<now){if(!row.VisitStartTime||!row.VisitEndTime)throw new WorkforceError(423,'matching_actual_hours_pending');const actual=interval({start:sourceTime(row.VisitStartTime),end:sourceTime(row.VisitEndTime)});if(Date.parse(actual.end)>now)throw new WorkforceError(423,'matching_actual_hours_pending');commitments.push(actual);}else commitments.push(planned);
+  if(Date.parse(planned.start)<now){
+   if(!row.VisitStartTime||!row.VisitEndTime)throw new WorkforceError(423,'matching_actual_hours_pending');
+   const actual=interval({start:sourceTime(row.VisitStartTime),end:sourceTime(row.VisitEndTime)});
+   if(Date.parse(actual.end)>now)throw new WorkforceError(423,'matching_actual_hours_pending');
+   // Recorded clocks locate a visit; they do not verify paid hours for matching.
+   if(Date.parse(actual.start)<Date.parse(through)&&Date.parse(actual.end)>Date.parse(from))throw new WorkforceError(423,'matching_paid_hours_unverified');
+  }else commitments.push(planned);
  }
  commitments.sort((a,b)=>a.start.localeCompare(b.start));for(let i=1;i<commitments.length;i++)if(commitments[i]!.start<commitments[i-1]!.end)throw new WorkforceError(423,'matching_schedule_conflict_requires_review');
  const current=await source.profile(caregiverId),latest=await workspace.settings();if(current.status!==profile.status||current.email!==profile.email||JSON.stringify(current.fields.OfficeIDs)!==JSON.stringify(profile.fields.OfficeIDs)||JSON.stringify(latest.settings)!==JSON.stringify(settings.settings))throw new WorkforceError(409,'matching_source_changed');

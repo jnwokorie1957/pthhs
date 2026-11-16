@@ -10,11 +10,11 @@ function source(mode='ok'){
   calls.push({input,actor,scope});const common={operation:input.operation,source:'hhaexchange',fetchedAt:new Date().toISOString(),truncated:false};
   if(input.operation==='GetCaregiverDemographics'){profiles++;return {...common,records:[{ID:'101',OfficeIDs:mode==='multi'?'["12","13"]':'["12"]',EmployeeType:'Employee','Status/Name':mode==='changed'&&profiles>1?'Inactive':'Active',FirstName:'Demo'}]};}
   if(input.operation==='SearchVisitsV2')return {...common,truncated:mode==='truncated',records:mode==='empty'?[]:[{VisitID:'1'}]};
-  return {...common,records:[{ID:input.id,'Caregiver/ID':mode==='wrong'?'999':'101',ScheduleStartTime:'2026-11-15T09:00:00',ScheduleEndTime:'2026-11-15T13:00:00',VisitStartTime:'2026-11-15T09:00:00',VisitEndTime:mode==='pending'?null:'2026-11-15T14:00:00'}]};
+  const future=['future','changed'].includes(mode);return {...common,records:[{ID:input.id,'Caregiver/ID':mode==='wrong'?'999':'101',ScheduleStartTime:future?'2026-11-17T14:00:00':'2026-11-15T09:00:00',ScheduleEndTime:future?'2026-11-17T18:00:00':'2026-11-15T13:00:00',VisitStartTime:future?null:'2026-11-15T09:00:00',VisitEndTime:future||mode==='pending'?null:'2026-11-15T14:00:00'}]};
  }};return {workspace,calls};
 }
-test('hours adapter queries the full Sunday week and boundary days, counts actual work, and limits source projections',async()=>{
- const s=source(),result=await matchingCommitments(s.workspace as any,'staff','12','101',[shift],now);assert.equal(result.complete,true);assert.equal(Date.parse(result.commitments[0]!.end)-Date.parse(result.commitments[0]!.start),5*3600000);
+test('hours adapter queries the full Sunday week and boundary days and retains future schedule commitments',async()=>{
+ const s=source('future'),result=await matchingCommitments(s.workspace as any,'staff','12','101',[shift],now);assert.equal(result.complete,true);assert.equal(Date.parse(result.commitments[0]!.end)-Date.parse(result.commitments[0]!.start),4*3600000);
  const search=s.calls.find(c=>c.input.operation==='SearchVisitsV2');assert.equal(search.input.fromDate,'2026-11-14');assert.equal(search.input.toDate,'2026-11-22');assert.equal(search.scope,'workforce_matching_hours');assert.equal(s.calls.find(c=>c.input.operation==='GetVisitInfoV3').scope,'workforce_matching_hours');
 });
 test('truncated, foreign-owner, incomplete-actual, multi-office and changed-profile results cannot prove hours',async()=>{
@@ -35,4 +35,23 @@ test('routes use fixed driving endpoint and explicit fields, and reject missing/
  let body:any;const request=async(url:any,options:any)=>{assert.equal(url,'https://routes.googleapis.com/directions/v2:computeRoutes');body=JSON.parse(options.body);assert.equal(options.headers['X-Goog-FieldMask'],'routes.distanceMeters,routes.duration');return {ok:true,json:async()=>({routes:[{distanceMeters:16000,duration:'600s'}]})} as any;};
  const result=await new MatchingMaps(true,request as any,async()=>'fake').route('origin','destination');assert.equal(result.meters,16000);assert.equal(body.travelMode,'DRIVE');assert.equal(body.computeAlternativeRoutes,false);assert.deepEqual(body.origin,{placeId:'origin'});
  for(const routes of [[],[{duration:'1s'}],[{distanceMeters:1,duration:'1s'},{distanceMeters:2,duration:'2s'}]])await assert.rejects(new MatchingMaps(true,async()=>({ok:true,json:async()=>({routes})}) as any,async()=>'fake').route('from','to'),/route_unavailable/);
+});
+
+for(const mode of ['ok','raw-hours','overnight'])test('recorded visit clocks do not prove paid hours: '+mode,async()=>{
+ const s=source();const original=s.workspace.query;s.workspace.query=async(input:any,actor:string,scope?:string)=>{
+  const result=await original(input,actor,scope);
+  if(input.operation==='GetVisitInfoV3'){
+   if(mode==='raw-hours')Object.assign(result.records[0]!,{ActualHours:'5',ActualHoursRounded:'5',PayHours:'5'});
+   if(mode==='overnight')Object.assign(result.records[0]!,{ScheduleStartTime:'2026-11-14T23:00:00',ScheduleEndTime:'2026-11-15T01:00:00',VisitStartTime:'2026-11-14T23:00:00',VisitEndTime:'2026-11-15T01:00:00'});
+  }
+  return result;
+ };
+ await assert.rejects(matchingCommitments(s.workspace as any,'staff','12','101',[shift],now),(error:any)=>error.code==='matching_paid_hours_unverified');
+});
+
+test('a fully earlier-week recorded interval contributes no hours to the selected weeks',async()=>{
+ const s=source();const original=s.workspace.query;s.workspace.query=async(input:any,actor:string,scope?:string)=>{
+  const result=await original(input,actor,scope);if(input.operation==='GetVisitInfoV3')Object.assign(result.records[0]!,{ScheduleStartTime:'2026-11-14T09:00:00',ScheduleEndTime:'2026-11-14T13:00:00',VisitStartTime:'2026-11-14T09:00:00',VisitEndTime:'2026-11-14T14:00:00'});return result;
+ };
+ const result=await matchingCommitments(s.workspace as any,'staff','12','101',[shift],now);assert.equal(result.complete,true);assert.deepEqual(result.commitments,[]);
 });
