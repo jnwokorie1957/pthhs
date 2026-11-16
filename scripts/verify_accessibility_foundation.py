@@ -272,6 +272,7 @@ expected_runtime_assets = {
     "assets/workforce-signature-fields.js",
     "assets/workforce-directory-history.js",
     "assets/workforce-admission-library.js",
+    "assets/workforce-admission-pack.js",
     "assets/workforce-document-fields.js",
     "assets/authorization-reader/jbig2_nowasm_fallback.js",
     "assets/authorization-reader/openjpeg_nowasm_fallback.js",
