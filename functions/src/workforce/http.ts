@@ -1,4 +1,7 @@
-import {FieldVisits,visitTemplates} from './fieldVisits.js';
+import {AdmissionLibrary} from './admissionLibrary.js';
+import {ClientDirectory} from './clients.js';
+import {StaffActivity} from './activity.js';
+import {FieldVisits,visitTemplateDefinitions} from './fieldVisits.js';
 import {CaregiverOffice,GraphLicenseReminder,sendLicenseReminders} from './caregiverOffice.js';
 import {CaregiverSync} from './caregiverSync.js';
 import {onSchedule} from "firebase-functions/v2/scheduler";
@@ -299,14 +302,17 @@ export const workforceApi = process.env.PRIMETIME_API_ONLY_DEPLOY === "true" ? u
         throw new WorkforceError(403, "staff_training_required");
       }
     }
+    if(path==='/staff/admission-templates'||path.startsWith('/staff/admission-templates/')){await recentWorkforceIdentity(req);const library=new AdmissionLibrary();if(path==='/staff/admission-templates'){if(req.method==='GET'&&typeof req.query.office==='string'){res.json(await library.list(uid,req.query.office));return;}if(req.method==='POST'&&req.is('application/json')&&req.rawBody.length<=16_000_000){res.json(await library.upload(uid,req.body));return;}}const match=path.match(/^\/staff\/admission-templates\/([a-zA-Z0-9_-]{1,193})(\/pdf)?$/);if(match&&req.method==='GET'){if(match[2]){res.set('Content-Type','application/pdf');res.set('Content-Disposition','attachment; filename="admission-template.pdf"');res.set('Content-Security-Policy','sandbox');res.send(await library.get(uid,match[1]!,true));return;}res.json(await library.get(uid,match[1]!));return;}throw new WorkforceError(400,'invalid_request');}
+    if(path==='/staff/activity'&&req.method==='GET'){await recentWorkforceIdentity(req);res.json(await new StaffActivity(()=>store.actor(uid)).list(String(req.query.stream||'opportunities'),typeof req.query.after==='string'?req.query.after:undefined));return;}
+    if(path==='/staff/clients'||path.startsWith('/staff/clients/')){await recentWorkforceIdentity(req);const directory=new ClientDirectory(hhaWorkspace(),()=>store.actor(uid));if(path==='/staff/clients/search'&&req.method==='POST'&&req.is('application/json')&&req.rawBody.length<=1000){res.json(await directory.list(req.body?.name,req.body?.after));return;}if(req.method!=='GET')throw new WorkforceError(405,'method_not_allowed');if(path==='/staff/clients'){res.json(await directory.list(typeof req.query.name==='string'?req.query.name:'',typeof req.query.after==='string'?req.query.after:undefined));return;}const id=path.slice('/staff/clients/'.length);res.json(await directory.detail(id));return;}
     if(path==='/staff/field-visits'||path.startsWith('/staff/field-visits/')){
       await recentWorkforceIdentity(req);const visits=new FieldVisits();
-      if(path==='/staff/field-visits/templates'&&req.method==='GET'){requirePermission(await store.actor(uid),'field_visits.manage');res.json({templates:visitTemplates});return;}
+      if(path==='/staff/field-visits/templates'&&req.method==='GET'){requirePermission(await store.actor(uid),'field_visits.manage');res.json({templates:visitTemplateDefinitions});return;}
       if(path==='/staff/field-visits/names'&&req.method==='POST'&&req.is('application/json')&&req.rawBody.length<=1000){res.json(await visits.names(uid,req.body.office,req.body.kind,req.body.name,hhaWorkspace()));return;}
       if(path==='/staff/field-visits'&&req.method==='GET'&&typeof req.query.office==='string'){res.json(await visits.list(uid,req.query.office,typeof req.query.after==='string'?req.query.after:undefined));return;}
-      const record=path.match(/^\/staff\/field-visits\/([a-zA-Z0-9_-]{1,128})(?:\/(pdf|sign))?$/);
+      const record=path.match(/^\/staff\/field-visits\/([a-zA-Z0-9_-]{1,128})(?:\/(pdf|sign|amend))?$/);
       if(record){const id=record[1]!;if(req.method==='GET'){if(record[2]==='pdf'){res.set('Content-Type','application/pdf');res.set('Content-Disposition','attachment; filename="field-visit.pdf"');res.set('Content-Security-Policy','sandbox');res.send(await visits.pdf(uid,id));return;}if(!record[2]){res.json(await visits.get(uid,id));return;}}
-       if(req.method==='POST'&&req.is('application/json')&&req.rawBody.length<=16_000_000&&req.body&&!Array.isArray(req.body)){res.json(record[2]==='sign'?await visits.sign(uid,id,req.body.revision,req.body.signature):await visits.save(uid,id,req.body.revision,req.body.data));return;}
+       if(req.method==='POST'&&req.is('application/json')&&req.rawBody.length<=16_000_000&&req.body&&!Array.isArray(req.body)){if(record[2]==='amend'){res.json(await visits.amend(uid,id,req.body));return;}res.json(record[2]==='sign'?await visits.sign(uid,id,req.body.revision,req.body.signature):await visits.save(uid,id,req.body.revision,req.body.data));return;}
       }throw new WorkforceError(400,'invalid_request');
     }
     const caregiverOfficePath=path.match(/^\/staff\/caregivers\/(portal|hhaexchange)\/([a-zA-Z0-9_-]{1,128})\/(license|schedule)$/);
@@ -373,7 +379,7 @@ export const workforceApi = process.env.PRIMETIME_API_ONLY_DEPLOY === "true" ? u
         res.json({profile:saved, savedProfile:true, files:null, filesUnavailable:true,
           filesPermissionDenied:!documentsAllowed, accessEnabled:false}); return;
       }
-      if(rosterDetail[2]==="access"&&req.method==="POST"){if(!existingAccessEnabled)throw new WorkforceError(503,"existing_access_pending");if(!req.is("application/json")||req.rawBody.length>100||!req.body||Object.keys(req.body).length)throw new WorkforceError(400,"invalid_request");res.json(await service.requestAccess(profile.email,"staff:"+uid));return;}
+      if(rosterDetail[2]==="access"&&req.method==="POST"){if(!existingAccessEnabled)throw new WorkforceError(503,"existing_access_pending");if(!req.is("application/json")||req.rawBody.length>100||!req.body||Object.keys(req.body).length)throw new WorkforceError(400,"invalid_request");res.json(await service.requestAccess(profile.email,"staff:"+uid,actor));return;}
       if(req.method!=="GET")throw new WorkforceError(405,"method_not_allowed");
       if(rosterDetail[3]){requirePermission(actor,"documents.review",profile.office);const file=await new HhaProfileSource(hhaWorkspace(),uid,profile.office).download(profile.id,rosterDetail[3]);requirePermission(await store.actor(uid),"documents.review",profile.office);res.set("Content-Type",file.bytes.subarray(0,5).toString("ascii")==="%PDF-"?"application/pdf":"application/octet-stream");res.set("Content-Disposition","attachment; filename*=UTF-8''"+encodeURIComponent(file.filename));res.set("Content-Security-Policy","sandbox");res.send(file.bytes);return;}
       let files=null;if(actor.grant.permissions.includes("documents.review")){try{files=await new HhaProfileSource(hhaWorkspace(),uid,profile.office).documents(profile.id);}catch{}}else delete profile.fields.BirthDate;
@@ -562,7 +568,7 @@ export const workforceCaregiverSync=process.env.PRIMETIME_API_ONLY_DEPLOY==='tru
  if(staffEnabled.value()!=='true'||hhaPortalApproved.value()!=='true'||hhaDataApproved.value()!=='true')return;
  await new CaregiverSync(hhaWorkspace('background')).run();
 });
-export const workforceLicenseReminders=process.env.PRIMETIME_API_ONLY_DEPLOY==='true'?undefined:onSchedule({region:'us-central1',schedule:'30 8 * * *',timeZone:'America/Chicago',timeoutSeconds:120,memory:'256MiB',maxInstances:1,retryCount:0},async()=>{
+export const workforceLicenseReminders=process.env.PRIMETIME_API_ONLY_DEPLOY==='true'?undefined:onSchedule({region:'us-central1',schedule:'*/15 8-17 * * *',timeZone:'America/Chicago',timeoutSeconds:120,memory:'256MiB',maxInstances:1,retryCount:0},async()=>{
  if(staffEnabled.value()!=='true'||documentEmailApproved.value()!=='true')return;
  await sendLicenseReminders(new GraphLicenseReminder(documentMailTenant.value(),documentMailClient.value()));
 });

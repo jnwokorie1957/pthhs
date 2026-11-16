@@ -62,7 +62,7 @@ export class IntakeStore {
         tx.create(this.db.collection("workforceApplicationMail").doc(`${uid}_${app.revision}_${eventKey}`),
           {...applicationMailJob(app,[],[next]),eventKey,createdAt:next.updatedAt});
       }
-      this.audit(tx, uid, next.state === "submitted" ? "official_form_submitted" : "official_form_saved", uid, {kind,revision:next.revision});
+      this.audit(tx, uid, next.state === "submitted" ? "official_form_submitted" : "official_form_saved", uid, {kind,revision:next.revision,office:app.office});
       return next;
     });
   }
@@ -110,7 +110,7 @@ export class IntakeStore {
       tx.set(ref, next);
       tx.set(this.db.collection("workforceCaregiverDirectory").doc(uid), directoryEntry(next));
       tx.create(ref.collection("versions").doc(String(next.revision)), next);
-      this.audit(tx, uid, "application_saved", uid, { revision: next.revision });
+      this.audit(tx, uid, "application_saved", uid, { revision: next.revision, office: next.office });
       return next;
     });
   }
@@ -140,7 +140,7 @@ export class IntakeStore {
         hha: initialHhaTransfer(uid, next.office),
         adp: { target: "approved_hire", state: "awaiting_connection" }
       });
-      this.audit(tx, uid, "application_submitted", uid, { revision: next.revision });
+      this.audit(tx, uid, "application_submitted", uid, { revision: next.revision, office: next.office });
       return next;
     });
   }
@@ -183,7 +183,7 @@ export class IntakeStore {
       if(Number(hha.leaseUntil||0)>Date.now())throw new WorkforceError(409,"hha_transfer_in_progress");
       // A recheck preserves dispatch evidence. It cannot repeat uncertain writes.
       const state=hha.attachAttempted?"attaching":hha.caregiverId?"created":hha.createAttempted?"creating":"queued";
-      tx.update(ref,{hha:{...hha,state,reason:"",leaseUntil:0}});this.audit(tx,actorId,"hha_applicant_recheck_requested",uid,{revision:app.revision});return {state};
+      tx.update(ref,{hha:{...hha,state,reason:"",leaseUntil:0}});this.audit(tx,actorId,"hha_applicant_recheck_requested",uid,{revision:app.revision,office:app.office});return {state};
     });
   }
   async listDocuments(uid: string, actorId = uid) {

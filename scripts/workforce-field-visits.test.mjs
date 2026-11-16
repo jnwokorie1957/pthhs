@@ -4,10 +4,10 @@ import fs from 'node:fs';
 import vm from 'node:vm';
 
 const source=fs.readFileSync(process.env.FIELD_VISITS_SCRIPT || new URL('../public/assets/workforce-field-visits.js',import.meta.url),'utf8');
-const importExpression="await import('/assets/workforce-authorization-extract.js')";
+const importExpression="import('/assets/workforce-authorization-extract.js')";
 assert.equal(source.split(importExpression).length,2);
 // Stub the extractor module boundary; exercise the remaining served controller unchanged.
-const runtime=source.replace(importExpression,'await importExtractor()');
+const runtime=source.replace(importExpression,'importExtractor()');
 const deferred=()=>{let resolve,reject;const promise=new Promise((a,b)=>{resolve=a;reject=b;});return {promise,resolve,reject};};
 const tick=()=>new Promise(resolve=>setImmediate(resolve));
 const walk=e=>[e,...e.children.flatMap(walk)];
@@ -26,17 +26,18 @@ class Element {
  querySelectorAll(selector){return walk(this).slice(1).filter(e=>selector.split(',').some(s=>s.startsWith('#')?e.id===s.slice(1):s==='input:checked'?e.tagName==='INPUT'&&e.checked:s.startsWith('[value=')?e.value===s.slice(7,-1):e.tagName===s.toUpperCase()));}
  querySelector(s){return this.querySelectorAll(s)[0]||null;}
  reportValidity(){return true;}
+ get elements(){return {namedItem:name=>walk(this).find(e=>e.name===name)};}
  scrollIntoView(){}
 }
-const templates={orientation:{title:'Synthetic orientation',description:'Synthetic test record',fields:{}},upload:{title:'Synthetic upload',description:'Synthetic test attachment',fields:{}}};
+const templates={orientation:{title:'Synthetic orientation',description:'Synthetic test record',fields:{purpose:'Visit purpose'},requiredFields:['purpose']},upload:{title:'Synthetic upload',description:'Synthetic test attachment',fields:{}}};
 const record=(id,client='Synthetic A',kind='orientation')=>({id,state:'draft',revision:1,contentSha256:'synthetic',data:{office:'office-a',clientName:client,memberId:'SYNTHETIC-'+id,caregiverName:'Synthetic caregiver',visitDate:'2026-11-13',kind,fields:{},pages:[],requiredSigners:['staff'],signatures:[]}});
 function setup(handler=async()=>undefined){
- const root=new Element(),events=new Map(),calls=[],previews=[];
+ const root=new Element(),events=new Map(),calls=[],previews=[],mappings=[],admissions=[];
  root.id='field-visits-root';
  const api=async(path,body,blob)=>{calls.push({path,body,blob});const result=await handler(path,body,blob);if(result!==undefined)return result;if(path.endsWith('/templates'))return {templates};if(path.includes('?office='))return {items:[{id:'record-a',state:'draft',clientName:'Synthetic A',kind:'orientation',visitDate:'2026-11-13'}],next:null};if(body)return record('saved',body.data.clientName,body.data.kind);return record('record-a');};
  const document={getElementById:id=>id===root.id?root:null,createElement:tag=>new Element(tag),addEventListener:(name,fn)=>events.set(name,fn)};
  const window={};
- const context=vm.createContext({window,document,workforceApi:api,location:{hash:''},URL:{revokeObjectURL(){}},AbortController,Intl,Date,crypto:{randomUUID:()=> 'new-record'},FormData:class{constructor(form){this.form=form;}*[Symbol.iterator](){for(const e of walk(this.form))if(e.name&&!e.disabled&&e.type!=='checkbox')yield[e.name,e.value];}},WorkforceSignature:{mount:()=>({get:()=>({kind:'synthetic'})})},WorkforcePrivatePdf:{show:async(...args)=>{previews.push(args);return true;}},importExtractor:async()=>({extractAuthorization:async(file,progress,signal)=>{file.progress=progress;file.signal=signal;return file.pending;}})});
+ const context=vm.createContext({window,document,workforceApi:api,location:{hash:''},URL:{revokeObjectURL(){}},AbortController,Intl,Date,crypto:{randomUUID:()=> 'new-record'},FormData:class{constructor(form){this.form=form;}*[Symbol.iterator](){for(const e of walk(this.form))if(e.name&&!e.disabled&&e.type!=='checkbox')yield[e.name,e.value];}},WorkforceAdmissionLibrary:{mount:async(target,options)=>{admissions.push(options);}},WorkforceSignatureFields:{mount:(target,options)=>mappings.push(options)},WorkforceSignature:{mount:()=>({get:()=>({kind:'synthetic'})})},WorkforcePrivatePdf:{show:async(...args)=>{previews.push(args);return true;}},importExtractor:async()=>({extractAuthorization:async(file,progress,signal)=>{file.progress=progress;file.signal=signal;return file.pending;}})});
  vm.runInContext(runtime,context);
  const button=text=>{const b=walk(root).find(e=>e.tagName==='BUTTON'&&e.textContent===text);assert.ok(b,'Missing button: '+text);return b;};
  const field=name=>{const f=walk(root).find(e=>e.name===name);assert.ok(f,'Missing field: '+name);return f;};
@@ -44,10 +45,34 @@ function setup(handler=async()=>undefined){
  const status=()=>walk(root).find(e=>e.attrs.role==='status')?.textContent||'';
  const office=()=>walk(root).find(e=>e.tagName==='SELECT'&&!e.name);
  const start=async()=>{events.get('workforce-session')({detail:{grant:{offices:['office-a','office-b'],permissions:['field_visits.manage']}}});await window.WorkforceFieldVisits.show('fieldvisits');await tick();await tick();};
- const newRecord=()=>button('+ Start field visit').onclick();
+ const newRecord=()=>button('Forms').onclick();
  const submit=async()=>{form().onsubmit({preventDefault(){}});await tick();await tick();};
- return {root,calls,previews,start,newRecord,button,field,office,submit,status,events};
+ return {root,calls,previews,mappings,admissions,prepareClient:window.WorkforceFieldVisits.prepareClient,start,newRecord,button,field,office,submit,status,events};
 }
+
+test('choosing a client prepares their own office and identity, then a fixed admission copy preserves mapped answers',async()=>{
+ const s=setup();await s.start();await s.prepareClient({office:'office-b',name:'Fictional chosen member',memberId:'TEST-MEMBER'});assert.equal(s.office().value,'office-b');assert.equal(s.field('clientName').value,'Fictional chosen member');assert.equal(s.field('memberId').value,'TEST-MEMBER');
+ s.admissions.at(-1).prepare({id:'office-b-template',title:'Fictional agency form',pages:['page'],requiredSigners:['staff'],signatureFields:[],textFields:[{id:'text_answer',label:'Care answer',source:'manual',required:true,page:0,x:.1,y:.1,width:.5,height:.1}]});assert.equal(s.field('clientName').value,'Fictional chosen member');assert.equal(s.field('kind').disabled,true);s.field('text_answer').value='Fictional completed answer';await s.submit();const payload=s.calls.filter(call=>call.body?.data).at(-1).body.data;assert.equal(payload.templateId,'office-b-template');assert.equal(payload.fields.text_answer,'Fictional completed answer');assert.equal(payload.textFields[0].id,'text_answer');
+});
+
+test('required answers prevent a signing request while incomplete drafts remain saveable',async()=>{
+ const s=setup();await s.start();await s.button('Open visit').onclick();await s.button('Sign and secure this document').onclick();
+ assert.match(s.status(),/Complete the required visit answers.*Visit purpose/);assert.ok(!s.calls.some(c=>c.path.endsWith('/sign')));await s.submit();assert.ok(s.calls.some(c=>c.body?.data));
+});
+
+test('uploaded signature mappings are saved with their own draft',async()=>{
+ const s=setup();await s.start();s.newRecord();s.field('kind').value='upload';s.field('kind').onchange();
+ const file=walk(s.root).find(e=>e.type==='file');file.files=[{pending:Promise.resolve({pages:['mapped-page']})}];await file.onchange();
+ assert.equal(s.mappings.length,1);s.mappings[0].onChange([{role:'staff',page:0,x:.1,y:.6,width:.5,height:.08}]);await s.submit();
+ assert.equal(s.calls.filter(c=>c.body?.data).at(-1).body.data.signatureFields[0].role,'staff');
+});
+
+test('a delayed corrected-copy response cannot replace a different editor',async()=>{
+ const pending=deferred(),original={...record('record-a'),state:'signed'};
+ const s=setup(path=>path.endsWith('/amend')?pending.promise:path.endsWith('/record-a')?original:undefined);await s.start();await s.button('Open visit').onclick();
+ s.field('correctionReason').value='Synthetic correction';const correction=s.button('Create corrected draft').onclick();s.newRecord();s.field('clientName').value='Synthetic B';pending.resolve(record('corrected'));await correction;
+ assert.equal(s.field('clientName').value,'Synthetic B');assert.doesNotMatch(s.status(),/Corrected draft created/);
+});
 test('a delayed save cannot replace another editor or announce its success there',async()=>{
  const pending=deferred(),s=setup((path,body)=>body?.data?pending.promise:undefined);await s.start();s.newRecord();s.field('clientName').value='Synthetic A';await s.submit();
  s.newRecord();s.field('clientName').value='Synthetic B';pending.resolve(record('saved-a'));await tick();await tick();
@@ -105,4 +130,51 @@ test('returning to an office rejects its older list even when the office name ma
  await s.start();s.office().value='office-b';s.office().onchange();await tick();s.office().value='office-a';s.office().onchange();await tick();
  pending.resolve({items:[{id:'old-a',clientName:'Synthetic old list',state:'draft',kind:'orientation',visitDate:'2026-11-13'}],next:null});await tick();await tick();
  assert.match(s.root.textContent,/Synthetic current list/);assert.doesNotMatch(s.root.textContent,/Synthetic old list/);
+});
+
+
+for(const which of ['client','caregiver'])test('changing the '+which+' query discards its pending name matches',async()=>{
+ const pending=deferred(),s=setup(path=>path.endsWith('/names')?pending.promise:undefined);await s.start();s.newRecord();
+ const query=s.field('lookup-'+which);query.value='Old query';const request=s.button('Find '+which).onclick();
+ query.value='New query';query.oninput?.();pending.resolve({items:[{id:'synthetic-old',name:'Obsolete lookup',memberId:'SYNTHETIC-OLD'}]});await request;
+ assert.doesNotMatch(s.root.textContent,/Obsolete lookup/);
+});
+
+test('typing clears returned name matches and prevents their old selection callbacks',async()=>{
+ const s=setup(path=>path.endsWith('/names')?{items:[{id:'synthetic-old',name:'Obsolete lookup',memberId:'SYNTHETIC-OLD'}]}:undefined);await s.start();s.newRecord();
+ const query=s.field('lookup-client');query.value='Old query';await s.button('Find client').onclick();const old=s.button('Obsolete lookup · SYNTHETIC-OLD');
+ query.value='New query';query.oninput?.();assert.doesNotMatch(s.root.textContent,/Obsolete lookup/);old.onclick();
+ assert.notEqual(s.field('clientName').value,'Obsolete lookup');assert.notEqual(s.field('memberId').value,'SYNTHETIC-OLD');
+});
+
+test('a replacement name lookup proceeds while an older result cannot unlock its pending action',async()=>{
+ const first=deferred(),second=deferred(),s=setup((path,body)=>path.endsWith('/names')?(body.name==='Old query'?first.promise:second.promise):undefined);await s.start();s.newRecord();
+ const query=s.field('lookup-client');query.value='Old query';const a=s.button('Find client').onclick();query.value='New query';query.oninput?.();const b=s.button('Find client').onclick();
+ try{
+  assert.equal(s.calls.filter(c=>c.path.endsWith('/names')).length,2);
+  first.resolve({items:[{id:'synthetic-old',name:'Obsolete lookup',memberId:'SYNTHETIC-OLD'}]});await a;await s.submit();
+  assert.ok(!s.calls.some(c=>c.body?.data));assert.doesNotMatch(s.root.textContent,/Obsolete lookup/);
+  second.resolve({items:[{id:'synthetic-current',name:'Latest lookup',memberId:'SYNTHETIC-CURRENT'}]});await b;
+  s.button('Latest lookup · SYNTHETIC-CURRENT').onclick();assert.equal(s.field('clientName').value,'Latest lookup');assert.equal(s.field('memberId').value,'SYNTHETIC-CURRENT');
+ }finally{first.resolve({items:[]});second.resolve({items:[]});await Promise.all([a,b]);}
+});
+
+test('returning to the same name query still rejects its earlier result',async()=>{
+ const pending=deferred(),s=setup(path=>path.endsWith('/names')?pending.promise:undefined);await s.start();s.newRecord();
+ const query=s.field('lookup-client');query.value='Old query';const request=s.button('Find client').onclick();
+ query.value='Different query';query.oninput?.();query.value='Old query';query.oninput?.();
+ pending.resolve({items:[{id:'synthetic-old',name:'Obsolete lookup',memberId:'SYNTHETIC-OLD'}]});await request;assert.doesNotMatch(s.root.textContent,/Obsolete lookup/);
+});
+
+test('an obsolete name lookup failure cannot replace the current editor notice',async()=>{
+ const pending=deferred(),s=setup(path=>path.endsWith('/names')?pending.promise:undefined);await s.start();s.newRecord();
+ const query=s.field('lookup-client');query.value='Old query';const request=s.button('Find client').onclick();query.value='New query';query.oninput?.();
+ pending.reject(Error('Obsolete name lookup failure'));await request;assert.doesNotMatch(s.status(),/Obsolete name lookup failure/);
+});
+
+
+test('typing a name query does not release an unrelated pending draft save',async()=>{
+ const saving=deferred(),s=setup((path,body)=>body?.data?saving.promise:undefined);await s.start();s.newRecord();await s.submit();
+ const query=s.field('lookup-client');query.value='Current query';query.oninput?.();await s.submit();
+ assert.equal(s.calls.filter(c=>c.body?.data).length,1);saving.resolve(record('saved-current'));await tick();await tick();
 });

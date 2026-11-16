@@ -1,3 +1,4 @@
+import {actorLabels} from './activity.js';
 import { createHash, randomUUID } from "node:crypto";
 import { getFirestore, type Transaction } from "firebase-admin/firestore";
 import { getAuth } from "firebase-admin/auth";
@@ -110,7 +111,7 @@ export class WorkforceStore {
       }
       tx.set(ref, { ...invite, state: "accepted" });
       tx.create(this.db.collection("workforceAudit").doc(randomUUID()), {
-        actor: uid, target: ref.id, action: "staff_invite_accepted", at: new Date(now).toISOString()
+        actor: uid, target: ref.id, action: "staff_invite_accepted", offices: grant.offices, at: new Date(now).toISOString()
       });
       return { uid, grant };
     });
@@ -173,7 +174,9 @@ export class WorkforceStore {
       const result = await this.db.collection("workforceOpportunities").where("office", "==", office).limit(100).get();
       items.push(...result.docs.map(d => d.data() as Opportunity));
     }
-    return { items, limitPerOffice: 100 };
+    for(const item of items){if(!item.createdBy){const first=(await this.db.collection('workforceOpportunities').doc(item.id).collection('versions').doc('1').get()).data();if(first&&validId(first.updatedBy)&&typeof first.updatedAt==='string'){item.createdBy=first.updatedBy;item.createdAt=first.updatedAt;}}if(!item.publishedBy&&item.state==='published'){item.publishedBy=item.updatedBy;item.publishedAt=item.updatedAt;}}
+    const people=await actorLabels(items.flatMap(item=>[item.createdBy,item.publishedBy,item.updatedBy].filter((id):id is string=>!!id)),ids=>this.auth().getUsers(ids.map(uid=>({uid}))));
+    const current=await this.actor(uid);for(const office of actor.grant.offices)requirePermission(current,"opportunities.read",office);return { items, people, limitPerOffice: 100 };
   }
   async publicList() {
     const result = await this.db.collection("workforceOpportunities").where("state", "==", "published").limit(100).get();
@@ -234,7 +237,7 @@ export class WorkforceStore {
       }
       tx.set(ref, next);
       tx.create(this.db.collection("workforceAudit").doc(randomUUID()), {
-        actor: uid, target, action: "staff_grant", before: prior.data() ?? null, after: next, at: new Date().toISOString()
+        actor: uid, target, action: "staff_grant", offices: next.offices, before: prior.data() ?? null, after: next, at: new Date().toISOString()
       });
       return { updated: true };
     });

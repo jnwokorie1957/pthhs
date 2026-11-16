@@ -73,9 +73,12 @@ locations or fixed ranks. An equally sized prior window returned no rows. The
 guide/navigation change addresses a separately demonstrated crawl gap, not an
 assumed query ranking gain. See [review](2026-10-18-seo-review.md).
 
-Next: continue candidate intent review and compare later settled outcomes. Preserve
-the 32 currently published sitemap URLs and eight promoted locations. The other 57 location
-files require availability and useful-content review before further promotion.
+Current inventory checkpoint, November 13: preserve the approved 35-URL sitemap
+and eight promoted locations after the owner-approved Careers retirement. The
+other 57 location files still require availability and useful-content review.
+The canonical sitemap's dated indexing report is separate from that inventory;
+see the [scoped example review](2026-11-13-indexing-examples-review.md).
+Next: continue candidate intent review and compare later settled outcomes.
 Outcome validation remains open pending comparable evidence.
 
 November 2,20:36 UTC review: four article routes now contribute to the delivered

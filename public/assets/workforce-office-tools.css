@@ -13,3 +13,5 @@
 @media(max-width:600px){.manager-app #field-visits-root .manager-form-grid{grid-template-columns:1fr}.signature-picker{padding:12px}.signature-picker .workforce-actions{display:flex;flex-wrap:wrap}.signature-field{min-height:80px}}
 
 .manager-app :is(#field-visits-root,#office-authorizations,#office-applicants) :is(input:not([type=checkbox]),select,textarea){border-color:#71858a}.manager-app #field-visits-root .signature-pad,.manager-app .signature-field{border-color:#71858a}
+
+.visit-field-designer{margin:20px 0;padding:16px;border:1px solid #71858a;border-radius:10px}.visit-signature-page{position:relative;margin:12px 0;background:white}.visit-signature-page>img{display:block;width:100%;height:auto;cursor:crosshair}.manager-app .visit-signature-box{position:absolute;min-height:0;margin:0;padding:2px;border:2px dashed #17685f;border-radius:0;background:#edf6f1e6;color:#183d42;font-size:11px;line-height:1.1;overflow:hidden}.visit-field-designer .manager-form-grid{margin-bottom:12px}
