@@ -1,5 +1,16 @@
 # SEO weekly changelog
 
+## Week of November 16, 2026 (UTC)
+
+November 16 UTC / November 15 local: the reviewed laundry article and both
+listing pages are delivered with correct article metadata/navigation. The
+sitemap date registry now supplies their actual November 15 change dates;
+33 other entries and the 36-URL inventory stay unchanged. Search Console's
+successful canonical read is dated November 14 / 35 discovered, before the
+new article. No indexing or outcome inference, resubmission or new business
+claim. Normal quality/Hosting verification pending.
+See [bounded change and evidence](2026-11-16-laundry-sitemap-dates.md).
+
 ## Week of November 9, 2026
 
 November 13, 22:05 UTC: canonical sitemap Success/35 discovered remains dated
