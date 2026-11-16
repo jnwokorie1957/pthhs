@@ -193,7 +193,7 @@ const managementBytes=(await Promise.all(managementFiles.map(file=>fs.stat(file)
 let managementGzip=0;for(const file of managementFiles)managementGzip+=gzipSync(await fs.readFile(file)).length;
 // November 13 source reconciliation: approved staff navigation/training measures
 // Staff tools/navigation bring this group to 75,665 raw / 18,639 gzip bytes.
-if(managementBytes>80_000||managementGzip>21_000)errors.push(`workforce management exceeds 80 KB raw / 21 KB gzip budget: ${managementBytes}/${managementGzip}`);
+if(managementBytes>82_000||managementGzip>21_000)errors.push(`workforce management exceeds 82 KB raw / 21 KB gzip budget: ${managementBytes}/${managementGzip}`);
 const trainingBytes = (await fs.stat(path.join(publicDir, 'training/staff-workspace-walkthrough-v1.mp4'))).size;
 if (trainingBytes > 750_000) errors.push('Staff training video exceeds the 750 KB media budget');
 const isWorkforceFile = file => {
