@@ -31,7 +31,8 @@ export class HhaEnrollment {
   await this.staff(actor);if(offset===job.ids.length)await this.db.collection("workforceHhaRosterReady").doc(this.office).set({office:this.office,completedAt:new Date().toISOString(),total:job.ids.length});return {jobId,processed:offset,total:job.ids.length,complete:offset===job.ids.length,deferred};
  }
  private async match(email:string){const ready=await this.db.collection("workforceHhaRosterReady").doc(this.office).get();if(!ready.exists||ready.data()?.office!==this.office||typeof ready.data()?.completedAt!=="string")return null;const query=await this.db.collection("workforceHhaProfiles").where("emailKey","==",hash(email)).limit(2).get();if(query.docs.length!==1)return null;const profile=query.docs[0]!.data() as HhaProfile;if(profile.office!==this.office)return null;return profile;}
- async requestAccess(input:unknown,network:string){
+ async requestAccess(input:unknown,network:string,staffActor?:Actor){
+  if(staffActor)await this.staff(staffActor);
   const email=hhaEmail(input),emailKey=hash(email),networkKey=hash(network||"unknown");
   try{
    await this.db.runTransaction(async tx=>{
@@ -43,8 +44,8 @@ export class HhaEnrollment {
    const fresh=await this.source(this.office,"system:caregiver-access").profile(stored.id);if(hhaEmail(fresh.email)!==email)return {requested:true};
    let user;try{user=await this.auth.getUserByEmail(email);}catch(error){if((error as {code?:string}).code!=="auth/user-not-found")throw error;try{user=await this.auth.createUser({email,displayName:[fresh.firstName,fresh.lastName].join(" "),emailVerified:false});}catch(error){if((error as {code?:string}).code!=="auth/email-already-exists")throw error;user=await this.auth.getUserByEmail(email);}}
    if(user.disabled||(await this.db.collection("workforceStaff").doc(user.uid).get()).exists)return {requested:true};
-   await this.sendReset(email);
-   await this.db.collection("workforcePersonnelAudit").add({actor:"system:caregiver-access",target:stored.id,action:"existing_caregiver_reset_requested",at:new Date().toISOString(),office:this.office});
+   if(staffActor)await this.staff(staffActor);await this.sendReset(email);
+   await this.db.collection("workforcePersonnelAudit").add({actor:staffActor?.uid||"system:caregiver-access",target:stored.id,action:"existing_caregiver_reset_requested",at:new Date().toISOString(),office:this.office});
   }catch{/* Public recovery never reveals roster membership, disabled accounts or delivery details. */}
   return {requested:true};
  }

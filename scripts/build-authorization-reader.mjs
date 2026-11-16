@@ -6,6 +6,7 @@ fs.mkdirSync(target,{recursive:true});const manifest=[];
 function copy(pkg,from,to=path.basename(from)) {const source=path.join(modules,pkg,from),bytes=fs.readFileSync(source);fs.writeFileSync(path.join(target,to),bytes);manifest.push({file:to,package:pkg,sha256:createHash('sha256').update(bytes).digest('hex')});}
 for(const file of ['pdf.mjs','pdf.worker.mjs'])copy('pdfjs-dist','build/'+file);
 copy('pdfjs-dist','LICENSE','pdfjs-LICENSE');
+for(const file of ['jbig2_nowasm_fallback.js','openjpeg_nowasm_fallback.js','LICENSE_JBIG2','LICENSE_PDFJS_JBIG2','LICENSE_OPENJPEG','LICENSE_PDFJS_OPENJPEG'])copy('pdfjs-dist','wasm/'+file);
 for(const file of ['tesseract.esm.min.js','worker.min.js'])copy('tesseract.js','dist/'+file);
 copy('tesseract.js','LICENSE.md','tesseract-LICENSE');
 for(const file of fs.readdirSync(path.join(modules,'tesseract.js-core')).filter(f=>f.endsWith('.wasm.js')))copy('tesseract.js-core',file);

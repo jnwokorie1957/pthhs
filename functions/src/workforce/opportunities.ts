@@ -11,6 +11,7 @@ export interface PublicFields {
 export interface Opportunity {
   id: string; office: string; internalReference: string; internalNotes: string; public: PublicFields;
   state: "draft" | "review" | "approved" | "published" | "closed" | "archived";
+  createdBy?: string; createdAt?: string; publishedBy?: string; publishedAt?: string;
   revision: number; updatedAt: string; updatedBy: string; contentAuthor: string;
   review: { revision: number; reviewer: string; at: string } | null;
 }
@@ -39,7 +40,7 @@ export function saveOpportunity(actor: Actor, previous: Opportunity | null, id: 
   if (revision !== (previous?.revision ?? 0)) throw new WorkforceError(409, "revision_conflict");
   if (previous?.state === "archived") throw new WorkforceError(409, "opportunity_archived");
   // Every edit unpublishes and invalidates the previous privacy approval.
-  return { ...data, id, revision: revision + 1, state: "draft", updatedAt: now, updatedBy: actor.uid, contentAuthor: actor.uid, review: null };
+  return { ...data, id, ...(previous?.createdBy?{createdBy:previous.createdBy,createdAt:previous.createdAt}:!previous?{createdBy:actor.uid,createdAt:now}:{}), ...(previous?.publishedBy?{publishedBy:previous.publishedBy,publishedAt:previous.publishedAt}:previous?.state==='published'?{publishedBy:previous.updatedBy,publishedAt:previous.updatedAt}:{}), revision: revision + 1, state: "draft", updatedAt: now, updatedBy: actor.uid, contentAuthor: actor.uid, review: null };
 }
 export function transition(actor: Actor, previous: Opportunity, revision: number, action: Action, privacyConfirmed: boolean, now: string): Opportunity {
   if (revision !== previous.revision) throw new WorkforceError(409, "revision_conflict");
@@ -52,7 +53,7 @@ export function transition(actor: Actor, previous: Opportunity, revision: number
   const state = { submit: "review", approve: "approved", publish: "published", close: "closed", archive: "archived" } as const;
   const nextRevision = revision + 1;
   return { ...previous, state: state[action], revision: nextRevision, updatedAt: now,
-    updatedBy: actor.uid,
+    updatedBy: actor.uid, ...(action === "publish" ? {publishedBy:actor.uid,publishedAt:now}:{}),
     review: action === "approve" ? { revision: nextRevision, reviewer: actor.uid, at: now }
       : action === "publish" && previous.review ? { ...previous.review, revision: nextRevision } : null };
 }

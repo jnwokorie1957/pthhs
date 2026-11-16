@@ -204,7 +204,7 @@ export class OperationsWorkspace {
     if (vendorContractBlocked(input.operation) && !scopedReasonReview(input.operation, projectionScope)) throw new WorkflowError("vendor_contract_clarification_required", 423);
     const { settings } = await this.settings();
     if (!settings.enabledReads.includes(input.operation)) throw new WorkflowError("read_not_owner_enabled", 423);
-    if (["SearchPatients", "SearchCaregivers"].includes(input.operation) && projectionScope !== "maintenance_people_search" && !(input.operation === "SearchCaregivers" && ["workforce_caregiver_search","workforce_roster_import"].includes(projectionScope||""))) throw new WorkflowError("office_scoped_person_search_required", 423);
+    if (["SearchPatients", "SearchCaregivers"].includes(input.operation) && projectionScope !== "maintenance_people_search" && !(projectionScope === "workforce_roster_import" || input.operation === "SearchCaregivers" && projectionScope === "workforce_caregiver_search")) throw new WorkflowError("office_scoped_person_search_required", 423);
     if (OFFICE_SCOPED_READS.includes(input.operation) && input.officeId !== settings.officeId) throw new WorkflowError("office_scope_mismatch", 403);
     if (input.operation === "SearchBilledVisits") {
       readRequest(input);

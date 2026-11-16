@@ -132,7 +132,7 @@ export class StaffOperations {
     const upload=(await tx.get(ref)).data();if(upload?.attempt!==attempt||upload.state!=='uploading')throw new WorkforceError(409,'authorization_upload_superseded');
     let prior:AuthRecord|undefined;if(replaces){prior=(await tx.get(this.db.collection('workforceAuthorizations').doc(replaces))).data();if(!prior||prior.office!==office||prior.memberId!==details.memberId||prior.payer!==details.payer)throw new WorkforceError(409,'renewal_client_or_payer_mismatch');}
     const now=new Date().toISOString();tx.update(ref,{...objects,state:'ready',leaseUntil:0,revision:1,reviewedBy:uid,updatedAt:now,renewalStatus:'not_started',followupDate:'',renewalNote:'',replaces});
-    if(replaces)tx.update(this.db.collection('workforceAuthorizations').doc(replaces),{renewalStatus:'renewed',renewedBy:id,revision:Number(prior!.revision)+1,updatedAt:now});
+    if(replaces){tx.update(this.db.collection('workforceAuthorizations').doc(replaces),{renewalStatus:'renewed',renewedBy:id,revision:Number(prior!.revision)+1,updatedAt:now,updatedBy:uid});this.audit(tx,uid,'authorization_renewed',replaces,office);}
     this.audit(tx,uid,'authorization_uploaded',id,office);
    });return {id};
   }catch(error){await this.db.runTransaction(async tx=>{const current=(await tx.get(ref)).data();if(current?.attempt===attempt&&current.state==='uploading')tx.update(ref,{state:'upload_failed',leaseUntil:0});});throw error;}
@@ -143,7 +143,7 @@ export class StaffOperations {
   return this.db.runTransaction(async tx=>{
    const ref=this.db.collection('workforceAuthorizations').doc(id),row=await tx.get(ref),data=row.data();if(!data||data.state!=='ready')throw new WorkforceError(404,'authorization_not_found');
    await this.actor(tx,uid,'authorizations.manage',data.office);if(data.revision!==input.revision)throw new WorkforceError(409,'authorization_changed_reload');
-   const updated={renewalStatus:input.status,renewalNote:input.note,followupDate:input.followupDate,revision:data.revision+1,updatedAt:new Date().toISOString()};tx.update(ref,updated);this.audit(tx,uid,'authorization_followup_updated',id,data.office);return summary(id,{...data,...updated});
+   const updated={renewalStatus:input.status,renewalNote:input.note,followupDate:input.followupDate,revision:data.revision+1,updatedBy:uid,updatedAt:new Date().toISOString()};tx.update(ref,updated);this.audit(tx,uid,'authorization_followup_updated',id,data.office);return summary(id,{...data,...updated});
   });
  }
  async document(uid:string,id:string){
