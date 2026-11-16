@@ -1,4 +1,5 @@
-export { workforceOpportunityMatching, workforceApi, workforceCaregiverSync, workforceLicenseReminders, workforceDocumentDecrypt, workforceApplicationMail, workforceHhaApplications } from "./workforce/http.js";
+export { workforceOpportunityMatching, workforceApi, workforceCaregiverSync, workforceLicenseReminders, workforceDocumentDecrypt, workforceApplicationMail, workforceHhaApplications, workforceEligibilityRoster } from "./workforce/http.js";
+export { workforceEligibilityMonthly, workforceEligibilityWorker } from './eligibility/runtime.js';
 import { submitLinkedScheduleCreation, LINKED_SCHEDULE_EVIDENCE_VERIFIER_AVAILABLE } from "./operations/linkedScheduleCreations.js";
 import { collectionActionAllowed } from "./auth/workflowPermissions.js";
 import { submitCollectionNote } from "./operations/collectionNotes.js";

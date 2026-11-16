@@ -1019,7 +1019,7 @@ export function boundedAttachment(record: Record<string, string | null>, identit
   const filename = safeAttachmentFilename(record.FileName);
   return { filename, byteLength: bytes.length, base64: encoded, contentType: "application/octet-stream" as const };
 }
-export async function operationalRead(client: Pick<HhaSoapClient, "call">, input: ReadInput, projectionScope?: "document_metadata" | "clinical_review" | "medical_review" | "write_recovery" | "visit_discovery" | "visit_reason_review" | "maintenance_people_search" | "workforce_caregiver_search" | "workforce_caregiver_profile" | "workforce_roster_import" | "workforce_caregiver_records" | "workforce_matching_hours"): Promise<OperationalRead> {
+export async function operationalRead(client: Pick<HhaSoapClient, "call">, input: ReadInput, projectionScope?: "document_metadata" | "clinical_review" | "medical_review" | "write_recovery" | "visit_discovery" | "visit_reason_review" | "maintenance_people_search" | "workforce_caregiver_search" | "workforce_caregiver_profile" | "workforce_roster_import" | "workforce_caregiver_records" | "workforce_matching_hours" | "eligibility_identity"): Promise<OperationalRead> {
   const body = readRequest(input, projectionScope === "workforce_caregiver_search" || projectionScope === "workforce_roster_import" ? projectionScope : undefined);
   // One attempt per owner-requested read; shared server quota controls requests.
   let response: Awaited<ReturnType<HhaSoapClient["call"]>>;
@@ -1138,6 +1138,7 @@ export async function operationalRead(client: Pick<HhaSoapClient, "call">, input
       if (input.operation === "GetVisitInfoV3") for (const name of ["ScheduleStartTime", "ScheduleEndTime", "VisitStartTime", "VisitEndTime", "EVVStartTime", "EVVEndTime", "ClockInEvvType", "ClockOutEvvType", "ActualHours", "ActualHoursRounded", "ScheduleDuration/ScheduleDurationHours", "ScheduleDuration/ScheduleDurationMinutes"]) projected[name] = visitTimeField(xml, name);
       if (input.operation === "GetCallDashBoardData") for (const name of ["CallDashboardID", "Patient/ID", "Patient/AdmissionID", "Caregiver/ID", "CallTime", "CallType", "CallStatus"]) projected[name] = directPathScalar(xml, name);
       if (input.operation === "GetPatientDemographics") for (const name of ["PatientID", "OfficeID", "AdmissionID"]) projected[name] = directScalar(xml, name);
+      if (input.operation === "GetPatientDemographics" && projectionScope === "eligibility_identity") for (const name of ["MedicaidNumber", "BirthDate"]) projected[name] = directScalar(xml, name);
       if (input.operation === "GetVisitInfoV2" || input.operation === "GetVisitInfoV3") Object.assign(projected, verificationReceiptFields(xml));
       if ((projectionScope === "medical_review" || projectionScope === "write_recovery") && input.operation === "GetCaregiverMedicalDetails") { for (const name of ["Notes", "Result", "DocumentName"]) projected[name] = extractExactElementText(xml, name) ?? null; }
       if ((projectionScope === "clinical_review" || projectionScope === "write_recovery") && input.operation === "GetPatientClinicalInfo") { projected.Comments = extractExactElementText(xml, "Comments") ?? null; projected.Allergies = extractExactElementText(xml, "Allergies") ?? null; }
