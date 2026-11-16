@@ -37,13 +37,18 @@ Verification before release:
   match remains and explicit selection populates its synthetic name/member
   reference. No real patient, staff, visit, upload, signature or HHA read.
 
-Normal PR quality and the existing Hosting-only release are pending. Exact
-production assets/configuration will be compared after release jobs succeed,
-then all 21 regressions will run against exact served controller bytes.
-Authenticated staff acceptance remains pending: the owner should restore the
-existing approved staff/admin sign-in and confirm client/caregiver lookup
-replacement within an already authorized workflow. No new grant is requested.
-
+Release completed: PR40, source c6dcc7e9b4c5a06c45c36c6b186f189755b19b81.
+Both quality jobs (43784656232) and Hosting-only release scope/build/deploy
+(43784887030) succeeded; backend/analytics were skipped. At 01:14:45 UTC,
+all 37 production artifacts match Git, caregiver configuration is unchanged
+and private noindex/cache/anonymous API-denial protections pass. All 21 tests
+pass against the exact served controller (SHA-256
+9806f920ff72ebc781f605b250cb36b348a12cd254137ce9d5ea1a93071ecb89).
+The approved workforce session and blank Forms editor render at 01:15-01:17
+UTC, with both lookup controls present. The unsaved editor was closed. No real
+source query, save, upload, signature, communication or grant was made.
+Ordinary staff real-record replacement lookup acceptance remains separate and
+should occur only within an independently authorized workflow.
 This is a local Field Visits presentation fix. The researched clinical/source
 bridge still requires exact HHA patient/visit/document-instance relationships
 and accepted role/form/sharing contracts. No source ID/link, clinical assignment,

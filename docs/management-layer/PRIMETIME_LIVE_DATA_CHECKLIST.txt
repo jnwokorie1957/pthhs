@@ -5,7 +5,19 @@ area, map the actual source, connect available authorized data and verify it.
 This is the connection backlog, not a declaration of an active Codex goal.
 This document does not claim every tab is connected.
 
-CURRENT RUNTIME DELIVERY CHECKPOINT — NOVEMBER 13, 2026 21:41 UTC
+CURRENT RUNTIME DELIVERY CHECKPOINT — NOVEMBER 16, 2026 01:14 UTC
+PR40 runtime c6dcc7e is deployed after both quality and Hosting-only scope/deploy
+jobs succeed. It preserves concurrent PR38/PR39 and the reviewed article.
+All 37 delivery artifacts and 21 exact served-controller regressions pass;
+configuration/private cache/indexing/anonymous denial protections pass.
+PR40 changes local Field Visits lookup query context only. It adds no source
+time mapping, source write, grant or interpretation. No new clock/hour recovery
+or historical/current source comparison is claimed. The approved workforce
+session and blank Forms controls render at 01:15-01:17 UTC; the separate
+00:35 UTC Primetime administrator sign-in observation remains dated.
+Original October 24 remains resolved; P03/E04/vendor/held-visit steps remain.
+
+PREVIOUS RUNTIME DELIVERY CHECKPOINT — NOVEMBER 13, 2026 21:41 UTC
 Concurrent PR37 runtime 1d06a7b is deployed. All four normal release 43512396712
 jobs passed; the dated 21:41:32 UTC receipt verifies 33 delivery artifacts,
 unchanged caregiver configuration and private indexing/cache/anonymous denial.
@@ -2336,3 +2348,62 @@ history/linkage/units/readback, CSM/private-XML and held-visit disposition stay
 separate. The 21:34 vendor-reminder observation supplies no new technical contract
 and was not polled again. No new owner question, communication or source fix is
 claimed by this evidence reconciliation.
+
+NOVEMBER 16, 2026 UTC — FIELD-VISIT QUERY CONTEXT IMPLEMENTED
+Actual work date is November 15 America/Chicago; delayed trigger remains separate.
+PR40 fixes a reproduced local client/caregiver lookup race: changing query text
+clears old matches/callbacks, permits a replacement explicit Find, and rejects
+obsolete results/errors. A-B-A input remains a new query. Action-version guards
+retain unrelated pending draft-save locks. An issued read may still finish on
+the server; typing performs no source read, automatic retry or selection.
+The endpoint, approved office/permissions, backend, signing and sending gates
+are unchanged by PR40.
+
+Source c6dcc7e9b4c5a06c45c36c6b186f189755b19b81 preserves concurrent PR38
+admissions/client directory/activity history, PR39 admission-pack imports and
+the reviewed public laundry article. Both required quality jobs succeeded;
+existing manual Hosting-only scope and build/deploy jobs succeeded. Backend and
+analytics jobs were skipped by that reviewed workflow. No direct deployment or
+release-control change. Existing locked Terser performs whitespace formatting
+only (compress:false, mangle:false); PR40 adds no dependency or budget increase.
+
+Six regressions fail against current upstream (15 pass/six fail); all 21
+controller regressions and 710 site/tooling/analytics tests across 40 files pass.
+References, form layout, syntax, accessibility, performance, repository links
+and diff checks pass. Eight fallback-time tests passed in each of three
+timezones before unrelated concurrent releases; this is not new source evidence.
+Native Chrome's labelled synthetic/fake-API fixture releases an older response
+after a newer lookup and retains/selects only the new synthetic match.
+At 01:14:45 UTC, all 37 production entries/assets match the release, caregiver
+configuration is unchanged, private noindex/cache and anonymous-session denial
+pass. All 21 regressions pass against exact served bytes, hash
+9806f920ff72ebc781f605b250cb36b348a12cd254137ce9d5ea1a93071ecb89.
+
+At approximately 01:15-01:17 UTC the approved production workforce session is
+available. Field Visits and the Forms editor render with both lookup controls
+and blank identity inputs. The unsaved editor was closed. No real lookup,
+save, upload, signature, message or grant was performed for acceptance.
+Real-record lookup replacement and ordinary staff clinical workflow acceptance
+remain separate from synthetic and initial rendering evidence.
+
+Priority/dependency/acceptance: the local lookup defect is complete. In the next
+independently authorized staff workflow, verify replacement client/caregiver
+selection within the effective office/role and ensure unrelated pending saves
+stay locked. Do not create a real record or grant merely for this check.
+Patient/representative/PT assignment, form/version/reviewer/sharing decisions
+and the exact HHA patient/visit/document-instance clinical bridge remain open.
+No local document/signature state implies clinical review, EVV verification,
+authorization sufficiency, payable/billable status or prebilling completion.
+Original October 24 remains resolved by October 31. Existing P03/E04 retained
+source-event/history/linkage/units/readback, CSM/private-XML and held-visit owner
+dependencies remain separate; no current-day/October source reread occurred.
+
+Implementation/release evidence:
+https://github.com/jnwokorie1957/pthhs/pull/40
+https://github.com/jnwokorie1957/pthhs/actions/runs/43784656232
+https://github.com/jnwokorie1957/pthhs/actions/runs/43784887030
+docs/workforce/FIELD_VISIT_LOOKUP_CONTEXT_2026-11-15.md
+Local nonsensitive receipts: field-visit-lookup-production-20261115.json,
+field-visit-lookup-regression-receipt-20261115.json,
+field-visit-lookup-served-tests-20261115.log and
+field-visit-lookup-synthetic-20261115.png.

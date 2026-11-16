@@ -1,5 +1,20 @@
 # PTHHS Management Layer — Developer Checklist
 
+- [x] PR40 field-visit client/caregiver query context deployed November 16 UTC.
+  Changing search text invalidates old matches, results and errors and permits
+  a replacement explicit lookup; unrelated pending draft saves remain locked.
+  All 21 controller tests, 710 broader tests, 37 production delivery artifacts
+  and 21 exact served-byte regressions pass. Both quality and both required
+  Hosting-only release jobs succeeded. Concurrent PR38/PR39 and article retained.
+  Existing workforce budget and source/signing/sending/access controls retained.
+  [Lookup implementation and bounded acceptance](../workforce/FIELD_VISIT_LOOKUP_CONTEXT_2026-11-15.md).
+- [ ] Complete ordinary staff real-record lookup acceptance only within a
+  separately authorized workflow. Production staff access and blank Forms
+  rendering are observed November 16; synthetic delayed-response selection
+  passes. No real source lookup, save, upload, signature, communication or new
+  grant was made for this check. Patient/PT/clinical source linking and existing
+  owner/vendor decisions remain separate.
+
 - [ ] P2 clinical/source document-link acceptance, researched November 13:
   current local Field Visits retains editable member/admission and date fields,
   not an exact HHA patient/visit/clinical-document join. Before a future bridge,
