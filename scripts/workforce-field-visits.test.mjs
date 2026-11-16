@@ -51,6 +51,10 @@ function setup(handler=async()=>undefined){
  return {root,calls,previews,mappings,admissions,prepareClient:window.WorkforceFieldVisits.prepareClient,start,newRecord,button,field,office,submit,status,events};
 }
 
+test('a rejected initial form read displays the sign-in message and can retry without reloading',async()=>{
+ let rejected=true;const s=setup(path=>{if(path.endsWith('/templates')&&rejected)throw Error('Please sign in again before accessing sensitive records.');});await s.start();assert.match(s.root.textContent,/Forms are unavailable/);assert.match(s.status(),/Please sign in again/);rejected=false;await s.button('Retry').onclick();await tick();await tick();assert.ok(s.button('Manual form'));assert.doesNotMatch(s.root.textContent,/Forms are unavailable/);
+});
+
 test('choosing a client prepares their own office and identity, then a fixed admission copy preserves mapped answers',async()=>{
  const s=setup();await s.start();await s.prepareClient({office:'office-b',name:'Fictional chosen member',memberId:'TEST-MEMBER'});assert.equal(s.office().value,'office-b');assert.equal(s.field('clientName').value,'Fictional chosen member');assert.equal(s.field('memberId').value,'TEST-MEMBER');
  s.admissions.at(-1).prepare({id:'office-b-template',title:'Fictional agency form',pages:['page'],requiredSigners:['staff'],signatureFields:[],textFields:[{id:'text_answer',label:'Care answer',source:'manual',required:true,page:0,x:.1,y:.1,width:.5,height:.1}]});assert.equal(s.field('clientName').value,'Fictional chosen member');assert.equal(s.field('kind').disabled,true);s.field('text_answer').value='Fictional completed answer';await s.submit();const payload=s.calls.filter(call=>call.body?.data).at(-1).body.data;assert.equal(payload.templateId,'office-b-template');assert.equal(payload.fields.text_answer,'Fictional completed answer');assert.equal(payload.textFields[0].id,'text_answer');
