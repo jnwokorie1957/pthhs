@@ -14,6 +14,14 @@
 
 ## Start here
 
+- [ ] Before activating caregiver matching's paid-hour ceiling, establish the
+  supported HHA paid-hours source, units/adjustments and exact caregiver, office
+  and Sunday-week validation/readback. Recorded visit clocks locate a period
+  but do not verify paid work; the implementation now holds those candidates.
+  Non-visit-hours review does not replace this HHA source contract. Existing
+  Maps/SMS/public-opening approvals remain closed and unchanged.
+  [Recorded-time guard and acceptance](../workforce/MATCHING_RECORDED_TIME_GUARD_2026-11-15.md).
+
 - [ ] Before automating or externally sharing an admission/clinical form,
   select its approved blank form and business version and approve each field's
   intended identifier/time source, signer/reviewer and permitted recipient role.

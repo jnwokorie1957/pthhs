@@ -40,7 +40,10 @@ the selected week. After the fix, all nine focused source tests pass, including
 future schedule and fully earlier-week behavior. All 1,035 backend tests and
 five frontend/runtime/reference tests pass. TypeScript compilation and
 deterministic readable-source/runtime and asset-reference checks pass.
-Normal PR quality and the existing compatible full release are pending.
+Both normal quality jobs passed (43795099928). The reviewed compatible full
+release 43795227288 passed scope, backend, Hosting and analytics for
+e46821b877ee01c99f53b3b4ff05ecac8b8925a5. Existing release-window controls
+and serial deployment were preserved.
 
 Compatibility: no endpoint, request/response schema, stored record format,
 permission or session contract changes. Existing callers already hold a
@@ -68,5 +71,24 @@ the bounded historical/current-day API comparison after any displayed delay.
 
 Local nonsensitive evidence: matching-hours-before-20261115.log,
 matching-hours-after-20261115.log and matching-hours-backend-tests-20261115.log.
-Deployment and production boundary evidence remain pending. No real source
-record, matching dispatch, staff decision or communication was exercised.
+At 03:02-03:03 UTC, seven public entries/scripts match exact release bytes;
+caregiver configuration is unchanged. Primetime header/meta noindex/no-cache
+and anonymous JSON session 401/no-store/noindex pass. An anonymous matching
+setup request using a synthetic opening reference returns JSON 401/no-store;
+that denial does not carry an X-Robots-Tag header. HTTP/header policies were
+not changed, and no authenticated matching acceptance is inferred.
+
+Four existing controller tests pass against the exact served controller, with
+the source-error fixture changed to exercise the paid-hours hold message.
+The deployed controller hash is
+45dbba3605be1a860a7fd4368b9d31823b7819209bddade91f0b9e845e87075f.
+No real source record, matching dispatch, staff decision or communication was
+exercised. The backend deployment result and anonymous checks do not establish
+authenticated/HHA acceptance; restore the approved session for that separate step.
+
+[PR45](https://github.com/jnwokorie1957/pthhs/pull/45),
+[quality](https://github.com/jnwokorie1957/pthhs/actions/runs/43795099928),
+[full release](https://github.com/jnwokorie1957/pthhs/actions/runs/43795227288).
+Local production receipt: matching-hours-production-20261116.json;
+served checks: matching-hours-served-tests-20261116.log;
+native release proof: matching-hours-release-20261116.png.

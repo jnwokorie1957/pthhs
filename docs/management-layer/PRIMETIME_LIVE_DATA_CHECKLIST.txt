@@ -5,7 +5,17 @@ area, map the actual source, connect available authorized data and verify it.
 This is the connection backlog, not a declaration of an active Codex goal.
 This document does not claim every tab is connected.
 
-CURRENT RUNTIME DELIVERY CHECKPOINT — NOVEMBER 16, 2026 01:14 UTC
+CURRENT RUNTIME DELIVERY CHECKPOINT — NOVEMBER 16, 2026 03:02 UTC
+PR45/e46821b adds the recorded-clock paid-hours interpretation hold to matching,
+preserving concurrent PR42/43/44 and all administrator clock/duration mappings.
+Both quality and all four full-release jobs pass; seven delivered artifacts,
+configuration/private controls and four exact served-controller checks pass.
+This is a consumer guard, not recovered source time or original-EVV evidence.
+At 02:40 UTC Primetime still requires administrator sign-in. Historical/current
+source comparison and paid-hours source acceptance remain pending. Original
+October 24 remains resolved; P03/E04/vendor/CSM/held-visit steps remain separate.
+
+PREVIOUS RUNTIME DELIVERY CHECKPOINT — NOVEMBER 16, 2026 01:14 UTC
 PR40 runtime c6dcc7e is deployed after both quality and Hosting-only scope/deploy
 jobs succeed. It preserves concurrent PR38/PR39 and the reviewed article.
 All 37 delivery artifacts and 21 exact served-controller regressions pass;
@@ -2407,3 +2417,69 @@ Local nonsensitive receipts: field-visit-lookup-production-20261115.json,
 field-visit-lookup-regression-receipt-20261115.json,
 field-visit-lookup-served-tests-20261115.log and
 field-visit-lookup-synthetic-20261115.png.
+
+NOVEMBER 16, 2026 02:39 UTC HEARTBEAT — RECORDED TIME INTERPRETATION GUARD
+Actual work date November 15 America/Chicago. Upstream PR42/43/44 Forms,
+signature/session, matching and release-policy changes are preserved.
+
+At approximately 02:40 UTC, the approved Chrome Primetime entry still requires
+administrator sign-in. No October 23/24 or current office-day API comparison,
+pending/completed classification or recovered clock/hour is claimed. Original
+October 24 remains resolved by the independent October 31 reread.
+
+Independent source review found a new consumer interpretation gap: the matching
+adapter treated a recorded VisitStartTime/VisitEndTime span as complete paid-hour
+evidence for eligibility. Its existing positive test counted that span as work.
+PR45 now holds a completed recorded interval overlapping the selected weeks with
+matching_paid_hours_unverified. Missing/unfinished clocks retain their pending
+outcome. Future scheduled planning windows and wholly earlier-week exclusion
+remain; no worked, paid, payable, billable or verified state is inferred.
+
+Exact scopes: the normal GetVisitInfoV3Result/VisitInfo optional strings
+ScheduleStartTime, ScheduleEndTime, VisitStartTime, VisitEndTime, EVVStartTime,
+EVVEndTime, ActualHours and ActualHoursRounded, plus integer
+ScheduleDuration/ScheduleDurationHours and
+ScheduleDuration/ScheduleDurationMinutes, are unchanged.
+The separate workforce_matching_hours projection retains only direct ID,
+Caregiver/ID and the four schedule/recorded clocks. Its omitted EVV/duration/pay
+fields are a projection limit, not proof of genuinely empty HHA source fields.
+No alternate endpoint, added source field, unit conversion, read setting or
+financial interpretation was enabled; no clocks were replaced with other times.
+
+Three new regressions fail before correction (five prior focused tests pass).
+All nine focused source tests, 1,035 backend tests and five frontend/build tests
+pass after correction. TypeScript, deterministic source/runtime/references,
+repository links and diff pass. Both PR quality jobs 43795099928 pass.
+Compatible full release 43795227288 passes scope/backend/Hosting/analytics for
+e46821b877ee01c99f53b3b4ff05ecac8b8925a5, preserving the owner release window
+and serial backend-before-Hosting workflow. No endpoint/wire/record/permission/
+session or forced-reload change. Existing callers already hold source failures.
+
+At 03:02-03:03 UTC seven production entries/scripts match exactGit. Configuration
+is unchanged; Primetime noindex/no-cache and anonymous401/no-store/noindex pass.
+An anonymous matching setup read with a synthetic opening reference is denied
+with JSON401/no-store; it has no X-Robots-Tag. Header policy is unchanged.
+Four existing controller tests against exact served45dbba3605be pass, with the
+error fixture exercising the new paid-hours hold. These are software delivery
+and synthetic/boundary checks, not a real candidate or HHA acceptance.
+Reviewed Maps/SMS/Places/public-opening approvals remain false; no configuration,
+source record, matching dispatch, assignment, communication or financial status
+was changed by verification.
+
+Next owner/vendor action for the matching interpretation gate: establish a
+supported paid-hours source, units and adjustments, exact caregiver/office/week
+linkage and validation/readback before implementing or accepting that basis.
+A source clock pair, raw ActualHours/rounded/payroll/billed string or non-visit
+hours checkbox cannot clear this gate. Existing P03/E04 original-event linkage,
+retained history, duration units and preservation/readback remain unresolved.
+Restore approved administrator sign-in to resume bounded same-office historical
+and current-day reads after displayed delays. CSM/private-XML and the held-visit
+disposition remain separate; no sending or source-write approval is introduced.
+
+https://github.com/jnwokorie1957/pthhs/pull/45
+https://github.com/jnwokorie1957/pthhs/actions/runs/43795099928
+https://github.com/jnwokorie1957/pthhs/actions/runs/43795227288
+docs/workforce/MATCHING_RECORDED_TIME_GUARD_2026-11-15.md
+Local nonsensitive receipts/logs: matching-hours-production-20261116.json,
+matching-hours-before-20261115.log, matching-hours-after-20261115.log,
+matching-hours-backend-tests-20261115.log, matching-hours-served-tests-20261116.log.
