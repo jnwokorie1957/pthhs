@@ -26,7 +26,7 @@ test('late preference and notice responses cannot restore content after sign-out
 });
 test('caregiver controls disclose driving miles, workweek, verified phone consent and independent opt-out',async()=>{
  const calls=[],api=async(path,body)=>{calls.push({path,body});return {preferences:null,items:[]};},s=setup(api);await s.module.preferences(s.target,{api,current:()=>true});assert.match(s.target.textContent,/10 driving miles/);assert.match(s.target.textContent,/Sunday–Saturday/);assert.match(s.target.textContent,/verified phone/);
- const sms=s.all().find(n=>n.tagName==='LABEL'&&n.textContent.startsWith('Text me'));assert.equal(!!sms.children[0].checked,false);
+ const sms=s.all().find(n=>n.tagName==='LABEL'&&n.textContent.trim().startsWith('Text me'));assert.equal(!!sms.children[0].checked,false);
  await s.all().find(n=>n.textContent==='Turn off all opening alerts ').onclick();assert.equal(calls.at(-1).path,'/matching/opt-out');assert.match(s.target.textContent,/alerts are off/);
 });
 test('source setup errors are explained and staff matching controls require both existing permissions',async()=>{
