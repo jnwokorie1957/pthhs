@@ -13,6 +13,8 @@
   }
   if(!valid())return;
   if(source==='hhaexchange')window.WorkforceHhaRecords?.mount(target,{api:workforceApi,base:'/staff/roster/'+encodeURIComponent(id)+'/records/',self:false,current:valid});
+  if(source==='hhaexchange')await window.WorkforceMatching?.qualification(target,id,{current:valid});
+  if(!valid())return;
   const schedule=node('section');schedule.dataset.recordGroup='schedule';schedule.append(node('h3','Current schedule'),node('p','Today and the next six days. Times are shown as recorded in HHA.'));const message=node('p','Loading schedule…');message.setAttribute('role','status');const list=node('div'),more=node('button','Load more shifts'),retry=node('button','Refresh schedule');more.type=retry.type='button';more.className=retry.className='btn-secondary';more.hidden=true;schedule.append(message,list,more,retry);target.append(schedule);let next=null,busy=false;
   async function load(append=false){if(busy||!valid())return;busy=true;more.disabled=retry.disabled=true;if(!append)list.replaceChildren();message.textContent='Loading schedule…';try{const result=await workforceApi(base+'/schedule'+(append&&next?'?after='+encodeURIComponent(next):''));if(!valid())return;
    for(const row of result.items){const item=node('article');item.className='office-record';item.append(node('strong',(row.date||'Date not supplied').slice(0,10)),node('p',(row.start||'Start not supplied')+' – '+(row.end||'End not supplied')),node('p','Member ID: '+(row.memberId||'Not supplied')));list.append(item);}
