@@ -2,6 +2,15 @@
 
 ## Week of November 9, 2026
 
+November 13, 22:05 UTC: canonical sitemap Success/35 discovered remains dated
+November 12. The sitemap-filtered Page indexing report is last updated November 8:
+29 indexed and five discovered-not-indexed, with 1-5 of 5 example rows. All five
+examples plus four entry/discovery artifacts match production Git; five source
+navigation paths and metadata pass. Corrected the measured-keyword plan's old
+32-URL current-inventory instruction to 35. No indexing trend, runtime defect,
+claim change, submission or repeat release. See [scope and remaining checks](2026-11-13-indexing-examples-review.md).
+
+
 November 13 UTC: PR27 reconciles the approved caregiver source with main and
 fixes generator/pruner regressions. Both quality and required Hosting-only jobs
 passed; production verified 35 canonical pages, 30 assets and three retired
