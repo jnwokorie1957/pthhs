@@ -450,5 +450,36 @@ class HolidayArticleTests(unittest.TestCase):
         self.assertEqual((ROOT / 'public/sitemap.xml').read_text(encoding='utf-8').count('<loc>https://pthhs.net' + article.path + '</loc>'), 1)
 
 
+class LaundryArticleTests(unittest.TestCase):
+    def test_reviewed_source_bytes_and_publication_metadata(self):
+        slug = 'helping-with-laundry-without-losing-track-of-clothes'
+        source = ROOT / 'content/articles' / (slug + '.md')
+        self.assertEqual(hashlib.sha256(source.read_bytes()).hexdigest(),
+                         'd68a465fc610647f931584feb406fe6756949df16544b84ec9cda9fdab6c14b8')
+        article = next(a for a in approved_articles() if a.slug == slug)
+        self.assertEqual(article.published, '2026-11-15')
+        self.assertEqual(article.research_checked, '2026-11-15')
+        self.assertIsNone(article.modified)
+        page = (ROOT / 'public/articles' / (slug + '.html')).read_text(encoding='utf-8')
+        self.assertIn('rel="canonical" href="https://pthhs.net' + article.path + '"', page)
+        self.assertEqual(page.count('Published by Robert, CTO of Primetime Home Health Services'), 1)
+        for name in ('articles.html', 'home-care-blog.html'):
+            self.assertEqual((ROOT / 'public' / name).read_text(encoding='utf-8').count('href="' + article.path + '"'), 1)
+        self.assertEqual((ROOT / 'public/sitemap.xml').read_text(encoding='utf-8').count('<loc>https://pthhs.net' + article.path + '</loc>'), 1)
+
+    def test_nonmedical_scope_privacy_and_unfinished_handoff_survive_rendering(self):
+        page = (ROOT / 'public/articles/helping-with-laundry-without-losing-track-of-clothes.html').read_text(encoding='utf-8')
+        text = plaintext(page)
+        for expected in (
+            'An invitation to wash clothing is not an invitation to inspect private belongings.',
+            'Consider this invented household example, not a PTHHS client story.',
+            'Do not add tasks or time through a family note.',
+            'whether anyone has actually agreed to do it.',
+            'They are not an agency procedure, specialist laundering protocol, appliance-repair guide, eligibility determination or guarantee against damage.',
+            'Prepared with AI assistance and reviewed for source accuracy and company scope.',
+        ):
+            self.assertIn(expected, text)
+
+
 if __name__ == '__main__':
     unittest.main()
