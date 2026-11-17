@@ -83,3 +83,33 @@ Current runtime acceptance:
 [staff follow-up](../workforce/MEDIUM_FOLLOW_UP_2026-11-13.md) and
 [current role evidence](../management-layer/ROLE_WORKFLOW_RESEARCH.txt).
 This documentation update requires audit/link/diff checks and no runtime release.
+
+## Follow-up recorded November 17, 2026
+
+The November 16-triggered review completed the proposed bounded diagnostic:
+the existing authorized Search Console session's stored URL Inspection result
+for `/home-care-about-us` says **URL is not on Google**, with **Discovered -
+currently not indexed**. It names the canonical sitemap; last crawl, fetch,
+crawl/indexing permission and both canonical fields are N/A. The exact UI
+observation timestamp was not captured. These are Google's stored fields,
+not a live test or evidence that the current HTML lacks a canonical. The
+sitemap row remains Success, last read November 14, with 35 discovered.
+No indexing request, live URL test, validation or resubmission was made.
+
+At **November 17 13:20:52 UTC**, the homepage, About page, robots.txt and
+sitemap returned direct 200 responses matching `0312e82` Git bytes. The
+About page has one self canonical, title, nonempty description and H1,
+permits indexing in its meta/header and robots.txt, and is linked in initial
+homepage HTML and the 36-URL sitemap. Primetime retains page/header noindex
+and no-cache; its anonymous session endpoint returns 401/no-store/noindex.
+Receipt: `primetime-seo-about-inspection-20261116.json` in local outputs
+(the filename follows the trigger date; `checkedAt` records actual delivery).
+
+Current [Google indexing guidance](https://support.google.com/webmasters/answer/7440203)
+explains the discovered label as a URL found but not yet crawled. Its
+[recrawl guidance](https://developers.google.com/search/docs/crawling-indexing/ask-google-to-recrawl)
+says repeated requests do not accelerate crawling or guarantee indexing.
+This one-URL follow-up does not refresh the other four examples or property
+totals. No delivery/discovery-link defect, new runtime fix, indexing gain or
+cause is established. Recheck when the stored crawl/report date advances;
+retain owner location/content and directory decisions without completing them.

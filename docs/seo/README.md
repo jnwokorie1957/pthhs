@@ -16,6 +16,9 @@ facts, payer evidence, or claim-release controls.
   November 8 (29 indexed/five discovered-not-indexed); all five examples pass
   current delivery/metadata and initial-HTML navigation checks. Report dates
   and the current sitemap inventory remain separate; no runtime fix is inferred.
+  A follow-up recorded November 17 completes stored URL Inspection for About:
+  still discovered/not indexed with no crawl; four current delivery artifacts
+  and private response protections pass. Other examples/totals were not refreshed.
 
 - [November 13 source reconciliation and SEO delivery](2026-11-13-source-reconciliation-delivery.md)
   — PR27 was deployed with a 35-URL inventory; retired Careers redirects

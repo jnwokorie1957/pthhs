@@ -1,5 +1,13 @@
 # PTHHS Management Layer — Developer Checklist
 
+- [x] Scoped About-page indexing diagnostic recorded November 17 UTC for the
+  November 16 SEO review. Stored URL Inspection remains discovered/not indexed
+  with no crawl; current About metadata, robots, homepage link and sitemap pass.
+  Four exact public artifacts and private noindex/cache/anonymous denial pass
+  at 13:20 UTC. No runtime defect or new release; other URL/report scopes and
+  owner decisions remain open. Recheck after the stored crawl/report advances.
+  [Dated scope and evidence](../seo/2026-11-13-indexing-examples-review.md).
+
 - [x] PR45 recorded-clock interpretation guard deployed November 16 UTC.
   A past recorded visit span no longer establishes complete paid hours for
   matching. Completed in-week spans hold; unfinished clocks retain pending.
