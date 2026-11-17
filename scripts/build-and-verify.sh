@@ -33,6 +33,7 @@ node --test scripts/workforce-management.test.mjs
 node --test scripts/workforce-management-auth.test.mjs
 node --test scripts/workforce-careers-release.test.mjs
 node --test scripts/workforce-hha.test.mjs scripts/workforce-hha-records.test.mjs
+node --test scripts/workforce-eligibility.test.mjs
 node --test scripts/workforce-matching.test.mjs
 node --test scripts/workforce-coverage.test.mjs
 

@@ -5,7 +5,7 @@ import {minify} from 'terser';
 
 // Keep editable sources while retaining the existing portal transfer budgets.
 // Only local names and whitespace change; no compression or property renaming.
-export const runtimeAssets=['account','application','personnel','forms','field-visits','staff','matching','office-tools','navigation'].map(name=>'workforce-'+name+'.js');
+export const runtimeAssets=['eligibility','hha-records','private-pdf','management','training','readings','account','application','personnel','forms','field-visits','staff','matching','office-tools','navigation'].map(name=>'workforce-'+name+'.js');
 export async function buildWorkforceRuntime({root=process.cwd(),check=false}={}){
  for(const name of runtimeAssets){
   const source=await readFile(resolve(root,'source/workforce',name),'utf8');

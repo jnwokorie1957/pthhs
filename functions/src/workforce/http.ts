@@ -1,3 +1,4 @@
+import { eligibilityRoute, refreshRosterPage } from '../eligibility/runtime.js';
 import {OpportunityMatching} from './matchingStore.js';
 import {MatchingMaps,matchingCommitments} from './matchingSource.js';
 import {opportunitySms} from './matchingSms.js';
@@ -328,6 +329,7 @@ export const workforceApi = process.env.PRIMETIME_API_ONLY_DEPLOY === "true" ? u
         throw new WorkforceError(403, "staff_training_required");
       }
     }
+    if(path.startsWith('/staff/eligibility/')) { await recentWorkforceIdentity(req); res.json(await eligibilityRoute(path,req,uid,hhaWorkspace)); return; }
     if(path==='/staff/admission-templates'||path.startsWith('/staff/admission-templates/')){await recentWorkforceIdentity(req);const library=new AdmissionLibrary();if(path==='/staff/admission-templates'){if(req.method==='GET'&&typeof req.query.office==='string'){res.json(await library.list(uid,req.query.office));return;}if(req.method==='POST'&&req.is('application/json')&&req.rawBody.length<=16_000_000){res.json(await library.upload(uid,req.body));return;}}const match=path.match(/^\/staff\/admission-templates\/([a-zA-Z0-9_-]{1,193})(\/pdf)?$/);if(match&&req.method==='GET'){if(match[2]){res.set('Content-Type','application/pdf');res.set('Content-Disposition','attachment; filename="admission-template.pdf"');res.set('Content-Security-Policy','sandbox');res.send(await library.get(uid,match[1]!,true));return;}res.json(await library.get(uid,match[1]!));return;}throw new WorkforceError(400,'invalid_request');}
     if(path==='/staff/activity'&&req.method==='GET'){await recentWorkforceIdentity(req);res.json(await new StaffActivity(()=>store.actor(uid)).list(String(req.query.stream||'opportunities'),typeof req.query.after==='string'?req.query.after:undefined));return;}
     if(path==='/staff/clients'||path.startsWith('/staff/clients/')){await recentWorkforceIdentity(req);const directory=new ClientDirectory(hhaWorkspace(),()=>store.actor(uid));if(path==='/staff/clients/search'&&req.method==='POST'&&req.is('application/json')&&req.rawBody.length<=1000){res.json(await directory.list(req.body?.name,req.body?.after));return;}if(req.method!=='GET')throw new WorkforceError(405,'method_not_allowed');if(path==='/staff/clients'){res.json(await directory.list(typeof req.query.name==='string'?req.query.name:'',typeof req.query.after==='string'?req.query.after:undefined));return;}const id=path.slice('/staff/clients/'.length);res.json(await directory.detail(id));return;}
@@ -612,4 +614,9 @@ export const workforceLicenseReminders=process.env.PRIMETIME_API_ONLY_DEPLOY==='
 export const workforceOpportunityMatching=process.env.PRIMETIME_API_ONLY_DEPLOY==='true'?undefined:onSchedule({region:'us-central1',schedule:'* 8-18 * * *',timeZone:'America/Chicago',timeoutSeconds:120,memory:'512MiB',maxInstances:1,retryCount:0,secrets:[hhaCredentials]},async()=>{
  if(staffEnabled.value()!=='true'||publicEnabled.value()!=='true'||hhaPortalApproved.value()!=='true'||hhaDataApproved.value()!=='true'||matchingMapsApproved.value()!=='true')return;
  await matching().tick();
+});
+
+export const workforceEligibilityRoster=process.env.PRIMETIME_API_ONLY_DEPLOY==='true'?undefined:onSchedule({region:'us-central1',schedule:'every 1 minutes',timeZone:'America/Chicago',timeoutSeconds:55,memory:'256MiB',maxInstances:1,concurrency:1,retryCount:0,secrets:[hhaCredentials]},async()=>{
+ if(staffEnabled.value()!=='true'||hhaPortalApproved.value()!=='true'||hhaDataApproved.value()!=='true')return;
+ try {await refreshRosterPage(()=>hhaWorkspace('background'));} catch {console.warn('eligibility_roster_unavailable');}
 });

@@ -1,9 +1,147 @@
 {
   "indexes": [
-    {"collectionGroup":"workforceCaregiverDirectory","queryScope":"COLLECTION","fields":[{"fieldPath":"office","order":"ASCENDING"},{"fieldPath":"namePrefixes","arrayConfig":"CONTAINS"}]},
-    {"collectionGroup":"workforceHhaProfiles","queryScope":"COLLECTION","fields":[{"fieldPath":"office","order":"ASCENDING"},{"fieldPath":"status","order":"ASCENDING"},{"fieldPath":"lastName","order":"ASCENDING"}]},
-    {"collectionGroup":"workforceHhaProfiles","queryScope":"COLLECTION","fields":[{"fieldPath":"office","order":"ASCENDING"},{"fieldPath":"status","order":"ASCENDING"},{"fieldPath":"lastName","order":"ASCENDING"},{"fieldPath":"firstName","order":"ASCENDING"}]},
-    {"collectionGroup":"workforceHhaProfiles","queryScope":"COLLECTION","fields":[{"fieldPath":"office","order":"ASCENDING"},{"fieldPath":"status","order":"ASCENDING"},{"fieldPath":"fetchedAt","order":"ASCENDING"}]}
+    {
+      "collectionGroup": "workforceCaregiverDirectory",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "office",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "namePrefixes",
+          "arrayConfig": "CONTAINS"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "workforceHhaProfiles",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "office",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "status",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "lastName",
+          "order": "ASCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "workforceHhaProfiles",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "office",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "status",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "lastName",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "firstName",
+          "order": "ASCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "workforceHhaProfiles",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "office",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "status",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "fetchedAt",
+          "order": "ASCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "medicaidMembers",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "office",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "__name__",
+          "order": "ASCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "medicaidJobs",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "state",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "nextAttemptAt",
+          "order": "ASCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "medicaidJobs",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "state",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "leaseUntil",
+          "order": "ASCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "medicaidResults",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "memberKey",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "checkedAt",
+          "order": "DESCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "medicaidNotes",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "memberKey",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "at",
+          "order": "DESCENDING"
+        }
+      ]
+    }
   ],
   "fieldOverrides": [
     {
@@ -24,6 +162,41 @@
           "queryScope": "COLLECTION"
         }
       ]
+    },
+    {
+      "collectionGroup": "medicaidIdentities",
+      "fieldPath": "encrypted",
+      "indexes": []
+    },
+    {
+      "collectionGroup": "medicaidNotes",
+      "fieldPath": "note",
+      "indexes": []
+    },
+    {
+      "collectionGroup": "medicaidRoster",
+      "fieldPath": "ids",
+      "indexes": []
+    },
+    {
+      "collectionGroup": "medicaidControl",
+      "fieldPath": "encrypted",
+      "indexes": []
+    },
+    {
+      "collectionGroup": "medicaidIdentityLinks",
+      "fieldPath": "fingerprint",
+      "indexes": []
+    },
+    {
+      "collectionGroup": "medicaidIdentityGroups",
+      "fieldPath": "members",
+      "indexes": []
+    },
+    {
+      "collectionGroup": "medicaidIdentityGroups",
+      "fieldPath": "canonicalKey",
+      "indexes": []
     }
   ]
 }

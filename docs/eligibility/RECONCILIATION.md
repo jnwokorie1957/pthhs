@@ -1,0 +1,48 @@
+# Duplicate identity and roster reconciliation
+
+Development follow-up to PR #46. Live eligibility dispatch remains disabled: release flags still default closed, `CERTIFIED_CODEC_AVAILABLE` is false, and the worker still binds `pendingConnector`. No live records or external systems were read or changed to implement this work.
+
+## Identity matching and reviewed selection
+
+The application keeps the original office + HHA PatientID record key. Repeated imports update that link. Distinct source links sharing an exact nine-digit Medicaid ID form a duplicate group, including links in different PTHHS offices. They are candidates for staff review; neither a matching name nor matching AdmissionID establishes identity. The UI deliberately calls the total **Active client records**: source links can represent one client, and historical coverage totals must not be mistaken for a deduplicated census.
+
+The private fingerprint is HMAC-SHA-256 over a PTHHS-specific domain and the ID, using a cryptographically random 256-bit key. The key is envelope encrypted with the existing KMS helper and stored at `medicaidControl/matchingKey-v1`. Initialization is transactional; simultaneous first imports use one key. The raw key exists only in backend memory and is cleared after use. Fingerprints, encrypted key material and group membership are unindexed where no query needs them. Browser APIs never return the fingerprint, raw key or ciphertext. This is pseudonymous linkage data, not deidentified data; existing private storage/IAM protections still apply.
+
+A reviewer selects which present, active source link may be used for eligibility checks and supplies a reason. Selection is revision controlled and rechecks current staff grants for **every** linked office inside the write transaction. A reviewer lacking an office sees only permitted source links and cannot resolve the group. No source client is merged, deleted, discharged or edited. The remaining links receive a verification hold; audit and notes record the selection on every retained link.
+
+Adding a third source link, changing identity material or removing a link from a group invalidates the selection. This prevents a prior decision from automatically authorizing a newly discovered relationship. A later source-inactive/missing canonical record remains held; another link is not promoted automatically. Groups are bounded to 100 source links and fail closed if that guard is exceeded. A new provider/tenant must receive a separate matching key and scope before reusing this component.
+
+## Roster state machine
+
+1. **Discover:** acquire an expiring per-office lease and record a generation. Only a complete, nontruncated approved source ID search may establish a manifest. The current HHA request is agency-wide; each profile must prove its OfficeID. Foreign-office profiles are counted as excluded without importing their identity data.
+2. **Profiles:** process at most five manifest IDs per tick. Each successful member/identity write and cursor advancement occur in the same Firestore transaction. Source failures leave the cursor on the failed ID. A validated foreign profile advances an accounted cursor; an error cannot masquerade as a foreign profile. Unknown status values are rejected rather than treated as inactive. The adapter currently accepts the previously used Active spelling and explicit Inactive; confirm the tenant's complete status vocabulary before release.
+3. **Reconcile:** after another complete search confirms the ID manifest, page the office's retained records at 100 per tick. Records not observed in this generation and without a newer positive profile read become **missing from source**. Coverage, last successful result, source link and active flag remain preserved; a private exception, department notification and audit event are created. A member already marked missing is not given duplicate absence exceptions on every scan.
+4. **Complete:** confirm source policy revision and manifest again, then record completion. Only a version-2 completed scan within 24 hours can satisfy dispatch readiness. Legacy manifests, stale/future timestamps, partial scans and failed scans cannot satisfy it.
+
+Leases last 120 seconds and are refreshed at checkpoints. Every write checks the generation, owner token, lease expiry, phase and expected profile cursor. A replacement invocation can resume an expired lease; the old invocation cannot advance or overwrite the replacement. A source-policy or ID-manifest change abandons the generation and starts a fresh scan. Source read failure resumes the same generation. Release revocation during a profile read prevents the profile write.
+
+This cannot create a point-in-time snapshot inside HHAeXchange. An upstream field can change between reads without changing the ID manifest. Approved source freshness, refresh cadence, operational monitoring and reconciliation acceptance therefore remain necessary. Complete ID-search semantics and source permissions have not been validated against PTHHS live data. Large scans intentionally hold that office's eligibility requests while reconciliation is incomplete. Plan the maintenance window and measure source latency/quotas before enabling the process.
+
+## Queue and historical evidence
+
+Manual and monthly queue admission require a present active source record, a completed fresh roster and an indexed unique or reviewed canonical identity. The worker repeats reconciliation checks before decryption, immediately before transmission, and transactionally when recording a successful result. A duplicate discovered after enqueue prevents vendor dispatch; a successful in-flight response cannot become current verified coverage after its link becomes held. Actual failed/unknown-delivery reasons are retained. Held jobs remain reviewable, and the last successful coverage fact is retained.
+
+New active or identity-changed source members retain `admissionPending`. The existing gated roster runtime scans five source links per tick for eligible admission intents after reconciliation. It uses deterministic job keys and acknowledges the intent only after durable queue admission; unresolved links retain their intent for a later pass. Monthly processing skips held links without abandoning the rest of the office. Pre-service callers still use the existing service hook and must handle a reconciliation refusal. Actual scheduling/visit event wiring remains outstanding.
+
+Follow-up notes can acknowledge a missing/duplicate record, but a generic resolved note does not remove its source or identity verification hold. A fresh positive source read clears the missing-source flag; it does not change the historical Medicaid response. Canonical selection clears only the chosen identity hold and only while the other readiness conditions are satisfied.
+
+## Staff API and dashboard
+
+The existing authenticated POST API gains `/{memberKey}/reconciliation` and `/{memberKey}/canonical`. The first requires `eligibility.review` and returns office-scoped candidates, revision and resolution authority. The second accepts `{revision, canonicalKey, note}` and requires current cross-office review authority, fresh completed rosters and a present active choice. It does not send an eligibility request.
+
+`/query` accepts `filters.reconciliation`: `duplicates`, `missing`, `holds` or `inactive`. Inactive source records remain available through their explicit view. Each displayed record has a safe reconciliation state and hold reason; foreign canonical references are hidden. The UI disables Verify now on held records, shows scan phase/counts and exposes a separate duplicate selection form. Coverage/MCO/authorization history remains distinct from source membership. Expensive registry lookups are batched in groups of 100; no matching index is exposed to the frontend.
+
+## Recovery, migration and acceptance
+
+- Protect and back up the encrypted matching key with the registry. If links exist and the key disappears, imports refuse to generate a replacement. Restore the original key/envelope and KMS access under the approved incident process. A key rotation requires a versioned full-registry migration and validation under a dispatch hold; no automatic rotation or destructive migration is implemented here.
+- Existing eligibility members have no trusted index/source state until a complete approved reimport. Do not seed readiness fields or manufacture a completed roster to bypass migration. The runtime rejects old manifest versions for dispatch readiness.
+- Source-inactive, absent and duplicate links remain retained. No retention deletion, care cancellation, discharge or billing changes are performed by reconciliation.
+- Synthetic transaction tests cover concurrent key initialization, reimports, cross-office duplicates, revision conflicts, selection invalidation, revoked grants, lost keys, source restoration, interrupted scans, lease takeover, manifest/policy changes, disabled processing and a complete 2,000-profile traversal with paged absence and monthly dedupe.
+- Tests use the existing serializing Firestore double with read-before-write checks. Real Firestore retries/contention, KMS IAM, backup restore, HHA completeness and measured performance still require an approved nonproduction environment. Passing these tests does not constitute TMHP approval or a successful live connection.
+
+Remaining independent development includes scheduling/actual-visit joins, trusted event delivery, department alert escalation, retention/legal-hold automation and emulator/integration coverage. Licensed codec work and approved vendor acceptance remain separate release prerequisites. No merge or deployment is authorized by this follow-up.
