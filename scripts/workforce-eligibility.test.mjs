@@ -43,7 +43,7 @@ test('eligibility is lazy, scoped, and disabled connections cannot request verif
 });
 test('closed release shows unavailable totals instead of zero or fabricated clients',async()=>{
   const s=setup(async()=>({available:false,connectionReady:false,summary:null,items:[],next:null,nextScheduled:null}));await s.load();
-  assert.match(s.text(),/awaiting activation/);assert.match(s.text(),/Total active clients—/);assert.doesNotMatch(s.text(),/Synthetic Client/);
+  assert.match(s.text(),/awaiting activation/);assert.match(s.text(),/Active client records—/);assert.doesNotMatch(s.text(),/Synthetic Client/);
 });
 test('late eligibility data cannot restore private rows after logout',async()=>{
   let resolve;const s=setup(()=>new Promise(r=>resolve=r)),pending=s.load();s.clear();resolve(fixture());await pending;
@@ -71,4 +71,24 @@ test('follow-up history renders source text without HTML execution',async()=>{
 test('named employee filter sends the selected authorized staff reference',async()=>{
   const s=setup();await s.load();assert.match(s.text(),/Synthetic Reviewer/);s.control('assignment').value='synthetic-other';await s.load();
   assert.equal(s.calls.at(-1).body.filters.assignee,'synthetic-other');
+});
+
+test('reconciliation holds disable manual checks even with an approved connection',async()=>{
+  const s=setup(async()=>{const f=fixture();f.connectionReady=true;f.items[0].reconciliation={hold:'duplicate_identity',duplicate:true};return f;});
+  await s.load();assert.equal(s.button('Verify now').disabled,true);assert.ok(s.button('Review duplicate'));assert.match(s.text(),/Duplicate identity requires review/);
+  s.control('queue').value='missing';await s.load();assert.equal(s.calls.at(-1).body.filters.reconciliation,'missing');
+});
+test('duplicate decision sends opaque references, revision and a required staff reason',async()=>{
+  const calls=[];const s=setup(async(path,body)=>{calls.push({path,body});if(path.endsWith('/reconciliation'))return {canResolve:true,revision:7,state:{canonicalKey:null},members:[{key:'a'.repeat(64),displayName:'Synthetic Client',memberId:'SYNTHETIC-1',office:'test-office',active:true,sourceState:'present'}]};
+    if(path.endsWith('/canonical'))return {saved:true};const f=fixture();f.items[0].reconciliation={hold:'duplicate_identity',duplicate:true};return f;});
+  await s.load();await s.button('Review duplicate').onclick();const form=s.nodes().find(n=>n.onsubmit&&n.children.some(c=>c.tagName==='LABEL'&&c.textContent.includes('Reconciliation reason')));
+  const note=s.nodes().find(n=>n.tagName==='TEXTAREA'),select=form.children[0].children[0];assert.equal(note.required,true);note.value='Synthetic validated link';select.value='a'.repeat(64);
+  await form.onsubmit({preventDefault(){}});const saved=calls.find(c=>c.path.endsWith('/canonical'));assert.equal(saved.body.revision,7);assert.equal(saved.body.canonicalKey,'a'.repeat(64));assert.equal(saved.body.note,'Synthetic validated link');
+});
+test('foreign-office and late duplicate responses cannot expose or restore a decision form',async()=>{
+  const f=fixture();f.items[0].reconciliation={hold:'duplicate_identity',duplicate:true};
+  const limited=setup(async path=>path.endsWith('/reconciliation')?{canResolve:false,members:[],state:{},revision:1}:f);
+  await limited.load();await limited.button('Review duplicate').onclick();assert.equal(limited.button('Save selected record'),undefined);assert.match(limited.text(),/access to every linked office/);
+  let finish;const s=setup(path=>path.endsWith('/reconciliation')?new Promise(r=>finish=r):Promise.resolve(f));await s.load();const pending=s.button('Review duplicate').onclick();s.clear();
+  finish({canResolve:true,members:[],state:{},revision:1});await pending;assert.equal(s.button('Save selected record'),undefined);assert.match(s.text(),/Sign in/);
 });

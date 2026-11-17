@@ -177,6 +177,26 @@
       "collectionGroup": "medicaidRoster",
       "fieldPath": "ids",
       "indexes": []
+    },
+    {
+      "collectionGroup": "medicaidControl",
+      "fieldPath": "encrypted",
+      "indexes": []
+    },
+    {
+      "collectionGroup": "medicaidIdentityLinks",
+      "fieldPath": "fingerprint",
+      "indexes": []
+    },
+    {
+      "collectionGroup": "medicaidIdentityGroups",
+      "fieldPath": "members",
+      "indexes": []
+    },
+    {
+      "collectionGroup": "medicaidIdentityGroups",
+      "fieldPath": "canonicalKey",
+      "indexes": []
     }
   ]
 }

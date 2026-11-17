@@ -11,6 +11,7 @@ import { EligibilityService, canDispatch, runWorker, enqueueLifecycle, type Filt
 import { MONTHLY_CRON, TIME_ZONE, access } from './domain.js';
 import { HhaEligibilitySource } from './hha.js';
 import type { OperationsWorkspace } from '../operations/workspace.js';
+import { RosterReconciler } from './roster.js';
 
 const dataApproved=defineString('ELIGIBILITY_DATA_APPROVED',{default:'false'});
 const connectivityApproved=defineString('ELIGIBILITY_CONNECTIVITY_APPROVED',{default:'false'});
@@ -41,10 +42,10 @@ export async function eligibilityRoute(path:string,req:Request,uid:string,worksp
     access(await actor(),'verify',req.body.office);
     if(!release().dataApproved||!release().hhaSyncApproved)throw new WorkforceError(423,'eligibility_source_pending');
     const synced=await store.syncMember(source.snapshot,source.identity,kmsDocumentCipher(),uid);
-    if(synced.admitted)await enqueueLifecycle(store,release(),synced.member,'admission','source_'+synced.member.revision);
+    if(synced.admitted&&!(await store.reconciliation(synced.member)).hold)await enqueueLifecycle(store,release(),synced.member,'admission','source_'+synced.member.revision);
     return {synced:true,memberKey:synced.member.key};
   }
-  const match=/^\/staff\/eligibility\/([a-f0-9]{64})\/(verify|history|review|identifier)$/.exec(path);
+  const match=/^\/staff\/eligibility\/([a-f0-9]{64})\/(verify|history|review|identifier|reconciliation|canonical)$/.exec(path);
   if(!match)throw new WorkforceError(404,'route_not_found');
   if(match[2]==='verify'){
     if(Object.keys(req.body).some(k=>k!=='idempotencyKey'))throw new WorkforceError(400,'invalid_request');
@@ -52,6 +53,13 @@ export async function eligibilityRoute(path:string,req:Request,uid:string,worksp
   }
   if(match[2]==='history'){
     if(Object.keys(req.body).length)throw new WorkforceError(400,'invalid_request');return service.history(match[1]!);
+  }
+  if(match[2]==='reconciliation'){
+    if(Object.keys(req.body).length)throw new WorkforceError(400,'invalid_request');return service.reconciliationDetail(match[1]!);
+  }
+  if(match[2]==='canonical'){
+    if(Object.keys(req.body).some(k=>!['revision','canonicalKey','note'].includes(k)))throw new WorkforceError(400,'invalid_request');
+    return service.selectCanonical(match[1]!,req.body.revision,req.body.canonicalKey,req.body.note);
   }
   if(match[2]==='identifier'){
     if(Object.keys(req.body).length)throw new WorkforceError(400,'invalid_request');
@@ -92,20 +100,8 @@ export async function refreshRosterPage(workspace:()=>OperationsWorkspace){
   const config=release();if(!config.dataApproved||!config.hhaSyncApproved)return;
   const store=new EligibilityStore(),source=new HhaEligibilitySource(workspace());
   for(const office of config.offices){
-    const ref=store.db.collection('medicaidRoster').doc(office),state=(await ref.get()).data();
-    if(state?.complete && Date.now()-Date.parse(state.completedAt)<=86400000)continue;
-    let ids:string[]=state?.ids??[],offset:number=state?.offset??0;
-    if(!state || state.complete && Date.now()-Date.parse(state.completedAt)>86400000){
-      ids=await source.discover(office,'eligibility_roster');offset=0;
-      await ref.set({ids,offset,complete:false,startedAt:new Date().toISOString(),completedAt:null});
-    }
-    if(!ids.length){await ref.set({ids,offset:0,complete:true,completedAt:new Date().toISOString()},{merge:true});continue;}
-    for(const id of ids.slice(offset,offset+5)){
-      const current=release();if(!current.dataApproved||!current.hhaSyncApproved)return;
-      const profile=await source.read(office,id,'eligibility_roster');
-      if(profile){const synced=await store.syncMember(profile.snapshot,profile.identity,kmsDocumentCipher(),'eligibility_roster');
-        if(synced.admitted)await enqueueLifecycle(store,release(),synced.member,'admission','source_'+synced.member.revision);}
-      offset++;await ref.update({offset,complete:offset>=ids.length,completedAt:offset>=ids.length?new Date().toISOString():null});
-    }
+    await new RosterReconciler(store,source,kmsDocumentCipher,()=>{const current=release();
+      return current.dataApproved&&current.hhaSyncApproved&&current.offices.includes(office);}).tick(office);
+    if(canDispatch(release())&&release().offices.includes(office))await store.enqueueAdmissionsPage(office);
   }
 }

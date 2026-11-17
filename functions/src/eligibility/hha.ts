@@ -6,6 +6,7 @@ const date=(value:string|null|undefined)=>{if(!value)return null;try{return date
 export class HhaEligibilitySource {
   constructor(private workspace:Workspace){}
   private async context(office:string){const config=await this.workspace.settings();if(!config.dataApproved||config.settings.officeId!==office)throw new WorkforceError(403,'eligibility_source_scope');return config;}
+  async revision(office:string){return (await this.context(office)).settings.revision;}
   async discover(office:string,actor:string){
     const before=await this.context(office),result=await this.workspace.query({operation:'SearchPatients'},actor,'workforce_roster_import');
     if(result.source!=='hhaexchange'||result.operation!=='SearchPatients'||result.truncated||result.records.length>5000)throw new WorkforceError(503,'eligibility_roster_incomplete');
@@ -20,6 +21,7 @@ export class HhaEligibilitySource {
     const row=result.records[0]!;if(row.PatientID!==id)throw new WorkforceError(503,'eligibility_source_invalid');
     if(row.OfficeID!==office)return null;
     if(!row.PatientStatusName)throw new WorkforceError(503,'eligibility_source_status_missing');
+    if(!['Active','Inactive'].includes(row.PatientStatusName))throw new WorkforceError(503,'eligibility_source_status_unknown');
     let authorizations:Authorization[]|null=null,authorizationsFetchedAt:string|null=null;
     if(before.settings.enabledReads.includes('SearchPatientAuthorizations')){
       try { const data=await this.workspace.query({operation:'SearchPatientAuthorizations',patientId:id},actor);

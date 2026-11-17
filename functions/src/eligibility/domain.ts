@@ -25,6 +25,7 @@ export interface Authorization extends Coverage {
   source: 'hhaexchange'; fetchedAt: string; authorizationId: string; serviceCode: string | null;
 }
 export interface Member {
+  sourceState?:'present'|'inactive'|'missing'; rosterGeneration?:string; admissionPending?:string|null;
   key: string; office: string; hhaPatientId: string; memberId: string; displayName: string;
   department: string; assignee: string | null; active: boolean; identityReady: boolean; identityRevision: number;
   sourceFetchedAt: string; latest: Result | null; lastSuccessful: Result | null;
