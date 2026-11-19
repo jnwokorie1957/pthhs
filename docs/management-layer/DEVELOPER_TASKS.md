@@ -1,5 +1,14 @@
 # PTHHS Management Layer — Developer Checklist
 
+- [x] PR47 admission-pack recovery deployed November 19 UTC. Added/existing/
+  failed/not-attempted forms stay distinct; unfinished uploads resume and a
+  failed library refresh retries without uploading saved forms again. Four
+  regressions failed before; eight focused and 695 broader tests pass. Both
+  quality and all four release jobs pass; six exact production artifacts and
+  eight served-controller checks pass at 01:19 UTC. The staff entry still
+  requires sign-in, so real-office import acceptance remains separate.
+  [Implementation, compatibility and remaining acceptance](../workforce/ADMISSION_PACK_RECOVERY_2026-11-19.md).
+
 - [x] Scoped About-page indexing diagnostic recorded November 17 UTC for the
   November 16 SEO review. Stored URL Inspection remains discovered/not indexed
   with no crawl; current About metadata, robots, homepage link and sitemap pass.
@@ -33,7 +42,7 @@
   resubmission or new service/payer/location assertion.
   [Source, tests and production evidence](../seo/2026-11-16-laundry-sitemap-dates.md).
 
-- [ ] P2 admission-form identity namespace and pack acceptance, researched
+- [ ] P2 admission-form identity namespace and patient-pack acceptance, researched
   November 16 UTC: preserve typed HHA PatientID/office and source receipts
   separately from mutable AdmissionID, contract alternate ID and an independently
   approved Medicaid field. Current generic memberId uses AdmissionID or PatientID;
@@ -43,6 +52,8 @@
   partial/duplicate/failed pack outcomes. Existing template hash/mapping/signers
   are content integrity, not clinical approval or complete patient admission.
   Do not migrate real records or add source/role authority for this research.
+  PR47 completes library-import progress/recovery only; clinical/business form
+  version, patient-copy completeness, field sources and recipient decisions remain.
   [Exact current mapping and proposed acceptance](ROLE_WORKFLOW_RESEARCH.txt).
 
 - [x] PR40 field-visit client/caregiver query context deployed November 16 UTC.

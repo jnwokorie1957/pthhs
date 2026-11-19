@@ -4817,3 +4817,60 @@ https://github.com/jnwokorie1957/pthhs/blob/31ff9b0cf44b36432f353d1868b226375506
 https://github.com/jnwokorie1957/pthhs/blob/31ff9b0cf44b36432f353d1868b2263755069296/public/assets/workforce-document-fields.js
 https://github.com/jnwokorie1957/pthhs/blob/31ff9b0cf44b36432f353d1868b2263755069296/public/assets/workforce-admission-pack.js
 https://github.com/jnwokorie1957/pthhs/blob/31ff9b0cf44b36432f353d1868b2263755069296/functions/src/workforce/directoryActivity.test.ts
+
+
+ADMISSION-PACK PROGRESS AND REFRESH RECOVERY — NOVEMBER 19, 2026 UTC
+Implements the November16 P2 partial-pack progress acceptance in PR47/runtime
+896666cec21842b46d4ca8ad4a4a84ab52749267. Existing patient/PT and source form
+contracts are unchanged; this is reusable office-library workflow only.
+
+Observed source defect: the library list loader swallowed a failed refresh,
+so the importer could announce completion and disable retry after all uploads.
+A throwing refresh likewise left no enabled retry. Added and duplicate results
+were retained but had no separate aggregate progress counts.
+
+Implemented: separate added/already-present/failed/not-attempted row outcomes;
+retry only unfinished uploads; refresh-only recovery after upload results are
+complete. The list loader returns true after a current successful render and
+false on failed/superseded reads. Epoch/session checks retain current context.
+Status still directs the office to prepare a separate client copy. A library
+result does not mark a patient admitted, clinically reviewed or complete.
+
+Verification: four new regressions fail before; all eight focused and 695
+broader frontend/tooling tests pass after. Local browser fixture has four
+fictional blank forms and simulated APIs. It retains one added, one existing,
+one failed and one unattempted result; retries only the last two forms; after a
+failed refresh, its refresh-only retry adds one read and no upload request.
+No real template, client record, signature, source call or message was created.
+
+Both quality44435144629 jobs and all four serial release44435315723 jobs pass.
+AtNovember19 01:19:50UTC six production artifacts match the exact runtime:
+workforce entry, both admission controllers, unchanged Field Visits controller,
+caregiver entry and Primetime entry. New script versions59ffd32dcadc/f07475d77ba9
+are in the served workforce entry. Page/header noindex and no-cache protections
+and anonymoussession401/no-store/noindex pass. All eight tests also pass against
+the served controllers. A fresh Chrome staff entry references both new versions
+and requires staff sign-in; no real-office import acceptance is inferred.
+
+Permissions/shared links: no API payload, record format, office/role grant,
+source read, patient/PT account, signing or configuration change. Current
+Clients/local form navigation and HHA PatientID vs AdmissionID/Medicaid/contract
+namespace limits remain. Old open pages continue their existing requests;
+the reviewed compatible release does not force reloads.
+
+Acceptance/next actions: developer library progress/recovery is delivered.
+An ordinary real-office import still needs the existing approved blank form
+and authorized session/workflow. Owner must approve business form/version,
+intended source fields, signers/reviewer and recipient roles before clinical
+automation or sharing. Patient-copy/clinical packet completeness is independent.
+No new owner question, test-production upload or broader permission is requested.
+OriginalOctober24 remains resolved by October31; other EVV event/history/units/
+readback, CSM/private-channel and held-visit dependencies stay separate.
+
+Evidence:
+https://github.com/jnwokorie1957/pthhs/pull/47
+https://github.com/jnwokorie1957/pthhs/actions/runs/44435144629
+https://github.com/jnwokorie1957/pthhs/actions/runs/44435315723
+docs/workforce/ADMISSION_PACK_RECOVERY_2026-11-19.md
+Local outputs use admission-pack-*-20261118 preparation names; receipt checkedAt
+records actual delivery. Synthetic screenshot and test fixture are not public.
