@@ -2,6 +2,15 @@
 
 ## Week of November 16, 2026 (UTC)
 
+November 19: stored URL Inspection independently verifies the laundry guide
+indexed with matching canonical, successful smartphone fetch, HTTPS and one
+valid Breadcrumbs item. Canonical sitemap Success/36 discovered is dated
+November 17; About still has no crawl. Explicit November 9–15 versus November
+2–8 Web (text) totals and seven exact public artifacts/private controls at 01:47 UTC
+pass. No all-URLs-indexed, first-indexing-time, causal or conversion claim;
+no submission, runtime change or deployment.
+See [dated evidence and limits](2026-11-19-laundry-indexing-and-search-evidence.md).
+
 November 16 UTC / November 15 local: the reviewed laundry article and both
 listing pages are delivered with correct article metadata/navigation. The
 sitemap date registry now supplies their actual November 15 change dates;

@@ -3,6 +3,13 @@
 These files remain useful for planning, but they do not override current public
 facts, payer evidence, or claim-release controls.
 
+- [November 19 guide indexing and dated search evidence](2026-11-19-laundry-indexing-and-search-evidence.md)
+  — the laundry guide is independently verified indexed with matching canonical;
+  canonical sitemap processing is Success/36 discovered, last read November 17.
+  About remains discovered/not crawled. Explicit November 9–15 versus November
+  2–8 Web (text) totals, seven delivery artifacts at 01:47 UTC and private protections
+  are recorded with date and scope limits. No new runtime release was needed.
+
 
 - [November 16 laundry guide sitemap dates](2026-11-16-laundry-sitemap-dates.md)
   — verified November 15 publication/listing dates for three entries; current

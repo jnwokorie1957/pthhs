@@ -1,5 +1,14 @@
 # PTHHS Management Layer — Developer Checklist
 
+- [x] November 19 SEO acceptance: the laundry guide is verified indexed with
+  matching Google-selected canonical; canonical sitemap Success/36 discovered
+  is dated November 17. About remains discovered/not crawled. Explicit weekly
+  Web (text) property totals and seven exact public artifacts/private protections
+  at 01:47 UTC are recorded separately. Concurrent PR48 is preserved; this
+  receipt predates its publication. No additional runtime change or deployment;
+  owner claims/location/directory decisions remain pending.
+  [Search scope, delivery and limitations](../seo/2026-11-19-laundry-indexing-and-search-evidence.md).
+
 - [x] PR47 admission-pack recovery deployed November 19 UTC. Added/existing/
   failed/not-attempted forms stay distinct; unfinished uploads resume and a
   failed library refresh retries without uploading saved forms again. Four
