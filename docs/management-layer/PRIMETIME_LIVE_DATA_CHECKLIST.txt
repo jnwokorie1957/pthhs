@@ -5,7 +5,21 @@ area, map the actual source, connect available authorized data and verify it.
 This is the connection backlog, not a declaration of an active Codex goal.
 This document does not claim every tab is connected.
 
-CURRENT RUNTIME DELIVERY CHECKPOINT — NOVEMBER 16, 2026 03:02 UTC
+CURRENT RUNTIME DELIVERY CHECKPOINT — NOVEMBER 19, 2026 01:19 UTC
+PR47/runtime 896666c changes office admission-library progress/recovery only.
+Both quality and all four normal full-release jobs pass. Six production assets,
+including the unchanged Primetime entry, match exact Git; private noindex/cache
+and anonymous 401/no-store/noindex pass. Eight served-controller tests concern
+admission forms, not source-time recovery. At 01:30 UTC a Git comparison confirms
+all Functions, Primetime authoring and time assets retain their e46821b bytes.
+At approximately 01:29 UTC a fresh approved-profile Primetime entry still needs
+administrator email-link sign-in. No source read or comparison of October 23,
+October 24 and the current office day was made. A bounded business-mailbox search
+finds no matching technical-request reply received on/after November 12. Field,
+unit/original-event and source-action gates below remain; no new field recovery
+or completion/empty/pending inference. Original October 24 remains resolved.
+
+PREVIOUS RUNTIME DELIVERY CHECKPOINT — NOVEMBER 16, 2026 03:02 UTC
 PR45/e46821b adds the recorded-clock paid-hours interpretation hold to matching,
 preserving concurrent PR42/43/44 and all administrator clock/duration mappings.
 Both quality and all four full-release jobs pass; seven delivered artifacts,
@@ -2483,3 +2497,32 @@ docs/workforce/MATCHING_RECORDED_TIME_GUARD_2026-11-15.md
 Local nonsensitive receipts/logs: matching-hours-production-20261116.json,
 matching-hours-before-20261115.log, matching-hours-after-20261115.log,
 matching-hours-backend-tests-20261115.log, matching-hours-served-tests-20261116.log.
+
+NOVEMBER 19 01:28 UTC FOLLOW-UP — SOURCE GATE AND PRESERVED MAPPINGS
+Required handoff/developer/owner/checklist records read; refreshed main 16c1b4e.
+The intervening PR47 admission-pack release has no change to Functions,
+source/primetime, the Primetime entry or time-display/detail/retry assets.
+Its separate delivery receipt is November 19 01:19:50 UTC and both quality plus
+scope/backend/Hosting/analytics jobs passed. No unchanged runtime suite or
+asset crawl is repeated here. The preceding exact optional-clock/duration
+mapping and unknown-versus-explicit-empty distinctions are preserved.
+
+The initial approved Chrome inventory found no existing Primetime or HHA tab.
+A separate fresh Primetime entry at approximately 01:29 UTC requires administrator
+sign-in and an emailed link; no workspace is visible. No sign-in link was sent,
+HHA read attempted or historical/current source value classified. Absence behind
+this session gate is not evidence of absent clock fields. The original October 24
+receipt stays resolved; source units/history/linkage cannot be established here.
+
+The connected approved business mailbox was verified. One bounded known-request
+phrase search for replies received on/after November 12 returns 0 with no next page.
+The November 11 technical reply remains the latest known contract evidence; this
+is not an exhaustive mailbox search. No full-body fetch or communication.
+
+Existing next owner actions remain: restore the approved administrator session
+through the normal workflow, then compare bounded same-office historical/current
+reads after displayed delays. Use the existing vendor case/private channel for
+retained original-event/visit linkage, endpoint/history coverage, actual-hour
+units/rounding and preservation/readback contracts. CSM/private-XML and held-visit
+disposition are separate. Do not resend, add grants, substitute schedule/pay/bill
+times or infer financial/verified status. No new owner question or runtime fix.

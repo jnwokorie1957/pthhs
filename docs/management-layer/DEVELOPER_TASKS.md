@@ -31,6 +31,9 @@
   string, clock pair or non-visit-hours attestation bypass. Restore approved
   Primetime sign-in for the dated October 23/24/current-day comparison. Matching
   activation, financial policy and source/sending authority stay separate.
+  November 19 follow-up confirms the same administrator session gate and no
+  newer matching vendor reply in a bounded November 12-onward search. PR47
+  preserves every Functions/Primetime time mapping; no source recovery claimed.
 
 - [x] November 16 UTC SEO publication-date delivery (PR41): registered the
   verified November 15 laundry article and two listing changes in the sitemap
