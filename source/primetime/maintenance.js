@@ -19,6 +19,7 @@
   function time(value) { return value || 'Not supplied by HHA'; }
   const comparisonNotice = 'Schedule comparison: Not established in Primetime.';
   const sourceWorkNotice = 'Compare the saved Calendar S / Schedule tab with original EVV. SuggestedScheduleTime and Bill Time are separate. If EVV exceeds the schedule or the comparison is unknown, stop for the owner before continuing other dates.';
+  const reportApiNotice = 'HHA API cannot link existing caregiver calls to visits. Office reviews are not HHA submissions. API reasons are payer-defined; UI choices may differ. Source status and visit linkage remain unverified; HHA confirmation needs a supported contract and independent readback.';
   const verificationNotice = 'Clock fields do not establish member verification. Enter a factual review note.';
   const detailReason = error => window.primetimeDashboardModel?.visitDetailReason?.(error) ?? 'Detail unavailable';
   const unavailableEvidence = row => `${detailReason(row.error)}. Clock presence is unknown.`;
@@ -347,7 +348,7 @@
   function reportText() {
     const rows = [...cases.values()];
     return ['PRIMETIME OFFICE MAINTENANCE REPORT', `Generated ${new Date().toISOString()}`, sourceReceipt(), caseCoverage(),
-      'HHA changes submitted by this workspace: 0. Office reviews and proposals are not HHA confirmations.', sourceWorkNotice, verificationNotice, '', ...rows.flatMap(item => [
+      'HHA changes submitted by this workspace: 0. Office reviews and proposals are not HHA confirmations.', sourceWorkNotice, verificationNotice, reportApiNotice, '', ...rows.flatMap(item => [
         `Visit ${item.visitId} | Service date ${item.date} | Patient ${item.source.patientId} | Caregiver ${item.source.caregiverId}`,
         `${labels[item.status]} | ${labels[item.queue]} | Follow-up ${item.followUpAt || 'not set'} | Revision ${item.revision}`,
         `Next action: ${labels[item.proposal?.kind] || 'Review refreshed evidence'} | Selected source calls: ${item.proposal?.selectedCallIds.join(', ') || 'none'}`,
@@ -360,7 +361,7 @@
     const host = $('maintenanceReportRows'); host.replaceChildren();
     if (!day) return;
     if (scopePending) host.append(el('p', scopeNotice, 'maintenance-help'));
-    host.append(el('p', sourceReceipt(), 'source-metadata'), el('p', caseCoverage(), 'maintenance-help'));
+    host.append(el('p', sourceReceipt(), 'source-metadata'), el('p', caseCoverage(), 'maintenance-help'), el('p', reportApiNotice, 'maintenance-help'));
     if (!cases.size) host.append(el('p', 'Save an office review from the visit queue to include it in the staff report.', 'maintenance-empty'));
     const rowsById = new Map((day?.items ?? []).map(row => [row.id, row]));
     for (const item of cases.values()) {
