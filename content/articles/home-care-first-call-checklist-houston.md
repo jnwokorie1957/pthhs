@@ -1,6 +1,6 @@
 # Before You Call a Home Care Agency: A Practical Checklist for Houston Families
 
-Calling about help at home can be easier when you have a few clear questions in front of you. You do not need to describe every part of your family's situation at once. Start with the everyday routines where help is needed, the person's preferences and what you want to understand about the agency.
+Before calling a Houston home care agency, have the person's ZIP code, the daily routines they want help with, and the days or times they want to discuss. Ask whether the agency serves that ZIP code, what kind of help it offers, and what needs to happen before a start date can be confirmed. If you are calling for someone else, ask what they want you to share.
 
 This checklist is for a conversation about non-medical personal assistance services, often called PAS. Primetime Home Health Services provides this type of support in Greater Houston. Its [personal care service information](https://pthhs.net/home-care-services/personal-care) explains that assistance is based on the authorized service plan. The questions below help organize an inquiry; they do not determine what services someone will receive.
 
@@ -38,13 +38,19 @@ Useful questions include:
 
 Keep the answers together so that another family member does not have to rely on a secondhand impression of the conversation.
 
+## Comparing two agencies
+
+Ask both offices about the same routines, ZIP code and schedule. Write down the next step each office can confirm and which questions are still open. An office may serve the ZIP code but need more information before it can discuss the times you requested. Follow up on the unanswered question before comparing possible start dates.
+
+If you have questions about your health plan, use the [Primetime insurance and eligibility guide](https://pthhs.net/home-care-insurance) to prepare for the conversation. Ask which questions belong with your plan and which the agency can answer. Keep member details and documents for the secure channel the office identifies.
+
 ## 4. Ask how everyday communication works
 
 Before ending the call, find out who handles routine questions. Ask how the person receiving support can express a preference and how a family member should raise a concern or report a scheduling change.
 
 You can also ask what happens when an arranged visit needs to change. Let the agency explain its actual process rather than assuming a replacement caregiver or a particular response time is guaranteed.
 
-For referral coordinators, the same principle applies: identify the next contact and what that person needs, without treating a general inquiry as acceptance of a referral.
+For referral coordinators, the same principle applies: identify the next contact and what that person needs, without treating a general inquiry as acceptance of a referral. If you are preparing for a visit that has already been arranged, use the [household preferences sheet](https://pthhs.net/articles/household-preferences-sheet-nonmedical-home-care) to record the details the person wants their caregiver to know.
 
 ## 5. Keep sensitive information out of an initial email
 
