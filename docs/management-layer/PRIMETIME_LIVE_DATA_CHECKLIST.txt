@@ -5,7 +5,52 @@ area, map the actual source, connect available authorized data and verify it.
 This is the connection backlog, not a declaration of an active Codex goal.
 This document does not claim every tab is connected.
 
-CURRENT RUNTIME DELIVERY CHECKPOINT — NOVEMBER 19, 2026 01:19 UTC
+CURRENT SOURCE-ACCESS AND DELIVERY CHECKPOINT — NOVEMBER 22, 2026 05:14 UTC
+Current main 440c251 includes release-control-only work after PR49; that control
+rollout is not accepted here as a deployed source/runtime change. Preserve its
+separate scope-proof and midnight release requirements. The last verified full
+runtime remains c6c4e5f/PR49, delivered November 22 01:53:49 UTC with both quality
+and all four normal release jobs successful. Its six exact production artifacts,
+private controls and 13 served-controller checks concern library read/save recovery,
+not source-time acceptance. All Functions, Primetime authoring/entry and time
+assets retain e46821b bytes; only the two admission-library/pack assets differ
+among public assets. No source mapping or paid-hours interpretation changed.
+
+The earlier November 22 02:17 UTC Computer Use attempt stopped before capturing
+browser state because the current URL could not be verified for policy
+enforcement. This failure was already notified. This pass does not retry through
+another UI/control route or infer a current sign-in state from a window title.
+The November 19 administrator sign-in observation remains dated. No HHA API read,
+completed-visit comparison for October 23/24/current office day, recovered field,
+or empty/pending/quota/source-status classification is claimed.
+
+At this 05:14 follow-up the connected approved business mailbox is verified.
+One bounded known technical-request phrase search for replies received on/after
+November 19 returns zero with no next page. This is not an exhaustive mailbox
+search. The November 11 technical reply remains the latest known contract
+evidence; no full-body/attachment read, follow-up or other communication.
+
+Exact existing source mapping is retained: GetVisitInfoV3Result/VisitInfo has
+separate optional ScheduleStartTime, ScheduleEndTime, VisitStartTime,
+VisitEndTime, EVVStartTime, EVVEndTime, ActualHours and ActualHoursRounded
+strings. ScheduleDuration/ScheduleDurationHours and
+ScheduleDuration/ScheduleDurationMinutes are integer schedule duration only.
+Unknown/deferred/failed details are not explicit source-empty fields. Raw hour
+strings do not establish supported units or worked/payable/billable/verified
+status; no schedule, suggested, payroll, billed or clock-span substitute.
+
+Next access step: use the normal approved Primetime session through tooling
+that can verify the target URL before bounded exact-office/visit reads, then
+respect displayed source delays. Do not change security/privacy settings or
+expand access to clear a tooling failure. Existing owner/vendor action remains
+the existing case and approved private channel for retained original-event and
+visit linkage, supported endpoint/history coverage, actual-hour units/rounding
+and preservation/readback. CSM/private-XML, held-visit disposition and matching
+paid-hours interpretation remain separate. Original October 24 stays resolved
+by the independent October 31 reread. No new owner question, source write,
+clinical/financial decision, permission or communication is introduced.
+
+PREVIOUS RUNTIME DELIVERY CHECKPOINT — NOVEMBER 19, 2026 01:19 UTC
 PR47/runtime 896666c changes office admission-library progress/recovery only.
 Both quality and all four normal full-release jobs pass. Six production assets,
 including the unchanged Primetime entry, match exact Git; private noindex/cache

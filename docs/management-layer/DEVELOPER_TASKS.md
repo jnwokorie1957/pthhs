@@ -53,6 +53,9 @@
   November 19 follow-up confirms the same administrator session gate and no
   newer matching vendor reply in a bounded November 12-onward search. PR47
   preserves every Functions/Primetime time mapping; no source recovery claimed.
+  November 22: URL-verification tooling stopped before browser-state capture;
+  no new session/source acceptance. A bounded November 19-onward vendor-reply
+  search has no matches; approved-session/URL access and existing contracts remain.
 
 - [x] November 16 UTC SEO publication-date delivery (PR41): registered the
   verified November 15 laundry article and two listing changes in the sitemap
