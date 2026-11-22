@@ -68,7 +68,7 @@ test('member coverage distinguishes missing uploads, legacy links, future period
  rows['workforceAuthorizations/expired']={...details,clientId:'123',state:'ready',startDate:'2000-01-01',endDate:'2000-12-31',servicesContinuing:true};
  rows['workforceAuthorizations/future']={...details,clientId:'123',state:'ready',startDate:'2099-01-01',endDate:'2099-12-31'};
  rows['workforceAuthorizations/foreign-member']={...details,clientId:'456',state:'ready',startDate:'2000-01-01',endDate:'2099-12-31'};
- const expired=await service.memberCoverage('staff','office-a','123');assert.equal(expired.currentUploadedAuthorizations,0);assert.equal(expired.expired.length,1);assert.equal(expired.expired[0].servicesContinuing,true);
+ const expired=await service.memberCoverage('staff','office-a','123');assert.equal(expired.currentUploadedAuthorizations,0);assert.equal(expired.expired.length,1);assert.equal(expired.expired[0]!.servicesContinuing,true);
  rows['workforceAuthorizations/current']={...details,clientId:'123',state:'ready',startDate:'2000-01-01',endDate:'2099-12-31'};
  const current=await service.memberCoverage('staff','office-a','123');assert.equal(current.currentUploadedAuthorizations,1);assert.equal(current.billingReadiness,'review_required');assert.equal(current.eligibility,'unverified');assert.match(current.notice,/each payer, service, unit limit/);
  await assert.rejects(service.memberCoverage('staff','office-b','123'),/workforce_forbidden/);rows['workforceStaff/staff']={...grant,active:false};await assert.rejects(service.memberCoverage('staff','office-a','123'),/workforce_forbidden/);
