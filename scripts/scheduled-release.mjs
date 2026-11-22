@@ -10,9 +10,11 @@ const CONTROLS = new Set([
   'scripts/deployment-window.test.mjs', 'scripts/release-scope.mjs',
   'scripts/release-scope.test.mjs', 'scripts/scheduled-release.mjs',
   'scripts/scheduled-release.test.mjs', 'scripts/verify-hosting-only.test.mjs',
-  'scripts/build-and-verify.sh',
+  'scripts/build-and-verify.sh', 'docs/releases/HOSTING_RELEASE.md',
+  'docs/releases/STAFF_RELEASE_POLICY.md',
 ]);
-const nonDeployment = path => CONTROLS.has(path) || /^docs\/[A-Za-z0-9_./-]+\.(?:md|txt)$/.test(path) || path === 'README.md';
+export const releaseControlPath = path => CONTROLS.has(path);
+const nonDeployment = path => releaseControlPath(path) || /^docs\/[A-Za-z0-9_./-]+\.(?:md|txt)$/.test(path) || path === 'README.md';
 
 // Compare each delivered component only with its own inputs. Unknown/shared
 // paths retain full-release treatment, never become an article-only release.
@@ -27,7 +29,7 @@ function componentInput(component, path, marketingPath) {
 // Evidence is deliberately bounded. Missing history, reruns, non-main sources,
 // partial deliveries and duplicate jobs require operator reconciliation, never
 // an assumption that the older successful deployment is still production.
-export async function deliveryBaselines(repository, currentRun, request, resolveSource) {
+export async function deliveryBaselines(repository, currentRun, request, resolveSource, verifiedNoDeploy = new Set()) {
   assert(/^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/.test(repository));
   assert(/^\d+$/.test(String(currentRun)), 'Missing current workflow run');
   const found = {};
@@ -44,6 +46,7 @@ export async function deliveryBaselines(repository, currentRun, request, resolve
       assert(run.run_attempt === 1, 'Rerun delivery requires reconciliation');
       assert(run.head_branch === 'main' && ['push','schedule','workflow_dispatch'].includes(run.event), 'Unexpected delivery origin');
       assert(run.status === 'completed', 'Another release is not complete');
+      assert.equal(run.conclusion, 'success', 'Failed historical release workflow requires reconciliation');
       const response = await request(`/repos/${repository}/actions/runs/${run.id}/jobs?per_page=100`);
       assert(Array.isArray(response.jobs) && response.total_count === response.jobs.length && response.total_count <= 100, 'Incomplete job evidence');
       const jobs = {};
@@ -53,8 +56,18 @@ export async function deliveryBaselines(repository, currentRun, request, resolve
         jobs[component] = matches[0];
         assert(['success','skipped'].includes(matches[0].conclusion), `Uncertain ${component} delivery`);
       }
-      if (Object.values(jobs).every(job => job.conclusion === 'skipped')) continue;
-      assert(run.conclusion === 'success', 'Partial release requires reconciliation');
+      if (Object.values(jobs).every(job => job.conclusion === 'skipped')) {
+        // A green window-deferred run is not evidence that scope was checked.
+        const scopes = response.jobs.filter(job => job.name === 'release_scope');
+        const checks = scopes[0]?.steps?.filter(step => step.name === 'Verify release scope');
+        if (scopes.length === 1 && scopes[0].conclusion === 'success' &&
+          checks?.length === 1 && checks[0].conclusion === 'success' &&
+          ['push','schedule'].includes(run.event)) {
+          assert(SHA.test(run.head_sha), 'Missing checked no-deploy source');
+          verifiedNoDeploy.add(run.head_sha);
+        }
+        continue;
+      }
       const source = resolveSource(run);
       assert(SHA.test(source), 'Missing exact delivered source');
       for (const component of Object.keys(JOBS)) {
@@ -69,7 +82,23 @@ export async function deliveryBaselines(repository, currentRun, request, resolve
   throw new Error('Missing verified Hosting/backend/analytics baseline');
 }
 
-export function scheduledPlan(target, baselines, repo, marketingPath) {
+function assertIsolatedReleaseControls(from, target, repo, verifiedNoDeploy) {
+  let pendingControl = false;
+  for (const [before,after] of repo.firstParentEdges(from,target)) {
+    const paths = repo.files(before,after);
+    if (paths.some(releaseControlPath)) {
+      assert(paths.every(releaseControlPath), 'Refusing mixed release-control history on main');
+      repo.regular(before,paths); repo.regular(after,paths);
+      for (const path of paths) repo.read(after,path);
+      pendingControl = true;
+    } else if (paths.some(path => !nonDeployment(path))) {
+      assert(!pendingControl, 'Release controls need isolated no-deploy proof before later release changes');
+    }
+    if (verifiedNoDeploy.has(after)) pendingControl = false;
+  }
+}
+
+export function scheduledPlan(target, baselines, repo, marketingPath, verifiedNoDeploy = new Set()) {
   repo.commit(target);
   const delta = {};
   for (const component of Object.keys(JOBS)) {
@@ -84,6 +113,7 @@ export function scheduledPlan(target, baselines, repo, marketingPath) {
   const article = delta.hosting.some(marketingPath);
   const other = delta.hosting.some(path => !marketingPath(path)) || delta.backend.length || delta.analytics.length;
   assert(!(article && other), 'Mixed article and non-marketing changes require separate release review');
+  assertIsolatedReleaseControls(baselines.hosting.sha,target,repo,verifiedNoDeploy);
   // Preserve previously authorized non-article full-release selection and all
   // its existing gates. This classification is not approval to clear a hold.
   return {mode: article ? 'hosting' : other ? 'full' : 'none', releaseSha: target};

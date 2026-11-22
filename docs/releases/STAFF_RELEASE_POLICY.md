@@ -25,11 +25,17 @@ manual Hosting and reviewed non-control push behavior remain unchanged. The
 control-only rollout is separate: exact reviewed control paths select no push
 deployment. Mixing them with any other path requires separate commits and
 review. Do not pair the rollout with an article or rely on timing or a
-commit-message override as the deployment boundary.
+commit-message override as the deployment boundary. A later scheduled release
+requires a separate successful release-scope check at a source with no deployment
+jobs run before any article or other deployable change follows the controls.
+A window-deferred check does not count. If no immediate guarded scope check runs,
+let the next midnight check record the control-only no-deploy proof first.
 
 Baseline discovery uses exact successful deployment jobs from main. It refuses
 missing or ambiguous history, reruns, in-progress releases, partial/failed
-deliveries, incomplete job lists and missing/non-ancestor Git objects. History
+deliveries, failed runs even when all deployment jobs were skipped, incomplete
+job lists and missing/non-ancestor Git objects. First-parent main history rejects
+mixed control/content even when the original push was deferred. History
 is bounded to five 100-run pages; insufficient history requires reconciliation.
 Receipt-triggered Hosting uses its validated pinned source, not the receipt head.
 No token, credential, permission, source-read or record authority changes.

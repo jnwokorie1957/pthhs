@@ -25,6 +25,7 @@ function repository(deltas={}) {
     ancestor(from,to){assert([a,b,c].indexOf(from)<=[a,b,c].indexOf(to));},
     files(from,to){return from===to?[]:(deltas[from]||[]);},
     regular(){},
+    firstParentEdges(){return [];}, // Exact first-parent behavior is covered with real Git below.
   };
 }
 test('Hosting success advances only Hosting; backend/analytics retain actual full-delivery sources',async()=>{
@@ -33,6 +34,25 @@ test('Hosting success advances only Hosting; backend/analytics retain actual ful
 test('current run and completed deferred runs do not advance any baseline',async()=>{
   const h=history();h.runs.unshift(run(5),run(4));h.results.set(4,jobs(['skipped','skipped','skipped']));
   assert.deepEqual(await deliveryBaselines('test/repo',5,h.request,resolve),baselines);
+});
+test('failed release scope cannot be buried by all three deployment jobs being skipped',async()=>{
+  const h=history(), failed=run(4,c);
+  failed.conclusion='failure';h.runs.unshift(failed);
+  h.results.set(4,jobs(['skipped','skipped','skipped']));
+  await assert.rejects(()=>deliveryBaselines('test/repo',5,h.request,resolve),/Failed historical release workflow/);
+});
+test('only successful non-deferred release scope supplies isolated no-deploy proof',async()=>{
+  for(const state of ['success','skipped','failure']) {
+    const h=history(), completed=run(4,c), proof=new Set();
+    h.runs.unshift(completed);
+    const response=jobs(['skipped','skipped','skipped']);
+    response.jobs.push({name:'release_scope',conclusion:'success',
+      steps:[{name:'Verify release scope',conclusion:state}]});
+    response.total_count++;
+    h.results.set(4,response);
+    assert.deepEqual(await deliveryBaselines('test/repo',5,h.request,resolve,proof),baselines);
+    assert.deepEqual([...proof],state==='success'?[c]:[]);
+  }
 });
 test('manual Hosting delivery counts independently',async()=>{
   const h=history();h.runs[0].event='workflow_dispatch';
@@ -131,6 +151,27 @@ test('real Git and job history: article, delivered no-op, forward rollback and h
     assert.throws(()=>scheduledPlan(first,delivered,repo,marketingPath));
     write('functions/index.js','held backend change');const mixed=commit();
     assert.throws(()=>scheduledPlan(mixed,delivered,repo,marketingPath),/Mixed/);
+  } finally { fs.rmSync(cwd,{recursive:true,force:true}); }
+});
+test('real Git holds deferred mixed control pushes and permits independently proven controls then article',()=>{
+  const cwd=fs.mkdtempSync(path.join(os.tmpdir(),'pthhs-control-history-'));
+  const git=(...args)=>execFileSync('git',args,{cwd,encoding:'utf8',stdio:['ignore','pipe','pipe']}).trim();
+  const write=(name,value)=>{fs.mkdirSync(path.dirname(path.join(cwd,name)),{recursive:true});fs.writeFileSync(path.join(cwd,name),value);};
+  const commit=()=>{git('add','.');git('-c','user.name=Synthetic Test','-c','user.email=test@example.invalid','commit','-m','synthetic');return git('rev-parse','HEAD');};
+  try {
+    git('init');write('README.md','initial');const base=commit();
+    const baseline=Object.fromEntries(['hosting','backend','analytics'].map(k=>[k,{sha:base,runId:'2'}]));
+    const repo=gitRepository(cwd);
+    write('scripts/scheduled-release.mjs','control');write('public/articles/example.html','article');
+    const mixed=commit();
+    assert.throws(()=>scheduledPlan(mixed,baseline,repo,marketingPath,new Set([mixed])),/mixed release-control history/);
+    git('reset','--hard',base);
+    write('scripts/scheduled-release.mjs','control');const control=commit();
+    assert.equal(scheduledPlan(control,baseline,repo,marketingPath).mode,'none');
+    write('public/articles/example.html','article');const article=commit();
+    assert.throws(()=>scheduledPlan(article,baseline,repo,marketingPath),/isolated no-deploy/);
+    assert.equal(scheduledPlan(article,baseline,repo,marketingPath,new Set([control])).mode,'hosting');
+    assert.throws(()=>scheduledPlan(article,baseline,repo,marketingPath,new Set([article])),/isolated no-deploy/);
   } finally { fs.rmSync(cwd,{recursive:true,force:true}); }
 });
 test('receipt delivery resolves pinned source rather than newer receipt head',()=>{
