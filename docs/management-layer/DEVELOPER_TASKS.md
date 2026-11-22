@@ -1,5 +1,15 @@
 # PTHHS Management Layer — Developer Checklist
 
+- [x] PR52 caregiver context guard deployed November 22 UTC. Caregiver edits/
+  selections invalidate pending form preparation and clear packet navigation;
+  delayed saves or detached choices cannot reopen/replace the old context.
+  A save already sent may finish under its original data and remains under
+  Saved client forms. Three regressions fail before; 10 focused and 758 broader
+  tests pass. Both quality/all four normal release jobs, six exact production
+  artifacts and 10 served-controller tests pass at 19:47 UTC. No authenticated
+  office/clinical/source acceptance is claimed.
+  [Implementation, compatibility and limitations](../workforce/FORM_CAREGIVER_CONTEXT_2026-11-22.md).
+
 - [ ] P2 future authorization date-eligibility bridge: source date restrictions
   and additional period rules need exact office/patient/authorization/contract/
   service linkage and coverage. The current detail projection has no blackout

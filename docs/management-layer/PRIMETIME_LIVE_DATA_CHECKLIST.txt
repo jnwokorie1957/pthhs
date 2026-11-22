@@ -5,7 +5,24 @@ area, map the actual source, connect available authorized data and verify it.
 This is the connection backlog, not a declaration of an active Codex goal.
 This document does not claim every tab is connected.
 
-CURRENT SOURCE-ACCESS AND DELIVERY CHECKPOINT — NOVEMBER 22, 2026 05:14 UTC
+LATEST SOFTWARE DELIVERY CHECKPOINT — NOVEMBER 22, 2026 19:47 UTC
+PR52/runtime afc91238ff377394c725d72e3a8379900cfe0fdb corrects caregiver context
+in local client-form preparation only. Both quality 45062151095 jobs and all four
+normal release 45062312677 jobs pass. Six exact production artifacts, ten served-
+controller regressions and private noindex/cache/anonymous 401 controls pass.
+The prior separate control-scope check 44995753708 passed its scope step with
+all deployment jobs skipped; no release-control bypass was used for PR52.
+All Functions, Primetime authoring/entry and source-time assets retain e46821b
+bytes. The changed form-workflow asset does not map or recover any HHA clock,
+duration or original event. PR49 admission recovery and earlier time guards
+remain preserved. No HHA UI/API read or October 23/24/current-day comparison was
+performed. The 19:31 access/tooling observation and 05:14 bounded vendor receipt
+remain dated; no fresh sign-in state is inferred. Existing URL-verifiable
+approved-session, vendor/source/unit/readback and held-visit gates remain.
+Original October 24 stays resolved by October 31. Evidence:
+docs/workforce/FORM_CAREGIVER_CONTEXT_2026-11-22.md
+
+PREVIOUS SOURCE-ACCESS AND DELIVERY CHECKPOINT — NOVEMBER 22, 2026 05:14 UTC
 Current main 440c251 includes release-control-only work after PR49; that control
 rollout is not accepted here as a deployed source/runtime change. Preserve its
 separate scope-proof and midnight release requirements. The last verified full
