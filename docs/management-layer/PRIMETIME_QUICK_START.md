@@ -33,7 +33,15 @@ If a source page takes too long, wait about a minute and select **Retry visits**
 
 ## Keep required visits and reminders organized
 
-Record supervisory visits and orientation requirements with their subject, program, service, responsible supervisor, rule reference and due-date basis. Submit completion evidence for review. Accepted evidence advances the next due date using the configured recurrence; pending evidence does not.
+Open **Supervisory visits & caregiver orientation** in **Visit review**. For continuing care with the same caregiver, create a supervisory requirement. New supervisory requirements start at six calendar months from accepted completion. Pick a different cadence or the original due-date schedule if the program rule requires it. Use **Assign or update follow-up** to bring a visit forward for service resumption or a performance concern. The planned appointment date and the deadline are recorded separately.
+
+Create a one-time caregiver orientation when services begin or the caregiver changes. From a supervisory record, **Plan new caregiver orientation** carries over the member’s existing program, ZIP code and office assignment. Confirm the new caregiver and due date before saving.
+
+Enter the assigned office staff member, member ZIP code, planned date and next action. The workspace groups the queue by ZIP code and approximate direction from the Houston office. Filter by assignee, planned date or due status. Submit signed paperwork as a PDF, JPG, PNG or WebP. The original and the reviewer’s copy are encrypted and linked to the requirement. A reviewer can preview the scan while it is pending and accept or reject it. Accepted evidence advances the next due date using the configured recurrence.
+
+For the field director’s route, select visits for the day and open **Plan the field director’s Google Maps route**. The planner groups the selected visits into up to nine ZIP stops and uses Google Routes traffic estimates when available. It prioritizes driving time and uses distance to break ties. Directions start and end at the Houston office. Open the provided Google Maps links in order if the route spans several parts. The planner sends the office’s public address and ZIP codes to Google. Use the member’s address and appointment time inside the agency workflow when confirming each local stop.
+
+Fuel estimates use route mileage, the entered Nissan Kicks MPG and the current AAA Houston regular price or an entered quote. The initial MPG is 28, Nissan’s city estimate for a 2026 front-wheel-drive Kicks. Review actual fleet MPG before relying on the estimate. [Nissan Kicks specifications](https://www.nissanusa.com/content/dam/Nissan/us/vehicle-brochures/2026/2026-nissan-kicks-brochure-en.pdf) · [AAA Texas and Houston prices](https://gasprices.aaa.com/?lv=true&state=TX)
 
 The reminder list distinguishes queued, provider-accepted, delivered, unknown and failed messages. Office acknowledgement is a separate action. Unknown delivery is investigated before another message is attempted.
 

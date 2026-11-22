@@ -4,7 +4,8 @@ import { WorkflowError, identifier, type OperationalRead, type ReadInput } from 
 import { adaptVisitEvidence, evidenceIsFresh, type NormalizedVisitEvidence } from "./evidence.js";
 import { evaluateVisit, summarizeMissingTokenDays, type VisitDiagnosis, type VisitDiagnosisIssue } from "./diagnosis.js";
 import { RevisionConfiguration, expectedRevision, recordId, strictObject, type RevisionPolicy } from "./policy.js";
-import { RevisionRecords, requirementStatus, type RevisionContext } from "./records.js";
+import { RevisionRecords, requirementStatus, type RequirementRecord, type RevisionContext } from "./records.js";
+import { publicRequirement } from "./visitDocuments.js";
 import { NotificationOutbox, notificationDeliveryCursor, type NotificationDeliveryAdapter, type NotificationEvidence, type NotificationRequest, type NotificationRule } from "./notifications.js";
 import type { SmsFactoryConfig } from "./sms.js";
 import { buildTokenGroups } from "./tokenGroups.js";
@@ -224,9 +225,9 @@ export class RevisionBackend {
     return new RevisionRecords(this.repository, this.context(actor, officeId), this.now);
   }
   async requirements(actor: RevisionActor, cursor?: string) {
-    const { timezone } = await this.scope(actor), records = await this.records(actor), page = await records.page("requirements", { cursor });
+    const { timezone } = await this.scope(actor), records = await this.records(actor), page = await records.page<RequirementRecord>("requirements", { cursor });
     const asOfDate = officeDate(this.now(), timezone);
-    return { ...page, asOfDate, items: page.items.map(item => ({ ...item, status: requirementStatus(item as import("./records.js").RequirementRecord, asOfDate) })) };
+    return { ...page, asOfDate, items: page.items.map(item => ({ ...publicRequirement(item), status: requirementStatus(item, asOfDate) })) };
   }
   async callCandidates(actor: RevisionActor, value: unknown) {
     const input = strictObject(value, ["id", "revision", "date", "visitId", "lastId", "note"]), serviceDate = date(input.date), visitId = identifier(input.visitId), scope = await this.fence(actor);

@@ -227,12 +227,20 @@ export const primetimeApi = onRequest(
     }
 
     if (path.startsWith("/revisions/")) {
-      if (request.method === "POST" && (!request.is("application/json") || Buffer.byteLength(JSON.stringify(request.body ?? {}), "utf8") > 24576)) {
+      const maxBody = path === "/revisions/requirements/upload" ? 24_000_000 : 24576;
+      if (request.method === "POST" && (!request.is("application/json") || request.rawBody.length > maxBody)) {
         response.status(400).json({ ok: false, error: "invalid_json_request" }); return;
       }
       const actor: RevisionActor = { actorId: principal.uid, roles: principal.roles, mode: request.get("X-Primetime-Data-Mode")?.trim().toLowerCase() === "demo" ? "demo" : "live" };
       const result = await revisionRoute(revisionBackend(actor), actor, request.method, path, request.method === "GET" ? request.query : request.body);
-      response.status(result?.status ?? 404).json(result?.body ?? { ok: false, error: "not_found" }); return;
+      if (result?.document) {
+        response.set("Content-Type", "application/pdf");
+        response.set("Content-Disposition", 'attachment; filename="visit-evidence.pdf"');
+        response.set("X-Content-Type-Options", "nosniff");
+        response.set("Content-Security-Policy", "sandbox");
+        response.status(200).send(result.document);
+      } else response.status(result?.status ?? 404).json(result?.body ?? { ok: false, error: "not_found" });
+      return;
     }
 
     if (path.startsWith("/maintenance/")) {

@@ -7,7 +7,7 @@
 <meta name=theme-color content="#0d4f8f">
 <title>Primetime Operations</title>
 <link rel="icon" href="/assets/meta/favicon.svg" type="image/svg+xml">
-<link rel="stylesheet" href="/primetime/primetime.css?v=39e3b5418543">
+<link rel="stylesheet" href="/primetime/primetime.css?v=23c2e50a17cd">
 <link rel="stylesheet" href="/primetime/analytics.css?v=311b90e9f0ed">
 <link rel="stylesheet" href="/primetime/maintenance.css?v=92df263d9d39">
 </head>
@@ -172,7 +172,35 @@
 <p id=revisionScope class=source-metadata></p>
 <div class=revision-review-grid><section class=panel><div class=panel-head><h3>Visits on this page</h3><small id=revisionPageCount></small></div><div id=revisionVisits></div><div class=visit-pagination><button class="btn secondary" id=revisionNext type=button hidden>Next visits</button><small id=revisionCompleteness></small></div></section><section class="panel revision-selected" aria-labelledby=revisionDetailTitle><h3 id=revisionDetailTitle tabindex=-1>Selected visit</h3><div id=revisionDetail></div></section></div>
 <details class="panel revision-secondary"><summary>Office follow-up</summary><p>Review saved issues. Office acknowledgement/resolution neither verifies nor changes HHA visits.</p><div id=revisionExceptions></div><button class="btn secondary" id=revisionExceptionsNext type=button hidden>Next follow-ups</button></details>
-<details class="panel revision-secondary"><summary>Supervisory visits & orientation</summary><p>Owner-defined rules apply. Review completion evidence before advancing due dates.</p><div id=revisionRequirements></div><button class="btn secondary" id=revisionRequirementsNext type=button hidden>Next requirements</button><details id=revisionCreateRequirement><summary>Add a requirement</summary><form id=revisionRequirementForm class=operational-form><label>Requirement<select name=type><option value=supervisory_visit>Supervisory visit</option><option value=initial_orientation>Initial orientation</option><option value=recurring_orientation>Recurring orientation</option></select></label><label>For<select name=subjectKind><option value=member>Member</option><option value=caregiver>Caregiver</option></select></label><label>Member or caregiver reference<input name=subjectId required inputmode="numeric" pattern="[1-9][0-9]{0,9}" maxlength=10></label><label>Program<input name=program required maxlength=128></label><label>Service<input name=service required maxlength=128></label><label>Responsible supervisor<input name=assignedSupervisor required maxlength=128></label><label>Applicable rule or document reference<input name=ruleReference required maxlength=500></label><label>First due date<input name=anchorDate type=date required></label><label>Repeat every (calendar months)<input name=cadenceMonths type=number min=1 max=120 step=1 placeholder="Leave blank until defined"></label><label>Next due date follows<select name=anchorMode><option value=fixed_due_date>Original due-date schedule</option><option value=completion_date>Accepted completion date</option></select></label><label>Effective from<input name=effectiveFrom type=date required></label><label>Effective until (optional)<input name=effectiveUntil type=date></label><label>Configuration note<textarea name="note" required maxlength="1000"></textarea></label><button class="btn primary" type=submit>Save requirement</button><p class=revision-form-message role=status aria-live=polite></p></form></details></details>
+<details class="panel revision-secondary"><summary>Supervisory visits &amp; caregiver orientation</summary>
+<p>Schedule supervisory visits every six calendar months or earlier when needed. Use orientation for a new caregiver or a service start.</p>
+<div id=revisionVisitPlanning hidden>
+  <div class="operational-form revision-route-filters">
+    <label>ZIP code <input id=revisionVisitZip type=search inputmode="numeric" maxlength=5 placeholder="All ZIP codes"></label>
+    <label>Assigned to <input id=revisionVisitAssignee type=search maxlength=128 placeholder="All office staff"></label>
+    <label>Planned visit date <input id=revisionVisitDay type=date></label>
+    <label>Follow-up status <select id=revisionVisitStatus><option value="">All requirements</option><option value=due>Due or overdue</option><option value=open>Open visits</option><option value=review>Evidence under review</option></select></label>
+  </div>
+  <details class=revision-record>
+    <summary>Plan the field director’s Google Maps route</summary>
+    <p>Select visits below to group stops by ZIP code. Confirm appointment times and the exact stops before leaving.</p>
+    <form id=revisionVisitRoute class=operational-form>
+      <label>Nissan Kicks fuel economy (MPG) <input name=mpg type=number min=5 max=100 step=0.1 value=28 required></label>
+      <label>Regular gas quote ($/gal, optional) <input name=regularPrice type=number min=0.01 max=30 step=0.001 placeholder="Use AAA Houston average"></label>
+      <button class="btn secondary" type=submit>Build Google Maps route</button>
+    </form>
+    <div class=revision-route-selection><button id=revisionVisitSelect class="btn secondary" type=button>Select visible visits with ZIPs</button> <span id=revisionVisitSelected aria-live=polite></span></div>
+    <div id=revisionVisitRouteResult role=status aria-live=polite></div>
+  </details>
+</div>
+<p id=revisionVisitUpdate role=status aria-live=polite></p>
+<div id=revisionRequirements></div><button class="btn secondary" id=revisionRequirementsNext type=button hidden>Next requirements</button><details id=revisionCreateRequirement><summary>Add a requirement</summary><form id=revisionRequirementForm class=operational-form><label>Requirement<select name=type><option value=supervisory_visit>Supervisory visit</option><option value=initial_orientation>Caregiver orientation / reorientation</option><option value=recurring_orientation>Recurring orientation</option></select></label><label>For<select name=subjectKind><option value=member>Member</option><option value=caregiver>Caregiver</option></select></label><label>Member or caregiver reference<input name=subjectId required inputmode="numeric" pattern="[1-9][0-9]{0,9}" maxlength=10></label><label>Program<input name=program required maxlength=128></label><label>Service<input name=service required maxlength=128></label><label>Responsible supervisor<input name=assignedSupervisor required maxlength=128></label><label>Applicable rule or document reference<input name=ruleReference required maxlength=500></label><label>First due date<input name=anchorDate type=date required></label><label>Repeat every (calendar months)<input name=cadenceMonths type=number min=1 max=120 step=1 value=6></label><label>Next due date follows<select name=anchorMode><option value=completion_date>Accepted completion date</option><option value=fixed_due_date>Original due-date schedule</option></select></label><label>Effective from<input name=effectiveFrom type=date required></label><label>Effective until (optional)<input name=effectiveUntil type=date></label><label>Visit reason<select name=reason><option value=routine>Routine</option><option value=services_starting>Services starting</option><option value=services_resuming>Services resuming</option><option value=caregiver_changed>New caregiver</option><option value=performance_follow_up>Performance follow-up</option></select></label>
+<label>Caregiver reference <input name=caregiverId inputmode="numeric" pattern="[1-9][0-9]{0,9}" maxlength=10></label>
+<label>Member ZIP code <input name=zip inputmode="numeric" pattern="[0-9]{5}" maxlength=5></label>
+<label>Assigned office staff <input name=assignee maxlength=128 placeholder="Staff name"></label>
+<label>Planned visit date <input name=plannedDate type=date></label>
+<label>Next action <input name=nextAction maxlength=500></label>
+<label>Configuration note<textarea name="note" required maxlength="1000"></textarea></label><button class="btn primary" type=submit>Save requirement</button><p class=revision-form-message role=status aria-live=polite></p></form></details></details>
 <button class="btn secondary" type=button data-view-jump="messages">Open office alerts</button>
 </section>
 <section class=view data-view-panel="messages" id=messagesWorkspace><div class=section-heading><div><p class=eyebrow>Communications</p><h2>Messages & office alert history</h2></div></div><div id=dashboardMessages class=cards-3></div><section id=messagesLive class=panel hidden><p>Primetime outbox, separate from HHA notes. Acceptance, delivery and office acknowledgement differ.</p><p id=messagesStatus role=status aria-live=polite></p><button class="btn secondary" id=messagesRefresh type=button>Refresh alerts</button><div id=revisionNotifications></div><button class="btn secondary" id=revisionNotificationsNext type=button hidden>Next alerts</button></section></section>
@@ -228,7 +256,7 @@
 <script src="/primetime/data-source.js?v=262e7773681b" defer></script>
 <script src="/primetime/demo-data.js?v=b25c5238018a" defer></script>
 <script src="/primetime/dashboard.js?v=c0919a19b461" defer></script>
-<script src="/primetime/revisions.js?v=dcba55667c8f" defer></script>
+<script src="/primetime/revisions.js?v=29aacf7af298" defer></script>
 <script src="/primetime/primetime.js?v=54bf56785ae7" defer></script>
 <script src="/primetime/workspace.js?v=d12fd1c15bc9" defer></script>
 <script src="/primetime/analytics.js?v=8e22c0c9574a" defer></script>

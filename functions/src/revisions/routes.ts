@@ -1,6 +1,8 @@
 import { WorkflowError } from "../operations/reads.js";
 import { recordId, strictObject } from "./policy.js";
 import type { RevisionActor, RevisionBackend } from "./service.js";
+import { publicRequirement, readVisitDocument, uploadVisitDocument } from "./visitDocuments.js";
+import { planZipRoute } from "./visitRouting.js";
 
 export async function revisionRoute(backend: RevisionBackend, actor: RevisionActor, method: string, path: string, value: unknown) {
   if (!path.startsWith("/revisions/")) return null;
@@ -20,9 +22,18 @@ export async function revisionRoute(backend: RevisionBackend, actor: RevisionAct
     } else if (method === "GET" && ["/revisions/exceptions", "/revisions/call-matches"].includes(path)) {
       const records = await backend.records(actor);
       result = await records.page(path.endsWith("exceptions") ? "exceptions" : "callMatches", value);
-    } else if (method === "POST" && path === "/revisions/requirements/save") result = await (await backend.records(actor)).saveRequirement(value);
-    else if (method === "POST" && path === "/revisions/requirements/complete") result = await (await backend.records(actor)).recordCompletion(value);
-    else if (method === "POST" && path === "/revisions/requirements/review") result = await (await backend.records(actor)).reviewCompletion(value);
+    } else if (method === "POST" && path === "/revisions/requirements/save") result = publicRequirement(await (await backend.records(actor)).saveRequirement(value));
+    else if (method === "POST" && path === "/revisions/requirements/complete") result = publicRequirement(await (await backend.records(actor)).recordCompletion(value));
+    else if (method === "POST" && path === "/revisions/requirements/review") result = publicRequirement(await (await backend.records(actor)).reviewCompletion(value));
+    else if (method === "POST" && path === "/revisions/requirements/plan") result = publicRequirement(await (await backend.records(actor)).planRequirement(value));
+    else if (method === "POST" && path === "/revisions/requirements/upload") result = publicRequirement(await uploadVisitDocument(await backend.records(actor), value));
+    else if (method === "GET" && path === "/revisions/requirements/document") {
+      const document = await readVisitDocument(await backend.records(actor), value);
+      return { status: 200, document };
+    } else if (method === "POST" && path === "/revisions/requirements/route") {
+      await backend.records(actor);
+      result = await planZipRoute(value);
+    }
     else if (method === "POST" && path === "/revisions/exceptions/review") result = await (await backend.records(actor)).reviewException(value);
     else if (method === "POST" && path === "/revisions/call-matches/prepare") result = await backend.callCandidates(actor, value);
     else if (method === "POST" && path === "/revisions/call-matches/decide") result = await backend.decideCallMatch(actor, value);

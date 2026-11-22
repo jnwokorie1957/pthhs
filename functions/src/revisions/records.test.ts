@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import type { Versioned, WorkspaceRepository } from "../operations/workspace.js";
 import { WorkflowError } from "../operations/reads.js";
+import { publicRequirement } from "./visitDocuments.js";
 import { RevisionRecords, addCalendarMonths, calendarDate, requirementStatus, type RequirementRecord, type CallMatchRecord, type ScopedRecord, type RevisionContext, type RevisionResource } from "./records.js";
 
 class MemoryRepository implements Pick<WorkspaceRepository, "get" | "page" | "change"> {
@@ -36,6 +37,49 @@ function candidate(callId = "33") { return { callId, sourceHash: otherHash, call
 function callMatch(overrides: Record<string, unknown> = {}) { return { id: "match-1", revision: 0, officeId: "123", visitId: "55", visitSourceHash: sourceHash, candidates: [candidate()], note: "Candidates retain source evidence", ...overrides }; }
 function decision(revision = 1, overrides: Record<string, unknown> = {}) { return { id: "match-1", revision, officeId: "123", action: "match", callId: "33", reason: "Human checked the identities and evidence", ...overrides }; }
 function exception(overrides: Record<string, unknown> = {}) { return { id: "exception-1", revision: 0, officeId: "123", visitId: "55", ruleId: "EVV_NO_CLOCK_OUT", ruleVersion: "accepted-policy-v1", sourceHash, sourceValidation: "accepted", diagnosis: "Trusted synthetic server evaluation", assignee: "supervisor-1", followUpAt: null, note: "Persist accepted rule evidence", ...overrides }; }
+
+test("assignment and resumption can bring a supervisory visit forward without changing its recurrence", async () => {
+  const { service } = setup();
+  await service.saveRequirement(requirement({ anchorDate: "2026-12-31", anchorMode: "completion_date" }));
+  const followUp = { assignee: "Field Director", zip: "77035", plannedDate: "2026-11-20", caregiverId: "99", reason: "services_resuming", nextAction: "Observe authorized tasks" };
+  const plan = { id: "req-1", revision: 1, officeId: "123", followUp, earlierDueDate: "2026-11-22", note: "Service resumed" };
+  await assert.rejects(service.planRequirement({ ...plan, earlierDueDate: "2027-01-01" }), /invalid_earlier_visit_date/);
+  await assert.rejects(service.planRequirement({ ...plan, followUp: { ...followUp, reason: "caregiver_changed" } }), /caregiver_orientation_required/);
+  const planned = await service.planRequirement(plan);
+  assert.equal(planned.nextDueDate, "2026-11-22");
+  assert.equal(planned.followUp?.assignee, "Field Director");
+  await service.recordCompletion(completion(2, { completedOn: "2026-11-20" }));
+  const finished = await service.reviewCompletion(reviewCompletion(3));
+  assert.equal(finished.nextDueDate, "2027-05-20");
+  assert.equal(finished.followUp?.plannedDate, null);
+  assert.equal(finished.followUp?.assignee, "Field Director");
+  assert.equal(finished.completions[0]?.overrideReason, "Service resumed");
+
+  const orientation = await service.saveRequirement(requirement({
+    id: "orientation-1", type: "initial_orientation", cadenceMonths: null, anchorDate: "2026-11-20",
+    followUp: { ...followUp, reason: "caregiver_changed" },
+  }));
+  assert.equal(orientation.nextDueDate, "2026-11-20");
+  await assert.rejects(service.saveRequirement(requirement({
+    id: "orientation-2", type: "initial_orientation", cadenceMonths: null, followUp: { ...followUp, reason: "caregiver_changed", caregiverId: null },
+  })), /caregiver_orientation_required/);
+});
+
+test("encrypted attachments stay private in responses and completed scans cannot be reused", async () => {
+  const { service } = setup();
+  const object = { path: "private-object", generation: "17", sha256: sourceHash, storedSha256: otherHash,
+    envelope: { version: 1 as const, keyName: "test-key", wrappedKey: "wrapped", iv: "iv", tag: "tag" } };
+  const attachment = { source: object, preview: { ...object, path: "private-preview" } };
+  await service.saveRequirement(requirement());
+  const pending = await service.recordCompletion(completion(), attachment);
+  assert.deepEqual(pending.completions[0]?.attachment, attachment);
+  const display = publicRequirement(pending);
+  assert.equal(display.completions[0]?.hasAttachment, true);
+  assert.doesNotMatch(JSON.stringify(display), /private-object|private-preview|wrappedKey/);
+  await service.reviewCompletion(reviewCompletion());
+  await assert.rejects(service.recordCompletion(completion(3, { completionId: "another-date", completedOn: "2024-07-31" }), attachment),
+    /visit_document_already_filed/);
+});
 
 test("calendar recurrence preserves calendar months, month ends and leap years", () => {
   assert.equal(addCalendarMonths("2024-01-31", 1), "2024-02-29");
