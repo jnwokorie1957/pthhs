@@ -39,16 +39,16 @@ jobs:
           node-version: '20'
       - name: Verify production release window
         id: window
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
         run: |
           node --test scripts/deployment-window.test.mjs
           node scripts/deployment-window.mjs
       - name: Verify release scope
         if: steps.window.outputs.allow == 'true'
         id: scope
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
         run: |
-          node --test scripts/release-scope.test.mjs scripts/verify-hosting-only.test.mjs
+          node --test scripts/release-scope.test.mjs scripts/scheduled-release.test.mjs scripts/verify-hosting-only.test.mjs
           node scripts/release-scope.mjs
 
   build_and_deploy:

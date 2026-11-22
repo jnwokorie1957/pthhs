@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import { execFileSync } from 'node:child_process';
 import { pathToFileURL } from 'node:url';
+import { deliveryBaselines, releaseControlPath, scheduledPlan } from './scheduled-release.mjs';
 
 export const RECEIPT = 'docs/releases/hosting-release.json';
 const SHA = /^[0-9a-f]{40}$/;
@@ -9,6 +10,7 @@ const MARKETING_FILES = new Set([
   'PTHHS_SENSITIVE_TERM_REGISTER.csv', 'public/articles.html',
   'public/home-care-blog.html', 'public/sitemap.xml',
   'scripts/site-polish.mjs', 'scripts/verify_pthhs_articles.py',
+  'docs/seo/sitemap-content-dates.json',
 ]);
 const BOOTSTRAP_FILES = new Set([
   '.github/workflows/deploy-firebase.yml', 'scripts/release-scope.mjs',
@@ -32,6 +34,18 @@ export function gitRepository(cwd = process.cwd()) {
     ancestor(a,b) { commit(a); commit(b); git('merge-base','--is-ancestor',a,b); },
     files(a,b) { return execFileSync('git',['diff','--no-renames','--name-only','-z',a,b],{cwd,encoding:'utf8'}).split('\0').filter(Boolean); },
     parents(sha) { return git('show','-s','--format=%P',sha).split(' ').filter(Boolean); },
+    firstParentEdges(from,to) {
+      commit(from); commit(to);
+      const heads = git('rev-list','--first-parent','--max-count=501','--reverse',`${from}..${to}`).split('\n').filter(Boolean);
+      assert(heads.length <= 500, 'Too much first-parent history for automatic release verification');
+      let previous = from;
+      const edges = heads.map(head => {
+        assert.equal(git('rev-parse',`${head}^1`),previous,'Delivery source is not on current main first-parent history');
+        const edge = [previous,head]; previous = head; return edge;
+      });
+      assert.equal(previous,to,'Missing target in first-parent history');
+      return edges;
+    },
     read(sha,path) { return git('show',`${sha}:${path}`); },
     publicTree(sha) { return git('rev-parse',`${sha}:public`); },
     regular(sha, paths) {
@@ -73,6 +87,13 @@ export function classifyPush(before, after, repo) {
     assert.equal(repo.publicTree(receipt.source_sha),receipt.public_tree_sha, 'Public tree differs from pinned tested source');
     return 'hosting';
   }
+  if (paths.some(releaseControlPath)) {
+    assert(paths.every(releaseControlPath),
+      'Release-control changes must be isolated from deployable changes');
+    repo.regular(before,paths); repo.regular(after,paths);
+    for (const path of paths) repo.read(after,path); // Reject absent/deleted control files.
+    return 'none';
+  }
   if (paths.every(marketingPath)) {
     repo.regular(before,paths); repo.regular(after,paths);
     return 'hosting';
@@ -87,7 +108,7 @@ export function classifyEvent(eventName, ref, event, sha, repo) {
     assert.equal(event.inputs?.deployment_target,'hosting');
     return 'hosting';
   }
-  if(eventName==='schedule'){repo.commit(sha);return 'full';}
+  assert.notEqual(eventName, 'schedule', 'Scheduled releases require verified component baselines');
   assert.equal(eventName,'push');
   assert.equal(event.after,sha, 'Push head differs from checked-out release');
   assert.equal(event.forced,false, 'Forced pushes are not releases');
@@ -103,9 +124,44 @@ export function releaseSelection(eventName, ref, event, sha, repo) {
   return {mode,releaseSha};
 }
 
+export function deliveredSource(run, repo) {
+  repo.commit(run.head_sha);
+  if (run.event === 'push') {
+    const parents = repo.parents(run.head_sha);
+    assert(parents.length, 'Missing delivery parent');
+    if (repo.files(parents[0], run.head_sha).includes(RECEIPT)) {
+      return releaseSelection('push', 'refs/heads/main', {
+        before: parents[0], after: run.head_sha, forced: false, deleted: false,
+      }, run.head_sha, repo).releaseSha;
+    }
+  }
+  return run.head_sha;
+}
+
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
-  const {mode,releaseSha} = releaseSelection(process.env.GITHUB_EVENT_NAME,process.env.GITHUB_REF,
-    JSON.parse(fs.readFileSync(process.env.GITHUB_EVENT_PATH,'utf8')),process.env.GITHUB_SHA,gitRepository());
+  const repo = gitRepository();
+  let selection;
+  if (process.env.GITHUB_EVENT_NAME === 'schedule') {
+    assert.equal(process.env.GITHUB_REF, 'refs/heads/main');
+    const request = async path => {
+      assert(process.env.GITHUB_TOKEN, 'Missing release-history access');
+      const response = await fetch('https://api.github.com' + path, {headers: {
+        Accept: 'application/vnd.github+json', Authorization: 'Bearer ' + process.env.GITHUB_TOKEN,
+        'X-GitHub-Api-Version': '2022-11-28',
+      }});
+      assert(response.ok, `Could not verify delivery history: HTTP ${response.status}`);
+      return response.json();
+    };
+    const verifiedNoDeploy = new Set();
+    const baselines = await deliveryBaselines(process.env.GITHUB_REPOSITORY, process.env.GITHUB_RUN_ID,
+      request, run => deliveredSource(run, repo), verifiedNoDeploy);
+    selection = scheduledPlan(process.env.GITHUB_SHA, baselines, repo, marketingPath, verifiedNoDeploy);
+    console.log('Verified delivery baselines:', JSON.stringify(baselines));
+  } else {
+    selection = releaseSelection(process.env.GITHUB_EVENT_NAME, process.env.GITHUB_REF,
+      JSON.parse(fs.readFileSync(process.env.GITHUB_EVENT_PATH,'utf8')), process.env.GITHUB_SHA, repo);
+  }
+  const {mode, releaseSha} = selection;
   fs.appendFileSync(process.env.GITHUB_OUTPUT, `mode=${mode}\nrelease_sha=${releaseSha}\n`);
   console.log(`Verified release scope: ${mode}; source: ${releaseSha}`);
 }

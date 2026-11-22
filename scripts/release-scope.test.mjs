@@ -40,6 +40,27 @@ test('ordinary article push selects Hosting; other ordinary pushes retain full b
   diffs.set(`${target}:${head}`,['functions/index.js']);assert.equal(classifyPush(target,head,repo),'full');
   diffs.set(`${target}:${head}`,[]);assert.throws(()=>classifyPush(target,head,repo));
 });
+test('exact control-only bootstrap push never selects a deployment',()=>{
+  const {repo,diffs}=fixture();
+  diffs.set(`${target}:${head}`,[
+    '.github/workflows/deploy-firebase.yml','docs/releases/HOSTING_RELEASE.md',
+    'docs/releases/STAFF_RELEASE_POLICY.md','scripts/build-and-verify.sh',
+    'scripts/deployment-window.mjs','scripts/deployment-window.test.mjs',
+    'scripts/release-scope.mjs','scripts/release-scope.test.mjs',
+    'scripts/scheduled-release.mjs','scripts/scheduled-release.test.mjs',
+  ]);
+  const event={before:target,after:head,forced:false,deleted:false};
+  assert.deepEqual(releaseSelection('push','refs/heads/main',event,head,repo),
+    {mode:'none',releaseSha:head});
+});
+for(const other of ['public/articles/example.html','public/primetime/index.html',
+  'functions/index.js','analytics-functions/report.js','scripts/unreviewed.mjs','firebase.json']) {
+  test(`bootstrap refuses mixed push with ${other}`,()=>{
+    const {repo,diffs}=fixture();
+    diffs.set(`${target}:${head}`,['scripts/scheduled-release.mjs',other]);
+    assert.throws(()=>classifyPush(target,head,repo), /must be isolated/);
+  });
+}
 test('event gates reject forced/deleted/mismatched/non-main events',()=>{
   const {repo}=fixture();const event={before:target,after:head,forced:false,deleted:false};
   assert.equal(classifyEvent('push','refs/heads/main',event,head,repo),'hosting');
@@ -79,9 +100,18 @@ test('real Git history validates receipt and refuses later excluded target chang
     write(RECEIPT,JSON.stringify({version:2,base_sha:a,deployed_sha:a,source_sha:b,target_base_sha:b,target_sha:c,public_tree_sha:repo.publicTree(b)}));
     const d=commit();assert.equal(classifyPush(c,d,repo),'hosting');
     assert.equal(classifyPush(a,b,repo),'hosting');
+    assert.equal(classifyPush(b,c,repo),'none');
+    assert.throws(()=>classifyPush(a,c,repo),/must be isolated/);
     assert.throws(()=>classifyPush('0'.repeat(40),d,repo));
     write('functions/private.js','synthetic excluded change');const e=commit();
     write(RECEIPT,JSON.stringify({version:2,base_sha:a,deployed_sha:a,source_sha:b,target_base_sha:b,target_sha:e,public_tree_sha:repo.publicTree(b)}));
     const f=commit();assert.throws(()=>classifyPush(e,f,repo));
+    git('update-index','--chmod=+x','scripts/release-scope.mjs');
+    git('-c','user.name=Synthetic Test','-c','user.email=test@example.invalid','commit','-m','mode');
+    const mode=git('rev-parse','HEAD');
+    assert.throws(()=>classifyPush(f,mode,repo),/ordinary non-executable/);
+    git('reset','--hard',f);
+    fs.unlinkSync(path.join(cwd,'scripts/release-scope.mjs'));
+    const deletion=commit();assert.throws(()=>classifyPush(f,deletion,repo));
   } finally { fs.rmSync(cwd,{recursive:true,force:true}); }
 });
