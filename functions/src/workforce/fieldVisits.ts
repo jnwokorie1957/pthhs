@@ -26,7 +26,7 @@ export function missingVisitFields(data:VisitData){return [...(requiredVisitFiel
 export const signerRoles=['member','caregiver','staff'] as const;
 type Role=typeof signerRoles[number];
 type Signature={role:Role;name:string;appearance:SignatureAppearance;at:string;witnessUid:string;electronicConsent:true;formRead:true;contentSha256:string};
-export interface VisitData {office:string;clientName:string;memberId:string;caregiverName:string;visitDate:string;kind:Kind;fields:Record<string,string>;requiredSigners:Role[];pages:string[];signatures:Signature[];signatureFields?:SignaturePlacement[];textFields?:DocumentTextField[];templateId?:string;amendment?:{originalId:string;originalContentSha256:string;reason:string}}
+export interface VisitData {office:string;clientName:string;memberId:string;caregiverName:string;hhaCaregiverId?:string;visitDate:string;kind:Kind;fields:Record<string,string>;requiredSigners:Role[];pages:string[];signatures:Signature[];signatureFields?:SignaturePlacement[];textFields?:DocumentTextField[];templateId?:string;amendment?:{originalId:string;originalContentSha256:string;reason:string}}
 const hash=(b:Buffer|string)=>createHash('sha256').update(b).digest('hex');
 export function visitData(input:any):VisitData {
  if(!input||!validId(input.office)||!Object.hasOwn(visitTemplates,input.kind)||!licenseDate(input.visitDate))throw new WorkforceError(400,'invalid_field_visit');
@@ -44,7 +44,9 @@ export function visitData(input:any):VisitData {
  const signatureFields=signaturePlacements(input.signatureFields,pages.length,required);if(input.kind!=='upload'&&signatureFields.length)throw new WorkforceError(400,'invalid_signature_fields');
  if(input.templateId!==undefined&&(input.kind!=='upload'||typeof input.templateId!=='string'||input.templateId.length>193||!/^[a-zA-Z0-9_-]+$/.test(input.templateId)))throw new WorkforceError(400,'invalid_admission_copy');
  signaturePlacements([...signatureFields,...textFields.map(({page,x,y,width,height})=>({role:'member',page,x,y,width,height}))],pages.length,signerRoles,{width:.04,height:.015});
- return {office:input.office,kind:input.kind,clientName,memberId,caregiverName,visitDate:input.visitDate,fields,requiredSigners:[...required],pages,signatures:[],...(signatureFields.length?{signatureFields}:{}),...(textFields.length?{textFields}:{}),...(input.templateId?{templateId:input.templateId}:{})};
+ const hhaCaregiverId=input.hhaCaregiverId;
+ if(hhaCaregiverId!==undefined&&(input.kind!=='orientation'||!caregiverName||typeof hhaCaregiverId!=='string'||!/^[1-9]\d{0,9}$/.test(hhaCaregiverId)))throw new WorkforceError(400,'invalid_field_visit');
+ return {office:input.office,kind:input.kind,clientName,memberId,caregiverName,...(hhaCaregiverId?{hhaCaregiverId}:{}),visitDate:input.visitDate,fields,requiredSigners:[...required],pages,signatures:[],...(signatureFields.length?{signatureFields}:{}),...(textFields.length?{textFields}:{}),...(input.templateId?{templateId:input.templateId}:{})};
 }
 export function visitContentHash(data:VisitData){const {signatures,...content}=data;return hash(JSON.stringify(content));}
 export function appendVisitSignature(data:VisitData,input:any,uid:string,at=new Date().toISOString()):VisitData {

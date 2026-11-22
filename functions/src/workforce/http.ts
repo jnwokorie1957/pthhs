@@ -7,6 +7,7 @@ import {opportunitySms} from './matchingSms.js';
 import {AdmissionLibrary} from './admissionLibrary.js';
 import {ClientDirectory} from './clients.js';
 import {StaffActivity} from './activity.js';
+import {scheduledClients} from './scheduledClients.js';
 import {FieldVisits,visitTemplateDefinitions} from './fieldVisits.js';
 import {CaregiverOffice,GraphLicenseReminder,sendLicenseReminders} from './caregiverOffice.js';
 import {CaregiverSync} from './caregiverSync.js';
@@ -352,6 +353,12 @@ export const workforceApi = process.env.PRIMETIME_API_ONLY_DEPLOY === "true" ? u
     if(path==='/staff/field-visits'||path.startsWith('/staff/field-visits/')){
       await recentWorkforceIdentity(req);const visits=new FieldVisits();
       if(path==='/staff/field-visits/templates'&&req.method==='GET'){requirePermission(await store.actor(uid),'field_visits.manage');res.json({templates:visitTemplateDefinitions});return;}
+      if(path==='/staff/field-visits/scheduled-clients'){
+        if(req.method!=='POST'||!req.is('application/json')||req.rawBody.length>1000)throw new WorkforceError(400,'invalid_request');
+        const {office,caregiverId,date}=req.body||{};
+        if(typeof office!=='string'||!office)throw new WorkforceError(400,'invalid_request');
+        res.json(await scheduledClients(hhaWorkspace(),uid,office,caregiverId,date,async()=>{requirePermission(await store.actor(uid),'field_visits.manage',office);}));return;
+      }
       if(path==='/staff/field-visits/names'&&req.method==='POST'&&req.is('application/json')&&req.rawBody.length<=1000){res.json(await visits.names(uid,req.body.office,req.body.kind,req.body.name,hhaWorkspace()));return;}
       if(path==='/staff/field-visits'&&req.method==='GET'&&typeof req.query.office==='string'){res.json(await visits.list(uid,req.query.office,typeof req.query.after==='string'?req.query.after:undefined));return;}
       const record=path.match(/^\/staff\/field-visits\/([a-zA-Z0-9_-]{1,128})(?:\/(pdf|preview|sign|amend))?$/);

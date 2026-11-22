@@ -51,6 +51,28 @@ function setup(handler=async()=>undefined){
  return {root,calls,previews,mappings,admissions,prepareClient:window.WorkforceFieldVisits.prepareClient,start,newRecord,button,field,office,submit,status,events};
 }
 
+test('a single scheduled client seeds a new supervisory visit and a saved override survives a refreshed schedule',async()=>{
+ const item={id:'3',name:'Scheduled member',memberId:'M3'},other={id:'4',name:'Alternative member',memberId:'M4'};
+ let candidates=[item];const s=setup((path,body)=>{
+  if(path.endsWith('/names'))return {items:[{id:'2',name:'Verified caregiver'}]};
+  if(path.endsWith('/scheduled-clients'))return {items:candidates,from:'2026-11-22',through:'2026-11-28'};
+  if(body?.data)return {...record('saved'),data:{...body.data,signatures:[]}};
+ });
+ await s.start();s.newRecord();s.field('lookup-caregiver').value='Verified';await s.button('Find caregiver').onclick();
+ s.button('Verified caregiver · 2').onclick();await tick();
+ assert.equal(s.field('memberId').value,'M3');assert.equal(s.field('scheduledClientChoice').value,'3');
+ candidates=[item,other];await s.button('Refresh scheduled clients').onclick();
+ const select=s.field('scheduledClientChoice');select.value='4';select.onchange();await s.submit();
+ const saved=s.calls.find(x=>x.body?.data).body.data;assert.equal(saved.memberId,'M4');assert.equal(saved.hhaCaregiverId,'2');
+ candidates=[item];await s.button('Refresh scheduled clients').onclick();assert.equal(s.field('memberId').value,'M4');
+});
+test('late scheduled client results cannot overwrite a manually edited client',async()=>{
+ const pending=deferred(),s=setup(path=>path.endsWith('/names')?{items:[{id:'2',name:'Verified caregiver'}]}:path.endsWith('/scheduled-clients')?pending.promise:undefined);
+ await s.start();s.newRecord();s.field('lookup-caregiver').value='Verified';await s.button('Find caregiver').onclick();
+ s.button('Verified caregiver · 2').onclick();const client=s.field('clientName');client.value='Chosen member';client.oninput();
+ pending.resolve({items:[{id:'3',name:'Stale member',memberId:'M3'}]});await tick();assert.equal(client.value,'Chosen member');assert.equal(s.field('memberId').value,'');
+});
+
 test('a rejected initial form read displays the sign-in message and can retry without reloading',async()=>{
  let rejected=true;const s=setup(path=>{if(path.endsWith('/templates')&&rejected)throw Error('Please sign in again before accessing sensitive records.');});await s.start();assert.match(s.root.textContent,/Forms are unavailable/);assert.match(s.status(),/Please sign in again/);rejected=false;await s.button('Retry').onclick();await tick();await tick();assert.ok(s.button('Manual form'));assert.doesNotMatch(s.root.textContent,/Forms are unavailable/);
 });
