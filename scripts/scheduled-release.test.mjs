@@ -168,9 +168,13 @@ test('real Git holds deferred mixed control pushes and permits independently pro
     git('reset','--hard',base);
     write('scripts/scheduled-release.mjs','control');const control=commit();
     assert.equal(scheduledPlan(control,baseline,repo,marketingPath).mode,'none');
+    write('.github/workflows/deploy-firebase.yml',"cron: '7 5,6 * * *'");
+    const latestControl=commit();
+    assert.equal(scheduledPlan(latestControl,baseline,repo,marketingPath).mode,'none');
     write('public/articles/example.html','article');const article=commit();
     assert.throws(()=>scheduledPlan(article,baseline,repo,marketingPath),/isolated no-deploy/);
-    assert.equal(scheduledPlan(article,baseline,repo,marketingPath,new Set([control])).mode,'hosting');
+    assert.throws(()=>scheduledPlan(article,baseline,repo,marketingPath,new Set([control])),/isolated no-deploy/);
+    assert.equal(scheduledPlan(article,baseline,repo,marketingPath,new Set([latestControl])).mode,'hosting');
     assert.throws(()=>scheduledPlan(article,baseline,repo,marketingPath,new Set([article])),/isolated no-deploy/);
   } finally { fs.rmSync(cwd,{recursive:true,force:true}); }
 });
@@ -188,7 +192,7 @@ test('actual workflow job conditions cannot run backend for scheduled Hosting/no
     const condition=workflow.match(new RegExp('^  '+job+':\\r?\\n(?:    #.*\\r?\\n)*    if: (.+)$','m'))[1];
     assert.equal(vm.runInNewContext(condition,{github:{event_name:'schedule'},needs:{release_scope:{outputs:{mode}}}}),false);
   }
-  assert.match(workflow,/cron: '0 5,6 \* \* \*'/);
+  assert.match(workflow,/cron: '7 5,6 \* \* \*'/);
   assert.match(workflow,/if: steps.window.outputs.allow == 'true'/);
   assert.match(workflow,/cancel-in-progress: false/);
 });
