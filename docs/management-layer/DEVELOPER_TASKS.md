@@ -1,5 +1,15 @@
 # PTHHS Management Layer — Developer Checklist
 
+- [x] PR49 admission-library read recovery deployed November 22 UTC. A saved
+  single template keeps any failed list refresh visible; Refresh library retries
+  only the read. Initial read failures can also retry, and the action is blocked
+  during a pending template preparation/save. Four regressions fail before;
+  13 focused and 700 broader tests pass. Both quality and all four normal release
+  jobs pass; six exact production artifacts and 13 served-controller tests pass
+  at 01:53 UTC. No authenticated office upload or clinical/source acceptance is
+  claimed; existing form, role and source decisions remain open.
+  [Implementation, delivery and remaining acceptance](../workforce/ADMISSION_LIBRARY_RECOVERY_2026-11-22.md).
+
 - [x] November 19 SEO acceptance: the laundry guide is verified indexed with
   matching Google-selected canonical; canonical sitemap Success/36 discovered
   is dated November 17. About remains discovered/not crawled. Explicit weekly

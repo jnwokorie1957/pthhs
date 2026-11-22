@@ -4874,3 +4874,61 @@ https://github.com/jnwokorie1957/pthhs/actions/runs/44435315723
 docs/workforce/ADMISSION_PACK_RECOVERY_2026-11-19.md
 Local outputs use admission-pack-*-20261118 preparation names; receipt checkedAt
 records actual delivery. Synthetic screenshot and test fixture are not public.
+
+
+ADMISSION LIBRARY READ AND SINGLE-TEMPLATE RECOVERY — NOVEMBER 22, 2026 UTC
+Observed and implemented in PR49/runtime
+c6c4e5f35cef9be210ad4b54318c3ca42a85e503. This extends the existing P2 office
+document-library recovery; patient/PT/clinical source-link proposals stay open.
+
+Observed controller defect: the manual single-template save ignored the list
+loader's false result and replaced a refresh failure with its saved message.
+Initial list failures had no local retry. Four new regressions reproduced the
+gaps before the fix; this observation does not describe a production record.
+
+Implemented: failed reads offer Refresh library. A successful upload retains
+its saved result alongside a failed refresh; repeated retries call only the
+existing list read and never upload that saved template again. Successful
+refresh restores the client-copy instruction. The retry stays disabled during
+an active preparation/save. Superseded or signed-out reads cannot restore an
+old failure/retry. Existing pack behavior remains covered.
+
+Permissions and shared record links: current office readers keep their existing
+list access; template upload retains existing role/documents.review/server
+office checks. View form and Use this form retain the same local template and
+separate client-copy links. No patient, representative or PT self-service grant,
+clinical document-instance join, source write, signing or financial action is
+added. API payloads/record formats/configuration and HHA/time mappings are
+unchanged; existing open pages are not reloaded.
+
+Acceptance evidence: 13 focused and 700 frontend/tooling tests over 45 root test files
+pass; asset, syntax, audit and diff checks pass. Both quality 44973171842 jobs
+and all four compatible full-release 44973251782 jobs pass. At November 22
+01:53:49 UTC six production artifacts match runtime c6c4e5f; workforce references
+library 6cce01206c6e and unchanged pack 59ffd32dcadc. Private workforce/Primetime
+noindex/cache and anonymous session 401/no-store/noindex pass. All 13 tests also
+pass against actual served controllers using simulated requests and extractor.
+No real form upload, patient copy, signature or message was created, and no
+authenticated real-office UI acceptance was performed in this pass.
+
+Priority/dependency: this bounded P2 library recovery is delivered. Ordinary
+office acceptance still needs the existing approved blank form and authorized
+session/workflow. Before clinical automation/sharing, the owner must select
+business form/version, exact intended identifier/time sources, signers/reviewer
+and permitted recipients. Typed PatientID/office versus AdmissionID/Medicaid/
+contract namespaces, effective patient/PT assignments and clinical instance/
+version/source-receipt decisions remain separate proposed work.
+No HHA historical/current-day comparison or recovered times are claimed.
+Original October 24 stays resolved by October 31; remaining event/history/units/
+readback, paid-hours interpretation, CSM/private-channel and held-visit gates
+are unchanged. No new grant or communication is requested.
+
+Implementation and dated evidence:
+https://github.com/jnwokorie1957/pthhs/pull/49
+https://github.com/jnwokorie1957/pthhs/blob/c6c4e5f35cef9be210ad4b54318c3ca42a85e503/public/assets/workforce-admission-library.js
+https://github.com/jnwokorie1957/pthhs/blob/c6c4e5f35cef9be210ad4b54318c3ca42a85e503/scripts/workforce-admission-pack.test.mjs
+https://github.com/jnwokorie1957/pthhs/actions/runs/44973171842
+https://github.com/jnwokorie1957/pthhs/actions/runs/44973251782
+docs/workforce/ADMISSION_LIBRARY_RECOVERY_2026-11-22.md
+Local nonsensitive admission-library-*-20261122 receipts keep production
+delivery, served-controller simulation and real-office acceptance distinct.
