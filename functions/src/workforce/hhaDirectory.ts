@@ -75,7 +75,7 @@ export class HhaDirectory {
   }
   const now = Date.now();
   const [page, ready, run, count] = await Promise.all([
-   query.select("id", "office", "firstName", "lastName", "status", "code", "fetchedAt").limit(pageSize + 1).get(),
+   query.select("id", "office", "firstName", "lastName", "status", "code", "fetchedAt", "fields.EmployeeType").limit(pageSize + 1).get(),
    db.collection("workforceHhaRosterReady").doc(office).get(),
    db.collection("workforceHhaSyncRuns").doc(office).get(),
    active.where("fetchedAt", ">", new Date(now - HHA_ROSTER_FRESHNESS_MS).toISOString())

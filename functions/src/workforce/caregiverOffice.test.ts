@@ -36,6 +36,7 @@ test('a schedule cursor rejects a changed visit list and shifted dates before pr
   return {operation:input.operation,source:'hhaexchange',truncated:false,records:[{ID:input.id,'Caregiver/ID':'10','Patient/ID':'8',VisitDate:stale?'2001-01-01':today}]};
  }};
  const get=(after?:string)=>service.schedule('hr','hhaexchange','10',workspace as never,after);
+ assert.deepEqual((await get('24')).items.map(row=>row.id),['25']);
  const first=await get();assert.deepEqual(first.items.map(row=>row.id),['22','23','24']);
  assert.deepEqual((await get(first.next!)).items.map(row=>row.id),['25']);
  visits.push('21');await assert.rejects(get(first.next!),/schedule_changed_reload/);
