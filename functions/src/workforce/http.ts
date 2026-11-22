@@ -1,9 +1,13 @@
+import {AdmissionPackets} from './admissionPackets.js';
 import {OpportunityMatching} from './matchingStore.js';
+import {authorizationClient} from './authorizationCoverage.js';
+import {staffRelease,releasedStaffActor,staffRouteReleased,laterModules} from './staffRelease.js';
 import {MatchingMaps,matchingCommitments} from './matchingSource.js';
 import {opportunitySms} from './matchingSms.js';
 import {AdmissionLibrary} from './admissionLibrary.js';
 import {ClientDirectory} from './clients.js';
 import {StaffActivity} from './activity.js';
+import {scheduledClients} from './scheduledClients.js';
 import {FieldVisits,visitTemplateDefinitions} from './fieldVisits.js';
 import {CaregiverOffice,GraphLicenseReminder,sendLicenseReminders} from './caregiverOffice.js';
 import {CaregiverSync} from './caregiverSync.js';
@@ -56,6 +60,8 @@ const hhaApplicationDocumentType = defineString("WORKFORCE_HHA_APPLICATION_DOCUM
 const hhaDocumentLookupId = defineString("WORKFORCE_HHA_DOCUMENT_LOOKUP_ID", { default: "" });
 const hhaApplicantNotBefore = defineString("WORKFORCE_HHA_APPLICANT_NOT_BEFORE", { default: "" });
 const staffEnabled = defineString("WORKFORCE_STAFF_APPROVED", { default: "false" });
+const staffPhasedRelease = defineString("WORKFORCE_STAFF_PHASED_RELEASE", { default: "false" });
+const staffLaterModules = defineString("WORKFORCE_STAFF_LATER_MODULES_APPROVED", { default: "" });
 const signInProviders = defineString("WORKFORCE_SIGN_IN_PROVIDERS", { default: "" });
 const publicEnabled = defineString("WORKFORCE_PUBLIC_OPPORTUNITIES_APPROVED", { default: "false" });
 const collectionApproved = defineString("WORKFORCE_APPLICANT_COLLECTION_APPROVED", { default: "false" });
@@ -116,6 +122,7 @@ async function authorizeDocumentPath(principal: DocumentPrincipal, path: string)
   const personnel = new IntakeStore();
   if (path.startsWith("/staff/")) {
     const staff = new WorkforceStore(), actor = await staff.actor(principal.uid);
+    if(!staffRouteReleased(actor,path))throw new WorkforceError(423,'staff_phase_pending');
     if (await new StaffCredentials(staff).setupRequired(principal.uid)) throw new WorkforceError(403, "staff_password_setup_required");
     if (await staff.trainingRequired(actor)) throw new WorkforceError(403, "staff_training_required");
     await personnel.hrRead(principal.uid, target, true);
@@ -307,7 +314,7 @@ export const workforceApi = process.env.PRIMETIME_API_ONLY_DEPLOY === "true" ? u
     const store = new WorkforceStore();
     const credentials = new StaffCredentials(store);
     const staffSession = async (actor: Awaited<ReturnType<typeof store.actor>>) => ({
-      ...actor, trainingRequired: await store.trainingRequired(actor),
+      ...releasedStaffActor(actor), release:{phase:staffRelease(actor).phase,launchAt:staffRelease(actor).launchAt,modules:laterModules.filter(module=>staffRelease(actor).has(module))}, trainingRequired: await store.trainingRequired(actor),
       passwordSetupRequired: await credentials.setupRequired(actor.uid),
     });
     if (path === "/session" && req.method === "GET") {
@@ -324,13 +331,15 @@ export const workforceApi = process.env.PRIMETIME_API_ONLY_DEPLOY === "true" ? u
       res.json(await store.recordTraining(uid, req.body.action)); return;
     }
     if (path.startsWith("/staff/") && path !== "/staff/invitations/accept") {
+      if(!staffRouteReleased(await store.actor(uid),path))throw new WorkforceError(423,'staff_phase_pending');
       if (await store.trainingRequired(await store.actor(uid))) {
         throw new WorkforceError(403, "staff_training_required");
       }
     }
+    if(path==='/staff/admission-packets/search'||path.startsWith('/staff/admission-packets/')){await recentWorkforceIdentity(req);const packets=new AdmissionPackets();if(path==='/staff/admission-packets/search'&&req.method==='POST'&&req.is('application/json')&&req.rawBody.length<=1000){res.json(await packets.list(uid,req.body.office,req.body.memberId,req.body.after));return;}const packet=path.match(/^\/staff\/admission-packets\/([a-zA-Z0-9_-]{1,128})(\/pdf)?$/);if(packet){if(req.method==='GET'){if(packet[2]){res.set('Content-Type','application/pdf');res.set('Content-Disposition','attachment; filename="admission-packet.pdf"');res.set('Content-Security-Policy','sandbox');res.send(await packets.pdf(uid,packet[1]!));return;}res.json(await packets.get(uid,packet[1]!));return;}if(req.method==='POST'&&!packet[2]&&req.is('application/json')&&req.rawBody.length<=4000){res.json(await packets.create(uid,packet[1]!,req.body));return;}}throw new WorkforceError(400,'invalid_request');}
     if(path==='/staff/admission-templates'||path.startsWith('/staff/admission-templates/')){await recentWorkforceIdentity(req);const library=new AdmissionLibrary();if(path==='/staff/admission-templates'){if(req.method==='GET'&&typeof req.query.office==='string'){res.json(await library.list(uid,req.query.office));return;}if(req.method==='POST'&&req.is('application/json')&&req.rawBody.length<=16_000_000){res.json(await library.upload(uid,req.body));return;}}const match=path.match(/^\/staff\/admission-templates\/([a-zA-Z0-9_-]{1,193})(\/pdf)?$/);if(match&&req.method==='GET'){if(match[2]){res.set('Content-Type','application/pdf');res.set('Content-Disposition','attachment; filename="admission-template.pdf"');res.set('Content-Security-Policy','sandbox');res.send(await library.get(uid,match[1]!,true));return;}res.json(await library.get(uid,match[1]!));return;}throw new WorkforceError(400,'invalid_request');}
     if(path==='/staff/activity'&&req.method==='GET'){await recentWorkforceIdentity(req);res.json(await new StaffActivity(()=>store.actor(uid)).list(String(req.query.stream||'opportunities'),typeof req.query.after==='string'?req.query.after:undefined));return;}
-    if(path==='/staff/clients'||path.startsWith('/staff/clients/')){await recentWorkforceIdentity(req);const directory=new ClientDirectory(hhaWorkspace(),()=>store.actor(uid));if(path==='/staff/clients/search'&&req.method==='POST'&&req.is('application/json')&&req.rawBody.length<=1000){res.json(await directory.list(req.body?.name,req.body?.after));return;}if(req.method!=='GET')throw new WorkforceError(405,'method_not_allowed');if(path==='/staff/clients'){res.json(await directory.list(typeof req.query.name==='string'?req.query.name:'',typeof req.query.after==='string'?req.query.after:undefined));return;}const id=path.slice('/staff/clients/'.length);res.json(await directory.detail(id));return;}
+    if(path==='/staff/clients'||path.startsWith('/staff/clients/')){await recentWorkforceIdentity(req);const directory=new ClientDirectory(hhaWorkspace(),()=>store.actor(uid));if(path==='/staff/clients/search'&&req.method==='POST'&&req.is('application/json')&&req.rawBody.length<=1000){res.json(await directory.list(req.body?.name,req.body?.after));return;}if(req.method!=='GET')throw new WorkforceError(405,'method_not_allowed');if(path==='/staff/clients'){res.json(await directory.list(typeof req.query.name==='string'?req.query.name:'',typeof req.query.after==='string'?req.query.after:undefined));return;}const coverage=path.match(/^\/staff\/clients\/(\d{1,10})\/coverage$/);if(coverage){const client=await directory.verify(coverage[1]!);res.json(await new StaffOperations().memberCoverage(uid,client.office,client.id));return;}const id=path.slice('/staff/clients/'.length);res.json(await directory.detail(id));return;}
     if(path.startsWith('/staff/matching/')){
       if(!existingAccessEnabled)throw new WorkforceError(503,'existing_access_pending');await recentWorkforceIdentity(req);
       const opening=path.match(/^\/staff\/matching\/openings\/([a-zA-Z0-9_-]{1,128})$/),qualification=path.match(/^\/staff\/matching\/qualifications\/([1-9]\d{0,9})$/),hours=path.match(/^\/staff\/matching\/hours\/([1-9]\d{0,9})$/);
@@ -344,10 +353,16 @@ export const workforceApi = process.env.PRIMETIME_API_ONLY_DEPLOY === "true" ? u
     if(path==='/staff/field-visits'||path.startsWith('/staff/field-visits/')){
       await recentWorkforceIdentity(req);const visits=new FieldVisits();
       if(path==='/staff/field-visits/templates'&&req.method==='GET'){requirePermission(await store.actor(uid),'field_visits.manage');res.json({templates:visitTemplateDefinitions});return;}
+      if(path==='/staff/field-visits/scheduled-clients'){
+        if(req.method!=='POST'||!req.is('application/json')||req.rawBody.length>1000)throw new WorkforceError(400,'invalid_request');
+        const {office,caregiverId,date}=req.body||{};
+        if(typeof office!=='string'||!office)throw new WorkforceError(400,'invalid_request');
+        res.json(await scheduledClients(hhaWorkspace(),uid,office,caregiverId,date,async()=>{requirePermission(await store.actor(uid),'field_visits.manage',office);}));return;
+      }
       if(path==='/staff/field-visits/names'&&req.method==='POST'&&req.is('application/json')&&req.rawBody.length<=1000){res.json(await visits.names(uid,req.body.office,req.body.kind,req.body.name,hhaWorkspace()));return;}
       if(path==='/staff/field-visits'&&req.method==='GET'&&typeof req.query.office==='string'){res.json(await visits.list(uid,req.query.office,typeof req.query.after==='string'?req.query.after:undefined));return;}
-      const record=path.match(/^\/staff\/field-visits\/([a-zA-Z0-9_-]{1,128})(?:\/(pdf|sign|amend))?$/);
-      if(record){const id=record[1]!;if(req.method==='GET'){if(record[2]==='pdf'){res.set('Content-Type','application/pdf');res.set('Content-Disposition','attachment; filename="field-visit.pdf"');res.set('Content-Security-Policy','sandbox');res.send(await visits.pdf(uid,id));return;}if(!record[2]){res.json(await visits.get(uid,id));return;}}
+      const record=path.match(/^\/staff\/field-visits\/([a-zA-Z0-9_-]{1,128})(?:\/(pdf|preview|sign|amend))?$/);
+      if(record){const id=record[1]!;if(req.method==='GET'){if(record[2]==='pdf'||record[2]==='preview'){const exporting=record[2]==='pdf';res.set('Content-Type','application/pdf');res.set('Content-Disposition',(exporting?'attachment':'inline')+'; filename="field-visit.pdf"');res.set('Content-Security-Policy','sandbox');res.send(exporting?await visits.pdf(uid,id):await visits.preview(uid,id));return;}if(!record[2]){res.json(await visits.get(uid,id));return;}}
        if(req.method==='POST'&&req.is('application/json')&&req.rawBody.length<=16_000_000&&req.body&&!Array.isArray(req.body)){if(record[2]==='amend'){res.json(await visits.amend(uid,id,req.body));return;}res.json(record[2]==='sign'?await visits.sign(uid,id,req.body.revision,req.body.signature):await visits.save(uid,id,req.body.revision,req.body.data));return;}
       }throw new WorkforceError(400,'invalid_request');
     }
@@ -370,9 +385,9 @@ export const workforceApi = process.env.PRIMETIME_API_ONLY_DEPLOY === "true" ? u
         res.json(path === '/staff/applicants' ? await service.applicants(uid,req.query.office,req.query.after as string|undefined) : await service.list(uid,req.query.office,req.query.after as string|undefined)); return;
       }
       const file = path.match(/^\/staff\/authorizations\/([a-zA-Z0-9_-]{1,128})\/document$/);
-      if(file && req.method === 'GET') {const bytes=await service.document(uid,file[1]!);res.set('Content-Type','application/pdf');res.set('Content-Disposition','attachment; filename="authorization.pdf"');res.set('Content-Security-Policy','sandbox');res.send(bytes);return;}
+      if(file && req.method === 'GET') {await recentWorkforceIdentity(req,undefined,Date.now(),120);const bytes=await service.document(uid,file[1]!);await recentWorkforceIdentity(req,undefined,Date.now(),120);res.set('Content-Type','application/pdf');res.set('Content-Disposition','attachment; filename="authorization.pdf"');res.set('Content-Security-Policy','sandbox');res.send(bytes);return;}
       if(req.method !== 'POST' || !req.is('application/json') || req.rawBody.length > 24_000_000 || !req.body || Array.isArray(req.body))throw new WorkforceError(400,'invalid_request');
-      if(path === '/staff/authorizations') {res.json(await service.upload(uid,req.body));return;}
+      if(path === '/staff/authorizations') {const client=await new ClientDirectory(hhaWorkspace(),()=>store.actor(uid)).verify(req.body.details?.clientId);res.json(await service.upload(uid,{...req.body,details:authorizationClient(req.body.details,client)}));return;}
       const renewal=path.match(/^\/staff\/authorizations\/([a-zA-Z0-9_-]{1,128})\/renewal$/);
       if(renewal){res.json(await service.renewal(uid,renewal[1]!,req.body));return;}
       throw new WorkforceError(404,'route_not_found');
@@ -601,10 +616,12 @@ export const workforceHhaApplications = process.env.PRIMETIME_API_ONLY_DEPLOY ==
 });
 
 export const workforceCaregiverSync=process.env.PRIMETIME_API_ONLY_DEPLOY==='true'?undefined:onSchedule({region:'us-central1',schedule:'*/15 9-16 * * 1-5',timeZone:'America/Chicago',timeoutSeconds:540,memory:'512MiB',maxInstances:1,concurrency:1,retryCount:0,secrets:[hhaCredentials]},async()=>{
+ if(!staffRelease({uid:'scheduler',grant:{active:true,role:'office',offices:[],permissions:[]}}).has('caregivers'))return;
  if(staffEnabled.value()!=='true'||hhaPortalApproved.value()!=='true'||hhaDataApproved.value()!=='true')return;
  await new CaregiverSync(hhaWorkspace('background')).run();
 });
 export const workforceLicenseReminders=process.env.PRIMETIME_API_ONLY_DEPLOY==='true'?undefined:onSchedule({region:'us-central1',schedule:'*/15 8-17 * * *',timeZone:'America/Chicago',timeoutSeconds:120,memory:'256MiB',maxInstances:1,retryCount:0},async()=>{
+ if(!staffRelease({uid:'scheduler',grant:{active:true,role:'office',offices:[],permissions:[]}}).has('hr'))return;
  if(staffEnabled.value()!=='true'||documentEmailApproved.value()!=='true')return;
  await sendLicenseReminders(new GraphLicenseReminder(documentMailTenant.value(),documentMailClient.value()));
 });

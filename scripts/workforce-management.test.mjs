@@ -4,7 +4,7 @@ function setup(request=async()=>({items:[]})){
  const elements=new Map(),events=new Map();
  const make=(dataset={})=>({dataset,hidden:true,textContent:'',value:'',attrs:{},handlers:{},clicks:0,replaceChildren(){},setAttribute(key,value){this.attrs[key]=value;},focus(){},addEventListener(name,fn){this.handlers[name]=fn;},dispatchEvent(event){this.handlers[event.type]?.(event);},click(){this.clicks++;this.handlers.click?.();this.onclick?.();}});
  const el=id=>{if(!elements.has(id))elements.set(id,make());return elements.get(id);};
- const names=['overview','accounts','applications','opportunities','access'],panels=names.map(managerPanel=>make({managerPanel})),links=names.map(managerGo=>make({managerGo,managerView:managerGo}));
+ const names=['overview','accounts','applications','opportunities','access','applicants','authorizations','fieldvisits','clients','activity'],panels=names.map(managerPanel=>make({managerPanel})),links=names.map(managerGo=>make({managerGo,managerView:managerGo}));
  const features=[make({managerFeature:'opportunities'})];
  const doc={getElementById:el,querySelectorAll:selector=>selector==='[data-manager-panel]'?panels:selector==='[data-manager-feature]'?features:links,addEventListener:(name,fn)=>{if(!events.has(name))events.set(name,[]);events.get(name).push(fn);}};
  const scrolls=[];const context=vm.createContext({document:doc,window:{scrollTo:options=>scrolls.push(options),workforceApi:request,WorkforceRecruiting:{refresh:async()=>{}}},Event:class{constructor(type){this.type=type;}},Promise});vm.runInContext(fs.readFileSync(new URL('../public/assets/workforce-contract.js',import.meta.url),'utf8'),context);vm.runInContext(source,context);
@@ -47,3 +47,8 @@ test('sign-out clears all management summaries and ignores later list events',as
 });
 
 test('opening a staff section starts at its heading without resetting restored navigation',async()=>{const s=setup();s.emit('workforce-session',owner);await s.settle();const before=s.scrolls.length;s.show('accounts');assert.equal(s.scrolls.length,before+1);assert.equal(s.scrolls.at(-1).top,0);s.show('applications',false);assert.equal(s.scrolls.length,before+1);});
+
+test('phase-one navigation exposes applicant review and opportunities without later clinical or HR tools',()=>{
+ const s=setup();s.emit('workforce-session',{grant:{active:true,role:'office',offices:['office-a'],permissions:['applicants.review','opportunities.read','opportunities.edit']},release:{phase:'phase_one',modules:[]}});
+ assert.deepEqual(s.links.filter(link=>!link.hidden).map(link=>link.dataset.managerGo),['overview','opportunities','applicants']);for(const view of ['accounts','applications','fieldvisits','clients','authorizations','activity','access'])assert.equal(s.show(view),false,view);assert.equal(s.show('applicants'),true);
+});

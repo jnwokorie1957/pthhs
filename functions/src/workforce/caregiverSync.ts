@@ -3,6 +3,7 @@ import {getFirestore} from 'firebase-admin/firestore';
 import type {OperationsWorkspace} from '../operations/workspace.js';
 import {HhaProfileSource} from './hhaSource.js';
 import {chicagoDate} from './dates.js';
+import {HHA_ROSTER_FRESHNESS_MS} from './hhaCachedNames.js';
 export function caregiverSyncWindow(now=new Date()){
  const parts=new Intl.DateTimeFormat('en-US',{timeZone:'America/Chicago',weekday:'short',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).formatToParts(now),get=(type:string)=>parts.find(p=>p.type===type)?.value||'';
  const hour=Number(get('hour')),minute=Number(get('minute'));
@@ -28,17 +29,24 @@ export class CaregiverSync {
   try{
    if(!pending.length){
     cycleAt=started.toISOString();
-    const changes=await this.workspace.query({operation:'GetCaregiverChangesV2',modifiedAfter:caregiverChangesSince(prior.lastCompletedAt,started)},'system:caregiver-sync','workforce_roster_import');
+    const changes=await this.workspace.query({operation:'GetCaregiverChangesV2',officeId:office,modifiedAfter:caregiverChangesSince(prior.lastCompletedAt,started)},'system:caregiver-sync','workforce_roster_import');
     if(changes.operation!=='GetCaregiverChangesV2'||changes.source!=='hhaexchange'||changes.truncated)throw Error('caregiver_changes_incomplete');
-    const cached=await this.db.collection('workforceHhaProfiles').where('office','==',office).select('id').get(),existing=new Set(cached.docs.map(doc=>doc.id));
+    const cached=await this.db.collection('workforceHhaProfiles').where('office','==',office).select('status','fetchedAt').get(),existing=new Set(cached.docs.map(doc=>doc.id));
     pending=changes.records.filter(row=>row.OfficeID===office||existing.has(String(row.CaregiverID))).map(row=>String(row.CaregiverID));
     if(pending.some(id=>!/^\d{1,10}$/.test(id)))throw Error('caregiver_changes_invalid');
+    let discovery:{discoveryDate:string;discoveredCount:number}|undefined;
     if(prior.discoveryDate!==chicagoDate(started)){
      const discovered=await source.discover(),present=new Set(discovered.ids);
      pending.push(...discovered.ids.filter(id=>!existing.has(id)),...[...existing].filter(id=>!present.has(id)));
-     await ref.update({discoveryDate:chicagoDate(started),discoveredCount:discovered.ids.length});
+     // Reverify unchanged active names before the next daily discovery can age them out.
+     const cutoff=started.getTime()+86400000-HHA_ROSTER_FRESHNESS_MS;
+     for(const doc of cached.docs){
+      const row=doc.data(),at=Date.parse(row.fetchedAt);
+      if(row.status==='Active'&&present.has(doc.id)&&(!Number.isFinite(at)||at<=cutoff||at>started.getTime()))pending.push(doc.id);
+     }
+     discovery={discoveryDate:chicagoDate(started),discoveredCount:discovered.ids.length};
     }
-    pending=[...new Set(pending)];await ref.update({pending,cycleAt});
+    pending=[...new Set(pending)];await ref.update({pending,cycleAt,...discovery});
    }
    let processed=0;
    while(pending.length&&this.now().getTime()-started.getTime()<8*60000&&caregiverSyncWindow(this.now())){

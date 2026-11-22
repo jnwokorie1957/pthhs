@@ -1,0 +1,87 @@
+PTHHS REPOSITORY READINESS REVIEW
+November 22, 2026 — America/Chicago
+
+Scope: current main plus this staff-release branch; static marketing/build/SEO tooling, workforce frontend and Functions, private Firestore/Storage boundaries, HHA operations/revisions, application transfer/mail, matching and independent website analytics. This is a focused source and workflow review, not an exhaustive line-by-line audit, cloud IAM audit, payer/legal review or HIPAA certification. Tests and deployment delivery are separate evidence from real vendor, restore and agency acceptance.
+
+The November 12 review is historical. Its original high-priority authorization counts, transfer reconciliation and upload retry defects were addressed in earlier releases. Do not repeat those as unfixed findings. Forms now have required-answer checks, corrections and mapped signatures; the agency's 11 blank templates were actually imported. The new work below still requires the normal tested release before it is live.
+
+FIXED/PREPARED IN THIS BRANCH
+
+- A separate server-enforced staff release boundary: January 1, 2027 is basic applicant review and job opportunities only. Later-module approvals default empty in the reviewed configuration. Existing owner preview ends at the January cutoff; original staff grants remain intact. Authorizations are explicitly a later phase.
+- Green fully-signed individual forms, durable admission packet membership/progress, and completed packet export. Draft/partial export requests fail server-side; normal download/print controls are absent until completion. The renderer preserves draft review access and private access checks.
+- Authorization member linking, additional explicit document-view permission, password confirmation/two-minute recent-authentication enforcement, payer/program/date suggestions, retained encrypted storage, member-profile navigation, complete/partial coverage disclosures and staff-confirmed continuing-service alerts.
+- No automatic patient service holds, case-manager messages, invented eligibility results or unsupported HHA writes. No production records, signatures, document grants or emails are created by these tests.
+
+HIGH PRIORITY BEFORE RELYING ON THESE WORKFLOWS
+
+1. Automatic HHA applicant creation/attachment has code and launch configuration, but production/sandbox write acceptance is still a separate prerequisite.
+Evidence: functions/workforce-deployment.json; functions/src/workforce/hhaApplicationPolicy.ts (transferAllowed, validateTransferJob); docs/workforce/HHA_APPLICATION_SYNC.md (Validation and operational evidence); docs/workforce/HHA_APPLICANT_UPLOAD_TEST.md.
+The reviewed worker is configured for January 1 and has safe attempted-write/reconciliation states, but its documentation explicitly says synthetic tests are not real HHA write acceptance. Basic applicant review is usable independently. An entitlement/case reference is not evidence that an actual applicant and exact PDF were created and read back correctly.
+Finish: verify the exact approved test endpoint/credentials, office, discipline and document category; complete isolated write/readback acceptance and unknown-outcome recovery before depending on the automatic transfer. Keep the existing source gates and no-blind-retry behavior. The phased staff view alone neither accepts nor broadens this integration.
+
+2. TMHP eligibility integration does not exist as an accepted agency connection.
+Evidence: functions/src/workforce/authorizationCoverage.ts; functions/src/workforce/staffOperations.ts; no TMHP eligibility client/credential contract in the workforce integration paths reviewed.
+Authorization uploads, current dates and payer names cannot establish service-date eligibility. The new UI deliberately says unverified/review required. Both checks matter, and neither implies a payment guarantee.
+Finish: TMHP interface/enrollment, agency credentials/authority, explicit service-date request/response mapping, member identity validation, freshness/renewal handling, outage behavior and live acceptance. The owner follow-up is scheduled for November 23 at 9 a.m. Central. No invented endpoint or source write was added.
+
+3. The forms phase needs full agency template/clinical-content acceptance, beyond signature placement.
+Evidence: functions/src/workforce/fieldVisits.ts (requiredVisitFields, missingVisitFields); functions/src/workforce/documentTextFields.ts; public/assets/workforce-admission-library.js; the imported packet's mapped identity/date/signature fields.
+Built-in forms enforce their configured required answers; uploaded forms enforce mapped required fields. Not every printed questionnaire box/checklist in the original packet is necessarily an interactive required field. A fully signed status proves all configured requirements were met, not that every unknown printed question was answered. Representative authority is declared in a witnessed in-person workflow.
+Finish: review each packet page and program, map the remaining required answers/checkboxes, approve representative authority and supervisory/assessment wording, and perform a real authorized admissions acceptance run. Keep general staff access held behind the later forms release until this is accepted.
+
+4. Operational privacy recovery/retention acceptance is not established by repository tests.
+Evidence: docs/workforce/OFFICE_TEST_LAUNCH.md (retention and mailbox copies); docs/workforce/DOCUMENT_ENCRYPTION.md; functions/src/workforce/documentEncryption.ts; firestore.rules and storage.rules.
+The source implements authenticated access, deny-all direct client rules, envelope encryption and immutable file generations. It does not prove least-privilege deployed IAM, backup retention, a successful restore with KMS, legal holds, deletion across versions/objects/mailbox attachments or an agency-approved production retention schedule. Older office-testing instructions and live configuration approvals must not substitute for those operational decisions.
+Finish: review runtime/storage/KMS IAM and actual backup settings, run a de-identified restore/key-access drill, and approve retention/legal-hold/mail-copy handling. This is an acceptance gap, not proof that the cloud has no backups or is publicly exposed.
+
+MEDIUM PRIORITY / LATER-PHASE COMPLETION
+
+5. Authorization extraction is local OCR/text parsing with suggestions, not a universal document-understanding engine.
+Evidence: public/assets/workforce-authorization-extract.js; source/workforce/workforce-authorization-member.js; functions/src/workforce/authorizationCoverage.ts.
+Explicit payer/program labels, simple headers and common date ranges are supported. Unfamiliar tables, contradictory plans, poor scans or unlabeled fields still need review. No external PHI processor is configured. New member linkage avoids name-only attachment and keeps payer IDs separate from agency IDs.
+Finish: representative payer-format acceptance, field confidence/ambiguity handling, source/evidence review and, if wanted, an agency-approved PHI-safe AI service/processing arrangement. Do not silently send patient documents to an unapproved model or treat extracted dates as independently verified coverage.
+
+6. Service-continuation and department reminder automation remain partly operational/manual.
+Evidence: source/workforce/workforce-office-tools.js; functions/src/workforce/staffOperations.ts (renewal, expirationSummary, memberCoverage).
+Portal alerts have full-office totals and 15/30-day groups; client coverage scans disclose limits and unlinked records. Continuing services are explicitly staff-confirmed, not derived from an accepted live schedule/eligibility feed. Authorization reminder emails and dedicated departmental ownership are not enabled or designated. A recorded request/accepted email is not verified delivery.
+Finish: assign the department/staff/view grants, approved recipients and escalation/hold policy; accept the exact service/schedule evidence if automatic continuation detection is required; add a durable reminder outbox with safe uncertain-send handling before enabling email. Preserve human review for holds and case-manager contact.
+
+7. Reusable signatures remain local appearances in a witnessed in-person workflow.
+Evidence: public/assets/workforce-signature.js; source/workforce/workforce-field-visits.js; docs/workforce/MEDIUM_FOLLOW_UP_2026-11-13.md.
+They are encrypted for the same browser/account/signer context. They do not follow a client to another laptop/browser or prove remote signer identity. This walkthrough actually encountered a client with no local saved appearance. It is not a complete remote-signing platform.
+Finish: agency-approved signer/representative identity, consent, device sharing, revocation/retention and authenticated remote-invitation model if cross-device/remote signing is needed. Do not fix this merely by putting signature images in an openly reusable database collection.
+
+8. Packet preparation is a sequence of durable draft writes, not one atomic operation.
+Evidence: source/workforce/workforce-form-workflow.js; functions/src/workforce/admissionPackets.ts.
+Packet membership is now durable and completion is server-derived; reopening and combined export are supported. If a tab closes while individual drafts are being prepared, some unsigned drafts can exist before the packet group is saved. Group-save retry is idempotent, but a complete resumable server-side preparation outbox is not implemented. Nothing in that partial state becomes fully signed or exportable.
+Finish: durable preparation intent/outbox with stable draft IDs and immutable template versions if unattended large-packet preparation/resume is required. Keep incomplete drafts clearly identified and avoid duplicate packet starts.
+
+9. Caregiver matching/routing/SMS is intentionally held, not a proven live staffing engine.
+Evidence: docs/workforce/CAREGIVER_MATCHING.md; functions/workforce-deployment.json; functions/src/workforce/matchingStore.ts, matchingSource.ts and matchingSms.ts.
+Routing and SMS approvals remain false. Source-hour completeness, non-visit paid time, consent/phone checks and no-blind-resend logic exist, but real routing/provider/IAM/quotas and notification delivery acceptance remain outstanding. This is outside Phase 1.
+Finish: approved providers/configuration, representative HHA and paid-week acceptance, real opt-in/out and delivery tests, and an office matching/exception procedure before enabling it.
+
+10. HHA visit correction and several operations screens are preparations/read-only tools, not general production source-write automation.
+Evidence: functions/src/revisions/service.ts: sourceWritesEnabled:false; functions/src/maintenance/search.ts; docs/management-layer/HHA_REMAINING_CATEGORIES.md; docs/management-layer/DEVELOPER_TASKS.md.
+Safe staging/review wrappers and controls are substantial, but missing request/readback semantics, owner decisions and vendor contracts deliberately keep writes locked. A successful staging screen or deployed wrapper is not an executed/accepted correction. The integration inventory also includes removed or undocumented operations.
+Finish: resolve each operation's exact contract/preservation/readback prerequisite, retain independent reviews and perform accepted scoped tests. Do not simply open mutation flags. These are separate from the staff hiring launch.
+
+LOWER PRIORITY / LAUNCH EXPERIENCE AND EVIDENCE
+
+11. Phase 1 onboarding/help should be accepted against the reduced workflow and actual office roles.
+Evidence: public/assets/workforce-training.js; functions/src/workforce/store.ts (trainingRequired); public/assets/workforce-management.js.
+Role/phase controls now restrict records and navigation, but the existing general walkthrough/training was written for a broader workspace. A release gate does not prove the invitation, password-reset, training and real basic-applicant/job-publishing journey for every intended staff role. Later-module JS also still ships with the page even when its data access is closed.
+Finish: a concise recruiting-only office walkthrough, actual-role acceptance on desktop/tablet, and optional permission-aware lazy loading. Keep private module APIs locked regardless of JavaScript visibility.
+
+12. Repository documentation mixes historical release statements with current configuration, and SEO outcomes remain unproven by builds.
+Evidence: docs/workforce/PLAN.md, LIVE_HHA_ACCEPTANCE.md, DOCUMENT_ENCRYPTION.md versus functions/workforce-deployment.json; docs/releases/STAFF_RELEASE_POLICY.md; plan.md; analytics-functions/report.js and live-views.js.
+Historical files correctly describe earlier closed states, but must not be used as today's rollout checklist. The new PHASED_RELEASE_2026-11-22.md owns the current staff scope. Public pages, indexing protections, analytics parsers and successful static tests do not establish rankings, lead growth, complete indexing or real-time freshness outside the analytics source's disclosed window.
+Finish: use one dated launch checklist with explicit code, deployed-source, vendor and agency acceptance evidence; measure SEO outcomes over comparable settled windows. Preserve the separate component-release history checks and owner-held changes rather than deploying a stale checkout or bypassing a release refusal.
+
+PRIVACY / VERIFICATION BOUNDARIES
+
+- Stored authorization binaries and clinical-form objects use AES-256-GCM envelope encryption with Cloud KMS wrapping, hashes, pinned generations and server-only access. Structured database fields retain the platform's encryption at rest; this is not field-level application encryption of every metadata value.
+- A preview that an authorized person can read cannot prevent operating-system screenshots or copying displayed information. Portal export endpoints and buttons can enforce completion; they are not DRM.
+- Authorization document viewers now need an explicit separate permission and recent password confirmation. No production grant was silently expanded; designated viewers/recipients are still an agency decision.
+- TMHP states that prior authorization is not a payment guarantee and eligibility must be checked for the date of service: https://www.tmhp.com/sites/default/files/microsites/provider-manuals/tmppm/html/TMPPM/1_05_Prior_Authorization/1_05_Prior_Authorization.htm
+- Test counts, CI receipts, exact branch/release state and any live checks must be reported with the release. Synthetic tests do not demonstrate real signatures, real payer interpretation, TMHP eligibility or actual HHA writes. No unsupported vendor capabilities or production facts were fabricated in this review.

@@ -1,0 +1,8 @@
+import test from 'node:test';import assert from 'node:assert/strict';import {authorizationClient,authorizationCoverage} from './authorizationCoverage.js';
+test('member attachment requires the exact verified HHA office and identity, never a name-only guess',()=>{
+ const client={id:'123',office:'office-a',name:'Fictional Member',memberId:'AGENCY-1',source:'hhaexchange'},details={clientId:'123',office:'office-a',memberId:'PAYER-1',clientName:'OCR spelling'};
+ const attached=authorizationClient(details,client);assert.equal(attached.clientName,'Fictional Member');assert.equal(attached.agencyMemberId,'AGENCY-1');assert.equal(attached.memberId,'PAYER-1');for(const change of [{id:'456'},{office:'other'},{source:'cache'}])assert.throws(()=>authorizationClient(details,{...client,...change}),/client_mismatch/);
+});
+test('coverage keeps eligibility unverified, distinguishes future dates and flags staff-confirmed continued services',()=>{
+ const row={startDate:'2027-01-01',endDate:'2027-01-31'};assert.equal(authorizationCoverage(row,'2026-12-31').authorization,'not_started');assert.equal(authorizationCoverage(row,'2027-01-01').authorization,'dates_current');assert.equal(authorizationCoverage(row,'2027-01-31').authorization,'dates_current');const expired=authorizationCoverage({...row,servicesContinuing:true},'2027-02-01');assert.equal(expired.action,'urgent_service_hold_review');assert.equal(expired.eligibility,'unverified');assert.equal(expired.billingReadiness,'review_required');assert.equal(authorizationCoverage({...row,renewalStatus:'renewed'},'2027-02-01').authorization,'historical');
+});
