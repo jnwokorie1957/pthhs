@@ -48,7 +48,7 @@ test('office transfers in the change feed and missing roster members are refresh
  const now=new Date('2026-11-13T15:00:00Z');
  const workspace={settings:async()=>({dataApproved:true,settings:{officeId:'100',revision:1}}),query:async(input:any)=>{
   const common={operation:input.operation,source:'hhaexchange',truncated:false,fetchedAt:now.toISOString()};
-  if(input.operation==='GetCaregiverChangesV2')return {...common,records:[{CaregiverID:'1',OfficeID:'200'},{CaregiverID:'999',OfficeID:'300'}]};
+  if(input.operation==='GetCaregiverChangesV2'){assert.equal(input.officeId,'100');return {...common,records:[{CaregiverID:'1',OfficeID:'200'},{CaregiverID:'999',OfficeID:'300'}]};}
   if(input.operation==='SearchCaregivers')return {...common,records:[{CaregiverID:'2'}]};
   if(input.operation==='GetCaregiverDemographics'){seen.push(input.id);if(input.id==='3')return {...common,records:[]};return {...common,records:[{ID:input.id,OfficeIDs:JSON.stringify([input.id==='2'?'100':'200']),FirstName:'Test',LastName:'Caregiver','Status/Name':'Active'}]};}
   throw Error('unexpected_source_request');
