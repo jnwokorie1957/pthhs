@@ -271,6 +271,8 @@ expected_runtime_assets = {
     "assets/workforce-caregiver-office.js",
     "assets/workforce-field-visits.js",
     "assets/workforce-form-workflow.js",
+    "assets/workforce-authorization-member.js",
+    "assets/workforce-reauth.js",
     "assets/workforce-signature-fields.js",
     "assets/workforce-directory-history.js",
     "assets/workforce-admission-library.js",

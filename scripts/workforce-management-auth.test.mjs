@@ -100,3 +100,12 @@ test('both served workforce paths initialize the staff sign-in and configuration
     assert.deepEqual(calls, expected, pathname);
   }
 });
+
+test('a cached staff login reaches controllers loaded after the deferred session script',async()=>{
+ const calls=[],events=new Map(),received=[],actor={uid:'fictional-staff',grant:{permissions:['applicants.review']}},element={setAttribute(){},addEventListener(){}},user={getIdToken:async()=> 'fictional-token'};
+ const auth=()=>({currentUser:user,setPersistence:async()=>{},isSignInWithEmailLink:()=>false,onAuthStateChanged:fn=>fn(user)});auth.Auth={Persistence:{SESSION:'session'}};
+ const document={readyState:'interactive',getElementById:()=>element,addEventListener:(type,fn)=>{const listeners=events.get(type)||[];listeners.push(fn);events.set(type,listeners);},dispatchEvent:event=>events.get(event.type)?.forEach(fn=>fn(event))};
+ vm.runInNewContext(fs.readFileSync(new URL('../public/assets/workforce-session.js',import.meta.url),'utf8'),{document,window:{WorkforceManagementAuth:()=>({pending:()=>false})},location:{pathname:'/workforce',href:'https://example.invalid/workforce'},firebase:{auth},fetch:async path=>{calls.push(path);return {ok:true,json:async()=>path.endsWith('/configuration')?{staffEnabled:true}:actor};},CustomEvent:class{constructor(type,{detail}={}){this.type=type;this.detail=detail;}}});
+ await new Promise(resolve=>setImmediate(resolve));assert.deepEqual(calls,[]);
+ document.addEventListener('workforce-session',event=>received.push(event.detail));document.dispatchEvent({type:'DOMContentLoaded'});await new Promise(resolve=>setImmediate(resolve));assert.deepEqual(received,[actor]);assert.deepEqual(calls,['/primetime/workforce-api/configuration','/primetime/workforce-api/session']);
+});

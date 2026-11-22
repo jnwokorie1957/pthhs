@@ -223,8 +223,9 @@ for (const file of workforceFiles) workforceGzip += gzipSync(await fs.readFile(f
 // Office tools, OCR controller and signature reuse bring this to 297,424 raw / 94,747 gzip bytes. This is a
 // build allowance for the reviewed live features, not a storage/billing quota.
 // Client-first forms, packet selection and page-by-page signing add first-party UI,
-// with no external runtime or new PDF library. Includes the requested idle warning and focused editors: 379 KB / 123 KB gzip.
-if (workforceBytes > 385_000 || workforceGzip > 125_000) errors.push(`workforce output exceeds 385 KB raw / 125 KB gzip budget: ${workforceBytes}/${workforceGzip}`);
+// Persistent packets, member linking and password confirmation retain readable sources and
+// compact served controllers. Measured 370,060 raw / 125,750 gzip; no new runtime library.
+if (workforceBytes > 385_000 || workforceGzip > 128_000) errors.push(`workforce output exceeds 385 KB raw / 128 KB gzip budget: ${workforceBytes}/${workforceGzip}`);
 // Lazy-loaded, self-hosted PDF/OCR libraries and English data are bounded separately.
 const readerFiles=publicFiles.filter(file=>path.relative(publicDir,file).replaceAll(path.sep,'/').startsWith('assets/authorization-reader/'));
 const readerBytes=(await Promise.all(readerFiles.map(file=>fs.stat(file)))).reduce((sum,stat)=>sum+stat.size,0);

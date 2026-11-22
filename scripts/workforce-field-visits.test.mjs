@@ -123,8 +123,8 @@ test('switching upload type away and back rejects its earlier extraction',async(
  assert.deepEqual(Array.from(s.calls.filter(c=>c.body?.data).at(-1).body.data.pages),[]);
 });
 test('closing a record rejects its pending PDF before a preview opens',async()=>{
- const pending=deferred(),s=setup(path=>path.endsWith('/pdf')?pending.promise:undefined);await s.start();await s.button('Open visit').onclick();
- const preview=s.button('View / print saved document').onclick();s.button('Close').onclick();pending.resolve(new Blob(['synthetic-pdf']));await preview;assert.equal(s.previews.length,0);
+ const pending=deferred(),s=setup(path=>path.endsWith('/preview')?pending.promise:undefined);await s.start();await s.button('Open visit').onclick();
+ const preview=s.button('Review document').onclick();s.button('Close').onclick();pending.resolve(new Blob(['synthetic-pdf']));await preview;assert.equal(s.previews.length,0);
 });
 test('switching office starts its own read and discards the prior office failure',async()=>{
  const pending=deferred();let initial=true;const s=setup(path=>{if(path.includes('?office=office-a')&&initial){initial=false;return pending.promise;}});

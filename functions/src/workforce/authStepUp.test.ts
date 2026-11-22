@@ -1,0 +1,5 @@
+import test from 'node:test';import assert from 'node:assert/strict';import {recentWorkforceIdentity} from './auth.js';
+test('authorization viewing accepts only a verified identity with a two-minute recent authentication',async()=>{
+ const now=Date.parse('2026-11-22T16:00:00Z');let age=121;const checks:boolean[]=[];const auth={verifyIdToken:async(_token:string,revoked:boolean)=>{checks.push(revoked);return {uid:'staff',email:'staff@example.invalid',email_verified:true,auth_time:now/1000-age};},getUser:async()=>({uid:'staff',email:'staff@example.invalid',emailVerified:true,disabled:false})} as any,req={get:()=> 'Bearer synthetic'};
+ assert.equal(await recentWorkforceIdentity(req,auth,now),'staff');await assert.rejects(recentWorkforceIdentity(req,auth,now,120),/recent_sign_in_required/);age=120;assert.equal(await recentWorkforceIdentity(req,auth,now,120),'staff');assert(checks.every(Boolean));age=-61;await assert.rejects(recentWorkforceIdentity(req,auth,now,120),/recent_sign_in_required/);
+});
