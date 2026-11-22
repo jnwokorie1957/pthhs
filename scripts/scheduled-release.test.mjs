@@ -192,7 +192,12 @@ test('actual workflow job conditions cannot run backend for scheduled Hosting/no
     const condition=workflow.match(new RegExp('^  '+job+':\\r?\\n(?:    #.*\\r?\\n)*    if: (.+)$','m'))[1];
     assert.equal(vm.runInNewContext(condition,{github:{event_name:'schedule'},needs:{release_scope:{outputs:{mode}}}}),false);
   }
-  assert.match(workflow,/cron: '7 5,6 \* \* \*'/);
-  assert.match(workflow,/if: steps.window.outputs.allow == 'true'/);
+  assert.match(workflow,/cron: '7 6 \* \* \*'/);
+  const publicationMode = workflow.match(/mode: \$\{\{ (.+) \}\}/)[1];
+  for (const mode of ['hosting', 'full', 'none']) {
+    const resolve = allow => vm.runInNewContext(publicationMode, {steps: {window: {outputs: {allow}}, scope: {outputs: {mode}}}});
+    assert.equal(resolve('false'), 'none');
+    assert.equal(resolve('true'), mode);
+  }
   assert.match(workflow,/cancel-in-progress: false/);
 });
