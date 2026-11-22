@@ -65,7 +65,8 @@ export class CaregiverOffice {
   if(ids.some(value=>typeof value!=='string'||!/^\d{1,10}$/.test(value)))throw new WorkforceError(503,'caregiver_schedule_unavailable');
   ids.sort((a,b)=>Number(a)-Number(b));
   const snapshot=createHash('sha256').update(JSON.stringify([target.office,target.hhaId,from,to,settings.revision,ids])).digest('hex');
-  const cursor=after?.split('.');
+  // Already-open portal pages may still submit the previous numeric visit cursor.
+  const cursor=after&&/^[1-9]\d{0,9}$/.test(after)?[snapshot,after]:after?.split('.');
   if(cursor&&(cursor.length!==2||cursor[0]!==snapshot||!ids.includes(cursor[1])))throw new WorkforceError(409,'schedule_changed_reload');
   const offset=cursor?ids.indexOf(cursor[1])+1:0,selected=ids.slice(offset,offset+3),items=[];
   for(const visit of selected){

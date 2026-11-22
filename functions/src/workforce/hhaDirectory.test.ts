@@ -54,7 +54,7 @@ test("roster pages use the approved office, return names only and disclose incom
  const syncedAt = new Date().toISOString();
  const rows = Array.from({length:51}, (_, index) => {
   const id = String(index + 100);
-  return {id, data: () => ({id, office:"12", firstName:"Sample", lastName:"Caregiver", status:"Active", fetchedAt:syncedAt, email:"private@example.invalid"})};
+  return {id, data: () => ({id, office:"12", firstName:"Sample", lastName:"Caregiver", status:"Active", fields:{EmployeeType:index===2?"Applicant":"Employee"}, fetchedAt:syncedAt, email:"private@example.invalid"})};
  });
  let offset = 0;
  const sortFields: unknown[] = [];
@@ -75,7 +75,7 @@ test("roster pages use the approved office, return names only and disclose incom
    offset = rows.findIndex(row => row.id === id) + 1;
    return query;
   },
-  select() { return query; },
+  select(...fields:string[]) { assert.ok(fields.includes("fields.EmployeeType")); return query; },
   limit(size: number) { return {get: async () => ({docs:rows.slice(offset, offset + size)})}; }
  };
  const db = {collection(name: string) {
@@ -89,7 +89,7 @@ test("roster pages use the approved office, return names only and disclose incom
   return {doc: () => ({get: async () => ({data: () => name === "workforceHhaSyncRuns" ? {state:"failed"} : {completedAt:syncedAt}})})};
  }} as unknown as Parameters<HhaDirectory["browse"]>[0];
  const first = await s.directory.browse(db);
- assert.equal(first.items.length, 50);
+ assert.equal(first.items.length, 49);assert.ok(!first.items.some(item=>item.hhaId==="102"));
  assert.equal(first.activeCount, 51);
  assert.deepEqual(sortFields.slice(0, 2), ["lastName", "firstName"]);
  assert.equal(first.syncedAt, syncedAt);

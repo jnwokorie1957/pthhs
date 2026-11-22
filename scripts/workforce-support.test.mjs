@@ -21,6 +21,13 @@ test('opening caregiver lookup and submitting whitespace never loads the roster'
  assert.deepEqual(requests,[]);assert.equal(s.node('caregiver-account-results').children.length,0);
  assert.equal(s.node('caregiver-roster-more').hidden,true);assert.match(s.node('caregiver-account-message').textContent,/Type a first or last name/);
 });
+test('explicit active roster browsing uses the existing office route and appends the next page',async()=>{
+ const requests=[],s=setup(async path=>{requests.push(path);return {items:[{...match,source:'hhaexchange',lastName:requests.length===1?'First':'Second'}],next:requests.length===1?'105':null,activeCount:2};});
+ s.emit('workforce-session',actor);await s.node('browse-active-caregivers').onclick();
+ assert.equal(s.node('caregiver-account-name').value,'');assert.equal(s.node('caregiver-roster-more').hidden,false);
+ await s.node('caregiver-roster-more').onclick();
+ assert.deepEqual(requests,['/staff/roster','/staff/roster?after=105']);assert.equal(s.node('caregiver-account-results').children.length,2);assert.equal(s.node('caregiver-roster-more').hidden,true);
+});
 test('clearing a name prevents an older lookup from restoring results',async()=>{
  let finish;const s=setup(()=>new Promise(resolve=>finish=resolve));const pending=s.search();
  s.node('caregiver-account-name').value='';s.node('caregiver-account-name').oninput({});await s.flush();

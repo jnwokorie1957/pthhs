@@ -152,22 +152,22 @@
   el('personnel-filter').onchange = () => { applicationSelection++; detail.replaceChildren(); status.textContent = ''; renderApplications(); };
   const moreCaregivers = el('caregiver-roster-more');
   let nextCaregiverPage = null;
-  async function search(after) {
+  async function search(after,browse=false) {
     clearTimeout(searchTimer);
     const query = el('caregiver-account-name').value.trim();
     const sequence = ++accountSelection, session = generation;
     if (!after) { results.replaceChildren(); accountDetail.replaceChildren(); }
     if (!after) moreCaregivers.hidden = true;
     moreCaregivers.disabled = true;
-    if (!query) {
+    if (!query && !browse) {
       results.replaceChildren(); accountDetail.replaceChildren();
       nextCaregiverPage = null; moreCaregivers.hidden = true; moreCaregivers.disabled = false;
       accountMessage.textContent = 'Type a first or last name to find a caregiver.';
       return;
     }
-    accountMessage.textContent = 'Finding caregivers…';
+    accountMessage.textContent = browse?'Reading the active office roster…':'Finding caregivers…';
     try {
-      const response = await workforceApi('/staff/accounts/lookup', {name:query});
+      const response = browse?await workforceApi('/staff/roster'+(after?'?after='+encodeURIComponent(after):'')):await workforceApi('/staff/accounts/lookup', {name:query});
       if (session !== generation || sequence !== accountSelection) return;
       nextCaregiverPage = query ? null : response.next;
       moreCaregivers.hidden = !nextCaregiverPage;
@@ -176,7 +176,7 @@
           : response.items.length ? 'Select a caregiver to open their profile.' : 'No matching caregivers found.';
         if(response.hhaUnavailable)accountMessage.textContent+=response.hhaCached?' Live HHA lookup is busy. Showing synchronized HHA names and portal matches.':' HHAeXchange is unavailable; portal matches only.';
       } else {
-        accountMessage.textContent = response.activeCount.toLocaleString() + ' active HHA caregivers available. '
+        accountMessage.textContent = response.activeCount.toLocaleString() + ' recently verified active HHA profiles. Showing office caregivers in alphabetical order. '
           + (response.syncedAt ? 'Last sync: ' + date(response.syncedAt) + ' CT.' : 'First sync pending.')
           + (response.refreshFailed ? ' The latest refresh failed.' : response.refreshRunning ? ' Refresh in progress.' : '');
       }
@@ -189,9 +189,11 @@
         button.type = 'button'; button.onclick = () => openAccount(match); results.append(button);
       }
     } catch (error) { if (session === generation && sequence === accountSelection) accountMessage.textContent = error.message; }
-    finally { if (session === generation) moreCaregivers.disabled = false; }
+    finally { if (session === generation && sequence === accountSelection) moreCaregivers.disabled = false; }
   }
-  moreCaregivers.onclick = () => search(nextCaregiverPage);
+  const browseActive=el('browse-active-caregivers');
+  if(browseActive)browseActive.onclick=()=>{if(can('accounts.support')){el('caregiver-account-name').value='';return search(null,true);}};
+  moreCaregivers.onclick = () => {if(nextCaregiverPage&&!moreCaregivers.disabled)return search(nextCaregiverPage,true);};
   window.WorkforcePersonnel = {cancelRecordRequests:()=>{applicationSelection++;accountSelection++;},closeRecord:view=>{applicationSelection++;accountSelection++;(view==='applications'?detail:accountDetail).replaceChildren();},openRoute:async(view,params)=>{const id=params.get('record');if(!/^[a-zA-Z0-9_-]{1,128}$/.test(id||''))return;if(view==='applications'&&can('applications.review'))return openApplication(id,params.get('tab')||'application',false);if(view==='accounts'&&can('accounts.support'))return openAccount(params.get('source')==='hhaexchange'?{source:'hhaexchange',hhaId:id}:{source:'portal',uid:id},params.get('tab')||'employment',false);},refresh:refreshApplications, browse:() => { if (can('accounts.support') && !results.childElementCount) search(); }};
   document.addEventListener('workforce-session-cleared', () => { moreCaregivers.hidden = true; nextCaregiverPage = null; });
   el('caregiver-account-search').onsubmit = event => { event.preventDefault(); if(event.currentTarget.reportValidity())return search(); };
