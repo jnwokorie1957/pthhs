@@ -172,5 +172,8 @@
     ++generation; hide(); document.dispatchEvent(new CustomEvent('workforce-session-cleared'));
     try { await auth.signOut(); } catch { message('Sign-out could not be confirmed. Close this browser session.'); }
   });
-  start();
+  // This is a deferred script. Wait for the remaining deferred workspace
+  // controllers before a cached login can publish its session event.
+  if (['loading', 'interactive'].includes(document.readyState)) document.addEventListener('DOMContentLoaded', start, {once:true});
+  else start();
 })();
