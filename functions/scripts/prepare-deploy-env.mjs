@@ -105,8 +105,11 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
   );
   const portalRelease=JSON.parse(readFileSync(path.join(root,'functions/workforce-deployment.json'),'utf8'));
   const content=legacyContent+workforceDeploymentEnvironment(portalRelease,readFileSync(path.join(root,'functions/src/workforce/http.ts'),'utf8'),reviewedApprovals(release).PRIMETIME_OPERATIONAL_DATA_APPROVED===true);
+  const embedKey=process.env.PRIMETIME_MAPS_EMBED_BROWSER_KEY || '';
+  if(embedKey && !/^AIza[\w-]{35}$/.test(embedKey)) throw Error('Invalid Maps Embed browser key');
+  const mapEnvironment=embedKey ? 'PRIMETIME_MAPS_EMBED_BROWSER_KEY='+embedKey+'\n' : '';
   // Fresh CI checkout only: never overwrite an operator's existing configuration.
-  writeFileSync(path.join(root, 'functions/.env.primetimehomehealthservices'), content, { flag: 'wx', mode: 0o600 });
+  writeFileSync(path.join(root, 'functions/.env.primetimehomehealthservices'), content+mapEnvironment, { flag: 'wx', mode: 0o600 });
   const enabled = content.split('\n').filter(line => /^PRIMETIME_[A-Z_]+_APPROVED=true$/u.test(line)).length;
   console.log(`Prepared non-secret deployment parameters: enabled=${enabled}; closed=${29 - enabled}. Credentials excluded.`);
 }

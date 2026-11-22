@@ -23,6 +23,10 @@ The owner explicitly confirmed that authorizations remain a later phase. Other l
 
 `WORKFORCE_STAFF_LATER_MODULES_APPROVED` is an initially empty, reviewed list of `caregivers,authorizations,forms,matching,activity,hr`. Each release still needs its existing role/office permissions and vendor/credential gates. Matching depends on its separately approved routing/SMS prerequisites; a module label cannot enable those. HR reminders and automatic caregiver sync remain held while their applicable module is unreleased. Independently approved caregiver intake, application email and HHA applicant-transfer workers retain their own launch/acceptance gates; their operational readiness must be reviewed separately and is not established by releasing the two staff views.
 
+### Field-director route planner in review
+
+The supervisory visit and admission route planner is staged in [draft PR #53](https://github.com/jnwokorie1957/pthhs/pull/53) for review after Phase 1. The draft includes optional nearby visits, a projected map, editable visit order and private fuel estimates. Before selecting a release date, verify the restricted Maps Embed browser key, the authenticated Google Routes response and a signed-in upload through cloud storage and document review.
+
 ## Form completion and export
 
 Individual admission, supervisory, assessment and survey records turn green and display **Completed — fully signed** only after the server records all required signatures. Server signing still enforces the configured required answers and reviewed-content hash. Partially signed records remain incomplete. Corrections retain the signed original and create an unsigned copy.

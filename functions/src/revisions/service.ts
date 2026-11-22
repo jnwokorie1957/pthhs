@@ -5,7 +5,7 @@ import { adaptVisitEvidence, evidenceIsFresh, type NormalizedVisitEvidence } fro
 import { evaluateVisit, summarizeMissingTokenDays, type VisitDiagnosis, type VisitDiagnosisIssue } from "./diagnosis.js";
 import { RevisionConfiguration, expectedRevision, recordId, strictObject, type RevisionPolicy } from "./policy.js";
 import { RevisionRecords, requirementStatus, type RequirementRecord, type RevisionContext } from "./records.js";
-import { zipDistanceMiles } from "./visitArea.js";
+import { zipDistanceMiles, visitZipPoint } from "./visitArea.js";
 import { planZipRoute } from "./visitRouting.js";
 import { publicRequirement } from "./visitDocuments.js";
 import { NotificationOutbox, notificationDeliveryCursor, type NotificationDeliveryAdapter, type NotificationEvidence, type NotificationRequest, type NotificationRule } from "./notifications.js";
@@ -257,7 +257,7 @@ export class RevisionBackend {
   }
   async recordVisitRoute(actor: RevisionActor, value: unknown) {
     const { officeId, timezone } = await this.scope(actor);
-    const input = strictObject(value, ["zips", "mpg", "regularPrice", "admissionZip", "day"], ["zips", "mpg", "regularPrice"]);
+    const input = strictObject(value, ["zips", "mpg", "regularPrice", "admissionZip", "day", "manualStops"], ["zips", "mpg", "regularPrice"]);
     const { day: requestedDay, ...route } = input;
     const now = this.now(), day = requestedDay ? date(requestedDay) : officeDate(now, timezone);
     const result = await planZipRoute(route, now);
@@ -265,7 +265,9 @@ export class RevisionBackend {
     await this.repository.change("revisionVisitRoutes_office_" + officeId, id, 0, actor.actorId, "visit_route_generated", () => ({
       id, revision: 1, updatedAt: at, officeId, actor: actor.actorId, day, ...result
     }));
-    return { id, zips: result.zips, routing: result.routing, minutes: result.minutes, miles: result.miles, officeZip: result.officeZip };
+    const embedKey = process.env.PRIMETIME_MAPS_EMBED_BROWSER_KEY || "";
+    return { id, stopZips: result.zips.slice(1, -1), zips: result.zips, points: Object.fromEntries(result.zips.map(zip => [zip, visitZipPoint(zip) ?? null])),
+      embedKey: /^AIza[\w-]{35}$/.test(embedKey) ? embedKey : null, routing: result.routing, minutes: result.minutes, miles: result.miles, officeZip: result.officeZip };
   }
   async callCandidates(actor: RevisionActor, value: unknown) {
     const input = strictObject(value, ["id", "revision", "date", "visitId", "lastId", "note"]), serviceDate = date(input.date), visitId = identifier(input.visitId), scope = await this.fence(actor);

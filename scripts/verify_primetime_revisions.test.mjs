@@ -135,6 +135,7 @@ function harness(custom) {
     const classes = new Set();
     const item = { tag, children: [], handlers: new Map(), value: '', disabled: false, hidden: false, className: '', ownText: '',
       classList: { contains: name => classes.has(name), add: name => classes.add(name) },
+      contains(target) { return descendants(this).includes(target); },
       append(...children) { this.children.push(...children); if (this.tag === 'select' && !this.value) this.value = this.children[0]?.value || ''; },
       replaceChildren(...children) { this.children = children; this.ownText = ''; }, setAttribute(name, value) { this[name] = value; },
       addEventListener(type, fn) { const list = this.handlers.get(type) || []; list.push(fn); this.handlers.set(type, list); },
@@ -151,7 +152,7 @@ function harness(custom) {
   }
   function descendants(item) { return item.children.flatMap(child => [child, ...descendants(child)]); }
   const element = id => { if (!elements.has(id)) elements.set(id, node(id === 'revisionRequirementForm' ? 'form' : 'div')); return elements.get(id); };
-  const document = { getElementById: element, createElement: node, addEventListener(type, fn) { const list = listeners.get(type) || []; list.push(fn); listeners.set(type, list); }, dispatchEvent(event) { for (const fn of listeners.get(event.type) || []) fn(event); return true; } };
+  const document = { getElementById: element, createElement: node, createElementNS: (_, name) => node(name), addEventListener(type, fn) { const list = listeners.get(type) || []; list.push(fn); listeners.set(type, list); }, dispatchEvent(event) { for (const fn of listeners.get(event.type) || []) fn(event); return true; } };
   const window = { sessionStorage: { getItem() { return 'demo'; }, setItem() {}, removeItem() {} } };
   window.primetimeApiFetch = async (path, options = {}) => {
     calls.push({ path, options });
@@ -166,7 +167,7 @@ function harness(custom) {
     get(name) { return this.fields.find(field => field[0] === name)?.[1] ?? null; }
     [Symbol.iterator]() { return this.fields[Symbol.iterator](); }
   }, Date: class extends Date { static now() { return now; } }, crypto: { randomUUID: () => 'new-fixture-id' }, console });
-  vm.runInContext(asset('data-source.js'), context); vm.runInContext(asset('demo-data.js'), context); vm.runInContext(asset('revisions.js'), context);
+  vm.runInContext(asset('data-source.js'), context); vm.runInContext(asset('demo-data.js'), context); vm.runInContext(asset('visit-map.js'), context); vm.runInContext(asset('revisions.js'), context);
   const emit = (type, detail) => { const event = new Event(type); event.detail = detail; document.dispatchEvent(event); };
   return { element, window, calls, descendants, emit, advance(ms) { now += ms; },
     async openLive(view = 'revisions') { emit('primetime-ready'); window.primetimeDataMode.setMode('live'); emit('primetime-view-changed', { view }); await tick(); await tick(); },
@@ -629,4 +630,36 @@ test('an admission offers an unselected off-page visit and adds it to the route 
   await app.submit(form);
   assert.deepEqual(plans[1], { zips: ['77035', '77036'], mpg: 28, regularPrice: null, day: '2026-11-23', admissionZip: '77035' });
   assert.match(app.text('revisionVisitRouteResult'), /77035.*Admission.*77036.*919008/);
+});
+
+test('field director can preview, reverse and save a route with recalculated totals', async () => {
+  const saves=[];
+  const app=harness((path, options)=>{
+    if(path.endsWith('/requirements/near-admission')) return {ok:true,json:async()=>page([{id:'visit-a',type:'supervisory_visit',subject:{id:'12345'},
+      followUp:{zip:'77036',assignee:'Field director'},miles:4.9,nextDueDate:'2026-11-23'}])};
+    if(path.endsWith('/requirements/route')){
+      const body=JSON.parse(options.body);
+      if(body.manualStops)saves.push(body.manualStops);
+      const zips=body.manualStops?['77036','77035']:['77035','77036'];
+      return {ok:true,json:async()=>({ok:true,routing:'google_traffic',zips:['77035',...zips,'77035'],stopZips:zips,officeZip:'77035',
+        embedKey:'test-browser-key',minutes:body.manualStops?32:36,miles:body.manualStops?12.5:13.2, points:{'77035':[29.65,-95.48],'77036':[29.71,-95.52]}})};
+    }
+  });
+  await app.openLive();app.element('revisionAdmissionZip').value='77035';await app.click('revisionSuggest');
+  const box=app.descendants(app.element('revisionSuggestions')).find(el=>el.type==='checkbox');box.checked=true;
+  for(const fn of box.handlers.get('change'))fn();
+  const form=app.element('revisionVisitRoute');form.append({tag:'button',type:'submit',children:[]});await app.submit(form);
+  const host=app.element('revisionVisitRouteResult'), find=(pred)=>app.descendants(host).find(pred);
+  const click=async el=>{assert.ok(el);for(const fn of el.handlers.get('click'))await fn();};
+  const waypoints=()=>new URL(find(el=>el.tag==='iframe').src).searchParams.get('waypoints');
+  assert.match(waypoints(),/^77035.*77036/);
+  await click(find(el=>el['aria-label']?.endsWith('Admission later')));
+  assert.match(waypoints(),/^77036.*77035/);
+  assert.doesNotMatch(find(el=>el.tag==='iframe').src,/12345|visit-a|admission/i);
+  assert.doesNotMatch(host.textContent,/36 min driving/);
+  await click(find(el=>el.textContent==='Save revised route'));
+  assert.deepEqual(saves,[[{zip:'77036',requirementId:'visit-a'},{zip:'77035',requirementId:null}]]);
+  assert.match(host.textContent,/32 min driving.*12.5 mi/);
+  await click(find(el=>el.textContent==='Show stop overview'));
+  assert.ok(find(el=>el.tag==='svg'));
 });

@@ -679,46 +679,41 @@
       .sort((a, b) => (a.followUp.zip || 'zzzzz').localeCompare(b.followUp.zip || 'zzzzz')
         || (a.nextDueDate || '9999').localeCompare(b.nextDueDate || '9999'));
   }
-  function routeLink(stops, label) {
-    const office = '11602 Burdine St, Houston, TX 77035';
-    const address = zip => zip === 'office' ? office : zip + ', TX, USA';
-    const params = new URLSearchParams({ api: '1', origin: address(stops[0]), destination: address(stops.at(-1)), travelmode: 'driving' });
-    if (stops.length > 2) params.set('waypoints', stops.slice(1, -1).map(address).join('|'));
-    const link = node('a', label, 'btn secondary');
-    link.href = 'https://www.google.com/maps/dir/?' + params; link.target = '_blank'; link.rel = 'noopener noreferrer';
-    return link;
+  function renderRoute(result, visits, admission, stillSelected) {
+    const host = get('revisionVisitRouteResult'), panel = node('div');
+    host.replaceChildren(panel);
+    const order = result.stopZips || result.zips.slice(1, -1);
+    if (!result.stopZips && (admission === result.officeZip || visits.some(v => v.followUp.zip === result.officeZip))) {
+      if (admission && admission !== result.officeZip) order.push(result.officeZip);
+      else order.unshift(result.officeZip);
+    }
+    const stops = [];
+    const add = (zip, label, requirementId) => stops.push({ zip, requirementId, label: zip + ' — ' + label,
+      point: result.points?.[zip], address: zip + ', TX, USA' });
+    for (const zip of order) {
+      if (zip === admission) add(zip, 'Admission', null);
+      for (const visit of visits.filter(item => item.followUp.zip === zip)) {
+        add(zip, 'Member ' + visit.subject.id + ' · ' + visitTitle(visit.type), visit.id);
+      }
+    }
+    const valid = () => ready && active && controller.isLive() && host.contains(panel) && stillSelected();
+    window.primetimeVisitMap.mount(panel, { stops, estimates: result, embedKey: result.embedKey, active: valid, errorText,
+      description: (result.routing === 'google_traffic' ? 'Initial order uses Google traffic estimates. ' : '') +
+        'Visit locations use ZIP centers. Allow extra time for local travel and appointments.',
+      save: async ordered => {
+        if (!valid() || loading) throw new Error('Route changed. Build the route again.');
+        const day = get('revisionVisitDay')?.value, { ticket, untrack } = begin();
+        try {
+          const saved = await request('requirements/route', ticket, { method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ zips: [...new Set(ordered.map(stop => stop.zip))], mpg: 28, regularPrice: null,
+              ...(admission ? { admissionZip: admission } : {}), ...(day ? { day } : {}),
+              manualStops: ordered.map(({ zip, requirementId }) => ({ zip, requirementId })) }) });
+          return current(ticket) && valid() ? saved : null;
+        } catch (error) { if (current(ticket)) clearRevokedAccess(error); throw error; }
+        finally { untrack?.(); if (current(ticket)) { loading = false; controls(); } }
+      } });
   }
-  function renderRoute(result, visits, admission) {
-    const host = get('revisionVisitRouteResult');
-    const selected = new Map();
-    for (const visit of visits) {
-      const zip = visit.followUp.zip;
-      selected.set(zip, [...(selected.get(zip) || []), visit]);
-    }
-    const optimized = result.routing === 'google_traffic';
-    const inner = result.zips.slice(1, -1);
-    if (admission === result.officeZip || (!admission && selected.has(result.officeZip))) inner.unshift(result.officeZip);
-    else if (selected.has(result.officeZip)) inner.push(result.officeZip);
-    const list = node('ol');
-    for (const zip of inner) {
-      const members = selected.get(zip);
-      if (zip === admission) list.append(node('li', zip + ' — Admission'));
-      if (!members) continue;
-      list.append(node('li', [zip, members[0].area, members.map(item => 'Member ' + item.subject.id + ' · ' + visitTitle(item.type)).join(', ')].filter(Boolean).join(' — ')));
-    }
-    host.replaceChildren(node('p', optimized ? 'Recommended order using Google traffic estimates.' :
-      result.routing === 'google_unavailable' ? 'Google traffic estimates are temporarily unavailable. Review the ZIP stops in Google Maps.' :
-        result.routing === 'single_zip' ? 'All selected visits are in the office ZIP. Use the member addresses to plan local stops.' :
-          'ZIP stops are grouped for Google Maps. Road-time optimization requires the Google Routes API.'),
-      list);
-    if (optimized) host.append(node('p', Math.round(result.minutes) + ' min driving · ' + result.miles.toFixed(1) + ' mi'));
-    const stops = ['office', ...inner, 'office'];
-    for (let start = 0; start + 1 < stops.length; start += 4) {
-      const segment = stops.slice(start, start + 5);
-      host.append(routeLink(segment, stops.length <= 5 ? 'Open in Google Maps' : 'Open route part ' + (start / 4 + 1) + ' in Google Maps'));
-    }
-    if (optimized) host.append(node('p', 'Driving estimates use traffic at planning time. Local travel between visits in the same ZIP and time on site are extra.'));
-  }
+  get('revisionMapSample')?.addEventListener('click', () => window.primetimeVisitMap.sample(get('revisionMapSampleResult')));
   function renderRecords(kind) {
     const host = 'revision' + kind[0].toUpperCase() + kind.slice(1), page = pages[kind];
     if (!page) return;
@@ -843,7 +838,7 @@
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ zips, mpg: 28, regularPrice: null, ...(day ? { day } : {}), ...(admission ? { admissionZip: admission } : {}) })
       });
-      if (current(ticket) && stillSelected()) renderRoute(result, visits, admission);
+      if (current(ticket) && stillSelected()) renderRoute(result, visits, admission, stillSelected);
     } catch (error) {
       if (current(ticket) && stillSelected() && !clearRevokedAccess(error)) host.textContent = errorText(error);
     } finally {

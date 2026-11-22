@@ -1,6 +1,6 @@
 import { GoogleAuth } from "google-auth-library";
 import { WorkflowError } from "../operations/reads.js";
-import { strictObject } from "./policy.js";
+import { recordId, strictObject } from "./policy.js";
 import { chicagoDate } from "../workforce/dates.js";
 import { visitZipPoint } from "./visitArea.js";
 
@@ -80,7 +80,7 @@ async function mapsHeaders(): Promise<Record<string, string> | null> {
 }
 
 async function googleMatrix(zips: string[], credentials: Record<string, string>): Promise<(Leg | null)[][]> {
-  const waypoints = zips.map(zip => ({ waypoint: { address: zip === OFFICE_ZIP ? OFFICE_ADDRESS : zip + ", TX, USA" } }));
+  const waypoints = zips.map((zip, index) => ({ waypoint: { address: index === 0 ? OFFICE_ADDRESS : zip + ", TX, USA" } }));
   const response = await fetch("https://routes.googleapis.com/distanceMatrix/v2:computeRouteMatrix", {
     method: "POST", redirect: "error", signal: AbortSignal.timeout(12_000),
     headers: { ...credentials, "Content-Type": "application/json",
@@ -103,7 +103,7 @@ async function googleMatrix(zips: string[], credentials: Record<string, string>)
 }
 
 function geographicOrder(zips: string[], first: number) {
-  const points = zips.map(visitZipPoint);
+  const points = zips.map((zip, index) => index === 0 ? [29.654012, -95.480963] : visitZipPoint(zip));
   if (points.some(point => !point)) return [...zips, OFFICE_ZIP];
   const result = quickestRoundTrip(points.map(from => points.map(to => {
     const north = to![0] - from![0], east = (to![1] - from![1]) * Math.cos((to![0] + from![0]) * Math.PI / 360);
@@ -114,28 +114,53 @@ function geographicOrder(zips: string[], first: number) {
 }
 
 export async function planZipRoute(value: unknown, now = new Date()) {
-  const input = strictObject(value, ["zips", "mpg", "regularPrice", "admissionZip"], ["zips", "mpg", "regularPrice"]);
+  const input = strictObject(value, ["zips", "mpg", "regularPrice", "admissionZip", "manualStops"], ["zips", "mpg", "regularPrice"]);
   if (!Array.isArray(input.zips) || !input.zips.length || input.zips.length > 9 ||
     input.zips.some(zip => typeof zip !== "string" || !/^77[0-8]\d{2}$/.test(zip))) throw new WorkflowError("invalid_route_zips");
   if (typeof input.mpg !== "number" || !Number.isFinite(input.mpg) || input.mpg < 5 || input.mpg > 100 ||
     (input.regularPrice !== null && (typeof input.regularPrice !== "number" || !Number.isFinite(input.regularPrice) ||
       input.regularPrice <= 0 || input.regularPrice > 30))) throw new WorkflowError("invalid_route_fuel_input");
   if (input.admissionZip && (typeof input.admissionZip !== "string" || !input.zips.includes(input.admissionZip))) throw new WorkflowError("invalid_route_zips");
-  const zips = [...new Set<string>([OFFICE_ZIP, ...(input.admissionZip ? [String(input.admissionZip)] : []), ...input.zips])];
-  const first = input.admissionZip ? zips.indexOf(String(input.admissionZip)) : 0;
+  const orderedZips = [...new Set<string>([...(input.admissionZip ? [String(input.admissionZip)] : []), ...input.zips])];
+  const zips = [OFFICE_ZIP, ...orderedZips];
+  const first = input.admissionZip ? 1 : 0;
+  let manualStops: { zip: string; requirementId: string | null }[] | null = null;
+  if (input.manualStops !== undefined) {
+    if (!Array.isArray(input.manualStops) || !input.manualStops.length || input.manualStops.length > 1200) throw new WorkflowError("invalid_route_stops");
+    manualStops = input.manualStops.map(value => {
+      const stop = strictObject(value, ["zip", "requirementId"]);
+      if (typeof stop.zip !== "string" || !orderedZips.includes(stop.zip) || (stop.requirementId === null && stop.zip !== input.admissionZip))
+        throw new WorkflowError("invalid_route_stops");
+      return { zip: stop.zip, requirementId: stop.requirementId === null ? null : recordId(stop.requirementId) };
+    });
+    if (new Set(manualStops.map(stop => stop.requirementId)).size !== manualStops.length ||
+      new Set(manualStops.map(stop => stop.zip)).size !== orderedZips.length ||
+      manualStops.some(stop => stop.requirementId === null) !== Boolean(input.admissionZip)) throw new WorkflowError("invalid_route_stops");
+  }
+  const orderedIndices = manualStops && [0, ...manualStops.map(stop => 1 + orderedZips.indexOf(stop.zip)), 0];
   const prices = fuelPrices(now);
-  let route: Route | null = null, routing = zips.length === 1 ? "single_zip" : "google_unconfigured";
+  let route: Route | null = null, routing = "google_unconfigured";
   try {
-    const credentials = zips.length === 1 ? null : await mapsHeaders();
+    const credentials = await mapsHeaders();
     if (credentials) {
-      route = quickestRoundTrip(await googleMatrix(zips, credentials), first);
+      const matrix = await googleMatrix(zips, credentials);
+      if (orderedIndices) {
+        route = { order: orderedIndices, meters: 0, seconds: 0 };
+        for (let i = 1; i < orderedIndices.length; i++) {
+          const leg = matrix[orderedIndices[i - 1]!]![orderedIndices[i]!];
+          if (!leg) { route = null; break; }
+          route.meters += leg.meters;
+          route.seconds += leg.seconds;
+        }
+      } else route = quickestRoundTrip(matrix, first);
       routing = route ? "google_traffic" : "google_unavailable";
     }
   } catch { routing = "google_unavailable"; }
   const currentPrices = await prices, regularPrice = input.regularPrice ?? currentPrices?.houston ?? null;
   const miles = route ? route.meters / 1609.344 : null;
   const gallons = miles === null ? null : miles / input.mpg;
-  return { routing, officeZip: OFFICE_ZIP, zips: route ? route.order.map(index => zips[index]!) : geographicOrder(zips, first),
+  const order = route?.order ?? orderedIndices;
+  return { routing, manualStops, officeZip: OFFICE_ZIP, zips: order ? order.map(index => zips[index]!) : geographicOrder(zips, first),
     miles, minutes: route ? route.seconds / 60 : null, gallons, fuelCost: gallons !== null && regularPrice !== null ? gallons * regularPrice : null,
     mpg: input.mpg, admissionZip: input.admissionZip ?? null, regularPrice, prices: currentPrices };
 }

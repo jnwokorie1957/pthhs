@@ -50,3 +50,30 @@ test("ZIP route sends only the public office address and ZIPs to Google and esti
   assert.equal(route.fuelCost?.toFixed(2), "0.73");
   await assert.rejects(planZipRoute({ zips: ["Member Name, 77479"], mpg: 28, regularPrice: 3 }), /invalid_route_zips/);
 });
+
+test("staff order preserves repeated ZIPs, separates the office from its ZIP center, and recalculates distance and fuel", async context => {
+  const oldKey = process.env.PRIMETIME_GOOGLE_ROUTES_KEY;
+  process.env.PRIMETIME_GOOGLE_ROUTES_KEY = "synthetic";
+  context.after(() => {
+    if (oldKey === undefined) delete process.env.PRIMETIME_GOOGLE_ROUTES_KEY;
+    else process.env.PRIMETIME_GOOGLE_ROUTES_KEY = oldKey;
+  });
+  context.mock.method(global, "fetch", async (url: string, options?: RequestInit) => {
+    if (url.includes("aaa.com")) return new Response("", { status: 502 });
+    const body = JSON.parse(String(options?.body));
+    assert.deepEqual(body.origins.map((v: { waypoint: { address: string } }) => v.waypoint.address),
+      ["11602 Burdine St, Houston, TX 77035", "77035, TX, USA", "77036, TX, USA"]);
+    assert.doesNotMatch(String(options?.body), /visit-a|visit-b|visit-c/);
+    return Response.json([[0,2,900],[2,1,300],[1,2,240],[2,0,720]].map(([i,j,n]) =>
+      ({ originIndex:i,destinationIndex:j,condition:"ROUTE_EXISTS",duration:n+"s",distanceMeters:n!*10 })));
+  });
+  const manualStops = [{zip:"77036",requirementId:"visit-a"},{zip:"77035",requirementId:null},
+    {zip:"77035",requirementId:"visit-b"},{zip:"77036",requirementId:"visit-c"}];
+  const input={ zips:["77035","77036"],mpg:28,regularPrice:3.25,admissionZip:"77035",manualStops };
+  const result=await planZipRoute(input);
+  assert.deepEqual(result.manualStops,manualStops);
+  assert.deepEqual(result.zips,["77035","77036","77035","77035","77036","77035"]);
+  assert.equal(result.minutes,36);
+  assert.equal(result.fuelCost?.toFixed(2),"1.56");
+  await assert.rejects(planZipRoute({...input,manualStops:[...manualStops,manualStops[0]]}),/invalid_route_stops/);
+});
