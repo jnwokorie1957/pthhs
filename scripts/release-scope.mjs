@@ -9,11 +9,20 @@ const MARKETING_FILES = new Set([
   'PTHHS_SENSITIVE_TERM_REGISTER.csv', 'public/articles.html',
   'public/home-care-blog.html', 'public/sitemap.xml',
   'scripts/site-polish.mjs', 'scripts/verify_pthhs_articles.py',
+  'docs/seo/sitemap-content-dates.json',
 ]);
 const BOOTSTRAP_FILES = new Set([
   '.github/workflows/deploy-firebase.yml', 'scripts/release-scope.mjs',
   'scripts/release-scope.test.mjs', 'scripts/verify-hosting-only.test.mjs',
   'scripts/build-and-verify.sh', 'docs/releases/HOSTING_RELEASE.md',
+]);
+// Exact bootstrap surface. Keep this distinct from the pinned Hosting-receipt
+// allowlist: this path suppresses deployment rather than authorizing it.
+const NON_DEPLOYING_CONTROL_FILES = new Set([
+  ...BOOTSTRAP_FILES,
+  'docs/releases/STAFF_RELEASE_POLICY.md',
+  'scripts/deployment-window.mjs', 'scripts/deployment-window.test.mjs',
+  'scripts/scheduled-release.mjs', 'scripts/scheduled-release.test.mjs',
 ]);
 export function marketingPath(path) {
   return MARKETING_FILES.has(path) ||
@@ -73,6 +82,13 @@ export function classifyPush(before, after, repo) {
     assert.equal(repo.publicTree(receipt.source_sha),receipt.public_tree_sha, 'Public tree differs from pinned tested source');
     return 'hosting';
   }
+  if (paths.some(path=>NON_DEPLOYING_CONTROL_FILES.has(path))) {
+    assert(paths.every(path=>NON_DEPLOYING_CONTROL_FILES.has(path)),
+      'Release-control changes must be isolated from deployable changes');
+    repo.regular(before,paths); repo.regular(after,paths);
+    for (const path of paths) repo.read(after,path); // Reject absent/deleted control files.
+    return 'none';
+  }
   if (paths.every(marketingPath)) {
     repo.regular(before,paths); repo.regular(after,paths);
     return 'hosting';
@@ -87,7 +103,7 @@ export function classifyEvent(eventName, ref, event, sha, repo) {
     assert.equal(event.inputs?.deployment_target,'hosting');
     return 'hosting';
   }
-  if(eventName==='schedule'){repo.commit(sha);return 'full';}
+  assert.notEqual(eventName, 'schedule', 'Scheduled releases require verified component baselines');
   assert.equal(eventName,'push');
   assert.equal(event.after,sha, 'Push head differs from checked-out release');
   assert.equal(event.forced,false, 'Forced pushes are not releases');
@@ -103,9 +119,44 @@ export function releaseSelection(eventName, ref, event, sha, repo) {
   return {mode,releaseSha};
 }
 
+export function deliveredSource(run, repo) {
+  repo.commit(run.head_sha);
+  if (run.event === 'push') {
+    const parents = repo.parents(run.head_sha);
+    assert(parents.length, 'Missing delivery parent');
+    if (repo.files(parents[0], run.head_sha).includes(RECEIPT)) {
+      return releaseSelection('push', 'refs/heads/main', {
+        before: parents[0], after: run.head_sha, forced: false, deleted: false,
+      }, run.head_sha, repo).releaseSha;
+    }
+  }
+  return run.head_sha;
+}
+
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
-  const {mode,releaseSha} = releaseSelection(process.env.GITHUB_EVENT_NAME,process.env.GITHUB_REF,
-    JSON.parse(fs.readFileSync(process.env.GITHUB_EVENT_PATH,'utf8')),process.env.GITHUB_SHA,gitRepository());
+  const repo = gitRepository();
+  let selection;
+  if (process.env.GITHUB_EVENT_NAME === 'schedule') {
+    assert.equal(process.env.GITHUB_REF, 'refs/heads/main');
+    const {deliveryBaselines, scheduledPlan} = await import('./scheduled-release.mjs');
+    const request = async path => {
+      assert(process.env.GITHUB_TOKEN, 'Missing release-history access');
+      const response = await fetch('https://api.github.com' + path, {headers: {
+        Accept: 'application/vnd.github+json', Authorization: 'Bearer ' + process.env.GITHUB_TOKEN,
+        'X-GitHub-Api-Version': '2022-11-28',
+      }});
+      assert(response.ok, `Could not verify delivery history: HTTP ${response.status}`);
+      return response.json();
+    };
+    const baselines = await deliveryBaselines(process.env.GITHUB_REPOSITORY, process.env.GITHUB_RUN_ID,
+      request, run => deliveredSource(run, repo));
+    selection = scheduledPlan(process.env.GITHUB_SHA, baselines, repo, marketingPath);
+    console.log('Verified delivery baselines:', JSON.stringify(baselines));
+  } else {
+    selection = releaseSelection(process.env.GITHUB_EVENT_NAME, process.env.GITHUB_REF,
+      JSON.parse(fs.readFileSync(process.env.GITHUB_EVENT_PATH,'utf8')), process.env.GITHUB_SHA, repo);
+  }
+  const {mode, releaseSha} = selection;
   fs.appendFileSync(process.env.GITHUB_OUTPUT, `mode=${mode}\nrelease_sha=${releaseSha}\n`);
   console.log(`Verified release scope: ${mode}; source: ${releaseSha}`);
 }

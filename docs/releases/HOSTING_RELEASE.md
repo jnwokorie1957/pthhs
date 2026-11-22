@@ -1,14 +1,25 @@
 # Scoped Hosting releases
 
 Ordinary main pushes containing only the explicit article/marketing allowlist
-select Hosting-only. Other ordinary pushes preserve the existing full release
-behavior. Missing comparisons, forced pushes, invalid receipt pushes or scope
+select Hosting-only. An independently reviewed push confined to the named
+release-control and policy files starts no deployment jobs; a push mixing
+those files with any other path is refused. Other ordinary pushes preserve the
+existing full release behavior. Missing comparisons, forced pushes, invalid
+receipt pushes or scope
 verification failures start no deployment jobs. Manual dispatch still requires
 main and deployment_target=hosting. No credential, permission or IAM change.
 
 Hosting-only runs the complete npm release gate and the existing Hosting guard
 before deploying to the existing live site. Both backend jobs depend on verified
 scope and require full mode. They cannot run for a valid Hosting-only receipt.
+
+The November 19 local scheduled-release candidate separates Hosting, Functions
+and analytics delivery evidence. Article-only changes select Hosting, mixed
+article/non-marketing changes are refused, and no-change selects none. Non-article
+changes retain existing full-release selection and all its approval/gates; this
+does not clear a held backend release. The midnight guard remains unchanged. See
+[candidate policy and remaining integration limits](STAFF_RELEASE_POLICY.md).
+This is a local candidate, not a production release receipt.
 
 ## Recovering an already-pushed, tested article
 

@@ -2,7 +2,41 @@
 
 Owner instruction, November 15, 2026: protect active work; use midnight Central for releases that cannot safely run while the portal is in use.
 
-Ordinary pushes to main queue for the midnight America/Chicago window. Two UTC cron entries cover Central standard and daylight time; the local-hour guard permits only midnight. Scheduled runs compare code and site changes with the last verified full deployment and skip unchanged releases. Deferred, partial and Hosting-only runs do not count as a full deployment.
+Ordinary pushes to main queue for the midnight America/Chicago window. Two UTC cron entries cover Central standard and daylight time; the local-hour guard permits only midnight.
+
+## Proposed local repair — November 19, 2026 (not released)
+
+Under the owner's approved article-release isolation scope, scheduled selection
+tracks the latest verified Hosting, Functions and analytics deliveries separately.
+A Hosting-only success advances only Hosting evidence. An already delivered
+article therefore does not queue another full release just because the last
+backend release is older. No-change selection starts no deployment jobs.
+
+Article-only selection admits the existing marketing/article paths and article
+sitemap-date registry. Non-deployed Markdown/text documentation and explicit
+reviewed release-control files do not alone require deployment. Each component
+is compared with its own delivered inputs; unknown/shared paths cannot qualify
+as article-only. A pending article combined with non-marketing changes is refused.
+When there is no pending article change, non-article changes retain the existing
+full-release selection and gates. This corrects the earlier local candidate's
+overbroad backend-only hold; it does not grant new backend approval, clear any
+existing owner hold, alter source gates or authorize an actual release. Existing
+manual Hosting and reviewed non-control push behavior remain unchanged. The
+control-only rollout is separate: exact reviewed control paths select no push
+deployment. Mixing them with any other path requires separate commits and
+review. Do not pair the rollout with an article or rely on timing or a
+commit-message override as the deployment boundary.
+
+Baseline discovery uses exact successful deployment jobs from main. It refuses
+missing or ambiguous history, reruns, in-progress releases, partial/failed
+deliveries, incomplete job lists and missing/non-ancestor Git objects. History
+is bounded to five 100-run pages; insufficient history requires reconciliation.
+Receipt-triggered Hosting uses its validated pinned source, not the receipt head.
+No token, credential, permission, source-read or record authority changes.
+
+Rollback remains a reviewed forward revert, checked against current delivery
+evidence. Selecting an older checkout or bypassing held changes is not recovery.
+Local tests are not evidence that this policy or the drawer article is deployed.
 
 A reviewed, backward-compatible release may run during office hours when its merge/commit message contains `[compatible]`. Put this marker in the PR title only after verifying compatibility with already-open portal pages and previous record formats. The current presentation update preserves existing API fields, handles old and new PDF page layouts and does not force reloads. Breaking API, schema, session or document changes must not use this marker. Existing explicit manual releases remain Hosting-only; they cannot deploy backend services.
 
