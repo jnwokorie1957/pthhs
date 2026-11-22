@@ -1,27 +1,23 @@
 # Staff portal release plan
 
-Owner decision: November 22, 2026, America/Chicago. This supersedes a broad staff-portal launch. It does not approve new HHA writes or a TMHP integration.
+The owner confirmed this four-release plan on November 22, 2026. Each release has one operational focus. The owner can preview later workflows within existing office and record permissions. Staff receive each additional workflow only after explicit release approval.
 
-## January 1, 2027 — Phase 1
+| Release | Staff workflow | Evidence for the owner’s release decision |
+| --- | --- | --- |
+| **1 · Recruiting** | **January 1, 2027.** Review a submitted caregiver application, print its job-related answers, and prepare, review and publish job opportunities. | A recruiting user can find a submitted application in their assigned office, review it and print the selected application. A permitted publisher can post a reviewed opening and see the intended listing. A recruiting account cannot reach later workflows through navigation or a direct URL. |
+| **2 · Staffing and supervisory visits** | **Tentative review in February or March 2027**, after the office is comfortable with recruiting. Browse members and hired caregivers, view current schedules, and prepare supervisory visits with an HHA-suggested client and a manual visit override. | Reconcile full source and office rosters, resolve unmatched hires, verify current schedules and demonstrate an editable visit selection that survives reopening. Identify ongoing assignments without scheduled shifts. Verify later-phase admission and assessment workflows have separate access before opening supervisory visits to staff. |
+| **3 · Admissions and coverage** | Review eligibility and authorizations, complete admission forms, collect signatures and retrieve the completed documents from encrypted storage. | Confirm payer and member linkage, effective dates, encrypted retrieval, signature completeness and corrected-copy handling with approved office roles. |
+| **4 · Billing and remittances** | Prepare billing handoffs and reconcile incoming TMHP or payer 835 remittances to claims and outstanding balances. | Establish the authorized trading-partner connection, reconcile a test remittance including adjustments, and approve the exception and duplicate-handling process before live use. |
 
-At midnight Central (`2027-01-01T06:00:00.000Z`), the released staff workflows are:
+A later release needs a separate owner decision. February and March are planning estimates. Dates alone do not expand access. Automated caregiver matching can follow Phase 2 once mileage, hours and contact preferences are verified. Finance integration work is deferred to Phase 4.
 
-- Review submitted applicants' basic, job-related application information.
-- Prepare, review and publish job opportunities, using existing privacy-review and office-permission controls.
+## Recruiting access and owner preview
 
-Identity scans, Social Security documents, clinical records and the full HR personnel folder are not part of basic applicant review. Existing staff account/security administration remains available only to its expressly authorized administrators. Home shows the permitted recruiting tools.
+Phase 1 starts at midnight Central on January 1, 2027. Staff view and print the same recruiting fields, including contact information, availability, education and work experience. Identity scans, tax forms, bank details and the personnel packet remain restricted to their separate workflows. Job publication uses the existing office, permission, review and caregiver-board controls.
 
-`WORKFORCE_STAFF_PHASED_RELEASE=true` enables the release boundary. Session grants are projected to the released permissions; server routes and permission checks independently enforce it. URLs, old sessions and broad owner grants cannot enable an unreleased module after launch. Original grants are preserved, not rewritten. Release approval never grants a staff member a permission they did not already have.
+The phased-release setting restricts both session navigation and server routes. Owner preview continues across January 1. Staff retain only their released workflows and their existing office and role permissions. Existing security administration remains restricted to authorized administrators.
 
-The existing owner-only prelaunch preview remains available until January 1 for reviewing upcoming work. Ordinary office accounts receive the limited release scope. After January 1, owners also need a later-module release before using its records, while retaining separately authorized security administration.
-
-Public opportunity publication remains behind the existing caregiver launch window and authenticated board. Its reviewed publication flag is enabled for the January launch; it does not publish draft/unreviewed openings or open the board before its launch window, except existing personally authorized early access.
-
-## Later phases — dates unassigned
-
-The owner explicitly confirmed that authorizations remain a later phase. Other later modules are caregivers, HR/personnel documents, clinical forms/admission packets, matching and activity history. They do not open automatically on a random date. Review readiness and choose an agency-approved date for each; use the midnight Central release window when changing access or API behavior.
-
-`WORKFORCE_STAFF_LATER_MODULES_APPROVED` is an initially empty, reviewed list of `caregivers,authorizations,forms,matching,activity,hr`. Each release still needs its existing role/office permissions and vendor/credential gates. Matching depends on its separately approved routing/SMS prerequisites; a module label cannot enable those. HR reminders and automatic caregiver sync remain held while their applicable module is unreleased. Independently approved caregiver intake, application email and HHA applicant-transfer workers retain their own launch/acceptance gates; their operational readiness must be reviewed separately and is not established by releasing the two staff views.
+The eight-hour Astra checks review connection health in owner preview and track the current release. The release does not enable vendor mutations, matching messages or payer transactions. Under the staged configuration the background caregiver sync is held until its module is approved. During preview, distinguish the last completed authorized roster import from a successful automatic cycle. Changes to access or export contracts use the normal midnight Central maintenance window.
 
 ## Form completion and export
 
