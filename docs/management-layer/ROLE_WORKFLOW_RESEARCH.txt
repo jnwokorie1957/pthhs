@@ -4932,3 +4932,72 @@ https://github.com/jnwokorie1957/pthhs/actions/runs/44973251782
 docs/workforce/ADMISSION_LIBRARY_RECOVERY_2026-11-22.md
 Local nonsensitive admission-library-*-20261122 receipts keep production
 delivery, served-controller simulation and real-office acceptance distinct.
+
+
+AUTHORIZATION DATE RESTRICTIONS AND ROLE HANDOFF — NOVEMBER 22, 2026 19:16 UTC
+Public primary-source research compared with main 3e490a5. No authorized HHA UI
+or source record was read. The earlier URL-verification access gate remains;
+this does not infer a current sign-in state or tenant feature activation.
+
+DOCUMENTED PRODUCT, NOT TENANT ACCEPTANCE
+[R12, rechecked] HHA's Authorizations guide describes payer blackout dates that
+cancel particular days inside an authorization. Its additional period rules
+and current-period Remaining Auth display are separate from the outer date
+range. The guide describes quarter-hour increments for that grid; this does
+not establish SOAP RemainingUnits or ActualHours/ActualHoursRounded units.
+[R7, rechecked] The Family Portal separates a proposed schedule change from an
+agency decision and its resulting appointment. [R73, rechecked] Clinical E-Docs
+remain tied to configured discipline, service/contract and a specific skilled
+visit. These product descriptions supply neither an agency scheduling rule
+nor source-write authority.
+
+OBSERVED CURRENT SOURCE
+operations/reads.ts retains AuthorizationInfo identifiers, Patient/ID,
+Contract/ID, ServiceCode/ID, StartDate, StopDate and raw unit/limit fields for
+GetPatientAuthorizationInfo. No blackout-date fields are in that projection.
+This is a projection limit, not evidence that the vendor API has no supported
+blackout data or that this patient has no restriction.
+patientAuthorizationRead verifies enabled reads, patient/office, unique detail,
+authorization and optional contract identity; it deliberately returns
+authorization_limits_unvalidated. StaffOperations separately stores reviewed
+local authorization attachments and renewal follow-up, with authorizations.manage
+and office checks. Its expiry bucket uses the local end date. Local review,
+renewed follow-up or a non-expired bucket is not date-specific source approval.
+
+PROPOSED ROLE AND SHARED-LINK ACCEPTANCE
+P2 before future automatic date-eligibility checks: connect exact source office,
+patient, authorization, contract/service and effective period to any supported
+date-restriction evidence and fetched coverage. Missing or partial restriction
+coverage remains unknown; do not manufacture a blackout field or treat an
+omitted projection as a complete empty set.
+Patient/representative: retain the permitted appointment and independent request
+decision; keep public navigation at sign-in and documents separately released.
+PT/staff: an assigned My day encounter and applicable document version do not
+establish authorization for that date. Keep effective clinical assignment and
+form applicability separate. Office manager: preserve local renewal follow-up,
+source date/period restrictions, EVV, document review and billing queues as
+distinct linked records; no universal ready badge follows from positive units.
+
+Synthetic acceptance for a future approved bridge: a visit inside the outer
+dates but on a restricted day; unknown/partial/stale restriction coverage;
+and another office, contract or service with an identical-looking authorization.
+Keep date-specific source evidence separate from a current-period balance,
+expiry category, local reviewed PDF or family request. No code/test/deployment
+is added here: the existing unvalidated interpretation gate stays in force.
+
+Next owner/vendor evidence, only before implementing that bridge: a supported
+same-office/patient/authorization/contract/service example, exact restriction
+field paths/history coverage and intended unit/period interpretation through
+the existing approved private workflow. Patient/PT relationships, approved
+form/version/field sources, signers/reviewer and recipients remain separate.
+No new grant, source request, clinical/financial decision or communication.
+PR49 office-library recovery remains delivered; clinical linkage is proposed.
+Original October 24 remains resolved by October 31.
+
+Dated primary and implementation sources:
+https://knowledge.hhaexchange.com/enterprise/Content/Documentation/Patient/Pat-N-Authorizations-P.htm
+https://knowledge.hhaexchange.com/enterprise/Content/Documentation/Patient/Pat-N-Family-Portal-Schedule-Function-P.htm
+https://knowledge.hhaexchange.com/enterprise/Content/Documentation/Patient/Pat-N-Clinical-E-Docs-P.htm
+https://github.com/jnwokorie1957/pthhs/blob/3e490a5fbbba21ededc15c044f4fc5252d731753/functions/src/operations/reads.ts
+https://github.com/jnwokorie1957/pthhs/blob/3e490a5fbbba21ededc15c044f4fc5252d731753/functions/src/operations/patientAuthorizations.ts
+https://github.com/jnwokorie1957/pthhs/blob/3e490a5fbbba21ededc15c044f4fc5252d731753/functions/src/workforce/staffOperations.ts

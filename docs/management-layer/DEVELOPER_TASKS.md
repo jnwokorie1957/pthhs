@@ -1,5 +1,14 @@
 # PTHHS Management Layer — Developer Checklist
 
+- [ ] P2 future authorization date-eligibility bridge: source date restrictions
+  and additional period rules need exact office/patient/authorization/contract/
+  service linkage and coverage. The current detail projection has no blackout
+  fields and explicitly retains authorization_limits_unvalidated. Positive raw
+  units, outer dates, local reviewed PDF/renewal or an expiry bucket cannot clear
+  that gate. Add synthetic restricted-day, unknown/partial/stale coverage and
+  wrong-context cases only with a supported approved source contract.
+  [November 22 research and proposed acceptance](ROLE_WORKFLOW_RESEARCH.txt).
+
 - [x] PR49 admission-library read recovery deployed November 22 UTC. A saved
   single template keeps any failed list refresh visible; Refresh library retries
   only the read. Initial read failures can also retry, and the action is blocked
