@@ -5001,3 +5001,59 @@ https://knowledge.hhaexchange.com/enterprise/Content/Documentation/Patient/Pat-N
 https://github.com/jnwokorie1957/pthhs/blob/3e490a5fbbba21ededc15c044f4fc5252d731753/functions/src/operations/reads.ts
 https://github.com/jnwokorie1957/pthhs/blob/3e490a5fbbba21ededc15c044f4fc5252d731753/functions/src/operations/patientAuthorizations.ts
 https://github.com/jnwokorie1957/pthhs/blob/3e490a5fbbba21ededc15c044f4fc5252d731753/functions/src/workforce/staffOperations.ts
+
+
+CLIENT-FORM CAREGIVER CONTEXT — NOVEMBER 22, 2026 UTC
+Implemented in PR52/runtime afc91238ff377394c725d72e3a8379900cfe0fdb. This is the existing local office
+form workflow, not a new clinical/source link or patient/PT role grant.
+
+Observed defect: caregiver-query edits discarded search matches without
+invalidating pending packet preparation. A delayed template response could
+still save a draft for the former caregiver; a late save could reopen that
+packet. A detached old caregiver-result callback could replace the selection.
+Three regressions reproduce these cases before correction.
+
+Implemented: caregiver edits/selections invalidate the existing epoch/read
+context and clear packet navigation. Pending template responses stop before
+sending another draft save; old save/open/error responses cannot reopen the
+old packet. Explicit preparation after a new selection uses that selection.
+A local save sent before the context change may finish under its original
+data. It is neither deleted nor silently rewritten; saved drafts retain the
+existing Saved client forms workflow. Durable packet resume and clinical
+admission completeness are separate remaining work.
+
+Permissions and shared links: existing office/client/caregiver lookup and
+local template/draft IDs remain. API payloads/records, office/role checks,
+source reads, signing, configuration and all HHA/time mappings are unchanged.
+Old open pages keep their requests without a forced reload. Patient/rep
+appointment/document release and effective PT encounter/form assignments
+remain proposed contracts; this fix grants no clinical or financial status.
+
+Evidence: 10 focused and 758 frontend/tooling tests over 46 root files pass.
+The cases cover pending templates, late saves, detached choices, an existing
+packet cleared on edit and a new explicit preparation with the new caregiver.
+Fictional people and simulated requests only; no production record or message.
+Assets, repository audit, exact tree and diff checks pass. The separate
+guarded scope proof 44995753708 completes scope with all three deployment jobs
+skipped before this non-control compatible change.
+
+Both quality 45062151095 jobs and all four normal compatible full-release
+45062312677 jobs succeed. At November 22 19:47:16 UTC six exact production
+artifacts and private noindex/cache/anonymous 401 controls pass. The served
+workflow version 3830f5bcdb62 and unchanged private-PDF 3a7b169dc233 are referenced
+by the workforce page. All 10 focused tests also pass against actual served
+controllers with simulated dependencies. No authenticated real-office UI
+acceptance or native-browser acceptance is claimed.
+
+Next acceptance: an approved ordinary office workflow and independently
+approved blank form remain required for real-office UI acceptance. Business
+form/version, field sources, signers/reviewer/recipients, typed patient/visit/
+clinical document links and effective assignments remain open. No HHA UI/API
+source read or time comparison was performed. Original October 24 remains
+resolved by October 31; existing source/event/history/units/readback and held-
+visit requirements remain separate. No new owner decision or grant requested.
+
+https://github.com/jnwokorie1957/pthhs/pull/52
+https://github.com/jnwokorie1957/pthhs/actions/runs/45062151095
+https://github.com/jnwokorie1957/pthhs/actions/runs/45062312677
+docs/workforce/FORM_CAREGIVER_CONTEXT_2026-11-22.md
