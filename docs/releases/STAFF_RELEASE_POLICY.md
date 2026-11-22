@@ -1,8 +1,10 @@
 # Staff portal releases and session security
 
-Owner instruction, November 15, 2026: protect active work; use midnight Central for releases that cannot safely run while the portal is in use.
+The November 22, 2026 owner instruction supersedes the previous midnight maintenance rule. Commit and push completed work to Git as soon as it is ready. Git pushes and repository checks run throughout the day.
 
-Ordinary pushes to main queue for the midnight America/Chicago window. Two UTC cron entries cover Central standard and daylight time; the local-hour guard permits only midnight.
+The staged website and staff portal changes can publish to production from January 1, 2027 Central time. The production workflow deploys a shared Hosting and Functions bundle, so its date check applies to push, scheduled, and manual releases. The existing public site continues serving its current version during staging.
+
+Starting January 1, an eligible main push can deploy at any hour. The daily scheduled check can pick up staged changes once the publication date arrives. Existing scope, component-history, and exact-source checks still apply. Phase 1 staff access covers applicant review and job opportunities. Later modules require their own approval.
 
 ## Proposed local repair — November 19, 2026 (not released)
 
@@ -28,8 +30,7 @@ review. Do not pair the rollout with an article or rely on timing or a
 commit-message override as the deployment boundary. A later scheduled release
 requires a separate successful release-scope check at a source with no deployment
 jobs run before any article or other deployable change follows the controls.
-A window-deferred check does not count. If no immediate guarded scope check runs,
-let the next midnight check record the control-only no-deploy proof first.
+A run that skips scope verification does not count. An isolated control push runs scope verification during staging and records the no-deploy proof.
 
 Baseline discovery uses exact successful deployment jobs from main. It refuses
 missing or ambiguous history, reruns, in-progress releases, partial/failed
@@ -44,9 +45,9 @@ Rollback remains a reviewed forward revert, checked against current delivery
 evidence. Selecting an older checkout or bypassing held changes is not recovery.
 Local tests are not evidence that this policy or the drawer article is deployed.
 
-A reviewed, backward-compatible release may run during office hours when its merge/commit message contains `[compatible]`. Put this marker in the PR title only after verifying compatibility with already-open portal pages and previous record formats. The current presentation update preserves existing API fields, handles old and new PDF page layouts and does not force reloads. Breaking API, schema, session or document changes must not use this marker. Existing explicit manual releases remain Hosting-only; they cannot deploy backend services.
+Review compatibility with open portal sessions and existing records as part of each release. Manual releases remain Hosting-only and use the same publication date.
 
-Production workflows run serially and do not cancel a deployment midway. All deployment jobs use the exact selected source SHA. Midnight is a scheduled start window, not a guarantee of a zero-delay completion: GitHub can delay scheduled jobs during heavy load. See [GitHub scheduling guidance](https://docs.github.com/en/actions/reference/workflows-and-actions/events-that-trigger-workflows#schedule).
+Production workflows run serially and use the exact selected source SHA. GitHub may delay scheduled runs under load. See [GitHub scheduling guidance](https://docs.github.com/en/actions/reference/workflows-and-actions/events-that-trigger-workflows#schedule).
 
 Newly loaded staff portal pages warn after 28 minutes without interaction and sign out after 30. Trusted keyboard, pointer, wheel or touch activity resets the timer. Background reads and token refreshes do not. Same-user tabs share activity through a same-origin channel without sending record information. Returning to a background tab checks expiry immediately. Sign-out uses the existing Firebase handler and clears private workspace content. Existing recent-login requirements and encrypted private document storage remain in force.
 

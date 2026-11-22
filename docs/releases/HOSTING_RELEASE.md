@@ -17,9 +17,8 @@ The November 19 local scheduled-release candidate separates Hosting, Functions
 and analytics delivery evidence. Article-only changes select Hosting, mixed
 article/non-marketing changes are refused, and no-change selects none. Non-article
 changes retain existing full-release selection and all its approval/gates; this
-does not clear a held backend release. The midnight guard remains unchanged. See
-[candidate policy and remaining integration limits](STAFF_RELEASE_POLICY.md).
-This is a local candidate, not a production release receipt.
+does not clear a held backend release. The [current publication and Git push
+policy](STAFF_RELEASE_POLICY.md) supersedes historical timing instructions.
 
 ## Recovering an already-pushed, tested article
 

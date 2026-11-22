@@ -4,7 +4,7 @@ on:
   push:
     branches: [ main ]
   schedule:
-    - cron: '7 5,6 * * *'
+    - cron: '7 6 * * *'
   workflow_dispatch:
     inputs:
       deployment_target:
@@ -26,7 +26,7 @@ jobs:
       actions: read
     runs-on: ubuntu-latest
     outputs:
-      mode: ${{ steps.scope.outputs.mode }}
+      mode: ${{ steps.window.outputs.allow == 'true' && steps.scope.outputs.mode || 'none' }}
       release_sha: ${{ steps.scope.outputs.release_sha }}
     steps:
       - name: Checkout exact release history
@@ -37,13 +37,15 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '20'
-      - name: Verify production release window
+      - name: Verify publication date
         id: window
         run: |
           node --test scripts/deployment-window.test.mjs
           node scripts/deployment-window.mjs
       - name: Verify release scope
-        if: steps.window.outputs.allow == 'true'
+        # Pushes still check scope during the publication hold, including checks
+        # that prove an isolated release-control change selected no deployment.
+        if: steps.window.outputs.allow == 'true' || github.event_name == 'push'
         id: scope
         env:
           GITHUB_TOKEN: ${{ github.token }}
