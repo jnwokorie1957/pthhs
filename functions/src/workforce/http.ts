@@ -381,6 +381,12 @@ export const workforceApi = process.env.PRIMETIME_API_ONLY_DEPLOY === "true" ? u
         if(kind==='license'&&req.method==='POST'&&req.is('application/json')&&req.rawBody.length<=500){res.json(await service.license(uid,source!,id!,req.body));return;}
       }throw new WorkforceError(400,'invalid_request');
     }
+    const applicantPrint=path.match(/^\/staff\/applicants\/([a-zA-Z0-9_-]{1,128})\/print$/);
+    if(applicantPrint&&req.method==='GET'){
+      await recentWorkforceIdentity(req);
+      if(typeof req.query.office!=='string')throw new WorkforceError(400,'invalid_request');
+      res.json(await new StaffOperations().printableApplicant(uid,req.query.office,applicantPrint[1]!));return;
+    }
     if (path === '/staff/applicants' || path.startsWith('/staff/authorizations')) {
       await recentWorkforceIdentity(req);
       const service = new StaffOperations();

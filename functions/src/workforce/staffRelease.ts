@@ -3,9 +3,9 @@ import type {Actor, Permission} from './policy.js';
 export const STAFF_PHASE_ONE_AT=Date.parse('2027-01-01T06:00:00.000Z');
 export const laterModules=['caregivers','authorizations','forms','matching','activity','hr'] as const;
 export type LaterModule=typeof laterModules[number];
-export function staffRelease(actor:Actor,now=Date.now(),env=process.env){
+export function staffRelease(actor:Actor,_now=Date.now(),env=process.env){
  const enabled=env.WORKFORCE_STAFF_PHASED_RELEASE==='true';
- const preview=enabled&&actor.grant.role==='owner'&&now<STAFF_PHASE_ONE_AT;
+ const preview=enabled&&actor.grant.active&&actor.grant.role==='owner';
  const approved=new Set((env.WORKFORCE_STAFF_LATER_MODULES_APPROVED||'').split(',').map(x=>x.trim()).filter(x=>laterModules.includes(x as LaterModule)));
  const has=(module:LaterModule)=>!enabled||preview||approved.has(module);
  const permission=(p:Permission)=>p.startsWith('opportunities.')||p.startsWith('staff.')||p==='applicants.review'||has(p==='field_visits.manage'?'forms':p.startsWith('authorizations.')?'authorizations':p==='accounts.support'?'caregivers':'hr');
