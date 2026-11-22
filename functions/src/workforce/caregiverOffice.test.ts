@@ -27,6 +27,21 @@ function database(rows:Record<string,any>){
  const collection=(name:string)=>({doc:(id:string)=>({path:name+'/'+id}),where:()=>({name})});
  return {collection,runTransaction:async(fn:any)=>fn({get:async(ref:any)=>snap(ref.path),set:(ref:any,data:any)=>{rows[ref.path]=data;},create:(ref:any,data:any)=>{rows[ref.path]=data;}})} as any;
 }
+test('a schedule cursor rejects a changed visit list and shifted dates before presenting stale shifts',async()=>{
+ const db=database({'workforceStaff/hr':grant,'workforceHhaProfiles/10':{office:'a'}}),service=new CaregiverOffice(db);
+ let visits=['25','23','24','22'],stale=false;
+ const workspace={settings:async()=>({settings:{officeId:'a',revision:3}}),query:async(input:any)=>{
+  if(input.operation==='SearchVisitsV2')return {operation:input.operation,source:'hhaexchange',truncated:false,records:visits.map(id=>({VisitID:id}))};
+  const today=new Intl.DateTimeFormat('en-CA',{timeZone:'America/Chicago',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
+  return {operation:input.operation,source:'hhaexchange',truncated:false,records:[{ID:input.id,'Caregiver/ID':'10','Patient/ID':'8',VisitDate:stale?'2001-01-01':today}]};
+ }};
+ const get=(after?:string)=>service.schedule('hr','hhaexchange','10',workspace as never,after);
+ const first=await get();assert.deepEqual(first.items.map(row=>row.id),['22','23','24']);
+ assert.deepEqual((await get(first.next!)).items.map(row=>row.id),['25']);
+ visits.push('21');await assert.rejects(get(first.next!),/schedule_changed_reload/);
+ stale=true;await assert.rejects(get(),/caregiver_schedule_unavailable/);
+});
+
 test('legacy caregiver expiration saves without an application; stale edits and foreign offices are rejected',async()=>{
  const rows:Record<string,any>={'workforceStaff/hr':grant,'workforceHhaProfiles/10':{office:'a',firstName:'Demo',lastName:'Caregiver'}},service=new CaregiverOffice(database(rows));
  const result=await service.license('hr','hhaexchange','10',{date:'2027-01-01',revision:0});assert.equal(result.revision,1);
