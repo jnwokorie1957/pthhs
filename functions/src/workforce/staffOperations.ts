@@ -50,6 +50,16 @@ export class StaffOperations {
   const actor:Actor={uid,grant:parseGrant(snap.data())};requirePermission(actor,permission,office);return actor;
  }
  private audit(tx:Transaction,uid:string,action:string,target:string,office:string){tx.create(this.db.collection('workforcePersonnelAudit').doc(randomUUID()),{actor:uid,action,target,office,at:new Date().toISOString()});}
+ async printableApplicant(uid:string,office:string,id:string){
+  if(!validId(office)||!validId(id))throw new WorkforceError(400,'invalid_request');
+  return this.db.runTransaction(async tx=>{
+   await this.actor(tx,uid,'applicants.review',office);
+   const app=(await tx.get(this.db.collection('workforceApplications').doc(id))).data() as Intake|undefined;
+   if(!app||app.office!==office||app.state!=='submitted'||app.uid!==id)throw new WorkforceError(404,'applicant_unavailable');
+   this.audit(tx,uid,'applicant_print_view_opened',id,office);
+   return hiringApplication(app);
+  });
+ }
  async applicants(uid:string,office:string,after?:string){
   if(!validId(office)||after!==undefined&&!validId(after))throw new WorkforceError(400,'invalid_request');
   return this.db.runTransaction(async tx=>{

@@ -39,6 +39,11 @@ function database(rows:Record<string,any>){
 test('applicant API returns only submitted office-scoped safe records and rejects foreign office reads',async()=>{
  const db=database({'workforceStaff/staff':grant,'workforceApplications/applicant-a':app,'workforceApplications/draft':{...app,uid:'draft',state:'draft'},'workforceApplications/foreign':{...app,office:'office-b'}}),service=new StaffOperations(db,{} as any);
  const result=await service.applicants('staff','office-a');assert.equal(result.items.length,1);assert.equal(result.items[0]!.employmentStatus,'applicant');assert.ok(!JSON.stringify(result).includes('000-00-0000'));
+ const printable=await service.printableApplicant('staff','office-a','applicant-a');
+ assert.deepEqual(printable.answers,result.items[0]!.answers);
+ assert.ok(!('signature' in printable)&&!('ssn' in printable.answers));
+ for(const id of ['draft','foreign','missing'])await assert.rejects(service.printableApplicant('staff','office-a',id),/applicant_unavailable/);
+ await assert.rejects(service.printableApplicant('staff','office-b','applicant-a'),/workforce_forbidden/);
  await assert.rejects(service.applicants('staff','office-b'),/workforce_forbidden/);
 });
 test('authorization list rechecks active office permissions and withholds storage metadata',async()=>{
