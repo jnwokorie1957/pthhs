@@ -63,17 +63,22 @@ export class CaregiverOffice {
   if(found.source!=='hhaexchange'||found.operation!=='SearchVisitsV2'||found.truncated)throw new WorkforceError(503,'caregiver_schedule_unavailable');
   const ids=[...new Set(found.records.map(row=>row.VisitID))];
   if(ids.some(value=>typeof value!=='string'||!/^\d{1,10}$/.test(value)))throw new WorkforceError(503,'caregiver_schedule_unavailable');
-  if(after!==undefined&&!ids.includes(after))throw new WorkforceError(409,'schedule_changed_reload');
-  const offset=after?ids.indexOf(after)+1:0,selected=ids.slice(offset,offset+3),items=[];
+  ids.sort((a,b)=>Number(a)-Number(b));
+  const snapshot=createHash('sha256').update(JSON.stringify([target.office,target.hhaId,from,to,settings.revision,ids])).digest('hex');
+  const cursor=after?.split('.');
+  if(cursor&&(cursor.length!==2||cursor[0]!==snapshot||!ids.includes(cursor[1])))throw new WorkforceError(409,'schedule_changed_reload');
+  const offset=cursor?ids.indexOf(cursor[1])+1:0,selected=ids.slice(offset,offset+3),items=[];
   for(const visit of selected){
    const result=await workspace.query({operation:'GetScheduleInfo',id:visit!},uid);
    const row=result.records[0];
    if(result.source!=='hhaexchange'||result.operation!=='GetScheduleInfo'||result.truncated||result.records.length!==1||!row||row.ID!==visit||row['Caregiver/ID']!==target.hhaId)throw new WorkforceError(503,'caregiver_schedule_unavailable');
+   const day=row.VisitDate?.split('T')[0];
+   if(!day||!/^\d{4}-\d{2}-\d{2}$/.test(day)||day<from||day>to||!Number.isFinite(Date.parse(day))||new Date(day).toISOString().slice(0,10)!==day)throw new WorkforceError(503,'caregiver_schedule_unavailable');
    items.push({id:visit,memberId:row['Patient/ID'],date:row.VisitDate,start:row.ScheduleStartTime,end:row.ScheduleEndTime});
   }
   const current=await this.db.runTransaction(tx=>this.resolve(tx,uid,source,id));
   if(current.key!==target.key||current.office!==target.office||(await workspace.settings()).settings.revision!==settings.revision)throw new WorkforceError(409,'revision_conflict');
-  return {items,linked:true,from,to,total:ids.length,next:offset+selected.length<ids.length?selected.at(-1):null,checkedAt:new Date().toISOString()};
+  return {items,linked:true,from,to,total:ids.length,next:offset+selected.length<ids.length?snapshot+'.'+selected.at(-1):null,checkedAt:new Date().toISOString()};
  }
 }
 export function licenseReminderPayload(count:number){

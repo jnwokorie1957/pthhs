@@ -28,7 +28,7 @@ export class CaregiverSync {
   try{
    if(!pending.length){
     cycleAt=started.toISOString();
-    const changes=await this.workspace.query({operation:'GetCaregiverChangesV2',modifiedAfter:caregiverChangesSince(prior.lastCompletedAt,started)},'system:caregiver-sync','workforce_roster_import');
+    const changes=await this.workspace.query({operation:'GetCaregiverChangesV2',officeId:office,modifiedAfter:caregiverChangesSince(prior.lastCompletedAt,started)},'system:caregiver-sync','workforce_roster_import');
     if(changes.operation!=='GetCaregiverChangesV2'||changes.source!=='hhaexchange'||changes.truncated)throw Error('caregiver_changes_incomplete');
     const cached=await this.db.collection('workforceHhaProfiles').where('office','==',office).select('id').get(),existing=new Set(cached.docs.map(doc=>doc.id));
     pending=changes.records.filter(row=>row.OfficeID===office||existing.has(String(row.CaregiverID))).map(row=>String(row.CaregiverID));
