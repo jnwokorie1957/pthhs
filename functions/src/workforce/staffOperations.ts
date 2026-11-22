@@ -1,3 +1,4 @@
+import {authorizationCoverage} from './authorizationCoverage.js';
 import {randomUUID, createHash} from 'node:crypto';
 import {getFirestore, type Transaction} from 'firebase-admin/firestore';
 import {getStorage} from 'firebase-admin/storage';
@@ -35,11 +36,13 @@ export function authorizationDetails(input:any) {
  const fields:Record<string,string>={office:input.office,startDate:input.startDate,endDate:input.endDate};
  for(const [key,max]of Object.entries(textFields)){const value=input[key];if(typeof value!=='string'||value.length>max||/[\x00-\x08\x0b\x0c\x0e-\x1f]/.test(value))throw new WorkforceError(400,'invalid_authorization_details');fields[key]=value.trim();}
  if(['clientName','memberId','payer','authorizationNumber','services'].some(k=>!fields[k]))throw new WorkforceError(400,'authorization_details_required');
+ if(input.payerProgram!==undefined){if(!['unknown','medicaid_managed_care','medicaid_fee_for_service','medicare','commercial'].includes(input.payerProgram))throw new WorkforceError(400,'invalid_authorization_details');fields.payerProgram=input.payerProgram;}
+ if(input.clientId!==undefined){if(typeof input.clientId!=='string'||!/^\d{1,10}$/.test(input.clientId)||typeof input.agencyMemberId!=='string'||input.agencyMemberId.length>100)throw new WorkforceError(400,'authorization_client_required');fields.clientId=input.clientId;fields.agencyMemberId=input.agencyMemberId;}
  return fields;
 }
 export const renewalStates=['not_started','requested','payer_followup','renewed','closed'] as const;
 type AuthRecord=Record<string,any>;
-const summary=(id:string,data:AuthRecord)=>({id,...Object.fromEntries(['office','clientName','memberId','payer','authorizationNumber','services','units','notes','startDate','endDate','renewalStatus','followupDate','renewalNote','revision','updatedAt','createdAt','reviewedBy','replaces'].map(k=>[k,data[k]??null])),...expiryBucket(data.endDate)});
+const summary=(id:string,data:AuthRecord)=>({id,...Object.fromEntries(['payerProgram','clientId','agencyMemberId','servicesContinuing','office','clientName','memberId','payer','authorizationNumber','services','units','notes','startDate','endDate','renewalStatus','followupDate','renewalNote','revision','updatedAt','createdAt','reviewedBy','replaces'].map(k=>[k,data[k]??null])),...expiryBucket(data.endDate),coverage:authorizationCoverage(data as any,chicagoDate(new Date()))});
 export class StaffOperations {
  constructor(private db=getFirestore(),private bucket=getStorage().bucket(FORM_BUCKET),private cipherFactory:()=>DocumentCipher=kmsDocumentCipher){}
  private async actor(tx:Transaction,uid:string,permission:Permission,office?:string){
@@ -90,6 +93,16 @@ export class StaffOperations {
    this.audit(tx,uid,'authorization_expiration_summary_read',office||'assigned-offices',office||'assigned-offices');return {counts,total,today,offices};
   });
  }
+ async memberCoverage(uid:string,office:string,clientId:string){
+  if(!validId(office)||!/^\d{1,10}$/.test(clientId))throw new WorkforceError(400,'invalid_request');
+  return this.db.runTransaction(async tx=>{
+   await this.actor(tx,uid,'authorizations.manage',office);let cursor:string|undefined,scanned=0,unlinked=0,complete=false;const rows:any[]=[],today=chicagoDate(new Date());
+   do{let query=this.db.collection('workforceAuthorizations').where('office','==',office).orderBy('__name__').select('state','clientId','startDate','endDate','renewalStatus','servicesContinuing','payer','services').limit(1000);if(cursor)query=query.startAfter(cursor);const page=await tx.get(query);for(const doc of page.docs){const data=doc.data();if(data.state!=='ready')continue;if(!data.clientId)unlinked++;if(data.clientId===clientId&&!['renewed','closed'].includes(data.renewalStatus))rows.push({id:doc.id,...data,coverage:authorizationCoverage(data as any,today)});}scanned+=page.docs.length;complete=page.docs.length<1000;cursor=complete?undefined:page.docs.at(-1)!.id;
+   }while(cursor&&scanned<5000);
+   this.audit(tx,uid,'authorization_member_coverage_read',clientId,office);
+   return {clientId,today,complete,unlinkedRecordsNeedReview:unlinked>0,eligibility:'unverified',billingReadiness:'review_required',currentUploadedAuthorizations:rows.filter(row=>row.coverage.authorization==='dates_current').length,expired:rows.filter(row=>row.coverage.authorization==='expired').map(row=>({id:row.id,payer:row.payer,services:row.services,servicesContinuing:row.servicesContinuing===true})),notice:!complete?'Coverage scan is incomplete. Review all records before making a service decision.':rows.some(row=>row.coverage.authorization==='dates_current')?'At least one current uploaded authorization is linked. Verify each payer, service, unit limit and eligibility for the date of service.':'No current uploaded authorization is linked to this member. Review missing or unlinked documents and eligibility before a service decision.'};
+  });
+ }
  async upload(uid:string,input:any){
   const details=authorizationDetails(input?.details),office=details.office!;
   if(!Array.isArray(input.pages)||!input.pages.length||input.pages.length>12)throw new WorkforceError(400,'authorization_page_limit');
@@ -130,7 +143,7 @@ export class StaffOperations {
    await this.db.runTransaction(async tx=>{
     await this.actor(tx,uid,'authorizations.manage',office);
     const upload=(await tx.get(ref)).data();if(upload?.attempt!==attempt||upload.state!=='uploading')throw new WorkforceError(409,'authorization_upload_superseded');
-    let prior:AuthRecord|undefined;if(replaces){prior=(await tx.get(this.db.collection('workforceAuthorizations').doc(replaces))).data();if(!prior||prior.office!==office||prior.memberId!==details.memberId||prior.payer!==details.payer)throw new WorkforceError(409,'renewal_client_or_payer_mismatch');}
+    let prior:AuthRecord|undefined;if(replaces){prior=(await tx.get(this.db.collection('workforceAuthorizations').doc(replaces))).data();if(!prior||prior.office!==office||(prior.clientId&&prior.clientId!==details.clientId)||prior.memberId!==details.memberId||String(prior.payer).trim().toLowerCase()!==details.payer!.trim().toLowerCase())throw new WorkforceError(409,'renewal_client_or_payer_mismatch');}
     const now=new Date().toISOString();tx.update(ref,{...objects,state:'ready',leaseUntil:0,revision:1,reviewedBy:uid,updatedAt:now,renewalStatus:'not_started',followupDate:'',renewalNote:'',replaces});
     if(replaces){tx.update(this.db.collection('workforceAuthorizations').doc(replaces),{renewalStatus:'renewed',renewedBy:id,revision:Number(prior!.revision)+1,updatedAt:now,updatedBy:uid});this.audit(tx,uid,'authorization_renewed',replaces,office);}
     this.audit(tx,uid,'authorization_uploaded',id,office);
@@ -139,16 +152,17 @@ export class StaffOperations {
  }
  async renewal(uid:string,id:string,input:any){
   if(!validId(id)||!renewalStates.includes(input?.status)||!Number.isSafeInteger(input?.revision)||typeof input?.note!=='string'||input.note.length>2000||(input.followupDate!==''&&!dateValid(input.followupDate)))throw new WorkforceError(400,'invalid_renewal');
+  if(input.servicesContinuing!==undefined&&typeof input.servicesContinuing!=='boolean')throw new WorkforceError(400,'invalid_renewal');
   if(input.status==='renewed')throw new WorkforceError(400,'upload_renewal_document_required');
   return this.db.runTransaction(async tx=>{
    const ref=this.db.collection('workforceAuthorizations').doc(id),row=await tx.get(ref),data=row.data();if(!data||data.state!=='ready')throw new WorkforceError(404,'authorization_not_found');
    await this.actor(tx,uid,'authorizations.manage',data.office);if(data.revision!==input.revision)throw new WorkforceError(409,'authorization_changed_reload');
-   const updated={renewalStatus:input.status,renewalNote:input.note,followupDate:input.followupDate,revision:data.revision+1,updatedBy:uid,updatedAt:new Date().toISOString()};tx.update(ref,updated);this.audit(tx,uid,'authorization_followup_updated',id,data.office);return summary(id,{...data,...updated});
+   const updated={...(input.servicesContinuing!==undefined?{servicesContinuing:input.servicesContinuing,servicesReviewedBy:uid,servicesReviewedAt:new Date().toISOString()}:{}),renewalStatus:input.status,renewalNote:input.note,followupDate:input.followupDate,revision:data.revision+1,updatedBy:uid,updatedAt:new Date().toISOString()};tx.update(ref,updated);this.audit(tx,uid,'authorization_followup_updated',id,data.office);return summary(id,{...data,...updated});
   });
  }
  async document(uid:string,id:string){
   if(!validId(id))throw new WorkforceError(400,'invalid_request');
-  const access=()=>this.db.runTransaction(async tx=>{const row=await tx.get(this.db.collection('workforceAuthorizations').doc(id)),data=row.data();if(!data||data.state!=='ready')throw new WorkforceError(404,'authorization_not_found');await this.actor(tx,uid,'authorizations.manage',data.office);this.audit(tx,uid,'authorization_document_read',id,data.office);return data.preview;});
+  const access=()=>this.db.runTransaction(async tx=>{const row=await tx.get(this.db.collection('workforceAuthorizations').doc(id)),data=row.data();if(!data||data.state!=='ready')throw new WorkforceError(404,'authorization_not_found');await this.actor(tx,uid,'authorizations.manage',data.office);await this.actor(tx,uid,'authorizations.view',data.office);this.audit(tx,uid,'authorization_document_read',id,data.office);return data.preview;});
   const saved=await access(),[stored]=await this.bucket.file(saved.path,{generation:saved.generation}).download();
   if(createHash('sha256').update(stored).digest('hex')!==saved.storedSha256)throw new WorkforceError(503,'document_integrity_error');
   const bytes=await this.cipherFactory().decrypt(stored,saved.envelope as DocumentEnvelope,saved.path);if(createHash('sha256').update(bytes).digest('hex')!==saved.sha256)throw new WorkforceError(503,'document_integrity_error');await access();return bytes;

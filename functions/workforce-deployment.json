@@ -1,10 +1,10 @@
 {
   "version": 1,
-  "reviewReference": "Owner confirmed November 12, 2026: new portal profiles must always be HHA Applicants, using PCA; office staff alone promote to Employee. Require applicant gender, ethnicity and HHA emergency relationship. HHA entitlement confirmed in case 00579829; active Application type 132116 verified read-only. Preserve the January 1, 2027 launch and prelaunch practice isolation, encryption, quarantine and office scope.",
+  "reviewReference": "Owner November 22, 2026: January 1, 2027 Phase 1 is basic applicant review and job opportunities only. Later staff modules require a separate reviewed release; no later dates assigned. Preserve existing prelaunch owner preview, identity/office controls, applicant-only HHA transfer and encrypted records.",
   "environment": {
     "WORKFORCE_STAFF_APPROVED": "true",
     "WORKFORCE_HHA_PORTAL_APPROVED": "true",
-    "WORKFORCE_PUBLIC_OPPORTUNITIES_APPROVED": "false",
+    "WORKFORCE_PUBLIC_OPPORTUNITIES_APPROVED": "true",
     "WORKFORCE_APPLICANT_COLLECTION_APPROVED": "true",
     "WORKFORCE_PACKET_REVIEW_APPROVED": "true",
     "WORKFORCE_ID_DOCUMENTS_APPROVED": "true",
@@ -27,6 +27,8 @@
     "WORKFORCE_HHA_APPLICANT_TRANSFER_APPROVED": "true",
     "WORKFORCE_HHA_APPLICATION_DOCUMENT_TYPE": "132116",
     "WORKFORCE_HHA_DOCUMENT_LOOKUP_ID": "36828448",
-    "WORKFORCE_HHA_APPLICANT_NOT_BEFORE": "2027-01-01T06:00:00.000Z"
+    "WORKFORCE_HHA_APPLICANT_NOT_BEFORE": "2027-01-01T06:00:00.000Z",
+    "WORKFORCE_STAFF_PHASED_RELEASE": "true",
+    "WORKFORCE_STAFF_LATER_MODULES_APPROVED": ""
   }
 }

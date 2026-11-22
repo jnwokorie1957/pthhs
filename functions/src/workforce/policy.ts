@@ -1,7 +1,8 @@
+import {staffRelease} from './staffRelease.js';
 // Workforce roles never imply access to the legacy clinical/admin API.
 export const roles = ["owner", "office_manager", "hr", "office", "supervisor"] as const;
 export type Role = typeof roles[number];
-export const permissions = ["opportunities.read", "opportunities.edit", "opportunities.review", "opportunities.publish", "staff.manage", "staff.review", "applications.review", "documents.review", "accounts.support", "applicants.review", "authorizations.manage", "hr.expirations", "field_visits.manage"] as const;
+export const permissions = ["opportunities.read", "opportunities.edit", "opportunities.review", "opportunities.publish", "staff.manage", "staff.review", "applications.review", "documents.review", "accounts.support", "applicants.review", "authorizations.manage", "authorizations.view", "hr.expirations", "field_visits.manage"] as const;
 export type Permission = typeof permissions[number];
 export interface Grant { active: boolean; role: Role; offices: string[]; permissions: Permission[] }
 export interface Actor { uid: string; grant: Grant }
@@ -10,7 +11,7 @@ export class WorkforceError extends Error {
 }
 function roleAllows(role: Role, permission: Permission): boolean {
   if (permission === "hr.expirations") return role === "owner" || role === "office_manager" || role === "hr";
-  if (permission === 'applicants.review' || permission === 'authorizations.manage') return role !== 'supervisor';
+  if (permission === 'applicants.review' || (permission === 'authorizations.manage'||permission === 'authorizations.view')) return role !== 'supervisor';
   if (permission === "staff.manage") return role === "owner";
   if (permission === "staff.review") return role === "office_manager";
   if (permission === "documents.review") return role === "owner" || role === "office_manager" || role === "hr";
@@ -22,6 +23,7 @@ export function requirePermission(actor: Actor, permission: Permission, office?:
   // Role labels are descriptive. Every authority, even for owners, is explicit.
   if (!g.active || !g.permissions.includes(permission) || !roleAllows(g.role, permission)
     || (office !== undefined && !g.offices.includes(office))) throw new WorkforceError(403, "workforce_forbidden");
+  if(!staffRelease(actor).permission(permission))throw new WorkforceError(423,'staff_phase_pending');
 }
 export function validId(value: unknown): value is string {
   return typeof value === "string" && /^[a-zA-Z0-9_-]{1,128}$/.test(value);
