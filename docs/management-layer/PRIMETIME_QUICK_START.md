@@ -33,7 +33,19 @@ If a source page takes too long, wait about a minute and select **Retry visits**
 
 ## Keep required visits and reminders organized
 
-Record supervisory visits and orientation requirements with their subject, program, service, responsible supervisor, rule reference and due-date basis. Submit completion evidence for review. Accepted evidence advances the next due date using the configured recurrence; pending evidence does not.
+Open **Supervisory visits & caregiver orientation** in **Visit review**. For continuing care with the same caregiver, create a supervisory requirement. New supervisory requirements start at six calendar months from accepted completion. Pick a different cadence or the original due-date schedule if the program rule requires it. Use **Assign or update follow-up** to bring a visit forward for service resumption or a performance concern. The planned appointment date and the deadline are recorded separately.
+
+Create a one-time caregiver orientation when services begin or the caregiver changes. From a supervisory record, **Plan new caregiver orientation** carries over the member’s existing program, ZIP code and office assignment. Confirm the new caregiver and due date before saving.
+
+Enter the assigned office staff member, member ZIP code, planned date and next action. The workspace groups the queue by ZIP code and approximate direction from the Houston office. Filter by assignee, planned date or due status. Submit signed paperwork as a PDF, JPG, PNG or WebP. The original and the reviewer’s copy are encrypted and linked to the requirement. A reviewer can preview the scan while it is pending and accept or reject it. Accepted evidence advances the next due date using the configured recurrence.
+
+For the field director’s route, select visits for the day and open **Plan the field director’s Google Maps route**. The planner groups the selected visits into up to nine ZIP stops and uses Google Routes traffic estimates when available. It prioritizes driving time and uses distance to break ties. Directions start and end at the Houston office. Open the provided Google Maps links in order if the route spans several parts. The planner sends the office’s public address and ZIP codes to Google. Use the member’s address and appointment time inside the agency workflow when confirming each local stop.
+
+Choose **Try a sample field route** to see the office and two Houston libraries on a Google road map. On a generated route, use the up and down arrows to move any visit, including an admission or another visit in the same ZIP. The office remains the departure and return point. The preview and navigation links immediately follow the edited order. **Undo changes** returns to the last saved order. **Save revised route** records the order and recalculates its driving and internal fuel estimates when Google traffic data is available.
+
+For an admission, enter its ZIP and choose **Find optional supervisory visits**. Suggestions cover overdue supervisory visits and those due within 30 days of the selected date. The same ZIP appears first, followed by ZIP centers within five miles. Check available visits to include them. The admission is the first ZIP stop. Select the planned date before searching to exclude appointments already planned for another date.
+
+The office route record retains the route, mileage, AAA price and date, and the estimated fuel cost at 28 MPG when those values are available. Staff see the stop order, driving time and mileage.
 
 The reminder list distinguishes queued, provider-accepted, delivered, unknown and failed messages. Office acknowledgement is a separate action. Unknown delivery is investigated before another message is attempted.
 

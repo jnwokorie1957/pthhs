@@ -2,8 +2,7 @@ import {authorizationCoverage} from './authorizationCoverage.js';
 import {randomUUID, createHash} from 'node:crypto';
 import {getFirestore, type Transaction} from 'firebase-admin/firestore';
 import {getStorage} from 'firebase-admin/storage';
-import {PDFDocument} from 'pdf-lib';
-import sharp from 'sharp';
+import {scannedSource, scannedPreview} from './scannedDocument.js';
 import {FORM_BUCKET} from '../forms/library.js';
 import {parseGrant, requirePermission, validId, WorkforceError, type Actor, type Permission} from './policy.js';
 import {kmsDocumentCipher, type DocumentCipher, type DocumentEnvelope} from './documentEncryption.js';
@@ -115,21 +114,12 @@ export class StaffOperations {
  }
  async upload(uid:string,input:any){
   const details=authorizationDetails(input?.details),office=details.office!;
-  if(!Array.isArray(input.pages)||!input.pages.length||input.pages.length>12)throw new WorkforceError(400,'authorization_page_limit');
-  if(input.pages.some((p:unknown)=>typeof p!=='string')||input.pages.reduce((n:number,p:string)=>n+p.length,0)>12_000_000)throw new WorkforceError(413,'authorization_file_too_large');
-  const source=typeof input.source==='string'?Buffer.from(input.source,'base64'):Buffer.alloc(0);
-  if(!source.length||source.length>8*1024*1024||source.toString('base64')!==input.source)throw new WorkforceError(400,'invalid_document_size');
+  const source=scannedSource(input.source);
   const id=createHash('sha256').update(office+'\n').update(source).digest('hex');
   const replaces=input.replaces||null;if(replaces!==null&&!validId(replaces))throw new WorkforceError(400,'invalid_request');
   await this.db.runTransaction(tx=>this.actor(tx,uid,'authorizations.manage',office));
   // Store the original encrypted; only an image-only copy is served to reviewers.
-  const pdf=await PDFDocument.create();
-  for(const encoded of input.pages){
-   const bytes=Buffer.from(encoded,'base64');if(bytes.toString('base64')!==encoded||bytes.length>2_000_000)throw new WorkforceError(400,'invalid_page_image');
-   const jpg=await sharp(bytes,{limitInputPixels:12_000_000}).rotate().flatten({background:'#fff'}).jpeg({quality:85}).toBuffer();
-   const image=await pdf.embedJpg(jpg),page=pdf.addPage([image.width,image.height]);page.drawImage(image,{x:0,y:0,width:image.width,height:image.height});
-  }
-  const preview=Buffer.from(await pdf.save()),cipher=this.cipherFactory(),attempt=randomUUID(),base='workforce-authorizations/'+office+'/'+id+'/'+attempt;
+  const preview=await scannedPreview(input.pages),cipher=this.cipherFactory(),attempt=randomUUID(),base='workforce-authorizations/'+office+'/'+id+'/'+attempt;
   const ref=this.db.collection('workforceAuthorizations').doc(id),hash=(b:Buffer)=>createHash('sha256').update(b).digest('hex');
   await this.db.runTransaction(async tx=>{
    await this.actor(tx,uid,'authorizations.manage',office);

@@ -8,13 +8,25 @@ export interface RecordEvent { actorId: string; at: string; action: string; note
 export interface ScopedRecord extends Versioned { officeId: string; events: RecordEvent[]; }
 export interface SubjectReference { kind: "member" | "caregiver"; id: string; }
 export type RequirementType = "supervisory_visit" | "initial_orientation" | "recurring_orientation";
+export const visitReasons = ["routine", "services_starting", "services_resuming", "caregiver_changed", "performance_follow_up"] as const;
+export interface VisitFollowUp {
+  assignee: string; zip: string; plannedDate: string | null; caregiverId: string | null;
+  reason: typeof visitReasons[number]; nextAction: string;
+}
+export interface EncryptedVisitObject {
+  path: string; generation: string; envelope: import("../workforce/documentEncryption.js").DocumentEnvelope;
+  sha256: string; storedSha256: string;
+}
+export interface VisitAttachment { source: EncryptedVisitObject; preview: EncryptedVisitObject; }
 export interface CompletionEvidence {
+  attachment?: VisitAttachment;
   id: string; completedOn: string; performedBy: string; documentReference: string; note: string;
   forDueDate: string; scheduledDueDate: string; overrideReason: string; ruleReference: string;
   recordedBy: string; recordedAt: string; reviewState: "pending_review" | "accepted" | "rejected";
   reviewedBy: string | null; reviewedAt: string | null; reviewNote: string | null;
 }
 export interface RequirementRecord extends ScopedRecord {
+  followUp?: VisitFollowUp;
   type: RequirementType; subject: SubjectReference; program: string; service: string; assignedSupervisor: string;
   ruleReference: string; cadenceMonths: number | null; anchorMode: "fixed_due_date" | "completion_date";
   anchorDate: string; effectiveFrom: string; effectiveUntil: string | null;
@@ -76,6 +88,18 @@ function timestamp(value: unknown): string | null {
 }
 function subject(value: unknown): SubjectReference { const input = request(value, ["kind", "id"]); return { kind: choice(input.kind, ["member", "caregiver"]), id: identifier(input.id) }; }
 function same(left: unknown, right: unknown): boolean { return JSON.stringify(left) === JSON.stringify(right); }
+function visitFollowUp(value: unknown, type: RequirementType): VisitFollowUp {
+  const input = request(value, ["assignee", "zip", "plannedDate", "caregiverId", "reason", "nextAction"]);
+  const zip = text(input.zip, 5, true);
+  if (zip && !/^\d{5}$/.test(zip)) throw new WorkflowError("invalid_visit_zip");
+  const reason = choice(input.reason, visitReasons);
+  const caregiverId = input.caregiverId === null ? null : identifier(input.caregiverId);
+  if ((reason === "services_starting" || reason === "caregiver_changed") && (type !== "initial_orientation" || !caregiverId)) {
+    throw new WorkflowError("caregiver_orientation_required");
+  }
+  return { assignee: text(input.assignee, 128, true), zip, plannedDate: input.plannedDate === null ? null : calendarDate(input.plannedDate),
+    caregiverId, reason, nextAction: text(input.nextAction, 500, true) };
+}
 function scheduledDueDate(record: RequirementRecord): string | null {
   const accepted = record.completions.filter(item => item.reviewState === "accepted");
   if (record.type === "initial_orientation") return accepted.length ? null : record.anchorDate;
@@ -150,7 +174,9 @@ export class RevisionRecords {
     return { items: result.items.map(record => this.scoped(record)), nextCursor: result.nextCursor ? Buffer.from(JSON.stringify({ officeId: this.context.officeId, resource, cursor: result.nextCursor })).toString("base64url") : null };
   }
   async saveRequirement(value: unknown): Promise<RequirementRecord> {
-    const collection = this.collection("requirements"), input = request(value, ["id", "revision", "officeId", "type", "subject", "program", "service", "assignedSupervisor", "ruleReference", "cadenceMonths", "anchorMode", "anchorDate", "effectiveFrom", "effectiveUntil", "overrideDueDate", "overrideReason", "note"]);
+    const collection = this.collection("requirements");
+    const required = ["id", "revision", "officeId", "type", "subject", "program", "service", "assignedSupervisor", "ruleReference", "cadenceMonths", "anchorMode", "anchorDate", "effectiveFrom", "effectiveUntil", "overrideDueDate", "overrideReason", "note"];
+    const input = request(value, [...required, "followUp"], required);
     this.office(input.officeId);
     const documentId = id(input.id), expected = revision(input.revision), type = choice<RequirementType>(input.type, ["supervisory_visit", "initial_orientation", "recurring_orientation"]), identity = subject(input.subject);
     const cadenceMonths = input.cadenceMonths === null ? null : input.cadenceMonths;
@@ -168,12 +194,37 @@ export class RevisionRecords {
         if (prior.type !== type || !same(prior.subject, identity)) throw new WorkflowError("requirement_subject_immutable", 409);
         if (prior.completions.length && ["program", "service", "ruleReference", "cadenceMonths", "anchorMode", "anchorDate", "effectiveFrom", "effectiveUntil"].some(key => !same(prior[key as keyof RequirementRecord], fields[key as keyof typeof fields]))) throw new WorkflowError("requirement_rule_with_evidence_immutable", 409);
       }
-      const next: RequirementRecord = { ...fields, id: documentId, officeId: this.context.officeId, revision: expected + 1, updatedAt: at, completions: prior?.completions ?? [], nextDueDate: null, events: this.event(prior, "requirement_saved", note, at) };
+      const followUp = input.followUp === undefined ? prior?.followUp : visitFollowUp(input.followUp, type);
+      const next: RequirementRecord = { ...fields, ...(followUp ? { followUp } : {}), id: documentId, officeId: this.context.officeId, revision: expected + 1, updatedAt: at, completions: prior?.completions ?? [], nextDueDate: null, events: this.event(prior, "requirement_saved", note, at) };
       next.nextDueDate = requirementNextDue(next);
       return this.bounded(next);
     });
   }
-  async recordCompletion(value: unknown): Promise<RequirementRecord> {
+  async planRequirement(value: unknown): Promise<RequirementRecord> {
+    const collection = this.collection("requirements");
+    const input = request(value, ["id", "revision", "officeId", "followUp", "earlierDueDate", "note"]);
+    this.office(input.officeId);
+    const documentId = id(input.id), expected = revision(input.revision), note = text(input.note), at = this.at();
+    const earlierDueDate = input.earlierDueDate === null ? null : calendarDate(input.earlierDueDate);
+    return this.repository.change<RequirementRecord>(collection, documentId, expected, this.context.actorId, "revision_visit_follow_up_updated", prior => {
+      if (!prior) throw new WorkflowError("requirement_not_found", 404);
+      this.scoped(prior);
+      const followUp = visitFollowUp(input.followUp, prior.type);
+      const due = requirementNextDue(prior);
+      if (!due) throw new WorkflowError("requirement_cadence_not_configured_or_completed", 409);
+      if (earlierDueDate && (earlierDueDate >= (scheduledDueDate(prior) ?? due) || earlierDueDate < prior.effectiveFrom
+        || (prior.effectiveUntil && earlierDueDate > prior.effectiveUntil))) throw new WorkflowError("invalid_earlier_visit_date");
+      if (earlierDueDate && earlierDueDate !== prior.overrideDueDate && prior.completions.some(item => item.reviewState === "pending_review")) {
+        throw new WorkflowError("review_visit_evidence_first", 409);
+      }
+      const next: RequirementRecord = { ...prior, followUp, revision: expected + 1, updatedAt: at,
+        overrideDueDate: earlierDueDate ?? prior.overrideDueDate, overrideReason: earlierDueDate && earlierDueDate !== prior.overrideDueDate ? note : prior.overrideReason,
+        events: this.event(prior, "visit_follow_up_updated", note, at) };
+      next.nextDueDate = requirementNextDue(next);
+      return this.bounded(next);
+    });
+  }
+  async recordCompletion(value: unknown, attachment?: VisitAttachment): Promise<RequirementRecord> {
     const collection = this.collection("requirements"), input = request(value, ["id", "revision", "officeId", "completionId", "completedOn", "performedBy", "documentReference", "note"]);
     this.office(input.officeId);
     const documentId = id(input.id), expected = revision(input.revision), completionId = id(input.completionId), completedOn = calendarDate(input.completedOn), performedBy = text(input.performedBy, 128), documentReference = text(input.documentReference, 500), note = text(input.note), at = this.at();
@@ -182,10 +233,13 @@ export class RevisionRecords {
       this.scoped(prior);
       if (prior.completions.length >= MAX_COMPLETIONS) throw new WorkflowError("completion_ledger_limit", 409);
       if (prior.completions.some(item => item.id === completionId)) throw new WorkflowError("completion_identity_exists", 409);
+      if (attachment && prior.completions.some(item => item.reviewState !== "rejected" && item.attachment?.source.sha256 === attachment.source.sha256)) {
+        throw new WorkflowError("visit_document_already_filed", 409);
+      }
       const scheduled = scheduledDueDate(prior), due = requirementNextDue(prior);
       if (!scheduled || !due) throw new WorkflowError("requirement_cadence_not_configured_or_completed", 409);
       if (completedOn < prior.effectiveFrom || (prior.effectiveUntil && completedOn > prior.effectiveUntil)) throw new WorkflowError("completion_outside_rule_dates");
-      const completion: CompletionEvidence = { id: completionId, completedOn, performedBy, documentReference, note, forDueDate: due, scheduledDueDate: scheduled, overrideReason: prior.overrideReason, ruleReference: prior.ruleReference, recordedBy: this.context.actorId, recordedAt: at, reviewState: "pending_review", reviewedBy: null, reviewedAt: null, reviewNote: null };
+      const completion: CompletionEvidence = { ...(attachment ? { attachment } : {}), id: completionId, completedOn, performedBy, documentReference, note, forDueDate: due, scheduledDueDate: scheduled, overrideReason: prior.overrideReason, ruleReference: prior.ruleReference, recordedBy: this.context.actorId, recordedAt: at, reviewState: "pending_review", reviewedBy: null, reviewedAt: null, reviewNote: null };
       return this.bounded({ ...prior, revision: expected + 1, updatedAt: at, completions: [...prior.completions, completion], events: this.event(prior, "completion_recorded", note, at) });
     });
   }
@@ -203,6 +257,8 @@ export class RevisionRecords {
       if (action === "accept" && prior.type !== "initial_orientation" && prior.completions.some(item => item.reviewState === "accepted" && item.completedOn >= completion.completedOn)) throw new WorkflowError("completion_date_must_advance", 409);
       const next: RequirementRecord = { ...prior, revision: expected + 1, updatedAt: at,
         completions: prior.completions.map(item => item.id === completionId ? { ...item, reviewState: action === "accept" ? "accepted" : "rejected", reviewedBy: this.context.actorId, reviewedAt: at, reviewNote: note } : item),
+        ...(action === "accept" && prior.followUp ? { followUp: { ...prior.followUp, plannedDate: null,
+          nextAction: "", reason: "routine" } as VisitFollowUp } : {}),
         overrideDueDate: action === "accept" ? null : prior.overrideDueDate, overrideReason: action === "accept" ? "" : prior.overrideReason,
         events: this.event(prior, "completion_" + action, note, at) };
       next.nextDueDate = requirementNextDue(next);

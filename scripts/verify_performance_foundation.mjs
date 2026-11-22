@@ -232,8 +232,13 @@ const readerBytes=(await Promise.all(readerFiles.map(file=>fs.stat(file)))).redu
 if(readerBytes>41_000_000)errors.push('Authorization PDF/OCR reader exceeds 41 MB build budget');
 const publicBytes = (await Promise.all(publicFiles.map((file) => fs.stat(file)))).reduce((sum, stat) => sum + stat.size, 0);
 const internalFiles = publicFiles.filter(file => isInternalAppFile(file, publicDir) && !isWorkforceFile(file)&&!isManagementFile(file));
-const internalBytes = (await Promise.all(internalFiles.map(file => fs.stat(file)))).reduce((sum, stat) => sum + stat.size, 0);
-const marketingBudget = assessMarketingBudget(publicBytes - internalBytes - workforceBytes - managementBytes - officialFormBytes - viewerBytes - trainingBytes - readerBytes);
+// The geographic fallback is fetched only when a user opens the stop overview.
+const roadsFile=path.join(publicDir,'primetime','houston-roads.svg');
+const roads=await fs.readFile(roadsFile);
+if(roads.length>102_000 || gzipSync(roads).length>30_000) errors.push('Houston road basemap exceeds 102 KB raw / 30 KB gzip');
+const internalRuntimeFiles=internalFiles.filter(file=>file!==roadsFile);
+const internalBytes = (await Promise.all(internalRuntimeFiles.map(file => fs.stat(file)))).reduce((sum, stat) => sum + stat.size, 0);
+const marketingBudget = assessMarketingBudget(publicBytes - roads.length - internalBytes - workforceBytes - managementBytes - officialFormBytes - viewerBytes - trainingBytes - readerBytes);
 if (marketingBudget.error) errors.push(marketingBudget.error);
 if (marketingBudget.warning) console.warn('PERFORMANCE_FOUNDATION_QA: WARNING -', marketingBudget.warning);
 // The authenticated app now includes source review, Demo/Live and durable
@@ -252,15 +257,16 @@ if (marketingBudget.warning) console.warn('PERFORMANCE_FOUNDATION_QA: WARNING -'
 // Current main is 500,061 raw bytes; keep a bounded 510 KB allowance. No new operations runtime library.
 // Native range/person/payer search, actionable queue and source reason staging
 // add about 23 KB raw / 7 KB gzip. No new runtime library or external resource.
-if (internalBytes > 510_000) errors.push(`internal app output exceeds 510 KB budget: ${internalBytes}`);
+// Supervisory uploads, visit planning and the interactive map bring the runtime to 528 KB raw / 137 KB gzip.
+if (internalBytes > 532_000) errors.push(`internal app output exceeds 532 KB budget: ${internalBytes}`);
 let compressedInternalBytes = 0;
-for (const file of internalFiles) {
+for (const file of internalRuntimeFiles) {
   const bytes = await fs.readFile(file);
   compressedInternalBytes += gzipSync(bytes).length;
   if (bytes.length > 110_000) errors.push(`internal asset exceeds 110 KB budget: ${path.basename(file)}`);
 }
 // Includes complete-day collection, consistency fences and source retry handling.
-if (compressedInternalBytes > 128_000) errors.push(`internal app gzip estimate exceeds 128 KB budget: ${compressedInternalBytes}`);
+if (compressedInternalBytes > 139_000) errors.push(`internal app gzip estimate exceeds 139 KB budget: ${compressedInternalBytes}`);
 if (pictureCount !== 4 || preloadCount !== 3) errors.push(`expected 4 responsive pictures and 3 LCP preloads, found ${pictureCount}/${preloadCount}`);
 if (externalRuntimeCount !== 0) errors.push(`expected zero external runtime resources, found ${externalRuntimeCount}`);
 

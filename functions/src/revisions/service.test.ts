@@ -818,3 +818,54 @@ test("rediscovered adjacent peer dates refresh replay metadata without changing 
   assert.ok(f.calls.slice(callBoundary).some(call => call.operation === "SearchVisitsV2" && call.date === "2026-10-11"));
   await box.send(messageId, context); assert.equal(f.sends(), 1, "The same stable occurrence must never cause a second provider POST");
 });
+
+test("admission suggestions are optional, ordered by ZIP then deadline, and respect the planning day", async () => {
+  const f = setup(), records = await f.backend.records(actor);
+  async function candidate(id: string, zip: string, due: string, plannedDate: string | null = null, orientation = false) {
+    return records.saveRequirement({
+      id, officeId: "123", revision: 0, type: orientation ? "initial_orientation" : "supervisory_visit",
+      subject: { kind: "member", id: "77" }, assignedSupervisor: "Director", program: "Demo", service: "PAS",
+      ruleReference: "Agency policy", cadenceMonths: orientation ? null : 6, anchorMode: "completion_date", anchorDate: due,
+      effectiveFrom: "2025-01-01", effectiveUntil: null, overrideDueDate: null, overrideReason: "", note: "Synthetic visit",
+      followUp: { assignee: "Director", zip, plannedDate, caregiverId: null, reason: "routine", nextAction: "" }
+    });
+  }
+  await candidate("nearby-late", "77036", "2026-11-09");
+  await candidate("nearby-overdue", "77096", "2026-09-29");
+  await candidate("same-zip", "77035", "2026-10-10");
+  await candidate("outside-window", "77035", "2026-11-10");
+  await candidate("outside-radius", "77479", "2026-10-09");
+  await candidate("other-day", "77035", "2026-10-10", "2026-10-11");
+  await candidate("orientation", "77035", "2026-10-10", null, true);
+  await candidate("under-review", "77035", "2026-10-10");
+  await records.recordCompletion({ id: "under-review", revision: 1, officeId: "123", completionId: "proof",
+    completedOn: "2026-10-10", performedBy: "Director", documentReference: "sample", note: "Pending review" });
+  const changes = f.repo.audit.length;
+  const result = await f.backend.admissionSuggestions(actor, { zip: "77035" });
+  assert.equal(result.day, "2026-10-10");
+  assert.deepEqual(result.items.map(item => item.id), ["same-zip", "nearby-overdue", "nearby-late"]);
+  assert.equal(result.items[0]?.sameZip, true);
+  assert.equal(result.items[2]?.miles.toFixed(1), "4.9");
+  assert.equal(result.partial, false);
+  assert.equal(f.repo.audit.length, changes);
+});
+
+test("staff receive driving estimates while the office records the planned day and fuel cost", async context => {
+  const f = setup(), oldKey = process.env.PRIMETIME_GOOGLE_ROUTES_KEY;
+  process.env.PRIMETIME_GOOGLE_ROUTES_KEY = "test-only";
+  context.after(() => {
+    if (oldKey === undefined) delete process.env.PRIMETIME_GOOGLE_ROUTES_KEY;
+    else process.env.PRIMETIME_GOOGLE_ROUTES_KEY = oldKey;
+  });
+  context.mock.method(global, "fetch", async (url: string) => url.includes("gasprices.aaa.com") ? new Response("", { status: 503 }) :
+    Response.json([{ originIndex: 0, destinationIndex: 1, condition: "ROUTE_EXISTS", distanceMeters: 8050, duration: "750s" },
+      { originIndex: 1, destinationIndex: 0, condition: "ROUTE_EXISTS", distanceMeters: 8050, duration: "750s" }]));
+  const result = await f.backend.recordVisitRoute(actor, { day: "2026-10-11", admissionZip: "77036", zips: ["77036"], mpg: 28, regularPrice: 3.20 });
+  assert.equal(result.minutes, 25);
+  assert.deepEqual(result.zips, ["77035", "77036", "77035"]);
+  assert.ok(!("regularPrice" in result) && !("fuelCost" in result));
+  const saved = await f.repo.get<Versioned & { day: string; fuelCost: number; mpg: number }>("revisionVisitRoutes_office_123", result.id);
+  assert.equal(saved?.day, "2026-10-11");
+  assert.equal(saved?.mpg, 28);
+  assert.equal(saved?.fuelCost.toFixed(2), "1.14");
+});

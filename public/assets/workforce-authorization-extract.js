@@ -8,7 +8,7 @@ export function suggestedFields(text){
  return {clientName:pick(/^(?:member|patient|client)\s*(?:name)?\s*[:#]\s*(.+)$/i),memberId:pick(/^(?:member|patient|client|medicaid|subscriber)\s*(?:id|number|no\.?|#)\s*[:#]?\s*(.+)$/i),payer:pick(/^(?:payer|health plan|insurance(?: payer)?|plan name|insurer)\s*[:#]\s*(.+)$/i)||(headers.length===1?headers[0]:''),payerProgram:programs.length===1?programs[0][1]:'unknown',authorizationNumber:pick(/^(?:authorization|prior authorization|auth|reference)\s*(?:number|no\.?|#|id)\s*[:#]?\s*(.+)$/i),startDate:date(pick(/^(?:start|effective|begin|from)\s*(?:date)?\s*:\s*(.+)$/i))||date(range?.[1]||''),endDate:date(pick(/^(?:end|expiration|expiry|through|to)\s*(?:date)?\s*:\s*(.+)$/i))||date(range?.[2]||''),services:pick(/^(?:approved\s+|authorized\s+)?(?:service(?:s)?|procedure(?:s)?|procedure codes?)\s*:\s*(.+)$/i),units:pick(/^(?:approved\s+|authorized\s+)?(?:units|hours|quantity)\s*:\s*(.+)$/i)};
 }
 const base='/assets/authorization-reader';
-export async function extractAuthorization(file,progress,signal){
+export async function extractAuthorization(file,progress,signal,{recognizeText=true,documentLabel='authorization'}={}){
  if(!file||file.size>8*1024*1024)throw Error('Choose a PDF or image up to 8 MB.');
  let pdf,worker,loading;const pages=[],texts=[];const bytes=new Uint8Array(await file.arrayBuffer());
  const check=()=>{if(signal.aborted)throw new DOMException('Cancelled','AbortError');};
@@ -22,20 +22,20 @@ export async function extractAuthorization(file,progress,signal){
   if(new TextDecoder().decode(bytes.subarray(0,5))==='%PDF-'){
    const lib=await import(base+'/pdf.mjs');lib.GlobalWorkerOptions.workerSrc=base+'/pdf.worker.mjs';
    loading=lib.getDocument({data:bytes.slice(),isEvalSupported:false,wasmUrl:base+'/',useWasm:false,disableFontFace:true});pdf=await loading.promise;
-   if(pdf.numPages>12)throw Error('Upload up to 12 pages per authorization.');
+   if(pdf.numPages>12)throw Error('Upload up to 12 pages per '+documentLabel+'.');
    for(let n=1;n<=pdf.numPages;n++){
     check();progress('Reading page '+n+' of '+pdf.numPages+'…');const page=await pdf.getPage(n),original=page.getViewport({scale:1}),viewport=page.getViewport({scale:Math.min(2,2000/Math.max(original.width,original.height))});
     const canvas=document.createElement('canvas');canvas.width=Math.ceil(viewport.width);canvas.height=Math.ceil(viewport.height);
     await page.render({canvas,canvasContext:canvas.getContext('2d'),viewport}).promise;check();
     const content=await page.getTextContent();let text=content.items.map(item=>item.str+(item.hasEOL?'\n':' ')).join('');
     if(/Please wait[\s\S]*Adobe Reader/i.test(text))throw Error('This Adobe form must first be printed or exported to a standard PDF. Upload that PDF to read or sign it here.');
-    if(text.trim().length<40){progress('Reading scanned text on page '+n+'…');text=await recognize(canvas);}
+    if(recognizeText&&text.trim().length<40){progress('Reading scanned text on page '+n+'…');text=await recognize(canvas);}
     texts.push(text);savePage(canvas);canvas.width=canvas.height=0;page.cleanup();
    }
   }else{
    if(!['image/jpeg','image/png','image/webp'].includes(file.type))throw Error('Choose a PDF, JPG, PNG, or WebP file.');
    const bitmap=await createImageBitmap(file);if(bitmap.width*bitmap.height>40_000_000){bitmap.close();throw Error('Image dimensions are too large.');}
-   const scale=Math.min(1,2000/Math.max(bitmap.width,bitmap.height)),canvas=document.createElement('canvas');canvas.width=Math.round(bitmap.width*scale);canvas.height=Math.round(bitmap.height*scale);const ctx=canvas.getContext('2d');ctx.fillStyle='#fff';ctx.fillRect(0,0,canvas.width,canvas.height);ctx.drawImage(bitmap,0,0,canvas.width,canvas.height);bitmap.close();progress('Reading scanned text…');texts.push(await recognize(canvas));savePage(canvas);canvas.width=canvas.height=0;
+   const scale=Math.min(1,2000/Math.max(bitmap.width,bitmap.height)),canvas=document.createElement('canvas');canvas.width=Math.round(bitmap.width*scale);canvas.height=Math.round(bitmap.height*scale);const ctx=canvas.getContext('2d');ctx.fillStyle='#fff';ctx.fillRect(0,0,canvas.width,canvas.height);ctx.drawImage(bitmap,0,0,canvas.width,canvas.height);bitmap.close();if(recognizeText){progress('Reading scanned text…');texts.push(await recognize(canvas));}savePage(canvas);canvas.width=canvas.height=0;
   }
   check();const text=texts.join('\n');return {pages,source:toBase64(bytes),text:text.slice(0,100000),suggestions:suggestedFields(text)};
  }finally{await worker?.terminate();if(typeof loading?.destroy==='function')await loading.destroy();}

@@ -128,6 +128,8 @@ jobs:
         run: |
           node -e "const fs=require('fs'); const p=JSON.parse(fs.readFileSync(process.env.GOOGLE_APPLICATION_CREDENTIALS,'utf8')); console.log('Firebase deployment service account:', p.client_email);"
       - name: Prepare reviewed non-secret deployment parameters
+        env:
+          PRIMETIME_MAPS_EMBED_BROWSER_KEY: ${{ vars.PRIMETIME_MAPS_EMBED_BROWSER_KEY }}
         run: node functions/scripts/prepare-deploy-env.mjs
       - name: Verify required Primetime Firestore database
         env:

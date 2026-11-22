@@ -96,10 +96,14 @@
       if (kind === 'requirements') {
         if (!['supervisory_visit', 'initial_orientation', 'recurring_orientation'].includes(item.type) || !['member', 'caregiver'].includes(item.subject?.kind) || !sourceId(item.subject.id)
           || !Array.isArray(item.completions) || item.completions.length > 100 || !['not_configured', 'upcoming', 'due', 'overdue', 'completed', 'evidence_under_review', 'outside_effective_period'].includes(item.status)) throw new Error('invalid_revision_records');
-        return { ...base, type: item.type, subject: { ...item.subject }, status: item.status, nextDueDate: short(item.nextDueDate, 10), program: short(item.program, 128), service: short(item.service, 128), assignedSupervisor: short(item.assignedSupervisor, 128), ruleReference: short(item.ruleReference, 500), cadenceMonths: number(item.cadenceMonths),
+        const followUp = item.followUp || {};
+        return { ...base, type: item.type, subject: { ...item.subject }, status: item.status, area: short(item.area, 128),
+          followUp: { assignee: short(followUp.assignee, 128) || '', zip: /^\d{5}$/.test(followUp.zip || '') ? followUp.zip : '',
+            plannedDate: validDay(followUp.plannedDate) ? followUp.plannedDate : null, caregiverId: sourceId(followUp.caregiverId) ? followUp.caregiverId : null,
+            reason: short(followUp.reason, 40) || 'routine', nextAction: short(followUp.nextAction, 500) || '' }, nextDueDate: short(item.nextDueDate, 10), program: short(item.program, 128), service: short(item.service, 128), assignedSupervisor: short(item.assignedSupervisor, 128), ruleReference: short(item.ruleReference, 500), cadenceMonths: number(item.cadenceMonths),
           completions: item.completions.map(completion => {
             if (!short(completion.id, 128) || !['pending_review', 'accepted', 'rejected'].includes(completion.reviewState)) throw new Error('invalid_revision_records');
-            return { id: completion.id, completedOn: short(completion.completedOn, 10), performedBy: short(completion.performedBy, 128), documentReference: short(completion.documentReference, 500), note: short(completion.note), reviewState: completion.reviewState, reviewNote: short(completion.reviewNote) };
+            return { id: completion.id, completedOn: short(completion.completedOn, 10), performedBy: short(completion.performedBy, 128), documentReference: short(completion.documentReference, 500), note: short(completion.note), reviewState: completion.reviewState, reviewNote: short(completion.reviewNote), hasAttachment: completion.hasAttachment === true };
           }) };
       }
       if (!sourceId(item.visitId)) throw new Error('invalid_revision_records');
@@ -120,7 +124,7 @@
       return { ...base, visitId: item.visitId, rule: short(item.rule, 128), state: item.state, deadlineAt: short(item.deadlineAt, 40), plannedSendAt: short(item.plannedSendAt, 40),
         attention, acknowledgement: item.acknowledgement ? { at: short(item.acknowledgement.at, 40), note: short(item.acknowledgement.note) } : null };
     });
-    return { items, nextCursor: payload.nextCursor };
+    return { items, nextCursor: payload.nextCursor, ...(kind === 'requirements' && validDay(payload.asOfDate) ? { asOfDate: payload.asOfDate } : {}) };
   }
   function filterVisits(items, term = '', severity = 'all') {
     const search = term.trim().toLowerCase();
@@ -134,13 +138,23 @@
       return matching && selected;
     });
   }
+  const visitReasons = [
+    ['routine', 'Routine'], ['services_starting', 'Services starting'], ['services_resuming', 'Services resuming'],
+    ['caregiver_changed', 'New caregiver'], ['performance_follow_up', 'Performance follow-up']
+  ];
+  const visitTitle = type => ({ supervisory_visit: 'Supervisory visit', initial_orientation: 'Caregiver orientation', recurring_orientation: 'Recurring orientation' })[type];
+  function followUpInput(fields) {
+    return { assignee: fields.assignee.trim(), zip: fields.zip.trim(), plannedDate: fields.plannedDate || null,
+      caregiverId: fields.caregiverId.trim() || null, reason: fields.reason, nextAction: fields.nextAction.trim() };
+  }
   function requirementInput(fields, officeId, id) {
     if (!sourceId(officeId) || !sourceId(fields.subjectId) || !validDay(fields.anchorDate) || !validDay(fields.effectiveFrom) || fields.effectiveUntil && !validDay(fields.effectiveUntil)) throw new Error('Check the references and calendar dates.');
     const cadenceMonths = fields.type === 'initial_orientation' || fields.cadenceMonths === '' ? null : Number(fields.cadenceMonths);
     if (cadenceMonths !== null && (!Number.isInteger(cadenceMonths) || cadenceMonths < 1 || cadenceMonths > 120)) throw new Error('Enter a whole number of calendar months, or leave the recurrence blank.');
     return { id, revision: 0, officeId, type: fields.type, subject: { kind: fields.subjectKind, id: fields.subjectId }, program: fields.program, service: fields.service,
       assignedSupervisor: fields.assignedSupervisor, ruleReference: fields.ruleReference, cadenceMonths, anchorMode: fields.anchorMode, anchorDate: fields.anchorDate,
-      effectiveFrom: fields.effectiveFrom, effectiveUntil: fields.effectiveUntil || null, overrideDueDate: null, overrideReason: '', note: fields.note };
+      effectiveFrom: fields.effectiveFrom, effectiveUntil: fields.effectiveUntil || null, overrideDueDate: null, overrideReason: '', note: fields.note,
+      ...(fields.reason ? { followUp: followUpInput(fields) } : {}) };
   }
   function formatClock(value, { timezone, serviceDate, synthetic = false } = {}) {
     if (!value) return 'Unavailable';
@@ -172,6 +186,17 @@
   if (!controller || !fixtures || !panel) return;
   let ready = false, session = 0, serial = 0, active = false, messagesActive = false, loading = false, abort = null, status = null, visitPage = null, visitRetry = null, selectedId = null, demoOffset = 0, sourceRetryAt = 0;
   const pages = { requirements: null, exceptions: null, notifications: null };
+  const routeSelection = new Set(), optionalVisits = new Map();
+  function clearSuggestions() { optionalVisits.clear(); replace('revisionSuggestions'); showVisitSelection(); }
+  function admissionZip() { return get('revisionAdmissionZip')?.value.trim() || ''; }
+  function selectedVisits() {
+    const visits = new Map(visibleRequirements(pages.requirements?.items || []).filter(item => routeSelection.has(item.id) && routeEligible(item)).map(item => [item.id, item]));
+    for (const [id, item] of optionalVisits) visits.set(id, item);
+    return [...visits.values()];
+  }
+  const evidenceUrls = new Set();
+  function showVisitSelection() { const count = new Set([...routeSelection, ...optionalVisits.keys()]).size; text('revisionVisitSelected', count ? count + ' selected' : ''); }
+  function clearVisitRoute() { clearSuggestions(); routeSelection.clear(); replace('revisionVisitRouteResult'); showVisitSelection(); }
   const recordHosts = ['revisionVisits', 'revisionDetail', 'revisionExceptions', 'revisionRequirements', 'revisionNotifications'];
   const localDay = () => { const now = new Date(); return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`; };
   const dateInput = get('revisionDate');
@@ -219,6 +244,10 @@
   function invalidate() {
     serial += 1; abort?.abort(); abort = null; loading = false; status = null; visitPage = null; visitRetry = null; selectedId = null; demoOffset = 0;
     for (const kind of Object.keys(pages)) pages[kind] = null;
+    clearVisitRoute();
+    text('revisionVisitUpdate', '');
+    for (const url of evidenceUrls) URL.revokeObjectURL(url);
+    evidenceUrls.clear();
     for (const id of recordHosts) replace(id);
     for (const id of ['revisionNext', 'revisionRequirementsNext', 'revisionExceptionsNext', 'revisionNotificationsNext']) { if (get(id)) get(id).hidden = true; }
     text('revisionScope', ''); text('revisionPageCount', ''); text('revisionCompleteness', ''); text('messagesStatus', '');
@@ -233,6 +262,10 @@
     if (form) for (const element of form.elements || []) element.disabled = loading || !ready || !controller.isLive() || status?.capabilities.records !== true;
     const type = form?.querySelector('[name="type"]'), cadence = form?.querySelector('[name="cadenceMonths"]');
     if (type?.value === 'initial_orientation' && cadence) cadence.disabled = true;
+    const caregiver = form?.querySelector('[name="caregiverId"]'), reason = form?.querySelector('[name="reason"]');
+    if (caregiver && reason) caregiver.required = ['services_starting', 'caregiver_changed'].includes(reason.value);
+    const planning = get('revisionVisitPlanning');
+    if (planning) planning.hidden = !ready || !controller.isLive() || status?.capabilities.records !== true;
     if (get('revisionCreateRequirement')) get('revisionCreateRequirement').hidden = !ready || !controller.isLive() || status?.capabilities.records !== true;
   }
   function renderMode() {
@@ -351,6 +384,17 @@
     completion_review_final: 'This completion has already been reviewed. Its evidence is retained in the ledger.', requirement_period_already_completed: 'This due period already has an accepted completion.',
     completion_date_must_advance: 'A recurring completion must be later than the previously accepted completion.', requirement_cadence_not_configured_or_completed: 'Define the recurrence before recording completion, or review the existing completed requirement.',
     invalid_exception_transition: 'This office follow-up changed state. Refresh before choosing the next action.',
+    invalid_earlier_visit_date: 'Choose a date before the normal deadline and within the requirement’s effective dates.',
+    caregiver_orientation_required: 'Choose Caregiver orientation and enter the new caregiver’s reference.',
+    invalid_visit_zip: 'Enter a five-digit ZIP code.',
+    review_visit_evidence_first: 'Review pending evidence before submitting another document or changing the deadline.',
+    invalid_route_zips: 'Select visits in one to nine Greater Houston ZIP codes.',
+    invalid_route_fuel_input: 'Check the vehicle MPG and regular gas price.',
+    invalid_document_size: 'Choose a document up to 8 MB.',
+    visit_document_already_filed: 'This document is already filed on this requirement.',
+    invalid_page_image: 'A scan page could not be opened.',
+    scan_failed: 'This scan could not be read. Choose a standard PDF or a smaller JPG, PNG or WebP scan.',
+    visit_document_unavailable: 'The private document could not be loaded. Refresh and try again.',
     notification_capability_not_approved: 'Notification history is not enabled for this office. Visit records remain available.'
   };
   const sourceDeferred = error => error?.status === 429 || ['revision_batch_time_budget_deferred', 'read_budget_exhausted_retry_next_minute', 'vendor_backoff_active', 'revision_run_budget_deferred'].includes(error?.message);
@@ -442,6 +486,12 @@
       const payload = await request(kind + (cursor ? '?cursor=' + encodeURIComponent(cursor) : ''), ticket);
       const result = normalizeRecords(payload, kind, status.officeId);
       if (!current(ticket)) return;
+      if (kind === 'requirements') {
+        if (cursor) {
+          const byId = new Map([...pages.requirements.items, ...result.items].map(item => [item.id, item]));
+          result.items = [...byId.values()];
+        } else clearVisitRoute();
+      }
       pages[kind] = result; renderRecords(kind);
     } catch (error) { if (current(ticket) && !clearRevokedAccess(error)) { pages[kind] = null; unavailable(host, errorText(error)); get(host + 'Next').hidden = true; } }
   }
@@ -463,33 +513,216 @@
     for (const element of form.elements || []) element.disabled = true;
     message.textContent = 'Saving office record…';
     try {
-      const { path, body } = makeRequest();
+      const { path, body } = await makeRequest(abort?.signal);
+      if (!current(ticket)) return;
       const result = await request(path, ticket, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
       if (!current(ticket)) return;
       if (result.mode !== 'live' || result.source !== 'primetime') throw new Error('invalid_revision_record_response');
-      message.textContent = 'Saved to the office record. HHA verification has not changed.';
+      message.textContent = 'Saved to the office record.';
+      if (path.startsWith('requirements/')) text('revisionVisitUpdate', path.endsWith('/upload') ? 'Document filed and ready for completion review.' : 'Visit follow-up saved.');
       const kind = path.split('/')[0];
       if (Object.hasOwn(pages, kind)) await loadRecords(kind, ticket);
       if (path === 'requirements/save') form.reset();
     } catch (error) { if (current(ticket) && !clearRevokedAccess(error)) message.textContent = errorText(error); }
     finally { untrack?.(); if (current(ticket)) { loading = false; for (const element of form.elements || []) element.disabled = false; controls(); } }
   }
-  function completionForm(record) {
-    const form = node('form', null, 'operational-form'); const fields = {};
-    for (const [name, title, type, max] of [['completedOn', 'Completed on', 'date', 10], ['performedBy', 'Performed by', 'text', 128], ['documentReference', 'Supporting document reference', 'text', 500], ['note', 'Completion note', 'text', 1000]]) {
-      const label = node('label', title); const input = node(name === 'note' ? 'textarea' : 'input'); if (name !== 'note') input.type = type; input.required = true; input.maxLength = max; label.append(input); fields[name] = input; form.append(label);
+  function visitField(form, name, title, type = 'text', value = '', max = 128) {
+    const label = node('label', title);
+    const input = node(type === 'textarea' || type === 'select' ? type : 'input');
+    input.name = name;
+    if (input.tagName === 'INPUT') input.type = type;
+    input.maxLength = max;
+    if (type === 'select') for (const [key, caption] of visitReasons) {
+      const option = node('option', caption); option.value = key; input.append(option);
     }
-    const submit = node('button', 'Record evidence for review', 'btn secondary'); submit.type = 'submit'; const message = node('p', '', 'revision-form-message'); message.setAttribute('role', 'status'); form.append(submit, message);
-    form.addEventListener('submit', async event => { event.preventDefault(); if (!validDay(fields.completedOn.value) || Object.values(fields).some(input => !input.value.trim())) { message.textContent = 'Complete the date, performer, document reference and note.'; return; }
-      await mutate(form, message, () => ({ path: 'requirements/complete', body: { id: record.id, revision: record.revision, officeId: record.officeId, completionId: crypto.randomUUID(), ...Object.fromEntries(Object.entries(fields).map(([name, input]) => [name, input.value.trim()])) } })); });
+    input.value = value;
+    label.append(input); form.append(label);
+    return input;
+  }
+  function formAction(form, title) {
+    const submit = node('button', title, 'btn secondary');
+    submit.type = 'submit';
+    const message = node('p', '', 'revision-form-message');
+    message.setAttribute('role', 'status');
+    form.append(submit, message);
+    return message;
+  }
+  function planForm(record) {
+    const form = node('form', null, 'operational-form'), prior = record.followUp;
+    visitField(form, 'assignee', 'Assign office staff', 'text', prior.assignee);
+    const zip = visitField(form, 'zip', 'Member ZIP code', 'text', prior.zip, 5);
+    zip.pattern = '[0-9]{5}'; zip.inputMode = 'numeric';
+    visitField(form, 'plannedDate', 'Planned visit date', 'date', prior.plannedDate || '');
+    visitField(form, 'earlierDueDate', 'Earlier due date (optional)', 'date');
+    const reason = visitField(form, 'reason', 'Visit reason', 'select', prior.reason);
+    if (record.type !== 'initial_orientation') for (const option of Array.from(reason.options)) {
+      if (['services_starting', 'caregiver_changed'].includes(option.value)) option.remove();
+    }
+    const caregiver = visitField(form, 'caregiverId', 'Caregiver reference', 'text', prior.caregiverId || '', 10);
+    caregiver.pattern = '[1-9][0-9]{0,9}'; caregiver.inputMode = 'numeric';
+    visitField(form, 'nextAction', 'Next action', 'text', prior.nextAction, 500);
+    visitField(form, 'note', 'Reason for this update', 'textarea', '', 1000).required = true;
+    const message = formAction(form, 'Save assignment and follow-up');
+    form.addEventListener('submit', event => {
+      event.preventDefault();
+      const fields = Object.fromEntries(new FormData(form).entries());
+      void mutate(form, message, () => ({ path: 'requirements/plan', body: { id: record.id, revision: record.revision, officeId: record.officeId,
+        followUp: followUpInput(fields), earlierDueDate: fields.earlierDueDate || null, note: fields.note.trim() } }));
+    });
     return form;
   }
+  function prepareOrientation(record) {
+    const form = get('revisionRequirementForm');
+    const section = get('revisionCreateRequirement');
+    if (!form || !section || section.hidden) return;
+    form.reset();
+    const day = pages.requirements?.asOfDate || localDay();
+    const initial = { type: 'initial_orientation', reason: 'caregiver_changed', subjectKind: record.subject.kind, subjectId: record.subject.id,
+      anchorDate: day, effectiveFrom: day,
+      program: record.program, service: record.service, assignedSupervisor: record.assignedSupervisor, ruleReference: record.ruleReference,
+      zip: record.followUp.zip, assignee: record.followUp.assignee, nextAction: 'Orient the new caregiver on the member’s authorized tasks.' };
+    for (const [name, value] of Object.entries(initial)) form.elements.namedItem(name).value = value || '';
+    controls();
+    section.open = true;
+    form.elements.namedItem('caregiverId').focus();
+  }
+  function completionForm(record) {
+    const form = node('form', null, 'operational-form');
+    const completedOn = visitField(form, 'completedOn', 'Completed on', 'date');
+    const performedBy = visitField(form, 'performedBy', 'Performed by', 'text');
+    const file = visitField(form, 'file', 'Signed visit paperwork (PDF or scan)', 'file');
+    file.accept = '.pdf,.jpg,.jpeg,.png,.webp';
+    const reference = visitField(form, 'documentReference', 'Existing document reference (if already filed)', 'text', '', 500);
+    const note = visitField(form, 'note', 'Performance, corrective action and follow-up', 'textarea', '', 1000);
+    completedOn.required = performedBy.required = note.required = true;
+    const message = formAction(form, 'Submit completion evidence');
+    let completionId = null, previousFields = null, previousFile = null;
+    form.addEventListener('submit', async event => {
+      event.preventDefault();
+      const attachment = file.files[0];
+      if (!attachment && !reference.value.trim()) { message.textContent = 'Choose a file or enter its existing document reference.'; return; }
+      const fields = { completedOn: completedOn.value, performedBy: performedBy.value.trim(), note: note.value.trim() };
+      const fingerprint = JSON.stringify({ ...fields, reference: reference.value.trim() });
+      if (fingerprint !== previousFields || attachment !== previousFile) completionId = crypto.randomUUID();
+      previousFields = fingerprint; previousFile = attachment;
+      await mutate(form, message, async signal => {
+        const body = { id: record.id, revision: record.revision, officeId: record.officeId, completionId, ...fields };
+        if (!attachment) return { path: 'requirements/complete', body: { ...body, documentReference: reference.value.trim() } };
+        const { extractAuthorization } = await import('/assets/workforce-authorization-extract.js');
+        const scan = await extractAuthorization(attachment, progress => { message.textContent = progress; }, signal,
+          { recognizeText: false, documentLabel: 'visit record' }).catch(error => { throw new Error('scan_failed', { cause: error }); });
+        return { path: 'requirements/upload', body: { ...body, source: scan.source, pages: scan.pages } };
+      });
+    });
+    return form;
+  }
+  function evidenceLink(record, completion) {
+    const host = node('div'), message = node('p', '', 'revision-form-message');
+    const open = button('Prepare private document preview', async () => {
+      if (loading || !active || !controller.isLive()) return;
+      const { ticket, untrack } = begin();
+      open.disabled = true;
+      message.textContent = 'Opening the filed scan…';
+      try {
+        const params = new URLSearchParams({ id: record.id, completionId: completion.id });
+        const response = await window.primetimeApiFetch('/primetime/api/revisions/requirements/document?' + params, { signal: abort?.signal });
+        if (!response.ok || response.headers.get('Content-Type') !== 'application/pdf') throw new Error('visit_document_unavailable');
+        const blob = await response.blob();
+        if (!current(ticket)) return;
+        if (completion.reviewState !== 'accepted') {
+          await renderEvidencePages(blob, host, ticket);
+          return;
+        }
+        const url = URL.createObjectURL(blob);
+        evidenceUrls.add(url);
+        const link = node('a', 'Download filed PDF'); link.href = url; link.download = 'visit-evidence.pdf';
+        host.replaceChildren(link);
+      } catch (error) {
+        if (current(ticket)) { message.textContent = errorText(error); open.disabled = false; }
+      } finally {
+        untrack?.();
+        if (current(ticket)) { loading = false; controls(); }
+      }
+    });
+    message.setAttribute('role', 'status'); host.append(open, message);
+    return host;
+  }
+  async function renderEvidencePages(blob, host, ticket) {
+    const pdfjs = await import('/assets/authorization-reader/pdf.mjs');
+    if (!current(ticket)) return;
+    pdfjs.GlobalWorkerOptions.workerSrc = '/assets/authorization-reader/pdf.worker.mjs';
+    const task = pdfjs.getDocument({ data: new Uint8Array(await blob.arrayBuffer()), isEvalSupported: false, useWasm: false });
+    try {
+      const pdf = await task.promise, pages = [];
+      for (let index = 1; index <= pdf.numPages; index++) {
+        if (!current(ticket)) return;
+        const page = await pdf.getPage(index), original = page.getViewport({ scale: 1 });
+        const viewport = page.getViewport({ scale: Math.min(1, 950 / original.width) });
+        const canvas = node('canvas');
+        canvas.width = Math.ceil(viewport.width); canvas.height = Math.ceil(viewport.height);
+        canvas.setAttribute('aria-label', 'Visit evidence page ' + index);
+        await page.render({ canvas, canvasContext: canvas.getContext('2d'), viewport }).promise;
+        pages.push(canvas); page.cleanup();
+      }
+      if (current(ticket)) host.replaceChildren(...pages);
+    } finally { await task.destroy(); }
+  }
+  function visibleRequirements(items) {
+    const zip = get('revisionVisitZip')?.value.trim(), assignee = get('revisionVisitAssignee')?.value.trim().toLowerCase();
+    const day = get('revisionVisitDay')?.value, state = get('revisionVisitStatus')?.value;
+    return items.filter(item => (!zip || item.followUp.zip.startsWith(zip))
+      && (!assignee || item.followUp.assignee.toLowerCase().includes(assignee))
+      && (!day || item.followUp.plannedDate === day)
+      && (!state || (state === 'due' && ['due', 'overdue'].includes(item.status))
+        || (state === 'open' && ['due', 'overdue', 'upcoming'].includes(item.status))
+        || (state === 'review' && item.status === 'evidence_under_review')))
+      .sort((a, b) => (a.followUp.zip || 'zzzzz').localeCompare(b.followUp.zip || 'zzzzz')
+        || (a.nextDueDate || '9999').localeCompare(b.nextDueDate || '9999'));
+  }
+  function renderRoute(result, visits, admission, stillSelected) {
+    const host = get('revisionVisitRouteResult'), panel = node('div');
+    host.replaceChildren(panel);
+    const order = result.stopZips || result.zips.slice(1, -1);
+    if (!result.stopZips && (admission === result.officeZip || visits.some(v => v.followUp.zip === result.officeZip))) {
+      if (admission && admission !== result.officeZip) order.push(result.officeZip);
+      else order.unshift(result.officeZip);
+    }
+    const stops = [];
+    const add = (zip, label, requirementId) => stops.push({ zip, requirementId, label: zip + ' — ' + label,
+      point: result.points?.[zip], address: zip + ', TX, USA' });
+    for (const zip of order) {
+      if (zip === admission) add(zip, 'Admission', null);
+      for (const visit of visits.filter(item => item.followUp.zip === zip)) {
+        add(zip, 'Member ' + visit.subject.id + ' · ' + visitTitle(visit.type), visit.id);
+      }
+    }
+    const valid = () => ready && active && controller.isLive() && host.contains(panel) && stillSelected();
+    window.primetimeVisitMap.mount(panel, { stops, estimates: result, embedKey: result.embedKey, active: valid, errorText,
+      description: (result.routing === 'google_traffic' ? 'Initial order uses Google traffic estimates. ' : '') +
+        'Visit locations use ZIP centers. Allow extra time for local travel and appointments.',
+      save: async ordered => {
+        if (!valid() || loading) throw new Error('Route changed. Build the route again.');
+        const day = get('revisionVisitDay')?.value, { ticket, untrack } = begin();
+        try {
+          const saved = await request('requirements/route', ticket, { method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ zips: [...new Set(ordered.map(stop => stop.zip))], mpg: 28, regularPrice: null,
+              ...(admission ? { admissionZip: admission } : {}), ...(day ? { day } : {}),
+              manualStops: ordered.map(({ zip, requirementId }) => ({ zip, requirementId })) }) });
+          return current(ticket) && valid() ? saved : null;
+        } catch (error) { if (current(ticket)) clearRevokedAccess(error); throw error; }
+        finally { untrack?.(); if (current(ticket)) { loading = false; controls(); } }
+      } });
+  }
+  get('revisionMapSample')?.addEventListener('click', () => window.primetimeVisitMap.sample(get('revisionMapSampleResult')));
   function renderRecords(kind) {
     const host = 'revision' + kind[0].toUpperCase() + kind.slice(1), page = pages[kind];
     if (!page) return;
     get(host + 'Next').hidden = !page.nextCursor;
     if (!page.items.length) { unavailable(host, 'No persisted records were returned on this page.'); return; }
-    replace(host, ...page.items.map(record => {
+    const items = kind === 'requirements' ? visibleRequirements(page.items) : page.items;
+    if (!items.length) { unavailable(host, 'No loaded records match these filters.'); return; }
+    let lastZip = null;
+    replace(host, ...items.flatMap(record => {
       const article = node('article', null, 'revision-record');
       if (kind === 'exceptions') {
         article.append(node('h4', record.diagnosis || 'Office review'), node('span', human(record.state), 'status ' + (record.state === 'resolved' ? 'pending' : 'medium')),
@@ -499,15 +732,39 @@
           ...(['open', 'acknowledged'].includes(record.state) ? [['start_review', 'Start review']] : []), ['resolve', 'Resolve office follow-up']];
         article.append(noteForm('Save review', actions, (note, action) => ({ path: 'exceptions/review', body: { id: record.id, revision: record.revision, officeId: record.officeId, action, note } })));
       } else if (kind === 'requirements') {
-        article.append(node('h4', human(record.type)), node('span', human(record.status), 'status ' + (['due', 'overdue'].includes(record.status) ? 'high' : 'pending')),
-          labels([['Next due', record.nextDueDate], ['Program / service', [record.program, record.service].filter(Boolean).join(' / ')], ['Supervisor', record.assignedSupervisor], ['Rule', record.ruleReference], ['Recurrence', record.type === 'initial_orientation' ? 'One-time requirement' : record.cadenceMonths === null ? 'Not configured' : `${record.cadenceMonths} calendar months`]]),
-          details('References', labels([['For', `${human(record.subject.kind)} ${record.subject.id}`], ['Record', record.id]])));
+        article.append(node('h4', visitTitle(record.type) + ' · ' + human(record.subject.kind) + ' ' + record.subject.id),
+          node('span', human(record.status), 'status ' + (['due', 'overdue'].includes(record.status) ? 'high' : record.status === 'completed' ? 'verified' : 'pending')),
+          labels([['Next due', record.nextDueDate], ['Planned visit', record.followUp.plannedDate], ['Assigned to', record.followUp.assignee],
+            ['Visit reason', visitReasons.find(([key]) => key === record.followUp.reason)?.[1]], ['Next action', record.followUp.nextAction],
+            ['Caregiver reference', record.followUp.caregiverId]]),
+          details('Requirement details', labels([['Program / service', [record.program, record.service].filter(Boolean).join(' / ')],
+            ['Supervisor', record.assignedSupervisor], ['Rule', record.ruleReference], ['Recurrence', record.type === 'initial_orientation' ? 'One-time requirement'
+              : record.cadenceMonths === null ? 'Not configured' : `${record.cadenceMonths} calendar months`], ['Record', record.id]])));
+        if (routeEligible(record)) {
+          const label = node('label', 'Include in route', 'revision-route-choice'), check = node('input');
+          check.type = 'checkbox'; check.checked = routeSelection.has(record.id);
+          check.addEventListener('change', () => {
+            if (check.checked) routeSelection.add(record.id); else routeSelection.delete(record.id);
+            replace('revisionVisitRouteResult'); showVisitSelection();
+          });
+          label.textContent = ''; label.append(check, node('span', 'Include in route')); article.append(label);
+        }
         for (const completion of record.completions) {
           const evidence = details(`${completion.completedOn || 'Completion'} · ${human(completion.reviewState)}`, labels([['Performed by', completion.performedBy], ['Document', completion.documentReference], ['Note', completion.note], ['Review note', completion.reviewNote]]));
+          if (completion.hasAttachment) evidence.append(evidenceLink(record, completion));
           if (completion.reviewState === 'pending_review') evidence.append(noteForm('Save evidence review', [['accept', 'Accept documented completion'], ['reject', 'Reject evidence']], (note, action) => ({ path: 'requirements/review', body: { id: record.id, revision: record.revision, officeId: record.officeId, completionId: completion.id, action, note } })));
           article.append(evidence);
         }
-        if (record.nextDueDate) article.append(details('Record completion evidence', completionForm(record)));
+        if (record.nextDueDate && record.status !== 'outside_effective_period') {
+          article.append(details('Assign or update follow-up', planForm(record)));
+          if (record.status !== 'evidence_under_review') article.append(details('Upload or record completion', completionForm(record)));
+          if (record.type === 'supervisory_visit') article.append(button('Plan new caregiver orientation', () => prepareOrientation(record)));
+        }
+        const zip = record.followUp.zip;
+        if (zip !== lastZip) {
+          lastZip = zip;
+          return [node('h3', zip ? ['ZIP ' + zip, record.area].filter(Boolean).join(' · ') : 'ZIP not recorded', 'revision-zip-heading'), article];
+        }
       } else {
         const delivery = { queued: 'Queued', claimed: 'Preparing delivery', accepted: 'Provider accepted · delivery unconfirmed', delivered: 'Delivery confirmed', failed: 'Delivery failed', unknown: 'Delivery state unknown', suppressed: 'Suppressed' };
         article.append(node('h4', human(record.rule)), node('span', delivery[record.state], 'status pending'), labels([['Planned send', record.plannedSendAt], ['Supervisor delivery target', record.deadlineAt]]), details('References', labels([['Visit', record.visitId], ['Alert', record.id]])));
@@ -519,9 +776,76 @@
         if (record.acknowledgement) article.append(node('p', `Office acknowledged ${record.acknowledgement.at || ''}: ${record.acknowledgement.note || ''}`));
         else article.append(noteForm('Acknowledge office alert', null, note => ({ path: 'notifications/acknowledge', body: { id: record.id, note } })));
       }
-      return article;
+      return [article];
     }));
   }
+  function routeEligible(record) {
+    return /^77[0-8]\d{2}$/.test(record.followUp.zip) && ['due', 'overdue', 'upcoming'].includes(record.status);
+  }
+  for (const id of ['revisionVisitZip', 'revisionVisitAssignee', 'revisionVisitDay', 'revisionVisitStatus']) {
+    get(id)?.addEventListener('input', () => { clearVisitRoute(); renderRecords('requirements'); });
+  }
+  get('revisionVisitSelect')?.addEventListener('click', () => {
+    clearVisitRoute();
+    for (const item of visibleRequirements(pages.requirements?.items || []).filter(routeEligible)) routeSelection.add(item.id);
+    showVisitSelection();
+    renderRecords('requirements');
+  });
+  get('revisionAdmissionZip')?.addEventListener('input', () => { clearSuggestions(); replace('revisionVisitRouteResult'); });
+  get('revisionSuggest')?.addEventListener('click', async () => {
+    if (loading || !active || !controller.isLive()) return;
+    clearSuggestions(); replace('revisionVisitRouteResult');
+    const zip = admissionZip(), host = get('revisionSuggestions');
+    if (!/^77[0-8]\d{2}$/.test(zip)) { host.textContent = 'Enter a Greater Houston admission ZIP.'; return; }
+    const day = get('revisionVisitDay')?.value || '', { ticket, untrack } = begin();
+    host.textContent = 'Checking supervisory visit deadlines…';
+    try {
+      const result = await request('requirements/near-admission', ticket, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ zip, day }) });
+      if (!current(ticket) || admissionZip() !== zip || (get('revisionVisitDay')?.value || '') !== day) return;
+      host.replaceChildren(node('p', result.items.length ? 'Optional visits due or overdue, or due within 30 days. Confirm availability before adding a stop.' : 'No eligible visits found within five miles of this ZIP center.'));
+      for (const item of result.items) {
+        const label = node('label'), input = node('input'); input.type = 'checkbox';
+        input.addEventListener('change', () => {
+          if (input.checked) optionalVisits.set(item.id, item); else optionalVisits.delete(item.id);
+          replace('revisionVisitRouteResult'); showVisitSelection();
+        });
+        label.append(input, node('span', [item.sameZip ? 'Same ZIP' : item.miles.toFixed(1) + ' mi between ZIP centers',
+          'Member ' + item.subject.id, item.followUp.zip, 'Due ' + item.nextDueDate, item.followUp.assignee || 'Unassigned'].join(' · ')));
+        host.append(label);
+      }
+      if (result.partial) host.append(node('p', 'Suggestions cover the first 1,000 requirements.'));
+    } catch (error) { if (current(ticket)) host.textContent = errorText(error); }
+    finally { untrack?.(); if (current(ticket)) { loading = false; controls(); } }
+  });
+  get('revisionVisitRoute')?.addEventListener('submit', async event => {
+    event.preventDefault();
+    if (!ready || !active || !controller.isLive() || loading || status?.capabilities.records !== true) return;
+    const host = get('revisionVisitRouteResult');
+    const visits = selectedVisits(), admission = admissionZip();
+    const zips = [...new Set([...(admission ? [admission] : []), ...visits.map(item => item.followUp.zip)])];
+    if (!zips.length || zips.length > 9) {
+      host.textContent = 'Select visits in one to nine ZIP codes. Use the ZIP or assignee filters to narrow the route.';
+      return;
+    }
+    const form = event.currentTarget, { ticket, untrack } = begin();
+    const submit = form.querySelector('button[type="submit"]'); submit.disabled = true;
+    host.textContent = 'Building the Google Maps route…';
+    const day = get('revisionVisitDay')?.value || '';
+    const selection = visits.map(item => item.id).join(',');
+    const stillSelected = () => day === (get('revisionVisitDay')?.value || '') && admission === admissionZip() && selection === selectedVisits().map(item => item.id).join(',');
+    try {
+      const result = await request('requirements/route', ticket, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ zips, mpg: 28, regularPrice: null, ...(day ? { day } : {}), ...(admission ? { admissionZip: admission } : {}) })
+      });
+      if (current(ticket) && stillSelected()) renderRoute(result, visits, admission, stillSelected);
+    } catch (error) {
+      if (current(ticket) && stillSelected() && !clearRevokedAccess(error)) host.textContent = errorText(error);
+    } finally {
+      submit.disabled = false; untrack?.();
+      if (current(ticket)) { loading = false; controls(); }
+    }
+  });
   get('revisionRefresh')?.addEventListener('click', () => void refresh());
   get('messagesRefresh')?.addEventListener('click', () => void refresh());
   get('revisionSearch')?.addEventListener('input', renderVisits);
@@ -544,10 +868,17 @@
     try { body = requirementInput(Object.fromEntries(new FormData(form).entries()), status?.officeId, crypto.randomUUID()); } catch (error) { message.textContent = error.message; return; }
     await mutate(form, message, () => ({ path: 'requirements/save', body }));
   });
-  get('revisionRequirementForm')?.querySelector('[name="type"]')?.addEventListener('change', controls);
+  const requirementForm = get('revisionRequirementForm');
+  requirementForm?.querySelector('[name="type"]')?.addEventListener('change', controls);
+  requirementForm?.querySelector('[name="reason"]')?.addEventListener('change', event => {
+    if (['services_starting', 'caregiver_changed'].includes(event.target.value)) requirementForm.elements.namedItem('type').value = 'initial_orientation';
+    controls();
+  });
   document.addEventListener('primetime-view-changed', event => { active = false; invalidate(); messagesActive = event.detail?.view === 'messages'; active = messagesActive || event.detail?.view === 'revisions'; if (active && ready) { if (controller.isLive()) void refresh(); else renderDemo(); } });
   document.addEventListener('primetime-ready', () => { ready = true; session += 1; messagesActive = get('messagesWorkspace')?.classList.contains('is-active'); active = messagesActive || panel.classList.contains('is-active'); renderMode(); });
-  document.addEventListener('primetime-signed-out', () => { ready = false; session += 1; invalidate(); text('messagesStatus', 'Sign in to read alerts.'); text('revisionStatus', 'Sign in to open visit review.'); });
+  document.addEventListener('primetime-signed-out', () => { ready = false; session += 1; invalidate();
+    for (const id of ['revisionVisitZip', 'revisionVisitAssignee', 'revisionVisitDay', 'revisionVisitStatus']) if (get(id)) get(id).value = '';
+    get('revisionVisitRoute')?.reset(); text('messagesStatus', 'Sign in to read alerts.'); text('revisionStatus', 'Sign in to open visit review.'); });
   document.addEventListener('primetime-data-mode-changed', renderMode);
   renderMode();
 })();

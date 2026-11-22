@@ -46,6 +46,11 @@ All dashboard endpoints require the existing verified administrator session, liv
 | POST | `/revisions/requirements/save` | Create or revise a scoped requirement |
 | POST | `/revisions/requirements/complete` | Record supporting completion evidence |
 | POST | `/revisions/requirements/review` | Accept or reject pending evidence |
+| POST | `/revisions/requirements/plan` | Update the assignee, ZIP, visit date and next action. Record an earlier deadline with a reason |
+| POST | `/revisions/requirements/upload` | Encrypt the original scan and viewer copy and link them to pending evidence |
+| GET | `/revisions/requirements/document` | Return the private viewer copy for the scoped requirement and completion |
+| POST | `/revisions/requirements/near-admission` | Suggest optional supervisory visits due within 30 days or overdue, in the admission ZIP or within five miles between ZIP centers |
+| POST | `/revisions/requirements/route` | Optimize the selected Houston-area ZIP stops by driving time and estimate fuel cost |
 | GET | `/revisions/exceptions` | Local office follow-up records |
 | POST | `/revisions/exceptions/review` | Acknowledge, start review, resolve or reopen with a note |
 | GET | `/revisions/call-matches` | Audited local call associations |
@@ -56,6 +61,14 @@ All dashboard endpoints require the existing verified administrator session, liv
 | POST | `/revisions/sms/status` | Provider-only form callback, authenticated by fixed-URL/account/HMAC validation |
 
 Visit paging returns `nextOffset` and a `discovery` fingerprint; the next request must include both. A changed discovery or policy requires restarting. Record lists return `nextCursor`. No dashboard endpoint accepts a browser-authored diagnosis, source acceptance assertion, notification body, recipient phone for dispatch, source-write permission or provider receipt.
+
+## Supervisory visit rollout checks
+
+The existing approved Live office and administrator or supervisor access apply. Verify that the serving Functions identity can use the existing Workforce document KMS key and the private storage bucket, then round-trip a synthetic visit document through review and approval.
+
+The on-platform sample uses two fixed Google Maps share embeds with public library addresses. For arbitrary staff itineraries, set repository variable `PRIMETIME_MAPS_EMBED_BROWSER_KEY` to a browser key restricted to the Maps Embed API and the agency’s Hosting origins. The normal backend deployment passes that key to the planner. Without it the planner draws numbered stops over a local 2026 Census road basemap and provides Google navigation links. The backend keeps using separate Routes API credentials for traffic estimates. Manual order is recorded per visit and can revisit a ZIP. No member references are included in Google URLs or matrix requests.
+
+Google Maps links work without credentials. Google route optimization uses Routes API OAuth through the serving identity and the existing Google Cloud project. Verify Routes API enablement, billing and service usage permissions with a round trip containing public ZIP stops before launch. An unavailable route matrix falls back to a geographic ZIP ordering and Google Maps links. Staff see driving time and mileage when a Google road matrix is available. The office route record in `revisionVisitRoutes_office_<officeId>` retains the planned date, ordered ZIPs, mileage and fuel estimate. The admission ZIP is visited first. The AAA regional benchmark is date-checked. [Google Routes API setup](https://developers.google.com/maps/documentation/routes/get-api-key)
 
 ## Protected persistence
 

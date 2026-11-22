@@ -135,19 +135,24 @@ function harness(custom) {
     const classes = new Set();
     const item = { tag, children: [], handlers: new Map(), value: '', disabled: false, hidden: false, className: '', ownText: '',
       classList: { contains: name => classes.has(name), add: name => classes.add(name) },
+      contains(target) { return descendants(this).includes(target); },
       append(...children) { this.children.push(...children); if (this.tag === 'select' && !this.value) this.value = this.children[0]?.value || ''; },
       replaceChildren(...children) { this.children = children; this.ownText = ''; }, setAttribute(name, value) { this[name] = value; },
       addEventListener(type, fn) { const list = this.handlers.get(type) || []; list.push(fn); this.handlers.set(type, list); },
-      querySelector(selector) { return descendants(this).find(child => selector === '.revision-form-message' && child.className === 'revision-form-message') || null; },
+      querySelector(selector) {
+        return descendants(this).find(child => (selector === '.revision-form-message' && child.className === 'revision-form-message')
+          || (selector === 'button[type="submit"]' && child.tag === 'button' && child.type === 'submit')) || null;
+      },
       reset() { for (const field of this.elements) field.value = ''; }
     };
     Object.defineProperty(item, 'textContent', { get() { return this.ownText + this.children.map(child => child.textContent || '').join(' '); }, set(value) { this.ownText = String(value); this.children = []; } });
+    Object.defineProperty(item, 'options', { get() { return this.children.map(option => ({ value: option.value, remove: () => { this.children = this.children.filter(child => child !== option); } })); } });
     Object.defineProperty(item, 'elements', { get() { return descendants(this).filter(child => ['input', 'select', 'textarea', 'button'].includes(child.tag)); } });
     return item;
   }
   function descendants(item) { return item.children.flatMap(child => [child, ...descendants(child)]); }
   const element = id => { if (!elements.has(id)) elements.set(id, node(id === 'revisionRequirementForm' ? 'form' : 'div')); return elements.get(id); };
-  const document = { getElementById: element, createElement: node, addEventListener(type, fn) { const list = listeners.get(type) || []; list.push(fn); listeners.set(type, list); }, dispatchEvent(event) { for (const fn of listeners.get(event.type) || []) fn(event); return true; } };
+  const document = { getElementById: element, createElement: node, createElementNS: (_, name) => node(name), addEventListener(type, fn) { const list = listeners.get(type) || []; list.push(fn); listeners.set(type, list); }, dispatchEvent(event) { for (const fn of listeners.get(event.type) || []) fn(event); return true; } };
   const window = { sessionStorage: { getItem() { return 'demo'; }, setItem() {}, removeItem() {} } };
   window.primetimeApiFetch = async (path, options = {}) => {
     calls.push({ path, options });
@@ -157,8 +162,12 @@ function harness(custom) {
     const payload = url.pathname.endsWith('/status') ? status : url.pathname.endsWith('/visits') ? visits(url.searchParams.get('date')) : url.pathname.endsWith('/exceptions') ? page([exception]) : options.method === 'POST' ? { ok: true, mode: 'live', source: 'primetime', ...exception, revision: 2 } : page([]);
     return { ok: true, json: async () => clone(payload) };
   };
-  const context = vm.createContext({ window, document, Event, URLSearchParams, AbortController, Date: class extends Date { static now() { return now; } }, crypto: { randomUUID: () => 'new-fixture-id' }, console });
-  vm.runInContext(asset('data-source.js'), context); vm.runInContext(asset('demo-data.js'), context); vm.runInContext(asset('revisions.js'), context);
+  const context = vm.createContext({ window, document, Event, URLSearchParams, AbortController, FormData: class {
+    constructor(form) { this.fields = form.elements.filter(field => field.name).map(field => [field.name, field.value]); }
+    get(name) { return this.fields.find(field => field[0] === name)?.[1] ?? null; }
+    [Symbol.iterator]() { return this.fields[Symbol.iterator](); }
+  }, Date: class extends Date { static now() { return now; } }, crypto: { randomUUID: () => 'new-fixture-id' }, console });
+  vm.runInContext(asset('data-source.js'), context); vm.runInContext(asset('demo-data.js'), context); vm.runInContext(asset('visit-map.js'), context); vm.runInContext(asset('revisions.js'), context);
   const emit = (type, detail) => { const event = new Event(type); event.detail = detail; document.dispatchEvent(event); };
   return { element, window, calls, descendants, emit, advance(ms) { now += ms; },
     async openLive(view = 'revisions') { emit('primetime-ready'); window.primetimeDataMode.setMode('live'); emit('primetime-view-changed', { view }); await tick(); await tick(); },
@@ -168,6 +177,41 @@ function harness(custom) {
     text(id) { return element(id).textContent; }
   };
 }
+test('the field director can select a ZIP group and open the ordered route without disclosing member references to Google', async () => {
+  const fixture = (id, member, zip, assignee) => ({
+    id, officeId: '123', revision: 1, type: 'supervisory_visit', subject: { kind: 'member', id: member },
+    status: 'due', nextDueDate: '2026-11-22', program: 'PAS', service: 'Attendant', cadenceMonths: 6, completions: [],
+    area: 'W of office', followUp: { zip, assignee, plannedDate: '2026-11-22', reason: 'routine', nextAction: 'Observe assigned tasks' }
+  });
+  const app = harness((path, options) => {
+    if (path.endsWith('/requirements')) return { ok: true, json: async () => page([
+      fixture('req-a', '919001', '77479', 'Field Director'), fixture('req-b', '919002', '77479', 'Field Director'), fixture('req-c', '919003', '77035', 'Other Staff')
+    ]) };
+    if (path.endsWith('/requirements/route')) {
+      assert.deepEqual(JSON.parse(options.body), { zips: ['77479'], mpg: 28, regularPrice: null });
+      return { ok: true, json: async () => ({ ok: true, routing: 'google_traffic', zips: ['77035', '77479', '77035'], officeZip: '77035',
+        minutes: 39, miles: 22, gallons: 22 / 28, fuelCost: 2.51, regularPrice: 3.1984, prices: { date: '2026-11-22', houston: 3.1984, texas: 3.1045 } }) };
+    }
+  });
+  await app.openLive();
+  assert.match(app.text('revisionRequirements'), /ZIP 77479.*919001.*919002/);
+  const assignee = app.element('revisionVisitAssignee');
+  assignee.value = 'Field Director';
+  for (const input of assignee.handlers.get('input')) input();
+  assert.doesNotMatch(app.text('revisionRequirements'), /919003/);
+  await app.click('revisionVisitSelect');
+  const form = app.element('revisionVisitRoute');
+  form.append({ tag: 'input', name: 'mpg', value: '28', children: [] }, { tag: 'button', type: 'submit', children: [] });
+  await app.submit(form);
+  const result = app.element('revisionVisitRouteResult');
+  assert.match(result.textContent, /39 min driving.*22.0 mi/);
+  assert.doesNotMatch(result.textContent, /AAA|fuel|gallon|3\.1984|2\.51/i);
+  const link = app.descendants(result).find(element => element.tag === 'a');
+  assert.match(link.href, /^https:\/\/www\.google\.com\/maps\/dir\/\?/);
+  assert.match(link.href, /77479/);
+  assert.doesNotMatch(link.href, /91900[123]|Field/);
+});
+
 test('Demo uses shared fixtures without any API request and clears immediately in Live', async () => {
   const app = harness(); app.emit('primetime-ready'); app.emit('primetime-view-changed', { view: 'revisions' });
   assert.ok(app.text('revisionDetail').includes('DEMO-V-')); assert.equal(app.calls.length, 0);
@@ -555,4 +599,67 @@ test('review shows raw EVV types with empty clocks without accepting events or h
   assert.doesNotMatch(app.text('revisionDetail'), /Verified|0 h · HHA/);
   app.window.primetimeDataMode.setMode('demo');
   assert.doesNotMatch(app.text('revisionDetail'), /EVV types in \/ out \(source\): 0/);
+});
+
+test('an admission offers an unselected off-page visit and adds it to the route only after confirmation', async () => {
+  const plans = [];
+  const app = harness((path, options) => {
+    if (path.endsWith('/requirements/near-admission')) {
+      assert.deepEqual(JSON.parse(options.body), { zip: '77035', day: '2026-11-23' });
+      return { ok: true, json: async () => ({ ...page([{ id: 'optional-b', type: 'supervisory_visit', subject: { kind: 'member', id: '919008' },
+        nextDueDate: '2026-11-27', followUp: { zip: '77036', assignee: 'Field Director' }, sameZip: false, miles: 4.9 }]), partial: false }) };
+    }
+    if (path.endsWith('/requirements/route')) {
+      const input = JSON.parse(options.body); plans.push(input);
+      return { ok: true, json: async () => ({ ok: true, routing: 'google_unconfigured', zips: [...input.zips, '77035'], officeZip: '77035' }) };
+    }
+  });
+  await app.openLive();
+  app.element('revisionAdmissionZip').value = '77035';
+  app.element('revisionVisitDay').value = '2026-11-23';
+  await app.click('revisionSuggest');
+  assert.match(app.text('revisionSuggestions'), /4.9 mi between ZIP centers.*77036.*Due 2026-11-27/);
+  const box = app.descendants(app.element('revisionSuggestions')).find(el => el.type === 'checkbox');
+  assert.ok(box && !box.checked);
+  const form = app.element('revisionVisitRoute');
+  form.append({ tag: 'button', type: 'submit', children: [] });
+  await app.submit(form);
+  assert.deepEqual(plans[0].zips, ['77035']);
+  box.checked = true;
+  for (const fn of box.handlers.get('change')) fn();
+  await app.submit(form);
+  assert.deepEqual(plans[1], { zips: ['77035', '77036'], mpg: 28, regularPrice: null, day: '2026-11-23', admissionZip: '77035' });
+  assert.match(app.text('revisionVisitRouteResult'), /77035.*Admission.*77036.*919008/);
+});
+
+test('field director can preview, reverse and save a route with recalculated totals', async () => {
+  const saves=[];
+  const app=harness((path, options)=>{
+    if(path.endsWith('/requirements/near-admission')) return {ok:true,json:async()=>page([{id:'visit-a',type:'supervisory_visit',subject:{id:'12345'},
+      followUp:{zip:'77036',assignee:'Field director'},miles:4.9,nextDueDate:'2026-11-23'}])};
+    if(path.endsWith('/requirements/route')){
+      const body=JSON.parse(options.body);
+      if(body.manualStops)saves.push(body.manualStops);
+      const zips=body.manualStops?['77036','77035']:['77035','77036'];
+      return {ok:true,json:async()=>({ok:true,routing:'google_traffic',zips:['77035',...zips,'77035'],stopZips:zips,officeZip:'77035',
+        embedKey:'test-browser-key',minutes:body.manualStops?32:36,miles:body.manualStops?12.5:13.2, points:{'77035':[29.65,-95.48],'77036':[29.71,-95.52]}})};
+    }
+  });
+  await app.openLive();app.element('revisionAdmissionZip').value='77035';await app.click('revisionSuggest');
+  const box=app.descendants(app.element('revisionSuggestions')).find(el=>el.type==='checkbox');box.checked=true;
+  for(const fn of box.handlers.get('change'))fn();
+  const form=app.element('revisionVisitRoute');form.append({tag:'button',type:'submit',children:[]});await app.submit(form);
+  const host=app.element('revisionVisitRouteResult'), find=(pred)=>app.descendants(host).find(pred);
+  const click=async el=>{assert.ok(el);for(const fn of el.handlers.get('click'))await fn();};
+  const waypoints=()=>new URL(find(el=>el.tag==='iframe').src).searchParams.get('waypoints');
+  assert.match(waypoints(),/^77035.*77036/);
+  await click(find(el=>el['aria-label']?.endsWith('Admission later')));
+  assert.match(waypoints(),/^77036.*77035/);
+  assert.doesNotMatch(find(el=>el.tag==='iframe').src,/12345|visit-a|admission/i);
+  assert.doesNotMatch(host.textContent,/36 min driving/);
+  await click(find(el=>el.textContent==='Save revised route'));
+  assert.deepEqual(saves,[[{zip:'77036',requirementId:'visit-a'},{zip:'77035',requirementId:null}]]);
+  assert.match(host.textContent,/32 min driving.*12.5 mi/);
+  await click(find(el=>el.textContent==='Show stop overview'));
+  assert.ok(find(el=>el.tag==='svg'));
 });
