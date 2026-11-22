@@ -38,7 +38,7 @@ function setup(handler=async()=>undefined){
  const api=async(path,body,blob)=>{calls.push({path,body,blob});const result=await handler(path,body,blob);if(result!==undefined)return result;if(path.endsWith('/templates'))return {templates};if(path.includes('?office='))return {items:[{id:'record-a',state:'draft',clientName:'Synthetic A',kind:'orientation',visitDate:'2026-11-13'}],next:null};if(body)return record('saved',body.data.clientName,body.data.kind);return record('record-a');};
  const document={getElementById:id=>id===root.id?root:null,createElement:tag=>new Element(tag),addEventListener:(name,fn)=>events.set(name,fn)};
  const window={};
- const context=vm.createContext({window,document,workforceApi:api,location:{hash:''},URL:{revokeObjectURL(){}},AbortController,Intl,Date,crypto:{randomUUID:()=> 'new-record'},FormData:class{constructor(form){this.form=form;}*[Symbol.iterator](){for(const e of walk(this.form))if(e.name&&!e.disabled&&e.type!=='checkbox')yield[e.name,e.value];}},WorkforceAdmissionLibrary:{mount:async(target,options)=>{admissions.push(options);}},WorkforceSignatureFields:{mount:(target,options)=>mappings.push(options)},WorkforceSignature:{mount:()=>({get:()=>({kind:'synthetic'})})},WorkforcePrivatePdf:{show:async(...args)=>{previews.push(args);return true;}},importExtractor:async()=>({extractAuthorization:async(file,progress,signal)=>{file.progress=progress;file.signal=signal;return file.pending;}})});
+ const context=vm.createContext({setTimeout,clearTimeout,window,document,workforceApi:api,location:{hash:''},URL:{revokeObjectURL(){}},AbortController,Intl,Date,crypto:{randomUUID:()=> 'new-record'},FormData:class{constructor(form){this.form=form;}*[Symbol.iterator](){for(const e of walk(this.form))if(e.name&&!e.disabled&&e.type!=='checkbox')yield[e.name,e.value];}},WorkforceAdmissionLibrary:{mount:async(target,options)=>{admissions.push(options);}},WorkforceSignatureFields:{mount:(target,options)=>mappings.push(options)},WorkforceSignature:{mount:()=>({get:()=>({kind:'synthetic'})})},WorkforcePrivatePdf:{show:async(...args)=>{previews.push(args);return true;}},importExtractor:async()=>({extractAuthorization:async(file,progress,signal)=>{file.progress=progress;file.signal=signal;return file.pending;}})});
  vm.runInContext(runtime,context);
  const button=text=>{const b=walk(root).find(e=>e.tagName==='BUTTON'&&e.textContent===text);assert.ok(b,'Missing button: '+text);return b;};
  const field=name=>{const f=walk(root).find(e=>e.name===name);assert.ok(f,'Missing field: '+name);return f;};
@@ -58,7 +58,7 @@ test('a single scheduled client seeds a new supervisory visit and a saved overri
   if(path.endsWith('/scheduled-clients'))return {items:candidates,from:'2026-11-22',through:'2026-11-28'};
   if(body?.data)return {...record('saved'),data:{...body.data,signatures:[]}};
  });
- await s.start();s.newRecord();s.field('lookup-caregiver').value='Verified';await s.button('Find caregiver').onclick();
+ await s.start();s.newRecord();s.field('caregiverName').value='Verified';await s.button('Find caregiver').onclick();
  s.button('Verified caregiver · 2').onclick();await tick();
  assert.equal(s.field('memberId').value,'M3');assert.equal(s.field('scheduledClientChoice').value,'3');
  candidates=[item,other];await s.button('Refresh scheduled clients').onclick();
@@ -68,7 +68,7 @@ test('a single scheduled client seeds a new supervisory visit and a saved overri
 });
 test('late scheduled client results cannot overwrite a manually edited client',async()=>{
  const pending=deferred(),s=setup(path=>path.endsWith('/names')?{items:[{id:'2',name:'Verified caregiver'}]}:path.endsWith('/scheduled-clients')?pending.promise:undefined);
- await s.start();s.newRecord();s.field('lookup-caregiver').value='Verified';await s.button('Find caregiver').onclick();
+ await s.start();s.newRecord();s.field('caregiverName').value='Verified';await s.button('Find caregiver').onclick();
  s.button('Verified caregiver · 2').onclick();const client=s.field('clientName');client.value='Chosen member';client.oninput();
  pending.resolve({items:[{id:'3',name:'Stale member',memberId:'M3'}]});await tick();assert.equal(client.value,'Chosen member');assert.equal(s.field('memberId').value,'');
 });
@@ -162,21 +162,21 @@ test('returning to an office rejects its older list even when the office name ma
 
 for(const which of ['client','caregiver'])test('changing the '+which+' query discards its pending name matches',async()=>{
  const pending=deferred(),s=setup(path=>path.endsWith('/names')?pending.promise:undefined);await s.start();s.newRecord();
- const query=s.field('lookup-'+which);query.value='Old query';const request=s.button('Find '+which).onclick();
+ const query=s.field(which==='client'?'clientName':'caregiverName');query.value='Old query';const request=s.button('Find '+which).onclick();
  query.value='New query';query.oninput?.();pending.resolve({items:[{id:'synthetic-old',name:'Obsolete lookup',memberId:'SYNTHETIC-OLD'}]});await request;
  assert.doesNotMatch(s.root.textContent,/Obsolete lookup/);
 });
 
 test('typing clears returned name matches and prevents their old selection callbacks',async()=>{
  const s=setup(path=>path.endsWith('/names')?{items:[{id:'synthetic-old',name:'Obsolete lookup',memberId:'SYNTHETIC-OLD'}]}:undefined);await s.start();s.newRecord();
- const query=s.field('lookup-client');query.value='Old query';await s.button('Find client').onclick();const old=s.button('Obsolete lookup · SYNTHETIC-OLD');
+ const query=s.field('clientName');query.value='Old query';await s.button('Find client').onclick();const old=s.button('Obsolete lookup · SYNTHETIC-OLD');
  query.value='New query';query.oninput?.();assert.doesNotMatch(s.root.textContent,/Obsolete lookup/);old.onclick();
  assert.notEqual(s.field('clientName').value,'Obsolete lookup');assert.notEqual(s.field('memberId').value,'SYNTHETIC-OLD');
 });
 
 test('a replacement name lookup proceeds while an older result cannot unlock its pending action',async()=>{
  const first=deferred(),second=deferred(),s=setup((path,body)=>path.endsWith('/names')?(body.name==='Old query'?first.promise:second.promise):undefined);await s.start();s.newRecord();
- const query=s.field('lookup-client');query.value='Old query';const a=s.button('Find client').onclick();query.value='New query';query.oninput?.();const b=s.button('Find client').onclick();
+ const query=s.field('clientName');query.value='Old query';const a=s.button('Find client').onclick();query.value='New query';query.oninput?.();const b=s.button('Find client').onclick();
  try{
   assert.equal(s.calls.filter(c=>c.path.endsWith('/names')).length,2);
   first.resolve({items:[{id:'synthetic-old',name:'Obsolete lookup',memberId:'SYNTHETIC-OLD'}]});await a;await s.submit();
@@ -188,20 +188,20 @@ test('a replacement name lookup proceeds while an older result cannot unlock its
 
 test('returning to the same name query still rejects its earlier result',async()=>{
  const pending=deferred(),s=setup(path=>path.endsWith('/names')?pending.promise:undefined);await s.start();s.newRecord();
- const query=s.field('lookup-client');query.value='Old query';const request=s.button('Find client').onclick();
+ const query=s.field('clientName');query.value='Old query';const request=s.button('Find client').onclick();
  query.value='Different query';query.oninput?.();query.value='Old query';query.oninput?.();
  pending.resolve({items:[{id:'synthetic-old',name:'Obsolete lookup',memberId:'SYNTHETIC-OLD'}]});await request;assert.doesNotMatch(s.root.textContent,/Obsolete lookup/);
 });
 
 test('an obsolete name lookup failure cannot replace the current editor notice',async()=>{
  const pending=deferred(),s=setup(path=>path.endsWith('/names')?pending.promise:undefined);await s.start();s.newRecord();
- const query=s.field('lookup-client');query.value='Old query';const request=s.button('Find client').onclick();query.value='New query';query.oninput?.();
+ const query=s.field('clientName');query.value='Old query';const request=s.button('Find client').onclick();query.value='New query';query.oninput?.();
  pending.reject(Error('Obsolete name lookup failure'));await request;assert.doesNotMatch(s.status(),/Obsolete name lookup failure/);
 });
 
 
 test('typing a name query does not release an unrelated pending draft save',async()=>{
  const saving=deferred(),s=setup((path,body)=>body?.data?saving.promise:undefined);await s.start();s.newRecord();await s.submit();
- const query=s.field('lookup-client');query.value='Current query';query.oninput?.();await s.submit();
+ const query=s.field('clientName');query.value='Current query';query.oninput?.();await s.submit();
  assert.equal(s.calls.filter(c=>c.body?.data).length,1);saving.resolve(record('saved-current'));await tick();await tick();
 });

@@ -196,9 +196,16 @@ let managementGzip=0;for(const file of managementFiles)managementGzip+=gzipSync(
 if(managementBytes>82_000||managementGzip>21_000)errors.push(`workforce management exceeds 82 KB raw / 21 KB gzip budget: ${managementBytes}/${managementGzip}`);
 const trainingBytes = (await fs.stat(path.join(publicDir, 'training/staff-workspace-walkthrough-v1.mp4'))).size;
 if (trainingBytes > 750_000) errors.push('Staff training video exceeds the 750 KB media budget');
+// Packet selection loads when staff open Forms. Only packet sharing uses the
+// message composer and recipient page. Bound these deferred assets separately.
+const packetPaths=new Set(['assets/workforce-form-workflow.js','primetime/admission-share.mjs','primetime/admission-copy.html','primetime/admission-copy.js','primetime/admission-copy.css']);
+const isPacketFile=file=>packetPaths.has(path.relative(publicDir,file).split(path.sep).join('/'));
+const packetAssets=await Promise.all(publicFiles.filter(isPacketFile).map(file=>fs.readFile(file)));
+const packetBytes=packetAssets.reduce((sum,bytes)=>sum+bytes.length,0);
+if(packetAssets.length!==packetPaths.size||packetBytes>24_000||packetAssets.reduce((sum,bytes)=>sum+gzipSync(bytes).length,0)>8_000)errors.push('Admission packet workflow and sharing exceed 24 KB raw / 8 KB gzip or assets are missing');
 const isWorkforceFile = file => {
   const relative = path.relative(publicDir, file).replaceAll(path.sep, '/');
-  return !isManagementFile(file)&&(relative === 'caregiver.html' || relative.startsWith('assets/workforce'));
+  return !isPacketFile(file)&&!isManagementFile(file)&&(relative === 'caregiver.html' || relative.startsWith('assets/workforce'));
 };
 const viewerFiles = publicFiles.filter(file => path.relative(publicDir,file).replaceAll(path.sep,'/').startsWith('assets/form-viewer/'));
 const viewerBytes = (await Promise.all(viewerFiles.map(file=>fs.stat(file)))).reduce((sum,stat)=>sum+stat.size,0);
@@ -231,9 +238,9 @@ const readerFiles=publicFiles.filter(file=>path.relative(publicDir,file).replace
 const readerBytes=(await Promise.all(readerFiles.map(file=>fs.stat(file)))).reduce((sum,stat)=>sum+stat.size,0);
 if(readerBytes>41_000_000)errors.push('Authorization PDF/OCR reader exceeds 41 MB build budget');
 const publicBytes = (await Promise.all(publicFiles.map((file) => fs.stat(file)))).reduce((sum, stat) => sum + stat.size, 0);
-const internalFiles = publicFiles.filter(file => isInternalAppFile(file, publicDir) && !isWorkforceFile(file)&&!isManagementFile(file));
+const internalFiles = publicFiles.filter(file => isInternalAppFile(file, publicDir) && !isPacketFile(file)&&!isWorkforceFile(file)&&!isManagementFile(file));
 const internalBytes = (await Promise.all(internalFiles.map(file => fs.stat(file)))).reduce((sum, stat) => sum + stat.size, 0);
-const marketingBudget = assessMarketingBudget(publicBytes - internalBytes - workforceBytes - managementBytes - officialFormBytes - viewerBytes - trainingBytes - readerBytes);
+const marketingBudget = assessMarketingBudget(publicBytes - packetBytes - internalBytes - workforceBytes - managementBytes - officialFormBytes - viewerBytes - trainingBytes - readerBytes);
 if (marketingBudget.error) errors.push(marketingBudget.error);
 if (marketingBudget.warning) console.warn('PERFORMANCE_FOUNDATION_QA: WARNING -', marketingBudget.warning);
 // The authenticated app now includes source review, Demo/Live and durable

@@ -10,7 +10,7 @@ function setup(){
   queries.push(input);if(state.change)state.revision++;
   return {operation:input.operation,source:"hhaexchange",fetchedAt:"2026-11-06T12:00:00Z",truncated:false,records:input.operation==="SearchCaregivers"?[{CaregiverID:"101"}]:[{ID:state.wrongId?"999":input.id,FirstName:"Hannah",LastName:"Hart",CaregiverCode:"CG-1",OfficeIDs:JSON.stringify([state.recordOffice]),"Status/Name":state.status}]};
  }};
- return {state,actor,queries,directory:new HhaDirectory(workspace as unknown as ConstructorParameters<typeof HhaDirectory>[0],async()=>actor)};
+ return {state,actor,queries,workspace,directory:new HhaDirectory(workspace as unknown as ConstructorParameters<typeof HhaDirectory>[0],async()=>actor)};
 }
 test("single-letter workforce caregiver search stays explicit while generic people search retains its minimum",()=>{
  assert.throws(()=>readRequest({operation:"SearchCaregivers",firstName:"H"}),/requires_2/);
@@ -97,4 +97,12 @@ test("roster pages use the approved office, return names only and disclose incom
  assert.doesNotMatch(JSON.stringify(first), /private@example/);
  assert.deepEqual((await s.directory.browse(db, first.next!)).items.map(item => item.hhaId), ["150"]);
  assert.equal(s.queries.length, 0);
+});
+
+test('field visits can verify active HHA names with the forms permission in their selected office',async()=>{
+ const s=setup();s.actor.grant.role='supervisor';s.actor.grant.permissions=['field_visits.manage'];
+ const directory=(office:string)=>new HhaDirectory(s.workspace as unknown as ConstructorParameters<typeof HhaDirectory>[0],async()=>s.actor,office);
+ await assert.rejects(directory('13').search('Han'),/workforce_forbidden/);assert.equal(s.queries.length,0);
+ assert.equal((await directory('12').search('Han')).items[0]?.hhaId,'101');
+ s.state.recordOffice='13';assert.deepEqual((await directory('12').search('Han')).items,[]);
 });
