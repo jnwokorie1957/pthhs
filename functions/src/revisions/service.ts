@@ -5,6 +5,8 @@ import { adaptVisitEvidence, evidenceIsFresh, type NormalizedVisitEvidence } fro
 import { evaluateVisit, summarizeMissingTokenDays, type VisitDiagnosis, type VisitDiagnosisIssue } from "./diagnosis.js";
 import { RevisionConfiguration, expectedRevision, recordId, strictObject, type RevisionPolicy } from "./policy.js";
 import { RevisionRecords, requirementStatus, type RequirementRecord, type RevisionContext } from "./records.js";
+import { zipDistanceMiles } from "./visitArea.js";
+import { planZipRoute } from "./visitRouting.js";
 import { publicRequirement } from "./visitDocuments.js";
 import { NotificationOutbox, notificationDeliveryCursor, type NotificationDeliveryAdapter, type NotificationEvidence, type NotificationRequest, type NotificationRule } from "./notifications.js";
 import type { SmsFactoryConfig } from "./sms.js";
@@ -228,6 +230,42 @@ export class RevisionBackend {
     const { timezone } = await this.scope(actor), records = await this.records(actor), page = await records.page<RequirementRecord>("requirements", { cursor });
     const asOfDate = officeDate(this.now(), timezone);
     return { ...page, asOfDate, items: page.items.map(item => ({ ...publicRequirement(item), status: requirementStatus(item, asOfDate) })) };
+  }
+  async admissionSuggestions(actor: RevisionActor, value: unknown) {
+    const input = strictObject(value, ["zip", "day"], ["zip"]);
+    if (typeof input.zip !== "string" || !/^77[0-8]\d{2}$/.test(input.zip)) throw new WorkflowError("invalid_route_zips");
+    const { timezone } = await this.scope(actor), day = input.day ? date(input.day) : officeDate(this.now(), timezone);
+    const cutoff = new Date(Date.parse(day) + 30 * 86400000).toISOString().slice(0, 10);
+    const records = await this.records(actor), found = [];
+    let cursor: string | null = null, pages = 0;
+    do {
+      const page: { items: RequirementRecord[]; nextCursor: string | null } = await records.page<RequirementRecord>("requirements", { cursor });
+      for (const item of page.items) {
+        const zip = item.followUp?.zip, due = item.nextDueDate;
+        if (item.type !== "supervisory_visit" || item.subject.kind !== "member" || !zip || !due || due > cutoff ||
+          (item.followUp?.plannedDate && item.followUp.plannedDate !== day) ||
+          !["overdue", "due", "upcoming"].includes(requirementStatus(item, day))) continue;
+        const miles = zipDistanceMiles(input.zip, zip);
+        if (miles === null || miles > 5) continue;
+        found.push({ id: item.id, type: item.type, subject: item.subject, nextDueDate: due, followUp: { zip, assignee: item.followUp?.assignee || "" },
+          sameZip: zip === input.zip, miles, status: requirementStatus(item, day) });
+      }
+      cursor = page.nextCursor; pages++;
+    } while (cursor && pages < 10);
+    found.sort((a, b) => Number(b.sameZip) - Number(a.sameZip) || a.nextDueDate.localeCompare(b.nextDueDate) || a.miles - b.miles || a.id.localeCompare(b.id));
+    return { items: found, partial: Boolean(cursor), day };
+  }
+  async recordVisitRoute(actor: RevisionActor, value: unknown) {
+    const { officeId, timezone } = await this.scope(actor);
+    const input = strictObject(value, ["zips", "mpg", "regularPrice", "admissionZip", "day"], ["zips", "mpg", "regularPrice"]);
+    const { day: requestedDay, ...route } = input;
+    const now = this.now(), day = requestedDay ? date(requestedDay) : officeDate(now, timezone);
+    const result = await planZipRoute(route, now);
+    const at = this.now().toISOString(), id = crypto.randomUUID();
+    await this.repository.change("revisionVisitRoutes_office_" + officeId, id, 0, actor.actorId, "visit_route_generated", () => ({
+      id, revision: 1, updatedAt: at, officeId, actor: actor.actorId, day, ...result
+    }));
+    return { id, zips: result.zips, routing: result.routing, minutes: result.minutes, miles: result.miles, officeZip: result.officeZip };
   }
   async callCandidates(actor: RevisionActor, value: unknown) {
     const input = strictObject(value, ["id", "revision", "date", "visitId", "lastId", "note"]), serviceDate = date(input.date), visitId = identifier(input.visitId), scope = await this.fence(actor);

@@ -2,7 +2,10 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import type { Versioned, WorkspaceRepository } from "../operations/workspace.js";
 import { WorkflowError } from "../operations/reads.js";
-import { publicRequirement } from "./visitDocuments.js";
+import sharp from "sharp";
+import { PDFDocument } from "pdf-lib";
+import { EnvelopeDocumentCipher } from "../workforce/documentEncryption.js";
+import { publicRequirement, uploadVisitDocument, readVisitDocument } from "./visitDocuments.js";
 import { RevisionRecords, addCalendarMonths, calendarDate, requirementStatus, type RequirementRecord, type CallMatchRecord, type ScopedRecord, type RevisionContext, type RevisionResource } from "./records.js";
 
 class MemoryRepository implements Pick<WorkspaceRepository, "get" | "page" | "change"> {
@@ -295,4 +298,33 @@ test("completion ledger, candidate lists, history and stored bytes are explicitl
   await assert.rejects(service.decideCallMatch(decision()), /record_history_limit/);
   repository.records.set("revisionCallMatches_office_123/match-1", { ...matched, candidates: [{ ...candidate(), callTime: "x".repeat(262144) }] } as CallMatchRecord);
   await assert.rejects(service.decideCallMatch(decision()), /record_size_limit/);
+});
+
+test("synthetic supervisory scan uploads, survives retry, opens for review and advances the due date on acceptance", async () => {
+  const { service } = setup();
+  const objects = new Map<string, Buffer>(), keys = new Map<string, Buffer>();
+  const cipher = new EnvelopeDocumentCipher("synthetic", {
+    async wrap(key, context) { keys.set(context.toString(), Buffer.from(key)); return Buffer.from("test wrapper"); },
+    async unwrap(_wrapped, context) { return Buffer.from(keys.get(context.toString())!); }
+  });
+  const storage = () => ({ cipher,
+    async save(path: string, bytes: Buffer) { assert.ok(!objects.has(path)); objects.set(path, bytes); return "1"; },
+    async read(path: string, generation: string) { assert.equal(generation, "1"); return objects.get(path)!; },
+    async remove(path: string) { objects.delete(path); }
+  });
+  const image = await sharp(Buffer.from('<svg width="400" height="80"><text x="5" y="40">Synthetic supervisory visit</text></svg>')).jpeg().toBuffer();
+  await service.saveRequirement(requirement({ anchorMode: "completion_date", anchorDate: "2026-10-10" }));
+  const { documentReference, ...details } = completion(1, { completedOn: "2026-10-10" });
+  const input = { ...details, source: image.toString("base64"), pages: [image.toString("base64")] };
+  const pending = await uploadVisitDocument(service, input, storage);
+  assert.equal(pending.completions[0]?.reviewState, "pending_review");
+  assert.equal(pending.nextDueDate, "2026-10-10");
+  const source = pending.completions[0]!.attachment!.source, encrypted = objects.get(source.path)!;
+  assert.ok(!encrypted.equals(image));
+  assert.deepEqual(await cipher.decrypt(encrypted, source.envelope, source.path), image);
+  await uploadVisitDocument(service, input, storage);
+  assert.equal(objects.size, 2);
+  const viewer = await readVisitDocument(service, { id: input.id, completionId: input.completionId }, storage);
+  assert.equal((await PDFDocument.load(viewer)).getPageCount(), 1);
+  assert.equal((await service.reviewCompletion(reviewCompletion())).nextDueDate, "2027-04-10");
 });

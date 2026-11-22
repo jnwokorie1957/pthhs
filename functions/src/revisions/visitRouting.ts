@@ -1,7 +1,7 @@
 import { GoogleAuth } from "google-auth-library";
 import { WorkflowError } from "../operations/reads.js";
 import { strictObject } from "./policy.js";
-import { officeDate } from "./service.js";
+import { chicagoDate } from "../workforce/dates.js";
 import { visitZipPoint } from "./visitArea.js";
 
 const OFFICE_ZIP = "77035";
@@ -10,7 +10,7 @@ const AAA_TEXAS = "https://gasprices.aaa.com/?lv=true&state=TX";
 type Leg = { meters: number; seconds: number };
 type Route = Leg & { order: number[] };
 
-export function quickestRoundTrip(matrix: (Leg | null)[][]): Route | null {
+export function quickestRoundTrip(matrix: (Leg | null)[][], first = 0): Route | null {
   const size = matrix.length;
   const best = new Map<number, Route>();
   const full = (1 << size) - 1;
@@ -34,7 +34,7 @@ export function quickestRoundTrip(matrix: (Leg | null)[][]): Route | null {
       }
       for (let next = 1; next < size; next++) {
         const leg = matrix[last]?.[next];
-        if (!leg || (mask & (1 << next))) continue;
+        if (!leg || (mask === 1 && first && next !== first) || (mask & (1 << next))) continue;
         const key = (mask | (1 << next)) * size + next;
         const candidate = add(route, next, leg);
         if (better(candidate, best.get(key))) best.set(key, candidate);
@@ -63,7 +63,7 @@ async function fuelPrices(now: Date) {
     if (!response.ok) return null;
     const prices = parseFuelPrices(await response.text());
     if (!prices) return null;
-    const age = Date.parse(officeDate(now, "America/Chicago")) - Date.parse(prices.date);
+    const age = Date.parse(chicagoDate(now)) - Date.parse(prices.date);
     if (!Number.isFinite(age) || age < 0 || age > 2 * 86400000) return null;
     cachedPrices = { fetchedAt: now.getTime(), prices };
     return prices;
@@ -102,38 +102,40 @@ async function googleMatrix(zips: string[], credentials: Record<string, string>)
   return matrix;
 }
 
-function geographicOrder(zips: string[]) {
+function geographicOrder(zips: string[], first: number) {
   const points = zips.map(visitZipPoint);
   if (points.some(point => !point)) return [...zips, OFFICE_ZIP];
   const result = quickestRoundTrip(points.map(from => points.map(to => {
     const north = to![0] - from![0], east = (to![1] - from![1]) * Math.cos((to![0] + from![0]) * Math.PI / 360);
     // For the fallback only, minimize straight-line distance between representative ZIP points.
     return { meters: Math.hypot(north, east) * 111_195, seconds: 0 };
-  })));
+  })), first);
   return result ? result.order.map(index => zips[index]!) : [...zips, OFFICE_ZIP];
 }
 
 export async function planZipRoute(value: unknown, now = new Date()) {
-  const input = strictObject(value, ["zips", "mpg", "regularPrice"]);
+  const input = strictObject(value, ["zips", "mpg", "regularPrice", "admissionZip"], ["zips", "mpg", "regularPrice"]);
   if (!Array.isArray(input.zips) || !input.zips.length || input.zips.length > 9 ||
     input.zips.some(zip => typeof zip !== "string" || !/^77[0-8]\d{2}$/.test(zip))) throw new WorkflowError("invalid_route_zips");
   if (typeof input.mpg !== "number" || !Number.isFinite(input.mpg) || input.mpg < 5 || input.mpg > 100 ||
     (input.regularPrice !== null && (typeof input.regularPrice !== "number" || !Number.isFinite(input.regularPrice) ||
       input.regularPrice <= 0 || input.regularPrice > 30))) throw new WorkflowError("invalid_route_fuel_input");
-  const zips = [...new Set<string>([OFFICE_ZIP, ...input.zips])];
+  if (input.admissionZip && (typeof input.admissionZip !== "string" || !input.zips.includes(input.admissionZip))) throw new WorkflowError("invalid_route_zips");
+  const zips = [...new Set<string>([OFFICE_ZIP, ...(input.admissionZip ? [String(input.admissionZip)] : []), ...input.zips])];
+  const first = input.admissionZip ? zips.indexOf(String(input.admissionZip)) : 0;
   const prices = fuelPrices(now);
   let route: Route | null = null, routing = zips.length === 1 ? "single_zip" : "google_unconfigured";
   try {
     const credentials = zips.length === 1 ? null : await mapsHeaders();
     if (credentials) {
-      route = quickestRoundTrip(await googleMatrix(zips, credentials));
+      route = quickestRoundTrip(await googleMatrix(zips, credentials), first);
       routing = route ? "google_traffic" : "google_unavailable";
     }
   } catch { routing = "google_unavailable"; }
   const currentPrices = await prices, regularPrice = input.regularPrice ?? currentPrices?.houston ?? null;
   const miles = route ? route.meters / 1609.344 : null;
   const gallons = miles === null ? null : miles / input.mpg;
-  return { routing, officeZip: OFFICE_ZIP, zips: route ? route.order.map(index => zips[index]!) : geographicOrder(zips),
+  return { routing, officeZip: OFFICE_ZIP, zips: route ? route.order.map(index => zips[index]!) : geographicOrder(zips, first),
     miles, minutes: route ? route.seconds / 60 : null, gallons, fuelCost: gallons !== null && regularPrice !== null ? gallons * regularPrice : null,
-    regularPrice, prices: currentPrices };
+    mpg: input.mpg, admissionZip: input.admissionZip ?? null, regularPrice, prices: currentPrices };
 }

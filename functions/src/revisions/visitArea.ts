@@ -361,6 +361,14 @@ const points: Record<string, readonly [number, number]> = {
 
 export function visitZipPoint(zip: string) { return points[zip]; }
 
+export function zipDistanceMiles(a: string, b: string) {
+  if (a === b) return 0;
+  const from = points[a], to = points[b];
+  if (!from || !to) return null;
+  const north = to[0] - from[0], east = (to[1] - from[1]) * Math.cos((to[0] + from[0]) * Math.PI / 360);
+  return Math.hypot(north, east) * 69.09;
+}
+
 export function visitArea(zip: string) {
   const point = points[zip], office = points["77035"]!;
   if (!point) return null;

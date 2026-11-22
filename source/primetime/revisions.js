@@ -186,10 +186,17 @@
   if (!controller || !fixtures || !panel) return;
   let ready = false, session = 0, serial = 0, active = false, messagesActive = false, loading = false, abort = null, status = null, visitPage = null, visitRetry = null, selectedId = null, demoOffset = 0, sourceRetryAt = 0;
   const pages = { requirements: null, exceptions: null, notifications: null };
-  const routeSelection = new Set();
+  const routeSelection = new Set(), optionalVisits = new Map();
+  function clearSuggestions() { optionalVisits.clear(); replace('revisionSuggestions'); showVisitSelection(); }
+  function admissionZip() { return get('revisionAdmissionZip')?.value.trim() || ''; }
+  function selectedVisits() {
+    const visits = new Map(visibleRequirements(pages.requirements?.items || []).filter(item => routeSelection.has(item.id) && routeEligible(item)).map(item => [item.id, item]));
+    for (const [id, item] of optionalVisits) visits.set(id, item);
+    return [...visits.values()];
+  }
   const evidenceUrls = new Set();
-  function showVisitSelection() { text('revisionVisitSelected', routeSelection.size ? routeSelection.size + ' selected' : ''); }
-  function clearVisitRoute() { routeSelection.clear(); replace('revisionVisitRouteResult'); showVisitSelection(); }
+  function showVisitSelection() { const count = new Set([...routeSelection, ...optionalVisits.keys()]).size; text('revisionVisitSelected', count ? count + ' selected' : ''); }
+  function clearVisitRoute() { clearSuggestions(); routeSelection.clear(); replace('revisionVisitRouteResult'); showVisitSelection(); }
   const recordHosts = ['revisionVisits', 'revisionDetail', 'revisionExceptions', 'revisionRequirements', 'revisionNotifications'];
   const localDay = () => { const now = new Date(); return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`; };
   const dateInput = get('revisionDate');
@@ -681,7 +688,7 @@
     link.href = 'https://www.google.com/maps/dir/?' + params; link.target = '_blank'; link.rel = 'noopener noreferrer';
     return link;
   }
-  function renderRoute(result, visits) {
+  function renderRoute(result, visits, admission) {
     const host = get('revisionVisitRouteResult');
     const selected = new Map();
     for (const visit of visits) {
@@ -690,10 +697,12 @@
     }
     const optimized = result.routing === 'google_traffic';
     const inner = result.zips.slice(1, -1);
-    if (selected.has(result.officeZip)) inner.unshift(result.officeZip);
+    if (admission === result.officeZip || (!admission && selected.has(result.officeZip))) inner.unshift(result.officeZip);
+    else if (selected.has(result.officeZip)) inner.push(result.officeZip);
     const list = node('ol');
     for (const zip of inner) {
       const members = selected.get(zip);
+      if (zip === admission) list.append(node('li', zip + ' — Admission'));
       if (!members) continue;
       list.append(node('li', [zip, members[0].area, members.map(item => 'Member ' + item.subject.id + ' · ' + visitTitle(item.type)).join(', ')].filter(Boolean).join(' — ')));
     }
@@ -702,18 +711,7 @@
         result.routing === 'single_zip' ? 'All selected visits are in the office ZIP. Use the member addresses to plan local stops.' :
           'ZIP stops are grouped for Google Maps. Road-time optimization requires the Google Routes API.'),
       list);
-    if (optimized) host.append(node('p', `${Math.round(result.minutes)} min driving · ${result.miles.toFixed(1)} mi · ${result.gallons.toFixed(2)} gal${result.fuelCost === null ? '' : ' · $' + result.fuelCost.toFixed(2) + ' estimated fuel'}`));
-    if (result.prices) {
-      const prices = result.prices;
-      host.append(node('p', `AAA regular on ${prices.date} · Houston $${prices.houston.toFixed(3)}/gal · Texas $${prices.texas.toFixed(3)}/gal.`));
-      if (result.regularPrice !== prices.houston) {
-        const quote = `Entered regular-gas quote · $${result.regularPrice.toFixed(3)}/gal.`;
-        const difference = result.gallons === null ? null : (result.regularPrice - prices.houston) * result.gallons;
-        host.append(node('p', difference === null || Math.abs(difference) < 0.005 ? quote :
-          `${quote} Estimated fuel costs $${Math.abs(difference).toFixed(2)} ${difference < 0 ? 'less' : 'more'} than the Houston average.`));
-      }
-    } else host.append(node('p', result.regularPrice === null ? 'AAA pricing is unavailable. Enter a regular-gas quote for fuel costing.' :
-      `Entered regular-gas quote · $${result.regularPrice.toFixed(3)}/gal.`));
+    if (optimized) host.append(node('p', Math.round(result.minutes) + ' min driving · ' + result.miles.toFixed(1) + ' mi'));
     const stops = ['office', ...inner, 'office'];
     for (let start = 0; start + 1 < stops.length; start += 4) {
       const segment = stops.slice(start, start + 5);
@@ -798,27 +796,54 @@
     showVisitSelection();
     renderRecords('requirements');
   });
+  get('revisionAdmissionZip')?.addEventListener('input', () => { clearSuggestions(); replace('revisionVisitRouteResult'); });
+  get('revisionSuggest')?.addEventListener('click', async () => {
+    if (loading || !active || !controller.isLive()) return;
+    clearSuggestions(); replace('revisionVisitRouteResult');
+    const zip = admissionZip(), host = get('revisionSuggestions');
+    if (!/^77[0-8]\d{2}$/.test(zip)) { host.textContent = 'Enter a Greater Houston admission ZIP.'; return; }
+    const day = get('revisionVisitDay')?.value || '', { ticket, untrack } = begin();
+    host.textContent = 'Checking supervisory visit deadlines…';
+    try {
+      const result = await request('requirements/near-admission', ticket, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ zip, day }) });
+      if (!current(ticket) || admissionZip() !== zip || (get('revisionVisitDay')?.value || '') !== day) return;
+      host.replaceChildren(node('p', result.items.length ? 'Optional visits due or overdue, or due within 30 days. Confirm availability before adding a stop.' : 'No eligible visits found within five miles of this ZIP center.'));
+      for (const item of result.items) {
+        const label = node('label'), input = node('input'); input.type = 'checkbox';
+        input.addEventListener('change', () => {
+          if (input.checked) optionalVisits.set(item.id, item); else optionalVisits.delete(item.id);
+          replace('revisionVisitRouteResult'); showVisitSelection();
+        });
+        label.append(input, node('span', [item.sameZip ? 'Same ZIP' : item.miles.toFixed(1) + ' mi between ZIP centers',
+          'Member ' + item.subject.id, item.followUp.zip, 'Due ' + item.nextDueDate, item.followUp.assignee || 'Unassigned'].join(' · ')));
+        host.append(label);
+      }
+      if (result.partial) host.append(node('p', 'Suggestions cover the first 1,000 requirements.'));
+    } catch (error) { if (current(ticket)) host.textContent = errorText(error); }
+    finally { untrack?.(); if (current(ticket)) { loading = false; controls(); } }
+  });
   get('revisionVisitRoute')?.addEventListener('submit', async event => {
     event.preventDefault();
     if (!ready || !active || !controller.isLive() || loading || status?.capabilities.records !== true) return;
     const host = get('revisionVisitRouteResult');
-    const visits = visibleRequirements(pages.requirements?.items || []).filter(item => routeSelection.has(item.id) && routeEligible(item));
-    const zips = [...new Set(visits.map(item => item.followUp.zip))];
+    const visits = selectedVisits(), admission = admissionZip();
+    const zips = [...new Set([...(admission ? [admission] : []), ...visits.map(item => item.followUp.zip)])];
     if (!zips.length || zips.length > 9) {
       host.textContent = 'Select visits in one to nine ZIP codes. Use the ZIP or assignee filters to narrow the route.';
       return;
     }
-    const form = event.currentTarget, fields = new FormData(form), { ticket, untrack } = begin();
+    const form = event.currentTarget, { ticket, untrack } = begin();
     const submit = form.querySelector('button[type="submit"]'); submit.disabled = true;
-    host.textContent = 'Checking Google Maps routes and AAA fuel prices…';
+    host.textContent = 'Building the Google Maps route…';
+    const day = get('revisionVisitDay')?.value || '';
     const selection = visits.map(item => item.id).join(',');
-    const stillSelected = () => selection === visibleRequirements(pages.requirements?.items || []).filter(item => routeSelection.has(item.id) && routeEligible(item)).map(item => item.id).join(',');
+    const stillSelected = () => day === (get('revisionVisitDay')?.value || '') && admission === admissionZip() && selection === selectedVisits().map(item => item.id).join(',');
     try {
       const result = await request('requirements/route', ticket, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ zips, mpg: Number(fields.get('mpg')), regularPrice: fields.get('regularPrice') ? Number(fields.get('regularPrice')) : null })
+        body: JSON.stringify({ zips, mpg: 28, regularPrice: null, ...(day ? { day } : {}), ...(admission ? { admissionZip: admission } : {}) })
       });
-      if (current(ticket) && stillSelected()) renderRoute(result, visits);
+      if (current(ticket) && stillSelected()) renderRoute(result, visits, admission);
     } catch (error) {
       if (current(ticket) && stillSelected() && !clearRevokedAccess(error)) host.textContent = errorText(error);
     } finally {

@@ -203,7 +203,8 @@ test('the field director can select a ZIP group and open the ordered route witho
   form.append({ tag: 'input', name: 'mpg', value: '28', children: [] }, { tag: 'button', type: 'submit', children: [] });
   await app.submit(form);
   const result = app.element('revisionVisitRouteResult');
-  assert.match(result.textContent, /39 min driving.*\$2\.51/);
+  assert.match(result.textContent, /39 min driving.*22.0 mi/);
+  assert.doesNotMatch(result.textContent, /AAA|fuel|gallon|3\.1984|2\.51/i);
   const link = app.descendants(result).find(element => element.tag === 'a');
   assert.match(link.href, /^https:\/\/www\.google\.com\/maps\/dir\/\?/);
   assert.match(link.href, /77479/);
@@ -597,4 +598,35 @@ test('review shows raw EVV types with empty clocks without accepting events or h
   assert.doesNotMatch(app.text('revisionDetail'), /Verified|0 h · HHA/);
   app.window.primetimeDataMode.setMode('demo');
   assert.doesNotMatch(app.text('revisionDetail'), /EVV types in \/ out \(source\): 0/);
+});
+
+test('an admission offers an unselected off-page visit and adds it to the route only after confirmation', async () => {
+  const plans = [];
+  const app = harness((path, options) => {
+    if (path.endsWith('/requirements/near-admission')) {
+      assert.deepEqual(JSON.parse(options.body), { zip: '77035', day: '2026-11-23' });
+      return { ok: true, json: async () => ({ ...page([{ id: 'optional-b', type: 'supervisory_visit', subject: { kind: 'member', id: '919008' },
+        nextDueDate: '2026-11-27', followUp: { zip: '77036', assignee: 'Field Director' }, sameZip: false, miles: 4.9 }]), partial: false }) };
+    }
+    if (path.endsWith('/requirements/route')) {
+      const input = JSON.parse(options.body); plans.push(input);
+      return { ok: true, json: async () => ({ ok: true, routing: 'google_unconfigured', zips: [...input.zips, '77035'], officeZip: '77035' }) };
+    }
+  });
+  await app.openLive();
+  app.element('revisionAdmissionZip').value = '77035';
+  app.element('revisionVisitDay').value = '2026-11-23';
+  await app.click('revisionSuggest');
+  assert.match(app.text('revisionSuggestions'), /4.9 mi between ZIP centers.*77036.*Due 2026-11-27/);
+  const box = app.descendants(app.element('revisionSuggestions')).find(el => el.type === 'checkbox');
+  assert.ok(box && !box.checked);
+  const form = app.element('revisionVisitRoute');
+  form.append({ tag: 'button', type: 'submit', children: [] });
+  await app.submit(form);
+  assert.deepEqual(plans[0].zips, ['77035']);
+  box.checked = true;
+  for (const fn of box.handlers.get('change')) fn();
+  await app.submit(form);
+  assert.deepEqual(plans[1], { zips: ['77035', '77036'], mpg: 28, regularPrice: null, day: '2026-11-23', admissionZip: '77035' });
+  assert.match(app.text('revisionVisitRouteResult'), /77035.*Admission.*77036.*919008/);
 });

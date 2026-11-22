@@ -13,6 +13,7 @@ test("route uses directed traffic times and mileage to break a tie", () => {
   assert.deepEqual(quickestRoundTrip(matrix), { order: [0, 1, 2, 0], meters: 450, seconds: 25 });
   matrix[1]![0] = leg(10, 100);
   assert.deepEqual(quickestRoundTrip(matrix), { order: [0, 2, 1, 0], meters: 300, seconds: 25 });
+  assert.deepEqual(quickestRoundTrip(matrix, 1), { order: [0, 1, 2, 0], meters: 450, seconds: 25 });
   assert.equal(quickestRoundTrip([[leg(0, 0), null], [leg(20), leg(0, 0)]]), null);
 });
 

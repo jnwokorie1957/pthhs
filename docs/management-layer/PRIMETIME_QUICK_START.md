@@ -41,7 +41,9 @@ Enter the assigned office staff member, member ZIP code, planned date and next a
 
 For the field director’s route, select visits for the day and open **Plan the field director’s Google Maps route**. The planner groups the selected visits into up to nine ZIP stops and uses Google Routes traffic estimates when available. It prioritizes driving time and uses distance to break ties. Directions start and end at the Houston office. Open the provided Google Maps links in order if the route spans several parts. The planner sends the office’s public address and ZIP codes to Google. Use the member’s address and appointment time inside the agency workflow when confirming each local stop.
 
-Fuel estimates use route mileage, the entered Nissan Kicks MPG and the current AAA Houston regular price or an entered quote. The initial MPG is 28, Nissan’s city estimate for a 2026 front-wheel-drive Kicks. Review actual fleet MPG before relying on the estimate. [Nissan Kicks specifications](https://www.nissanusa.com/content/dam/Nissan/us/vehicle-brochures/2026/2026-nissan-kicks-brochure-en.pdf) · [AAA Texas and Houston prices](https://gasprices.aaa.com/?lv=true&state=TX)
+For an admission, enter its ZIP and choose **Find optional supervisory visits**. Suggestions cover overdue supervisory visits and those due within 30 days of the selected date. The same ZIP appears first, followed by ZIP centers within five miles. Check available visits to include them. The admission is the first ZIP stop. Select the planned date before searching to exclude appointments already planned for another date.
+
+The office route record retains the route, mileage, AAA price and date, and the estimated fuel cost at 28 MPG when those values are available. Staff see the stop order, driving time and mileage.
 
 The reminder list distinguishes queued, provider-accepted, delivered, unknown and failed messages. Office acknowledgement is a separate action. Unknown delivery is investigated before another message is attempted.
 

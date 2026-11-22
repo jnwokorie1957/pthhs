@@ -49,6 +49,7 @@ All dashboard endpoints require the existing verified administrator session, liv
 | POST | `/revisions/requirements/plan` | Update the assignee, ZIP, visit date and next action. Record an earlier deadline with a reason |
 | POST | `/revisions/requirements/upload` | Encrypt the original scan and viewer copy and link them to pending evidence |
 | GET | `/revisions/requirements/document` | Return the private viewer copy for the scoped requirement and completion |
+| POST | `/revisions/requirements/near-admission` | Suggest optional supervisory visits due within 30 days or overdue, in the admission ZIP or within five miles between ZIP centers |
 | POST | `/revisions/requirements/route` | Optimize the selected Houston-area ZIP stops by driving time and estimate fuel cost |
 | GET | `/revisions/exceptions` | Local office follow-up records |
 | POST | `/revisions/exceptions/review` | Acknowledge, start review, resolve or reopen with a note |
@@ -65,7 +66,7 @@ Visit paging returns `nextOffset` and a `discovery` fingerprint; the next reques
 
 The existing approved Live office and administrator or supervisor access apply. Verify that the serving Functions identity can use the existing Workforce document KMS key and the private storage bucket, then round-trip a synthetic visit document through review and approval.
 
-Google Maps links work without credentials. Google route optimization uses Routes API OAuth through the serving identity and the existing Google Cloud project. Verify Routes API enablement, billing and service usage permissions with a round trip containing public ZIP stops before launch. An unavailable route matrix falls back to a geographic ZIP ordering and Google Maps links. Driving time, mileage and fuel estimates are displayed when a Google road matrix is available. The AAA regional benchmark is date-checked. [Google Routes API setup](https://developers.google.com/maps/documentation/routes/get-api-key)
+Google Maps links work without credentials. Google route optimization uses Routes API OAuth through the serving identity and the existing Google Cloud project. Verify Routes API enablement, billing and service usage permissions with a round trip containing public ZIP stops before launch. An unavailable route matrix falls back to a geographic ZIP ordering and Google Maps links. Staff see driving time and mileage when a Google road matrix is available. The office route record in `revisionVisitRoutes_office_<officeId>` retains the planned date, ordered ZIPs, mileage and fuel estimate. The admission ZIP is visited first. The AAA regional benchmark is date-checked. [Google Routes API setup](https://developers.google.com/maps/documentation/routes/get-api-key)
 
 ## Protected persistence
 
