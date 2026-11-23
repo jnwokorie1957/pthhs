@@ -21,5 +21,22 @@ export class AdmissionLibrary {
   const put=async(name:string,bytes:Buffer)=>{const path=base+'/'+name,encrypted=await this.cipher.encrypt(bytes,path),file=this.bucket.file(path);await file.save(encrypted.bytes,{resumable:false,preconditionOpts:{ifGenerationMatch:0},metadata:{contentType:'application/octet-stream',cacheControl:'private, no-store'}});const[meta]=await file.getMetadata();return {path,generation:String(meta.generation),envelope:encrypted.envelope,sha256:hash(bytes),storedSha256:hash(encrypted.bytes)};};
   const stored=await put('pages.enc',payload),document=await put('document.enc',pdfBytes),createdAt=new Date().toISOString();await this.db.runTransaction(async tx=>{const grant=(await tx.get(this.db.collection('workforceStaff').doc(uid))).data();if(!grant)throw new WorkforceError(403,'workforce_forbidden');const current={uid,grant:parseGrant(grant)};requirePermission(current,'field_visits.manage',input.office);requirePermission(current,'documents.review',input.office);if(current.grant.role!==actor.grant.role)throw new WorkforceError(409,'revision_conflict');const ref=this.db.collection('workforceAdmissionTemplates').doc(input.office+'-'+id),prior=await tx.get(ref);if(prior.exists)throw new WorkforceError(409,'admission_template_exists');tx.create(ref,{office:input.office,title:input.title.trim(),createdBy:uid,createdAt,pageCount:pages.length,stored,document});tx.create(this.db.collection('workforcePersonnelAudit').doc(randomUUID()),{actor:uid,action:'admission_template_uploaded',target:ref.id,office:input.office,at:createdAt});});return {uploaded:true,id:input.office+'-'+id};
  }
+ async requirements(uid:string,id:string){
+  const form=await this.get(uid,id);
+  return {id,title:form.title,office:form.office,requiredSigners:form.requiredSigners};
+ }
+ async copy(uid:string,templateId:string,input:any){
+  const data=input?.data;
+  if(!data||!validId(input?.id))throw new WorkforceError(400,'invalid_admission_copy');
+  const form=await this.get(uid,templateId);
+  if(data.office!==form.office)throw new WorkforceError(400,'invalid_admission_copy');
+  const {FieldVisits,pendingVisitSigners}=await import('./fieldVisits.js'),visits=new FieldVisits();
+  let record;
+  try{record=await visits.save(uid,input.id,0,{office:form.office,kind:'upload',templateId,clientName:data.clientName,memberId:data.memberId,caregiverName:data.caregiverName,visitDate:data.visitDate,fields:{title:form.title},pages:form.pages,signatureFields:form.signatureFields,textFields:form.textFields,requiredSigners:form.requiredSigners});}
+  catch(e){if(!(e instanceof WorkforceError)||e.code!=='revision_conflict')throw e;record=await visits.get(uid,input.id);
+   if(record.data.templateId!==templateId||record.office!==form.office||record.memberId!==data.memberId||record.clientName!==data.clientName||record.caregiverName!==data.caregiverName||record.visitDate!==data.visitDate)throw e;
+  }
+  return {id:record.id,state:record.state,revision:record.revision,pendingSigners:pendingVisitSigners(record.data)};
+ }
  async get(uid:string,id:string,pdf=false){if(typeof id!=='string'||id.length>193||!/^[a-zA-Z0-9_-]+$/.test(id))throw new WorkforceError(400,'invalid_request');const row=(await this.db.collection('workforceAdmissionTemplates').doc(id).get()).data();if(!row)throw new WorkforceError(404,'admission_template_not_found');await this.access(uid,row.office);const object=pdf?row.document:row.stored,[bytes]=await this.bucket.file(object.path,{generation:object.generation}).download();if(hash(bytes)!==object.storedSha256)throw new WorkforceError(503,'document_integrity_error');const clear=await this.cipher.decrypt(bytes,object.envelope,object.path);if(hash(clear)!==object.sha256)throw new WorkforceError(503,'document_integrity_error');await this.access(uid,row.office);await this.db.collection('workforcePersonnelAudit').add({actor:uid,action:'admission_template_read',target:id,office:row.office,at:new Date().toISOString()});return pdf?clear:{id,title:row.title,office:row.office,...JSON.parse(clear.toString())};}
 }

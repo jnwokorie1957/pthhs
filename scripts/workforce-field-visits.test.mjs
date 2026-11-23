@@ -28,6 +28,7 @@ class Element {
  querySelector(s){return this.querySelectorAll(s)[0]||null;}
  reportValidity(){return true;}
  get elements(){return {namedItem:name=>walk(this).find(e=>e.name===name)};}
+ focus(){}
  scrollIntoView(){}
 }
 const templates={orientation:{title:'Synthetic orientation',description:'Synthetic test record',fields:{purpose:'Visit purpose'},requiredFields:['purpose']},upload:{title:'Synthetic upload',description:'Synthetic test attachment',fields:{}}};

@@ -109,7 +109,7 @@ export class FieldVisits {
  }
  async sign(uid:string,id:string,revision:number,input:any){const record=await this.get(uid,id);if(record.revision!==revision)throw new WorkforceError(409,'revision_conflict');return this.commit(uid,id,revision,appendVisitSignature(record.data,input,uid),'field_visit_signed');}
  async names(uid:string,office:string,kind:string,name:string,workspace:Pick<OperationsWorkspace,'settings'|'query'>){
-  await this.access(uid,office);if(!['client','caregiver'].includes(kind)||typeof name!=='string'||name.trim().length<2||name.length>60)throw new WorkforceError(400,'name_required');
+  await this.access(uid,office);if(!['client','caregiver'].includes(kind)||typeof name!=='string'||name.trim().length<1||name.length>60)throw new WorkforceError(400,'name_required');
   const actor=async()=>{const grant=(await this.db.collection('workforceStaff').doc(uid).get()).data();if(!grant)throw new WorkforceError(403,'workforce_forbidden');return {uid,grant:parseGrant(grant)};};
   if(kind==='caregiver'){
    const result=await new HhaDirectory(workspace,actor,office).search(name);

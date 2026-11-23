@@ -14,7 +14,7 @@
   let client=null,caregiver=null,type='admissions',templates=null,epoch=0,busy=false,position=0,queue=[],packetId=null;
   let retryLibrary=null,savedPackets=[],next=null,packetRead=0,navigation=0,plan=null;
   const selection=new Set(),shell=node('section',undefined,'form-workflow'),banner=node('div',undefined,'form-workflow-intro');
-  banner.append(node('h2','Prepare client forms'),node('p','Choose a client, select the paperwork, then review each document with its signers.'));
+  banner.append(node('h2','Prepare client forms'),node('p','Choose a member and their forms. The first document opens for signing when the packet is ready.'));
   const clientArea=node('section',undefined,'form-client-step'),chosen=node('div'),status=notice();
   const choices=node('section',undefined,'form-choice-step'),types=node('div',undefined,'form-type-grid'),content=node('div');
   const careArea=node('details'),careChosen=node('p'),packet=node('section',undefined,'form-packet-progress'),savedArea=node('section');
@@ -26,7 +26,7 @@
    async function lookup(after){
     clearTimeout(timer);if(!current())return;
     const request=++version,context=epoch,name=input.value.trim(),valid=()=>current()&&epoch===context&&version===request;
-    matches.replaceChildren();if(name.length<2){feedback.textContent='Type at least two letters.';return;}
+    matches.replaceChildren();if(name.length<1){feedback.textContent='Type the first letter.';return;}
     feedback.textContent='Searching HHA…';
     try{
      const isClient=kind==='client';
@@ -41,7 +41,7 @@
      if(result.hasMore||result.truncated||result.next)feedback.textContent+=' Type more of the name to narrow the results.';
     }catch(e){if(valid())feedback.textContent='HHA search could not finish. '+e.message;}
    }
-   input.oninput=()=>{clear();onEdit();if(input.value.trim().length<2){feedback.textContent='Type at least two letters.';return;}
+   input.oninput=()=>{clear();onEdit();if(input.value.trim().length<1){feedback.textContent='Type the first letter.';return;}
     const context=epoch,request=version;feedback.textContent='Searching HHA…';
     timer=setTimeout(()=>{if(current()&&context===epoch&&request===version)lookup();},300);
    };
@@ -112,7 +112,7 @@
   }
   function renderQueue(){
    packet.replaceChildren();packet.hidden=!queue.length;if(!queue.length)return;
-   packet.append(node('h3','3. Review & sign'),node('p',queue.filter(row=>row.record.state==='signed').length+' of '+queue.length+' forms fully signed'));
+   const finished=queue.filter(row=>row.record.state==='signed').length,bar=node('progress');bar.max=queue.length;bar.value=finished;bar.setAttribute('aria-label','Signed documents');packet.append(node('h3','3. Review & sign'),node('p',finished+' of '+queue.length+' forms fully signed'),bar);
    const list=node('ol',undefined,'form-packet-documents');
    queue.forEach((row,index)=>{const done=row.record.state==='signed',entry=node('li',undefined,done?'form-completed':'');
     entry.append(button(row.title,()=>go(index)),node('span',done?'Completed — fully signed':'Awaiting signatures',done?'form-completed-status':'office-badge'));
@@ -147,7 +147,7 @@
      if(!plan||plan.key!==key)plan={key,id:crypto.randomUUID(),rows:ids.map(template=>({template,id:crypto.randomUUID()}))};
      const attempt=plan;
      for(const row of attempt.rows){
-      if(!row.form){const form=await workforceApi('/staff/admission-templates/'+row.template);if(!valid())return;if(form.office!==office)throw Error('The form belongs to a different office.');row.form=form;}
+      if(!row.form){const form=await workforceApi('/staff/admission-templates/'+row.template+'/requirements');if(!valid())return;if(form.office!==office)throw Error('The form belongs to a different office.');row.form=form;}
      }
      const needsWorker=attempt.rows.find(row=>row.form.requiredSigners.includes('caregiver'));
      if(needsWorker&&!worker){careArea.open=true;caregivers.input.focus();throw Error('Choose the caregiver for '+needsWorker.form.title+', or uncheck that form.');}
@@ -156,17 +156,17 @@
       if(!valid())return;status.textContent='Preparing '+(i+1)+' of '+ids.length+' · '+row.form.title;
       const form=row.form;
       if(!row.record){
-       const data={office,kind:'upload',clientName:member.name,memberId:member.memberId,caregiverName:worker?.name||'',visitDate:new Intl.DateTimeFormat('en-CA',{timeZone:'America/Chicago',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date()),fields:{title:form.title},pages:form.pages,textFields:form.textFields,signatureFields:form.signatureFields,requiredSigners:form.requiredSigners,templateId:form.id};
-       try{row.record=await workforceApi('/staff/field-visits/'+row.id,{revision:0,data});}
-       catch(e){if(e.code!=='revision_conflict'||!valid())throw e;row.record=await workforceApi('/staff/field-visits/'+row.id);if(row.record.data?.templateId!==form.id||row.record.data?.memberId!==member.memberId||row.record.data?.office!==office)throw e;}
+       const data={office,kind:'upload',clientName:member.name,memberId:member.memberId,caregiverName:worker?.name||'',visitDate:new Intl.DateTimeFormat('en-CA',{timeZone:'America/Chicago',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date()),templateId:form.id};
+       row.record=await workforceApi('/staff/admission-templates/'+row.template+'/copy',{id:row.id,data});
       }
       if(!valid())return;queue.push({id:row.id,title:form.title,record:row.record});
      }
      await workforceApi('/staff/admission-packets/'+attempt.id,{office,clientName:member.name,memberId:member.memberId,documentIds:queue.map(row=>row.id)});
-     if(!valid())return;packetId=attempt.id;loadPackets();renderQueue();status.textContent=queue.length+' documents ready for review.';if(editor===editorContext?.())open(queue[0].record);
+     if(!valid())return;packetId=attempt.id;loadPackets();renderQueue();status.textContent=queue.length+' documents ready for review.';if(editor===editorContext?.()){const first=await workforceApi('/staff/field-visits/'+queue[0].id);if(valid()&&editor===editorContext?.())open(first);}
     }catch(e){if(valid()){renderQueue();status.textContent=e.message+(queue.length&&!packetId?' Retry preparation to finish this packet.':'');}}
     finally{busy=false;for(const c of checks)c.disabled=false;prepare.disabled=!selection.size;if(!valid()&&current())render();}
    });
+   prepare.className='manager-primary';
    for(const row of templates){const label=node('label'),check=node('input');check.type='checkbox';check.value=row.id;check.checked=selection.has(row.id);check.onchange=sync;
     label.append(check,node('span',row.title),node('small',row.pageCount+' '+(row.pageCount===1?'page':'pages')));checks.push(check);selectionBox.append(label);}
    const toggle=standard=>{if(busy)return;checks.forEach((check,i)=>{check.checked=standard&&!/attendant information/i.test(templates[i].title);});sync();};

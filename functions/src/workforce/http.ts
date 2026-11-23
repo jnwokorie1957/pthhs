@@ -1,3 +1,4 @@
+import {StaffSms,actionBinding,staffSmsAction,staffSmsPrincipal} from './staffSms.js';
 import {AdmissionPackets} from './admissionPackets.js';
 import {OpportunityMatching} from './matchingStore.js';
 import {authorizationClient} from './authorizationCoverage.js';
@@ -145,6 +146,25 @@ export const workforceApi = process.env.PRIMETIME_API_ONLY_DEPLOY === "true" ? u
     const applicationsEnabled = staffEnabled.value() === "true" && collectionApproved.value() === "true" && packetApproved.value() === "true" && !!intakeOffice.value();
     const uploadsEnabled = applicationsEnabled && documentsApproved.value() === "true" && retentionApproved.value() === "true";
     const existingAccessEnabled=staffEnabled.value()==="true"&&hhaPortalApproved.value()==="true"&&hhaDataApproved.value()==="true";
+    const requestingSms=path==='/staff-sms/request';
+    const protectedAction=staffSmsAction(path,req.method,req.body);
+    if(requestingSms||protectedAction){
+      if(staffEnabled.value()!=='true')throw new WorkforceError(503,'workforce_release_pending');
+      const identity=await documentPrincipal(req),store=new WorkforceStore(),actor=await store.actor(identity.uid);
+      if(!actor.grant.active||(!requestingSms&&!staffRouteReleased(actor,path)))throw new WorkforceError(403,'workforce_forbidden');
+      if(await new StaffCredentials(store).setupRequired(identity.uid)||await store.trainingRequired(actor))throw new WorkforceError(403,'workforce_forbidden');
+      const person=await staffSmsPrincipal(identity.uid,identity.authTime),sms=new StaffSms();
+      if(requestingSms){
+       if(req.method!=='POST'||!req.is('application/json')||req.rawBody.length>160)throw new WorkforceError(400,'invalid_request');
+       res.json(await sms.request(person,req.body?.binding));return;
+      }
+      if(protectedAction){
+       const binding=actionBinding(req.method,req.originalUrl,req.rawBody||Buffer.alloc(0)),proof=req.get('x-staff-sms'),view=req.get('x-staff-view');
+       if(!proof&&!view){res.status(428).json({error:'staff_sms_required',binding,action:protectedAction.label,record:protectedAction.record,continueView:protectedAction.continueView});return;}
+       const follow=await sms.consume(person,binding,proof,protectedAction,view);
+       if(follow)res.set('X-Staff-View',follow);
+      }
+    }
     let release: DocumentAccessCheck | undefined;
     if (path.startsWith("/document-access/") || sensitiveDocumentPath(path)) {
       if (path.startsWith("/staff/") && staffEnabled.value() !== "true") throw new WorkforceError(503, "workforce_release_pending");
@@ -160,6 +180,7 @@ export const workforceApi = process.env.PRIMETIME_API_ONLY_DEPLOY === "true" ? u
         if (documentEmailApproved.value() !== "true") throw new WorkforceError(503, "document_verification_unavailable");
         if (req.method !== "POST" || !req.is("application/json") || req.rawBody.length > 1000 || !req.body || Array.isArray(req.body)) throw new WorkforceError(400, "invalid_document_request");
         if (path === "/document-access/request" && Object.keys(req.body).every(k => k === "path") && sensitiveDocumentPath(req.body.path)) {
+          if(req.body.path.startsWith('/staff/'))throw new WorkforceError(403,'staff_sms_required');
           const challenge = await access.request(principal, req.body.path, () => check(req.body.path));
           const delivery = await new DocumentVerificationMail(new GraphVerificationTransport(documentMailTenant.value(), documentMailClient.value())).send(challenge.challengeId, principal);
           res.json({...challenge, ...delivery}); return;
@@ -170,7 +191,7 @@ export const workforceApi = process.env.PRIMETIME_API_ONLY_DEPLOY === "true" ? u
         throw new WorkforceError(400, "invalid_document_request");
       }
       if (req.method !== "GET") throw new WorkforceError(405, "method_not_allowed");
-      await access.consume(principal, path, req.get("x-document-access"), () => check(path));
+      if(path.startsWith("/staff/"))await check(path);else await access.consume(principal, path, req.get("x-document-access"), () => check(path));
       release = () => check(path);
     }
     if(path==='/matching/opt-out'&&req.method==='POST'){
@@ -342,7 +363,10 @@ export const workforceApi = process.env.PRIMETIME_API_ONLY_DEPLOY === "true" ? u
       }
     }
     if(path==='/staff/admission-packets/search'||path.startsWith('/staff/admission-packets/')){await recentWorkforceIdentity(req);const packets=new AdmissionPackets();if(path==='/staff/admission-packets/search'&&req.method==='POST'&&req.is('application/json')&&req.rawBody.length<=1000){res.json(await packets.list(uid,req.body.office,req.body.memberId,req.body.after));return;}const share=path.match(/^\/staff\/admission-packets\/([a-zA-Z0-9_-]{1,128})\/share$/);if(share&&req.method==='POST'&&req.is('application/json')&&req.rawBody.length<=100){res.json(await packets.share(uid,share[1]!,req.body?.channel));return;}const packet=path.match(/^\/staff\/admission-packets\/([a-zA-Z0-9_-]{1,128})(\/pdf)?$/);if(packet){if(req.method==='GET'){if(packet[2]){res.set('Content-Type','application/pdf');res.set('Content-Disposition','attachment; filename="admission-packet.pdf"');res.set('Content-Security-Policy','sandbox');res.send(await packets.pdf(uid,packet[1]!));return;}res.json(await packets.get(uid,packet[1]!));return;}if(req.method==='POST'&&!packet[2]&&req.is('application/json')&&req.rawBody.length<=4000){res.json(await packets.create(uid,packet[1]!,req.body));return;}}throw new WorkforceError(400,'invalid_request');}
-    if(path==='/staff/admission-templates'||path.startsWith('/staff/admission-templates/')){await recentWorkforceIdentity(req);const library=new AdmissionLibrary();if(path==='/staff/admission-templates'){if(req.method==='GET'&&typeof req.query.office==='string'){res.json(await library.list(uid,req.query.office));return;}if(req.method==='POST'&&req.is('application/json')&&req.rawBody.length<=16_000_000){res.json(await library.upload(uid,req.body));return;}}const match=path.match(/^\/staff\/admission-templates\/([a-zA-Z0-9_-]{1,193})(\/pdf)?$/);if(match&&req.method==='GET'){if(match[2]){res.set('Content-Type','application/pdf');res.set('Content-Disposition','attachment; filename="admission-template.pdf"');res.set('Content-Security-Policy','sandbox');res.send(await library.get(uid,match[1]!,true));return;}res.json(await library.get(uid,match[1]!));return;}throw new WorkforceError(400,'invalid_request');}
+    if(path==='/staff/admission-templates'||path.startsWith('/staff/admission-templates/')){await recentWorkforceIdentity(req);const library=new AdmissionLibrary();if(path==='/staff/admission-templates'){if(req.method==='GET'&&typeof req.query.office==='string'){res.json(await library.list(uid,req.query.office));return;}if(req.method==='POST'&&req.is('application/json')&&req.rawBody.length<=16_000_000){res.json(await library.upload(uid,req.body));return;}}const preparation=path.match(/^\/staff\/admission-templates\/([a-zA-Z0-9_-]{1,193})\/(requirements|copy)$/);if(preparation){
+     if(preparation[2]==='requirements'&&req.method==='GET'){res.json(await library.requirements(uid,preparation[1]!));return;}
+     if(preparation[2]==='copy'&&req.method==='POST'&&req.is('application/json')&&req.rawBody.length<=2500){res.json(await library.copy(uid,preparation[1]!,req.body));return;}
+    }const match=path.match(/^\/staff\/admission-templates\/([a-zA-Z0-9_-]{1,193})(\/pdf)?$/);if(match&&req.method==='GET'){if(match[2]){res.set('Content-Type','application/pdf');res.set('Content-Disposition','attachment; filename="admission-template.pdf"');res.set('Content-Security-Policy','sandbox');res.send(await library.get(uid,match[1]!,true));return;}res.json(await library.get(uid,match[1]!));return;}throw new WorkforceError(400,'invalid_request');}
     if(path==='/staff/activity'&&req.method==='GET'){await recentWorkforceIdentity(req);res.json(await new StaffActivity(()=>store.actor(uid)).list(String(req.query.stream||'opportunities'),typeof req.query.after==='string'?req.query.after:undefined));return;}
     if(path==='/staff/clients'||path.startsWith('/staff/clients/')){await recentWorkforceIdentity(req);const directory=new ClientDirectory(hhaWorkspace(),()=>store.actor(uid));if(path==='/staff/clients/search'&&req.method==='POST'&&req.is('application/json')&&req.rawBody.length<=1000){res.json(await directory.list(req.body?.name,req.body?.after));return;}if(req.method!=='GET')throw new WorkforceError(405,'method_not_allowed');if(path==='/staff/clients'){res.json(await directory.list(typeof req.query.name==='string'?req.query.name:'',typeof req.query.after==='string'?req.query.after:undefined));return;}const coverage=path.match(/^\/staff\/clients\/(\d{1,10})\/coverage$/);if(coverage){const client=await directory.verify(coverage[1]!);res.json(await new StaffOperations().memberCoverage(uid,client.office,client.id));return;}const id=path.slice('/staff/clients/'.length);res.json(await directory.detail(id));return;}
     if(path.startsWith('/staff/matching/')){
