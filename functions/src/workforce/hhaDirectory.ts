@@ -8,11 +8,12 @@ import type {HhaProfile} from "./hhaSource.js";
 
 type Workspace=Pick<OperationsWorkspace,"settings"|"query">;
 export class HhaDirectory {
- constructor(private workspace:Workspace,private actor:()=>Promise<Actor>){}
+ constructor(private workspace:Workspace,private actor:()=>Promise<Actor>,private visitOffice?:string){}
  private async scope(){
   const actor=await this.actor(),settings=await this.workspace.settings();
   if(!settings.dataApproved)throw new WorkforceError(503,"hha_directory_unavailable");
-  const office=identifier(settings.settings.officeId);requirePermission(actor,"accounts.support",office);
+  const office=identifier(settings.settings.officeId);if(this.visitOffice!==undefined&&this.visitOffice!==office)throw new WorkforceError(403,"workforce_forbidden");
+  requirePermission(actor,this.visitOffice===undefined?"accounts.support":"field_visits.manage",office);
   if(!["SearchCaregivers","GetCaregiverDemographics"].every(operation=>settings.settings.enabledReads.includes(operation)))throw new WorkforceError(503,"hha_directory_unavailable");
   return {actor,office,revision:settings.settings.revision};
  }

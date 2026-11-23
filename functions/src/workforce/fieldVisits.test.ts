@@ -38,3 +38,12 @@ test('export requires every reviewed-content signature; draft preview stays avai
  data=appendVisitSignature(data,{role:'staff',name:'Fictional staff',formRead:true,electronicConsent:true,contentSha256:visitContentHash(data),appearance:{style:'cursive'}},'staff');assert(fullySignedVisit(data));assert.deepEqual(await service.pdf('staff','visit'),pdf);assert.equal(audit.at(-1).action,'field_visit_document_exported');
  data.signatures[0]!.contentSha256='tampered';await assert.rejects(service.pdf('staff','visit'),/form_not_complete/);
 });
+
+test('a template copy requires every office signature location and each separate signer',()=>{
+ const box={page:0,x:.1,y:.1,width:.3,height:.1};
+ let data=visitData({...draft(),kind:'upload',fields:{title:'Practice admission'},templateId:'practice',pages:['YQ==','Yg=='],signatureFields:[{...box,role:'member'},{...box,y:.4,role:'staff'},{...box,page:1,role:'staff'}]});
+ const input={name:'Fictional signer',formRead:true,electronicConsent:true,appearance:{style:'cursive'},contentSha256:visitContentHash(data)};
+ for(const confirmedFields of [undefined,[1],[0,1],[1,1]])assert.throws(()=>appendVisitSignature(data,{...input,role:'staff',confirmedFields},'office'),/fields_incomplete/);
+ data=appendVisitSignature(data,{...input,role:'member',confirmedFields:[0]},'office');assert(!fullySignedVisit(data));
+ data=appendVisitSignature(data,{...input,role:'staff',confirmedFields:[1,2]},'office');assert(fullySignedVisit(data));
+});

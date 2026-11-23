@@ -6,7 +6,7 @@
   const staff = ['/workforce', '/workforce/'].includes(location.pathname) || location.pathname.startsWith('/primetime/');
   const prefix = staff ? '/primetime/workforce-api' : '/caregiver/workforce-api';
   let auth, generation = 0, staffAuth;
-  const errors = {authorization_client_required:'Choose the verified member before saving.',authorization_client_mismatch:'The authorization does not match the verified member and office.',admission_packet_changed:'The packet changed or a document belongs to a different member. Refresh the packet before continuing.',admission_packet_export_limit:'This packet is too large to export together. Open each completed form to download or print it separately.',staff_phase_pending:'This feature is planned for a later staff-portal release.',form_not_complete:'Download and printing become available after every required signer has signed.',invalid_document_fields:'Check the form field labels and locations.',document_text_overflow:'A form answer does not fit its mapped box. Shorten the answer or ask the template administrator to enlarge that field.',document_text_unsupported:'A form answer contains a character the PDF font cannot print. Ask the office to review the document.',invalid_admission_copy:'The admission template changed or its fixed fields were edited. Open a new copy from the admission library.',admission_template_signature_fields_required:'Map a signature location for every required signer before saving the admission template.',invalid_admission_template:'Choose a blank admission PDF or image and confirm it contains no client information.',admission_template_exists:'This admission template is already saved. Refresh the form library to use it.',client_directory_unavailable:'Client information is unavailable from HHA. Check the source connection and try again.',client_directory_changed:'The HHA member list changed. Refresh the directory before continuing.',client_name_required:'Enter at least two letters of the client name, or choose Browse members.',field_visit_incomplete:'Complete the required visit answers before signing.',field_visit_signature_fields_required:'Add a document signature location for every required signer, then save the draft.',invalid_signature_fields:'Check the signature page and box positions.',signature_fields_overlap:'Signature locations cannot overlap.',correction_reason_required:'Enter a correction reason of up to 2,000 characters.',amendment_source_changed:'The original visit changed or the correction belongs to a different client. Reopen the current record.',caregiver_preview_closed:"The caregiver preview has ended. The portal launches January 1, 2027. Please call 713-977-7721 for help.",
+  const errors = {authorization_client_required:'Choose the verified member before saving.',authorization_client_mismatch:'The authorization does not match the verified member and office.',admission_packet_changed:'The packet changed or a document belongs to a different member. Refresh the packet before continuing.',admission_packet_export_limit:'This packet is too large to export together. Open each completed form to download or print it separately.',staff_phase_pending:'This feature is planned for a later staff-portal release.',form_not_complete:'Download and printing become available after every required signer has signed.',invalid_document_fields:'Check the form field labels and locations.',document_text_overflow:'A form answer does not fit its mapped box. Shorten the answer or ask the template administrator to enlarge that field.',document_text_unsupported:'A form answer contains a character the PDF font cannot print. Ask the office to review the document.',invalid_admission_copy:'The admission template changed or its fixed fields were edited. Open a new copy from the admission library.',admission_template_signature_fields_required:'Map a signature location for every required signer before saving the admission template.',invalid_admission_template:'Choose a blank admission PDF or image and confirm it contains no client information.',admission_template_exists:'This admission template is already saved. Refresh the form library to use it.',client_directory_unavailable:'Client information is unavailable from HHA. Check the source connection and try again.',client_directory_changed:'The HHA member list changed. Refresh the directory before continuing.',client_name_required:'Enter the first letter of the client name, or choose Browse members.',field_visit_incomplete:'Complete the required visit answers before signing.',field_visit_signature_fields_required:'Add a document signature location for every required signer, then save the draft.',invalid_signature_fields:'Check the signature page and box positions.',signature_fields_overlap:'Signature locations cannot overlap.',correction_reason_required:'Enter a correction reason of up to 2,000 characters.',amendment_source_changed:'The original visit changed or the correction belongs to a different client. Reopen the current record.',caregiver_preview_closed:"The caregiver preview has ended. The portal launches January 1, 2027. Please call 713-977-7721 for help.",
     opportunity_unavailable: 'This position is no longer available. Please browse the current openings.',
     invalid_opportunity: 'Check the recruiting area, hours, ZIP and at least one broad assistance need.',
     caregiver_document_download_failed_application_http_400_vendor_negative_310_reason_file_unavailable: 'HHA has this document record, but no file is attached.',
@@ -85,8 +85,10 @@
     document.getElementById('staff-workspace')?.setAttribute('hidden', '');
     document.getElementById('caregiver-summary')?.setAttribute('hidden', '');
   };
-  async function api(path, body, download = false, documentAccess = '') {
-    if (download && window.WorkforceDocumentAccess?.sensitive(path) && !documentAccess) {
+  let viewProof=null;
+
+  async function api(path, body, download = false, documentAccess = '', step=null) {
+    if (!path.startsWith('/staff/') && download && window.WorkforceDocumentAccess?.sensitive(path) && !documentAccess) {
       const proof = await window.WorkforceDocumentAccess.authorize(api, path);
       return api(path, body, download, proof);
     }
@@ -95,17 +97,31 @@
     const token = guest ? '' : await auth.currentUser.getIdToken();
     const r = await fetch(prefix + path, {
       method: body ? 'POST' : 'GET', cache: 'no-store',
-      headers: { ...(documentAccess ? {'X-Document-Access': documentAccess} : {}), ...(token ? {Authorization: 'Bearer '+token} : {}), ...(body ? { 'Content-Type': 'application/json' } : {}) },
+      headers: { ...(step?.code?{'X-Staff-SMS':step.code}:{}),...(step?.view?{'X-Staff-View':step.view}:{}), ...(documentAccess ? {'X-Document-Access': documentAccess} : {}), ...(token ? {Authorization: 'Bearer '+token} : {}), ...(body ? { 'Content-Type': 'application/json' } : {}) },
       ...(body ? { body: JSON.stringify(body) } : {})
     });
+    if(r.ok&&step?.record&&r.headers?.get('X-Staff-View'))viewProof={record:step.record,token:r.headers.get('X-Staff-View')};
+    if(r.status===428&&!step){
+     const challenge=await r.json();if(challenge.error!=='staff_sms_required')throw Error('Verification is unavailable.');
+     if(challenge.continueView&&viewProof?.record===challenge.record){
+      try{return await api(path,body,download,documentAccess,{view:viewProof.token,record:challenge.record});}catch(e){if(e.code!=='invalid_staff_code')throw e;viewProof=null;}
+     }
+     const uid=auth.currentUser?.uid;
+     if(!uid)throw Error('Sign in to continue.');
+     const verify=await import('/primetime/staff-sms.mjs');
+     return verify.confirm(api,challenge,async code=>{
+      if(auth.currentUser?.uid!==uid)throw Error('Staff session changed.');
+      return api(path,body,download,documentAccess,{code,record:challenge.record});
+     });
+    }
     if (r.ok && download) return r.blob();
     const result = await r.json();
-    if (!r.ok) throw Object.assign(Error(errors[result.error] || 'The request could not be completed. Retry or contact the office.'), {code: result.error});
+    if (!r.ok) throw Object.assign(Error(({staff_verified_phone_required:'A verified phone number must be linked to your staff account.',staff_sms_limit:'Too many verification texts. Try again in ten minutes.',staff_sms_delivery_unavailable:'The verification text could not be sent. Contact the office.',invalid_staff_code:'The code is incorrect, expired, or already used.'})[result.error] || errors[result.error] || 'The request could not be completed. Retry or contact the office.'), {code: result.error});
     return result;
   }
   window.workforceApi = api;
   async function session(user, choosePassword = false, activationCode = '') {
-    const sequence = ++generation;
+    viewProof=null;const sequence = ++generation;
     hide(); signout.hidden = !user;
     document.dispatchEvent(new CustomEvent('workforce-session-cleared'));
     if (!user) { form.hidden = false; message('Sign in with your username or work email and password.'); return; }

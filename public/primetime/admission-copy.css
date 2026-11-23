@@ -1,0 +1,5 @@
+:root{font:100%/1.5 system-ui,sans-serif;color:#163f46;background:#f1f7f7}
+main{max-width:32rem;background:white;margin:8vh auto;padding:clamp(1.5rem,5vw,3rem);border-radius:1rem;border:1px solid #bfd1d1}
+h1{line-height:1.15}input,button,a{font:inherit}input{display:block;margin:.5rem 0 1.25rem;padding:.6rem;width:9ch;letter-spacing:.2em}
+button,a{display:inline-block;padding:.7rem 1rem;border:0;border-radius:.4rem;background:#155c62;color:white}button:disabled{opacity:.65}
+[hidden]{display:none}

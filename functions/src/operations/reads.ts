@@ -246,7 +246,7 @@ export function readRequest(input: ReadInput, scope?: "workforce_caregiver_searc
       ...(input.operation === "SearchPatients" ? { AdmissionID: input.admissionId } : { CaregiverCode: input.caregiverCode }) };
     const pairs = Object.entries(values).filter(([, value]) => value !== undefined && value !== "");
     if (!pairs.length && scope === "workforce_roster_import") return "<SearchFilters/>";
-    if (!pairs.length || pairs.some(([, value]) => typeof value !== "string" || value.trim().length < (input.operation === "SearchCaregivers" && scope === "workforce_caregiver_search" ? 1 : 2) || value.length > 60 || /[\u0000-\u001f]/.test(value))) throw new WorkflowError("last_name_search_requires_2_to_60_characters");
+    if (!pairs.length || pairs.some(([, value]) => typeof value !== "string" || value.trim().length < ((input.operation === "SearchCaregivers" && scope === "workforce_caregiver_search") || (input.operation === "SearchPatients" && scope === "workforce_roster_import") ? 1 : 2) || value.length > 60 || /[\u0000-\u001f]/.test(value))) throw new WorkflowError("last_name_search_requires_2_to_60_characters");
     const escape = (value: string) => value.trim().replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;").replaceAll("'", "&apos;");
     return `<SearchFilters>${pairs.map(([key, value]) => `<${key}>${escape(value!)}</${key}>`).join("")}</SearchFilters>`;
   }

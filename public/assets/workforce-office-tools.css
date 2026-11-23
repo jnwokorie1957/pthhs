@@ -23,3 +23,9 @@
 
 .staff-password-confirmation{max-width:480px;height:auto;min-height:0;padding:1.5rem}.staff-password-confirmation form{display:grid;gap:1rem}.staff-password-confirmation label{display:grid;gap:.5rem}.staff-password-confirmation input{padding:.8rem}
 .manager-nav-group.manager-admin-group:not(:has(~button:not([hidden]))){display:none}
+
+.form-workflow{max-width:72rem;margin:auto}.form-document-options label:has(input:checked){outline:2px solid #257054;outline-offset:-2px;background:#eef8f2!important}
+.form-packet-progress progress{display:block;width:100%;height:.65rem;accent-color:#4d9977;margin:0 0 1.3rem}
+.form-packet-documents li{display:grid;grid-template-columns:minmax(0,1fr) auto;background:#fff;color:#173c3d;border:1px solid #bad0c7;border-radius:.65rem;padding:1rem}.form-packet-documents li p{grid-column:1/-1;color:#264c47;margin:0}.form-packet-documents li button{text-align:left;justify-self:start}
+.staff-sms.workforce-modal{width:min(28rem,92vw);height:auto;padding:1.5rem}.staff-sms label,.staff-sms input{display:block}.staff-sms input{font:inherit;letter-spacing:.22em;width:10ch;margin:.4rem 0 1rem;padding:.5rem}.staff-sms button{margin-right:.5rem}
+@media(max-width:650px){.form-packet-documents li{grid-template-columns:1fr}.form-packet-documents li span{justify-self:start}.form-type-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.manager-app .form-type-card{min-height:5rem;padding:.75rem}.form-workflow .office-toolbar{align-items:stretch}}

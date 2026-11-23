@@ -3,6 +3,22 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import vm from 'node:vm';
 
+test('recruiting print checks one submitted application and prints only its hiring fields',async()=>{
+ const elements=new Map(),events=new Map(),paths=[],printed=[];let delayed=false,resolveRequest;
+ const node=()=>({value:'',textContent:'',children:[],style:{},elements:{},append(...v){this.children.push(...v);},prepend(){},replaceChildren(...v){this.children=v;if(v[0]?.value)this.value=v[0].value;},addEventListener(){},setAttribute(){},reset(){},focus(){},remove(){}});
+ const el=id=>{if(!elements.has(id))elements.set(id,node());return elements.get(id);};
+ const make=tag=>{const n=node();if(tag==='iframe'){n.contentDocument={createElement:node,body:node()};n.contentWindow={focus(){},print(){printed.push(n.contentDocument.body.children.map(x=>x.textContent));}};}return n;};
+ const item={uid:'demo',office:'100',state:'submitted',employmentStatus:'applicant',answers:{firstName:'Fictional',lastName:'Candidate',city:'Houston',ssn:'private-value'}};
+ const api=async path=>{paths.push(path);if(path.includes('/print?'))return delayed?new Promise(r=>{resolveRequest=r;}):item;return {items:[item]};};
+ const window={workforceApi:api},document={body:node(),createElement:make,getElementById:el,querySelectorAll:()=>[],addEventListener:(k,f)=>events.set(k,f)};
+ vm.runInNewContext(fs.readFileSync(new URL('../public/assets/workforce-office-tools.js',import.meta.url),'utf8'),{window,document,setInterval(){},URL:{revokeObjectURL(){}},AbortController});
+ el('applicant-filter').value='all';events.get('workforce-session')({detail:{grant:{offices:['100'],permissions:['applicants.review']}}});
+ window.WorkforceOfficeTools.show('applicants');await new Promise(r=>setImmediate(r));
+ const all=n=>[n,...n.children.flatMap(all)],button=all(el('applicant-list')).find(n=>n.textContent==='Print submitted application');
+ await button.onclick();assert.ok(paths.includes('/staff/applicants/demo/print?office=100'));assert.ok(printed[0].includes('Fictional Candidate'));assert.ok(printed[0].includes('Houston'));assert.ok(!printed[0].includes('private-value'));
+ delayed=true;const pending=button.onclick();window.WorkforceOfficeTools.show('overview');resolveRequest(item);await pending;assert.equal(printed.length,1);
+});
+
 test('expiry cards use full server totals and refreshing preserves previously loaded pages',async()=>{
  const elements=new Map(),events=new Map(),requests=[];
  const node=()=>({value:'',textContent:'',children:[],hidden:false,elements:{},append(...children){this.children.push(...children);},prepend(){},replaceChildren(...children){this.children=children;if(children[0]?.value)this.value=children[0].value;},addEventListener(){},setAttribute(){},reset(){},focus(){}});

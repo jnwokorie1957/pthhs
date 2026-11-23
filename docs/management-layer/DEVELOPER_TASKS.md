@@ -75,6 +75,9 @@
   November 22: URL-verification tooling stopped before browser-state capture;
   no new session/source acceptance. A bounded November 19-onward vendor-reply
   search has no matches; approved-session/URL access and existing contracts remain.
+  November 23 UTC source review: later workforce work is staged for January 1,
+  2027 publication and phased approval. It does not recover/verify HHA visit times;
+  existing approved read access and source interpretation gates remain separate.
 
 - [x] November 16 UTC SEO publication-date delivery (PR41): registered the
   verified November 15 laundry article and two listing changes in the sitemap

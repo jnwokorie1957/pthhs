@@ -5,7 +5,54 @@ area, map the actual source, connect available authorized data and verify it.
 This is the connection backlog, not a declaration of an active Codex goal.
 This document does not claim every tab is connected.
 
-LATEST SOFTWARE DELIVERY CHECKPOINT — NOVEMBER 22, 2026 19:47 UTC
+SOURCE / STAGING CHECKPOINT — NOVEMBER 23, 2026 UTC
+Follow-up to the November 22 23:20 UTC heartbeat; actual review starts November 23
+01:52 UTC. Current source 38418a3 includes staged workforce Phases 1-4 work, form
+completion/exports, eligibility and authorization review. These are source
+changes, not a new live-source/time acceptance. The owner-confirmed current
+publication policy holds the shared website/staff Hosting and Functions bundle
+until January 1, 2027 Central, including manual releases; Git pushes/checks can
+continue immediately. Do not use the former midnight/compatible marker rule to
+publish this staged bundle early. Later staff modules need separate approval.
+See docs/releases/STAFF_RELEASE_POLICY.md and
+docs/workforce/PHASED_RELEASE_2026-11-22.md.
+
+Independent Git comparison with PR52/afc9123 confirms operations, maintenance,
+investigations, Primetime authoring and the Primetime entry are unchanged.
+Workforce implementation and deployment settings have changed; do not describe
+all current Functions as the earlier e46821b bytes. No source-time projection,
+retry or freshness fix is established by the workforce changes. A future green
+fully-signed local form, uploaded authorization or service-date eligibility
+preview does not establish original EVV punches, actual-hour units or source
+visit verification/payable/billable status.
+
+The previously recorded URL-verification policy stop remains the access
+prerequisite; no new browser-state/source read is accepted in this pass.
+The November 19 sign-in observation and November 22 05:14 UTC bounded vendor
+search retain their dates. No October 23/24/current-office-day comparison or
+source-status/field classification is claimed. No source value was recovered.
+Current software staging does not revoke or broaden existing approved reads;
+those can resume through the normal authorized Primetime session and tooling
+that verifies the target URL, respecting displayed delays and exact linkage.
+
+Source mapping remains GetVisitInfoV3Result/VisitInfo: independent optional
+ScheduleStartTime, ScheduleEndTime, VisitStartTime, VisitEndTime, EVVStartTime,
+EVVEndTime, ActualHours and ActualHoursRounded strings. Integer ScheduleDuration/
+ScheduleDurationHours and ScheduleDuration/ScheduleDurationMinutes are schedule
+duration only. Original October 24 stays resolved by the independent October 31
+receipt. Other missing/empty/deferred/pending/scope/quota/interpretation outcomes
+still need actual protected evidence; do not infer any from a staged screen.
+
+Existing next owner/vendor evidence remains the approved private case for
+retained original-event/visit linkage, supported endpoint/history coverage,
+actual-hour units/rounding and preservation/readback. CSM/account/private-XML,
+held-visit disposition and paid-hours interpretation stay separate. No new
+read setting, source action, grant, clinical/financial decision or sending.
+No runtime test/deployment is repeated for this source/evidence reconciliation.
+Current readiness review:
+docs/workforce/READINESS_REVIEW_2026-11-22.txt
+
+PREVIOUS VERIFIED SOFTWARE DELIVERY — NOVEMBER 22, 2026 19:47 UTC
 PR52/runtime afc91238ff377394c725d72e3a8379900cfe0fdb corrects caregiver context
 in local client-form preparation only. Both quality 45062151095 jobs and all four
 normal release 45062312677 jobs pass. Six exact production artifacts, ten served-

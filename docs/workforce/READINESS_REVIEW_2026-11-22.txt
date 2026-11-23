@@ -7,7 +7,7 @@ The November 12 review is historical. Its original high-priority authorization c
 
 FIXED/PREPARED IN THIS BRANCH
 
-- A separate server-enforced staff release boundary: January 1, 2027 is basic applicant review and job opportunities only. Later-module approvals default empty in the reviewed configuration. Existing owner preview ends at the January cutoff; original staff grants remain intact. Authorizations are explicitly a later phase.
+- A separate server-enforced staff release boundary: January 1, 2027 focuses on viewing and printing submitted recruiting applications and posting reviewed opportunities. Later-module approvals default empty. The owner retains preview across January 1 within the existing office and role boundaries. The four-release sequence and acceptance checks are recorded in PHASED_RELEASE_2026-11-22.md.
 - Green fully-signed individual forms, durable admission packet membership/progress, and completed packet export. Draft/partial export requests fail server-side; normal download/print controls are absent until completion. The renderer preserves draft review access and private access checks.
 - Authorization member linking, additional explicit document-view permission, password confirmation/two-minute recent-authentication enforcement, payer/program/date suggestions, retained encrypted storage, member-profile navigation, complete/partial coverage disclosures and staff-confirmed continuing-service alerts.
 - No automatic patient service holds, case-manager messages, invented eligibility results or unsupported HHA writes. No production records, signatures, document grants or emails are created by these tests.

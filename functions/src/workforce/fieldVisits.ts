@@ -1,3 +1,5 @@
+import {HhaDirectory} from './hhaDirectory.js';
+import {ClientDirectory} from './clients.js';
 import {admissionTemplateHash} from './admissionLibrary.js';
 import {documentTextFields,documentFieldValue,placeDocumentText,type DocumentTextField} from './documentTextFields.js';
 import {signaturePlacements,placeSignatures,type SignaturePlacement} from './signaturePlacements.js';
@@ -25,7 +27,7 @@ export const visitTemplateDefinitions=Object.fromEntries(Object.entries(visitTem
 export function missingVisitFields(data:VisitData){return [...(requiredVisitFields[data.kind]||[]).filter(key=>!data.fields[key]?.trim()),...(data.textFields||[]).filter(field=>field.required&&!documentFieldValue(field,data).trim()).map(field=>field.id)];}
 export const signerRoles=['member','caregiver','staff'] as const;
 type Role=typeof signerRoles[number];
-type Signature={role:Role;name:string;appearance:SignatureAppearance;at:string;witnessUid:string;electronicConsent:true;formRead:true;contentSha256:string};
+type Signature={confirmedFields?:number[];role:Role;name:string;appearance:SignatureAppearance;at:string;witnessUid:string;electronicConsent:true;formRead:true;contentSha256:string};
 export interface VisitData {office:string;clientName:string;memberId:string;caregiverName:string;hhaCaregiverId?:string;visitDate:string;kind:Kind;fields:Record<string,string>;requiredSigners:Role[];pages:string[];signatures:Signature[];signatureFields?:SignaturePlacement[];textFields?:DocumentTextField[];templateId?:string;amendment?:{originalId:string;originalContentSha256:string;reason:string}}
 const hash=(b:Buffer|string)=>createHash('sha256').update(b).digest('hex');
 export function visitData(input:any):VisitData {
@@ -48,12 +50,17 @@ export function visitData(input:any):VisitData {
  if(hhaCaregiverId!==undefined&&(input.kind!=='orientation'||!caregiverName||typeof hhaCaregiverId!=='string'||!/^[1-9]\d{0,9}$/.test(hhaCaregiverId)))throw new WorkforceError(400,'invalid_field_visit');
  return {office:input.office,kind:input.kind,clientName,memberId,caregiverName,...(hhaCaregiverId?{hhaCaregiverId}:{}),visitDate:input.visitDate,fields,requiredSigners:[...required],pages,signatures:[],...(signatureFields.length?{signatureFields}:{}),...(textFields.length?{textFields}:{}),...(input.templateId?{templateId:input.templateId}:{})};
 }
+export function pendingVisitSigners(data:VisitData){
+ return data.requiredSigners.filter(role=>!data.signatures.some(s=>s.role===role)).map(role=>({role,pages:[...new Set((data.signatureFields||[]).filter(field=>field.role===role).map(field=>field.page+1))].sort((a,b)=>a-b)}));
+}
 export function visitContentHash(data:VisitData){const {signatures,...content}=data;return hash(JSON.stringify(content));}
 export function appendVisitSignature(data:VisitData,input:any,uid:string,at=new Date().toISOString()):VisitData {
  if(!input||!signerRoles.includes(input.role)||!data.requiredSigners.includes(input.role)||data.signatures.some(s=>s.role===input.role)||input.electronicConsent!==true||input.formRead!==true||input.contentSha256!==visitContentHash(data)||typeof input.name!=='string'||!input.name.trim()||input.name.length>160)throw new WorkforceError(400,'invalid_visit_signature');
  if(data.kind==='upload'&&data.requiredSigners.some(role=>!data.signatureFields?.some(field=>field.role===role)))throw new WorkforceError(400,'field_visit_signature_fields_required');
+ const confirmedFields=(data.signatureFields||[]).flatMap((field,index)=>field.role===input.role?[index]:[]);
+ if(data.templateId&&(!Array.isArray(input.confirmedFields)||input.confirmedFields.length!==confirmedFields.length||!confirmedFields.every(index=>input.confirmedFields.includes(index))))throw new WorkforceError(400,'admission_signature_fields_incomplete');
  if(missingVisitFields(data).length)throw new WorkforceError(400,'field_visit_incomplete');
- return {...data,signatures:[...data.signatures,{role:input.role,name:input.name.trim(),appearance:signatureAppearance(input.appearance),at,witnessUid:uid,electronicConsent:true,formRead:true,contentSha256:input.contentSha256}]};
+ return {...data,signatures:[...data.signatures,{...(data.templateId?{confirmedFields}:{}),role:input.role,name:input.name.trim(),appearance:signatureAppearance(input.appearance),at,witnessUid:uid,electronicConsent:true,formRead:true,contentSha256:input.contentSha256}]};
 }
 export async function renderVisit(data:VisitData,id:string){
  const pdf=await PDFDocument.create(),font=await pdf.embedFont(StandardFonts.Helvetica),bold=await pdf.embedFont(StandardFonts.HelveticaBold),ink=rgb(.08,.2,.22);let page:PDFPage,y=0;
@@ -90,7 +97,7 @@ export class FieldVisits {
   await this.access(uid,data.office);const base='workforce-field-visits/'+data.office+'/'+id+'/'+randomUUID(),pdf=await renderVisit(data,id),payload=await this.put(base+'/record.enc',Buffer.from(JSON.stringify(data))),document=await this.put(base+'/document.enc',pdf),now=new Date().toISOString();
   await this.db.runTransaction(async tx=>{const ref=this.db.collection('workforceFieldVisits').doc(id),prior=(await tx.get(ref)).data(),grant=(await tx.get(this.db.collection('workforceStaff').doc(uid))).data();if(!grant)throw new WorkforceError(403,'workforce_forbidden');requirePermission({uid,grant:parseGrant(grant)},'field_visits.manage',data.office);if(prior)requirePermission({uid,grant:parseGrant(grant)},'field_visits.manage',prior.office);if((prior?.revision||0)!==revision||prior&&prior.office!==data.office)throw new WorkforceError(409,'revision_conflict');if(action==='field_visit_draft_saved'&&prior&&prior.state!=='draft')throw new WorkforceError(409,'signed_visit_locked');
    if(data.amendment){const original=(await tx.get(this.db.collection('workforceFieldVisits').doc(data.amendment.originalId))).data();if(!original||original.office!==data.office||original.memberId!==data.memberId||original.state==='draft'||original.contentSha256!==data.amendment.originalContentSha256)throw new WorkforceError(409,'amendment_source_changed');}
-   const state=data.signatures.length===data.requiredSigners.length?'signed':data.signatures.length?'signing':'draft';const row={title:data.kind==='upload'?data.fields.title:visitTemplates[data.kind].title,renderLayout:2,office:data.office,clientName:data.clientName,memberId:data.memberId,caregiverName:data.caregiverName,visitDate:data.visitDate,kind:data.kind,state,revision:revision+1,updatedAt:now,payload,pdf:document,contentSha256:visitContentHash(data),amendsOriginalId:data.amendment?.originalId||null};tx.set(ref,row);tx.create(ref.collection('versions').doc(String(revision+1)),row);tx.create(this.db.collection('workforcePersonnelAudit').doc(randomUUID()),{actor:uid,action,target:id,office:data.office,revision:revision+1,at:now,documentSha256:document.sha256,amendsOriginalId:data.amendment?.originalId||null});if(action==='field_visit_corrected_copy_created'&&data.amendment)tx.create(this.db.collection('workforceFieldVisits').doc(data.amendment.originalId).collection('corrections').doc(id),{id,actor:uid,at:now,reasonRecorded:true});
+   const state=data.signatures.length===data.requiredSigners.length?'signed':data.signatures.length?'signing':'draft';const row={templateId:data.templateId||null,pendingSigners:pendingVisitSigners(data),title:data.kind==='upload'?data.fields.title:visitTemplates[data.kind].title,renderLayout:2,office:data.office,clientName:data.clientName,memberId:data.memberId,caregiverName:data.caregiverName,visitDate:data.visitDate,kind:data.kind,state,revision:revision+1,updatedAt:now,payload,pdf:document,contentSha256:visitContentHash(data),amendsOriginalId:data.amendment?.originalId||null};tx.set(ref,row);tx.create(ref.collection('versions').doc(String(revision+1)),row);tx.create(this.db.collection('workforcePersonnelAudit').doc(randomUUID()),{actor:uid,action,target:id,office:data.office,revision:revision+1,at:now,documentSha256:document.sha256,amendsOriginalId:data.amendment?.originalId||null});if(action==='field_visit_corrected_copy_created'&&data.amendment)tx.create(this.db.collection('workforceFieldVisits').doc(data.amendment.originalId).collection('corrections').doc(id),{id,actor:uid,at:now,reasonRecorded:true});
   });return this.get(uid,id);
  }
  async save(uid:string,id:string,revision:number,input:any){if(!validId(id)||!Number.isSafeInteger(revision)||revision<0)throw new WorkforceError(400,'invalid_request');const data=visitData(input);if(revision){const old=await this.get(uid,id);if(old.data.amendment)data.amendment=old.data.amendment;if(old.data.templateId)data.templateId=old.data.templateId;}if(data.templateId){const template=(await this.db.collection('workforceAdmissionTemplates').doc(data.templateId).get()).data(),expected=data.office+'-'+admissionTemplateHash({pages:data.pages,textFields:data.textFields||[],signatureFields:data.signatureFields||[],requiredSigners:data.requiredSigners});if(!template||template.office!==data.office||expected!==data.templateId)throw new WorkforceError(409,'invalid_admission_copy');}return this.commit(uid,id,revision,data,'field_visit_draft_saved');}
@@ -102,12 +109,14 @@ export class FieldVisits {
  }
  async sign(uid:string,id:string,revision:number,input:any){const record=await this.get(uid,id);if(record.revision!==revision)throw new WorkforceError(409,'revision_conflict');return this.commit(uid,id,revision,appendVisitSignature(record.data,input,uid),'field_visit_signed');}
  async names(uid:string,office:string,kind:string,name:string,workspace:Pick<OperationsWorkspace,'settings'|'query'>){
-  await this.access(uid,office);if(!['client','caregiver'].includes(kind)||typeof name!=='string'||name.trim().length<2||name.length>60)throw new WorkforceError(400,'name_required');const q=name.trim().toLowerCase();
-  if(kind==='caregiver'){const rows=await this.db.collection('workforceHhaProfiles').where('office','==',office).select('id','firstName','lastName','status').limit(5001).get();if(rows.size>5000)throw new WorkforceError(503,'caregiver_directory_incomplete');const items=rows.docs.map(d=>({id:d.id,name:[d.data().firstName,d.data().lastName].filter(Boolean).join(' '),status:d.data().status})).filter(r=>r.status==='Active'&&r.name.toLowerCase().includes(q));await this.access(uid,office);return {items:items.slice(0,8),hasMore:items.length>8};}
-  const settings=(await workspace.settings()).settings;if(settings.officeId!==office)throw new WorkforceError(403,'workforce_forbidden');
-  const words=name.trim().split(/\s+/),filters=words.length>1?[{firstName:words[0],lastName:words.slice(1).join(' ')}]:[{firstName:words[0]},{lastName:words[0]}],ids=new Set<string>();let hasMore=false;
-  for(const filter of filters){const found=await workspace.query({operation:'SearchPatients',officeId:office,...filter},uid,'maintenance_people_search');if(found.source!=='hhaexchange'||found.operation!=='SearchPatients')throw new WorkforceError(503,'client_directory_unavailable');hasMore||=found.truncated;for(const row of found.records)if(row.PatientID)ids.add(row.PatientID);}
-  const items=[];for(const id of [...ids].slice(0,3)){const profile=await workspace.query({operation:'GetPatientDemographics',id},uid);const row=profile.records[0];if(!profile.truncated&&profile.records.length===1&&row?.OfficeID===office&&row.PatientID===id){const full=[row.FirstName,row.LastName].filter(Boolean).join(' ');if(full.toLowerCase().includes(q))items.push({id,name:full,memberId:row.AdmissionID||id});}}
-  await this.access(uid,office);if((await workspace.settings()).settings.revision!==settings.revision)throw new WorkforceError(409,'revision_conflict');return {items,hasMore:hasMore||ids.size>3};
+  await this.access(uid,office);if(!['client','caregiver'].includes(kind)||typeof name!=='string'||name.trim().length<1||name.length>60)throw new WorkforceError(400,'name_required');
+  const actor=async()=>{const grant=(await this.db.collection('workforceStaff').doc(uid).get()).data();if(!grant)throw new WorkforceError(403,'workforce_forbidden');return {uid,grant:parseGrant(grant)};};
+  if(kind==='caregiver'){
+   const result=await new HhaDirectory(workspace,actor,office).search(name);
+   return {items:result.items.map(row=>({id:row.hhaId,name:[row.firstName,row.lastName].filter(Boolean).join(' ')})),hasMore:result.hasMore};
+  }
+  const result=await new ClientDirectory(workspace,actor).list(name);
+  if(result.office!==office)throw new WorkforceError(403,'workforce_forbidden');
+  return {items:result.items,hasMore:Boolean(result.next||result.truncated)};
  }
 }
