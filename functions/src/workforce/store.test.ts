@@ -168,10 +168,39 @@ test("active HHA caregivers apply once using the verified link and recruiting st
   await assert.rejects(store.existingCaregiverApplicants("outside", "opening"), /workforce_forbidden/);
   documents.set("workforceStaff/recruiter", recruitingGrant);
   const page = await store.existingCaregiverApplicants("recruiter", "opening");
-  assert.deepEqual(page.items, [{name:"Demo Caregiver", caregiverId:"101", createdAt:page.items[0]!.createdAt}]);
+  assert.deepEqual(page.items, [{id:page.items[0]!.id,name:"Demo Caregiver", caregiverId:"101", createdAt:page.items[0]!.createdAt}]);
   assert.equal(page.next, null);
   documents.delete("workforceHhaAssignments/101");
   await assert.rejects(store.existingCaregiverInterest("caregiver", "opening", profile), /hha_profile_unavailable/);
+});
+
+test("recruiting profile details require an application to that opening and expose only basic office-scoped fields", async () => {
+  const {store, documents, grant} = fixture();
+  const dataForOffice = {...data, office:grant.offices[0]!};
+  await store.mutate("editor", "opening", 0, dataForOffice);
+  await store.mutate("editor", "other-opening", 0, dataForOffice);
+  const application = {uid:"caregiver", office:dataForOffice.office, caregiverId:"101", name:"Demo Caregiver", createdAt:"2027-01-01T15:00:00Z"};
+  documents.set("workforceOpportunities/opening/existingCaregiverInterests/application", application);
+  const recruitingGrant = {...grant, permissions:["opportunities.read","applicants.review"]};
+  documents.set("workforceStaff/recruiter", recruitingGrant);
+  documents.set("workforceStaff/outside", {...recruitingGrant, offices:["another-office"]});
+  const detail = () => store.existingCaregiverApplicantProfile("recruiter", "opening", "application");
+  const cached = {id:"101", office:dataForOffice.office, status:"Active", email:"caregiver@example.invalid", fetchedAt:"2027-01-01T14:00:00Z",
+    fields:{"Address/HomePhone":"713-555-0101", "Address/City":"Houston", "Address/State":"TX",
+      EmploymentDisciplines:'["PCA"]', SSN:"private", "Address/Street1":"private", DOB:"private", PayRate:"private"}};
+  assert.equal((await detail()).profile, null);
+  documents.set("workforceHhaProfiles/101", {...cached, office:"another-office"});
+  assert.equal((await detail()).profile, null);
+  documents.set("workforceHhaProfiles/101", cached);
+  assert.deepEqual(await detail(), {
+    name:application.name, caregiverId:"101", createdAt:application.createdAt,
+    profile:{status:"Active",email:"caregiver@example.invalid",phone:"713-555-0101",location:"Houston, TX",disciplines:["PCA"],fetchedAt:cached.fetchedAt},
+  });
+  await assert.rejects(store.existingCaregiverApplicantProfile("recruiter", "other-opening", "application"), /application_not_found/);
+  await assert.rejects(store.existingCaregiverApplicantProfile("outside", "opening", "application"), /workforce_forbidden/);
+  await assert.rejects(store.existingCaregiverApplicantProfile("editor", "opening", "application"), /workforce_forbidden/);
+  documents.set("workforceStaff/recruiter", {...recruitingGrant, active:false});
+  await assert.rejects(detail(), /workforce_forbidden/);
 });
 
 test("owner can invite a work email before the Firebase account exists, and only its verified holder gets the selected permissions", async () => {
