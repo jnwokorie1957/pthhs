@@ -319,6 +319,7 @@ test("Phase 2 schedules require a filled accepted selection, preserve the recipi
   await assert.rejects(store.ownAssignmentSchedules("other"),/hha_profile_unavailable/);
   const ended={...plan,end:"2027-01-05"};
   await assert.rejects(save("one",0,ended),/revision_conflict/);
+  await store.mutate("editor","one",2,{},"archive");
   await save("one",1,ended);
   await save("two",0,{...plan,start:"2027-01-11"});
   assert.equal((await store.ownAssignmentSchedules("taylor")).items.length,2);

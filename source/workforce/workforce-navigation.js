@@ -30,6 +30,11 @@
     };
     const showResponse = response => {
       actions.replaceChildren();
+      if (response === 'accepted' && context.actor.scheduleEnabled) {
+        status.textContent = 'You accepted this opening. Your shifts will appear on My schedule once the office confirms them.';
+        actions.append(link('View my schedule','schedule'));
+        return;
+      }
       status.textContent = response === 'accepted' ? 'You accepted this opening. Contact the office to confirm your next steps.' :
         'You declined this opening. The office can see your response.';
     };

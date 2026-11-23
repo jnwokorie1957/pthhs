@@ -399,7 +399,9 @@ export class WorkforceStore {
       }
       const result = (schedule: WeeklySchedule | null, revision: number) => ({schedule, revision});
       if (!update) return result(prior?.schedule ?? null, prior?.revision ?? 0);
-      if (opportunity.state !== "closed" || opportunity.revision !== choice.revision + 1) {
+      const filled = opportunity.state === "closed" && opportunity.revision === choice.revision + 1;
+      const archivedAfterFill = opportunity.state === "archived" && opportunity.revision === choice.revision + 2;
+      if (!filled && !archivedAfterFill) {
         throw new WorkforceError(409, "filled_assignment_required");
       }
       const schedule = weeklySchedule(update.schedule, opportunity.public);
