@@ -193,7 +193,7 @@ const managementBytes=(await Promise.all(managementFiles.map(file=>fs.stat(file)
 let managementGzip=0;for(const file of managementFiles)managementGzip+=gzipSync(await fs.readFile(file)).length;
 // November 13 source reconciliation: approved staff navigation/training measures
 // Staff tools/navigation bring this group to 75,665 raw / 18,639 gzip bytes.
-if(managementBytes>82_000||managementGzip>21_000)errors.push(`workforce management exceeds 82 KB raw / 21 KB gzip budget: ${managementBytes}/${managementGzip}`);
+if(managementBytes>83_000||managementGzip>21_000)errors.push(`workforce management exceeds 83 KB raw / 21 KB gzip budget: ${managementBytes}/${managementGzip}`);
 const trainingBytes = (await fs.stat(path.join(publicDir, 'training/staff-workspace-walkthrough-v1.mp4'))).size;
 if (trainingBytes > 750_000) errors.push('Staff training video exceeds the 750 KB media budget');
 const isWorkforceFile = file => {
@@ -225,7 +225,8 @@ for (const file of workforceFiles) workforceGzip += gzipSync(await fs.readFile(f
 // Client-first forms, packet selection and page-by-page signing add first-party UI,
 // Persistent packets, member linking and password confirmation retain readable sources and
 // compact served controllers. Measured 370,060 raw / 125,750 gzip; no new runtime library.
-  if (workforceBytes > 385_000 || workforceGzip > 130_000) errors.push(`workforce output exceeds 385 KB raw / 130 KB gzip budget: ${workforceBytes}/${workforceGzip}`);
+  // Includes the on-demand Phase 2 assignment schedule editor and calendar.
+  if (workforceBytes > 392_000 || workforceGzip > 134_000) errors.push(`workforce output exceeds 392 KB raw / 134 KB gzip budget: ${workforceBytes}/${workforceGzip}`);
 // Lazy-loaded, self-hosted PDF/OCR libraries and English data are bounded separately.
 const readerFiles=publicFiles.filter(file=>path.relative(publicDir,file).replaceAll(path.sep,'/').startsWith('assets/authorization-reader/'));
 const readerBytes=(await Promise.all(readerFiles.map(file=>fs.stat(file)))).reduce((sum,stat)=>sum+stat.size,0);

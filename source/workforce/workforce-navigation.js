@@ -3,7 +3,7 @@
   const el = id => document.getElementById(id);
   if (!el('caregiver-dashboard')) return;
   let context = null, generation = 0, route = 'home';
-  const titles = {home:'Home',application:'My application',profile:'My profile',documents:'Documents & forms',opportunities:'Opportunities'};
+  const titles = {home:'Home',schedule:'My schedule',application:'My application',profile:'My profile',documents:'Documents & forms',opportunities:'Opportunities'};
   const node = (tag, label, cls) => { const n=document.createElement(tag); n.textContent=label; if(cls)n.className=cls; return n; };
   const read = () => {const [view, query='']=location.hash.slice(1).split('?');return {view:titles[view]?view:'home',params:new URLSearchParams(query)};};
   function set(view, params={}, replace=false) {
@@ -14,7 +14,7 @@
     const a=node('a',label,primary?'btn-primary':'btn-secondary');a.href='#'+view+(Object.keys(params).length?'?'+new URLSearchParams(params):'');
     a.onclick=event=>{event.preventDefault();navigate(view,params);};return a;
   }
-  function hide() { for(const id of ['portal-home','portal-profile','portal-documents','job-board','caregiver-summary','caregiver-hha-profile']) { const n=el(id);if(n)n.hidden=true; } }
+  function hide() { for(const id of ['portal-home','portal-schedule','portal-profile','portal-documents','job-board','caregiver-summary','caregiver-hha-profile']) { const n=el(id);if(n)n.hidden=true; } }
   function heading(target,title,description) {target.replaceChildren();const h=node('h1',title);h.tabIndex=-1;target.append(h,node('p',description,'portal-lead'));return h;}
   function card(target,title,description,action) {const c=node('section','','portal-task');c.append(node('h2',title),node('p',description));if(action)c.append(action);target.append(c);}
   function selectionNotice(item, seq, api) {
@@ -125,6 +125,7 @@
     catch(error){el('session-status').textContent='Your changes could not be saved. '+error.message;if(fromHistory)history.replaceState(null,'',location.pathname+location.search+'#'+route);return;}
     if(!context)return;const seq=++generation;route=titles[view]?view:'home';
     if((route==='application')&&(context.actor.existingCaregiver||context.actor.applicationsEnabled===false))route='home';
+    if(route==='schedule'&&!context.actor.scheduleEnabled)route='home';
     window.WorkforceForms?.clear();window.WorkforceHha?.clear();hide();
     if(!fromHistory)set(route,params);document.title=titles[route]+' | Primetime';
     for(const a of document.querySelectorAll('[data-portal-route]'))a.setAttribute('aria-current',a.dataset.portalRoute===route?'page':'false');
@@ -133,11 +134,16 @@
       if(route==='application'){context.application(undefined,params);return;}
       if(route==='opportunities'){if(!fromHistory){const url=new URL(location.href);url.searchParams.delete('opportunity');history.replaceState(null,'',url.pathname+url.search+url.hash);}await context.jobs();return;}
       const target=el('portal-'+route);target.hidden=false;heading(target,titles[route],'Loading…');
-      await (route==='home'?home(target,seq):route==='profile'?profile(target,seq):documents(target,seq));
+      if (route==='schedule') {
+        heading(target,'My schedule','Office-confirmed assignment shifts · Central time');
+        await import(document.body.dataset.scheduleSrc);
+        if (seq !== generation) return;
+        await window.WorkforceSchedule.caregiver(target,context.api,()=>seq===generation);
+      } else await (route==='home'?home(target,seq):route==='profile'?profile(target,seq):documents(target,seq));
       if(seq===generation)target.querySelector('h1')?.focus({preventScroll:true});
     }catch(error){if(seq===generation)el('session-status').textContent='Unable to load this section. '+error.message;}
   }
-  window.WorkforceNavigation={set,navigate,mount(next){context=next;el('portal-home-link').hidden=false;el('portal-application-link').hidden=next.actor.existingCaregiver||next.actor.applicationsEnabled===false;const current=read();if(!location.hash&&new URLSearchParams(location.search).has('opportunity'))current.view='opportunities';if(!location.hash)set(current.view,{},true);if(new URLSearchParams(location.search).get('intent')==='apply'&&['#home','#application'].includes(location.hash)){current.view='application';const url=new URL(location.href);url.searchParams.delete('intent');history.replaceState(null,'',url.pathname+url.search+url.hash);}navigate(current.view,Object.fromEntries(current.params),true);},
+  window.WorkforceNavigation={set,navigate,mount(next){context=next;el('portal-schedule-link').hidden=!next.actor.scheduleEnabled;el('portal-home-link').hidden=false;el('portal-application-link').hidden=next.actor.existingCaregiver||next.actor.applicationsEnabled===false;const current=read();if(!location.hash&&new URLSearchParams(location.search).has('opportunity'))current.view='opportunities';if(!location.hash)set(current.view,{},true);if(new URLSearchParams(location.search).get('intent')==='apply'&&['#home','#application'].includes(location.hash)){current.view='application';const url=new URL(location.href);url.searchParams.delete('intent');history.replaceState(null,'',url.pathname+url.search+url.hash);}navigate(current.view,Object.fromEntries(current.params),true);},
     step(label,push=false){if(!context||route!=='application')return;const current=read();const params=Object.fromEntries(current.params);params.section=label;delete params.form;set('application',params,!push);try{sessionStorage.setItem('primetime-step-'+context.actor.uid,label);}catch{};},
     resume(){try{return context?sessionStorage.getItem('primetime-step-'+context.actor.uid):null;}catch{return null;}},
     form(kind){const params=Object.fromEntries(read().params);params.form=kind;set('application',params);document.body.classList.add('portal-form-focus');},
@@ -146,5 +152,5 @@
   };
   for(const a of document.querySelectorAll('[data-portal-route]'))a.onclick=e=>{e.preventDefault();navigate(a.dataset.portalRoute);};
   window.addEventListener('popstate',()=>{const current=read();navigate(current.view,Object.fromEntries(current.params),true);});
-  document.addEventListener('workforce-session-cleared',()=>{generation++;context=null;hide();for(const id of ['portal-home','portal-profile','portal-documents'])el(id).replaceChildren();document.body.classList.remove('portal-form-focus');});
+  document.addEventListener('workforce-session-cleared',()=>{generation++;context=null;hide();for(const id of ['portal-home','portal-schedule','portal-profile','portal-documents'])el(id).replaceChildren();document.body.classList.remove('portal-form-focus');});
 })();
