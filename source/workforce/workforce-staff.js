@@ -33,6 +33,51 @@
     for(const box of form.querySelectorAll('[name=shifts]'))box.checked=!!o?.public.shifts?.includes(box.value);
     window.WorkforceOverlay?.open('staff-editor-panel',{title:o?'Edit opportunity':'New opportunity'});
   }
+  function caregiverApplicants(opening) {
+    const panel = document.createElement('details');
+    panel.className = 'office-hiring-profile';
+    const summary = document.createElement('summary');
+    summary.textContent = 'Existing caregiver applications';
+    const status = document.createElement('p');
+    status.setAttribute('role', 'status');
+    const applicants = document.createElement('ul');
+    const more = document.createElement('button');
+    more.type = 'button';
+    more.hidden = true;
+    more.textContent = 'Load more';
+    panel.append(summary, status, applicants, more);
+    const sequence = generation;
+    let cursor = null, loaded = false, pending = false;
+    async function load() {
+      if (pending) return;
+      pending = true;
+      more.disabled = true;
+      status.textContent = 'Loading caregiver applications…';
+      try {
+        const path = '/staff/opportunities/' + encodeURIComponent(opening.id) + '/caregiver-applicants';
+        const page = await workforceApi(path + (cursor ? '?after=' + encodeURIComponent(cursor) : ''));
+        if (sequence !== generation || !panel.isConnected) return;
+        for (const entry of page.items) {
+          const row = document.createElement('li');
+          const time = new Intl.DateTimeFormat('en-US', {dateStyle: 'medium', timeStyle: 'short', timeZone: 'America/Chicago'}).format(new Date(entry.createdAt));
+          row.textContent = (entry.name || 'Caregiver name unavailable') + ' · HHA ' + entry.caregiverId + ' · ' + time + ' Central';
+          applicants.append(row);
+        }
+        cursor = page.next;
+        loaded = true;
+        more.hidden = !cursor;
+        status.textContent = applicants.childElementCount ? '' : 'No existing caregivers have applied.';
+      } catch (error) {
+        if (sequence === generation && panel.isConnected) status.textContent = error.message + ' Close and reopen to retry.';
+      } finally {
+        pending = false;
+        more.disabled = false;
+      }
+    }
+    panel.ontoggle = () => { if (panel.open && !loaded) void load(); };
+    more.onclick = load;
+    return panel;
+  }
   function render() {
     list.replaceChildren();
     const coverage = document.getElementById('staff-coverage');
@@ -75,6 +120,7 @@
         card.append(button);
       }
       const matchingSequence=generation;window.WorkforceMatching?.openingButton(card,o,{current:()=>matchingSequence===generation});
+      if (actor.grant.permissions.includes('applicants.review') && (o.publishedBy || ['published', 'closed', 'archived'].includes(o.state))) card.append(caregiverApplicants(o));
       list.append(card);
     }
   }

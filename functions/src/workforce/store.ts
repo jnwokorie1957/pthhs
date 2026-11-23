@@ -4,6 +4,8 @@ import { getFirestore, type Transaction } from "firebase-admin/firestore";
 import { getAuth } from "firebase-admin/auth";
 import { parseGrant, requirePermission, validId, WorkforceError, type Actor, type Grant } from "./policy.js";
 import { saveOpportunity, transition, publicOpportunity, type Opportunity, type Action } from "./opportunities.js";
+import { canApplyWithCaregiverProfile } from "./existingCaregiverInterest.js";
+import type { HhaProfile } from "./hhaSource.js";
 
 const INVITATION_LIFETIME_MS = 86_400_000;
 const TRAINING_VERSION = "workspace-walkthrough-v1";
@@ -194,6 +196,66 @@ export class WorkforceStore {
         tx.create(this.db.collection("workforceAudit").doc(randomUUID()),{actor:uid,target:id,action:"opportunity_interest",at:new Date().toISOString()});
       }
       return {recorded:true,opportunityId:id};
+    });
+  }
+  async existingCaregiverInterest(uid: string, id: string, profile?: HhaProfile) {
+    if (!validId(uid) || !validId(id)) throw new WorkforceError(400, "invalid_request");
+    const opening = this.db.collection("workforceOpportunities").doc(id);
+    const interest = opening.collection("existingCaregiverInterests").doc(hashCode(uid));
+    return this.db.runTransaction(async tx => {
+      const opportunity = (await tx.get(opening)).data() as Opportunity | undefined;
+      if (!opportunity || !publicOpportunity(opportunity)) throw new WorkforceError(409, "opportunity_unavailable");
+      const saved = await tx.get(interest);
+      if (!profile) return {recorded: saved.data()?.office === opportunity.office, opportunityId: id};
+      if (!canApplyWithCaregiverProfile(profile)) throw new WorkforceError(403, "existing_caregiver_not_active");
+      if (profile.office !== opportunity.office) throw new WorkforceError(403, "opportunity_office_mismatch");
+
+      const [forward, reverse] = await Promise.all([
+        tx.get(this.db.collection("workforceHhaLinks").doc(uid)),
+        tx.get(this.db.collection("workforceHhaAssignments").doc(profile.id)),
+      ]);
+      const link = forward.data();
+      const assignment = reverse.data();
+      const emailKey = hashCode(profile.email.trim().toLowerCase());
+      if (link?.uid !== uid || assignment?.uid !== uid || link.caregiverId !== profile.id ||
+          assignment.caregiverId !== profile.id || link.office !== profile.office || assignment.office !== profile.office ||
+          link.emailKey !== emailKey || assignment.emailKey !== emailKey) {
+        throw new WorkforceError(403, "hha_profile_unavailable");
+      }
+      if (saved.data()?.office !== opportunity.office) {
+        const at = new Date().toISOString();
+        const name = [profile.firstName, profile.lastName].filter(Boolean).join(" ");
+        tx.set(interest, {uid, caregiverId: profile.id, name, office: opportunity.office, createdAt: at});
+        tx.create(this.db.collection("workforceAudit").doc(randomUUID()), {
+          actor: uid, target: id, office: opportunity.office, action: "existing_caregiver_opportunity_interest", at,
+        });
+      }
+      return {recorded: true, opportunityId: id};
+    });
+  }
+  async existingCaregiverApplicants(uid: string, id: string, after?: string) {
+    if (!validId(id) || (after !== undefined && !validId(after))) throw new WorkforceError(400, "invalid_request");
+    const opening = this.db.collection("workforceOpportunities").doc(id);
+    return this.db.runTransaction(async tx => {
+      const staff = (await tx.get(this.db.collection("workforceStaff").doc(uid))).data();
+      if (!staff) throw new WorkforceError(403, "staff_access_required");
+      const actor = {uid, grant: parseGrant(staff)};
+      requirePermission(actor, "opportunities.read");
+      requirePermission(actor, "applicants.review");
+      const opportunity = (await tx.get(opening)).data() as Opportunity | undefined;
+      if (!opportunity) throw new WorkforceError(404, "opportunity_not_found");
+      requirePermission(actor, "opportunities.read", opportunity.office);
+      requirePermission(actor, "applicants.review", opportunity.office);
+      let query = opening.collection("existingCaregiverInterests").orderBy("__name__").limit(51);
+      if (after) query = query.startAfter(after);
+      const {docs} = await tx.get(query);
+      return {
+        items: docs.slice(0, 50).filter(doc => doc.data().office === opportunity.office).map(doc => {
+          const {name, caregiverId, createdAt} = doc.data();
+          return {name, caregiverId, createdAt};
+        }),
+        next: docs.length > 50 ? docs[49]!.id : null,
+      };
     });
   }
   async mutate(uid: string, id: string, revision: number, data: unknown, action?: Action, privacy = false) {
