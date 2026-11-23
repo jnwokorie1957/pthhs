@@ -236,6 +236,50 @@ test("selection atomically posts one notice for the chosen caregiver and rejects
   assert.deepEqual(documents.get(openingPath), published);
 });
 
+test("only the recipient can respond, and a declined opening can be offered to another applicant", async () => {
+  const {store, documents, grant} = fixture();
+  documents.set("workforceStaff/recruiter", {...grant, permissions:[...grant.permissions,"applicants.review"]});
+  const taylor = {uid:"taylor",caregiverId:"101",office:data.office,emailKey:"taylor-link"};
+  const other = {uid:"other",caregiverId:"102",office:data.office,emailKey:"other-link"};
+  for (const caregiver of [taylor,other]) {
+    documents.set("workforceHhaLinks/"+caregiver.uid, caregiver);
+    documents.set("workforceHhaAssignments/"+caregiver.caregiverId, caregiver);
+  }
+  async function selectedOpening(id: string) {
+    const draft = await store.mutate("editor",id,0,data);
+    const opening = {...draft,state:"published",review:{revision:draft.revision,reviewer:"reviewer",at:"2027-01-01T14:00:00Z"}};
+    const path = "workforceOpportunities/" + id;
+    documents.set(path,opening);
+    documents.set(path+"/existingCaregiverInterests/taylor-application", {...taylor, name:"Taylor Example"});
+    documents.set(path+"/existingCaregiverInterests/other-application", {...other, name:"Other Example"});
+    await store.selectExistingCaregiver("recruiter",id,"taylor-application",opening.revision);
+    return {opening,path};
+  }
+  await selectedOpening("accept-opening");
+  await assert.rejects(store.respondToOpportunitySelection("other","accept-opening","accepted"),/selection_not_found/);
+  const accepted = await store.respondToOpportunitySelection("taylor","accept-opening","accepted");
+  assert.equal(accepted.response,"accepted");
+  const acceptedState = structuredClone(documents);
+  assert.deepEqual(await store.respondToOpportunitySelection("taylor","accept-opening","accepted"),accepted);
+  await assert.rejects(store.respondToOpportunitySelection("taylor","accept-opening","declined"),/opportunity_response_recorded/);
+  assert.deepEqual(documents,acceptedState);
+  assert.equal((await store.existingCaregiverApplicants("recruiter","accept-opening")).items.find(a=>a.name==="Taylor Example")?.response,"accepted");
+  assert.equal((await store.ownOpportunitySelections("taylor")).items[0]?.response,"accepted");
+  await assert.rejects(store.selectExistingCaregiver("recruiter","accept-opening","other-application",1),/opportunity_already_selected/);
+
+  const {opening,path} = await selectedOpening("decline-opening");
+  documents.set(path,{...opening, revision:2});
+  await assert.rejects(store.respondToOpportunitySelection("taylor","decline-opening","accepted"),/opportunity_selection_changed/);
+  const declined = await store.respondToOpportunitySelection("taylor","decline-opening","declined");
+  assert.equal(declined.response,"declined");
+  documents.set(path,opening);
+  assert.equal((await store.existingCaregiverApplicantProfile("recruiter","decline-opening","other-application")).canSelect,true);
+  await store.selectExistingCaregiver("recruiter","decline-opening","other-application",opening.revision);
+  assert.deepEqual(await store.respondToOpportunitySelection("taylor","decline-opening","declined"),declined);
+  assert.equal((await store.existingCaregiverApplicantProfile("recruiter","decline-opening","taylor-application")).response,"declined");
+  assert.equal((await store.ownOpportunitySelections("other")).items[0]?.opportunityId,"decline-opening");
+});
+
 test("owner can invite a work email before the Firebase account exists, and only its verified holder gets the selected permissions", async () => {
   const {store, documents, users, grant} = fixture();
   documents.set("workforceStaff/owner", {...grant, role: "owner", permissions: ["staff.manage"]});

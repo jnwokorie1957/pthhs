@@ -17,16 +17,56 @@
   function hide() { for(const id of ['portal-home','portal-profile','portal-documents','job-board','caregiver-summary','caregiver-hha-profile']) { const n=el(id);if(n)n.hidden=true; } }
   function heading(target,title,description) {target.replaceChildren();const h=node('h1',title);h.tabIndex=-1;target.append(h,node('p',description,'portal-lead'));return h;}
   function card(target,title,description,action) {const c=node('section','','portal-task');c.append(node('h2',title),node('p',description));if(action)c.append(action);target.append(c);}
+  function selectionNotice(item, seq, api) {
+    const notice = node('section', '', 'portal-task');
+    const status = node('p', '');
+    status.setAttribute('role', 'status');
+    const actions = node('div', '', 'workforce-actions');
+    const button = (label, callback, style = 'btn-secondary') => {
+      const element = node('button', label, style);
+      element.type = 'button';
+      element.onclick = callback;
+      return element;
+    };
+    const showResponse = response => {
+      actions.replaceChildren();
+      status.textContent = response === 'accepted' ? 'You accepted this opening. Contact the office to confirm your next steps.' :
+        'You declined this opening. The office can see your response.';
+    };
+    function confirmResponse(response) {
+      const verb = response === 'accepted' ? 'accept' : 'decline';
+      status.textContent = '';
+      const confirm = button('Confirm ' + verb, async () => {
+        confirm.disabled = cancel.disabled = true;
+        try {
+          const saved = await api('/opportunities/' + encodeURIComponent(item.opportunityId) + '/selection-response', {response});
+          if (seq !== generation) return;
+          if (saved.response !== response) throw Error('Unable to confirm your response.');
+          showResponse(saved.response);
+        } catch (error) {
+          if (seq !== generation) return;
+          status.textContent = error.message;
+          confirm.disabled = cancel.disabled = false;
+        }
+      }, 'btn-primary');
+      const cancel = button('Cancel', () => {status.textContent = ''; actions.replaceChildren(accept, decline); accept.focus();});
+      actions.replaceChildren(confirm, cancel);
+      confirm.focus();
+    }
+    const accept = button('Accept', () => confirmResponse('accepted'), 'btn-primary');
+    const decline = button('Decline', () => confirmResponse('declined'));
+    notice.append(node('h3', item.location), node('p', 'You were selected for this opening · ' + item.weeklyHours + ' hours per week.'), actions, status);
+    if (item.response) showResponse(item.response);
+    else actions.append(accept, decline);
+    return notice;
+  }
   async function selectionNotices(target, seq, api) {
     try {
       const {items} = await api('/opportunities/selections');
       if (seq !== generation || !items.length) return;
       const notices = node('section', '', 'portal-task');
       notices.append(node('h2', 'Opportunity notifications'));
-      for (const item of items) {
-        notices.append(node('p', 'You were selected for the ' + item.location + ' opening (' + item.weeklyHours +
-          ' hours per week). Contact the office to confirm your next steps.'));
-      }
+      for (const item of items) notices.append(selectionNotice(item, seq, api));
       target.insertBefore(notices, target.children[2] || null);
     } catch {
       if (seq === generation) target.insertBefore(node('p', 'Opportunity notifications couldn’t load. Refresh to try again.', 'portal-task'), target.children[2] || null);
