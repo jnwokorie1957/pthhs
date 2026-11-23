@@ -36,6 +36,57 @@
   const centralTime = value => Number.isFinite(Date.parse(value))
     ? new Intl.DateTimeFormat('en-US', {dateStyle: 'medium', timeStyle: 'short', timeZone: 'America/Chicago'}).format(new Date(value)) + ' Central'
     : 'Date unavailable';
+  function caregiverSelection(panel, opening, applicant, result, path, current) {
+    const action = document.createElement('div');
+    const feedback = document.createElement('p');
+    feedback.setAttribute('role', 'status');
+    panel.append(action, feedback);
+    const button = (label, onclick) => {
+      const element = document.createElement('button');
+      element.type = 'button';
+      element.className = 'btn-secondary';
+      element.textContent = label;
+      element.onclick = onclick;
+      return element;
+    };
+    const selected = () => {
+      action.replaceChildren();
+      feedback.textContent = 'Caregiver selected. A notification is available in their caregiver portal.';
+    };
+    if (result.selection === 'selected') { selected(); return; }
+    if (result.selection === 'another_selected') {
+      feedback.textContent = 'A caregiver has already been selected for this opening.';
+      return;
+    }
+    if (!result.canSelect) return;
+    const start = button('Select caregiver', () => {
+      feedback.textContent = 'Send a portal notification to ' + (applicant.name || 'this caregiver') + ' for ' + opening.public.location + '?';
+      action.replaceChildren(confirm, cancel);
+      confirm.focus();
+    });
+    const cancel = button('Cancel', () => {
+      feedback.textContent = '';
+      action.replaceChildren(start);
+      start.focus();
+    });
+    const confirm = button('Confirm selection and notify', async () => {
+      if (confirm.disabled || !current()) return;
+      confirm.disabled = cancel.disabled = true;
+      try {
+        const receipt = await workforceApi(path + '/select', {revision: opening.revision});
+        if (!current()) return;
+        if (receipt.selected !== true) throw Error('The selection could not be confirmed. Try again.');
+        selected();
+      } catch (error) {
+        if (current()) {
+          feedback.textContent = error.message;
+          confirm.disabled = cancel.disabled = false;
+        }
+      }
+    });
+    confirm.className = 'manager-primary';
+    action.append(start);
+  }
   async function openRecruitingProfile(opening, applicant) {
     const sequence = generation;
     const panel = document.createElement('section');
@@ -45,10 +96,11 @@
     status.textContent = 'Loading caregiver profile…';
     panel.append(status);
     window.WorkforceOverlay.open(panel, {title: applicant.name || 'Caregiver profile'});
+    const path = '/staff/opportunities/' + encodeURIComponent(opening.id) + '/caregiver-applicants/' + encodeURIComponent(applicant.id);
+    const current = () => sequence === generation && panel.isConnected;
     try {
-      const result = await workforceApi('/staff/opportunities/' + encodeURIComponent(opening.id) +
-        '/caregiver-applicants/' + encodeURIComponent(applicant.id));
-      if (sequence !== generation || !panel.isConnected) return;
+      const result = await workforceApi(path);
+      if (!current()) return;
       const details = document.createElement('dl');
       const add = (label, value) => {
         const term = document.createElement('dt');
@@ -71,6 +123,7 @@
       }
       status.textContent = result.profile ? '' : 'Basic profile details aren’t available from the office’s HHA sync yet.';
       panel.prepend(details);
+      caregiverSelection(panel, opening, applicant, result, path, current);
     } catch (error) {
       if (sequence === generation && panel.isConnected) status.textContent = error.message;
     }

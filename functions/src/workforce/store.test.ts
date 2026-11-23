@@ -193,7 +193,7 @@ test("recruiting profile details require an application to that opening and expo
   assert.equal((await detail()).profile, null);
   documents.set("workforceHhaProfiles/101", cached);
   assert.deepEqual(await detail(), {
-    name:application.name, caregiverId:"101", createdAt:application.createdAt,
+    name:application.name, caregiverId:"101", createdAt:application.createdAt, selection:null, canSelect:false,
     profile:{status:"Active",email:"caregiver@example.invalid",phone:"713-555-0101",location:"Houston, TX",disciplines:["PCA"],fetchedAt:cached.fetchedAt},
   });
   await assert.rejects(store.existingCaregiverApplicantProfile("recruiter", "other-opening", "application"), /application_not_found/);
@@ -201,6 +201,39 @@ test("recruiting profile details require an application to that opening and expo
   await assert.rejects(store.existingCaregiverApplicantProfile("editor", "opening", "application"), /workforce_forbidden/);
   documents.set("workforceStaff/recruiter", {...recruitingGrant, active:false});
   await assert.rejects(detail(), /workforce_forbidden/);
+});
+
+test("selection atomically posts one notice for the chosen caregiver and rejects unauthorized or stale choices", async () => {
+  const {store, documents, grant} = fixture();
+  const draft = await store.mutate("editor", "opening", 0, data);
+  const published = {...draft, state:"published", review:{revision:draft.revision, reviewer:"reviewer", at:"2027-01-01T14:00:00Z"}};
+  const openingPath = "workforceOpportunities/opening";
+  const applicationPath = openingPath + "/existingCaregiverInterests/";
+  const link = {uid:"caregiver",office:draft.office,caregiverId:"101",emailKey:"verified-email-key"};
+  documents.set(applicationPath + "candidate", {...link,name:"Demo Caregiver"});
+  documents.set(applicationPath + "other", {...link,uid:"other",caregiverId:"102",name:"Other Caregiver"});
+  documents.set("workforceStaff/recruiter", {...grant, permissions:[...grant.permissions,"applicants.review"]});
+  documents.set("workforceStaff/viewer", {...grant, permissions:["opportunities.read","applicants.review"]});
+  await assert.rejects(store.selectExistingCaregiver("recruiter","opening","candidate",draft.revision), /opportunity_unavailable/);
+  documents.set(openingPath, published);
+  await assert.rejects(store.selectExistingCaregiver("viewer","opening","candidate",draft.revision), /workforce_forbidden/);
+  await assert.rejects(store.selectExistingCaregiver("recruiter","opening","candidate",draft.revision+1), /revision_conflict/);
+  await assert.rejects(store.selectExistingCaregiver("recruiter","opening","candidate",draft.revision), /hha_profile_unavailable/);
+  assert.deepEqual(await store.ownOpportunitySelections("caregiver"), {items:[]});
+  documents.set("workforceHhaLinks/caregiver",link);
+  documents.set("workforceHhaAssignments/101",link);
+  const selection = () => store.selectExistingCaregiver("recruiter","opening","candidate",draft.revision);
+  assert.deepEqual(await selection(), {selected:true});
+  const state = structuredClone(documents);
+  assert.deepEqual(await selection(), {selected:true});
+  assert.deepEqual(documents, state);
+  const notice = (await store.ownOpportunitySelections("caregiver")).items[0]!;
+  assert.deepEqual(notice, {opportunityId:"opening",location:draft.public.location,weeklyHours:draft.public.weeklyHours,at:notice.at});
+  assert.deepEqual(await store.ownOpportunitySelections("other"), {items:[]});
+  assert.equal((await store.existingCaregiverApplicantProfile("recruiter","opening","candidate")).selection, "selected");
+  await assert.rejects(store.selectExistingCaregiver("recruiter","opening","other",draft.revision), /opportunity_already_selected/);
+  assert.equal((await store.existingCaregiverApplicantProfile("recruiter","opening","other")).selection, "another_selected");
+  assert.deepEqual(documents.get(openingPath), published);
 });
 
 test("owner can invite a work email before the Firebase account exists, and only its verified holder gets the selected permissions", async () => {
