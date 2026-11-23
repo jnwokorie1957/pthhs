@@ -33,6 +33,48 @@
     for(const box of form.querySelectorAll('[name=shifts]'))box.checked=!!o?.public.shifts?.includes(box.value);
     window.WorkforceOverlay?.open('staff-editor-panel',{title:o?'Edit opportunity':'New opportunity'});
   }
+  const centralTime = value => Number.isFinite(Date.parse(value))
+    ? new Intl.DateTimeFormat('en-US', {dateStyle: 'medium', timeStyle: 'short', timeZone: 'America/Chicago'}).format(new Date(value)) + ' Central'
+    : 'Date unavailable';
+  async function openRecruitingProfile(opening, applicant) {
+    const sequence = generation;
+    const panel = document.createElement('section');
+    panel.className = 'office-hiring-profile';
+    const status = document.createElement('p');
+    status.setAttribute('role', 'status');
+    status.textContent = 'Loading caregiver profile…';
+    panel.append(status);
+    window.WorkforceOverlay.open(panel, {title: applicant.name || 'Caregiver profile'});
+    try {
+      const result = await workforceApi('/staff/opportunities/' + encodeURIComponent(opening.id) +
+        '/caregiver-applicants/' + encodeURIComponent(applicant.id));
+      if (sequence !== generation || !panel.isConnected) return;
+      const details = document.createElement('dl');
+      const add = (label, value) => {
+        const term = document.createElement('dt');
+        term.textContent = label;
+        const definition = document.createElement('dd');
+        definition.textContent = value || 'Not on file';
+        details.append(term, definition);
+      };
+      add('Opportunity', opening.public.location);
+      add('HHA caregiver ID', result.caregiverId);
+      add('Applied', centralTime(result.createdAt));
+      if (result.profile) {
+        const {status, disciplines, location, email, phone, fetchedAt} = result.profile;
+        add('HHA status', status);
+        add('Disciplines', disciplines.join(', '));
+        add('City and state', location);
+        add('Email', email);
+        add('Phone', phone);
+        add('HHA profile last checked', centralTime(fetchedAt));
+      }
+      status.textContent = result.profile ? '' : 'Basic profile details aren’t available from the office’s HHA sync yet.';
+      panel.prepend(details);
+    } catch (error) {
+      if (sequence === generation && panel.isConnected) status.textContent = error.message;
+    }
+  }
   function caregiverApplicants(opening) {
     const panel = document.createElement('details');
     panel.className = 'office-hiring-profile';
@@ -59,8 +101,16 @@
         if (sequence !== generation || !panel.isConnected) return;
         for (const entry of page.items) {
           const row = document.createElement('li');
-          const time = new Intl.DateTimeFormat('en-US', {dateStyle: 'medium', timeStyle: 'short', timeZone: 'America/Chicago'}).format(new Date(entry.createdAt));
-          row.textContent = (entry.name || 'Caregiver name unavailable') + ' · HHA ' + entry.caregiverId + ' · ' + time + ' Central';
+          const name = entry.name || 'Caregiver name unavailable';
+          if (entry.id) {
+            const button = document.createElement('button');
+            button.type = 'button';
+            button.textContent = name;
+            button.setAttribute('aria-label', 'Review caregiver profile for ' + name);
+            button.onclick = () => openRecruitingProfile(opening, entry);
+            row.append(button);
+          } else row.textContent = name;
+          row.append(' · HHA ' + entry.caregiverId + ' · ' + centralTime(entry.createdAt));
           applicants.append(row);
         }
         cursor = page.next;

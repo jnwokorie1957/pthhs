@@ -4,7 +4,7 @@ import { getFirestore, type Transaction } from "firebase-admin/firestore";
 import { getAuth } from "firebase-admin/auth";
 import { parseGrant, requirePermission, validId, WorkforceError, type Actor, type Grant } from "./policy.js";
 import { saveOpportunity, transition, publicOpportunity, type Opportunity, type Action } from "./opportunities.js";
-import { canApplyWithCaregiverProfile } from "./existingCaregiverInterest.js";
+import { canApplyWithCaregiverProfile, caregiverRecruitingProfile } from "./existingCaregiverInterest.js";
 import type { HhaProfile } from "./hhaSource.js";
 
 const INVITATION_LIFETIME_MS = 86_400_000;
@@ -233,29 +233,51 @@ export class WorkforceStore {
       return {recorded: true, opportunityId: id};
     });
   }
+  private async caregiverApplicantOpening(tx: Transaction, uid: string, id: string) {
+    const staff = (await tx.get(this.db.collection("workforceStaff").doc(uid))).data();
+    if (!staff) throw new WorkforceError(403, "staff_access_required");
+    const actor = {uid, grant: parseGrant(staff)};
+    requirePermission(actor, "opportunities.read");
+    requirePermission(actor, "applicants.review");
+    const opening = this.db.collection("workforceOpportunities").doc(id);
+    const opportunity = (await tx.get(opening)).data() as Opportunity | undefined;
+    if (!opportunity) throw new WorkforceError(404, "opportunity_not_found");
+    requirePermission(actor, "opportunities.read", opportunity.office);
+    requirePermission(actor, "applicants.review", opportunity.office);
+    return {opening, opportunity};
+  }
   async existingCaregiverApplicants(uid: string, id: string, after?: string) {
     if (!validId(id) || (after !== undefined && !validId(after))) throw new WorkforceError(400, "invalid_request");
-    const opening = this.db.collection("workforceOpportunities").doc(id);
     return this.db.runTransaction(async tx => {
-      const staff = (await tx.get(this.db.collection("workforceStaff").doc(uid))).data();
-      if (!staff) throw new WorkforceError(403, "staff_access_required");
-      const actor = {uid, grant: parseGrant(staff)};
-      requirePermission(actor, "opportunities.read");
-      requirePermission(actor, "applicants.review");
-      const opportunity = (await tx.get(opening)).data() as Opportunity | undefined;
-      if (!opportunity) throw new WorkforceError(404, "opportunity_not_found");
-      requirePermission(actor, "opportunities.read", opportunity.office);
-      requirePermission(actor, "applicants.review", opportunity.office);
+      const {opening, opportunity} = await this.caregiverApplicantOpening(tx, uid, id);
       let query = opening.collection("existingCaregiverInterests").orderBy("__name__").limit(51);
       if (after) query = query.startAfter(after);
       const {docs} = await tx.get(query);
       return {
         items: docs.slice(0, 50).filter(doc => doc.data().office === opportunity.office).map(doc => {
           const {name, caregiverId, createdAt} = doc.data();
-          return {name, caregiverId, createdAt};
+          return {id: doc.id, name, caregiverId, createdAt};
         }),
         next: docs.length > 50 ? docs[49]!.id : null,
       };
+    });
+  }
+  async existingCaregiverApplicantProfile(uid: string, openingId: string, applicationId: string) {
+    if (!validId(openingId) || !validId(applicationId)) throw new WorkforceError(400, "invalid_request");
+    return this.db.runTransaction(async tx => {
+      const {opening, opportunity} = await this.caregiverApplicantOpening(tx, uid, openingId);
+      const application = (await tx.get(opening.collection("existingCaregiverInterests").doc(applicationId))).data();
+      if (!application || application.office !== opportunity.office || !validId(application.caregiverId)) {
+        throw new WorkforceError(404, "application_not_found");
+      }
+      const {name, caregiverId, createdAt} = application;
+      const cached = (await tx.get(this.db.collection("workforceHhaProfiles").doc(caregiverId))).data() as HhaProfile | undefined;
+      const profile = cached?.id === caregiverId && cached.office === opportunity.office ? caregiverRecruitingProfile(cached) : null;
+      tx.create(this.db.collection("workforceAudit").doc(randomUUID()), {
+        actor: uid, target: openingId, applicationId, office: opportunity.office,
+        action: "existing_caregiver_recruiting_profile_read", at: new Date().toISOString(),
+      });
+      return {name, caregiverId, createdAt, profile};
     });
   }
   async mutate(uid: string, id: string, revision: number, data: unknown, action?: Action, privacy = false) {

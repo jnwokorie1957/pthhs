@@ -551,6 +551,11 @@ export const workforceApi = process.env.PRIMETIME_API_ONLY_DEPLOY === "true" ? u
     }
     if (path === "/staff/team" && req.method === "GET") { res.json(await store.reviewTeam(uid)); return; }
     if (path === "/staff/opportunities" && req.method === "GET") { res.json(await store.list(uid)); return; }
+    const caregiverApplicantProfile = path.match(/^\/staff\/opportunities\/([a-zA-Z0-9_-]{1,128})\/caregiver-applicants\/([a-zA-Z0-9_-]{1,128})$/);
+    if (caregiverApplicantProfile && req.method === "GET") {
+      const recentUid = await recentWorkforceIdentity(req);
+      res.json(await store.existingCaregiverApplicantProfile(recentUid, caregiverApplicantProfile[1]!, caregiverApplicantProfile[2]!)); return;
+    }
     const caregiverApplicants = path.match(/^\/staff\/opportunities\/([a-zA-Z0-9_-]{1,128})\/caregiver-applicants$/);
     if (caregiverApplicants && req.method === "GET") {
       const after = req.query.after;
