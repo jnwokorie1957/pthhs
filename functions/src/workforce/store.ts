@@ -255,11 +255,13 @@ export class WorkforceStore {
       const {opening, opportunity} = await this.caregiverApplicantOpening(tx, uid, id);
       let query = opening.collection("existingCaregiverInterests").orderBy("__name__").limit(51);
       if (after) query = query.startAfter(after);
-      const {docs} = await tx.get(query);
+      const [{docs}, selection] = await Promise.all([tx.get(query), tx.get(opening.collection("selection").doc("chosen"))]);
+      const choice = selection.data();
       return {
         items: docs.slice(0, 50).filter(doc => doc.data().office === opportunity.office).map(doc => {
-          const {name, caregiverId, createdAt} = doc.data();
-          return {id: doc.id, name, caregiverId, createdAt};
+          const {name, caregiverId, createdAt, response} = doc.data();
+          const status = response ?? (choice?.applicationId === doc.id && choice?.office === opportunity.office ? "pending" : null);
+          return {id: doc.id, name, caregiverId, createdAt, ...(status ? {response: status} : {})};
         }),
         next: docs.length > 50 ? docs[49]!.id : null,
       };
@@ -281,10 +283,12 @@ export class WorkforceStore {
         actor: uid, target: openingId, applicationId, office: opportunity.office,
         action: "existing_caregiver_recruiting_profile_read", at: new Date().toISOString(),
       });
-      const selection = !choice ? null :
-        choice.applicationId === applicationId && choice.office === opportunity.office ? "selected" : "another_selected";
-      const canSelect = !choice && actor.grant.permissions.includes("opportunities.edit") && !!publicOpportunity(opportunity);
-      return {name, caregiverId, createdAt, profile, selection, canSelect};
+      const isSelected = choice?.applicationId === applicationId && choice.office === opportunity.office;
+      const selection = isSelected ? "selected" :
+        choice && (choice.response !== "declined" || choice.office !== opportunity.office) ? "another_selected" : null;
+      const {response, respondedAt} = application;
+      const canSelect = !selection && !response && actor.grant.permissions.includes("opportunities.edit") && !!publicOpportunity(opportunity);
+      return {name, caregiverId, createdAt, profile, selection, canSelect, ...(response ? {response, respondedAt} : {})};
     });
   }
   async selectExistingCaregiver(uid: string, openingId: string, applicationId: string, revision: number) {
@@ -301,9 +305,12 @@ export class WorkforceStore {
       const choiceRef = opening.collection("selection").doc("chosen");
       const choice = (await tx.get(choiceRef)).data();
       if (choice) {
-        if (choice.applicationId === applicationId && choice.office === opportunity.office) return {selected: true};
-        throw new WorkforceError(409, "opportunity_already_selected");
+        if (choice.applicationId === applicationId && choice.office === opportunity.office && !application.response) return {selected: true};
+        if (choice.response !== "declined" || choice.office !== opportunity.office) {
+          throw new WorkforceError(409, "opportunity_already_selected");
+        }
       }
+      if (application.response) throw new WorkforceError(409, "opportunity_response_recorded");
       if (opportunity.revision !== revision) throw new WorkforceError(409, "revision_conflict");
       if (!publicOpportunity(opportunity)) throw new WorkforceError(409, "opportunity_unavailable");
       await this.verifyCaregiverLink(tx, application.uid, application.caregiverId, opportunity.office);
@@ -313,8 +320,8 @@ export class WorkforceStore {
       }
 
       const at = new Date().toISOString();
-      const notice = this.db.collection("workforceOpportunityInboxes").doc(application.uid).collection("selections").doc(openingId);
-      tx.create(choiceRef, {applicationId, caregiverId: application.caregiverId, office: opportunity.office, revision, selectedBy: uid, at});
+      const notice = this.selectionNotice(application.uid, openingId);
+      tx.set(choiceRef, {applicationId, caregiverId: application.caregiverId, office: opportunity.office, revision, selectedBy: uid, at});
       tx.create(notice, {opportunityId: openingId, location: opportunity.public.location, weeklyHours: opportunity.public.weeklyHours, at});
       tx.create(this.db.collection("workforceAudit").doc(randomUUID()), {
         actor: uid, target: openingId, applicationId, office: opportunity.office, action: "opportunity_caregiver_selected", at,
@@ -322,13 +329,55 @@ export class WorkforceStore {
       return {selected: true};
     });
   }
+  private selectionNotice(uid: string, openingId: string) {
+    return this.db.collection("workforceOpportunityInboxes").doc(uid).collection("selections").doc(openingId);
+  }
+  async respondToOpportunitySelection(uid: string, openingId: string, response: unknown) {
+    if (!validId(uid) || !validId(openingId) || (response !== "accepted" && response !== "declined")) {
+      throw new WorkforceError(400, "invalid_request");
+    }
+    return this.db.runTransaction(async tx => {
+      const noticeRef = this.selectionNotice(uid, openingId);
+      const notice = (await tx.get(noticeRef)).data();
+      if (!notice || notice.opportunityId !== openingId) throw new WorkforceError(404, "selection_not_found");
+      if (notice.response === response) return {response, respondedAt: notice.respondedAt};
+      if (notice.response) throw new WorkforceError(409, "opportunity_response_recorded");
+
+      const opening = this.db.collection("workforceOpportunities").doc(openingId);
+      const choiceRef = opening.collection("selection").doc("chosen");
+      const choice = (await tx.get(choiceRef)).data();
+      if (!choice || choice.response || !validId(choice.applicationId)) throw new WorkforceError(409, "opportunity_selection_changed");
+      const applicationRef = opening.collection("existingCaregiverInterests").doc(choice.applicationId);
+      const application = (await tx.get(applicationRef)).data();
+      if (!application || application.uid !== uid || application.office !== choice.office ||
+          application.caregiverId !== choice.caregiverId || !validId(application.caregiverId)) {
+        throw new WorkforceError(403, "workforce_forbidden");
+      }
+      await this.verifyCaregiverLink(tx, uid, application.caregiverId, choice.office);
+      if (response === "accepted") {
+        const record = (await tx.get(opening)).data() as Opportunity | undefined;
+        if (!record || record.office !== choice.office || record.revision !== choice.revision || !publicOpportunity(record)) {
+          throw new WorkforceError(409, "opportunity_selection_changed");
+        }
+      }
+      const decision = {response, respondedAt: new Date().toISOString()};
+      tx.set(noticeRef, {...notice, ...decision});
+      tx.set(choiceRef, {...choice, ...decision});
+      tx.set(applicationRef, {...application, ...decision});
+      tx.create(this.db.collection("workforceAudit").doc(randomUUID()), {
+        actor: uid, target: openingId, applicationId: choice.applicationId, office: choice.office,
+        action: response === "accepted" ? "opportunity_caregiver_accepted" : "opportunity_caregiver_declined", at: decision.respondedAt,
+      });
+      return decision;
+    });
+  }
   async ownOpportunitySelections(uid: string) {
     if (!validId(uid)) throw new WorkforceError(400, "invalid_request");
     const snapshot = await this.db.collection("workforceOpportunityInboxes").doc(uid)
       .collection("selections").orderBy("at", "desc").limit(20).get();
     return {items: snapshot.docs.map(doc => {
-      const {opportunityId, location, weeklyHours, at} = doc.data();
-      return {opportunityId, location, weeklyHours, at};
+      const {opportunityId, location, weeklyHours, at, response, respondedAt} = doc.data();
+      return {opportunityId, location, weeklyHours, at, ...(response ? {response, respondedAt} : {})};
     })};
   }
   async mutate(uid: string, id: string, revision: number, data: unknown, action?: Action, privacy = false) {

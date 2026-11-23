@@ -205,6 +205,14 @@ export const workforceApi = process.env.PRIMETIME_API_ONLY_DEPLOY === "true" ? u
       if (!existingAccessEnabled) throw new WorkforceError(503, "existing_access_pending");
       res.json(await new WorkforceStore().ownOpportunitySelections(await workforceIdentity(req))); return;
     }
+    const selectionResponse = path.match(/^\/opportunities\/([a-zA-Z0-9_-]{1,128})\/selection-response$/);
+    if (selectionResponse && req.method === "POST") {
+      if (!existingAccessEnabled) throw new WorkforceError(503, "existing_access_pending");
+      if (!req.is("application/json") || req.rawBody.length > 100 || !req.body || Array.isArray(req.body) ||
+          Object.keys(req.body).length !== 1) throw new WorkforceError(400, "invalid_request");
+      res.json(await new WorkforceStore().respondToOpportunitySelection(
+        await recentWorkforceIdentity(req), selectionResponse[1]!, req.body.response)); return;
+    }
     const existingInterest = path.match(/^\/opportunities\/([a-zA-Z0-9_-]{1,128})\/existing-interest$/);
     if (existingInterest) {
       if (!existingAccessEnabled || publicEnabled.value() !== "true") {

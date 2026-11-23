@@ -36,6 +36,7 @@
   const centralTime = value => Number.isFinite(Date.parse(value))
     ? new Intl.DateTimeFormat('en-US', {dateStyle: 'medium', timeStyle: 'short', timeZone: 'America/Chicago'}).format(new Date(value)) + ' Central'
     : 'Date unavailable';
+  const responses = {accepted:'Accepted', declined:'Declined', pending:'Awaiting response'};
   function caregiverSelection(panel, opening, applicant, result, path, current) {
     const action = document.createElement('div');
     const feedback = document.createElement('p');
@@ -51,8 +52,12 @@
     };
     const selected = () => {
       action.replaceChildren();
-      feedback.textContent = 'Caregiver selected. A notification is available in their caregiver portal.';
+      feedback.textContent = 'Awaiting response. The notification is available in the caregiver’s portal.';
     };
+    if (result.response) {
+      feedback.textContent = 'Caregiver response: ' + responses[result.response] + ' · ' + centralTime(result.respondedAt);
+      return;
+    }
     if (result.selection === 'selected') { selected(); return; }
     if (result.selection === 'another_selected') {
       feedback.textContent = 'A caregiver has already been selected for this opening.';
@@ -164,6 +169,7 @@
             row.append(button);
           } else row.textContent = name;
           row.append(' · HHA ' + entry.caregiverId + ' · ' + centralTime(entry.createdAt));
+          if (responses[entry.response]) row.append(' · ' + responses[entry.response]);
           applicants.append(row);
         }
         cursor = page.next;
