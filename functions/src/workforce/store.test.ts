@@ -4,10 +4,20 @@ import { WorkforceStore } from "./store.js";
 import type { Opportunity } from "./opportunities.js";
 import type { Grant } from "./policy.js";
 import type { Auth } from "firebase-admin/auth";
+import { createHash } from "node:crypto";
 function fixture() {
   const documents = new Map<string, unknown>();
   const users = new Map<string, { uid: string; email: string; emailVerified: boolean; disabled: boolean }>();
   const queries: { path: string; field: string; value: unknown }[] = [];
+  function ordered(path: string, maximum = Infinity, after = "") {
+    return {
+      limit: (size: number) => ordered(path, size, after),
+      startAfter: (cursor: string) => ordered(path, maximum, cursor),
+      get: () => ({docs: [...documents.keys()].sort().filter(key => key.startsWith(path + "/") &&
+        !key.slice(path.length + 1).includes("/") && key.slice(path.length + 1) > after)
+        .slice(0, maximum).map(key => ({id: key.slice(path.length + 1), data: () => structuredClone(documents.get(key))}))}),
+    };
+  }
   function collection(path: string): unknown {
     return {
       doc: (id: string) => {
@@ -15,6 +25,7 @@ function fixture() {
         return { id, path: key, collection: (child: string) => collection(key + "/" + child),
           get: async () => ({ exists: documents.has(key), data: () => structuredClone(documents.get(key)) }) };
       },
+      orderBy: () => ordered(path),
       where: (field: string, operator: string, value: unknown) => ({ limit: (limit: number) => ({ get: async () => {
         queries.push({ path, field, value });
         const docs = [...documents].filter(([key, data]) => {
@@ -32,7 +43,7 @@ function fixture() {
     collection,
     runTransaction: async (fn: (tx: unknown) => Promise<unknown>) => {
       const writes: [string, unknown][] = [];
-      const result = await fn({ get: async (ref: { path: string }) => ({ exists: documents.has(ref.path), data: () => structuredClone(documents.get(ref.path)) }),
+      const result = await fn({ get: async (ref: { path: string; get?: () => unknown }) => ref.path ? ({ exists: documents.has(ref.path), data: () => structuredClone(documents.get(ref.path)) }) : ref.get?.(),
         set: (ref: { path: string }, value: unknown) => writes.push([ref.path, value]),
         create: (ref: { path: string }, value: unknown) => { assert.ok(!documents.has(ref.path)); writes.push([ref.path, value]); } });
       for (const [path, value] of writes) documents.set(path, structuredClone(value));
@@ -126,6 +137,41 @@ test("candidate interest is idempotent and accepts only a currently reviewed pub
  const interest=interests[0]![1] as {uid:string;office:string};assert.equal(interest.uid,"candidate");assert.equal(interest.office,"synthetic-office");
  f.documents.set("workforceOpportunities/synthetic-id",{...published,state:"closed"});await assert.rejects(f.store.interest("other-candidate","synthetic-id"),/opportunity_unavailable/);
  assert.equal([...f.documents.keys()].filter(key=>key.startsWith("workforceOpportunityInterests/")).length,1);
+});
+
+test("active HHA caregivers apply once using the verified link and recruiting staff see only office-scoped entries", async () => {
+  const {store, documents, grant} = fixture();
+  const draft = await store.mutate("editor", "opening", 0, data);
+  const publishable = {...draft, state: "published", review: {revision: draft.revision, reviewer: "reviewer", at: "2027-01-01T12:00:00Z"}};
+  const profile = {id: "101", office: grant.offices[0]!, firstName: "Demo", lastName: "Caregiver",
+    email: "caregiver@example.invalid", status: "Active", code: "", fetchedAt: "", fields: {EmployeeType: "Employee"}};
+  const link = {uid: "caregiver", caregiverId: profile.id, office: profile.office, emailKey: createHash("sha256").update(profile.email).digest("hex")};
+  await assert.rejects(store.existingCaregiverInterest("caregiver", "opening", profile), /opportunity_unavailable/);
+  documents.set("workforceOpportunities/opening", publishable);
+  await assert.rejects(store.existingCaregiverInterest("caregiver", "opening", profile), /hha_profile_unavailable/);
+  documents.set("workforceHhaLinks/caregiver", link);
+  documents.set("workforceHhaAssignments/101", link);
+  await assert.rejects(store.existingCaregiverInterest("caregiver", "opening", {...profile, status:"Inactive"}), /existing_caregiver_not_active/);
+  await assert.rejects(store.existingCaregiverInterest("caregiver", "opening", {...profile, fields:{EmployeeType:"Applicant"}}), /existing_caregiver_not_active/);
+  await assert.rejects(store.existingCaregiverInterest("caregiver", "opening", {...profile, office:"another-office"}), /opportunity_office_mismatch/);
+  assert.deepEqual(await store.existingCaregiverInterest("caregiver", "opening"), {recorded:false, opportunityId:"opening"});
+  assert.deepEqual(await store.existingCaregiverInterest("caregiver", "opening", profile), {recorded:true, opportunityId:"opening"});
+  const recorded = structuredClone(documents);
+  await store.existingCaregiverInterest("caregiver", "opening", profile);
+  assert.deepEqual(documents, recorded);
+  assert.equal((await store.existingCaregiverInterest("caregiver", "opening")).recorded, true);
+  assert.equal((await store.existingCaregiverInterest("someone-else", "opening")).recorded, false);
+  assert.equal(documents.has("workforceApplications/caregiver"), false);
+  await assert.rejects(store.existingCaregiverApplicants("editor", "opening"), /workforce_forbidden/);
+  const recruitingGrant = {...grant, permissions:["opportunities.read", "applicants.review"]};
+  documents.set("workforceStaff/outside", {...recruitingGrant, offices:["another-office"]});
+  await assert.rejects(store.existingCaregiverApplicants("outside", "opening"), /workforce_forbidden/);
+  documents.set("workforceStaff/recruiter", recruitingGrant);
+  const page = await store.existingCaregiverApplicants("recruiter", "opening");
+  assert.deepEqual(page.items, [{name:"Demo Caregiver", caregiverId:"101", createdAt:page.items[0]!.createdAt}]);
+  assert.equal(page.next, null);
+  documents.delete("workforceHhaAssignments/101");
+  await assert.rejects(store.existingCaregiverInterest("caregiver", "opening", profile), /hha_profile_unavailable/);
 });
 
 test("owner can invite a work email before the Firebase account exists, and only its verified holder gets the selected permissions", async () => {

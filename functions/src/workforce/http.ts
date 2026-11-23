@@ -19,6 +19,7 @@ import type {HhaApplicationConfig} from "./hhaApplicationPolicy.js";
 import {caregiverWindow} from "./portalWindow.js";
 import {StaffOperations, hiringApplication} from './staffOperations.js';
 import {caregiverEarlyAccess} from "./caregiverEarlyAccess.js";
+import {canApplyWithCaregiverProfile} from "./existingCaregiverInterest.js";
 import {getFirestore} from "firebase-admin/firestore";
 import {getAuth} from "firebase-admin/auth";
 import {DocumentAccess, sensitiveDocumentPath, type DocumentAccessCheck, type DocumentPrincipal} from "./documentAccess.js";
@@ -200,6 +201,24 @@ export const workforceApi = process.env.PRIMETIME_API_ONLY_DEPLOY === "true" ? u
       await workforceIdentity(req);
       res.json(publicEnabled.value() === "true" && staffEnabled.value() === "true" ? await new WorkforceStore().publicList() : { items: [], release: "pending" }); return;
     }
+    const existingInterest = path.match(/^\/opportunities\/([a-zA-Z0-9_-]{1,128})\/existing-interest$/);
+    if (existingInterest) {
+      if (!existingAccessEnabled || publicEnabled.value() !== "true") {
+        throw new WorkforceError(503, "existing_access_pending");
+      }
+      const store = new WorkforceStore();
+      const id = existingInterest[1]!;
+      if (req.method === "GET") {
+        res.json(await store.existingCaregiverInterest(await workforceIdentity(req), id)); return;
+      }
+      if (req.method !== "POST") throw new WorkforceError(405, "method_not_allowed");
+      if (!req.is("application/json") || req.rawBody.length > 100 || !req.body || Array.isArray(req.body) || Object.keys(req.body).length) {
+        throw new WorkforceError(400, "invalid_request");
+      }
+      const uid = await recentWorkforceIdentity(req);
+      const profile = await (await hhaEnrollment()).owned(uid);
+      res.json(await store.existingCaregiverInterest(uid, id, profile)); return;
+    }
     const interest = path.match(/^\/opportunities\/([a-zA-Z0-9_-]{1,128})\/interest$/);
     if (interest && req.method === "POST") {
       if (!applicationsEnabled || publicEnabled.value() !== "true") throw new WorkforceError(503,"application_collection_pending");
@@ -213,7 +232,8 @@ export const workforceApi = process.env.PRIMETIME_API_ONLY_DEPLOY === "true" ? u
     if (path === "/application/session" && req.method === "GET") {
       if (!applicationsEnabled&&!existingAccessEnabled) throw new WorkforceError(503, "application_collection_pending");
       const uid=await workforceIdentity(req),existing=existingAccessEnabled?await(await hhaEnrollment()).link(uid):null;await new AccountSupport().register(uid,existing?.office||intakeOffice.value());
-      res.json({ uid, kind: "caregiver", applicationsEnabled, documentsEnabled: uploadsEnabled, addressLookupEnabled: placesApproved.value() === "true",existingCaregiver:!!existing }); return;
+      res.json({ uid, kind: "caregiver", applicationsEnabled, documentsEnabled: uploadsEnabled, addressLookupEnabled: placesApproved.value() === "true",existingCaregiver:!!existing,
+        existingOpportunityInterestEnabled: publicEnabled.value() === "true" && canApplyWithCaregiverProfile(existing) }); return;
     }
     const ownHhaRecord=path.match(/^\/application\/hha-records\/([a-z-]{1,40})$/);
     if(ownHhaRecord){
@@ -531,6 +551,12 @@ export const workforceApi = process.env.PRIMETIME_API_ONLY_DEPLOY === "true" ? u
     }
     if (path === "/staff/team" && req.method === "GET") { res.json(await store.reviewTeam(uid)); return; }
     if (path === "/staff/opportunities" && req.method === "GET") { res.json(await store.list(uid)); return; }
+    const caregiverApplicants = path.match(/^\/staff\/opportunities\/([a-zA-Z0-9_-]{1,128})\/caregiver-applicants$/);
+    if (caregiverApplicants && req.method === "GET") {
+      const after = req.query.after;
+      if (after !== undefined && typeof after !== "string") throw new WorkforceError(400, "invalid_request");
+      res.json(await store.existingCaregiverApplicants(uid, caregiverApplicants[1]!, after)); return;
+    }
     if (req.method !== "POST") throw new WorkforceError(405, "method_not_allowed");
     if (!req.is("application/json") || req.rawBody.length > 12000 || !req.body || typeof req.body !== "object" || Array.isArray(req.body)) throw new WorkforceError(400, "invalid_request");
     if (path === "/staff/invitations" || path === "/staff/invitations/accept") {
