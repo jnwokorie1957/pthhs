@@ -8,14 +8,14 @@ import {kmsDocumentCipher,type DocumentCipher,type DocumentEnvelope} from "./doc
 import {renderApplication} from "./applicationPdf.js";
 import type {Intake} from "./intake.js";
 import {applicantInput,validateTransferJob,transferAllowed,type HhaApplicationConfig,type HhaApplicationJob,type HhaTransfer} from "./hhaApplicationPolicy.js";
-import {verifyApplicant,pdfDigest,HhaApplicantReadUnavailable,type ApplicantGateway} from "./hhaApplicationGateway.js";
+import {verifyApplicant,pdfDigest,HhaApplicantReadUnavailable,HhaApplicantReadDenied,type ApplicantGateway} from "./hhaApplicationGateway.js";
 
 const PHASES=["queued","preparing","creating","created","attaching","acknowledged"];
 const REASONS=new Set(["transfer_job_not_eligible","signed_application_snapshot_invalid","hha_required_applicant_fields_missing","applicant_phone_review_required",
   "existing_caregiver_review_required","portal_identity_changed","application_pdf_invalid","application_artifact_changed","applicant_match_ambiguous",
   "applicant_identity_unverified","hha_discipline_changed","hha_gender_changed","hha_ethnicity_changed","hha_relationship_changed",
   "hha_application_document_type_unverified","applicant_creation_unconfirmed","application_attachment_unconfirmed","application_pdf_readback_mismatch",
-  "application_document_target_unverified","applicant_creation_needs_reconciliation","application_attachment_needs_reconciliation"]);
+  "application_document_target_unverified","applicant_creation_needs_reconciliation","application_attachment_needs_reconciliation","applicant_search_inventory_unverified"]);
 type Job=HhaApplicationJob;
 export class HhaApplicationSync {
   constructor(private gateway:ApplicantGateway,private configuration:()=>HhaApplicationConfig,
@@ -140,6 +140,7 @@ export class HhaApplicationSync {
       // dashboard. Only office staff can change EmployeeType in HHA.
     }catch(error){
       if(["hha_transfer_not_released","transfer_lease_lost"].includes((error as Error).message))return;
+      if(error instanceof HhaApplicantReadDenied){await this.mark(job,{state:"review_required",reason:"hha_source_access_denied",leaseUntil:0});return;}
       if(error instanceof HhaApplicantReadUnavailable){await this.mark(job,{reason:"hha_source_unavailable",leaseUntil:0});return;}
       if(error instanceof HhaNotSubmittedError&&!["creating","attaching"].includes(job.hha.state)){await this.mark(job,{leaseUntil:0});return;}
       // Ambiguous network writes retain their phase for read-only reconciliation.

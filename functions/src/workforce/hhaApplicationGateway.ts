@@ -17,6 +17,7 @@ export interface ApplicantGateway {
   download(id:string,filename:string):Promise<Buffer>;
 }
 export class HhaApplicantReadUnavailable extends Error {constructor(){super("hha_applicant_source_unavailable");}}
+export class HhaApplicantReadDenied extends Error {constructor(){super("hha_source_access_denied");}}
 const list=(value:any):any[]=>value===undefined?[]:Array.isArray(value)?value:[value];
 const scalar=(value:unknown):string=>typeof value==="string"?value:typeof value==="number"?String(value):"";
 export const xmlTag=(name:string,value:string)=>`<${name}>${value.replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&apos;")}</${name}>`;
@@ -40,7 +41,12 @@ export class SoapApplicantGateway implements ApplicantGateway {
   constructor(private client:Pick<HhaSoapClient,"call">){}
   private async call(operation:string,body:string){
     const r=await this.client.call(operation,body,1);
-    if(!r.ok&&!['CreateCaregiver','AddCaregiverDocument'].includes(operation))throw new HhaApplicantReadUnavailable();
+    if(!r.ok&&!['CreateCaregiver','AddCaregiverDocument'].includes(operation)){
+      // Explicit HTTP access denials require review, not another scheduled read.
+      // Do not infer permission semantics from undocumented vendor error codes.
+      if(r.httpStatus===401||r.httpStatus===403)throw new HhaApplicantReadDenied();
+      throw new HhaApplicantReadUnavailable();
+    }
     if(!r.ok||!r.resultXml||/<!DOCTYPE|<!ENTITY/i.test(r.resultXml))throw Error("hha_source_request_unconfirmed");
     return new XMLParser({removeNSPrefix:true,ignoreAttributes:true,parseTagValue:false,trimValues:true}).parse("<Root>"+r.resultXml+"</Root>").Root;
   }
@@ -58,9 +64,16 @@ export class SoapApplicantGateway implements ApplicantGateway {
   }
   private async search(body:string){
     const result=await this.call("SearchCaregivers","<SearchFilters>"+body+"</SearchFilters>");
-    const rows=list(result.Caregivers?.Caregiver);
+    const unverified=()=>Error("applicant_search_inventory_unverified");
+    if(!result||typeof result!=="object"||Array.isArray(result)||Object.keys(result).some(key=>!["Result","Caregivers"].includes(key)))throw unverified();
+    // The captured CaregiverSearchInfo contract contains direct CaregiverID
+    // integers. Its container and rows are optional; absence alone is valid.
+    const collection=result.Caregivers;
+    if(collection===undefined||collection==="")return [];
+    if(!collection||typeof collection!=="object"||Array.isArray(collection)||Object.keys(collection).some(key=>key!=="CaregiverID"))throw unverified();
+    const rows=list(collection.CaregiverID);
     if(rows.length>10)throw Error("applicant_match_ambiguous");
-    return rows.map(r=>identifier(r.CaregiverID||r.ID));
+    try{return rows.map(identifier);}catch{throw unverified();}
   }
   searchMarker(marker:string){return this.search(xmlTag("AlternateCaregiverCode",marker));}
   searchSsn(ssn:string){return this.search(xmlTag("SSN",ssn));}
