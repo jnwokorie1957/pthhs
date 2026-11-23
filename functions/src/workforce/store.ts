@@ -210,18 +210,7 @@ export class WorkforceStore {
       if (!canApplyWithCaregiverProfile(profile)) throw new WorkforceError(403, "existing_caregiver_not_active");
       if (profile.office !== opportunity.office) throw new WorkforceError(403, "opportunity_office_mismatch");
 
-      const [forward, reverse] = await Promise.all([
-        tx.get(this.db.collection("workforceHhaLinks").doc(uid)),
-        tx.get(this.db.collection("workforceHhaAssignments").doc(profile.id)),
-      ]);
-      const link = forward.data();
-      const assignment = reverse.data();
-      const emailKey = hashCode(profile.email.trim().toLowerCase());
-      if (link?.uid !== uid || assignment?.uid !== uid || link.caregiverId !== profile.id ||
-          assignment.caregiverId !== profile.id || link.office !== profile.office || assignment.office !== profile.office ||
-          link.emailKey !== emailKey || assignment.emailKey !== emailKey) {
-        throw new WorkforceError(403, "hha_profile_unavailable");
-      }
+      await this.verifyCaregiverLink(tx, uid, profile.id, profile.office, hashCode(profile.email.trim().toLowerCase()));
       if (saved.data()?.office !== opportunity.office) {
         const at = new Date().toISOString();
         const name = [profile.firstName, profile.lastName].filter(Boolean).join(" ");
@@ -232,6 +221,20 @@ export class WorkforceStore {
       }
       return {recorded: true, opportunityId: id};
     });
+  }
+  private async verifyCaregiverLink(tx: Transaction, uid: string, caregiverId: string, office: string, emailKey?: string) {
+    const [forward, reverse] = await Promise.all([
+      tx.get(this.db.collection("workforceHhaLinks").doc(uid)),
+      tx.get(this.db.collection("workforceHhaAssignments").doc(caregiverId)),
+    ]);
+    const link = forward.data();
+    const assignment = reverse.data();
+    if (link?.uid !== uid || assignment?.uid !== uid || link.caregiverId !== caregiverId ||
+        assignment.caregiverId !== caregiverId || link.office !== office || assignment.office !== office ||
+        typeof link.emailKey !== "string" || link.emailKey !== assignment.emailKey ||
+        (emailKey !== undefined && link.emailKey !== emailKey)) {
+      throw new WorkforceError(403, "hha_profile_unavailable");
+    }
   }
   private async caregiverApplicantOpening(tx: Transaction, uid: string, id: string) {
     const staff = (await tx.get(this.db.collection("workforceStaff").doc(uid))).data();
@@ -244,7 +247,7 @@ export class WorkforceStore {
     if (!opportunity) throw new WorkforceError(404, "opportunity_not_found");
     requirePermission(actor, "opportunities.read", opportunity.office);
     requirePermission(actor, "applicants.review", opportunity.office);
-    return {opening, opportunity};
+    return {actor, opening, opportunity};
   }
   async existingCaregiverApplicants(uid: string, id: string, after?: string) {
     if (!validId(id) || (after !== undefined && !validId(after))) throw new WorkforceError(400, "invalid_request");
@@ -265,7 +268,7 @@ export class WorkforceStore {
   async existingCaregiverApplicantProfile(uid: string, openingId: string, applicationId: string) {
     if (!validId(openingId) || !validId(applicationId)) throw new WorkforceError(400, "invalid_request");
     return this.db.runTransaction(async tx => {
-      const {opening, opportunity} = await this.caregiverApplicantOpening(tx, uid, openingId);
+      const {actor, opening, opportunity} = await this.caregiverApplicantOpening(tx, uid, openingId);
       const application = (await tx.get(opening.collection("existingCaregiverInterests").doc(applicationId))).data();
       if (!application || application.office !== opportunity.office || !validId(application.caregiverId)) {
         throw new WorkforceError(404, "application_not_found");
@@ -273,12 +276,60 @@ export class WorkforceStore {
       const {name, caregiverId, createdAt} = application;
       const cached = (await tx.get(this.db.collection("workforceHhaProfiles").doc(caregiverId))).data() as HhaProfile | undefined;
       const profile = cached?.id === caregiverId && cached.office === opportunity.office ? caregiverRecruitingProfile(cached) : null;
+      const choice = (await tx.get(opening.collection("selection").doc("chosen"))).data();
       tx.create(this.db.collection("workforceAudit").doc(randomUUID()), {
         actor: uid, target: openingId, applicationId, office: opportunity.office,
         action: "existing_caregiver_recruiting_profile_read", at: new Date().toISOString(),
       });
-      return {name, caregiverId, createdAt, profile};
+      const selection = !choice ? null :
+        choice.applicationId === applicationId && choice.office === opportunity.office ? "selected" : "another_selected";
+      const canSelect = !choice && actor.grant.permissions.includes("opportunities.edit") && !!publicOpportunity(opportunity);
+      return {name, caregiverId, createdAt, profile, selection, canSelect};
     });
+  }
+  async selectExistingCaregiver(uid: string, openingId: string, applicationId: string, revision: number) {
+    if (!validId(openingId) || !validId(applicationId) || !Number.isSafeInteger(revision) || revision < 1) {
+      throw new WorkforceError(400, "invalid_request");
+    }
+    return this.db.runTransaction(async tx => {
+      const {actor, opening, opportunity} = await this.caregiverApplicantOpening(tx, uid, openingId);
+      requirePermission(actor, "opportunities.edit", opportunity.office);
+      const application = (await tx.get(opening.collection("existingCaregiverInterests").doc(applicationId))).data();
+      if (!application || application.office !== opportunity.office || !validId(application.uid) || !validId(application.caregiverId)) {
+        throw new WorkforceError(404, "application_not_found");
+      }
+      const choiceRef = opening.collection("selection").doc("chosen");
+      const choice = (await tx.get(choiceRef)).data();
+      if (choice) {
+        if (choice.applicationId === applicationId && choice.office === opportunity.office) return {selected: true};
+        throw new WorkforceError(409, "opportunity_already_selected");
+      }
+      if (opportunity.revision !== revision) throw new WorkforceError(409, "revision_conflict");
+      if (!publicOpportunity(opportunity)) throw new WorkforceError(409, "opportunity_unavailable");
+      await this.verifyCaregiverLink(tx, application.uid, application.caregiverId, opportunity.office);
+      const latest = (await tx.get(this.db.collection("workforceHhaProfiles").doc(application.caregiverId))).data() as HhaProfile | undefined;
+      if (latest && (latest.id !== application.caregiverId || latest.office !== opportunity.office || !canApplyWithCaregiverProfile(latest))) {
+        throw new WorkforceError(403, "existing_caregiver_not_active");
+      }
+
+      const at = new Date().toISOString();
+      const notice = this.db.collection("workforceOpportunityInboxes").doc(application.uid).collection("selections").doc(openingId);
+      tx.create(choiceRef, {applicationId, caregiverId: application.caregiverId, office: opportunity.office, revision, selectedBy: uid, at});
+      tx.create(notice, {opportunityId: openingId, location: opportunity.public.location, weeklyHours: opportunity.public.weeklyHours, at});
+      tx.create(this.db.collection("workforceAudit").doc(randomUUID()), {
+        actor: uid, target: openingId, applicationId, office: opportunity.office, action: "opportunity_caregiver_selected", at,
+      });
+      return {selected: true};
+    });
+  }
+  async ownOpportunitySelections(uid: string) {
+    if (!validId(uid)) throw new WorkforceError(400, "invalid_request");
+    const snapshot = await this.db.collection("workforceOpportunityInboxes").doc(uid)
+      .collection("selections").orderBy("at", "desc").limit(20).get();
+    return {items: snapshot.docs.map(doc => {
+      const {opportunityId, location, weeklyHours, at} = doc.data();
+      return {opportunityId, location, weeklyHours, at};
+    })};
   }
   async mutate(uid: string, id: string, revision: number, data: unknown, action?: Action, privacy = false) {
     if (!validId(id) || !Number.isInteger(revision) || revision < 0) throw new WorkforceError(400, "invalid_request");

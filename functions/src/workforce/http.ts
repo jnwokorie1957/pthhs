@@ -201,6 +201,10 @@ export const workforceApi = process.env.PRIMETIME_API_ONLY_DEPLOY === "true" ? u
       await workforceIdentity(req);
       res.json(publicEnabled.value() === "true" && staffEnabled.value() === "true" ? await new WorkforceStore().publicList() : { items: [], release: "pending" }); return;
     }
+    if (path === "/opportunities/selections" && req.method === "GET") {
+      if (!existingAccessEnabled) throw new WorkforceError(503, "existing_access_pending");
+      res.json(await new WorkforceStore().ownOpportunitySelections(await workforceIdentity(req))); return;
+    }
     const existingInterest = path.match(/^\/opportunities\/([a-zA-Z0-9_-]{1,128})\/existing-interest$/);
     if (existingInterest) {
       if (!existingAccessEnabled || publicEnabled.value() !== "true") {
@@ -555,6 +559,15 @@ export const workforceApi = process.env.PRIMETIME_API_ONLY_DEPLOY === "true" ? u
     if (caregiverApplicantProfile && req.method === "GET") {
       const recentUid = await recentWorkforceIdentity(req);
       res.json(await store.existingCaregiverApplicantProfile(recentUid, caregiverApplicantProfile[1]!, caregiverApplicantProfile[2]!)); return;
+    }
+    const caregiverSelection = path.match(/^\/staff\/opportunities\/([a-zA-Z0-9_-]{1,128})\/caregiver-applicants\/([a-zA-Z0-9_-]{1,128})\/select$/);
+    if (caregiverSelection && req.method === "POST") {
+      if (!req.is("application/json") || req.rawBody.length > 100 || !req.body ||
+          Object.keys(req.body).length !== 1 || !Number.isSafeInteger(req.body.revision)) {
+        throw new WorkforceError(400, "invalid_request");
+      }
+      const recentUid = await recentWorkforceIdentity(req);
+      res.json(await store.selectExistingCaregiver(recentUid, caregiverSelection[1]!, caregiverSelection[2]!, req.body.revision)); return;
     }
     const caregiverApplicants = path.match(/^\/staff\/opportunities\/([a-zA-Z0-9_-]{1,128})\/caregiver-applicants$/);
     if (caregiverApplicants && req.method === "GET") {

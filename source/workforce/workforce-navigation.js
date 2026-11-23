@@ -17,9 +17,25 @@
   function hide() { for(const id of ['portal-home','portal-profile','portal-documents','job-board','caregiver-summary','caregiver-hha-profile']) { const n=el(id);if(n)n.hidden=true; } }
   function heading(target,title,description) {target.replaceChildren();const h=node('h1',title);h.tabIndex=-1;target.append(h,node('p',description,'portal-lead'));return h;}
   function card(target,title,description,action) {const c=node('section','','portal-task');c.append(node('h2',title),node('p',description));if(action)c.append(action);target.append(c);}
+  async function selectionNotices(target, seq, api) {
+    try {
+      const {items} = await api('/opportunities/selections');
+      if (seq !== generation || !items.length) return;
+      const notices = node('section', '', 'portal-task');
+      notices.append(node('h2', 'Opportunity notifications'));
+      for (const item of items) {
+        notices.append(node('p', 'You were selected for the ' + item.location + ' opening (' + item.weeklyHours +
+          ' hours per week). Contact the office to confirm your next steps.'));
+      }
+      target.insertBefore(notices, target.children[2] || null);
+    } catch {
+      if (seq === generation) target.insertBefore(node('p', 'Opportunity notifications couldn’t load. Refresh to try again.', 'portal-task'), target.children[2] || null);
+    }
+  }
   async function home(target, seq) {
     heading(target,'Welcome to My Primetime',context.actor.existingCaregiver?'Your records and next steps, in one place.':'Your application and next steps, in one place.');
     if(context.actor.existingCaregiver) {
+      if (context.actor.existingOpportunityInterestEnabled) void selectionNotices(target, seq, context.api);
       card(target,'Your caregiver profile','Review the information held by the office.',link('View my profile','profile',{},true));
       void window.WorkforceMatching?.notices(target,{api:context.api,current:()=>seq===generation});
       card(target,'Your documents','Access your existing personnel files. No duplicate ID upload is needed.',link('View documents','documents'));return;
