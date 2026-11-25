@@ -5,7 +5,50 @@ area, map the actual source, connect available authorized data and verify it.
 This is the connection backlog, not a declaration of an active Codex goal.
 This document does not claim every tab is connected.
 
-SOURCE / STAGING CHECKPOINT — NOVEMBER 23, 2026 UTC
+SOURCE ACCESS CHECKPOINT — NOVEMBER 25, 2026 14:45 UTC HEARTBEAT
+Source basis: 2b4f2001f0f798a8447c0b05b24fa6aee185162f. Concurrent workforce CSP,
+deployment-credential hardening and synthetic IAM runbook changes are preserved.
+Their documented CSP-only previous-manifest release does not recover HHA times
+or authorize publication of the staged portal bundle. Normal January 1, 2027
+Central publication and separate later-module approval remain in force here.
+No IAM/runtime identity, release control, permission or source setting changed.
+
+The approved Computer Use path can capture browser accessibility state again.
+This supersedes the November 22 state-capture failure for this attempt only.
+Navigation input now fails with "coordinate input geometry is unavailable".
+Fresh window selection/activation and one retry return the same error. Browser
+state was not accepted as an authenticated Primetime session; a title or
+background tab does not prove the active target URL or source-read permission.
+No alternate UI/control route, security-setting change or further input retry.
+
+No HHA read, October 23/24/current-office-day comparison, recovered field or new
+empty/pending/deferred/scope/quota/interpretation classification was made.
+Original October 24 remains resolved by the independent October 31 reread.
+Operations, maintenance, investigations, Primetime authoring/entry and time
+assets retain PR52 source bytes. GetVisitInfoV3Result/VisitInfo independent
+optional clock/hour strings remain; ScheduleDurationHours/Minutes under
+ScheduleDuration are schedule-only integers. Raw ActualHours/rounded units and
+financial interpretation remain unvalidated; no clock-span or other-time substitute.
+
+One exact known-request mailbox search received on/after November 25 returns
+zero/no next page in the verified approved business account. This is not an
+exhaustive search. The November 11 technical response remains the latest known
+contract evidence; no body/attachment retrieval, follow-up or sending occurred.
+
+Precise next access action: open https://pthhs.net/primetime in a visible,
+targetable Chrome window through the normal authorized workflow; complete
+normal administrator sign-in if needed. If Computer Use input still cannot
+target that window, restore its supported window-input capability before retrying
+source reads. The cause is not established as a login or HHA source failure.
+Once target navigation works, perform approved bounded same-office historical
+and current-day reads after displayed delays, with exact visit linkage.
+Existing private vendor original-event/history/endpoint/units/readback evidence,
+CSM/private XML, held-visit disposition and paid-hours decisions stay separate.
+No current tenant values, source mutations, communications or clinical/financial
+decisions; no unchanged runtime suite or deployment. Local evidence:
+outputs/primetime-live-dashboard-checkpoint-20261125-1445.json.
+
+PREVIOUS SOURCE / STAGING CHECKPOINT — NOVEMBER 23, 2026 UTC
 Follow-up to the November 22 23:20 UTC heartbeat; actual review starts November 23
 01:52 UTC. Current source 38418a3 includes staged workforce Phases 1-4 work, form
 completion/exports, eligibility and authorization review. These are source

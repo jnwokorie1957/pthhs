@@ -105,6 +105,13 @@
   2027 publication and phased approval. It does not recover/verify HHA visit times;
   existing approved read access and source interpretation gates remain separate.
 
+  November 25 14:45 UTC follow-up: Computer Use state capture works again, but
+  navigation input fails with "coordinate input geometry is unavailable" before
+  and after fresh-window recovery. No current Primetime session/source read is
+  accepted. Open the normal Primetime entry in a visible, targetable Chrome
+  window and sign in if needed; restore supported input before any source retry.
+  This is an access-tooling blocker, not a missing-field or HHA-read diagnosis.
+
 - [x] November 16 UTC SEO publication-date delivery (PR41): registered the
   verified November 15 laundry article and two listing changes in the sitemap
   date registry. All 33 other entries and the 36-URL inventory are preserved.
