@@ -1,4 +1,5 @@
 (() => {
+  const central='America/Chicago';
   const weekdays = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
   const dateAt = day => new Date(day + 'T12:00:00Z');
   function plus(day, offset) {
@@ -8,6 +9,12 @@
   }
   const dateLabel = day => dateAt(day).toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric',year:'numeric',timeZone:'UTC'});
   const timeLabel = time => new Date('2000-01-01T'+time+':00Z').toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit',timeZone:'UTC'});
+  function stamp(value) {
+    if(typeof value!=='string'||!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/.test(value))return null;
+    const date=new Date(value);
+    if(!Number.isFinite(date.getTime())||date.toISOString()!==value)return null;
+    return date.toLocaleString('en-US',{timeZone:central,month:'short',day:'numeric',year:'numeric',hour:'numeric',minute:'2-digit',timeZoneName:'short'});
+  }
   function node(tag, text, cls) {
     const result = document.createElement(tag);
     if (text) result.textContent = text;
@@ -18,8 +25,8 @@
     const result = node('button',text,primary?'btn-primary':'btn-secondary');
     result.type='button'; result.onclick=action; return result;
   }
-  function describe(s) {
-    return s.days.map(d=>weekdays[d].slice(0,3)).join(', ')+' · '+timeLabel(s.from)+' – '+timeLabel(s.to)+' Central';
+  function describe(s, zone='Central') {
+    return s.days.map(d=>weekdays[d].slice(0,3)).join(', ')+' · '+timeLabel(s.from)+' – '+timeLabel(s.to)+' '+zone;
   }
   function input(parent, title, type, value, required) {
     const label=node('label',title,'application-label'), field=node('input');
@@ -79,21 +86,28 @@
     display();
   }
   async function caregiver(target,api,current) {
-    const {items}=await api('/application/schedule');
+    const {items,fetchedAt}=await api('/application/schedule');
     if(!current())return;
-    const today=new Intl.DateTimeFormat('en-CA',{timeZone:'America/Chicago',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
+    target.append(node('p','Schedule checked: '+(stamp(fetchedAt)||'unavailable')));
+    const today=new Intl.DateTimeFormat('en-CA',{timeZone:central,year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
     const upcoming=items.filter(i=>!i.schedule.end||i.schedule.end>=today).sort((a,b)=>a.schedule.start.localeCompare(b.schedule.start));
     if(!upcoming.length){target.append(node('p','You have no upcoming office-confirmed assignments.'));return;}
-    for(const {location,schedule:s,weeklyHours} of upcoming){
+    for(const item of upcoming){
+      const {location,schedule:s,weeklyHours}=item;
       const card=node('section','','portal-task');target.append(card);
-      card.append(node('h2',location),node('p','Starts '+dateLabel(s.start)+(s.end?' · Ends '+dateLabel(s.end):'')+' · '+weeklyHours+' hours per week'),node('p',describe(s)));
+      if(typeof item.assignmentRef==='string'&&/^[a-f0-9]{64}$/.test(item.assignmentRef))card.setAttribute('data-assignment-ref',item.assignmentRef);
+      const zone=item.timeZone===central?'Central':'time zone unavailable';
+      const revision=Number.isSafeInteger(item.revision)&&item.revision>0?item.revision:'unavailable';
+      card.append(node('h2',location),node('p',item.origin==='office_confirmed_portal'?'Office-confirmed portal assignment':'Assignment source unavailable'),
+        node('p','Schedule version '+revision+' · Last office change: '+(stamp(item.updatedAt)||'unavailable')),
+        node('p','Starts '+dateLabel(s.start)+(s.end?' · Ends '+dateLabel(s.end):'')+' · '+weeklyHours+' hours per week'),node('p',describe(s,zone)));
       let first=today>s.start?today:s.start;
       const initial=first,dates=node('ul'),range=node('h3');
       const previous=button('Previous 7 days',()=>{first=plus(first,-7);render();});
       const next=button('Next 7 days',()=>{first=plus(first,7);render();});
       function render(){
         dates.replaceChildren();range.textContent='Week of '+dateLabel(first);
-        for(let i=0;i<7;i++){const day=plus(first,i);if((!s.end||day<=s.end)&&s.days.includes(dateAt(day).getUTCDay()))dates.append(node('li',dateLabel(day)+' · '+timeLabel(s.from)+' – '+timeLabel(s.to)));}
+        for(let i=0;i<7;i++){const day=plus(first,i);if((!s.end||day<=s.end)&&s.days.includes(dateAt(day).getUTCDay()))dates.append(node('li',dateLabel(day)+' · '+timeLabel(s.from)+' – '+timeLabel(s.to)+' '+zone));}
         if(!dates.children.length)dates.append(node('li','No shifts in this period.'));
         previous.disabled=first===initial;next.disabled=!!s.end&&plus(first,7)>s.end;
       }
