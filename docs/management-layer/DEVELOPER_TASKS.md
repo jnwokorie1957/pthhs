@@ -1,5 +1,20 @@
 # PTHHS Management Layer — Developer Checklist
 
+- [x] PR66 saved-packet resume context guard merged November 25 UTC as staged
+  source. A late packet response cannot replace a newer selection or reopen
+  after a form/editor change; stale document-read errors cannot replace current
+  status. Four regressions fail before; 17 focused tests pass against editable
+  and generated controllers; all 775 root tests across 47 files and both GitHub
+  quality jobs pass. Normal release scope passes; Hosting/backend/analytics
+  deployment jobs are skipped under the publication hold (run45531274060).
+  Generated workflow version: `537565512e8e`.
+  [Scope and acceptance](../workforce/PACKET_RESUME_CONTEXT_2026-11-25.md).
+- [ ] PR66 production/authenticated acceptance: retain January 1, 2027 Central
+  publication hold and separate later admissions/forms module approval. After
+  authorized delivery, verify latest-packet selection, changed form/editor
+  context, saved membership, current errors and existing signing/export with
+  approved test records. Staged/local test success does not close this item.
+
 - [x] PR52 caregiver context guard deployed November 22 UTC. Caregiver edits/
   selections invalidate pending form preparation and clear packet navigation;
   delayed saves or detached choices cannot reopen/replace the old context.

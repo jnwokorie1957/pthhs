@@ -1,8 +1,19 @@
 PRIMETIME ROLE AND WORKFLOW RESEARCH
-Updated: November 15, 2026, America/Chicago
+Updated: November 25, 2026 UTC
 Scope: PTHHS /primetime, repository jnwokorie1957/pthhs.
 
-CURRENT STATUS INDEX — NOVEMBER 16, 2026 UTC
+CURRENT SOURCE/STAGING INDEX — NOVEMBER 25, 2026 UTC
+PR66 (2c6d335) guards saved-packet resume against superseded selections/context
+and stale document errors. Four regressions fail before; 17 focused tests on
+both source/generated controllers, 775 root tests and both quality jobs pass.
+This is staged source, not production delivery or authenticated office acceptance.
+The January 1, 2027 Central publication hold and later admissions/forms module
+approval remain. Concurrent recruiting, caregiver and later-module source work
+is preserved; its presence in main is not evidence of live role availability.
+PR52's November 22 delivered caregiver-context correction remains dated evidence.
+See the appended November 25 entry and scoped acceptance report.
+
+HISTORICAL STATUS INDEX — NOVEMBER 16, 2026 UTC
 Runtime c6dcc7e includes PR40 lookup-query guards and concurrent PR38/PR39.
 Both quality and both required Hosting-only release jobs succeeded. At
 01:14:45 UTC, 37 artifacts and 21 served-controller regressions pass.
@@ -5057,3 +5068,54 @@ https://github.com/jnwokorie1957/pthhs/pull/52
 https://github.com/jnwokorie1957/pthhs/actions/runs/45062151095
 https://github.com/jnwokorie1957/pthhs/actions/runs/45062312677
 docs/workforce/FORM_CAREGIVER_CONTEXT_2026-11-22.md
+
+SAVED-PACKET RESUME CONTEXT — NOVEMBER 25, 2026 UTC
+Priority: bounded office form-navigation correction, implemented in staged
+source by PR66 / 2c6d335927207b40e82f560a2f99ae9e61c26876. Production and
+authenticated role acceptance remain pending; this is not a live feature.
+
+Observed in current source and fictional regression fixtures: a slow earlier
+packet response could replace a newer packet or reopen a document after a
+form/editor change. A superseded document error could replace current status.
+The same four tests fail on the prior controller (13 prior tests still pass).
+
+Implemented: resume captures navigation generation and editor context before
+reading. Only the latest current response can replace the queue or open its
+document. Document errors share current-context checks; current failures stay
+visible. Saved packet IDs and local document IDs retain their existing exact
+membership links. No new patient, caregiver, encounter or source-record join.
+
+Permissions: existing office/client/local-form access and document-specific
+review/sign/export remain. Patient/representative released-copy permission and
+PT/staff assignment/encounter/document-version linkage are independent open
+work. Office scheduling, authorization, EVV and billing source decisions do not
+follow from a successful form read or local signed-state display.
+
+Validation: all 17 focused tests pass on editable and generated controllers;
+all 775 root tests across 47 files, runtime/asset checks, syntax, repository audit
+and diff review pass. Both quality jobs in run45531133785 pass. Workflow asset
+version 537565512e8e is staged. Run45531274060 scope/date checks pass; all
+three deployment jobs skip under the publication hold. No delivery or tenant/
+native-browser/source acceptance is claimed.
+
+Dependencies/next acceptance: January 1, 2027 Central publication gate remains;
+later admissions/forms module approval is separate. After authorized delivery,
+office review with approved test records must confirm rapid two-packet resume
+under delayed responses, changed form/editor context, durable membership across
+reload, recoverable current read errors and existing signing/export controls.
+Record exact deployed source and browser results. Approved blank form/business
+version, field sources, signers/reviewer and recipients remain owner decisions.
+
+No new HHA UI/API read, actual/EVV time comparison, clinical/financial decision,
+source mutation, message or grant. Prior browser URL verification remains dated;
+original October 24 was resolved October 31. Earlier durable-resume TODOs are
+historical: membership/resume is now staged source, not production acceptance.
+
+Dated implementation/evidence links (November 25, 2026 UTC):
+https://github.com/jnwokorie1957/pthhs/pull/66
+https://github.com/jnwokorie1957/pthhs/blob/2c6d335927207b40e82f560a2f99ae9e61c26876/source/workforce/workforce-form-workflow.js
+https://github.com/jnwokorie1957/pthhs/blob/2c6d335927207b40e82f560a2f99ae9e61c26876/scripts/workforce-form-workflow.test.mjs
+https://github.com/jnwokorie1957/pthhs/actions/runs/45531133785
+https://github.com/jnwokorie1957/pthhs/actions/runs/45531274060
+Detailed acceptance: docs/workforce/PACKET_RESUME_CONTEXT_2026-11-25.md.
+Existing dated primary role research is retained; no new vendor research claimed.
