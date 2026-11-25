@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import vm from 'node:vm';
+import './workforce-schedule-cases.mjs';
 function setup(){
  const nodes=new Map(),events=new Map(),history=[],calls=[];
  const node=(tag='div')=>({tagName:tag.toUpperCase(),children:[],hidden:true,textContent:'',attrs:{},classList:{add(){},remove(){}},append(...n){this.children.push(...n);},replaceChildren(...n){this.children=n;},setAttribute(k,v){this.attrs[k]=v;},querySelector(){return {focus(){}};}});
