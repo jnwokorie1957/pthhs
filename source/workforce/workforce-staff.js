@@ -129,6 +129,13 @@
       status.textContent = result.profile ? '' : 'Basic profile details aren’t available from the office’s HHA sync yet.';
       panel.prepend(details);
       caregiverSelection(panel, opening, applicant, result, path, current);
+      if (result.response === 'accepted' && result.selection === 'selected' && ['closed','archived'].includes(opening.state) &&
+          can('edit') && actor.release?.modules.includes('scheduling')) {
+        const schedulePath = '/staff/assignment-schedules/' + encodeURIComponent(opening.id) + '/' + encodeURIComponent(applicant.id);
+        await import(document.body.dataset.scheduleSrc);
+        if (!current()) return;
+        void window.WorkforceSchedule.office(panel, opening, applicant, schedulePath, workforceApi, current);
+      }
     } catch (error) {
       if (sequence === generation && panel.isConnected) status.textContent = error.message;
     }

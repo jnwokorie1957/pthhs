@@ -1,7 +1,7 @@
 import {AdmissionPackets} from './admissionPackets.js';
 import {OpportunityMatching} from './matchingStore.js';
 import {authorizationClient} from './authorizationCoverage.js';
-import {staffRelease,releasedStaffActor,staffRouteReleased,laterModules} from './staffRelease.js';
+import {staffRelease,releasedStaffActor,staffRouteReleased,laterModules,schedulingReleased} from './staffRelease.js';
 import {MatchingMaps,matchingCommitments} from './matchingSource.js';
 import {opportunitySms} from './matchingSms.js';
 import {AdmissionLibrary} from './admissionLibrary.js';
@@ -201,6 +201,10 @@ export const workforceApi = process.env.PRIMETIME_API_ONLY_DEPLOY === "true" ? u
       await workforceIdentity(req);
       res.json(publicEnabled.value() === "true" && staffEnabled.value() === "true" ? await new WorkforceStore().publicList() : { items: [], release: "pending" }); return;
     }
+    if (path === "/application/schedule" && req.method === "GET") {
+      if (!existingAccessEnabled) throw new WorkforceError(503, "existing_access_pending");
+      res.json(await new WorkforceStore().ownAssignmentSchedules(await recentWorkforceIdentity(req))); return;
+    }
     if (path === "/opportunities/selections" && req.method === "GET") {
       if (!existingAccessEnabled) throw new WorkforceError(503, "existing_access_pending");
       res.json(await new WorkforceStore().ownOpportunitySelections(await workforceIdentity(req))); return;
@@ -245,6 +249,7 @@ export const workforceApi = process.env.PRIMETIME_API_ONLY_DEPLOY === "true" ? u
       if (!applicationsEnabled&&!existingAccessEnabled) throw new WorkforceError(503, "application_collection_pending");
       const uid=await workforceIdentity(req),existing=existingAccessEnabled?await(await hhaEnrollment()).link(uid):null;await new AccountSupport().register(uid,existing?.office||intakeOffice.value());
       res.json({ uid, kind: "caregiver", applicationsEnabled, documentsEnabled: uploadsEnabled, addressLookupEnabled: placesApproved.value() === "true",existingCaregiver:!!existing,
+        scheduleEnabled: !!existing && schedulingReleased(),
         existingOpportunityInterestEnabled: publicEnabled.value() === "true" && canApplyWithCaregiverProfile(existing) }); return;
     }
     const ownHhaRecord=path.match(/^\/application\/hha-records\/([a-z-]{1,40})$/);
@@ -560,6 +565,15 @@ export const workforceApi = process.env.PRIMETIME_API_ONLY_DEPLOY === "true" ? u
       const pdf = bytes.subarray(0, 5).toString("ascii") === "%PDF-";
       res.set("Content-Type", pdf ? "application/pdf" : "image/jpeg"); res.set("Content-Disposition", `attachment; filename="private-document.${pdf ? "pdf" : "jpg"}"`); res.set("Content-Security-Policy", "sandbox");
       await release?.(); res.send(bytes); return;
+    }
+    const assignment = path.match(/^\/staff\/assignment-schedules\/([a-zA-Z0-9_-]{1,128})\/([a-zA-Z0-9_-]{1,128})$/);
+    if (assignment) {
+      if (!existingAccessEnabled) throw new WorkforceError(503, "existing_access_pending");
+      const staff = await recentWorkforceIdentity(req);
+      if (req.method === "GET") { res.json(await store.assignmentSchedule(staff, assignment[1]!, assignment[2]!)); return; }
+      if (req.method !== "POST" || !req.is("application/json") || req.rawBody.length > 2048 || !req.body ||
+          Object.keys(req.body).some(k=>k !== "schedule" && k !== "revision")) throw new WorkforceError(400, "invalid_request");
+      res.json(await store.assignmentSchedule(staff, assignment[1]!, assignment[2]!, {revision:req.body.revision,schedule:req.body.schedule})); return;
     }
     if (path === "/staff/team" && req.method === "GET") { res.json(await store.reviewTeam(uid)); return; }
     if (path === "/staff/opportunities" && req.method === "GET") { res.json(await store.list(uid)); return; }

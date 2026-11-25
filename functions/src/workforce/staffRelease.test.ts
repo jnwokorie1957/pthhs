@@ -14,6 +14,13 @@ test('Phase 1 blocks direct later-module routes and unknown future routes, while
  for(const at of [STAFF_PHASE_ONE_AT-1,STAFF_PHASE_ONE_AT,Date.parse('2027-03-01')])assert.equal(staffRouteReleased(actor('owner'),'/staff/field-visits',at,env),true);
  assert.equal(staffRouteReleased(actor(),'/staff/field-visits',STAFF_PHASE_ONE_AT-1,env),false);
 });
+test('assignment schedules require Phase 2 approval in all release modes',()=>{
+ const path='/staff/assignment-schedules/opening/application';
+ for(const role of ['owner','office'] as const){
+  for(const config of [env,{}, {...env,WORKFORCE_STAFF_LATER_MODULES_APPROVED:'caregivers'}])assert(!staffRouteReleased(actor(role),path,STAFF_PHASE_ONE_AT,config));
+  assert(staffRouteReleased(actor(role),path,STAFF_PHASE_ONE_AT,{...env,WORKFORCE_STAFF_LATER_MODULES_APPROVED:'scheduling'}));
+ }
+});
 test('later modules need explicit separate approval; unknown names and date passage never release them',()=>{
  const configuration={...env,WORKFORCE_STAFF_LATER_MODULES_APPROVED:'forms,unknown'};const a=actor();assert(staffRouteReleased(a,'/staff/field-visits',STAFF_PHASE_ONE_AT,configuration));assert(!staffRouteReleased(a,'/staff/authorizations',Date.parse('2028-01-01'),configuration));assert(!staffRouteReleased(a,'/staff/unknown',STAFF_PHASE_ONE_AT,configuration));assert(staffRelease(a,STAFF_PHASE_ONE_AT,{}).permission('field_visits.manage'));
 });

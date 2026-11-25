@@ -280,6 +280,54 @@ test("only the recipient can respond, and a declined opening can be offered to a
   assert.equal((await store.ownOpportunitySelections("other")).items[0]?.opportunityId,"decline-opening");
 });
 
+test("Phase 2 schedules require a filled accepted selection, preserve the recipient, reject conflicts and audit edits", async t => {
+  const env = process.env, old = env.WORKFORCE_STAFF_LATER_MODULES_APPROVED;
+  t.after(()=>{if(old === undefined) delete env.WORKFORCE_STAFF_LATER_MODULES_APPROVED; else env.WORKFORCE_STAFF_LATER_MODULES_APPROVED=old;});
+  const {store, documents, grant} = fixture();
+  const linked = {uid:"taylor",caregiverId:"101",office:data.office,emailKey:"key"};
+  documents.set("workforceHhaLinks/taylor",linked);
+  documents.set("workforceHhaAssignments/101",linked);
+  documents.set("workforceStaff/office",{...grant,permissions:[...grant.permissions,"applicants.review"]});
+  const plan={start:"2027-01-04",end:"",days:[1,2],from:"08:00",to:"14:00"};
+  function save(id:string, revision=0, schedule=plan){return store.assignmentSchedule("office",id,"taylor-app",{revision,schedule});}
+  for(const id of ["one","two"]){
+    const opening=await store.mutate("editor",id,0,data);
+    const path="workforceOpportunities/"+id;
+    documents.set(path,{...opening,state:"published",review:{revision:1}});
+    documents.set(path+"/existingCaregiverInterests/taylor-app",linked);
+    await store.selectExistingCaregiver("office",id,"taylor-app",1);
+  }
+  env.WORKFORCE_STAFF_LATER_MODULES_APPROVED="";
+  await assert.rejects(save("one"),/staff_phase_pending/);
+  await assert.rejects(store.ownAssignmentSchedules("taylor"),/staff_phase_pending/);
+  env.WORKFORCE_STAFF_LATER_MODULES_APPROVED="scheduling";
+  await assert.rejects(save("one"),/accepted_assignment_required/);
+  for(const id of ["one","two"]){
+    await store.respondToOpportunitySelection("taylor",id,"accepted");
+    await assert.rejects(save(id),/filled_assignment_required/);
+    await store.mutate("editor",id,1,{},"close");
+  }
+  await assert.rejects(store.assignmentSchedule("editor","one","taylor-app",{revision:0,schedule:plan}),/workforce_forbidden/);
+  await assert.rejects(save("one",0,{...plan,from:"09:00"}),/schedule_hours_mismatch/);
+  await assert.rejects(save("one",0,{...plan,start:"2027-02-30"}),/invalid_assignment_schedule/);
+  const confirmed=await save("one"), state=structuredClone(documents);
+  assert.equal(confirmed.revision,1);
+  assert.deepEqual(await save("one"),confirmed);
+  assert.deepEqual(documents,state);
+  await assert.rejects(save("two"),/assignment_schedule_conflict/);
+  assert.equal((await store.ownAssignmentSchedules("taylor")).items[0]?.schedule.start,plan.start);
+  await assert.rejects(store.ownAssignmentSchedules("other"),/hha_profile_unavailable/);
+  const ended={...plan,end:"2027-01-05"};
+  await assert.rejects(save("one",0,ended),/revision_conflict/);
+  await store.mutate("editor","one",2,{},"archive");
+  await save("one",1,ended);
+  await save("two",0,{...plan,start:"2027-01-11"});
+  assert.equal((await store.ownAssignmentSchedules("taylor")).items.length,2);
+  const audit=[...documents].filter(([p,v])=>p.startsWith("workforceAudit/")&&(v as {action:string}).action==="assignment_schedule_confirmed");
+  assert.equal(audit.length,3);
+  documents.delete("workforceHhaAssignments/101");
+  await assert.rejects(store.ownAssignmentSchedules("taylor"),/hha_profile_unavailable/);
+});
 test("owner can invite a work email before the Firebase account exists, and only its verified holder gets the selected permissions", async () => {
   const {store, documents, users, grant} = fixture();
   documents.set("workforceStaff/owner", {...grant, role: "owner", permissions: ["staff.manage"]});

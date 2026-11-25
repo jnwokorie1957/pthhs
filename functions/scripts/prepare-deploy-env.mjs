@@ -68,7 +68,7 @@ export function workforceDeploymentEnvironment(release, source, operationalDataA
   const env=release.environment,declared=[...source.matchAll(/defineString\("(WORKFORCE_[A-Z_]+)"/g)].map(match=>match[1]);
   if(declared.length!==keys.length||keys.some(key=>!declared.includes(key))||Object.values(env).some(value=>typeof value!=='string'||/[\r\n]/u.test(value)))throw Error('Workforce parameter inventory changed');
   for(const flag of workforceFlags){if(!['true','false'].includes(env[flag])||!new RegExp(`defineString\\("${flag}",\\s*\\{\\s*default:\\s*"false"\\s*\\}\\)`).test(source))throw Error('Workforce approval must retain a closed default');}
-  if(env.WORKFORCE_STAFF_LATER_MODULES_APPROVED.split(',').filter(Boolean).some(module=>!['caregivers','authorizations','forms','matching','activity','hr'].includes(module)))throw Error('Invalid later staff module');
+  if(env.WORKFORCE_STAFF_LATER_MODULES_APPROVED.split(',').filter(Boolean).some(module=>!['caregivers','authorizations','forms','matching','activity','hr','scheduling'].includes(module)))throw Error('Invalid later staff module');
   const enabled=key=>env[key]==='true';
   if(env.WORKFORCE_PORTAL_ORIGIN!=='https://pthhs.net'||env.WORKFORCE_INTAKE_OFFICE&&!/^[1-9]\d{0,9}$/.test(env.WORKFORCE_INTAKE_OFFICE)||env.WORKFORCE_EMPLOYER_EIN&&!/^\d{2}-\d{7}$/.test(env.WORKFORCE_EMPLOYER_EIN))throw Error('Invalid workforce public origin or office configuration');
   const providers=env.WORKFORCE_SIGN_IN_PROVIDERS?env.WORKFORCE_SIGN_IN_PROVIDERS.split(','):[];

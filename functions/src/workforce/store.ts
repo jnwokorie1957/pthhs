@@ -1,4 +1,6 @@
 import {actorLabels} from './activity.js';
+import {weeklySchedule, schedulesOverlap, type WeeklySchedule} from './assignmentSchedule.js';
+import {schedulingReleased} from './staffRelease.js';
 import { createHash, randomUUID } from "node:crypto";
 import { getFirestore, type Transaction } from "firebase-admin/firestore";
 import { getAuth } from "firebase-admin/auth";
@@ -369,6 +371,72 @@ export class WorkforceStore {
         action: response === "accepted" ? "opportunity_caregiver_accepted" : "opportunity_caregiver_declined", at: decision.respondedAt,
       });
       return decision;
+    });
+  }
+  async assignmentSchedule(uid: string, openingId: string, applicationId: string, update?: {revision:number; schedule:unknown}) {
+    if (!schedulingReleased()) throw new WorkforceError(423, "staff_phase_pending");
+    if (!validId(openingId) || !validId(applicationId) ||
+        (update && (!Number.isSafeInteger(update.revision) || update.revision < 0))) throw new WorkforceError(400, "invalid_request");
+    return this.db.runTransaction(async tx => {
+      const {actor, opening, opportunity} = await this.caregiverApplicantOpening(tx, uid, openingId);
+      requirePermission(actor, "opportunities.edit", opportunity.office);
+      const [applicationSnap, choiceSnap] = await Promise.all([
+        tx.get(opening.collection("existingCaregiverInterests").doc(applicationId)),
+        tx.get(opening.collection("selection").doc("chosen")),
+      ]);
+      const application = applicationSnap.data(), choice = choiceSnap.data();
+      if (!application || !choice || choice.applicationId !== applicationId || choice.response !== "accepted" ||
+          application.response !== "accepted" || application.office !== opportunity.office || choice.office !== opportunity.office ||
+          choice.caregiverId !== application.caregiverId || !validId(application.caregiverId) || !validId(application.uid)) {
+        throw new WorkforceError(409, "accepted_assignment_required");
+      }
+      await this.verifyCaregiverLink(tx, application.uid, application.caregiverId, opportunity.office);
+      const calendar = this.db.collection("workforceAssignmentCalendars").doc(application.caregiverId);
+      const assignments = calendar.collection("assignments"), ref = assignments.doc(openingId);
+      const prior = (await tx.get(ref)).data();
+      if (prior && (prior.uid !== application.uid || prior.office !== opportunity.office || prior.applicationId !== applicationId)) {
+        throw new WorkforceError(409, "opportunity_selection_changed");
+      }
+      const result = (schedule: WeeklySchedule | null, revision: number) => ({schedule, revision});
+      if (!update) return result(prior?.schedule ?? null, prior?.revision ?? 0);
+      const filled = opportunity.state === "closed" && opportunity.revision === choice.revision + 1;
+      const archivedAfterFill = opportunity.state === "archived" && opportunity.revision === choice.revision + 2;
+      if (!filled && !archivedAfterFill) {
+        throw new WorkforceError(409, "filled_assignment_required");
+      }
+      const schedule = weeklySchedule(update.schedule, opportunity.public);
+      if (prior && JSON.stringify(weeklySchedule(prior.schedule, opportunity.public)) === JSON.stringify(schedule)) {
+        return result(schedule, prior.revision);
+      }
+      if (update.revision !== (prior?.revision ?? 0)) throw new WorkforceError(409, "revision_conflict");
+      // Serialize even the first two confirmations for different openings on an empty calendar.
+      await tx.get(calendar);
+      const others = await tx.get(assignments.orderBy("__name__"));
+      if (others.docs.some(doc => doc.id !== openingId && schedulesOverlap(doc.data().schedule, schedule))) {
+        throw new WorkforceError(409, "assignment_schedule_conflict");
+      }
+      const at = new Date().toISOString(), revision = update.revision + 1;
+      tx.set(calendar, {updatedAt:at});
+      tx.set(ref, {schedule, revision, uid:application.uid, office:opportunity.office, applicationId,
+        location:opportunity.public.location, weeklyHours:opportunity.public.weeklyHours, updatedAt:at, updatedBy:uid});
+      tx.create(this.db.collection("workforceAudit").doc(randomUUID()), {actor:uid, target:openingId, office:opportunity.office,
+        action:"assignment_schedule_confirmed", applicationId, revision, schedule, at});
+      return result(schedule, revision);
+    });
+  }
+  async ownAssignmentSchedules(uid: string) {
+    if (!schedulingReleased()) throw new WorkforceError(423, "staff_phase_pending");
+    return this.db.runTransaction(async tx => {
+      const link = (await tx.get(this.db.collection("workforceHhaLinks").doc(uid))).data();
+      if (!link || !validId(link.caregiverId) || !validId(link.office)) throw new WorkforceError(403, "hha_profile_unavailable");
+      await this.verifyCaregiverLink(tx, uid, link.caregiverId, link.office);
+      const assignments = this.db.collection("workforceAssignmentCalendars").doc(link.caregiverId).collection("assignments");
+      const snapshot = await tx.get(assignments.orderBy("__name__"));
+      return {items:snapshot.docs.flatMap(doc => {
+        const record = doc.data();
+        if (record.uid !== uid || record.office !== link.office) return [];
+        return [{schedule:record.schedule as WeeklySchedule, location:record.location, weeklyHours:record.weeklyHours}];
+      })};
     });
   }
   async ownOpportunitySelections(uid: string) {
