@@ -373,3 +373,60 @@ test("pending invitations stop after 24 hours or loss of the issuer's office sco
   await assert.rejects(store.acceptStaffInvite("new-staff", now, invite.activationCode), /workforce_forbidden/);
   assert.equal(documents.has("workforceStaff/new-staff"), false);
 });
+
+function ownScheduleFixture(t: import("node:test").TestContext) {
+  const old = process.env.WORKFORCE_STAFF_LATER_MODULES_APPROVED;
+  process.env.WORKFORCE_STAFF_LATER_MODULES_APPROVED = "scheduling";
+  t.after(() => { if (old === undefined) delete process.env.WORKFORCE_STAFF_LATER_MODULES_APPROVED; else process.env.WORKFORCE_STAFF_LATER_MODULES_APPROVED = old; });
+  const f = fixture(), uid = "synthetic-caregiver-user";
+  const link = {uid, caregiverId:"101", office:data.office, emailKey:"synthetic-email-key"};
+  f.documents.set("workforceHhaLinks/"+uid, link);f.documents.set("workforceHhaAssignments/101", link);
+  const calendar = "workforceAssignmentCalendars/101/assignments/";
+  const record = {uid, office:data.office, applicationId:"synthetic-application", schedule:{start:"2027-01-04",end:"",days:[1,2],from:"08:00",to:"14:00"},
+    location:"Fictional area",weeklyHours:12,revision:3,updatedAt:"2026-11-24T18:00:00.000Z",updatedBy:"private-synthetic-manager",patientId:"private-synthetic-patient"};
+  f.documents.set(calendar+"first", record);f.documents.set(calendar+"second", structuredClone(record));
+  const read = async () => await f.store.ownAssignmentSchedules(uid) as unknown as {fetchedAt:string;items:Record<string,unknown>[]};
+  return {...f,uid,calendar,record,read};
+}
+
+test("own-calendar metadata distinguishes equal-looking assignments, survives retries and never writes or exposes internal links", async t => {
+  const f = ownScheduleFixture(t), before = structuredClone(f.documents), first = await f.read(), again = await f.read();
+  assert.match(first.fetchedAt, /^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d\.\d{3}Z$/);
+  assert.equal(first.items.length,2);
+  const refs=first.items.map(item=>item.assignmentRef);
+  for(const ref of refs) assert.match(ref as string,/^[a-f0-9]{64}$/);
+  assert.equal(new Set(refs).size,2);assert.deepEqual(again.items.map(item=>item.assignmentRef),refs);
+  for(const item of first.items){
+    assert.equal(item.origin,"office_confirmed_portal");assert.equal(item.timeZone,"America/Chicago");
+    assert.equal(item.revision,3);assert.equal(item.updatedAt,"2026-11-24T18:00:00.000Z");
+    for(const key of ["uid","office","caregiverId","applicationId","updatedBy","patientId"]) assert.equal(key in item,false);
+  }
+  assert.doesNotMatch(JSON.stringify(first),/private-synthetic|synthetic-application|synthetic-caregiver-user/);
+  assert.deepEqual(f.documents,before);
+  f.documents.set(f.calendar+"first",{...f.record,revision:4,updatedAt:"2026-11-25T13:30:00.000Z"});
+  const changed=await f.read();assert.deepEqual(changed.items.map(item=>item.assignmentRef),refs);
+  assert.equal(changed.items[0]!.revision,4);assert.equal(changed.items[0]!.updatedAt,"2026-11-25T13:30:00.000Z");
+  assert.equal(changed.items[1]!.revision,3);assert.equal(changed.items[1]!.updatedAt,first.items[1]!.updatedAt);
+});
+
+test("own-calendar unknown legacy revisions and ambiguous or invalid office instants remain unavailable", async t => {
+  const f=ownScheduleFixture(t);
+  for(const updatedAt of [undefined,null,"","2026-11-24","2026-11-24T18:00:00.000","2026-02-30T18:00:00.000Z",42]){
+    f.documents.set(f.calendar+"first",{...f.record,revision:"3",updatedAt});
+    const item=(await f.read()).items[0]!;assert.equal(item.updatedAt,null);assert.equal(item.revision,null);
+  }
+  for(const revision of [undefined,0,-1,3.5,Number.MAX_SAFE_INTEGER+1]){
+    f.documents.set(f.calendar+"first",{...f.record,revision});
+    assert.equal((await f.read()).items[0]!.revision,null);
+  }
+});
+
+test("own-calendar metadata retains recipient, office, reciprocal-link and scheduling-release boundaries", async t => {
+  const f=ownScheduleFixture(t);
+  f.documents.set(f.calendar+"other-user",{...f.record,uid:"other-user",updatedAt:"private-synthetic-other"});
+  f.documents.set(f.calendar+"other-office",{...f.record,office:"other-office",updatedAt:"private-synthetic-other"});
+  assert.equal((await f.read()).items.length,2);
+  await assert.rejects(f.store.ownAssignmentSchedules("other-user"),/hha_profile_unavailable/);
+  f.documents.delete("workforceHhaAssignments/101");await assert.rejects(f.read(),/hha_profile_unavailable/);
+  process.env.WORKFORCE_STAFF_LATER_MODULES_APPROVED="";await assert.rejects(f.read(),/staff_phase_pending/);
+});

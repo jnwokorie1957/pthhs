@@ -23,6 +23,11 @@ interface StaffInvitation {
   activationHash?: string;
 }
 const hashCode = (value: string) => createHash("sha256").update(value).digest("hex");
+function assignmentUpdateInstant(value: unknown): string | null {
+  if (typeof value !== "string" || !/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/.test(value)) return null;
+  const epoch = Date.parse(value);
+  return Number.isFinite(epoch) && new Date(epoch).toISOString() === value ? value : null;
+}
 
 export function workEmail(value: unknown): string {
   const email = typeof value === "string" ? value.trim().toLowerCase() : "";
@@ -435,8 +440,12 @@ export class WorkforceStore {
       return {items:snapshot.docs.flatMap(doc => {
         const record = doc.data();
         if (record.uid !== uid || record.office !== link.office) return [];
-        return [{schedule:record.schedule as WeeklySchedule, location:record.location, weeklyHours:record.weeklyHours}];
-      })};
+        return [{assignmentRef:hashCode(JSON.stringify(["portal-assignment-v1",uid,link.office,link.caregiverId,doc.id])),
+          origin:"office_confirmed_portal", timeZone:"America/Chicago",
+          revision:Number.isSafeInteger(record.revision) && record.revision > 0 ? record.revision : null,
+          updatedAt:assignmentUpdateInstant(record.updatedAt),
+          schedule:record.schedule as WeeklySchedule, location:record.location, weeklyHours:record.weeklyHours}];
+      }), fetchedAt:new Date().toISOString()};
     });
   }
   async ownOpportunitySelections(uid: string) {
