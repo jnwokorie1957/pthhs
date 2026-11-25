@@ -1,5 +1,16 @@
 # PTHHS Management Layer — Developer Checklist
 
+- [ ] P2 staged caregiver calendar provenance/reference projection: the
+  own-assignment DTO currently returns schedule/location/weeklyHours and omits
+  the stored assignment key, revision and update time. Add an opaque own-record
+  reference and explicit local origin/timezone/update metadata through the same
+  recipient/office and scheduling gates. Test distinct equal-looking records,
+  revision updates, legacy unknown metadata and withdrawn/cross-account access.
+  This supplies reliable local references, not an HHA visit or clinical join.
+  Exact patient/office/visit/contract/service/document linkage and supported
+  tenant product/event/readback evidence remain required before those bridges.
+  [November 25 source comparison and acceptance](ROLE_WORKFLOW_RESEARCH.txt).
+
 - [x] PR66 saved-packet resume context guard merged November 25 UTC as staged
   source. A late packet response cannot replace a newer selection or reopen
   after a form/editor change; stale document-read errors cannot replace current

@@ -11,7 +11,9 @@ The January 1, 2027 Central publication hold and later admissions/forms module
 approval remain. Concurrent recruiting, caregiver and later-module source work
 is preserved; its presence in main is not evidence of live role availability.
 PR52's November 22 delivered caregiver-context correction remains dated evidence.
-See the appended November 25 entry and scoped acceptance report.
+See the appended November 25 implementation and Phase 2 calendar-reference
+research entries. The next bounded calendar projection and cross-role acceptance
+are specified there; HHA/clinical joins remain proposed.
 
 HISTORICAL STATUS INDEX — NOVEMBER 16, 2026 UTC
 Runtime c6dcc7e includes PR40 lookup-query guards and concurrent PR38/PR39.
@@ -5119,3 +5121,122 @@ https://github.com/jnwokorie1957/pthhs/actions/runs/45531133785
 https://github.com/jnwokorie1957/pthhs/actions/runs/45531274060
 Detailed acceptance: docs/workforce/PACKET_RESUME_CONTEXT_2026-11-25.md.
 Existing dated primary role research is retained; no new vendor research claimed.
+
+PHASE 2 CALENDAR REFERENCES AND ROLE HANDOFF — NOVEMBER 25, 2026 UTC
+Source basis: df83509ad7d3c720ec92d76d10aaba3a3ba1c053, including staged
+PR63/64 caregiver selection/response, PR65 local assignment calendars and PR66.
+This is source observation and proposed acceptance, not a new tenant UI result
+or production deployment. January 1 publication hold and module approval remain.
+
+Observed source:
+- An opportunity selection identifies its application, caregiver account,
+  caregiver ID and office. Accept/decline is recorded transactionally after
+  verifying the recipient's existing caregiver link. Acceptance alone creates
+  neither the weekly assignment calendar nor an HHA visit.
+- assignmentSchedule separately requires the scheduling module, office
+  opportunities.edit permission, an accepted selection and the filled/closed
+  opportunity revision (or its subsequent archived revision). Confirmation
+  writes a local revisioned calendar and audit. Conflicts checked here are
+  other local portal assignment calendars, not a complete HHA schedule census.
+- WeeklySchedule is a Central, same-day recurrence: start/end dates, weekdays
+  and start/end clocks. Nominal duration times weekdays must match the opening's
+  weeklyHours. This is planned local coverage, not ActualHours or paid hours.
+- ownAssignmentSchedules revalidates the caregiver link and filters every
+  returned assignment by authenticated UID and linked office. Its current DTO
+  returns only schedule, location and weeklyHours. It does not return its
+  stored assignment key, revision, updatedAt, or a source/receipt marker.
+- The stored local assignment is keyed by opportunity and retains application,
+  caregiver calendar and office linkage. No exact patient ID, HHA VisitID,
+  contract/service-code or clinical-document instance is established by this
+  schedule. Matching names, location or equal time spans cannot add that join.
+
+Priority P2, feasible next implementation (proposed, not implemented here):
+Extend the existing own-schedule projection with an opaque local assignment
+reference, current revision/update time and explicit portal/office-confirmed
+origin and timezone. Retain exact existing recipient/office filters and the
+scheduling gate. Give each rendered card its stable reference and useful
+update label. Do not add patient details, addresses, staff selectors, HHA reads,
+source mutations or a clinical action. These references can support reliable
+later navigation, but do not themselves establish an HHA/clinical record link.
+
+Acceptance for this bounded projection:
+1. Two same-location/same-time assignments retain distinct stable references.
+   A schedule edit changes only that assignment's revision/update marker.
+2. Same-recipient retries keep the same reference. A removed link, other UID,
+   other office or closed scheduling module returns no unauthorized assignment.
+   Added metadata cannot bypass the existing recipient/office checks.
+3. Render provenance and dates as data, including Central timezone. Missing
+   legacy update metadata is unavailable rather than fabricated or labelled live.
+   A read receipt is separate from when the office last changed the record.
+4. No HHA VisitID, clinical-complete, verified-work or paid-hour status is created
+   from a local assignment, caregiver acceptance or calculated recurrence.
+
+Role experiences and linked records:
+Patient/representative — continue to anchor an authorized calendar to actual
+patient visit identities and release only approved document instances. Local
+caregiver recruitment/coverage events cannot become a family appointment.
+Schedule-change requests and completed-visit concerns need separate office
+review/history; family feedback cannot silently edit source scheduling/billing.
+PT/staff — show local office-confirmed plans with their own provenance, and
+show source visits/caseload only with verified effective assignment, discipline,
+patient/office/contract/service and visit/document-instance/version linkage.
+A local recurrence is not an approved clinical encounter or form/signature grant.
+Office manager — retain selection, caregiver response, filled opening and
+local schedule confirmation as separate states. Reconcile actual source visits,
+authorization/service-date evidence, EVV exceptions and billing follow-up in
+their existing independent queues. Local overlap checks cannot clear unknown
+HHA conflicts, leave, scope, clinical qualifications or authorization coverage.
+Public/admin — public opportunity and secure portal entry may initiate an
+authenticated recruiting flow. A public ID/link or acceptance grants no staff,
+patient, source-visit, clinical-document, authorization or billing permission.
+
+Primary guidance rechecked November 25 UTC; earlier November 3 Carematch
+research remains valid and is not presented as a newly discovered capability:
+HHA's standard open-shift guide describes requests followed by coordinator
+assignment and restricts pre-assignment patient location disclosure. Its
+Broadcast Dashboard requires schedule-edit authority and a successful saved
+assignment; cancellation/mismatch handling and other applicants remain distinct.
+https://knowledge.hhaexchange.com/Caregiver/Content/Documentation/Mobile/Mobi-CG-UW-Request-Open-Shift-S.htm
+https://knowledge.hhaexchange.com/enterprise/Content/Documentation/Action/Act-N-Broadcast-Dashboard-P.htm
+The October 2026 release describes embedded shift actions/synchronization only
+for agencies using Carematch. It does not establish this tenant's enablement,
+integration/event schema or authority to replicate those actions in Primetime.
+https://knowledge.hhaexchange.com/enterprise/Content/Release-Notes/New-UI/RN-N-Release-Notes-26.10.01.htm
+Family schedule guidance separates appointment-change requests and completed-
+visit concerns; the office dashboard supplies their review/history workflow.
+Clinical E-Docs depend on discipline, contract service code and a specific skilled
+visit. Those published capabilities do not prove tenant access or an API join.
+https://knowledge.hhaexchange.com/enterprise/Content/Documentation/Patient/Pat-N-Schedule-P.htm
+https://knowledge.hhaexchange.com/enterprise/Content/Documentation/Admin/Admin-N-Patient-Visit-Family-Dashboard-P.htm
+https://knowledge.hhaexchange.com/enterprise/Content/Documentation/Patient/Pat-N-Clinical-E-Docs-P.htm
+
+Dependencies and precise next evidence:
+Before proposing an HHA assignment bridge, establish the agency's actual enabled
+product/module and supported read/event identities through normal authorized
+tenant access and the existing approved private/vendor channel. Identify who
+may assign/reassign, the source system of record and exact readback/revision
+contract; do not copy a vendor accept button into a source-write permission.
+Before PT or patient links, approve the patient/representative capability scope,
+discipline/encounter/form versions, reviewers and released-copy permissions.
+For office authorization/EVV/billing, retain existing service-date coverage,
+original-event/history, duration-unit and financial interpretation gates.
+January 1 publication and scheduling/clinical module activation are separate.
+No new activation, permission, message or owner decision was made in this review.
+
+Implementation evidence:
+Existing store.test.ts includes recipient/decline, filled acceptance, phase
+closure, link removal, revision conflicts, overlap and audit cases. This pass
+read those tests; it did not rerun them or claim new integration acceptance.
+PR66's 775 root tests/both quality jobs and its skipped deployment jobs retain
+their separate dated scope; they do not test a future HHA calendar bridge.
+https://github.com/jnwokorie1957/pthhs/blob/df83509ad7d3c720ec92d76d10aaba3a3ba1c053/functions/src/workforce/store.ts
+https://github.com/jnwokorie1957/pthhs/blob/df83509ad7d3c720ec92d76d10aaba3a3ba1c053/functions/src/workforce/store.test.ts
+https://github.com/jnwokorie1957/pthhs/blob/df83509ad7d3c720ec92d76d10aaba3a3ba1c053/functions/src/workforce/assignmentSchedule.ts
+https://github.com/jnwokorie1957/pthhs/blob/df83509ad7d3c720ec92d76d10aaba3a3ba1c053/functions/src/workforce/staffRelease.ts
+https://github.com/jnwokorie1957/pthhs/blob/df83509ad7d3c720ec92d76d10aaba3a3ba1c053/source/workforce/workforce-schedule.js
+
+No current authorized HHA UI/browser state was captured: the prior URL-policy
+stop was not retried/bypassed. Earlier tenant observations retain their dates.
+No source record, private patient/staff value, credential, communication,
+clinical/financial decision, access expansion or production deployment.
+Original October 24 remains resolved by October 31.
