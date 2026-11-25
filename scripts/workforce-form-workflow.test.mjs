@@ -1,8 +1,33 @@
 import test from 'node:test';import assert from 'node:assert/strict';import fs from 'node:fs';import vm from 'node:vm';
 const walk=e=>[e,...e.children.flatMap(walk)];
 class Element{constructor(tag){this.tagName=tag;this.children=[];this._text='';this.hidden=false;this.checked=false;this.style={};this.attrs={};const set=new Set();this.classList={add:x=>set.add(x),remove:x=>set.delete(x)};}append(...items){this.children.push(...items);}prepend(...items){this.children.unshift(...items);}replaceChildren(...items){this.children=[];this._text='';this.append(...items);}set textContent(v){this._text=String(v);this.children=[];}get textContent(){return this._text+this.children.map(c=>c.textContent).join(' ');}set value(v){this._value=v;}get value(){return this._value??(this.tagName==='select'?this.children[0]?.value:'')??'';}setAttribute(k,v){this.attrs[k]=v;}focus(){}click(){this.onclick?.();}scrollIntoView(){}querySelectorAll(s){return walk(this).slice(1).filter(e=>s==='input:checked'?e.tagName==='input'&&e.checked:e.tagName===s);}getContext(){return {clearRect(){},beginPath(){},moveTo(){},lineTo(){},stroke(){}};}}
-const deferred=()=>{let resolve;const promise=new Promise(r=>{resolve=r;});return {promise,resolve};};const tick=()=>new Promise(r=>setImmediate(r));
-function workflow(handler){const root=new Element('div'),events=new Map(),calls=[],opened=[],window={};let active=true;vm.runInNewContext(fs.readFileSync(new URL('../public/assets/workforce-form-workflow.js',import.meta.url),'utf8'),{window,document:{createElement:t=>new Element(t),addEventListener:(k,f)=>events.set(k,f)},workforceApi:async(path,body)=>{calls.push({path,body});return handler(path,body);},crypto:{randomUUID:()=> 'new-draft'},Intl,Date});const api=window.WorkforceFormWorkflow.mount(root,{office:'office-a',current:()=>active,open:(record,seed)=>opened.push({record,seed})}),button=text=>{const e=walk(root).find(e=>e.tagName==='button'&&e.textContent.includes(text));assert.ok(e,'Missing '+text);return e;};return {root,api,calls,opened,button,close(){active=false;events.get('workforce-session-cleared')();}};}
+const deferred=()=>{let resolve,reject;const promise=new Promise((r,j)=>{resolve=r;reject=j;});return {promise,resolve,reject};};const tick=()=>new Promise(r=>setImmediate(r));
+function workflow(handler,{editorContext}={}){const root=new Element('div'),events=new Map(),calls=[],opened=[],window={};let active=true;vm.runInNewContext(fs.readFileSync(process.env.FORM_WORKFLOW_SCRIPT || new URL('../public/assets/workforce-form-workflow.js',import.meta.url),'utf8'),{window,document:{createElement:t=>new Element(t),addEventListener:(k,f)=>events.set(k,f)},workforceApi:async(path,body)=>{calls.push({path,body});return handler(path,body);},crypto:{randomUUID:()=> 'new-draft'},Intl,Date});const api=window.WorkforceFormWorkflow.mount(root,{office:'office-a',current:()=>active,open:(record,seed)=>opened.push({record,seed}),editorContext}),button=text=>{const e=walk(root).find(e=>e.tagName==='button'&&e.textContent.includes(text));assert.ok(e,'Missing '+text);return e;};return {root,api,calls,opened,button,close(){active=false;events.get('workforce-session-cleared')();}};}
+
+const savedPacket=id=>({id,createdAt:'2026-11-24T12:00:00Z',completed:false,items:[{id:id+'-document',title:'Fictional '+id+' form',state:'draft'}]});
+async function packetWorkflow(handler,options){const s=workflow((path,body)=>path==='/staff/admission-packets/search'?{items:[savedPacket('first'),savedPacket('second')]}:handler(path,body),options);s.api.selectClient({office:'office-a',name:'Fictional Member',memberId:'TEST'});await tick();s.resume=walk(s.root).filter(e=>e.tagName==='button'&&e.textContent==='Resume packet');assert.equal(s.resume.length,2);return s;}
+
+test('a slower earlier packet resume cannot replace the latest requested packet',async()=>{
+ const first=deferred(),second=deferred(),s=await packetWorkflow(path=>path==='/staff/admission-packets/first'?first.promise:path==='/staff/admission-packets/second'?second.promise:{id:path.split('/').at(-1),state:'draft'});
+ const old=s.resume[0].onclick(),latest=s.resume[1].onclick();second.resolve(savedPacket('second'));await latest;await tick();first.resolve(savedPacket('first'));await old;await tick();
+ assert.deepEqual(s.opened.map(o=>o.record.id),['second-document']);assert.match(walk(s.root).find(e=>e.className==='form-packet-progress').textContent,/Fictional second form/);
+});
+
+test('switching form type cancels a pending packet resume before opening a document',async()=>{
+ const pending=deferred(),s=await packetWorkflow(()=>pending.promise),action=s.resume[0].onclick();s.button('Client assessment').click();pending.resolve(savedPacket('first'));await action;await tick();
+ assert.equal(s.opened.length,0);assert.ok(!s.calls.some(c=>c.path.startsWith('/staff/field-visits/')));assert.equal(walk(s.root).find(e=>e.className==='form-packet-progress').hidden,true);
+});
+
+test('a changed editor context cancels a pending packet resume before replacing its queue',async()=>{
+ let context=1;const pending=deferred(),s=await packetWorkflow(()=>pending.promise,{editorContext:()=>context}),action=s.resume[0].onclick();context++;pending.resolve(savedPacket('first'));await action;await tick();
+ assert.equal(s.opened.length,0);assert.ok(!s.calls.some(c=>c.path.startsWith('/staff/field-visits/')));assert.equal(walk(s.root).find(e=>e.className==='form-packet-progress').hidden,true);
+});
+
+test('a superseded document error cannot replace current packet status while current errors remain visible',async()=>{
+ const pending=deferred();let failCurrent=false;const s=await packetWorkflow(path=>path==='/staff/admission-packets/first'?savedPacket('first'):path==='/staff/admission-packets/second'?savedPacket('second'):path.endsWith('/first-document')?pending.promise:failCurrent?Promise.reject(Error('Synthetic current read failed')):{id:'second-document',state:'draft'});
+ await s.resume[0].onclick();await tick();await s.resume[1].onclick();await tick();pending.reject(Error('Synthetic superseded read failed'));await tick();
+ assert.doesNotMatch(s.root.textContent,/Synthetic superseded read failed/);assert.equal(s.opened.at(-1).record.id,'second-document');failCurrent=true;await s.button('Open current document').onclick();assert.match(s.root.textContent,/Synthetic current read failed/);
+});
 async function selectedCaregiver(s){
  s.api.setTemplates([{id:'blank',title:'Fictional blank form',pageCount:1}]);s.api.selectClient({office:'office-a',name:'Fictional Member',memberId:'TEST'});
  const input=walk(s.root).find(e=>e.placeholder==='First or last name');input.value='First';await s.button('Find caregiver').onclick();s.button('First fictional caregiver').click();walk(s.root).find(e=>e.type==='checkbox').checked=true;return input;
