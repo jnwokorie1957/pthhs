@@ -68,7 +68,11 @@ test('new API uses existing project and preserves legacy routing and security bo
   const csp=source=>config.hosting.headers.find(rule=>rule.source===source).headers.find(header=>header.key==='Content-Security-Policy').value;
   assert.match(csp('/caregiver'),/frame-src 'self' https:\/\/primetimehomehealthservices\.firebaseapp\.com https:\/\/www\.google\.com\/recaptcha\/ https:\/\/recaptcha\.google\.com\/recaptcha\/;/);
   assert.match(csp('/caregiver'),/frame-ancestors 'none'/);
-  assert.equal(csp('/workforce'), csp('/primetime{,/**}'));
+  for (const path of ['/workforce', '/caregiver']) {
+    const policy = csp(path).split(';').map(value => value.trim()).find(value => value.startsWith('script-src '));
+    assert.ok(policy, path);
+    assert.doesNotMatch(policy, /'unsafe-inline'|'unsafe-eval'/, path);
+  }
   assert.equal(config.hosting.rewrites.find(rule=>rule.source==='/workforce').destination, '/primetime/workforce.html');
   assert.equal(config.hosting.redirects.find(rule=>rule.source==='/primetime/workforce').destination, '/workforce');
   assert.match(read('source/primetime/index.html'), /href="\/workforce"/);assert.match(csp('**'),/frame-src 'none'/);

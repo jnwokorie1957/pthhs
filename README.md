@@ -274,3 +274,5 @@ whose dependencies are complete, and update its acceptance evidence with the
 change. A deployment or passing fixture must not be recorded as real source,
 role, form, or device acceptance. Keep vendor-neutral agency workflows behind the
 adapter, and retain unknown outcomes until they can be reconciled.
+
+[Portal security review and deployment status](docs/security/README.md)

@@ -62,7 +62,7 @@ test('workflow retains push behavior and excludes backend on every manual releas
   const siteJob = workflow.split('  build_and_deploy:')[1].split('  deploy_backend:')[0];
   assert.match(siteJob, /ref: \$\{\{ needs\.release_scope\.outputs\.release_sha \}\}/);
   assert.match(siteJob, /node scripts\/verify-hosting-only\.mjs/);
-  assert.match(siteJob, /FirebaseExtended\/action-hosting-deploy@v0/);
+  assert.match(siteJob, /FirebaseExtended\/action-hosting-deploy@[0-9a-f]{40}\b/);
   assert.doesNotMatch(siteJob, /firebase deploy|functions:|--prefix functions/);
 });
 
