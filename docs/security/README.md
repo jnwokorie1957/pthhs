@@ -4,7 +4,7 @@ Reviewed November 24, 2026. Scope includes the caregiver and workforce portals, 
 
 ## Fixes on main
 
-- Removed inline script execution from the workforce route in commit ef66bf6. At the last live header check the caregiver policy already excluded inline scripts, while workforce still served the prior policy. The Hosting deploy job was skipped under the existing publication hold. Verify the live workforce response after release.
+- Removed inline script execution from the workforce route in commit ef66bf6. Published a Hosting-only release from the previous live manifest. All 292 file paths and hashes matched, and the only configuration change was the workforce CSP. Live version d9b13bf09c70ed12 replaced 859d79ebd216f736. A subsequent HTTPS GET returned 200 with the tightened script policy.
 - Repaired a stale regression test that required the workforce CSP to equal the broader Primetime policy. The updated test requires an explicit script policy on both portal routes and rejects unsafe-inline and unsafe-eval.
 - Pinned the Hosting deployment action to its resolved 40-character commit. Its regression check now requires an immutable revision. Review upstream changes before updating the pin.
 - Updated both backend deployment jobs to pass the Firebase credential through a step-scoped environment variable. The shell writes it as data with a restrictive umask in place before file creation. This change does not rotate the existing credential.
