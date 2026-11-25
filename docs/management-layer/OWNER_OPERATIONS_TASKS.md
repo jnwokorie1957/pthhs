@@ -14,6 +14,16 @@
 
 ## Start here
 
+- [ ] Before scheduled publication of the staged calendar changes, the
+  release operator must reconcile the failed/mixed main-history source from
+  PR68 (`3ca8601`, scope45642037469). The CI test-runner edit was included with
+  application changes. PR69 restores it in isolation with verified no-deploy
+  scope; PR70 registers the tests through an existing suite and passes normal
+  push scope. No deployment ran. Those fixes do not erase the mixed edge or
+  waive history, January 1 publication or module approval. Review exact sources,
+  component delivery evidence and the existing recovery workflow before closing.
+  [Evidence and remaining acceptance](../workforce/CALENDAR_PROVENANCE_2026-11-25.md).
+
 - [ ] Before activating caregiver matching's paid-hour ceiling, establish the
   supported HHA paid-hours source, units/adjustments and exact caregiver, office
   and Sunday-week validation/readback. Recorded visit clocks locate a period

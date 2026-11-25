@@ -1,15 +1,29 @@
 # PTHHS Management Layer — Developer Checklist
 
-- [ ] P2 staged caregiver calendar provenance/reference projection: the
-  own-assignment DTO currently returns schedule/location/weeklyHours and omits
-  the stored assignment key, revision and update time. Add an opaque own-record
-  reference and explicit local origin/timezone/update metadata through the same
-  recipient/office and scheduling gates. Test distinct equal-looking records,
-  revision updates, legacy unknown metadata and withdrawn/cross-account access.
-  This supplies reliable local references, not an HHA visit or clinical join.
-  Exact patient/office/visit/contract/service/document linkage and supported
-  tenant product/event/readback evidence remain required before those bridges.
-  [November 25 source comparison and acceptance](ROLE_WORKFLOW_RESEARCH.txt).
+- [x] PR68/70 caregiver calendar references and update provenance implemented
+  as staged source `743c406`. Own-record references remain stable across
+  office edits; version/office update and portal read time stay separate.
+  Unknown metadata remains unavailable under the existing recipient/office/
+  link/module gates. All 779 root tests (47 discovered files), 1,059 backend
+  tests, four editable/generated controller cases and both final quality jobs
+  pass. Existing size limits pass. Final normal push scope passes; deployments
+  skip under the publication hold.
+  [Implementation and release evidence](../workforce/CALENDAR_PROVENANCE_2026-11-25.md).
+- [ ] Calendar production/authenticated acceptance after January 1, 2027
+  Central publication and separate scheduling approval: verify distinct stable
+  references, office edits versus read receipt, legacy unknowns, withdrawn/
+  cross-account/office links, recent login and closed-module cases in the
+  deployed app with approved test records. HHA visit/patient/PT/document and
+  financial interpretation bridges remain independent.
+- [ ] Before scheduled publication, release operator must reconcile failed/
+  mixed first-parent release history, including PR68/`3ca8601` and failed
+  scope45642037469. Its test-runner edit was wrongly combined with application
+  changes; no deployment ran. PR69 restores the runner in isolation and
+  proof45642988257 selects none/all deploy jobs skipped. PR70 test registration
+  and scope45643774885 pass. These forward fixes preserve the earlier mixed
+  edge; they do not waive the scheduled-history guard or date/module gates.
+  Use the existing reviewed release/recovery workflow; no allowlist change,
+  force-push, manual early release or blind rerun clears this item.
 
 - [x] PR66 saved-packet resume context guard merged November 25 UTC as staged
   source. A late packet response cannot replace a newer selection or reopen

@@ -3,6 +3,9 @@ Updated: November 25, 2026 UTC
 Scope: PTHHS /primetime, repository jnwokorie1957/pthhs.
 
 CURRENT SOURCE/STAGING INDEX — NOVEMBER 25, 2026 UTC
+PR68/70 add stable own-calendar references and separate office/read timestamps.
+They are tested staged source; production/authenticated acceptance and scheduled
+release-history reconciliation remain pending. See the appended implementation.
 PR66 (2c6d335) guards saved-packet resume against superseded selections/context
 and stale document errors. Four regressions fail before; 17 focused tests on
 both source/generated controllers, 775 root tests and both quality jobs pass.
@@ -5240,3 +5243,55 @@ stop was not retried/bypassed. Earlier tenant observations retain their dates.
 No source record, private patient/staff value, credential, communication,
 clinical/financial decision, access expansion or production deployment.
 Original October 24 remains resolved by October 31.
+
+IMPLEMENTED OWN-CALENDAR REFERENCES — NOVEMBER 25, 2026 UTC
+PR68 adds the read-only projection proposed above. Final source 743c406a51897ada91901056be717297247168a5
+includes isolated PR69 runner restoration and PR70 test registration.
+This is staged Phase 2 scheduling source, not a production or tenant acceptance.
+
+The same own-schedule endpoint returns an opaque recipient/office/caregiver/
+assignment-scoped reference, stored positive revision and canonical UTC office
+update (null if missing/invalid), office_confirmed_portal origin, America/Chicago
+timezone and a separate portal fetchedAt. Internal identity/application IDs and
+editor IDs stay out of the DTO. References grant no lookup or authorization.
+No stored record, assignment, signature, HHA call, IAM setting or grant changes.
+
+Cards retain valid references in a data attribute and display office changes,
+version and Central timezone separately from when the portal was checked.
+Unknown legacy metadata stays unavailable. This is local plan provenance;
+it cannot establish a patient appointment, HHA VisitID, clinical document/visit
+version, authorization sufficiency, EVV verification or paid/billable hours.
+Existing recent-authentication, reciprocal link, recipient/office and scheduling
+module gates remain. Patient/PT/source bridges and private sharing remain open.
+
+Six regressions fail before implementation (four frontend/two backend).
+Four controller cases pass on editable/generated code; all 17 affected store,
+779 root tests across 47 discovered files and 1,059 backend tests pass.
+TypeScript, assets, syntax, repository/diff and existing raw/gzip budgets pass.
+Calendar cases are imported by the normal navigation suite; no runner change
+remains in the final content. Fictional data only; no production record testing.
+
+Release evidence is deliberately separate. PR68 quality45641742449 succeeds,
+but main45642037469 correctly rejects its mixed release-control test-runner edit;
+all deployment jobs skip. PR69 quality45642673632 and isolated proof45642988257
+pass, scope none/all deploy jobs skipped. PR70 quality 45643465128 and its
+normal push scope 45643774885 pass with all deployments skipped under the date
+hold. These forward corrections preserve PR68's failed/mixed first-parent edge.
+Scheduled publication still needs release-history review under existing policy;
+do not waive that history, force-push, alter allowlists or bypass the date gate.
+
+Next acceptance: after permitted publication and scheduling approval, verify
+stable distinct assignment references, an office edit's new version/time versus
+a fresh read receipt, missing legacy metadata, withdrawn/cross-account/office
+links, recent login and closed module behavior using approved test records.
+Record exact deployed source/browser results. January 1 publication, module
+activation and authenticated acceptance are separate. Browser input geometry
+remains the independently recorded access blocker, not a source-data diagnosis.
+
+https://github.com/jnwokorie1957/pthhs/pull/68
+https://github.com/jnwokorie1957/pthhs/pull/69
+https://github.com/jnwokorie1957/pthhs/pull/70
+https://github.com/jnwokorie1957/pthhs/actions/runs/45642988257
+Detailed implementation, failed-scope record and remaining review:
+docs/workforce/CALENDAR_PROVENANCE_2026-11-25.md
+No HHA time was recovered; original October 24 remains resolved October 31.
