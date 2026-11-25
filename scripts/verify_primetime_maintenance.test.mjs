@@ -3,6 +3,7 @@ import test from 'node:test';
 import vm from 'node:vm';
 import { readFile } from 'node:fs/promises';
 const source = await readFile(new URL('../source/primetime/maintenance.js', import.meta.url), 'utf8');
+const generatedSource = await readFile(new URL('../public/primetime/maintenance.js', import.meta.url), 'utf8');
 const dashboardSource = await readFile(new URL('../source/primetime/dashboard.js', import.meta.url), 'utf8');
 const dashboardWindow = {};
 vm.runInNewContext(dashboardSource, { window: dashboardWindow });
@@ -11,7 +12,7 @@ const date = '2026-11-05';
 const row = { id: '15', patientId: '25', caregiverId: '35', state: 'source_unvalidated', scheduledStart: date + ' 09:00', scheduledEnd: date + ' 12:00',
   actualStart: date + ' 08:57', actualEnd: null, evvStart: date + ' 08:57', evvEnd: null, detailFetchedAt: date + 'T15:00:00Z', officeCheckedAt: date + 'T15:00:01Z' };
 const day = { ok: true, mode: 'live', source: 'hhaexchange', scope: { officeId: '123', date }, items: [row], officeDayCache: { kind: 'scheduled_office_day_api', complete: true, known: true, stale: false, checkedAt: date + 'T15:01:00Z', startedAt: date + 'T15:00:00Z', completedAt: date + 'T15:00:01Z' } };
-function fixture({ active = false, live = true, rows = [row], fakeTimers = false } = {}) {
+function fixture({ active = false, live = true, rows = [row], fakeTimers = false, script = source } = {}) {
   const ids = new Map();
   const timers = new Map(); let nextTimer = 1;
   class Element extends EventTarget {
@@ -45,7 +46,7 @@ function fixture({ active = false, live = true, rows = [row], fakeTimers = false
     if (path.endsWith('/maintenance/reasons')) { saved = {...saved, revision:saved.revision+1, reasonCatalog:{fetchedAt:date+'T16:00:00Z',truncated:false,reasons:[{id:'55',name:'Synthetic reason',status:'Source status',actions:[{id:'65',name:'Synthetic action',status:'Source status'}]}]}};return{ok:true,item:saved,hhaWritesEnabled:false}; }
     throw new Error('unexpected route');
   };
-  vm.runInNewContext(source, { document, window: { primetimeDashboardModel: dashboardWindow.primetimeDashboardModel, primetimeDataMode: { isActive: () => active, isLive: () => live }, primetimeApiFetch: async (...args) => {
+  vm.runInNewContext(script, { document, window: { primetimeDashboardModel: dashboardWindow.primetimeDashboardModel, primetimeDataMode: { isActive: () => active, isLive: () => live }, primetimeApiFetch: async (...args) => {
     calls.push(args); if (delayed) return delayed;
     const value = await handler(...args); return new Response(JSON.stringify(value), { status: value.status || 200 });
   } }, AbortController, CustomEvent, Date, Intl, Map, Set, setTimeout:fakeTimers ? (fn,ms)=>{const id=nextTimer++;timers.set(id,{fn,ms});return id;} : setTimeout, clearTimeout:fakeTimers ? id=>timers.delete(id) : clearTimeout, URL: { createObjectURL(blob) { exported = blob; return 'blob:synthetic'; }, revokeObjectURL(url) { revoked.push(url); } }, Blob });
@@ -417,3 +418,67 @@ test('an unavailable refresh cannot claim that a saved visit changed', async () 
   assert.doesNotMatch(detail, /Source facts changed|08:57/);
   assert.equal(f.ids.get('maintenanceCaseForm'), undefined);
 });
+
+
+const reportApiNotice = 'HHA API cannot link existing caregiver calls to visits. Office reviews are not HHA submissions. API reasons are payer-defined; UI choices may differ. Source status and visit linkage remain unverified; HHA confirmation needs a supported contract and independent readback.';
+for (const [artifact, script] of [['source', source], ['generated', generatedSource]]) {
+  test(`report API boundary: saved review and standalone export retain guidance once (${artifact})`, async () => {
+    const f = fixture({ script }); f.ready(); await tick();
+    f.ids.get('maintenanceList').querySelectorAll('button')[0].click(); await tick();
+    f.ids.get('maintenanceNote').value = 'Synthetic factual review, awaiting independent source readback';
+    f.event('maintenanceCaseForm', 'submit'); await tick();
+    assert.equal(f.saved().hhaSubmission, 'not_submitted');
+    assert.equal(f.saved().source.evvEnd, null);
+    assert.match(f.text(f.ids.get('maintenanceDetail')), /HHA API linking of existing caregiver calls is unsupported/);
+    assert.ok(f.ids.get('maintenanceDetail').querySelectorAll('button').find(n => n.textContent.startsWith('Submit to HHA')).disabled);
+    const before = f.calls.length;
+    f.event('maintenanceReportTab'); f.event('maintenanceExport');
+    const view = f.text(f.ids.get('maintenanceReportRows')), output = await f.exported().text();
+    for (const text of [view, output]) {
+      assert.equal(text.split(reportApiNotice).length - 1, 1);
+      assert.ok(text.includes(f.ids.get('maintenanceReceipt').textContent));
+      assert.match(text, /1 loaded cases.*All requested case pages/);
+      assert.match(text, /Synthetic factual review/);
+      assert.match(text, /Schedule comparison: Not established/);
+      assert.match(text, /EVV fields: start supplied; end not supplied/);
+    }
+    assert.match(output, /Visit 15 \| Service date 2026-11-05 \| Patient 25 \| Caregiver 35/);
+    assert.match(output, /HHA changes submitted by this workspace: 0/);
+    assert.match(output, /exact visit linkage not established/);
+    assert.match(output, /SuggestedScheduleTime and Bill Time are separate/);
+    assert.match(output, /Clock fields do not establish member verification/);
+    assert.equal(f.calls.length, before);
+    assert.deepEqual(f.calls.filter(([p]) => p.endsWith('/maintenance/save')).length, 1);
+    assert.ok(f.calls.every(([p]) => !/confirm|clock-in|execute/.test(p)));
+    f.document.dispatchEvent(new Event('primetime-signed-out'));
+    assert.equal(f.ids.get('maintenanceReportRows').children.length, 0);
+  });
+  test(`report API boundary: filtered partial scope and export lock remain truthful (${artifact})`, async () => {
+    const f = fixture({ script }); f.ready(); await tick(); f.ids.get('maintenanceDateTo').value = date; f.event('maintenanceReportTab');
+    f.document.dispatchEvent(new Event('primetime-maintenance-search-started'));
+    f.document.dispatchEvent(new CustomEvent('primetime-maintenance-results', { detail: {
+      ok: true, source: 'hhaexchange', mode: 'live', scope: { officeId: '123', from: date, to: date },
+      fetchedAt: date + 'T16:00:00Z', checkedAt: date + 'T16:00:01Z', filters: ['Patient ID 25'],
+      items: [], totalIds: 2, checkedThrough: 1, nextCursor: 'next', complete: false,
+      unavailable: [{ id: '16', error: 'vendor_backoff_active' }], unknownPayers: 0, truncated: false
+    }}));
+    const report = f.ids.get('maintenanceReportRows');
+    f.event('maintenanceExport');
+    for (const text of [f.text(report), await f.exported().text()]) {
+      assert.equal(text.split(reportApiNotice).length - 1, 1);
+      assert.match(text, /Applied filters: Patient ID 25.*1 of 2.*More source reads remain/);
+      assert.match(text, /Report covers loaded or opened cases only/);
+      assert.match(text, /Vendor retry delay recorded/);
+    }
+    const before = f.calls.length, previous = f.exported();
+    f.ids.get('maintenanceDateTo').value = '2026-11-06';
+    f.document.dispatchEvent(new Event('primetime-maintenance-scope-edited'));
+    assert.match(f.text(report), /Previous result/);
+    assert.equal(f.text(report).split(reportApiNotice).length - 1, 1);
+    assert.equal(f.ids.get('maintenanceExport').disabled, true);
+    f.event('maintenanceExport'); assert.equal(f.exported(), previous);
+    assert.equal(f.calls.length, before);
+    f.document.dispatchEvent(new CustomEvent('primetime-maintenance-capabilities', { detail: { officeId: '124' } }));
+    assert.equal(report.children.length, 0);
+  });
+}
