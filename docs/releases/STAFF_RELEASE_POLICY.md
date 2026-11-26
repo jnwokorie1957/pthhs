@@ -67,18 +67,24 @@ new delivered Git source.
    hold. The resulting main **push** must complete the scope step with mode
    none and three skipped deploy jobs. A branch run or deferred schedule is
    insufficient. Reassess before merging if the date or main changes.
-2. An IAM administrator must approve a dedicated Google reader for the GitHub
-   verifier. Use direct Workload Identity Federation with the pinned Google auth
-   action, no key and no deployer impersonation. Set Actions repository variable
-   RELEASE_INVENTORY_WIF_PROVIDER to the approved provider resource name.
-   Restrict provider trust to GitHub's issuer, repository ID 1296908157, owner
-   ID 302289243, main ref, and only the following workflow_ref/event pairs:
-   deploy-firebase.yml on schedule and rehearse-january-release.yml on
-   workflow_dispatch (use full repository workflow refs ending @refs/heads/main).
-   Scope access to read the Hosting live-channel releases, versions and files,
-   and list deployed functions on primetimehomehealthservices. Do not grant
-   Editor, deployment, IAM administration, secret access, or record access.
-   This PR creates neither a provider nor a Google IAM binding.
+2. The approved direct federation provider successfully exchanged the GitHub
+   identity, but two independent rehearsals received HTTP 401 when listing
+   Firebase Hosting live releases; no missing IAM data permission was reported.
+   Use the same issuer, restricted repository/owner IDs, main ref and exact
+   workflow/event conditions. The proposed credential correction is a separate
+   keyless reader service account:
+   pthhs-release-reader@primetimehomehealthservices.iam.gserviceaccount.com.
+   Bind ONLY the existing two-permission inventory role to that account. Give
+   the existing restricted federated principal ONLY iam.serviceAccounts.getAccessToken
+   on this one account, never at project scope or on a deployer. Remove the
+   original direct project inventory-role binding for that principal during
+   transition. Verify the dedicated account has no other effective grants.
+   Enable IAM Credentials API if required. No keys, signing permissions,
+   Firebase data access or deployment authority. Use a ten-minute OAuth token;
+   the Cloud Functions list API requires the cloud-platform OAuth scope, while
+   the reader's effective permissions remain firebasehosting.sites.get and
+   cloudfunctions.functions.list. Leave RELEASE_INVENTORY_WIF_PROVIDER pointing
+   at the approved provider. Do not change the manifest, history checks or date.
 3. Run **Rehearse scheduled scope (no deployment)** on main before January 1.
    It uses the same verifier, reads live inventories, and has no deploy jobs or
    deployment outputs. Record the checked SHA and successful workflow URL.
