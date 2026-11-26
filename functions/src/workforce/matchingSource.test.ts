@@ -55,3 +55,16 @@ test('a fully earlier-week recorded interval contributes no hours to the selecte
  };
  const result=await matchingCommitments(s.workspace as any,'staff','12','101',[shift],now);assert.equal(result.complete,true);assert.deepEqual(result.commitments,[]);
 });
+
+test('source timestamp reads reject calendar rollover without changing valid clock precision',()=>{
+ for(const day of ['2026-02-29','2026-02-30','2026-04-31','2100-02-29'])for(const offset of ['Z','-06:00'])assert.throws(()=>sourceTime(day+'T09:00:00'+offset),/matching_hours_unverified/,day+offset);
+ assert.equal(sourceTime('2028-02-29T23:59:59.123+05:30'),'2028-02-29T18:29:59.123Z');
+ assert.equal(sourceTime('2026-11-17T24:00:00Z'),'2026-11-18T00:00:00.000Z');
+});
+
+test('an impossible source schedule cannot move out of the requested week and clear commitments',async()=>{
+ const s=source('future'),original=s.workspace.query;s.workspace.query=async(input:any,actor:string,scope?:string)=>{
+  const result=await original(input,actor,scope);if(input.operation==='GetVisitInfoV3')Object.assign(result.records[0]!,{ScheduleStartTime:'2026-11-31T09:00:00-06:00',ScheduleEndTime:'2026-11-31T13:00:00-06:00'});return result;
+ };
+ await assert.rejects(matchingCommitments(s.workspace as any,'staff','12','101',[shift],now),(error:any)=>error.code==='matching_hours_unverified');
+});

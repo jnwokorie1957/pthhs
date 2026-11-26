@@ -11,15 +11,20 @@ export interface RouteProof {meters:number;seconds:number;checkedAt:string}
 export interface CandidateEvidence {id:string;preferences:MatchPreferences;qualification:Qualification;commitments:Window[];complete:boolean;route:RouteProof;checkedAt:string}
 const format=new Intl.DateTimeFormat('en-CA',{timeZone:MATCH_TIMEZONE,year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hourCycle:'h23'});
 export function localTime(epoch:number){const p=format.formatToParts(new Date(epoch)),get=(key:string)=>p.find(v=>v.type===key)!.value;return `${get('year')}-${get('month')}-${get('day')}T${get('hour')}:${get('minute')}`;}
+export function validCalendarDate(value:string){
+ if(!/^\d{4}-\d\d-\d\d$/.test(value))return false;
+ const date=new Date(value+'T12:00:00Z');
+ return Number.isFinite(date.getTime())&&date.toISOString().slice(0,10)===value;
+}
 export function localInstant(value:string){
- if(typeof value!=='string'||!/^\d{4}-\d\d-\d\dT\d\d:\d\d$/.test(value))throw new WorkforceError(400,'matching_time_invalid');
+ if(typeof value!=='string'||!/^\d{4}-\d\d-\d\dT\d\d:\d\d$/.test(value)||!validCalendarDate(value.slice(0,10)))throw new WorkforceError(400,'matching_time_invalid');
  const approximate=Date.parse(value+'Z');if(!Number.isFinite(approximate))throw new WorkforceError(400,'matching_time_invalid');
  const options=[5,6].map(hours=>approximate+hours*3600000).filter(epoch=>localTime(epoch)===value);
  if(options.length!==1)throw new WorkforceError(400,'matching_time_ambiguous_or_missing');return new Date(options[0]!).toISOString();
 }
 export function interval(input:unknown):Window{
  const v=input as Window;if(!v||typeof v!=='object'||Object.keys(v).some(k=>!['start','end'].includes(k)))throw new WorkforceError(400,'matching_time_invalid');
- const convert=(s:string)=>{if(typeof s!=='string')throw new WorkforceError(400,'matching_time_invalid');if(/^\d{4}-\d\d-\d\dT\d\d:\d\d$/.test(s))return localInstant(s);if(!/^\d{4}-\d\d-\d\dT\d\d:\d\d(?::\d\d(?:\.\d{1,3})?)?(?:Z|[+-]\d\d:\d\d)$/.test(s)||!Number.isFinite(Date.parse(s)))throw new WorkforceError(400,'matching_time_invalid');return new Date(s).toISOString();};
+ const convert=(s:string)=>{if(typeof s!=='string')throw new WorkforceError(400,'matching_time_invalid');if(/^\d{4}-\d\d-\d\dT\d\d:\d\d$/.test(s))return localInstant(s);if(!/^\d{4}-\d\d-\d\dT\d\d:\d\d(?::\d\d(?:\.\d{1,3})?)?(?:Z|[+-]\d\d:\d\d)$/.test(s)||!validCalendarDate(s.slice(0,10))||!Number.isFinite(Date.parse(s)))throw new WorkforceError(400,'matching_time_invalid');return new Date(s).toISOString();};
  const start=convert(v.start),end=convert(v.end),length=Date.parse(end)-Date.parse(start);
  if(length<=0||length>25*3600000)throw new WorkforceError(400,'matching_time_invalid');return {start,end};
 }

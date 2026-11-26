@@ -30,3 +30,16 @@ test('inputs reject extra fields, overlapping windows and SMS without portal con
  const p=candidate().preferences;assert.throws(()=>preferences({...p,optIn:false}),/preferences_invalid/);assert.throws(()=>preferences({...p,privateData:'x'}),/preferences_invalid/);assert.throws(()=>preferences({...p,available:[shift,shift]}),/overlapping_shifts/);
  assert.throws(()=>plan({placeId:'address',shifts:[shift],automatic:true},Date.parse(shift.start)),/future_shifts_required/);
 });
+
+test('offset shift windows reject impossible calendar dates instead of rolling into another day',()=>{
+ for(const day of ['2026-02-29','2026-02-30','2026-04-31','2100-02-29']){
+  for(const offset of ['Z','-06:00'])assert.throws(()=>interval({start:day+'T09:00:00'+offset,end:day+'T10:00:00'+offset}),/matching_time_invalid/,day+offset);
+ }
+});
+
+test('calendar validation preserves leap days, fractions, explicit DST offsets and end-of-day notation',()=>{
+ assert.deepEqual(interval({start:'2028-02-29T09:00:00.125+05:30',end:'2028-02-29T10:00:00.250+05:30'}),{start:'2028-02-29T03:30:00.125Z',end:'2028-02-29T04:30:00.250Z'});
+ const repeated=interval({start:'2026-11-01T01:30:00-05:00',end:'2026-11-01T01:30:00-06:00'});assert.equal(Date.parse(repeated.end)-Date.parse(repeated.start),3600000);
+ assert.deepEqual(interval({start:'2026-11-17T23:00Z',end:'2026-11-17T24:00Z'}),{start:'2026-11-17T23:00:00.000Z',end:'2026-11-18T00:00:00.000Z'});
+ assert.throws(()=>localInstant('2026-11-01T01:30'),/ambiguous_or_missing/);
+});
