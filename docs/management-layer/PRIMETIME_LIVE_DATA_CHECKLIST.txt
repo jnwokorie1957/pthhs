@@ -5,6 +5,30 @@ area, map the actual source, connect available authorized data and verify it.
 This is the connection backlog, not a declaration of an active Codex goal.
 This document does not claim every tab is connected.
 
+STAGED MATCHING CALENDAR GUARD — NOVEMBER 26, 2026 UTC
+PR74 / add5b13dbe8ca997ba2ad38d2b733505ff04f643 rejects impossible calendar dates
+before the workforce matching consumer converts schedule/recorded timestamps.
+A synthetic invalid date previously rolled into another month and disappeared
+outside the requested week. The existing source-unverified/input-invalid outcomes
+now hold. Valid leap days, fractions, explicit DST offsets and supported end-of-day
+notation retain their behavior. No raw HHA projection, EVV/hour field or unit rule
+changed. This does not recover a missing time or complete availability/history.
+
+Three regressions fail before; 18 focused/1,063 backend tests pass after, with
+focused UTC/Pacific-Auckland runs, four frontend and 28 article tests passing.
+Assets, TypeScript, repository/diff and final quality jobs45765261113 pass.
+Four generated public-register context cells match preserved articles; identities,
+classifications and rationales are unchanged. Normal push45765392934 verifies
+full scope at the merged source; all three deploy jobs skip under the January 1
+Central hold. No current protected historical/current-day comparison, actual
+source-field classification, deployment or authenticated acceptance is claimed.
+Original October 24 remains resolved October 31. Existing normal-session access,
+original-event/visit/history, units/readback, held-visit and interpretation actions
+remain separate. After permitted delivery/module approval, verify deployed source
+and approved synthetic invalid/valid-date cases without changing HHA records.
+https://github.com/jnwokorie1957/pthhs/pull/74
+docs/workforce/MATCHING_CALENDAR_DATE_GUARD_2026-11-26.md
+
 SOURCE ACCESS CHECKPOINT — NOVEMBER 25, 2026 14:45 UTC HEARTBEAT
 Source basis: 2b4f2001f0f798a8447c0b05b24fa6aee185162f. Concurrent workforce CSP,
 deployment-credential hardening and synthetic IAM runbook changes are preserved.

@@ -1,5 +1,20 @@
 # PTHHS Management Layer — Developer Checklist
 
+- [x] PR74 calendar-date guard merged as staged source `add5b13`. Impossible
+  entered/source dates can no longer roll into another month and disappear from
+  matching's selected week. Three regressions fail before; 18 focused, 1,063
+  backend, four frontend and 28 article tests pass. Valid leap days, precision,
+  explicit DST offsets and supported end-of-day notation retain their behavior.
+  Four generated register context cells now match the preserved public articles;
+  all 871 classifications/rationales remain unchanged. Both final quality jobs
+  and normal full-scope verification pass; all deployments skip under the hold.
+  [Implementation and evidence](../workforce/MATCHING_CALENDAR_DATE_GUARD_2026-11-26.md).
+- [ ] PR74 production/authenticated acceptance after authorized publication and
+  applicable module approval: verify deployed source, invalid-date rejection and
+  valid offset/precision behavior with approved synthetic/test cases. Do not
+  change HHA records to test malformed source dates. This guard establishes no
+  absence/status history, complete availability, paid hours or recovered EVV time.
+
 - [ ] P1 before source-backed matching/scheduling eligibility activation:
   validate complete absence/restriction coverage. Current visit commitments and
   weekly other-work review do not read the absence ledger. November vendor

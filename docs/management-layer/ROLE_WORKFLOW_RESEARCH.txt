@@ -3,6 +3,8 @@ Updated: November 26, 2026 UTC (November 25 18:42 heartbeat)
 Scope: PTHHS /primetime, repository jnwokorie1957/pthhs.
 
 LATEST RESEARCH — NOVEMBER 26, 2026 UTC
+PR74's calendar-date validation is implemented in staged source; see the appended
+test/release receipt. Source coverage and cross-role acceptance remain pending.
 November vendor release adds partial-day absence and visit-date status concerns.
 The appended review distinguishes public schema/source observations from proposed
 acceptance. No current tenant/API record validation or runtime change is claimed.
@@ -5436,3 +5438,35 @@ for these three documentation-only changes; tenant acceptance remains pending.
 January 1 publication, scheduled-history review, module activation and production
 acceptance remain separate pending gates. Original October 24 stays resolved
 by the independent October 31 reread; no new time recovery is claimed here.
+
+IMPLEMENTED CALENDAR-DATE GUARD — NOVEMBER 26, 2026 UTC
+PR74 / add5b13dbe8ca997ba2ad38d2b733505ff04f643 implements a bounded validation
+improvement supporting the proposed interval acceptance. JavaScript normalized
+impossible offset dates into another month; a mocked malformed source schedule
+then disappeared outside the selected week. Matching now checks calendar dates
+before converting entered shifts or source schedule/recorded clocks. Existing
+invalid-input/source-unverified outcomes hold; no source value is corrected.
+Valid leap days, fractional precision, explicit DST offsets and supported
+end-of-day notation are preserved; ambiguous unzoned Central times still hold.
+
+Three new regressions fail before; all 18 matching/source tests and 1,063 backend
+tests pass after. Focused tests also pass under UTC and Pacific/Auckland. Four
+frontend and 28 article tests, TypeScript, asset consistency, repository and diff
+checks pass. Four public generated-register context cells were refreshed from
+preserved article text, with all 871 classifications/rationales unchanged.
+No served asset, read operation/permission, grant or source record changed.
+
+Both final quality jobs45765261113 pass. Normal push45765392934 verifies full
+scope at the merged source; backend/Hosting/analytics deployments all skip under
+the January 1 Central hold. PR72/73 isolated control no-deploy proofs were checked
+before application commits; their controls and concurrent articles are preserved.
+No deployment, authenticated role/source acceptance or recovered time is claimed.
+This does not implement absence/status contracts, complete availability, a
+patient/PT/clinical bridge or paid/billable-hour interpretation. Those research
+items remain open. After approved publication/module activation, verify exact
+deployed source and synthetic invalid/valid-date outcomes; do not mutate HHA
+records to manufacture malformed inputs. Existing owner/vendor actions remain.
+https://github.com/jnwokorie1957/pthhs/pull/74
+https://github.com/jnwokorie1957/pthhs/actions/runs/45765261113
+https://github.com/jnwokorie1957/pthhs/actions/runs/45765392934
+docs/workforce/MATCHING_CALENDAR_DATE_GUARD_2026-11-26.md

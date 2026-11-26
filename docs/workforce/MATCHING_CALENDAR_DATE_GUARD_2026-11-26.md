@@ -62,3 +62,15 @@ approved synthetic/test cases to confirm invalid calendar dates hold, valid
 offset/precision behavior is preserved and existing denial/pending outcomes
 remain. Do not create or edit an HHA record to test malformed source data.
 Production and authenticated acceptance remain pending until that evidence exists.
+
+## Staged merge and workflow evidence
+
+[PR74](https://github.com/jnwokorie1957/pthhs/pull/74) is merged as
+`add5b13dbe8ca997ba2ad38d2b733505ff04f643`. Both final
+[quality jobs](https://github.com/jnwokorie1957/pthhs/actions/runs/45765261113)
+pass. The initial site check found the stale generated register; the four-cell
+refresh above resolves it without changing the preserved articles or rules.
+The normal [main push](https://github.com/jnwokorie1957/pthhs/actions/runs/45765392934)
+passes release-scope verification with mode `full` at that exact source. Backend,
+Hosting and analytics deployment jobs all skip under the publication hold.
+This is verified staged software, not a deployment or authenticated source test.

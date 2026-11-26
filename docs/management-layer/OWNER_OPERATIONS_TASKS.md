@@ -23,6 +23,9 @@
   employment/account access must not be changed by historical visit evidence.
   No new endpoint approval or communication is inferred from public release notes.
   [November 26 research, source limits and proposed acceptance](ROLE_WORKFLOW_RESEARCH.txt).
+  [PR74's staged calendar guard](../workforce/MATCHING_CALENDAR_DATE_GUARD_2026-11-26.md)
+  rejects impossible dates; it does not satisfy this source-coverage/history item
+  or approve matching, source access, sending or publication.
 
 - [ ] Before scheduled publication of the staged calendar changes, the
   release operator must reconcile the failed/mixed main-history source from
