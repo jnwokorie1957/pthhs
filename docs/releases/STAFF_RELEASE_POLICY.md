@@ -41,6 +41,53 @@ is bounded to five 100-run pages; insufficient history requires reconciliation.
 Receipt-triggered Hosting uses its validated pinned source, not the receipt head.
 No token, credential, permission, source-read or record authority changes.
 
+## January 2027 incident reconciliation (proposed control rollout)
+
+For the interval audited in [PR #71](https://github.com/jnwokorie1957/pthhs/pull/71),
+the scheduled selector can recognize three exact mixed commits and their four
+reviewed push runs, including the isolated runner restoration. It verifies
+commit, first parent and tree, run/attempt/job identity, the scope step and
+three skipped component jobs. It retains the independently delivered sources
+from run 45066249129; no failed run is a delivery or a successful control proof.
+Unrelated failed runs and mixed commits still stop selection.
+
+The exception requires fresh Google API reads during the same verification.
+The current and previous Hosting channel releases, their complete 292-file
+manifests and their two distinct configuration hashes must match. The previous
+Hosting release and all nine backend/two analytics function updates must fall
+in the respective successful baseline job intervals. Function identities,
+revisions, build IDs, timestamps, status and codebases are fingerprinted. A
+changed inventory, missing page, unreachable region or denied read stops the
+release. Never update the pinned values automatically or treat an audit as a
+new delivered Git source.
+
+**Operator sequence before launch**
+
+1. Review this policy in a control-only PR; merge only within the publication
+   hold. The resulting main **push** must complete the scope step with mode
+   none and three skipped deploy jobs. A branch run or deferred schedule is
+   insufficient. Reassess before merging if the date or main changes.
+2. An IAM administrator must approve a dedicated Google reader for the GitHub
+   verifier. Use direct Workload Identity Federation with the pinned Google auth
+   action, no key and no deployer impersonation. Set Actions repository variable
+   RELEASE_INVENTORY_WIF_PROVIDER to the approved provider resource name.
+   Restrict provider trust to GitHub's issuer, repository ID 1296908157, owner
+   ID 302289243, main ref, and only the following workflow_ref/event pairs:
+   deploy-firebase.yml on schedule and rehearse-january-release.yml on
+   workflow_dispatch (use full repository workflow refs ending @refs/heads/main).
+   Scope access to read the Hosting live-channel releases, versions and files,
+   and list deployed functions on primetimehomehealthservices. Do not grant
+   Editor, deployment, IAM administration, secret access, or record access.
+   This PR creates neither a provider nor a Google IAM binding.
+3. Run **Rehearse scheduled scope (no deployment)** on main before January 1.
+   It uses the same verifier, reads live inventories, and has no deploy jobs or
+   deployment outputs. Record the checked SHA and successful workflow URL.
+   A refusal is a launch blocker; repeat after a material change. A passing
+   rehearsal is evidence for that SHA and time, never permission to publish early.
+4. The normal release workflow still enforces January 1 midnight Central,
+   runs fresh verification, and retains separate backend, Hosting and analytics
+   checks. Do not dispatch the production Hosting workflow for rehearsal.
+
 Rollback remains a reviewed forward revert, checked against current delivery
 evidence. Selecting an older checkout or bypassing held changes is not recovery.
 Local tests are not evidence that this policy or the drawer article is deployed.

@@ -1,0 +1,31 @@
+name: Rehearse scheduled scope (no deployment)
+on: workflow_dispatch
+permissions: {}
+jobs:
+  rehearse:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      actions: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Authenticate read-only inventory verifier
+        id: inventory
+        uses: google-github-actions/auth@7c6bc770dae815cd3e89ee6cdf493a5fab2cc093
+        with:
+          workload_identity_provider: ${{ vars.RELEASE_INVENTORY_WIF_PROVIDER }}
+          create_credentials_file: false
+          export_environment_variables: false
+      - name: Replay without publishing or emitting deployment outputs
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          RELEASE_INVENTORY_TOKEN: ${{ steps.inventory.outputs.auth_token }}
+        run: node scripts/release-scope.mjs --rehearse

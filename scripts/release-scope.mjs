@@ -3,6 +3,7 @@ import fs from 'node:fs';
 import { execFileSync } from 'node:child_process';
 import { pathToFileURL } from 'node:url';
 import { deliveryBaselines, releaseControlPath, scheduledPlan } from './scheduled-release.mjs';
+import { januaryReview } from './january-history.mjs';
 
 export const RECEIPT = 'docs/releases/hosting-release.json';
 const SHA = /^[0-9a-f]{40}$/;
@@ -31,6 +32,7 @@ export function gitRepository(cwd = process.cwd()) {
   const commit = sha => { assert(SHA.test(sha), 'Expected exact commit SHA'); assert.equal(git('rev-parse', `${sha}^{commit}`), sha); };
   return {
     commit,
+    tree(sha) { commit(sha); return git('rev-parse',sha+'^{tree}'); },
     ancestor(a,b) { commit(a); commit(b); git('merge-base','--is-ancestor',a,b); },
     files(a,b) { return execFileSync('git',['diff','--no-renames','--name-only','-z',a,b],{cwd,encoding:'utf8'}).split('\0').filter(Boolean); },
     parents(sha) { return git('show','-s','--format=%P',sha).split(' ').filter(Boolean); },
@@ -141,7 +143,9 @@ export function deliveredSource(run, repo) {
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   const repo = gitRepository();
   let selection;
-  if (process.env.GITHUB_EVENT_NAME === 'schedule') {
+  const rehearsal = process.argv[2] === '--rehearse';
+  if (rehearsal) assert.equal(process.env.GITHUB_EVENT_NAME,'workflow_dispatch');
+  if (process.env.GITHUB_EVENT_NAME === 'schedule' || rehearsal) {
     assert.equal(process.env.GITHUB_REF, 'refs/heads/main');
     const request = async path => {
       assert(process.env.GITHUB_TOKEN, 'Missing release-history access');
@@ -153,15 +157,21 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
       return response.json();
     };
     const verifiedNoDeploy = new Set();
+    const review = januaryReview(process.env.GITHUB_REPOSITORY, repo, async url => {
+      const token = process.env.RELEASE_INVENTORY_TOKEN;
+      assert(token, 'January reconciliation requires read-only Google inventory access');
+      const r = await fetch(url,{headers:{Authorization:'Bearer '+token},redirect:'error'});
+      assert(r.ok,'Live inventory read failed: HTTP '+r.status); return r.json();
+    });
     const baselines = await deliveryBaselines(process.env.GITHUB_REPOSITORY, process.env.GITHUB_RUN_ID,
-      request, run => deliveredSource(run, repo), verifiedNoDeploy);
-    selection = scheduledPlan(process.env.GITHUB_SHA, baselines, repo, marketingPath, verifiedNoDeploy);
+      request, run => deliveredSource(run, repo), verifiedNoDeploy,review);
+    selection = scheduledPlan(process.env.GITHUB_SHA, baselines, repo, marketingPath, verifiedNoDeploy,review);
     console.log('Verified delivery baselines:', JSON.stringify(baselines));
   } else {
     selection = releaseSelection(process.env.GITHUB_EVENT_NAME, process.env.GITHUB_REF,
       JSON.parse(fs.readFileSync(process.env.GITHUB_EVENT_PATH,'utf8')), process.env.GITHUB_SHA, repo);
   }
   const {mode, releaseSha} = selection;
-  fs.appendFileSync(process.env.GITHUB_OUTPUT, `mode=${mode}\nrelease_sha=${releaseSha}\n`);
+  if (!rehearsal) fs.appendFileSync(process.env.GITHUB_OUTPUT, `mode=${mode}\nrelease_sha=${releaseSha}\n`);
   console.log(`Verified release scope: ${mode}; source: ${releaseSha}`);
 }

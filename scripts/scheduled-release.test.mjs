@@ -7,6 +7,28 @@ import path from 'node:path';
 import {execFileSync} from 'node:child_process';
 import {deliveryBaselines, scheduledPlan} from './scheduled-release.mjs';
 import {marketingPath, classifyEvent, deliveredSource, RECEIPT, gitRepository} from './release-scope.mjs';
+import {januaryReview,verifyLiveInventory} from './january-history.mjs';
+
+test('January exception requires the reviewed first-attempt scope failure, exact Git ancestry/tree and no delivery',async()=>{
+  const head='3ca8601aac1b4293528df0517709171436984cd4', parent='742af9d5931ee60d600bf1dc6472e4aa300855f6',tree='4c16cea75da7d1c463cffb055d118d3a877a6f8a';
+  const run={id:45642037469,event:'push',head_branch:'main',head_sha:head,run_attempt:1,status:'completed',conclusion:'failure'};
+  const jobs=['release_scope','build_and_deploy','deploy_backend','deploy_website_analytics'].map((name,i)=>({name,id:i?i:139302993371,run_id:run.id,run_attempt:1,status:'completed',conclusion:i?'skipped':'failure',steps:i?[]:[{name:'Verify release scope',conclusion:'failure'}]}));
+  const git={parents:()=>[parent],tree:()=>tree},review=(g=git)=>januaryReview('jnwokorie1957/pthhs',g,()=>assert.fail('missing incident records cannot query production'));
+  const partial=review();partial.observe(run,jobs);assert(!partial.mixed(parent,head));await assert.rejects(partial.finish({},run,jobs),/Incomplete/);
+  for(const change of [r=>{r.run_attempt=2},r=>{r.event='schedule'},r=>{r.head_sha=parent}]){const other={...run};change(other);assert.throws(()=>review().observe(other,jobs));}
+  for(const change of [j=>j.pop(),j=>{j[1].conclusion='success'},j=>{j[0].steps[0].name='Checkout'},j=>{j[0].id++},j=>{j[3].run_attempt++}]){const other=structuredClone(jobs);change(other);assert.throws(()=>review().observe(run,other));}
+  assert.throws(()=>review({...git,tree:()=>parent}).observe(run,jobs));assert.throws(()=>review({...git,parents:()=>[head]}).observe(run,jobs));
+  assert.equal(januaryReview('other/repository',git,()=>{}),undefined);
+});
+
+test('January inventory fails closed on unreadable, missing or changed live evidence',async()=>{
+  await assert.rejects(verifyLiveInventory(async()=>{throw Error('403');},[]),/403/);
+  await assert.rejects(verifyLiveInventory(async()=>({releases:[]}),[]),/Live Hosting delivery changed/);
+  const releases=['d9b13bf09c70ed12','859d79ebd216f736'].map(id=>({type:'DEPLOY',releaseTime:'2026-11-22T20:27:30Z',version:{name:'sites/primetimehomehealthservices/versions/'+id}}));
+  await assert.rejects(verifyLiveInventory(async()=>({releases}),[]),/outside verified delivery/);
+  await assert.rejects(verifyLiveInventory(async u=>u.includes('/channels/')?{releases}:u.includes('/files?')?{files:[]}:
+    {name:releases[0].version.name,status:'FINALIZED',fileCount:292,config:{}},[{name:'build_and_deploy',started_at:'2026-11-22T20:26:53Z',completed_at:'2026-11-22T20:27:35Z'}]),/configuration changed/);
+});
 
 const a='a'.repeat(40), b='b'.repeat(40), c='c'.repeat(40);
 const names=['build_and_deploy','deploy_backend','deploy_website_analytics'];
