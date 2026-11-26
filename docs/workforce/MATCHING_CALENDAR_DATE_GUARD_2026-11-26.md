@@ -31,6 +31,10 @@ Validation before publication:
 - Four existing matching frontend tests pass. Primetime assets, workforce runtime
   and workforce asset references are current; no generated asset changes or size
   budget increases are needed. TypeScript and diff checks pass.
+- Refresh the generated sensitive-term register to match the preserved public
+  article text: four context cells change, with all 871 row identities,
+  classifications and rationales unchanged. No article or classification rule
+  is edited. This repairs the generated-file consistency check for that text.
 - Only fictional records and mocked HHA reads are used. No source record, grant,
   assignment, clinical/financial state or communication is changed.
 
