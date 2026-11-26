@@ -81,4 +81,4 @@ For questions about nonmedical personal assistance from Primetime Home Health Se
 - [CDC: Caring for Yourself When Caring for Another](https://www.cdc.gov/caregiving/caring-for-yourself/index.html), reviewed November 5, 2026.
 - [Family Caregiver Alliance: Holiday Caregiving](https://www.caregiver.org/resource/smart-caregiving-by-fca-holiday-caregiving/), reviewed November 5, 2026.
 
-This article offers general household-coordination ideas for nonmedical support. It does not provide medical advice, determine eligibility, or guarantee a service or schedule. The example and planning-note format are original editorial illustrations. Prepared with AI assistance and reviewed for source accuracy and company scope.
+This article offers general household-coordination ideas for nonmedical support. It does not provide medical advice, determine eligibility, or guarantee a service or schedule. The example and planning-note format are original editorial illustrations. Reviewed for source accuracy and company scope.

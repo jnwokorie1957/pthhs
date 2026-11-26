@@ -83,4 +83,4 @@ When your family is ready to ask about nonmedical assistance in Greater Houston,
 
 ## Sources and scope
 
-The linked ACL, Family Caregiver Alliance and PTHHS pages were checked November 6, 2026. The dialogue and closing-note format are original editorial examples for ordinary, nonmedical family communication. They do not provide clinical, legal or eligibility advice, determine a person's decision-making abilities, or guarantee a service or outcome. Prepared with AI assistance and reviewed for source accuracy and company scope.
+The linked ACL, Family Caregiver Alliance and PTHHS pages were checked November 6, 2026. The dialogue and closing-note format are original editorial examples for ordinary, nonmedical family communication. They do not provide clinical, legal or eligibility advice, determine a person's decision-making abilities, or guarantee a service or outcome. Reviewed for source accuracy and company scope.

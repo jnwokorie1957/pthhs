@@ -97,4 +97,4 @@ For an ordinary family task, begin with the items the person selected and end by
 
 ## Sources and scope
 
-The linked United Spinal Association, ARM & HAMMER, U.S. Fire Administration and PTHHS sources were reviewed November 15, 2026. The organizing method and household example are original editorial suggestions for routine, nonmedical family help. They are not an agency procedure, specialist laundering protocol, appliance-repair guide, eligibility determination or guarantee against damage. Prepared with AI assistance and reviewed for source accuracy and company scope.
+The linked United Spinal Association, ARM & HAMMER, U.S. Fire Administration and PTHHS sources were reviewed November 15, 2026. The organizing method and household example are original editorial suggestions for routine, nonmedical family help. They are not an agency procedure, specialist laundering protocol, appliance-repair guide, eligibility determination or guarantee against damage. Reviewed for source accuracy and company scope.

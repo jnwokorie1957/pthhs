@@ -373,7 +373,7 @@ class DifferentCaregiverTests(unittest.TestCase):
             'Do not include medical details or other sensitive information in a general family message',
             'Leave sensitive records, passwords, identification numbers and door codes off this general household note',
             'Availability and individual arrangements must be confirmed with the office',
-            'Editorial note: Prepared with AI assistance as general, nonmedical information.',
+            'Editorial note: General, nonmedical information.',
         ):
             self.assertIn(expected, plaintext(body))
         for private in ('Editorial handoff', 'not for public rendering', 'Suggested title:',
@@ -435,7 +435,7 @@ class HolidayArticleTests(unittest.TestCase):
             'The last date the temporary arrangement applies and what is expected afterward.',
             "the cousin's travel is delayed",
             'not PTHHS policy or holiday availability',
-            'Prepared with AI assistance and reviewed for source accuracy and company scope.',
+            'Reviewed for source accuracy and company scope.',
         ):
             self.assertIn(expected, text)
         self.assertEqual(page.count('Published by Robert, CTO of Primetime Home Health Services'), 1)
@@ -455,7 +455,7 @@ class LaundryArticleTests(unittest.TestCase):
         slug = 'helping-with-laundry-without-losing-track-of-clothes'
         source = ROOT / 'content/articles' / (slug + '.md')
         self.assertEqual(hashlib.sha256(source.read_bytes()).hexdigest(),
-                         'd68a465fc610647f931584feb406fe6756949df16544b84ec9cda9fdab6c14b8')
+                         'b71c3b971954f6c0e07b26a132ddce0deff1a939725db48a7be2a58dae631fa2')
         article = next(a for a in approved_articles() if a.slug == slug)
         self.assertEqual(article.published, '2026-11-15')
         self.assertEqual(article.research_checked, '2026-11-15')
@@ -476,7 +476,7 @@ class LaundryArticleTests(unittest.TestCase):
             'Do not add tasks or time through a family note.',
             'whether anyone has actually agreed to do it.',
             'They are not an agency procedure, specialist laundering protocol, appliance-repair guide, eligibility determination or guarantee against damage.',
-            'Prepared with AI assistance and reviewed for source accuracy and company scope.',
+            'Reviewed for source accuracy and company scope.',
         ):
             self.assertIn(expected, text)
 

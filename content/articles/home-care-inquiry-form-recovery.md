@@ -77,4 +77,4 @@ The aim is a contact experience that explains its requirements and helps people 
 
 ## Sources and scope
 
-The linked PTHHS page and W3C guidance were reviewed November 5, 2026. The examples and review script are original editorial applications, not deployed functionality, a certification of accessibility or security, or a clinical, eligibility, or regulatory assessment. This article was prepared with AI assistance and reviewed for source accuracy and company scope.
+The linked PTHHS page and W3C guidance were reviewed November 5, 2026. The examples and review script are original editorial applications, not deployed functionality, a certification of accessibility or security, or a clinical, eligibility, or regulatory assessment. Reviewed for source accuracy and company scope.

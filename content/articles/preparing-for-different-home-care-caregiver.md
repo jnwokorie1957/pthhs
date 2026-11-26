@@ -66,4 +66,4 @@ Ask the person what felt comfortable and what they would like handled differentl
 
 If a visit arrangement changes again, reconfirm the practical details. For questions about nonmedical home care with [Primetime Home Health Services](https://pthhs.net), use the [company contact page](https://pthhs.net/home-care-contact-us). Availability and individual arrangements must be confirmed with the office.
 
-Editorial note: Prepared with AI assistance as general, nonmedical information.
+Editorial note: General, nonmedical information.
