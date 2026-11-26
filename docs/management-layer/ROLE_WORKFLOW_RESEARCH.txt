@@ -1,6 +1,11 @@
 PRIMETIME ROLE AND WORKFLOW RESEARCH
-Updated: November 25, 2026 UTC
+Updated: November 26, 2026 UTC (November 25 18:42 heartbeat)
 Scope: PTHHS /primetime, repository jnwokorie1957/pthhs.
+
+LATEST RESEARCH — NOVEMBER 26, 2026 UTC
+November vendor release adds partial-day absence and visit-date status concerns.
+The appended review distinguishes public schema/source observations from proposed
+acceptance. No current tenant/API record validation or runtime change is claimed.
 
 CURRENT SOURCE/STAGING INDEX — NOVEMBER 25, 2026 UTC
 PR68/70 add stable own-calendar references and separate office/read timestamps.
@@ -15,8 +20,8 @@ approval remain. Concurrent recruiting, caregiver and later-module source work
 is preserved; its presence in main is not evidence of live role availability.
 PR52's November 22 delivered caregiver-context correction remains dated evidence.
 See the appended November 25 implementation and Phase 2 calendar-reference
-research entries. The next bounded calendar projection and cross-role acceptance
-are specified there; HHA/clinical joins remain proposed.
+research entries. The bounded calendar projection is implemented in staged
+source; cross-role acceptance and HHA/clinical joins remain pending/proposed.
 
 HISTORICAL STATUS INDEX — NOVEMBER 16, 2026 UTC
 Runtime c6dcc7e includes PR40 lookup-query guards and concurrent PR38/PR39.
@@ -5295,3 +5300,139 @@ https://github.com/jnwokorie1957/pthhs/actions/runs/45642988257
 Detailed implementation, failed-scope record and remaining review:
 docs/workforce/CALENDAR_PROVENANCE_2026-11-25.md
 No HHA time was recovered; original October 24 remains resolved October 31.
+
+PARTIAL-DAY ABSENCE, EFFECTIVE STATUS AND FORM PREPARATION — NOVEMBER 26 UTC
+Continuation of the November 25 18:42 UTC role-research heartbeat. Actual public
+schema receipt: November 26 at 04:55 UTC. Source reviewed: ca4a9f7b7501ec3f707696dd818999258f6151b1.
+This is research and proposed acceptance, not new tenant observation, integration
+delivery, staffing approval or activation. Earlier dated observations remain.
+
+Current primary-source findings (public documentation, checked November 26):
+HHA's November 2026 release describes hourly absences and caregiver status checks
+for the visit date. It also describes advance form preparation from future
+authorizations, clinical/forms-permission-dependent OASIS authentication and
+questionnaire-save guidance before clock-out. These are vendor capabilities;
+this review establishes neither tenant enablement nor an approved API contract.
+https://knowledge.hhaexchange.com/enterprise/Content/Release-Notes/New-UI/RN-N-Release-Notes-26.11.01.htm
+The general absence guide distinguishes absences, payroll PTO and contract
+restrictions. Its date-oriented instructions do not resolve the new hourly API
+encoding. The status guide separately describes scheduled employment changes.
+Primary-office timezone guidance applies to caregiver absence/availability and
+status information; a fixed UTC offset must not be assumed from its label.
+https://knowledge.hhaexchange.com/enterprise/Content/Documentation/Caregiver/CG-N-Absence-Restriction-Page-S.htm
+https://knowledge.hhaexchange.com/enterprise/Content/Documentation/Caregiver/CG-N-Caregiver-Status-S.htm
+https://knowledge.hhaexchange.com/enterprise/Content/Documentation/Caregiver/CG-N-Time-Zone-Primary-Office-P.htm
+
+Observed source and public schema, not patient/staff record values:
+- reads.ts projects GetCaregiverAbsenceChangesV2Info: OfficeID,
+  CaregiverAbsenceID, CaregiverID, ModifiedDate, AbsenceTypeID/Name, StartDate,
+  EndDate, ContractID and PayRateID. Its changePreview explicitly leaves
+  completeness not_inferred and checkpointAdvanced false. A preview is not a
+  complete absence census. Notes are not needed for the proposed conflict view.
+- The anonymous ENT v1.8 WSDL declares
+  GetCaregiverAbsenceChangesV2Result/GetCaregiverAbsenceChangesV2Info/StartDate
+  and /EndDate as optional xsd:string. Their names/types establish neither
+  date-only nor timestamp semantics. No separate hourly field is declared on
+  that record type. V3 has pagination and reuses the V2 record type; V4 has
+  Pagination and a corresponding record with the same named date fields.
+  Existence in WSDL is not approval to enable or query a new version.
+  https://cloud.hhaexchange.com/Integration/ENT/V1.8/ws.asmx?WSDL
+- caregiverAvailability.ts scopes permanent/special availability by caregiver
+  and office, rechecks membership/settings and retains weekday From/To/LiveIn
+  values as raw fields. It explicitly returns caregiver_availability_unvalidated.
+  This read is not an absence interval or employment-status-history interpreter.
+- GetCaregiverDemographics currently projects CaregiverInfo/Status/Name and
+  LastModifiedDate. HhaProfileSource returns that status; matchingCommitments
+  requires current Active, one office and complete visit discovery/detail reads.
+  It does not query absence changes or assemble effective-date status history.
+  Its complete schedule result does not establish absence/restriction coverage.
+- matchingStore additionally requires recent weekly other-work review and
+  qualification/actor checks. Those reviews are not a mapped source-absence
+  ledger. The paid-hour guard remains separate. This review did not run matching,
+  create a notice, activate Maps/SMS or change any of these controls.
+
+Immutable implementation evidence for those observations:
+https://github.com/jnwokorie1957/pthhs/blob/ca4a9f7b7501ec3f707696dd818999258f6151b1/functions/src/operations/reads.ts
+https://github.com/jnwokorie1957/pthhs/blob/ca4a9f7b7501ec3f707696dd818999258f6151b1/functions/src/operations/caregiverAvailability.ts
+https://github.com/jnwokorie1957/pthhs/blob/ca4a9f7b7501ec3f707696dd818999258f6151b1/functions/src/workforce/hhaSource.ts
+https://github.com/jnwokorie1957/pthhs/blob/ca4a9f7b7501ec3f707696dd818999258f6151b1/functions/src/workforce/matchingSource.ts
+https://github.com/jnwokorie1957/pthhs/blob/ca4a9f7b7501ec3f707696dd818999258f6151b1/functions/src/workforce/matchingStore.ts
+
+Proposed priorities and shared records (design inference, not delivered):
+P1 before any source-backed matching/scheduling eligibility activation: require
+validated absence/restriction coverage for the requested period. Preserve the
+current access and module gates; a successful visit scan cannot supply this
+missing evidence. Use exact source office/caregiver/absence identities plus
+applicable contract, interval, revision/receipt and coverage, not names or PTO
+balances. An absence record and a local office-confirmed assignment retain
+distinct identities; equal dates or locations cannot create a source-visit join.
+P2 bounded read-only presentation after contract validation: a scoped timeline
+with planned visits, unavailability and explicitly unknown coverage, each with
+source/update/read labels. Do not disclose absence reasons to patients or the
+public. Do not call an unchecked interval available or a snapshot live.
+P2 service-date evidence: show current employment/account access separately
+from approved effective-date eligibility for a particular source visit. Current
+Status/Name plus LastModifiedDate cannot reconstruct a daily history. Historical
+service evidence must never reactivate an account or authorize current access.
+
+Proposed acceptance, using approved synthetic/test records first:
+1. An hourly absence blocks only its documented interval under confirmed
+   endpoint-boundary rules; earlier/later windows remain unknown unless their
+   complete coverage and other constraints are established. Test partial-day,
+   whole-day, midnight crossing, adjacent boundaries and daylight-saving changes.
+   Require source timezone/offset rules; missing or ambiguous endpoints hold.
+2. Wrong caregiver/office/contract, duplicate or changed records, deletion,
+   missing pages, deferred reads, quota and stale receipts cannot produce a
+   clear conflict result. A changes-since preview alone cannot prove no absences.
+   Establish initial coverage and deletion/replay semantics before sync design.
+3. Test current-active/future-inactive and current-inactive/past-active examples,
+   same-date transitions, gaps and corrected history. Exact effective dates and
+   ordering need an approved source contract; unsupported history stays unknown.
+   An inactive/disabled or withdrawn portal actor remains denied independently.
+4. Preserve recipient, office, patient/representative and discipline permissions
+   through linked navigation and delayed responses. Opaque local assignment
+   references confer no new source lookup or clinical-document capability.
+5. Keep a future authorization's draft form distinct from authorization valid
+   for the encounter date, restrictions, units and financial interpretation.
+   Saved questionnaire/packet/signature state is separate from EVV clock-out,
+   source verification and billing. Test changed authorization/form versions and
+   same-day multiple visits; no document attaches by patient/date alone.
+
+Role experience implications (proposed):
+Patient/authorized representative: see only the permitted appointment and
+released document instance/version; route change requests to the existing office
+review flow. Internal absence reasons, employment history and PTO stay private.
+PT/staff: show own planned schedule separately from source caseload; require
+effective assignment, discipline, source visit and document/version before
+clinical navigation. Generic packet signatures establish neither OASIS scope
+nor clinical completion; public vendor templates establish no PTHHS service.
+Office manager: show the missing interval/history evidence beside a scheduling
+conflict, not a staffing recommendation inferred from current status. Keep
+authorization review, EVV exception/original-event review and billing follow-up
+as independent linked queues. No clock span proves worked/payable/billable time.
+Admin/public: secure entry and scoped links may connect existing roles; public
+opportunities and clinical vendor features confer no private record permission.
+
+Dependencies / precise next owner-vendor action:
+Through the existing approved private channel, confirm tenant enablement and
+supported read contract for partial-day StartDate/EndDate encoding, timezone,
+boundary semantics, absence/restriction scope, complete baseline, changes and
+deletions. Request the supported daily/scheduled status-history read and exact
+effective-date/office/caregiver linkage. If another operation/version is needed,
+obtain the required read approval before adding it. Use approved test records
+to compare authorized UI and response; retain private values outside research.
+No message was sent. Owner must separately approve eligibility policy and role
+scope; vendor documentation cannot supply an agency decision.
+
+Access and validation limits:
+No current authorized HHA UI was observed in this pass. The November 25 browser
+input-geometry blocker remains the dated access issue; restore a visible,
+targetable normal Primetime window and normal sign-in if needed before tenant
+comparison. No bypass or new diagnosis. Anonymous WSDL metadata reads contained
+no credentials or record query. Repository/link and diff checks cover this
+documentation update: audit passes for 1,007 tracked files and 646 Markdown
+links; diff whitespace checks pass. No runtime tests or deployment were needed
+for these three documentation-only changes; tenant acceptance remains pending.
+January 1 publication, scheduled-history review, module activation and production
+acceptance remain separate pending gates. Original October 24 stays resolved
+by the independent October 31 reread; no new time recovery is claimed here.

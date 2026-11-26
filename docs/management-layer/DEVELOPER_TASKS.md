@@ -1,5 +1,21 @@
 # PTHHS Management Layer — Developer Checklist
 
+- [ ] P1 before source-backed matching/scheduling eligibility activation:
+  validate complete absence/restriction coverage. Current visit commitments and
+  weekly other-work review do not read the absence ledger. November vendor
+  guidance supports partial-day absences, but V2 StartDate/EndDate remain raw
+  optional strings; do not infer date-only or hourly semantics. Confirm source
+  timezone/boundaries, identity/contract scope, baseline/change/deletion coverage
+  before an interval mapper. Test unknown/stale/partial coverage, cross-office,
+  midnight, adjacent boundaries and DST. No new read/module is enabled here.
+- [ ] P2 effective-date status and read-only role timeline: obtain supported
+  daily/scheduled history before interpreting status on a visit date. Current
+  Status/Name and LastModifiedDate cannot reconstruct it. Keep current account
+  and actor access independent; test past/future transitions, gaps, corrections
+  and disabled/withdrawn actors. Keep future-authorization draft forms, clinical
+  document versions, EVV clock-out and billing state distinct.
+  [November 26 source comparison and proposed acceptance](ROLE_WORKFLOW_RESEARCH.txt).
+
 - [x] PR68/70 caregiver calendar references and update provenance implemented
   as staged source `743c406`. Own-record references remain stable across
   office edits; version/office update and portal read time stay separate.

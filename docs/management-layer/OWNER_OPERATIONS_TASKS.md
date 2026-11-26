@@ -14,6 +14,16 @@
 
 ## Start here
 
+- [ ] Before source-backed matching/scheduling eligibility activation, use the
+  existing approved private HHA channel to confirm partial-day absence encoding,
+  timezone/boundaries, office/caregiver/contract scope, complete baseline and
+  change/deletion semantics, plus a supported effective-date status-history
+  read. Confirm tenant enablement against approved test records after normal
+  browser access works. Separately approve the eligibility/role policy; current
+  employment/account access must not be changed by historical visit evidence.
+  No new endpoint approval or communication is inferred from public release notes.
+  [November 26 research, source limits and proposed acceptance](ROLE_WORKFLOW_RESEARCH.txt).
+
 - [ ] Before scheduled publication of the staged calendar changes, the
   release operator must reconcile the failed/mixed main-history source from
   PR68 (`3ca8601`, scope45642037469). The CI test-runner edit was included with
