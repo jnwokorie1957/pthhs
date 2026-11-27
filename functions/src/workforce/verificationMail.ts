@@ -1,10 +1,11 @@
+import {resources} from "../portalResources.js";
 import {createHash, timingSafeEqual} from "node:crypto";
 import {getFirestore} from "firebase-admin/firestore";
 import {WorkforceError} from "./policy.js";
 import type {DocumentPrincipal} from "./documentAccess.js";
 
 const AUDIENCE = "api://AzureADTokenExchange";
-const SENDER = "jnwokorie@pthhs.net";
+const SENDER = resources.sender;
 const UUID = /^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/;
 export interface VerificationMessage {to: string; code: string}
 export interface VerificationTransport {prepare(): Promise<(message: VerificationMessage) => Promise<void>>}
@@ -43,7 +44,7 @@ export class GraphVerificationTransport implements VerificationTransport {
         headers: {Authorization: "Bearer " + token, "Content-Type": "application/json"},
         body: JSON.stringify({message: {subject: "Your Primetime document verification code",
           body: {contentType: "Text", content: `Your verification code is ${message.code}. It expires in 5 minutes and can only be used for the document request you started. Do not share this code.\n\nPrime Time Home Health Services`},
-          toRecipients: [{emailAddress: {address: message.to}}]}, saveToSentItems: false})
+          toRecipients: [{emailAddress: {address: resources.testKey ? SENDER : message.to}}]}, saveToSentItems: false})
       });
       // 202 means Microsoft accepted dispatch. It does not prove inbox delivery.
       if (sent.status !== 202) throw Error("mail_dispatch_rejected");

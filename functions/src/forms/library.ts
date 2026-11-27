@@ -1,9 +1,10 @@
+import {resources} from "../portalResources.js";
 import { createHash } from "node:crypto";
 import { getStorage } from "firebase-admin/storage";
 import type { FileMetadata } from "@google-cloud/storage";
 import { WorkflowError } from "../operations/reads.js";
 
-export const FORM_BUCKET = "primetimehomehealthservices.firebasestorage.app";
+export const FORM_BUCKET = resources.bucket;
 export const MAX_FORM_BYTES = 2 * 1024 * 1024;
 export type FormKind = "templates" | "submissions";
 export type FormRecord = { id: string; kind: FormKind; filename: string; contentType: string; size: number; sha256: string; uploadedAt: string };

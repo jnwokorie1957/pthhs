@@ -1,3 +1,4 @@
+import {resources} from "../portalResources.js";
 import {AdmissionPackets} from './admissionPackets.js';
 import {OpportunityMatching} from './matchingStore.js';
 import {authorizationClient} from './authorizationCoverage.js';
@@ -101,8 +102,8 @@ async function hhaEnrollment(lane:"interactive"|"background"="interactive"){
   if(!office||!settings.dataApproved)throw new WorkforceError(503,"hha_profile_unavailable");
   const sendReset=async(email:string)=>{
     const origin=new URL(portalOrigin.value());if(origin.protocol!=="https:"||origin.pathname!=="/"||origin.search||origin.hash)throw new WorkforceError(503,"portal_origin_unconfigured");
-    const configuration=await fetch("https://primetimehomehealthservices.firebaseapp.com/__/firebase/init.json",{signal:AbortSignal.timeout(10000)});if(!configuration.ok)throw new WorkforceError(503,"reset_delivery_unavailable");
-    const config=await configuration.json() as {apiKey?:string;projectId?:string};if(!config.apiKey||config.projectId!=="primetimehomehealthservices")throw new WorkforceError(503,"reset_delivery_unavailable");
+    const configuration=await fetch(`https://${resources.project}.firebaseapp.com/__/firebase/init.json`,{signal:AbortSignal.timeout(10000)});if(!configuration.ok)throw new WorkforceError(503,"reset_delivery_unavailable");
+    const config=await configuration.json() as {apiKey?:string;projectId?:string};if(!config.apiKey||config.projectId!==resources.project)throw new WorkforceError(503,"reset_delivery_unavailable");
     const response=await fetch("https://identitytoolkit.googleapis.com/v1/accounts:sendOobCode?key="+encodeURIComponent(config.apiKey),{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({requestType:"PASSWORD_RESET",email,continueUrl:origin.origin+"/caregiver"}),signal:AbortSignal.timeout(10000)});if(!response.ok)throw new WorkforceError(503,"reset_delivery_unavailable");
   };
   return new HhaEnrollment((office,actor)=>new HhaProfileSource(workspace,actor,office),office,sendReset);

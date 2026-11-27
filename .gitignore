@@ -25,3 +25,4 @@ public/assets/form-viewer/
 # Never commit downloaded service-account credentials
 *service-account*.json
 *service_account*.json
+/functions/portal-test-build/

@@ -1,3 +1,4 @@
+import {resources} from "../portalResources.js";
 import {getApp} from 'firebase-admin/app';
 import {addressComponents} from './addresses.js';
 import {HhaProfileSource} from './hhaSource.js';
@@ -7,7 +8,7 @@ import type {OperationsWorkspace} from '../operations/workspace.js';
 type Workspace=Pick<OperationsWorkspace,'settings'|'query'>;
 export class MatchingMaps {
  constructor(private enabled:boolean,private request:typeof fetch=fetch,private token=async()=>{const c=getApp().options.credential;if(!c)throw Error('unavailable');return (await c.getAccessToken()).access_token;}){}
- private async headers(mask:string){if(!this.enabled)throw new WorkforceError(423,'matching_maps_pending');return {Authorization:'Bearer '+await this.token(),'X-Goog-User-Project':'primetimehomehealthservices','X-Goog-FieldMask':mask,'Content-Type':'application/json'};}
+ private async headers(mask:string){if(!this.enabled)throw new WorkforceError(423,'matching_maps_pending');return {Authorization:'Bearer '+await this.token(),'X-Goog-User-Project':resources.project,'X-Goog-FieldMask':mask,'Content-Type':'application/json'};}
  async verify(id:string){placeId(id);const response=await this.request('https://places.googleapis.com/v1/places/'+encodeURIComponent(id),{headers:await this.headers('addressComponents'),redirect:'error',signal:AbortSignal.timeout(8000)});if(!response.ok)throw new WorkforceError(503,'matching_address_unavailable');const result=await response.json() as {addressComponents:unknown};return addressComponents(result.addressComponents);}
  async route(origin:string,destination:string):Promise<RouteProof>{placeId(origin);placeId(destination);const response=await this.request('https://routes.googleapis.com/directions/v2:computeRoutes',{method:'POST',headers:await this.headers('routes.distanceMeters,routes.duration'),redirect:'error',signal:AbortSignal.timeout(10000),body:JSON.stringify({origin:{placeId:origin},destination:{placeId:destination},travelMode:'DRIVE',routingPreference:'TRAFFIC_UNAWARE',computeAlternativeRoutes:false})});if(!response.ok)throw new WorkforceError(503,'matching_route_unavailable');const result=await response.json() as {routes?:{distanceMeters:number;duration:string}[]};const row=result.routes?.[0];if(result.routes?.length!==1||!row||!Number.isSafeInteger(row.distanceMeters)||row.distanceMeters<0||!/^\d+(?:\.\d+)?s$/.test(row.duration))throw new WorkforceError(503,'matching_route_unavailable');return {meters:row.distanceMeters,seconds:Number(row.duration.slice(0,-1)),checkedAt:new Date().toISOString()};}
 }

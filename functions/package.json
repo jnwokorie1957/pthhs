@@ -10,6 +10,7 @@
   },
   "scripts": {
     "build": "tsc",
+    "build:portal-test": "node scripts/build-portal-test.mjs",
     "check": "tsc --noEmit",
     "serve": "npm run build && firebase emulators:start --only functions",
     "deploy": "firebase deploy --only functions",

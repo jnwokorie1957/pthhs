@@ -1,3 +1,4 @@
+import {resources} from "../portalResources.js";
 import { createCipheriv, createDecipheriv, randomBytes } from "node:crypto";
 import { GoogleAuth } from "google-auth-library";
 import { WorkforceError } from "./policy.js";
@@ -50,7 +51,7 @@ export class EnvelopeDocumentCipher implements DocumentCipher {
 export function kmsDocumentCipher(): DocumentCipher {
   const name = process.env.WORKFORCE_DOCUMENT_KMS_KEY || "";
   // Pin the project and region. A file cannot redirect the service to another key.
-  if (!/^projects\/primetimehomehealthservices\/locations\/us-central1\/keyRings\/[a-zA-Z0-9_-]+\/cryptoKeys\/[a-zA-Z0-9_-]+$/.test(name)) {
+  if (resources.testKey ? name !== resources.testKey : !/^projects\/primetimehomehealthservices\/locations\/us-central1\/keyRings\/[a-zA-Z0-9_-]+\/cryptoKeys\/[a-zA-Z0-9_-]+$/.test(name)) {
     throw new WorkforceError(503, "document_key_unavailable");
   }
   const auth = new GoogleAuth({scopes: ["https://www.googleapis.com/auth/cloudkms"]});
@@ -59,7 +60,7 @@ export function kmsDocumentCipher(): DocumentCipher {
       const client = await auth.getClient();
       const response = await client.request<Record<string, string>>({
         url: `https://cloudkms.googleapis.com/v1/${name}:${action}`, method: "POST", timeout: 10000,
-        headers: {"x-goog-user-project": "primetimehomehealthservices"},
+        headers: {"x-goog-user-project": resources.project},
         data: {[action === "encrypt" ? "plaintext" : "ciphertext"]: value.toString("base64"), additionalAuthenticatedData: context.toString("base64")}
       });
       const result = response.data[action === "encrypt" ? "ciphertext" : "plaintext"];

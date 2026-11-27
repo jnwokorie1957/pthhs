@@ -90,7 +90,7 @@ The script encrypts unique synthetic bytes as the API identity, uploads them to 
 ### Before switching production traffic
 
 1. Return the test project ID, smoke-test result, controlled test mailbox, and test Entra app and tenant IDs to the deployment operator. Keep credentials in the approved secret store.
-2. For the full application test, configure the test build's bucket, KMS project and quota project, and verification sender for the test environment. Current source pins production values. Use test-only integrations. Confirm all application calls are directed to test resources before exercising authenticated handlers. A same-project staging runtime identity can avoid cross-project attachment restrictions, but its federation subject differs.
+2. For the full application test, use the dedicated backend package described below. Use test-only integrations. Confirm all application calls are directed to test resources before exercising authenticated handlers. A same-project staging runtime identity can avoid cross-project attachment restrictions, but its federation subject differs.
 3. For a mail test using the actual decrypt identity, the Entra administrator must trust Google issuer `https://accounts.google.com`, subject `115808490644514448607`, and audience `api://AzureADTokenExchange` on the **test** mail application. Restrict mail to the controlled test sender. Use two synthetic applicants and one synthetic staff user to verify owner access, staff access, cross-applicant denial and signed-out denial.
 4. Review permission use across the other enabled API features before authorizing production resource bindings. The commands above cover the synthetic document workflow. They are not a production-wide permission manifest. Grant the deployment principal `roles/iam.serviceAccountUser` individually on each runtime identity for cutover. Record the previous function revisions and runtime identities, switch one function at a time, and verify both the revision identity and application behavior.
 5. Retire the shared Editor grant only after the other identified workloads have been migrated or independently verified.
@@ -103,3 +103,19 @@ for sa in "$API" "$DEC"; do
   gcloud iam service-accounts add-iam-policy-binding "$sa" --project="$OWNER_PROJECT" --member="$DEPLOYER" --role=roles/iam.serviceAccountUser --condition=None
 done
 ```
+
+### Build and validate the synthetic portal backend
+
+From the repository root, run:
+
+```bash
+npm ci --prefix functions
+npm run build:portal-test --prefix functions
+node --test functions/scripts/portal-test-build.test.mjs
+```
+
+The generated Functions source directory is `functions/portal-test-build`. Its package entry exports only `workforceApi` and `workforceDocumentDecrypt`. Use this separate source for staging. The normal production Functions entry remains in `functions/package.json`.
+
+Set `PORTAL_TEST_PROJECT` to the administrator's test project ID and `PORTAL_TEST_SENDER` to the controlled test sender mailbox in the test runtime and during function discovery. `GCLOUD_PROJECT` must identify the same test project. The package derives its bucket as `<project>-portal-iam-test`, its quota project as `<project>`, and its key as `projects/<project>/locations/us-central1/keyRings/portal-test/cryptoKeys/documents`. A conflicting explicit KMS key aborts startup. Supply the test Entra tenant and client through `WORKFORCE_DOCUMENT_MAIL_TENANT` and `WORKFORCE_DOCUMENT_MAIL_CLIENT`. Test verification messages go to the controlled sender inbox even when a synthetic applicant has a different address.
+
+The offline test uses a reserved .invalid address and a mocked mail transport. Runtime IAM, real test-mailbox delivery and authenticated end-to-end access require the administrator grants and a staging deployment with the intended identities. Keep unrelated integrations disabled and use only synthetic fixtures in staging.

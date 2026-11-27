@@ -1,3 +1,4 @@
+import {resources} from "../portalResources.js";
 import { getApp } from "firebase-admin/app";
 import { WorkforceError } from "./policy.js";
 export interface Address { street: string; city: string; state: string; zip: string }
@@ -35,7 +36,7 @@ export class GoogleAddressLookup {
     const url = details ? `https://places.googleapis.com/v1/places/${encodeURIComponent(parsed.value)}?sessionToken=${encodeURIComponent(parsed.sessionToken)}` : "https://places.googleapis.com/v1/places:autocomplete";
     const response = await this.request(url, {
       method: details ? "GET" : "POST", signal: AbortSignal.timeout(6000),
-      headers: { Authorization: authorization, "X-Goog-User-Project": "primetimehomehealthservices", "Content-Type": "application/json",
+      headers: { Authorization: authorization, "X-Goog-User-Project": resources.project, "Content-Type": "application/json",
         "X-Goog-FieldMask": details ? "addressComponents" : "suggestions.placePrediction.placeId,suggestions.placePrediction.text.text" },
       ...(details ? {} : { body: JSON.stringify({ input: parsed.value, sessionToken: parsed.sessionToken, includedRegionCodes: ["us"], languageCode: "en" }) })
     });

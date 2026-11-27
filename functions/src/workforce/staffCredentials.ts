@@ -1,3 +1,4 @@
+import {resources} from "../portalResources.js";
 import { createHash } from "node:crypto";
 import { getAuth } from "firebase-admin/auth";
 import { getFirestore } from "firebase-admin/firestore";
@@ -13,12 +14,12 @@ function username(value: unknown): string {
 }
 
 async function identityRequest(operation: "sendOobCode" | "signInWithPassword", body: object) {
-  const init = await fetch("https://primetimehomehealthservices.firebaseapp.com/__/firebase/init.json", {
+  const init = await fetch(`https://${resources.project}.firebaseapp.com/__/firebase/init.json`, {
     redirect: "error", signal: AbortSignal.timeout(8000),
   });
   if (!init.ok) throw new WorkforceError(503, "staff_auth_unavailable");
   const config = await init.json() as {projectId?: string; apiKey?: string};
-  if (config.projectId !== "primetimehomehealthservices" || !config.apiKey) {
+  if (config.projectId !== resources.project || !config.apiKey) {
     throw new WorkforceError(503, "staff_auth_unavailable");
   }
   return fetch("https://identitytoolkit.googleapis.com/v1/accounts:" + operation + "?key=" + encodeURIComponent(config.apiKey), {
